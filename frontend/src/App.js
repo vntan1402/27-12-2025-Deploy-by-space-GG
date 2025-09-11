@@ -573,9 +573,18 @@ const HomePage = () => {
     }
   };
 
-  const handleShipClick = (ship) => {
+  const handleShipClick = (ship, categoryKey = 'documents') => {
     setSelectedShip(ship);
-    setSelectedSubMenu('certificates'); // Default to certificates
+    setSelectedCategory(categoryKey);
+    // Set default submenu based on category
+    if (categoryKey === 'documents') {
+      setSelectedSubMenu('certificates');
+    } else {
+      const categorySubMenus = subMenuItems[categoryKey];
+      if (categorySubMenus && categorySubMenus.length > 0) {
+        setSelectedSubMenu(categorySubMenus[0].key);
+      }
+    }
   };
 
   const categories = [
