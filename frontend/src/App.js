@@ -588,13 +588,38 @@ const HomePage = () => {
   ];
 
   const subMenuItems = {
-    certificates: [
-      { key: 'certificates', name: t.certificates },
-      { key: 'inspection_records', name: t.inspectionRecords },
-      { key: 'survey_reports', name: t.surveyReports },
-      { key: 'drawings_manuals', name: t.drawingsManuals },
-      { key: 'other_documents', name: t.otherDocuments },
-    ]
+    documents: [
+      { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
+      { key: 'inspection_records', name: language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records' },
+      { key: 'survey_reports', name: language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports' },
+      { key: 'drawings_manuals', name: language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals' },
+      { key: 'other_documents', name: language === 'vi' ? 'Hồ sơ khác' : 'Other Documents' },
+    ],
+    crew: [
+      { key: 'crew_list', name: language === 'vi' ? 'Danh sách thuyền viên' : 'Crew List' },
+      { key: 'crew_certificates', name: language === 'vi' ? 'Chứng chỉ thuyền viên' : 'Crew Certificates' },
+      { key: 'medical_records', name: language === 'vi' ? 'Hồ sơ y tế' : 'Medical Records' },
+    ],
+    ism: [
+      { key: 'ism_certificate', name: language === 'vi' ? 'Chứng chỉ ISM' : 'ISM Certificate' },
+      { key: 'safety_procedures', name: language === 'vi' ? 'Quy trình an toàn' : 'Safety Procedures' },
+      { key: 'audit_reports', name: language === 'vi' ? 'Báo cáo kiểm toán' : 'Audit Reports' },
+    ],
+    isps: [
+      { key: 'isps_certificate', name: language === 'vi' ? 'Chứng chỉ ISPS' : 'ISPS Certificate' },
+      { key: 'security_plan', name: language === 'vi' ? 'Kế hoạch bảo mật' : 'Security Plan' },
+      { key: 'security_assessments', name: language === 'vi' ? 'Đánh giá bảo mật' : 'Security Assessments' },
+    ],
+    mlc: [
+      { key: 'mlc_certificate', name: language === 'vi' ? 'Chứng chỉ MLC' : 'MLC Certificate' },
+      { key: 'labor_conditions', name: language === 'vi' ? 'Điều kiện lao động' : 'Labor Conditions' },
+      { key: 'accommodation_reports', name: language === 'vi' ? 'Báo cáo nơi ở' : 'Accommodation Reports' },
+    ],
+    supplies: [
+      { key: 'inventory', name: language === 'vi' ? 'Tồn kho' : 'Inventory' },
+      { key: 'purchase_orders', name: language === 'vi' ? 'Đơn đặt hàng' : 'Purchase Orders' },
+      { key: 'spare_parts', name: language === 'vi' ? 'Phụ tùng thay thế' : 'Spare Parts' },
+    ],
   };
 
   const formatDate = (dateString) => {
