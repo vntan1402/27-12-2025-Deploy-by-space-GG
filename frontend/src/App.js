@@ -523,7 +523,7 @@ const App = () => {
 const HomePage = () => {
   const { user, logout, language, toggleLanguage } = useAuth();
   const [ships, setShips] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('documents');
   const [selectedShip, setSelectedShip] = useState(null);
   const [selectedSubMenu, setSelectedSubMenu] = useState(null);
   const [certificates, setCertificates] = useState([]);
