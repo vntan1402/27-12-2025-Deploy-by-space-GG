@@ -794,7 +794,7 @@ const HomePage = () => {
                       {/* Sub Menu */}
                       <div className="mb-4">
                         <div className="flex flex-wrap gap-2">
-                          {subMenuItems.certificates.map((item) => (
+                          {subMenuItems[selectedCategory] && subMenuItems[selectedCategory].map((item) => (
                             <button
                               key={item.key}
                               onClick={() => setSelectedSubMenu(item.key)}
