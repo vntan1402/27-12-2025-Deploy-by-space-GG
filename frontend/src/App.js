@@ -579,11 +579,12 @@ const HomePage = () => {
   };
 
   const categories = [
-    { key: 'certificates', name: t.certificates, icon: '📜' },
-    { key: 'inspection_records', name: t.inspectionRecords, icon: '🔍' },
-    { key: 'survey_reports', name: t.surveyReports, icon: '📊' },
-    { key: 'drawings_manuals', name: t.drawingsManuals, icon: '📐' },
-    { key: 'other_documents', name: t.otherDocuments, icon: '📁' },
+    { key: 'documents', name: language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio', icon: '📁' },
+    { key: 'crew', name: language === 'vi' ? 'Thuyền viên' : 'Crew Records', icon: '👥' },
+    { key: 'ism', name: language === 'vi' ? 'Hồ sơ ISM' : 'ISM Records', icon: '📋' },
+    { key: 'isps', name: language === 'vi' ? 'Hồ sơ ISPS' : 'ISPS Records', icon: '🛡️' },
+    { key: 'mlc', name: language === 'vi' ? 'Hồ sơ MLC' : 'MLC Records', icon: '⚖️' },
+    { key: 'supplies', name: language === 'vi' ? 'Vật tư' : 'Supplies', icon: '📦' },
   ];
 
   const subMenuItems = {
