@@ -836,8 +836,8 @@ const HomePage = () => {
                     </div>
                   </div>
 
-                  {/* Certificates Table */}
-                  {selectedSubMenu === 'certificates' && (
+                  {/* Content based on selected category and submenu */}
+                  {selectedCategory === 'documents' && selectedSubMenu === 'certificates' && (
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-gray-800">
                         {language === 'vi' ? 'Danh mục Giấy chứng nhận' : 'Certificate List'}
@@ -848,12 +848,12 @@ const HomePage = () => {
                           <thead>
                             <tr className="bg-gray-50">
                               <th className="border border-gray-300 px-4 py-2 text-left">No.</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{t.certName}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{t.certNo}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{t.issueDate}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{t.validDate}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{t.lastEndorse}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{t.nextSurvey}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -888,18 +888,25 @@ const HomePage = () => {
                     </div>
                   )}
                   
-                  {/* Other document types placeholders */}
-                  {selectedSubMenu !== 'certificates' && (
+                  {/* Other categories content */}
+                  {selectedCategory !== 'documents' || selectedSubMenu !== 'certificates' ? (
                     <div className="text-center py-12">
-                      <div className="text-6xl mb-4">📋</div>
+                      <div className="text-6xl mb-4">
+                        {selectedCategory === 'crew' ? '👥' : 
+                         selectedCategory === 'ism' ? '📋' :
+                         selectedCategory === 'isps' ? '🛡️' :
+                         selectedCategory === 'mlc' ? '⚖️' :
+                         selectedCategory === 'supplies' ? '📦' : '📋'}
+                      </div>
                       <h3 className="text-xl font-semibold mb-2">
-                        {subMenuItems.certificates.find(item => item.key === selectedSubMenu)?.name}
+                        {subMenuItems[selectedCategory]?.find(item => item.key === selectedSubMenu)?.name || 
+                         categories.find(cat => cat.key === selectedCategory)?.name}
                       </h3>
                       <p className="text-gray-600">
                         {language === 'vi' ? 'Danh mục này đang được phát triển' : 'This section is under development'}
                       </p>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               ) : (
                 // Default view when no ship is selected
