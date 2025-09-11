@@ -525,6 +525,8 @@ const HomePage = () => {
   const [ships, setShips] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedShip, setSelectedShip] = useState(null);
+  const [selectedSubMenu, setSelectedSubMenu] = useState(null);
+  const [certificates, setCertificates] = useState([]);
   const [companyLogo, setCompanyLogo] = useState(null);
   const navigate = useNavigate();
   
@@ -534,6 +536,12 @@ const HomePage = () => {
     fetchShips();
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'certificates') {
+      fetchCertificates(selectedShip.id);
+    }
+  }, [selectedShip, selectedSubMenu]);
 
   const fetchShips = async () => {
     try {
@@ -555,6 +563,21 @@ const HomePage = () => {
     }
   };
 
+  const fetchCertificates = async (shipId) => {
+    try {
+      const response = await axios.get(`${API}/ships/${shipId}/certificates`);
+      setCertificates(response.data);
+    } catch (error) {
+      console.error('Failed to fetch certificates:', error);
+      setCertificates([]);
+    }
+  };
+
+  const handleShipClick = (ship) => {
+    setSelectedShip(ship);
+    setSelectedSubMenu('certificates'); // Default to certificates
+  };
+
   const categories = [
     { key: 'certificates', name: t.certificates, icon: '📜' },
     { key: 'inspection_records', name: t.inspectionRecords, icon: '🔍' },
@@ -562,6 +585,25 @@ const HomePage = () => {
     { key: 'drawings_manuals', name: t.drawingsManuals, icon: '📐' },
     { key: 'other_documents', name: t.otherDocuments, icon: '📁' },
   ];
+
+  const subMenuItems = {
+    certificates: [
+      { key: 'certificates', name: t.certificates },
+      { key: 'inspection_records', name: t.inspectionRecords },
+      { key: 'survey_reports', name: t.surveyReports },
+      { key: 'drawings_manuals', name: t.drawingsManuals },
+      { key: 'other_documents', name: t.otherDocuments },
+    ]
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('vi-VN');
+    } catch (error) {
+      return '-';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -606,7 +648,7 @@ const HomePage = () => {
 
       <div className="container mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Left Sidebar - Categories */}
+          {/* Left Sidebar - Categories and Ships */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-6 text-gray-800">{t.documentManagement}</h3>
             <div className="space-y-3">
@@ -633,14 +675,11 @@ const HomePage = () => {
                           {ships.map((ship) => (
                             <button
                               key={ship.id}
-                              onClick={() => {
-                                setSelectedShip(ship);
-                                navigate(`/ships/${ship.id}?category=${category.key}`);
-                              }}
+                              onClick={() => handleShipClick(ship)}
                               className="block w-full text-left p-2 rounded hover:bg-blue-50 transition-all text-sm border border-gray-100 hover:border-blue-200"
                             >
-                              {ship.name}
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="font-medium">{ship.name}</div>
+                              <div className="text-xs text-gray-500">
                                 IMO: {ship.imo_number}
                               </div>
                             </button>
@@ -661,46 +700,180 @@ const HomePage = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow-lg p-8 min-h-96">
-              {companyLogo ? (
-                <div
-                  className="w-full h-96 bg-cover bg-center rounded-lg flex items-center justify-center"
-                  style={{ backgroundImage: `url(${BACKEND_URL}${companyLogo})` }}
-                >
-                  <div className="bg-black bg-opacity-50 text-white p-6 rounded-lg text-center">
-                    <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}</h2>
-                    <p className="text-lg">{t.homeTitle}</p>
+              {/* Ship Details */}
+              {selectedShip ? (
+                <div>
+                  {/* Ship Header with Photo */}
+                  <div className="grid md:grid-cols-3 gap-6 mb-6">
+                    <div className="md:col-span-1">
+                      <div className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-4xl mb-2">🚢</div>
+                          <p className="font-semibold">SHIP PHOTO</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+                        {language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio'}
+                      </h2>
+                      
+                      {/* Sub Menu */}
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {subMenuItems.certificates.map((item) => (
+                            <button
+                              key={item.key}
+                              onClick={() => setSelectedSubMenu(item.key)}
+                              className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                selectedSubMenu === item.key 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Ship Information */}
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="font-semibold">{t.shipName}:</span>
+                          <span className="ml-2">{selectedShip.name}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold">{t.class}:</span>
+                          <span className="ml-2">{selectedShip.class_society}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold">{t.flag}:</span>
+                          <span className="ml-2">{selectedShip.flag}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold">{t.grossTonnage}:</span>
+                          <span className="ml-2">{selectedShip.gross_tonnage}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold">{t.deadweight}:</span>
+                          <span className="ml-2">{selectedShip.deadweight}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Certificates Table */}
+                  {selectedSubMenu === 'certificates' && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                        {language === 'vi' ? 'Danh mục Giấy chứng nhận' : 'Certificate List'}
+                      </h3>
+                      
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-300 text-sm">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="border border-gray-300 px-4 py-2 text-left">No.</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{t.certName}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{t.certNo}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{t.issueDate}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{t.validDate}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{t.lastEndorse}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{t.nextSurvey}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {certificates.length === 0 ? (
+                              <tr>
+                                <td colSpan="7" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                  {language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates available'}
+                                </td>
+                              </tr>
+                            ) : (
+                              certificates.map((cert, index) => (
+                                <tr 
+                                  key={cert.id} 
+                                  className="hover:bg-gray-50 cursor-pointer"
+                                  onDoubleClick={() => {
+                                    toast.info(language === 'vi' ? `Mở chứng chỉ: ${cert.cert_name}` : `Open certificate: ${cert.cert_name}`);
+                                  }}
+                                >
+                                  <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{cert.cert_name}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{cert.cert_no}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Other document types placeholders */}
+                  {selectedSubMenu !== 'certificates' && (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">📋</div>
+                      <h3 className="text-xl font-semibold mb-2">
+                        {subMenuItems.certificates.find(item => item.key === selectedSubMenu)?.name}
+                      </h3>
+                      <p className="text-gray-600">
+                        {language === 'vi' ? 'Danh mục này đang được phát triển' : 'This section is under development'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-gray-500">
-                    <div className="text-6xl mb-4">🚢</div>
-                    <h2 className="text-2xl font-bold mb-2">{t.homeTitle}</h2>
-                    <p className="mb-4">{language === 'vi' ? 'Chọn danh mục để bắt đầu' : 'Select a category to get started'}</p>
-                    <p className="text-sm">
-                      {language === 'vi' ? 'Logo công ty sẽ hiển thị ở đây' : 'Company logo will be displayed here'}
-                    </p>
+                // Default view when no ship is selected
+                <div>
+                  {companyLogo ? (
+                    <div
+                      className="w-full h-96 bg-cover bg-center rounded-lg flex items-center justify-center"
+                      style={{ backgroundImage: `url(${BACKEND_URL}${companyLogo})` }}
+                    >
+                      <div className="bg-black bg-opacity-50 text-white p-6 rounded-lg text-center">
+                        <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}</h2>
+                        <p className="text-lg">{t.homeTitle}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <div className="text-6xl mb-4">🚢</div>
+                        <h2 className="text-2xl font-bold mb-2">{t.homeTitle}</h2>
+                        <p className="mb-4">{language === 'vi' ? 'Chọn tàu từ danh mục bên trái để xem thông tin' : 'Select a ship from the left categories to view details'}</p>
+                        <p className="text-sm">
+                          {language === 'vi' ? 'Logo công ty sẽ hiển thị ở đây khi được tải lên' : 'Company logo will be displayed here when uploaded'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI Features Section */}
+                  <div className="mt-8 grid md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-blue-800 mb-2">{t.aiAnalysis}</h4>
+                      <p className="text-sm text-blue-600">{language === 'vi' ? 'Phân tích tài liệu tự động' : 'Automated document analysis'}</p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-800 mb-2">{t.smartSearch}</h4>
+                      <p className="text-sm text-green-600">{language === 'vi' ? 'Tìm kiếm thông minh' : 'AI-powered search'}</p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-4 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-purple-800 mb-2">{t.complianceCheck}</h4>
+                      <p className="text-sm text-purple-600">{language === 'vi' ? 'Kiểm tra tuân thủ' : 'Compliance monitoring'}</p>
+                    </div>
                   </div>
                 </div>
               )}
-
-              {/* AI Features Section */}
-              <div className="mt-8 grid md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-800 mb-2">{t.aiAnalysis}</h4>
-                  <p className="text-sm text-blue-600">{language === 'vi' ? 'Phân tích tài liệu tự động' : 'Automated document analysis'}</p>
-                </div>
-                
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">{t.smartSearch}</h4>
-                  <p className="text-sm text-green-600">{language === 'vi' ? 'Tìm kiếm thông minh' : 'AI-powered search'}</p>
-                </div>
-                
-                <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-4 rounded-lg border border-purple-200">
-                  <h4 className="font-semibold text-purple-800 mb-2">{t.complianceCheck}</h4>
-                  <p className="text-sm text-purple-600">{language === 'vi' ? 'Kiểm tra tuân thủ' : 'Compliance monitoring'}</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
