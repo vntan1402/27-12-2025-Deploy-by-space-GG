@@ -1,54 +1,1014 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import { useState, useEffect, createContext, useContext } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Toaster } from './components/ui/sonner';
+import { toast } from 'sonner';
+import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
+// Auth Context
+const AuthContext = createContext();
+
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+// Auth Provider
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
+
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Here you could verify token validity
+    }
+    setLoading(false);
+  }, [token]);
+
+  const login = async (credentials) => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      const response = await axios.post(`${API}/auth/login`, credentials);
+      const { access_token, user } = response.data;
+      
+      setToken(access_token);
+      setUser(user);
+      localStorage.setItem('token', access_token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Login successful!');
+      return true;
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Đăng nhập thất bại!' : 'Login failed!');
+      return false;
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    toast.info(language === 'vi' ? 'Đã đăng xuất' : 'Logged out');
+  };
+
+  const toggleLanguage = () => {
+    const newLang = language === 'en' ? 'vi' : 'en';
+    setLanguage(newLang);
+    localStorage.setItem('language', newLang);
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <AuthContext.Provider value={{
+      user,
+      token,
+      loading,
+      language,
+      login,
+      logout,
+      toggleLanguage,
+      isAuthenticated: !!token
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+// Language Translations
+const translations = {
+  en: {
+    // Navigation
+    introduction: "Introduction",
+    guide: "Guide", 
+    contact: "Contact",
+    back: "Back",
+    
+    // Login Page
+    loginTitle: "Ship Management System",
+    loginSubtitle: "With AI Support",
+    loginDescription: "Maritime document management system built with AI support to help manage documents and records related to ship management and operations automatically and user-friendly. Reducing time and effort for shipping companies.",
+    systemNote: "The system is being developed and improved, so we need feedback from companies. All feedback can be sent to Email:",
+    username: "Username",
+    password: "Password",
+    loginButton: "Login",
+    version: "Version V.0.0.1",
+    
+    // Home Page
+    homeTitle: "Ship Management System",
+    accountManagement: "Account Management",
+    documentManagement: "Document Management",
+    certificates: "Certificates",
+    inspectionRecords: "Inspection Records", 
+    surveyReports: "Survey Reports",
+    drawingsManuals: "Drawings & Manuals",
+    otherDocuments: "Other Documents",
+    addNew: "Add New",
+    
+    // Account Control
+    accountControl: "Account Control",
+    companyLogo: "Company Logo",
+    addUser: "Add User",
+    permissions: "Permissions",
+    uploadLogo: "Upload Logo",
+    
+    // Contact
+    contactTitle: "Please contact us through the following methods:",
+    email: "Email",
+    phone: "Phone",
+    
+    // Ship Details
+    shipName: "Ship Name",
+    class: "Class",
+    flag: "Flag", 
+    grossTonnage: "Gross Tonnage",
+    deadweight: "Deadweight",
+    certName: "Certificate Name",
+    certNo: "Certificate No",
+    issueDate: "Issue Date",
+    validDate: "Valid Date",
+    lastEndorse: "Last Endorse",
+    nextSurvey: "Next Survey",
+    
+    // Permissions
+    viewer: "Viewer",
+    editor: "Editor", 
+    manager: "Manager",
+    admin: "Admin",
+    superAdmin: "Super Admin",
+    
+    // AI Features
+    aiAnalysis: "AI Analysis",
+    smartSearch: "Smart Search",
+    documentSummary: "Document Summary",
+    complianceCheck: "Compliance Check",
+    expiryAlert: "Expiry Alert"
+  },
+  vi: {
+    // Navigation
+    introduction: "Giới thiệu",
+    guide: "Hướng dẫn",
+    contact: "Liên hệ", 
+    back: "Quay lại",
+    
+    // Login Page
+    loginTitle: "Hệ thống quản lí tàu biển",
+    loginSubtitle: "Với sự hỗ trợ AI",
+    loginDescription: "Hệ thống quản lí dữ liệu tàu biển được xây dựng với sự hỗ trợ của công nghệ trí tuệ nhân tạo (AI) giúp quản lý các tài liệu, hồ sơ liên quan đến quản lý, vận hành khai thác tàu biển một cách tự động, thân thiện với người dùng. Giảm bớt thời gian và công sức cho các công ty vận tải biển.",
+    systemNote: "Hệ thống đang được phát triển và hoàn thiện nên rất cần sự đóng góp ý kiến của các công ty. Mọi ý kiến đóng góp xin gửi về Email:",
+    username: "Tên đăng nhập",
+    password: "Mật khẩu",
+    loginButton: "Đăng nhập",
+    version: "Phiên bản V.0.0.1",
+    
+    // Home Page
+    homeTitle: "Hệ thống quản lí tàu biển",
+    accountManagement: "Quản lý tài khoản",
+    documentManagement: "Quản lý tài liệu",
+    certificates: "Giấy chứng nhận",
+    inspectionRecords: "Hồ sơ đăng kiểm",
+    surveyReports: "Báo cáo kiểm tra", 
+    drawingsManuals: "Bản vẽ - Sổ tay",
+    otherDocuments: "Hồ sơ khác",
+    addNew: "Thêm",
+    
+    // Account Control
+    accountControl: "Quản lý tài khoản",
+    companyLogo: "Logo công ty",
+    addUser: "Thêm người dùng",
+    permissions: "Phân quyền",
+    uploadLogo: "Tải lên Logo",
+    
+    // Contact
+    contactTitle: "Vui lòng liên hệ với chúng tôi qua các hình thức sau:",
+    email: "Email",
+    phone: "Điện thoại",
+    
+    // Ship Details
+    shipName: "Tên tàu",
+    class: "Hạng",
+    flag: "Cờ",
+    grossTonnage: "Tổng trọng tải",
+    deadweight: "Trọng tải chết",
+    certName: "Tên chứng chỉ",
+    certNo: "Số chứng chỉ", 
+    issueDate: "Ngày cấp",
+    validDate: "Ngày hết hạn",
+    lastEndorse: "Xác nhận cuối",
+    nextSurvey: "Khảo sát tiếp theo",
+    
+    // Permissions
+    viewer: "Người xem",
+    editor: "Người chỉnh sửa",
+    manager: "Quản lý",
+    admin: "Quản trị viên", 
+    superAdmin: "Siêu quản trị",
+    
+    // AI Features
+    aiAnalysis: "Phân tích AI",
+    smartSearch: "Tìm kiếm thông minh", 
+    documentSummary: "Tóm tắt tài liệu",
+    complianceCheck: "Kiểm tra tuân thủ",
+    expiryAlert: "Cảnh báo hết hạn"
+  }
+};
+
+// Login Page Component
+const LoginPage = () => {
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [currentPage, setCurrentPage] = useState('login');
+  const { login, language, toggleLanguage } = useAuth();
+  const navigate = useNavigate();
+  
+  const t = translations[language];
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const success = await login(credentials);
+    if (success) {
+      navigate('/home');
+    }
+  };
+
+  const NavigationBar = ({ currentPage, onNavigate }) => (
+    <nav className="flex justify-center space-x-8 mb-8">
+      <button
+        onClick={() => onNavigate('introduction')}
+        className={`px-6 py-2 rounded-full transition-all ${
+          currentPage === 'introduction' 
+            ? 'bg-blue-600 text-white shadow-lg' 
+            : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+        }`}
+      >
+        {t.introduction}
+      </button>
+      <button
+        onClick={() => onNavigate('guide')}
+        className={`px-6 py-2 rounded-full transition-all ${
+          currentPage === 'guide'
+            ? 'bg-blue-600 text-white shadow-lg'
+            : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+        }`}
+      >
+        {t.guide}
+      </button>
+      <button
+        onClick={() => onNavigate('contact')}
+        className={`px-6 py-2 rounded-full transition-all ${
+          currentPage === 'contact'
+            ? 'bg-blue-600 text-white shadow-lg'
+            : 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-200'
+        }`}
+      >
+        {t.contact}
+      </button>
+    </nav>
+  );
+
+  if (currentPage === 'introduction') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
+        <div className="container mx-auto px-6 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">{t.loginTitle}</h1>
+            <p className="text-xl text-blue-600 mb-8">{t.loginSubtitle}</p>
+          </div>
+
+          <NavigationBar currentPage={currentPage} onNavigate={setCurrentPage} />
+
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm bg-opacity-95">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">{t.introduction}</h2>
+            <p className="text-gray-600 leading-relaxed mb-6">
+              {t.loginDescription}
+            </p>
+            <p className="text-gray-600 leading-relaxed">
+              {t.systemNote} <a href="mailto:AiSMS@gmail.com" className="text-blue-600 hover:underline">AiSMS@gmail.com</a>
+            </p>
+            
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setCurrentPage('login')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all shadow-lg hover:shadow-xl"
+              >
+                {t.back}
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-500">{t.loginTitle}</p>
+            <p className="text-sm text-gray-400">{t.version}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentPage === 'guide') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
+        <div className="container mx-auto px-6 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">{t.loginTitle}</h1>
+            <p className="text-xl text-blue-600 mb-8">{t.loginSubtitle}</p>
+          </div>
+
+          <NavigationBar currentPage={currentPage} onNavigate={setCurrentPage} />
+
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm bg-opacity-95">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">{t.guide}</h2>
+            <div className="space-y-4 text-gray-600">
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h3 className="font-semibold mb-2">1. {language === 'vi' ? 'Đăng nhập hệ thống' : 'System Login'}</h3>
+                <p>{language === 'vi' ? 'Sử dụng tài khoản được cấp để đăng nhập vào hệ thống' : 'Use your assigned credentials to login to the system'}</p>
+              </div>
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h3 className="font-semibold mb-2">2. {language === 'vi' ? 'Quản lý tài liệu' : 'Document Management'}</h3>
+                <p>{language === 'vi' ? 'Quản lý các loại chứng chỉ, hồ sơ tàu theo từng danh mục' : 'Manage certificates and ship records by categories'}</p>
+              </div>
+              <div className="p-4 bg-purple-50 rounded-lg">
+                <h3 className="font-semibold mb-2">3. {language === 'vi' ? 'Phân quyền người dùng' : 'User Permissions'}</h3>
+                <p>{language === 'vi' ? 'Hệ thống có 5 cấp độ quyền từ Viewer đến Super Admin' : 'System has 5 permission levels from Viewer to Super Admin'}</p>
+              </div>
+              <div className="p-4 bg-yellow-50 rounded-lg">
+                <h3 className="font-semibold mb-2">4. {language === 'vi' ? 'Tính năng AI' : 'AI Features'}</h3>
+                <p>{language === 'vi' ? 'Sử dụng AI để phân tích tài liệu và tìm kiếm thông minh' : 'Use AI for document analysis and smart search'}</p>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setCurrentPage('login')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all shadow-lg hover:shadow-xl"
+              >
+                {t.back}
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-500">{t.loginTitle}</p>
+            <p className="text-sm text-gray-400">{t.version}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentPage === 'contact') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
+        <div className="container mx-auto px-6 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">{t.loginTitle}</h1>
+            <p className="text-xl text-blue-600 mb-8">{t.loginSubtitle}</p>
+          </div>
+
+          <NavigationBar currentPage={currentPage} onNavigate={setCurrentPage} />
+
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm bg-opacity-95">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">{t.contact}</h2>
+            <p className="text-gray-600 mb-8">{t.contactTitle}</p>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-blue-50 p-6 rounded-xl">
+                <h3 className="font-semibold text-lg mb-4 text-blue-800">{t.email}</h3>
+                <p className="text-blue-600">
+                  <a href="mailto:AiSMS@gmail.com" className="hover:underline">AiSMS@gmail.com</a>
+                </p>
+              </div>
+              
+              <div className="bg-green-50 p-6 rounded-xl">
+                <h3 className="font-semibold text-lg mb-4 text-green-800">Zalo</h3>
+                <p className="text-green-600">AiSMS (0989357282)</p>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setCurrentPage('login')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition-all shadow-lg hover:shadow-xl"
+              >
+                {t.back}
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-500">{t.loginTitle}</p>
+            <p className="text-sm text-gray-400">{t.version}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Main Login Page
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
+      <div className="container mx-auto px-6 py-12">
+        {/* Language Toggle */}
+        <div className="absolute top-4 right-4">
+          <button
+            onClick={toggleLanguage}
+            className="bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium transition-all shadow-sm"
+          >
+            {language === 'en' ? 'Tiếng Việt' : 'English'}
+          </button>
+        </div>
+
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">{t.loginTitle}</h1>
+          <p className="text-xl text-blue-600 mb-8">{t.loginSubtitle}</p>
+        </div>
+
+        <NavigationBar currentPage={currentPage} onNavigate={setCurrentPage} />
+
+        <div className="max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 backdrop-blur-sm bg-opacity-95">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t.username}
+              </label>
+              <input
+                type="text"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                placeholder={t.username}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t.password}
+              </label>
+              <input
+                type="password"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                value={credentials.password}
+                onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                placeholder={t.password}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all shadow-lg hover:shadow-xl font-medium"
+            >
+              {t.loginButton}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-gray-500">
+            <p>{language === 'vi' ? 'Tài khoản demo: admin / admin123' : 'Demo account: admin / admin123'}</p>
+          </div>
+        </div>
+
+        <div className="text-center mt-8">
+          <p className="text-sm text-gray-500">{t.loginTitle}</p>
+          <p className="text-sm text-gray-400">{t.version}</p>
+        </div>
+      </div>
     </div>
   );
 };
 
-function App() {
+// Main App Component
+const App = () => {
   return (
-    <div className="App">
+    <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <div className="App">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+            <Route path="/account-control" element={<ProtectedRoute><AccountControlPage /></ProtectedRoute>} />
+            <Route path="/ships" element={<ProtectedRoute><ShipsPage /></ProtectedRoute>} />
+            <Route path="/ships/:shipId" element={<ProtectedRoute><ShipDetailPage /></ProtectedRoute>} />
+            <Route path="/" element={<Navigate to="/login" />} />
+          </Routes>
+          <Toaster position="top-right" />
+        </div>
       </BrowserRouter>
+    </AuthProvider>
+  );
+};
+
+// HomePage Component (Main Dashboard)
+const HomePage = () => {
+  const { user, logout, language, toggleLanguage } = useAuth();
+  const [ships, setShips] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedShip, setSelectedShip] = useState(null);
+  const [companyLogo, setCompanyLogo] = useState(null);
+  const navigate = useNavigate();
+  
+  const t = translations[language];
+
+  useEffect(() => {
+    fetchShips();
+    fetchSettings();
+  }, []);
+
+  const fetchShips = async () => {
+    try {
+      const response = await axios.get(`${API}/ships`);
+      setShips(response.data);
+    } catch (error) {
+      console.error('Failed to fetch ships:', error);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const response = await axios.get(`${API}/settings`);
+      if (response.data.logo_url) {
+        setCompanyLogo(response.data.logo_url);
+      }
+    } catch (error) {
+      console.error('Failed to fetch settings:', error);
+    }
+  };
+
+  const categories = [
+    { key: 'certificates', name: t.certificates, icon: '📜' },
+    { key: 'inspection_records', name: t.inspectionRecords, icon: '🔍' },
+    { key: 'survey_reports', name: t.surveyReports, icon: '📊' },
+    { key: 'drawings_manuals', name: t.drawingsManuals, icon: '📐' },
+    { key: 'other_documents', name: t.otherDocuments, icon: '📁' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-white shadow-lg border-b">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-gray-800">{t.homeTitle}</h1>
+              <span className="text-blue-600 text-sm">{t.loginSubtitle}</span>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={toggleLanguage}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50 transition-all"
+              >
+                {language === 'en' ? 'VI' : 'EN'}
+              </button>
+              
+              <button
+                onClick={() => navigate('/account-control')}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all shadow-sm"
+              >
+                {t.accountManagement}
+              </button>
+              
+              <span className="text-sm text-gray-600">
+                {user?.full_name} ({t[user?.role] || user?.role})
+              </span>
+              
+              <button
+                onClick={logout}
+                className="text-red-600 hover:text-red-700 px-3 py-1 rounded transition-all"
+              >
+                {language === 'vi' ? 'Đăng xuất' : 'Logout'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Left Sidebar - Categories */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-6 text-gray-800">{t.documentManagement}</h3>
+            <div className="space-y-3">
+              {categories.map((category) => (
+                <div
+                  key={category.key}
+                  className="relative"
+                  onMouseEnter={() => setSelectedCategory(category.key)}
+                  onMouseLeave={() => setSelectedCategory(null)}
+                >
+                  <button className="w-full text-left p-3 rounded-lg hover:bg-blue-50 transition-all border border-gray-200 hover:border-blue-300">
+                    <span className="mr-3">{category.icon}</span>
+                    {category.name}
+                  </button>
+                  
+                  {/* Ships dropdown */}
+                  {selectedCategory === category.key && (
+                    <div className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 w-64 z-10">
+                      <h4 className="font-medium mb-3 text-gray-700">{language === 'vi' ? 'Danh sách tàu' : 'Ships List'}</h4>
+                      {ships.length === 0 ? (
+                        <p className="text-gray-500 text-sm">{language === 'vi' ? 'Chưa có tàu nào' : 'No ships available'}</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {ships.map((ship) => (
+                            <button
+                              key={ship.id}
+                              onClick={() => {
+                                setSelectedShip(ship);
+                                navigate(`/ships/${ship.id}?category=${category.key}`);
+                              }}
+                              className="block w-full text-left p-2 rounded hover:bg-blue-50 transition-all text-sm border border-gray-100 hover:border-blue-200"
+                            >
+                              {ship.name}
+                              <div className="text-xs text-gray-500 mt-1">
+                                IMO: {ship.imo_number}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm">
+              {t.addNew}
+            </button>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-xl shadow-lg p-8 min-h-96">
+              {companyLogo ? (
+                <div
+                  className="w-full h-96 bg-cover bg-center rounded-lg flex items-center justify-center"
+                  style={{ backgroundImage: `url(${BACKEND_URL}${companyLogo})` }}
+                >
+                  <div className="bg-black bg-opacity-50 text-white p-6 rounded-lg text-center">
+                    <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}</h2>
+                    <p className="text-lg">{t.homeTitle}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-gray-500">
+                    <div className="text-6xl mb-4">🚢</div>
+                    <h2 className="text-2xl font-bold mb-2">{t.homeTitle}</h2>
+                    <p className="mb-4">{language === 'vi' ? 'Chọn danh mục để bắt đầu' : 'Select a category to get started'}</p>
+                    <p className="text-sm">
+                      {language === 'vi' ? 'Logo công ty sẽ hiển thị ở đây' : 'Company logo will be displayed here'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* AI Features Section */}
+              <div className="mt-8 grid md:grid-cols-3 gap-4">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-semibold text-blue-800 mb-2">{t.aiAnalysis}</h4>
+                  <p className="text-sm text-blue-600">{language === 'vi' ? 'Phân tích tài liệu tự động' : 'Automated document analysis'}</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2">{t.smartSearch}</h4>
+                  <p className="text-sm text-green-600">{language === 'vi' ? 'Tìm kiếm thông minh' : 'AI-powered search'}</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-4 rounded-lg border border-purple-200">
+                  <h4 className="font-semibold text-purple-800 mb-2">{t.complianceCheck}</h4>
+                  <p className="text-sm text-purple-600">{language === 'vi' ? 'Kiểm tra tuân thủ' : 'Compliance monitoring'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+// Account Control Page Component  
+const AccountControlPage = () => {
+  const { user, language } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [showAddUser, setShowAddUser] = useState(false);
+  const [showPermissions, setShowPermissions] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [logoFile, setLogoFile] = useState(null);
+  const navigate = useNavigate();
+  
+  const t = translations[language];
+
+  useEffect(() => {
+    if (user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') {
+      fetchUsers();
+    }
+  }, [user]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API}/users`);
+      setUsers(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch users');
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) return;
+    
+    const formData = new FormData();
+    formData.append('file', logoFile);
+    
+    try {
+      const response = await axios.post(`${API}/upload/logo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      toast.success(language === 'vi' ? 'Logo đã được cập nhật!' : 'Logo updated successfully!');
+      setLogoFile(null);
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể tải lên logo' : 'Failed to upload logo');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-white shadow-lg border-b">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-800">{t.accountControl}</h1>
+            <button
+              onClick={() => navigate('/home')}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all"
+            >
+              {t.back}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-6 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Company Logo Section */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">{t.companyLogo}</h3>
+            <div className="space-y-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files[0])}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              <button
+                onClick={handleLogoUpload}
+                disabled={!logoFile}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-2 rounded-lg transition-all"
+              >
+                {t.uploadLogo}
+              </button>
+            </div>
+          </div>
+
+          {/* User Management */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Quản lý người dùng' : 'User Management'}</h3>
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowAddUser(true)}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all"
+              >
+                {t.addUser}
+              </button>
+              
+              <button
+                onClick={() => setShowPermissions(true)}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-all"
+              >
+                {t.permissions}
+              </button>
+            </div>
+          </div>
+
+          {/* Users List */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Danh sách người dùng' : 'Users List'}</h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {users.map((userItem) => (
+                <div key={userItem.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-800">{userItem.full_name}</p>
+                      <p className="text-sm text-gray-600">{userItem.username} - {t[userItem.role] || userItem.role}</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(userItem.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedUsers([...selectedUsers, userItem.id]);
+                        } else {
+                          setSelectedUsers(selectedUsers.filter(id => id !== userItem.id));
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Permission Assignment Modal */}
+        {showPermissions && (
+          <PermissionModal
+            selectedUsers={selectedUsers}
+            onClose={() => setShowPermissions(false)}
+            onSuccess={() => {
+              setShowPermissions(false);
+              setSelectedUsers([]);
+              fetchUsers();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Permission Modal Component
+const PermissionModal = ({ selectedUsers, onClose, onSuccess }) => {
+  const { language } = useAuth();
+  const [permissions, setPermissions] = useState({
+    categories: [],
+    departments: [],
+    sensitivity_levels: [],
+    permissions: []
+  });
+
+  const t = translations[language];
+
+  const categories = ['certificates', 'inspection_records', 'survey_reports', 'drawings_manuals', 'other_documents'];
+  const departments = ['technical', 'operations', 'safety', 'commercial', 'crewing'];
+  const sensitivityLevels = ['public', 'internal', 'confidential', 'restricted'];
+  const permissionTypes = ['read', 'write', 'delete', 'manage_users', 'system_control'];
+
+  const handleSubmit = async () => {
+    try {
+      await axios.post(`${API}/permissions/assign`, {
+        user_ids: selectedUsers,
+        ...permissions
+      });
+      toast.success(language === 'vi' ? 'Phân quyền thành công!' : 'Permissions assigned successfully!');
+      onSuccess();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Phân quyền thất bại!' : 'Failed to assign permissions!');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">{t.permissions}</h2>
+        
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Categories */}
+          <div>
+            <h3 className="font-semibold mb-3">{language === 'vi' ? 'Loại tài liệu' : 'Document Categories'}</h3>
+            <div className="space-y-2">
+              {categories.map(cat => (
+                <label key={cat} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={permissions.categories.includes(cat)}
+                    onChange={(e) => {
+                      const newCats = e.target.checked
+                        ? [...permissions.categories, cat]
+                        : permissions.categories.filter(c => c !== cat);
+                      setPermissions(prev => ({ ...prev, categories: newCats }));
+                    }}
+                    className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="capitalize">{cat.replace('_', ' ')}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Departments */}
+          <div>
+            <h3 className="font-semibold mb-3">{language === 'vi' ? 'Phòng ban' : 'Departments'}</h3>
+            <div className="space-y-2">
+              {departments.map(dept => (
+                <label key={dept} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={permissions.departments.includes(dept)}
+                    onChange={(e) => {
+                      const newDepts = e.target.checked
+                        ? [...permissions.departments, dept]
+                        : permissions.departments.filter(d => d !== dept);
+                      setPermissions(prev => ({ ...prev, departments: newDepts }));
+                    }}
+                    className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="capitalize">{dept}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Sensitivity Levels */}
+          <div>
+            <h3 className="font-semibold mb-3">{language === 'vi' ? 'Mức độ bảo mật' : 'Sensitivity Levels'}</h3>
+            <div className="space-y-2">
+              {sensitivityLevels.map(level => (
+                <label key={level} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={permissions.sensitivity_levels.includes(level)}
+                    onChange={(e) => {
+                      const newLevels = e.target.checked
+                        ? [...permissions.sensitivity_levels, level]
+                        : permissions.sensitivity_levels.filter(l => l !== level);
+                      setPermissions(prev => ({ ...prev, sensitivity_levels: newLevels }));
+                    }}
+                    className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="capitalize">{level}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Permission Types */}
+          <div>
+            <h3 className="font-semibold mb-3">{language === 'vi' ? 'Quyền hạn' : 'Permissions'}</h3>
+            <div className="space-y-2">
+              {permissionTypes.map(perm => (
+                <label key={perm} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={permissions.permissions.includes(perm)}
+                    onChange={(e) => {
+                      const newPerms = e.target.checked
+                        ? [...permissions.permissions, perm]
+                        : permissions.permissions.filter(p => p !== perm);
+                      setPermissions(prev => ({ ...prev, permissions: newPerms }));
+                    }}
+                    className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="capitalize">{perm.replace('_', ' ')}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-8">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+          >
+            {language === 'vi' ? 'Hủy' : 'Cancel'}
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+          >
+            {language === 'vi' ? 'Áp dụng' : 'Apply'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Additional components for Ships Page and Ship Detail Page would go here
+const ShipsPage = () => <div>Ships Page - To be implemented</div>;
+const ShipDetailPage = () => <div>Ship Detail Page - To be implemented</div>;
 
 export default App;
