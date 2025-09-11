@@ -675,9 +675,9 @@ const HomePage = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Left Sidebar - Categories and Ships */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-6 text-gray-800">{t.documentManagement}</h3>
-            <div className="space-y-3">
+          <div className="bg-blue-600 rounded-xl shadow-lg p-4 text-white">
+            <h3 className="text-lg font-semibold mb-6">{language === 'vi' ? 'Danh mục quản lý' : 'Management Categories'}</h3>
+            <div className="space-y-2">
               {categories.map((category) => (
                 <div
                   key={category.key}
@@ -685,14 +685,20 @@ const HomePage = () => {
                   onMouseEnter={() => setSelectedCategory(category.key)}
                   onMouseLeave={() => setSelectedCategory(null)}
                 >
-                  <button className="w-full text-left p-3 rounded-lg hover:bg-blue-50 transition-all border border-gray-200 hover:border-blue-300">
+                  <button 
+                    className="w-full text-left p-3 rounded-lg bg-blue-500 hover:bg-blue-400 transition-all border border-blue-400 text-white font-medium"
+                    style={{
+                      background: 'linear-gradient(135deg, #4a90e2, #357abd)',
+                      border: '2px solid #2c5282'
+                    }}
+                  >
                     <span className="mr-3">{category.icon}</span>
                     {category.name}
                   </button>
                   
                   {/* Ships dropdown */}
                   {selectedCategory === category.key && (
-                    <div className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 w-64 z-10">
+                    <div className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 w-64 z-10 text-gray-800">
                       <h4 className="font-medium mb-3 text-gray-700">{language === 'vi' ? 'Danh sách tàu' : 'Ships List'}</h4>
                       {ships.length === 0 ? (
                         <p className="text-gray-500 text-sm">{language === 'vi' ? 'Chưa có tàu nào' : 'No ships available'}</p>
@@ -701,7 +707,7 @@ const HomePage = () => {
                           {ships.map((ship) => (
                             <button
                               key={ship.id}
-                              onClick={() => handleShipClick(ship)}
+                              onClick={() => handleShipClick(ship, category.key)}
                               className="block w-full text-left p-2 rounded hover:bg-blue-50 transition-all text-sm border border-gray-100 hover:border-blue-200"
                             >
                               <div className="font-medium">{ship.name}</div>
@@ -718,9 +724,40 @@ const HomePage = () => {
               ))}
             </div>
             
-            <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm">
-              {t.addNew}
-            </button>
+            {/* Additional Management Buttons */}
+            <div className="mt-6 space-y-2">
+              <button 
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm font-medium"
+                style={{
+                  background: 'linear-gradient(135deg, #48bb78, #38a169)',
+                  border: '2px solid #2f855a'
+                }}
+              >
+                {language === 'vi' ? 'THÊM HỒ SƠ MỚI' : 'ADD NEW RECORD'}
+              </button>
+              
+              <button
+                onClick={() => navigate('/account-control')}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg transition-all shadow-sm font-medium"
+                style={{
+                  background: 'linear-gradient(135deg, #4299e1, #3182ce)',
+                  border: '2px solid #2b6cb0'
+                }}
+              >
+                {language === 'vi' ? 'Quản lý tài khoản' : 'Account Management'}
+              </button>
+              
+              <button
+                onClick={logout}
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg transition-all shadow-sm font-medium"
+                style={{
+                  background: 'linear-gradient(135deg, #f56565, #e53e3e)',
+                  border: '2px solid #c53030'
+                }}
+              >
+                LOG OUT
+              </button>
+            </div>
           </div>
 
           {/* Main Content Area */}
