@@ -448,6 +448,9 @@ async def smart_search(query: str, current_user: UserResponse = Depends(get_curr
 @api_router.get("/settings")
 async def get_settings(current_user: UserResponse = Depends(get_current_user)):
     settings = await db.company_settings.find_one() or {}
+    # Remove MongoDB ObjectId if present
+    if '_id' in settings:
+        del settings['_id']
     return settings
 
 @api_router.post("/settings")
