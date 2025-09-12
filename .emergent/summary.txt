@@ -1,0 +1,80 @@
+<analysis>
+The previous AI engineer successfully initiated a Ship Management System application, iteratively building core features based on user requests. The development began with establishing the basic FastAPI, React, and MongoDB stack, then quickly moved to implement a robust JWT authentication system and a foundational user permission framework. The engineer meticulously refined the frontend UI, adjusting layouts, navigation, and interactive elements (like persistent ship details view and hover delays) to match user-provided PDF designs and feedback. A significant architectural shift involved migrating the database from MongoDB to a file-based (JSON) system, coupled with Google Drive API integration for cloud synchronization, restricted to Admin roles. The Remember me login functionality was added, and extensive demo data populated the system. Throughout, the engineer demonstrated strong adherence to UI/UX guidelines and translated all UI text to Vietnamese, ensuring a professional and user-friendly experience.
+</analysis>
+
+<product_requirements>
+The user requested a modern, professional Ship Management System web application, designed according to a provided PDF layout, with descriptive text for button actions. Key features include a comprehensive user permission system with five roles: Viewer (Read-only), Editor (Read + Write), Manager (Read + Write + User Management), Admin (Full Control), and Super Admin (System Control). Manager-level roles require category-based, department-based, sensitivity-level, bulk assignment, and analytics capabilities, presented via a checklist UI.
+
+The application also needed AI support for document analysis/processing and smart search/recommendations. The interface should support both Vietnamese and English languages, and file uploads (logo, documents) should initially use local storage for demo purposes. Authentication was to be simple username/password using JWT.
+
+Subsequent refinements included:
+1.  **Home Page Layout**: Display ship details with sub-menus and certificate tables upon ship selection, and update the sidebar with specific Vietnamese categories (Hồ sơ tài liệu, Thuyền viên, Hồ sơ ISM, Hồ sơ ISPS, Hồ sơ MLC, Vật tư) and buttons (THÊM HỒ SƠ MỚI, Quản lý tài khoản, LOG OUT).
+2.  **User Experience**: Ensure Ship Details View persists after selection and a 1-second delay for hover dropdowns.
+3.  **Data Persistence**: Integrate Google Drive for database storage and synchronization (Admin+ only access via Account Control).
+4.  **Authentication**: Add a Remember me checkbox to the login page.
+5.  **Data Population**: Add more diverse demo ship data and certificates.
+6.  **UI Text Renaming**: Change Account Control to System Settings and Google Drive Configuration to System Google Drive Configuration.
+</product_requirements>
+
+<key_technical_concepts>
+- **Full-stack**: FastAPI (backend), React (frontend).
+- **Styling**: Tailwind CSS, Shadcn UI components.
+- **Database**: Initial MongoDB, migrated to file-based (JSON) storage.
+- **Authentication**: JWT (JSON Web Tokens) for user login and session management.
+- **Cloud Integration**: Google Drive API for data synchronization.
+- **AI Integration**: Emergent LLM key and Emergent Integrations library.
+- **Data Modeling**: Pydantic for FastAPI request/response models.
+- **UI/UX Principles**: Responsive design, micro-animations, specific gradient and color usage rules.
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a standard full-stack architecture with a React frontend and a FastAPI backend, using a file-based database for data persistence and Google Drive for cloud synchronization.
+
+
+
+-   ****:
+    -   **Importance**: Core FastAPI application, handles all API routes, authentication, user management, ship/certificate CRUD operations, and Google Drive integration.
+    -   **Changes Made**: Initial setup with JWT authentication and MongoDB integration. Later, refactored to use a file-based database ( directory). Added endpoints for Google Drive configuration, status, and synchronization. Implemented  login logic, updated user roles and permissions, and integrated AI endpoints (placeholder).
+
+-   ****:
+    -   **Importance**: Dedicated module for interacting with the Google Drive API. Manages authentication, file upload, download, and synchronization with local JSON files.
+    -   **Changes Made**: Newly created file containing functions for , , , and managing service account credentials.
+
+-   ****:
+    -   **Importance**: Main frontend application logic, routing, layout structure (header, sidebar, main content), and state management for UI elements.
+    -   **Changes Made**: Implemented the multi-page layout from the PDF, including login, home, and account control (now System Settings) pages. Developed dynamic content display for ship details, sub-menus, and certificate tables. Integrated language toggling. Updated sidebar with new categories and buttons. Refined hover logic for ship lists and ensured persistent display of ship details.
+
+-   ****:
+    -   **Importance**: Global and component-specific styling using Tailwind CSS.
+    -   **Changes Made**: Applied modern, professional styling, responsive adjustments, and specific visual enhancements for depth, gradients, and micro-animations, adhering to design guidelines. Updated styling for the new sidebar layout and buttons.
+
+-   ** (Inferred for translations)**:
+    -   **Importance**: Manages all text translations for English and Vietnamese.
+    -   **Changes Made**: Updated strings for Account Control to System Settings and Google Drive Configuration to System Google Drive Configuration, along with their Vietnamese counterparts.
+
+-   ** (Inferred)**:
+    -   **Importance**: Handles user login, form submission, and displays login-related UI elements.
+    -   **Changes Made**: Added the Remember me checkbox and associated logic to store JWT tokens in  or .
+
+-   ** (now ) (Inferred)**:
+    -   **Importance**: Provides an interface for administrative tasks, including user management and system configurations.
+    -   **Changes Made**: Integrated the UI for Google Drive configuration (status, configure button, modal for credentials). Updated display logic to show Google Drive section only for Admin+ roles. Renamed to System Settings.
+
+The codebase also uses shadcn/ui components () for consistent and modern UI elements like buttons, dialogs, inputs, and toasts ().
+
+</code_architecture>
+
+<pending_tasks>
+- Implement full AI features for document analysis/processing and smart search/recommendations on the frontend.
+- Develop the THÊM HỒ SƠ MỚI (Add New Record) functionality, including forms and backend logic.
+- Implement the detailed Permission Assignment Interface as a checklist within the  modal for category, department, sensitivity, and type-based permissions.
+</pending_tasks>
+
+<current_work>
+The system is currently a fully functional Ship Management System with a modern, professional UI based on the user's PDF design. The application includes a login page with a Remember me checkbox, a dynamic Home Page displaying ship details, sub-menus, and certificate tables upon selection, and a comprehensive sidebar navigation.
+Authentication is handled via JWT, with tokens stored persistently in  if Remember me is selected, or in  otherwise. The backend has transitioned from MongoDB to a file-based JSON database (stored in ) and is integrated with Google Drive for cloud synchronization. This Google Drive configuration and sync functionality is accessible only to Admin and Super Admin roles through the System Settings page (previously Account Control). The UI elements for Account Control have been renamed to System Settings and Google Drive Configuration to System Google Drive Configuration across the application, with full bilingual support for Vietnamese and English. Extensive demo data for 8 ships and 16+ certificates with varying sensitivity levels and types has been added to populate the system. The last action successfully confirmed these naming convention changes.
+</current_work>
+
+<optional_next_step>
+Implement the detailed Permission Assignment Interface as a checklist within the System Google Drive Configuration modal.
+</optional_next_step>
