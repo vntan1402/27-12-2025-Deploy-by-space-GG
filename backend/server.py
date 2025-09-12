@@ -509,7 +509,7 @@ async def get_user(user_id: str, current_user: UserResponse = Depends(get_curren
 @api_router.put("/users/{user_id}", response_model=UserResponse)
 async def update_user(
     user_id: str, 
-    user_update: UserCreate, 
+    user_update: UserUpdate, 
     current_user: UserResponse = Depends(get_current_user)
 ):
     if not has_permission(current_user, UserRole.MANAGER):
