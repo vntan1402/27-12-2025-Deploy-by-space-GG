@@ -542,6 +542,7 @@ async def update_user(
         "full_name": user_update.full_name,
         "role": user_update.role,
         "company": user_update.company,
+        "ship": user_update.ship,
         "department": user_update.department,
         "zalo": user_update.zalo,
         "gmail": user_update.gmail,
