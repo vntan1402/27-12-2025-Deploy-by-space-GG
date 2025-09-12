@@ -2523,7 +2523,7 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
 };
 
 // Edit User Modal Component
-const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language }) => {
+const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, companies, ships }) => {
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
