@@ -899,6 +899,58 @@ async def delete_company(company_id: str, current_user: UserResponse = Depends(g
     
     return {"message": "Company deleted successfully"}
 
+@api_router.post("/companies/{company_id}/upload-logo")
+async def upload_company_logo(
+    company_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can upload company logos")
+    
+    # Check if company exists
+    existing_company = file_db.find_company({"id": company_id})
+    if not existing_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Validate file type
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+    
+    try:
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(os.getcwd(), 'uploads', 'company_logos')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        filename = f"company_{company_id}_{int(datetime.now().timestamp())}.{file_extension}"
+        file_path = os.path.join(upload_dir, filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Update company with logo URL (relative path for web serving)
+        logo_url = f"/uploads/company_logos/{filename}"
+        
+        updated_data = {
+            **existing_company,
+            "logo_url": logo_url,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        file_db.update_company({"id": company_id}, updated_data)
+        
+        # Sync to Google Drive
+        gdrive_manager.sync_to_drive()
+        
+        return {"message": "Logo uploaded successfully", "logo_url": logo_url}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload logo: {str(e)}")
+
 # Usage Tracking Routes (Admin+ only)
 @api_router.get("/usage-stats", response_model=UsageStats)
 async def get_usage_stats(
