@@ -24,7 +24,8 @@ class FileDatabase:
             'company_settings.json': {},
             'ai_analyses.json': [],
             'ai_config.json': {},
-            'companies.json': []
+            'companies.json': [],
+            'usage_tracking.json': []
         }
         
         for filename, default_content in default_data.items():
