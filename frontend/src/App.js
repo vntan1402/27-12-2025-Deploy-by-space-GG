@@ -511,6 +511,20 @@ const LoginPage = () => {
               />
             </div>
 
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={credentials.remember_me}
+                onChange={(e) => setCredentials(prev => ({ ...prev, remember_me: e.target.checked }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                {language === 'vi' ? 'Ghi nhớ đăng nhập' : 'Remember me'}
+              </label>
+            </div>
+
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all shadow-lg hover:shadow-xl font-medium"
@@ -521,6 +535,12 @@ const LoginPage = () => {
 
           <div className="mt-6 text-center text-sm text-gray-500">
             <p>{language === 'vi' ? 'Tài khoản demo: admin / admin123' : 'Demo account: admin / admin123'}</p>
+            <p className="mt-2 text-xs text-gray-400">
+              {language === 'vi' ? 
+                '"Ghi nhớ đăng nhập" sẽ giữ bạn đăng nhập trong 30 ngày' : 
+                '"Remember me" will keep you logged in for 30 days'
+              }
+            </p>
           </div>
         </div>
 
