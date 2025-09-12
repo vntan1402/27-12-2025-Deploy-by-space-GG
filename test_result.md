@@ -239,6 +239,18 @@
           agent: "testing"
           comment: "✅ COMPREHENSIVE USAGE TRACKING TESTING COMPLETED - All 20 test scenarios passed successfully: (1) Authentication with admin/admin123: ✅ PASSED, (2) Navigation to System Settings (/account-control): ✅ PASSED, (3) Usage Tracking section visibility for Admin+ users: ✅ PASSED with title 'AI Usage Tracking', (4) Usage statistics display: ✅ Total Requests (2), Estimated Cost ($0.0641 in correct $X.XXXX format), Token Usage breakdown (Input: 295 tokens, Output: 921 tokens), Provider Distribution (Openai: 2), (5) Refresh Stats button functionality: ✅ PASSED with proper loading states, (6) API integration with /api/usage-stats endpoint: ✅ PASSED, (7) Professional styling: ✅ Blue theme for requests, green theme for costs, rounded cards with shadows, (8) Vietnamese language support: ✅ 'Theo dõi sử dụng AI', 'Tổng yêu cầu', 'Chi phí ước tính', 'Làm mới thống kê', (9) Responsive design: ✅ Works on desktop (1920x1080), tablet (768x1024), and mobile (390x844), (10) Permission-based access: ✅ Visible for Admin users, properly integrated with other System Settings sections, (11) Number formatting: ✅ Proper comma formatting and currency display, (12) Loading states and error handling: ✅ Proper UX during refresh operations. Usage Tracking frontend implementation is production-ready and fully functional."
 
+  - task: "User Management UI with Integrated Table and Edit/Delete Features"
+    implemented: true
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "User Management functionality has been restructured with integrated table view and CRUD operations. Features include: (1) Integrated users table within User Management section, (2) Table columns: User Name (full name + username), Company, Department, Role (color-coded badges), Zalo, Gmail, Actions (Edit/Delete buttons), (3) EditUserModal with pre-filled data and all user fields, (4) Delete functionality with confirmation dialogs, (5) Permission-based button states (self-edit/delete prevention, Super Admin protection), (6) Vietnamese language support throughout. Ready for comprehensive testing."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
