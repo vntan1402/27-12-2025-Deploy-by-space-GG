@@ -2201,7 +2201,10 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
             onClick={onSubmit}
             className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all"
           >
-            {language === 'vi' ? 'Tạo công ty' : 'Create Company'}
+            {isEdit ?
+              (language === 'vi' ? 'Cập nhật công ty' : 'Update Company') :
+              (language === 'vi' ? 'Tạo công ty' : 'Create Company')
+            }
           </button>
         </div>
       </div>
