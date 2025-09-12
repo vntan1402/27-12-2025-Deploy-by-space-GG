@@ -263,11 +263,16 @@ async def login(user_credentials: UserLogin):
     if not user["is_active"]:
         raise HTTPException(status_code=401, detail="Account disabled")
     
-    access_token = create_access_token(user["id"], user["username"], user["role"])
+    # Check if remember me is requested (extend token expiration)
+    remember_me = getattr(user_credentials, 'remember_me', False)
+    expiration_hours = 24 * 30 if remember_me else JWT_EXPIRATION_HOURS  # 30 days vs 24 hours
+    
+    access_token = create_access_token(user["id"], user["username"], user["role"], expiration_hours)
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": UserResponse(**user)
+        "user": UserResponse(**user),
+        "remember_me": remember_me
     }
 
 @api_router.post("/auth/register", response_model=UserResponse)
