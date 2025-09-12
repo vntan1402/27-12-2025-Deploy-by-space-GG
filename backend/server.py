@@ -221,6 +221,32 @@ class AIProviderConfigUpdate(BaseModel):
     provider: str
     model: str
 
+class UsageTracking(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    provider: str  # "openai", "anthropic", "google"
+    model: str
+    request_type: str  # "document_analysis", "smart_search", "other"
+    input_tokens: int = 0
+    output_tokens: int = 0
+    estimated_cost: float = 0.0
+    success: bool = True
+    error_message: Optional[str] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    document_id: Optional[str] = None
+    search_query: Optional[str] = None
+
+class UsageStats(BaseModel):
+    total_requests: int
+    total_input_tokens: int
+    total_output_tokens: int
+    total_estimated_cost: float
+    requests_by_provider: Dict[str, int]
+    requests_by_model: Dict[str, int]
+    requests_by_type: Dict[str, int]
+    daily_usage: List[Dict[str, Any]]
+    recent_requests: List[UsageTracking]
+
 class GoogleDriveConfig(BaseModel):
     service_account_json: str
     folder_id: str
