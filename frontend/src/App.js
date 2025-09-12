@@ -1904,6 +1904,8 @@ const AccountControlPage = () => {
             }}
             onSubmit={handleEditUser}
             language={language}
+            companies={companies}
+            ships={ships}
           />
         )}
       </div>
