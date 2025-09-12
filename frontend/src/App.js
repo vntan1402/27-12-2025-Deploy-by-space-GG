@@ -1343,26 +1343,6 @@ const AccountControlPage = () => {
 
       <div className="container mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Company Logo Section */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">{t.companyLogo}</h3>
-            <div className="space-y-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setLogoFile(e.target.files[0])}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              />
-              <button
-                onClick={handleLogoUpload}
-                disabled={!logoFile}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-2 rounded-lg transition-all"
-              >
-                {t.uploadLogo}
-              </button>
-            </div>
-          </div>
-
           {/* User Management */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Quản lý người dùng' : 'User Management'}</h3>
