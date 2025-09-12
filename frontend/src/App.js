@@ -56,6 +56,7 @@ const AuthProvider = ({ children }) => {
       } else {
         // For other errors (network, etc.), don't automatically logout
         console.warn('Token verification failed with non-auth error:', error.message);
+        // Don't logout on network errors - keep the token
       }
     }
   };
