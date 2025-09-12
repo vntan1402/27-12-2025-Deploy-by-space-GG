@@ -110,5 +110,19 @@
     "sensitivity_level": "restricted",
     "file_path": null,
     "created_at": "2025-09-12 12:51:45.470543+00:00"
+  },
+  {
+    "id": "8b68e72b-45c9-45e0-97ef-21700cdf6c35",
+    "ship_id": "59d799a7-3b5d-4cac-8214-b195dc297e42",
+    "cert_name": "Continuous Synopsis Record",
+    "cert_no": "CSR159753",
+    "issue_date": "2024-07-20 00:00:00+00:00",
+    "valid_date": "2034-07-20 00:00:00+00:00",
+    "last_endorse": null,
+    "next_survey": null,
+    "category": "certificates",
+    "sensitivity_level": "public",
+    "file_path": null,
+    "created_at": "2025-09-12 12:51:55.015644+00:00"
   }
 ]
