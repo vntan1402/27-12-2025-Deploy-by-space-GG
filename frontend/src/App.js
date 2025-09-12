@@ -1810,39 +1810,6 @@ const AccountControlPage = () => {
             </div>
           )}
 
-          {/* Users List */}
-          <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Danh sách người dùng' : 'Users List'}</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {users.map((userItem) => (
-                <div key={userItem.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-800">{userItem.full_name}</p>
-                      <p className="text-sm text-gray-600">{userItem.username}</p>
-                      <p className="text-xs text-blue-600">{userItem.role === 'super_admin' ? (language === 'vi' ? 'Siêu quản trị' : 'Super Admin') :
-                        userItem.role === 'admin' ? (language === 'vi' ? 'Quản trị viên' : 'Admin') :
-                        userItem.role === 'manager' ? (language === 'vi' ? 'Quản lý' : 'Manager') :
-                        userItem.role === 'editor' ? (language === 'vi' ? 'Người chỉnh sửa' : 'Editor') :
-                        (language === 'vi' ? 'Người xem' : 'Viewer')}</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(userItem.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedUsers([...selectedUsers, userItem.id]);
-                        } else {
-                          setSelectedUsers(selectedUsers.filter(id => id !== userItem.id));
-                        }
-                      }}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Google Drive Configuration Modal */}
