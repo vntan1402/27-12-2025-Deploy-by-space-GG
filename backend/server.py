@@ -144,6 +144,7 @@ class UserResponse(BaseModel):
     role: UserRole
     department: Department
     company: Optional[str] = None
+    ship: Optional[str] = None
     zalo: Optional[str] = None
     gmail: Optional[str] = None
     is_active: bool
