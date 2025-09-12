@@ -232,7 +232,7 @@
 
 ## test_plan:
   current_focus:
-    - "Company Management with Logo Upload Backend"
+    - "Company Management UI with Individual Logo Upload"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
