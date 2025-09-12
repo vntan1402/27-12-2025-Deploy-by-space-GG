@@ -524,10 +524,12 @@ const HomePage = () => {
   const { user, logout, language, toggleLanguage } = useAuth();
   const [ships, setShips] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('documents');
+  const [hoveredCategory, setHoveredCategory] = useState(null);
   const [selectedShip, setSelectedShip] = useState(null);
-  const [selectedSubMenu, setSelectedSubMenu] = useState(null);
+  const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
   const [certificates, setCertificates] = useState([]);
   const [companyLogo, setCompanyLogo] = useState(null);
+  const [hoverTimeout, setHoverTimeout] = useState(null);
   const navigate = useNavigate();
   
   const t = translations[language];
@@ -573,9 +575,33 @@ const HomePage = () => {
     }
   };
 
+  const handleCategoryMouseEnter = (categoryKey) => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    setHoveredCategory(categoryKey);
+  };
+
+  const handleCategoryMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setHoveredCategory(null);
+    }, 1000); // 1 second delay
+    setHoverTimeout(timeout);
+  };
+
   const handleShipClick = (ship, categoryKey = 'documents') => {
+    // Clear any hover timeout
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      setHoverTimeout(null);
+    }
+    
+    // Set ship details persistently
     setSelectedShip(ship);
     setSelectedCategory(categoryKey);
+    setHoveredCategory(null); // Hide dropdown after selection
+    
     // Set default submenu based on category
     if (categoryKey === 'documents') {
       setSelectedSubMenu('certificates');
@@ -647,8 +673,8 @@ const HomePage = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-800">{t.homeTitle}</h1>
-              <span className="text-blue-600 text-sm">{t.loginSubtitle}</span>
+              <h1 className="text-2xl font-bold text-gray-800">{language === 'vi' ? 'Hệ thống quản lí tàu biển' : 'Ship Management System'}</h1>
+              <span className="text-blue-600 text-sm">{language === 'vi' ? 'Với sự hỗ trợ AI' : 'With AI Support'}</span>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -663,11 +689,15 @@ const HomePage = () => {
                 onClick={() => navigate('/account-control')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all shadow-sm"
               >
-                {t.accountManagement}
+                {language === 'vi' ? 'Quản lý tài khoản' : 'Account Management'}
               </button>
               
               <span className="text-sm text-gray-600">
-                {user?.full_name} ({t[user?.role] || user?.role})
+                {user?.full_name} ({language === 'vi' && user?.role === 'super_admin' ? 'Siêu quản trị' : 
+                  language === 'vi' && user?.role === 'admin' ? 'Quản trị viên' :
+                  language === 'vi' && user?.role === 'manager' ? 'Quản lý' :
+                  language === 'vi' && user?.role === 'editor' ? 'Người chỉnh sửa' :
+                  language === 'vi' && user?.role === 'viewer' ? 'Người xem' : user?.role})
               </span>
               
               <button
@@ -691,8 +721,8 @@ const HomePage = () => {
                 <div
                   key={category.key}
                   className="relative"
-                  onMouseEnter={() => setSelectedCategory(category.key)}
-                  onMouseLeave={() => setSelectedCategory(null)}
+                  onMouseEnter={() => handleCategoryMouseEnter(category.key)}
+                  onMouseLeave={handleCategoryMouseLeave}
                 >
                   <button 
                     className="w-full text-left p-3 rounded-lg bg-blue-500 hover:bg-blue-400 transition-all border border-blue-400 text-white font-medium"
@@ -705,8 +735,8 @@ const HomePage = () => {
                     {category.name}
                   </button>
                   
-                  {/* Ships dropdown */}
-                  {selectedCategory === category.key && (
+                  {/* Ships dropdown - now uses hoveredCategory instead of selectedCategory */}
+                  {hoveredCategory === category.key && (
                     <div className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 w-64 z-10 text-gray-800">
                       <h4 className="font-medium mb-3 text-gray-700">{language === 'vi' ? 'Danh sách tàu' : 'Ships List'}</h4>
                       {ships.length === 0 ? (
@@ -772,7 +802,7 @@ const HomePage = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             <div className="bg-white rounded-xl shadow-lg p-8 min-h-96">
-              {/* Ship Details */}
+              {/* Ship Details - now persists after click */}
               {selectedShip ? (
                 <div>
                   {/* Ship Header with Photo */}
@@ -787,9 +817,18 @@ const HomePage = () => {
                     </div>
                     
                     <div className="md:col-span-2">
-                      <h2 className="text-2xl font-bold mb-4 text-gray-800">
-                        {language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio'}
-                      </h2>
+                      <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800">
+                          {language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio'}
+                        </h2>
+                        <button
+                          onClick={() => setSelectedShip(null)}
+                          className="text-gray-400 hover:text-gray-600 text-xl px-2 py-1"
+                          title={language === 'vi' ? 'Đóng chi tiết tàu' : 'Close ship details'}
+                        >
+                          ✕
+                        </button>
+                      </div>
                       
                       {/* Sub Menu */}
                       <div className="mb-4">
@@ -813,24 +852,28 @@ const HomePage = () => {
                       {/* Ship Information */}
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <span className="font-semibold">{t.shipName}:</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
                           <span className="ml-2">{selectedShip.name}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{t.class}:</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Hạng:' : 'Class:'}</span>
                           <span className="ml-2">{selectedShip.class_society}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{t.flag}:</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
                           <span className="ml-2">{selectedShip.flag}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{t.grossTonnage}:</span>
-                          <span className="ml-2">{selectedShip.gross_tonnage}</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Tổng trọng tải:' : 'Gross Tonnage:'}</span>
+                          <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{t.deadweight}:</span>
-                          <span className="ml-2">{selectedShip.deadweight}</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Trọng tải chết:' : 'Deadweight:'}</span>
+                          <span className="ml-2">{selectedShip.deadweight?.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
+                          <span className="ml-2">{selectedShip.built_year}</span>
                         </div>
                       </div>
                     </div>
@@ -906,7 +949,7 @@ const HomePage = () => {
                         {language === 'vi' ? 'Danh mục này đang được phát triển' : 'This section is under development'}
                       </p>
                     </div>
-                  ) : null}
+                  )}
                 </div>
               ) : (
                 // Default view when no ship is selected
@@ -918,14 +961,14 @@ const HomePage = () => {
                     >
                       <div className="bg-black bg-opacity-50 text-white p-6 rounded-lg text-center">
                         <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}</h2>
-                        <p className="text-lg">{t.homeTitle}</p>
+                        <p className="text-lg">{language === 'vi' ? 'Hệ thống quản lí tàu biển' : 'Ship Management System'}</p>
                       </div>
                     </div>
                   ) : (
                     <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
                       <div className="text-center text-gray-500">
                         <div className="text-6xl mb-4">🚢</div>
-                        <h2 className="text-2xl font-bold mb-2">{t.homeTitle}</h2>
+                        <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Hệ thống quản lí tàu biển' : 'Ship Management System'}</h2>
                         <p className="mb-4">{language === 'vi' ? 'Chọn tàu từ danh mục bên trái để xem thông tin' : 'Select a ship from the left categories to view details'}</p>
                         <p className="text-sm">
                           {language === 'vi' ? 'Logo công ty sẽ hiển thị ở đây khi được tải lên' : 'Company logo will be displayed here when uploaded'}
@@ -937,17 +980,17 @@ const HomePage = () => {
                   {/* AI Features Section */}
                   <div className="mt-8 grid md:grid-cols-3 gap-4">
                     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-                      <h4 className="font-semibold text-blue-800 mb-2">{t.aiAnalysis}</h4>
+                      <h4 className="font-semibold text-blue-800 mb-2">{language === 'vi' ? 'Phân tích AI' : 'AI Analysis'}</h4>
                       <p className="text-sm text-blue-600">{language === 'vi' ? 'Phân tích tài liệu tự động' : 'Automated document analysis'}</p>
                     </div>
                     
                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                      <h4 className="font-semibold text-green-800 mb-2">{t.smartSearch}</h4>
+                      <h4 className="font-semibold text-green-800 mb-2">{language === 'vi' ? 'Tìm kiếm thông minh' : 'Smart Search'}</h4>
                       <p className="text-sm text-green-600">{language === 'vi' ? 'Tìm kiếm thông minh' : 'AI-powered search'}</p>
                     </div>
                     
                     <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-4 rounded-lg border border-purple-200">
-                      <h4 className="font-semibold text-purple-800 mb-2">{t.complianceCheck}</h4>
+                      <h4 className="font-semibold text-purple-800 mb-2">{language === 'vi' ? 'Kiểm tra tuân thủ' : 'Compliance Check'}</h4>
                       <p className="text-sm text-purple-600">{language === 'vi' ? 'Kiểm tra tuân thủ' : 'Compliance monitoring'}</p>
                     </div>
                   </div>
