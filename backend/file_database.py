@@ -124,6 +124,23 @@ class FileDatabase:
         if updated:
             self._save_data('users', users)
 
+    def update_user(self, query: Dict[str, Any], update_data: Dict[str, Any]):
+        """Update a single user"""
+        users = self._load_data('users')
+        
+        for i, user in enumerate(users):
+            if all(user.get(k) == v for k, v in query.items()):
+                users[i] = update_data
+                break
+        
+        self._save_data('users', users)
+
+    def delete_user(self, query: Dict[str, Any]):
+        """Delete a user"""
+        users = self._load_data('users')
+        users = [user for user in users if not all(user.get(k) == v for k, v in query.items())]
+        self._save_data('users', users)
+
     # Ships collection methods
     def find_all_ships(self) -> List[Dict[str, Any]]:
         """Find all ships"""
