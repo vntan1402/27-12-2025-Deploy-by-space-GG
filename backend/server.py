@@ -99,6 +99,9 @@ class User(BaseModel):
     full_name: str
     role: UserRole
     department: Department
+    company: Optional[str] = None
+    zalo: Optional[str] = None
+    gmail: Optional[str] = None
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     permissions: Dict[str, Any] = Field(default_factory=dict)
