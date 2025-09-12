@@ -1093,6 +1093,8 @@ const AccountControlPage = () => {
   const { user, language } = useAuth();
   const [users, setUsers] = useState([]);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [showPermissions, setShowPermissions] = useState(false);
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [showAIConfig, setShowAIConfig] = useState(false);
