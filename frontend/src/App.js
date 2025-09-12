@@ -163,7 +163,9 @@ const translations = {
     otherDocuments: "Other Documents",
     addNew: "Add New",
     
-    // Account Control
+    // Translations
+    systemSettings: "System Settings", 
+    systemGoogleDrive: "System Google Drive Configuration",
     accountControl: "Account Control",
     companyLogo: "Company Logo",
     addUser: "Add User",
