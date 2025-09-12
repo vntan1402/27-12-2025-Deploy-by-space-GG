@@ -2042,7 +2042,7 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
 };
 
 // Company Form Modal Component
-const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, language }) => {
+const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, language, isEdit = false }) => {
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
