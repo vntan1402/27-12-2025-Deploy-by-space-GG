@@ -1484,6 +1484,9 @@ const AccountControlPage = () => {
                             </span>
                           </td>
                           <td className="border border-gray-300 px-4 py-3">
+                            {userItem.ship || '-'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
                             {userItem.zalo || '-'}
                           </td>
                           <td className="border border-gray-300 px-4 py-3">
