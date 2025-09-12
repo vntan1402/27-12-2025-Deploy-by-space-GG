@@ -2129,9 +2129,55 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
 
 // Company Form Modal Component
 const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, language, isEdit = false }) => {
+  const [logoFile, setLogoFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
+    }
+  };
+
+  const handleSubmitWithLogo = async () => {
+    try {
+      // First submit the company data
+      await onSubmit();
+      
+      // If we have a logo file and the company was created/updated successfully, upload the logo
+      if (logoFile && companyData.id) {
+        await handleLogoUpload(companyData.id);
+      }
+    } catch (error) {
+      console.error('Error submitting company:', error);
+    }
+  };
+
+  const handleLogoUpload = async (companyId) => {
+    if (!logoFile) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', logoFile);
+      
+      const response = await axios.post(`${API}/companies/${companyId}/upload-logo`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+      
+      toast.success(language === 'vi' ? 'Logo đã được tải lên thành công!' : 'Logo uploaded successfully!');
+      
+      // Refresh companies list to show the new logo
+      if (window.fetchCompanies) {
+        window.fetchCompanies();
+      }
+      
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể tải lên logo!' : 'Failed to upload logo!');
+      console.error('Logo upload error:', error);
+    } finally {
+      setUploading(false);
     }
   };
 
