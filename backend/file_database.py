@@ -188,5 +188,49 @@ class FileDatabase:
         """Update company settings"""
         self._save_single_data('company_settings.json', settings_data)
 
+    # AI Configuration methods
+    def get_ai_config(self) -> Dict[str, Any]:
+        """Get AI provider configuration"""
+        return self._load_single_data('ai_config.json')
+
+    def update_ai_config(self, config_data: Dict[str, Any]):
+        """Update AI provider configuration"""
+        self._save_single_data('ai_config.json', config_data)
+
+    # Company Management methods
+    def find_all_companies(self) -> List[Dict[str, Any]]:
+        """Find all companies"""
+        return self._load_data('companies')
+
+    def find_company(self, query: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Find a single company by query"""
+        companies = self._load_data('companies')
+        for company in companies:
+            if all(company.get(k) == v for k, v in query.items()):
+                return company
+        return None
+
+    def insert_company(self, company_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Insert a new company"""
+        companies = self._load_data('companies')
+        companies.append(company_data)
+        self._save_data('companies', companies)
+        return company_data
+
+    def update_company(self, query: Dict[str, Any], update_data: Dict[str, Any]):
+        """Update a company"""
+        companies = self._load_data('companies')
+        for i, company in enumerate(companies):
+            if all(company.get(k) == v for k, v in query.items()):
+                companies[i] = update_data
+                break
+        self._save_data('companies', companies)
+
+    def delete_company(self, query: Dict[str, Any]):
+        """Delete a company"""
+        companies = self._load_data('companies')
+        companies = [company for company in companies if not all(company.get(k) == v for k, v in query.items())]
+        self._save_data('companies', companies)
+
 # Global database instance
 file_db = FileDatabase()
