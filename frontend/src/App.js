@@ -949,7 +949,7 @@ const HomePage = () => {
                         {language === 'vi' ? 'Danh mục này đang được phát triển' : 'This section is under development'}
                       </p>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               ) : (
                 // Default view when no ship is selected
