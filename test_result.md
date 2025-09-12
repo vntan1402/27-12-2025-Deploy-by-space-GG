@@ -153,20 +153,23 @@
 
 ## frontend:
   - task: "Add New Record Modal/Forms"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "THÊM HỒ SƠ MỚI button exists but has no functionality. Need to create forms for adding ships, certificates, and documents."
+        - working: true
+          agent: "main"
+          comment: "✅ IMPLEMENTED - Added comprehensive AddRecordModal component with Ship, Certificate, and Document forms. Includes proper validation, API integration, multi-language support, and success callbacks. Modal opens from THÊM HỒ SƠ MỚI button with proper state management."
 
   - task: "AI Provider Selection UI"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "App.js"
     stuck_count: 0
     priority: "medium"
@@ -175,10 +178,13 @@
         - working: "NA"
           agent: "main"
           comment: "Need to add AI provider selection dropdown in System Settings (Super Admin only)."
+        - working: true
+          agent: "main"
+          comment: "✅ IMPLEMENTED - Added AI Configuration section in System Settings (Super Admin only) with AIConfigModal component. Includes provider selection (OpenAI, Anthropic, Google), model selection, current config display, and proper API integration."
 
   - task: "Company Management UI"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "App.js"
     stuck_count: 0
     priority: "medium"
@@ -187,6 +193,9 @@
         - working: "NA"
           agent: "main"
           comment: "Need to add New Company form in System Settings (Super Admin only)."
+        - working: true
+          agent: "main"
+          comment: "✅ IMPLEMENTED - Added Company Management section in System Settings (Super Admin only) with CompanyFormModal component. Includes bilingual company forms (VN/EN), all required fields (tax ID, addresses, Gmail, Zalo, system expiry), and proper API integration."
 
 ## metadata:
   created_by: "main_agent"
