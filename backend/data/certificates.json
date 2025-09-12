@@ -12,5 +12,19 @@
     "sensitivity_level": "internal",
     "file_path": null,
     "created_at": "2025-09-12 12:50:25.189411+00:00"
+  },
+  {
+    "id": "99ef7328-6d3b-43ce-8b51-c90083c2fff3",
+    "ship_id": "c810ce09-afc4-47ea-98b0-cba976219546",
+    "cert_name": "International Tonnage Certificate",
+    "cert_no": "ITC456789",
+    "issue_date": "2023-11-20 00:00:00+00:00",
+    "valid_date": "2028-11-20 00:00:00+00:00",
+    "last_endorse": null,
+    "next_survey": null,
+    "category": "certificates",
+    "sensitivity_level": "public",
+    "file_path": null,
+    "created_at": "2025-09-12 12:50:36.178725+00:00"
   }
 ]
