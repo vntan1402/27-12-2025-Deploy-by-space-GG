@@ -101,3 +101,99 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+## user_problem_statement: 
+"Implement Phase 2: Add New Record ("THÊM HỒ SƠ MỚI") Functionality - create comprehensive forms for adding new ships, certificates, and documents. Additionally, add AI Provider Selection in System Settings (Super Admin only) and New Company Management in System Settings (Super Admin only)."
+
+## backend:
+  - task: "Add New Record Backend Endpoints"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Backend endpoints for creating ships (/api/ships) and certificates (/api/certificates) already exist and are functional."
+
+  - task: "AI Provider Configuration Backend"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to add endpoint for AI provider selection configuration (Super Admin only)."
+
+  - task: "Company Management Backend"
+    implemented: false
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to add endpoints for company management (Super Admin only)."
+
+## frontend:
+  - task: "Add New Record Modal/Forms"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "THÊM HỒ SƠ MỚI button exists but has no functionality. Need to create forms for adding ships, certificates, and documents."
+
+  - task: "AI Provider Selection UI"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to add AI provider selection dropdown in System Settings (Super Admin only)."
+
+  - task: "Company Management UI"
+    implemented: false
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to add New Company form in System Settings (Super Admin only)."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+## test_plan:
+  current_focus:
+    - "Add New Record Modal/Forms"
+    - "AI Provider Configuration Backend"
+    - "Company Management Backend"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+    - agent: "main"
+      message: "Starting Phase 2 implementation. Backend endpoints for ships and certificates already exist. Now implementing frontend forms and additional features as requested by user."
