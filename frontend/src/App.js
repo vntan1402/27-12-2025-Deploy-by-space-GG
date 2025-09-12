@@ -1815,6 +1815,276 @@ const PermissionModal = ({ selectedUsers, onClose, onSuccess }) => {
   );
 };
 
+// AI Configuration Modal Component
+const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const providers = [
+    { value: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'] },
+    { value: 'anthropic', label: 'Anthropic', models: ['claude-3-sonnet', 'claude-3-haiku'] },
+    { value: 'google', label: 'Google', models: ['gemini-pro', 'gemini-pro-vision'] }
+  ];
+
+  const selectedProvider = providers.find(p => p.value === config.provider);
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {language === 'vi' ? 'Cấu hình AI' : 'AI Configuration'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? 'Nhà cung cấp AI' : 'AI Provider'}
+            </label>
+            <select
+              value={config.provider}
+              onChange={(e) => {
+                const provider = providers.find(p => p.value === e.target.value);
+                setConfig(prev => ({
+                  ...prev,
+                  provider: e.target.value,
+                  model: provider?.models[0] || 'gpt-4o'
+                }));
+              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {providers.map(provider => (
+                <option key={provider.value} value={provider.value}>
+                  {provider.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? 'Mô hình AI' : 'AI Model'}
+            </label>
+            <select
+              value={config.model}
+              onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {selectedProvider?.models.map(model => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              {language === 'vi' ? 
+                'Chú ý: Thay đổi cấu hình AI sẽ ảnh hưởng đến tất cả tính năng phân tích tài liệu và tìm kiếm thông minh.' : 
+                'Note: Changing AI configuration will affect all document analysis and smart search features.'
+              }
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-8">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+          >
+            {language === 'vi' ? 'Hủy' : 'Cancel'}
+          </button>
+          <button
+            onClick={onSave}
+            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all"
+          >
+            {language === 'vi' ? 'Lưu cấu hình' : 'Save Configuration'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Company Form Modal Component
+const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, language }) => {
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tên công ty (Tiếng Việt)' : 'Company Name (Vietnamese)'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={companyData.name_vn}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, name_vn: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập tên công ty bằng tiếng Việt' : 'Enter company name in Vietnamese'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tên công ty (Tiếng Anh)' : 'Company Name (English)'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={companyData.name_en}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, name_en: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập tên công ty bằng tiếng Anh' : 'Enter company name in English'}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Địa chỉ (Tiếng Việt)' : 'Address (Vietnamese)'} *
+              </label>
+              <textarea
+                required
+                value={companyData.address_vn}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, address_vn: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows="3"
+                placeholder={language === 'vi' ? 'Nhập địa chỉ bằng tiếng Việt' : 'Enter address in Vietnamese'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Địa chỉ (Tiếng Anh)' : 'Address (English)'} *
+              </label>
+              <textarea
+                required
+                value={companyData.address_en}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, address_en: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows="3"
+                placeholder={language === 'vi' ? 'Nhập địa chỉ bằng tiếng Anh' : 'Enter address in English'}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Mã số thuế' : 'Tax ID'} *
+            </label>
+            <input
+              type="text"
+              required
+              value={companyData.tax_id}
+              onChange={(e) => setCompanyData(prev => ({ ...prev, tax_id: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={language === 'vi' ? 'Nhập mã số thuế' : 'Enter tax ID'}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gmail</label>
+              <input
+                type="email"
+                value={companyData.gmail}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, gmail: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="company@gmail.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Zalo</label>
+              <input
+                type="text"
+                value={companyData.zalo}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, zalo: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Số điện thoại Zalo' : 'Zalo phone number'}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Thời hạn sử dụng hệ thống' : 'System Usage Expiry'}
+            </label>
+            <input
+              type="date"
+              value={companyData.system_expiry}
+              onChange={(e) => setCompanyData(prev => ({ ...prev, system_expiry: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-medium text-yellow-800 mb-2">
+              {language === 'vi' ? 'Lưu ý:' : 'Note:'}
+            </h4>
+            <ul className="text-sm text-yellow-700 space-y-1">
+              <li>• {language === 'vi' ? 'Thông tin công ty sẽ được lưu trên Google Drive' : 'Company data will be stored on Google Drive'}</li>
+              <li>• {language === 'vi' ? 'Cấu hình Google Drive riêng có thể được thêm sau' : 'Individual Google Drive configuration can be added later'}</li>
+              <li>• {language === 'vi' ? 'Chỉ Super Admin mới có quyền truy cập tính năng này' : 'Only Super Admin can access this feature'}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-8">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+          >
+            {language === 'vi' ? 'Hủy' : 'Cancel'}
+          </button>
+          <button
+            onClick={onSubmit}
+            className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all"
+          >
+            {language === 'vi' ? 'Tạo công ty' : 'Create Company'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Add Record Modal Component
 const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
   const [recordType, setRecordType] = useState('ship');
