@@ -1100,7 +1100,6 @@ const AccountControlPage = () => {
   const [showEditCompany, setShowEditCompany] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [logoFile, setLogoFile] = useState(null);
   const [gdriveConfig, setGdriveConfig] = useState({
     service_account_json: '',
     folder_id: ''
