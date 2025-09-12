@@ -615,9 +615,24 @@ async def analyze_document(request: AIAnalysisRequest, current_user: UserRespons
     
     certificate = certificates[0]
     
+    # Get current AI config
+    ai_config = file_db.get_ai_config()
+    provider = ai_config.get("provider", "openai")
+    model = ai_config.get("model", "gpt-4o")
+    
     try:
         chat = await init_ai_chat()
         if not chat:
+            # Log failed usage
+            log_usage(
+                user_id=current_user.id,
+                provider=provider,
+                model=model,
+                request_type="document_analysis",
+                success=False,
+                error_message="AI service not available",
+                document_id=request.document_id
+            )
             raise HTTPException(status_code=500, detail="AI service not available")
         
         analysis_prompts = {
@@ -630,6 +645,22 @@ async def analyze_document(request: AIAnalysisRequest, current_user: UserRespons
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
         
+        # Estimate token usage (rough approximation)
+        input_tokens = len(prompt.split()) * 1.3  # Rough token estimation
+        output_tokens = len(response.split()) * 1.3
+        
+        # Log successful usage
+        log_usage(
+            user_id=current_user.id,
+            provider=provider,
+            model=model,
+            request_type="document_analysis",
+            input_tokens=int(input_tokens),
+            output_tokens=int(output_tokens),
+            success=True,
+            document_id=request.document_id
+        )
+        
         # Store analysis result
         analysis = {
             "id": str(uuid.uuid4()),
@@ -637,7 +668,11 @@ async def analyze_document(request: AIAnalysisRequest, current_user: UserRespons
             "analysis_type": request.analysis_type,
             "result": response,
             "analyzed_by": current_user.id,
-            "analyzed_at": datetime.now(timezone.utc).isoformat()
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
+            "provider": provider,
+            "model": model,
+            "input_tokens": int(input_tokens),
+            "output_tokens": int(output_tokens)
         }
         
         file_db.insert_ai_analysis(analysis)
@@ -648,14 +683,40 @@ async def analyze_document(request: AIAnalysisRequest, current_user: UserRespons
         return {"analysis": response, "analysis_id": analysis["id"]}
         
     except Exception as e:
+        # Log failed usage
+        log_usage(
+            user_id=current_user.id,
+            provider=provider,
+            model=model,
+            request_type="document_analysis",
+            success=False,
+            error_message=str(e),
+            document_id=request.document_id
+        )
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @api_router.get("/ai/search")
 async def smart_search(query: str, current_user: UserResponse = Depends(get_current_user)):
     """AI-powered smart search across documents"""
+    
+    # Get current AI config
+    ai_config = file_db.get_ai_config()
+    provider = ai_config.get("provider", "openai")
+    model = ai_config.get("model", "gpt-4o")
+    
     try:
         chat = await init_ai_chat()
         if not chat:
+            # Log failed usage
+            log_usage(
+                user_id=current_user.id,
+                provider=provider,
+                model=model,
+                request_type="smart_search",
+                success=False,
+                error_message="AI service not available",
+                search_query=query
+            )
             raise HTTPException(status_code=500, detail="AI service not available")
         
         # Get all certificates for context
@@ -675,9 +736,35 @@ async def smart_search(query: str, current_user: UserResponse = Depends(get_curr
         user_message = UserMessage(text=search_context)
         response = await chat.send_message(user_message)
         
+        # Estimate token usage (rough approximation)
+        input_tokens = len(search_context.split()) * 1.3
+        output_tokens = len(response.split()) * 1.3
+        
+        # Log successful usage
+        log_usage(
+            user_id=current_user.id,
+            provider=provider,
+            model=model,
+            request_type="smart_search",
+            input_tokens=int(input_tokens),
+            output_tokens=int(output_tokens),
+            success=True,
+            search_query=query
+        )
+        
         return {"search_results": response, "query": query}
         
     except Exception as e:
+        # Log failed usage
+        log_usage(
+            user_id=current_user.id,
+            provider=provider,
+            model=model,
+            request_type="smart_search",
+            success=False,
+            error_message=str(e),
+            search_query=query
+        )
         raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 # Company Settings Routes
