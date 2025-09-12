@@ -49,6 +49,12 @@ security = HTTPBearer()
 app = FastAPI(title="Ship Management System API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
+# Create uploads directory if it doesn't exist
+os.makedirs("uploads/company_logos", exist_ok=True)
+
+# Mount static files for serving uploaded images
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 # Enums
 class UserRole(str, Enum):
     VIEWER = "viewer"
