@@ -54,5 +54,19 @@
     "sensitivity_level": "restricted",
     "file_path": null,
     "created_at": "2025-09-12 12:50:57.550546+00:00"
+  },
+  {
+    "id": "86f6adbb-ae19-4ed8-9281-3f95ec077cd5",
+    "ship_id": "8c5ca0fa-ec32-44f1-a18c-bf7168942e2f",
+    "cert_name": "Cargo Ship Safety Construction Certificate",
+    "cert_no": "CSSCC369741",
+    "issue_date": "2024-08-01 00:00:00+00:00",
+    "valid_date": "2029-08-01 00:00:00+00:00",
+    "last_endorse": "2024-10-01 00:00:00+00:00",
+    "next_survey": "2025-08-01 00:00:00+00:00",
+    "category": "certificates",
+    "sensitivity_level": "internal",
+    "file_path": null,
+    "created_at": "2025-09-12 12:51:10.506232+00:00"
   }
 ]
