@@ -1181,6 +1181,14 @@ const AccountControlPage = () => {
     }
   };
 
+  // Make fetchCompanies available globally for logo upload
+  useEffect(() => {
+    window.fetchCompanies = fetchCompanies;
+    return () => {
+      delete window.fetchCompanies;
+    };
+  }, []);
+
   const fetchUsageStats = async () => {
     try {
       const response = await axios.get(`${API}/usage-stats?days=30`);
