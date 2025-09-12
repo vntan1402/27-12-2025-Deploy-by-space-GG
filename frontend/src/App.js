@@ -1183,6 +1183,15 @@ const AccountControlPage = () => {
     }
   };
 
+  const fetchShips = async () => {
+    try {
+      const response = await axios.get(`${API}/ships`);
+      setShips(response.data);
+    } catch (error) {
+      console.error('Failed to fetch ships:', error);
+    }
+  };
+
   // Make fetchCompanies available globally for logo upload
   useEffect(() => {
     window.fetchCompanies = fetchCompanies;
