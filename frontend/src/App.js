@@ -1182,7 +1182,7 @@ const AccountControlPage = () => {
       <header className="bg-white shadow-lg border-b">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-800">{t.accountControl}</h1>
+            <h1 className="text-2xl font-bold text-gray-800">{language === 'vi' ? 'Cài đặt hệ thống' : 'System Settings'}</h1>
             <button
               onClick={() => navigate('/home')}
               className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all"
