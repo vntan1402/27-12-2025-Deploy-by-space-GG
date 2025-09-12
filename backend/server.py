@@ -191,6 +191,7 @@ class Company(BaseModel):
     address_vn: str
     address_en: str
     tax_id: str
+    logo_url: Optional[str] = None
     gdrive_config: Optional[Dict[str, Any]] = None
     gmail: Optional[str] = None
     zalo: Optional[str] = None
@@ -204,6 +205,7 @@ class CompanyCreate(BaseModel):
     address_vn: str
     address_en: str
     tax_id: str
+    logo_url: Optional[str] = None
     gmail: Optional[str] = None
     zalo: Optional[str] = None
     system_expiry: Optional[datetime] = None
