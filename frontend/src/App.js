@@ -1273,9 +1273,16 @@ const AccountControlPage = () => {
         system_expiry: companyData.system_expiry ? new Date(companyData.system_expiry).toISOString() : null
       };
       
-      await axios.post(`${API}/companies`, payload);
+      const response = await axios.post(`${API}/companies`, payload);
+      const newCompany = response.data;
+      
+      // Store the company ID for logo upload
+      setCompanyData(prev => ({ ...prev, id: newCompany.id }));
+      
       toast.success(language === 'vi' ? 'Công ty đã được tạo thành công!' : 'Company created successfully!');
       setShowCompanyForm(false);
+      
+      // Reset form data
       setCompanyData({
         name_vn: '',
         name_en: '',
@@ -1287,9 +1294,13 @@ const AccountControlPage = () => {
         system_expiry: '',
         gdrive_config: null
       });
+      
       fetchCompanies();
+      
+      return newCompany;
     } catch (error) {
       toast.error(language === 'vi' ? 'Không thể tạo công ty!' : 'Failed to create company!');
+      throw error;
     }
   };
 
@@ -1307,8 +1318,11 @@ const AccountControlPage = () => {
       setShowEditCompany(false);
       setEditingCompany(null);
       fetchCompanies();
+      
+      return editingCompany;
     } catch (error) {
       toast.error(language === 'vi' ? 'Không thể cập nhật công ty!' : 'Failed to update company!');
+      throw error;
     }
   };
 
