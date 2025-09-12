@@ -344,17 +344,21 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     ship = Ship(**ship_data.dict())
-    await db.ships.insert_one(ship.dict())
-    return ship
+    created_ship = file_db.insert_ship(ship.dict())
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return Ship(**created_ship)
 
 @api_router.get("/ships", response_model=List[Ship])
 async def get_ships(current_user: UserResponse = Depends(get_current_user)):
-    ships = await db.ships.find().to_list(length=None)
+    ships = file_db.find_all_ships()
     return [Ship(**ship) for ship in ships]
 
 @api_router.get("/ships/{ship_id}", response_model=Ship)
 async def get_ship(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
-    ship = await db.ships.find_one({"id": ship_id})
+    ship = file_db.find_ship({"id": ship_id})
     if not ship:
         raise HTTPException(status_code=404, detail="Ship not found")
     return Ship(**ship)
@@ -366,12 +370,16 @@ async def create_certificate(cert_data: CertificateCreate, current_user: UserRes
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     certificate = Certificate(**cert_data.dict())
-    await db.certificates.insert_one(certificate.dict())
-    return certificate
+    created_cert = file_db.insert_certificate(certificate.dict())
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return Certificate(**created_cert)
 
 @api_router.get("/ships/{ship_id}/certificates", response_model=List[Certificate])
 async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
-    certificates = await db.certificates.find({"ship_id": ship_id}).to_list(length=None)
+    certificates = file_db.find_certificates({"ship_id": ship_id})
     return [Certificate(**cert) for cert in certificates]
 
 # File Upload Routes
