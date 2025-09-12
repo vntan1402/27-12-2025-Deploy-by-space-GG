@@ -255,7 +255,7 @@ async def init_ai_chat():
 # Authentication Routes
 @api_router.post("/auth/login")
 async def login(user_credentials: UserLogin):
-    user = await db.users.find_one({"username": user_credentials.username})
+    user = file_db.find_user({"username": user_credentials.username})
     if not user or not verify_password(user_credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
@@ -276,9 +276,10 @@ async def register(user_data: UserCreate, current_user: UserResponse = Depends(g
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     # Check if user exists
-    existing_user = await db.users.find_one({
-        "$or": [{"username": user_data.username}, {"email": user_data.email}]
-    })
+    existing_user = file_db.find_user({"username": user_data.username})
+    if not existing_user:
+        existing_user = file_db.find_user({"email": user_data.email})
+    
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
     
@@ -293,8 +294,12 @@ async def register(user_data: UserCreate, current_user: UserResponse = Depends(g
         department=user_data.department
     )
     
-    await db.users.insert_one(user.dict())
-    return UserResponse(**user.dict())
+    created_user = file_db.insert_user(user.dict())
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return UserResponse(**created_user)
 
 # User Management Routes
 @api_router.get("/users", response_model=List[UserResponse])
@@ -302,7 +307,7 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
     if not has_permission(current_user, UserRole.MANAGER):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
-    users = await db.users.find().to_list(length=None)
+    users = file_db.find_all_users()
     return [UserResponse(**user) for user in users]
 
 @api_router.post("/permissions/assign")
@@ -312,18 +317,23 @@ async def assign_permissions(request: PermissionRequest, current_user: UserRespo
     
     # Update permissions for multiple users
     permission_update = {
-        "categories": request.categories,
-        "departments": request.departments,
-        "sensitivity_levels": request.sensitivity_levels,
-        "permissions": request.permissions,
-        "assigned_by": current_user.id,
-        "assigned_at": datetime.now(timezone.utc)
+        "permissions": {
+            "categories": request.categories,
+            "departments": request.departments,
+            "sensitivity_levels": request.sensitivity_levels,
+            "permissions": request.permissions,
+            "assigned_by": current_user.id,
+            "assigned_at": datetime.now(timezone.utc).isoformat()
+        }
     }
     
-    await db.users.update_many(
+    file_db.update_users(
         {"id": {"$in": request.user_ids}},
-        {"$set": {"permissions": permission_update}}
+        permission_update
     )
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
     
     return {"message": f"Permissions assigned to {len(request.user_ids)} users"}
 
