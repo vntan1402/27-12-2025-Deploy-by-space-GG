@@ -1181,6 +1181,15 @@ const AccountControlPage = () => {
     }
   };
 
+  const fetchUsageStats = async () => {
+    try {
+      const response = await axios.get(`${API}/usage-stats?days=30`);
+      setUsageStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch usage stats:', error);
+    }
+  };
+
   const handleLogoUpload = async () => {
     if (!logoFile) return;
     
