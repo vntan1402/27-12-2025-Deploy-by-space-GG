@@ -216,8 +216,10 @@
 ## agent_communication:
     - agent: "main"
       message: "Starting Phase 2 implementation. Backend endpoints for ships and certificates already exist. Now implementing frontend forms and additional features as requested by user."
-    - agent: "main"
+    - agent: "main"  
       message: "✅ PHASE 2 COMPLETED - Successfully implemented all requested features: (1) Add New Record functionality with comprehensive forms for ships, certificates, and documents, (2) AI Provider Configuration (Super Admin only) with OpenAI/Anthropic/Google provider selection, (3) Company Management (Super Admin only) with bilingual forms and full CRUD operations. All backend endpoints tested and working. Frontend UI components implemented with proper authentication and permissions. Ready for frontend testing or user acceptance."
+    - agent: "main"
+      message: "✅ ENHANCED COMPANY MANAGEMENT COMPLETED - Successfully restructured Company Management as requested: (1) Moved Company Logo into Company Management section, (2) Added comprehensive companies data table with all company details, (3) Implemented Edit and Delete functionality with proper modals, (4) All CRUD operations tested and working (11/11 API tests passed). Backend DELETE endpoint added and verified. Company table shows: VN/EN names, tax ID, Gmail, expiry date, and action buttons."
     - agent: "testing"
       message: "BACKEND TESTING COMPLETE: Add New Record functionality fully tested and working. Created focused test (add_record_test.py) specifically for the review request. All backend endpoints (POST /api/ships, POST /api/certificates, GET endpoints) working perfectly with exact test data provided. Authentication, ship creation, certificate creation, and record retrieval all successful. Backend implementation is solid and ready for frontend integration."
     - agent: "testing"
