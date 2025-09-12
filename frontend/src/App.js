@@ -1559,28 +1559,6 @@ const AccountControlPage = () => {
                 {language === 'vi' ? 'Quản lý công ty' : 'Company Management'}
               </h3>
               
-              {/* Company Logo Section */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="text-md font-medium mb-3 text-gray-700">{t.companyLogo}</h4>
-                <div className="flex space-x-4 items-end">
-                  <div className="flex-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setLogoFile(e.target.files[0])}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
-                  </div>
-                  <button
-                    onClick={handleLogoUpload}
-                    disabled={!logoFile}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-all"
-                  >
-                    {t.uploadLogo}
-                  </button>
-                </div>
-              </div>
-
               {/* Action Buttons */}
               <div className="mb-6">
                 <button
@@ -1598,15 +1576,15 @@ const AccountControlPage = () => {
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Logo' : 'Logo'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
                           {language === 'vi' ? 'Tên công ty (VN)' : 'Company Name (VN)'}
                         </th>
                         <th className="border border-gray-300 px-4 py-3 text-left">
                           {language === 'vi' ? 'Tên công ty (EN)' : 'Company Name (EN)'}
                         </th>
-                        <th className="border border-gray-300 px-4 py-3 text-left">
-                          {language === 'vi' ? 'Mã số thuế' : 'Tax ID'}
-                        </th>
-                        <th className="border border-gray-300 px-4 py-3 text-left">Gmail</th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">Zalo</th>
                         <th className="border border-gray-300 px-4 py-3 text-left">
                           {language === 'vi' ? 'Hết hạn' : 'Expiry'}
                         </th>
@@ -1618,6 +1596,24 @@ const AccountControlPage = () => {
                     <tbody>
                       {companies.map((company) => (
                         <tr key={company.id} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-4 py-3 text-center">
+                            {company.logo_url ? (
+                              <img 
+                                src={`${API}${company.logo_url}`} 
+                                alt={company.name_en} 
+                                className="w-12 h-12 object-contain mx-auto rounded"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div 
+                              className={`w-12 h-12 bg-gray-200 rounded flex items-center justify-center mx-auto text-gray-500 text-xs ${company.logo_url ? 'hidden' : 'flex'}`}
+                            >
+                              {language === 'vi' ? 'Chưa có' : 'No Logo'}
+                            </div>
+                          </td>
                           <td className="border border-gray-300 px-4 py-3 font-medium">
                             {company.name_vn}
                           </td>
@@ -1625,10 +1621,7 @@ const AccountControlPage = () => {
                             {company.name_en}
                           </td>
                           <td className="border border-gray-300 px-4 py-3">
-                            {company.tax_id}
-                          </td>
-                          <td className="border border-gray-300 px-4 py-3">
-                            {company.gmail || '-'}
+                            {company.zalo || '-'}
                           </td>
                           <td className="border border-gray-300 px-4 py-3">
                             {company.system_expiry ? 
