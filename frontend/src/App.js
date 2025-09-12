@@ -1197,23 +1197,6 @@ const AccountControlPage = () => {
     }
   };
 
-  const handleLogoUpload = async () => {
-    if (!logoFile) return;
-    
-    const formData = new FormData();
-    formData.append('file', logoFile);
-    
-    try {
-      const response = await axios.post(`${API}/upload/logo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      toast.success(language === 'vi' ? 'Logo đã được cập nhật!' : 'Logo updated successfully!');
-      setLogoFile(null);
-    } catch (error) {
-      toast.error(language === 'vi' ? 'Không thể tải lên logo' : 'Failed to upload logo');
-    }
-  };
-
   const handleGoogleDriveConfig = async () => {
     if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
       toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin' : 'Please fill all required fields');
