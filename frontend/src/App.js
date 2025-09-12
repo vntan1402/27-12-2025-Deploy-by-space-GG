@@ -1445,6 +1445,9 @@ const AccountControlPage = () => {
                         <th className="border border-gray-300 px-4 py-3 text-left">
                           {language === 'vi' ? 'Vai trò' : 'Role'}
                         </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Tàu' : 'Ship'}
+                        </th>
                         <th className="border border-gray-300 px-4 py-3 text-left">Zalo</th>
                         <th className="border border-gray-300 px-4 py-3 text-left">Gmail</th>
                         <th className="border border-gray-300 px-4 py-3 text-center">
