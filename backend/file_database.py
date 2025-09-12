@@ -235,5 +235,125 @@ class FileDatabase:
         companies = [company for company in companies if not all(company.get(k) == v for k, v in query.items())]
         self._save_data('companies', companies)
 
+    # Usage Tracking methods
+    def insert_usage_tracking(self, usage_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Insert usage tracking data"""
+        usage_logs = self._load_data('usage_tracking')
+        usage_logs.append(usage_data)
+        self._save_data('usage_tracking', usage_logs)
+        return usage_data
+
+    def get_usage_tracking(self, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Get usage tracking data with filters"""
+        usage_logs = self._load_data('usage_tracking')
+        
+        if not filters:
+            return usage_logs
+        
+        filtered_logs = usage_logs
+        
+        # Filter by days
+        if 'days' in filters:
+            from datetime import datetime, timezone, timedelta
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=filters['days'])
+            filtered_logs = [
+                log for log in filtered_logs 
+                if datetime.fromisoformat(log['timestamp'].replace('Z', '+00:00')) >= cutoff_date
+            ]
+        
+        # Filter by provider
+        if 'provider' in filters:
+            filtered_logs = [log for log in filtered_logs if log.get('provider') == filters['provider']]
+        
+        # Filter by user_id
+        if 'user_id' in filters:
+            filtered_logs = [log for log in filtered_logs if log.get('user_id') == filters['user_id']]
+        
+        return filtered_logs
+
+    def get_usage_stats(self, days: int = 30, page: int = 1, limit: int = 50) -> Dict[str, Any]:
+        """Get usage statistics"""
+        from datetime import datetime, timezone, timedelta
+        from collections import defaultdict
+        
+        # Get usage logs from the last N days
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        usage_logs = self._load_data('usage_tracking')
+        
+        # Filter by date
+        recent_logs = [
+            log for log in usage_logs 
+            if datetime.fromisoformat(log['timestamp'].replace('Z', '+00:00')) >= cutoff_date
+        ]
+        
+        # Calculate statistics
+        total_requests = len(recent_logs)
+        total_input_tokens = sum(log.get('input_tokens', 0) for log in recent_logs)
+        total_output_tokens = sum(log.get('output_tokens', 0) for log in recent_logs)
+        total_estimated_cost = sum(log.get('estimated_cost', 0.0) for log in recent_logs)
+        
+        # Group by provider, model, type
+        requests_by_provider = defaultdict(int)
+        requests_by_model = defaultdict(int)
+        requests_by_type = defaultdict(int)
+        daily_usage = defaultdict(lambda: {'requests': 0, 'cost': 0.0, 'tokens': 0})
+        
+        for log in recent_logs:
+            requests_by_provider[log.get('provider', 'unknown')] += 1
+            requests_by_model[log.get('model', 'unknown')] += 1
+            requests_by_type[log.get('request_type', 'unknown')] += 1
+            
+            # Daily usage
+            date_str = log['timestamp'][:10]  # Get YYYY-MM-DD
+            daily_usage[date_str]['requests'] += 1
+            daily_usage[date_str]['cost'] += log.get('estimated_cost', 0.0)
+            daily_usage[date_str]['tokens'] += log.get('input_tokens', 0) + log.get('output_tokens', 0)
+        
+        # Convert daily usage to list
+        daily_usage_list = []
+        for date_str in sorted(daily_usage.keys()):
+            daily_usage_list.append({
+                'date': date_str,
+                'requests': daily_usage[date_str]['requests'],
+                'cost': daily_usage[date_str]['cost'],
+                'tokens': daily_usage[date_str]['tokens']
+            })
+        
+        # Get recent requests (paginated)
+        start_idx = (page - 1) * limit
+        end_idx = start_idx + limit
+        recent_requests = sorted(recent_logs, key=lambda x: x['timestamp'], reverse=True)[start_idx:end_idx]
+        
+        return {
+            'total_requests': total_requests,
+            'total_input_tokens': total_input_tokens,
+            'total_output_tokens': total_output_tokens,
+            'total_estimated_cost': total_estimated_cost,
+            'requests_by_provider': dict(requests_by_provider),
+            'requests_by_model': dict(requests_by_model),
+            'requests_by_type': dict(requests_by_type),
+            'daily_usage': daily_usage_list,
+            'recent_requests': recent_requests
+        }
+
+    def clear_old_usage_tracking(self, days_older_than: int = 90) -> int:
+        """Clear usage tracking data older than specified days"""
+        from datetime import datetime, timezone, timedelta
+        
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_older_than)
+        usage_logs = self._load_data('usage_tracking')
+        
+        initial_count = len(usage_logs)
+        
+        # Keep only logs newer than cutoff date
+        filtered_logs = [
+            log for log in usage_logs 
+            if datetime.fromisoformat(log['timestamp'].replace('Z', '+00:00')) >= cutoff_date
+        ]
+        
+        self._save_data('usage_tracking', filtered_logs)
+        
+        return initial_count - len(filtered_logs)
+
 # Global database instance
 file_db = FileDatabase()
