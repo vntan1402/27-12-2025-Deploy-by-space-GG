@@ -29,19 +29,43 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Here you could verify token validity
+      // Verify token validity
+      verifyToken();
     }
     setLoading(false);
   }, [token]);
 
+  const verifyToken = async () => {
+    try {
+      // Try to get user info to verify token is still valid
+      const response = await axios.get(`${API}/users`);
+      // Token is valid, keep it
+    } catch (error) {
+      if (error.response?.status === 401) {
+        // Token expired or invalid, clear it
+        logout();
+      }
+    }
+  };
+
   const login = async (credentials) => {
     try {
       const response = await axios.post(`${API}/auth/login`, credentials);
-      const { access_token, user } = response.data;
+      const { access_token, user, remember_me } = response.data;
       
       setToken(access_token);
       setUser(user);
-      localStorage.setItem('token', access_token);
+      
+      // Store token based on remember_me preference
+      if (remember_me) {
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('remember_me', 'true');
+      } else {
+        // Use sessionStorage for session-only login
+        sessionStorage.setItem('token', access_token);
+        localStorage.removeItem('remember_me');
+      }
+      
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
       toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Login successful!');
@@ -56,6 +80,8 @@ const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('remember_me');
+    sessionStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     toast.info(language === 'vi' ? 'Đã đăng xuất' : 'Logged out');
   };
@@ -66,16 +92,21 @@ const AuthProvider = ({ children }) => {
     localStorage.setItem('language', newLang);
   };
 
+  // Check for token in both localStorage and sessionStorage
+  const getStoredToken = () => {
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
-      token,
+      token: getStoredToken(),
       loading,
       language,
       login,
       logout,
       toggleLanguage,
-      isAuthenticated: !!token
+      isAuthenticated: !!(getStoredToken())
     }}>
       {children}
     </AuthContext.Provider>
