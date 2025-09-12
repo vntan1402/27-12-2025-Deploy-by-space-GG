@@ -2358,9 +2358,11 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
             {language === 'vi' ? 'Hủy' : 'Cancel'}
           </button>
           <button
-            onClick={onSubmit}
-            className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all"
+            onClick={handleSubmitWithLogo}
+            disabled={uploading}
+            className="px-6 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
           >
+            {uploading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
             {isEdit ?
               (language === 'vi' ? 'Cập nhật công ty' : 'Update Company') :
               (language === 'vi' ? 'Tạo công ty' : 'Create Company')
