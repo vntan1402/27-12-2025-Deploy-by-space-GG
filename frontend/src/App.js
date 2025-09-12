@@ -1142,6 +1142,9 @@ const AccountControlPage = () => {
       fetchAIConfig();
       fetchCompanies();
     }
+    if (user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') {
+      fetchShips();
+    }
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       fetchUsageStats();
     }
