@@ -103,7 +103,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Test the newly implemented Usage Tracking functionality including authentication, usage tracking endpoints, AI endpoints with usage logging, usage stats verification, permission testing, and edge cases."
+"Test the updated Company Management functionality with logo upload feature including authentication, company CRUD operations with logo_url field, logo upload endpoint, static file serving, API response verification, and permission testing."
 
 ## backend:
   - task: "Add New Record Backend Endpoints"
