@@ -475,6 +475,94 @@ async def assign_permissions(request: PermissionRequest, current_user: UserRespo
     
     return {"message": f"Permissions assigned to {len(request.user_ids)} users"}
 
+@api_router.get("/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.MANAGER):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    user = file_db.find_user({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return UserResponse(**user)
+
+@api_router.put("/users/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: str, 
+    user_update: UserCreate, 
+    current_user: UserResponse = Depends(get_current_user)
+):
+    if not has_permission(current_user, UserRole.MANAGER):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    # Find existing user
+    existing_user = file_db.find_user({"id": user_id})
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if username is being changed and if it's already taken
+    if user_update.username != existing_user.get("username"):
+        if file_db.find_user({"username": user_update.username}):
+            raise HTTPException(status_code=400, detail="Username already exists")
+    
+    # Check if email is being changed and if it's already taken
+    if user_update.email != existing_user.get("email"):
+        if file_db.find_user({"email": user_update.email}):
+            raise HTTPException(status_code=400, detail="Email already exists")
+    
+    # Prepare update data
+    update_data = {
+        **existing_user,
+        "username": user_update.username,
+        "email": user_update.email,
+        "full_name": user_update.full_name,
+        "role": user_update.role,
+        "company": user_update.company,
+        "department": user_update.department,
+        "zalo": user_update.zalo,
+        "gmail": user_update.gmail,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user.id
+    }
+    
+    # Update password only if provided
+    if user_update.password:
+        update_data["password_hash"] = hash_password(user_update.password)
+    
+    # Update user
+    file_db.update_user({"id": user_id}, update_data)
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return UserResponse(**update_data)
+
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Only Admin and above can delete users")
+    
+    # Find existing user
+    existing_user = file_db.find_user({"id": user_id})
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Prevent self-deletion
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Prevent deletion of Super Admin by non-Super Admin
+    if existing_user.get("role") == "super_admin" and current_user.role != "super_admin":
+        raise HTTPException(status_code=403, detail="Only Super Admin can delete Super Admin accounts")
+    
+    # Delete user
+    file_db.delete_user({"id": user_id})
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return {"message": "User deleted successfully"}
+
 # Ship Management Routes
 @api_router.post("/ships", response_model=Ship)
 async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depends(get_current_user)):
