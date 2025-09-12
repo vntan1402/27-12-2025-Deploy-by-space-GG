@@ -268,7 +268,11 @@ const translations = {
 
 // Login Page Component
 const LoginPage = () => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
+  const [credentials, setCredentials] = useState({ 
+    username: '', 
+    password: '', 
+    remember_me: localStorage.getItem('remember_me') === 'true' 
+  });
   const [currentPage, setCurrentPage] = useState('login');
   const { login, language, toggleLanguage } = useAuth();
   const navigate = useNavigate();
