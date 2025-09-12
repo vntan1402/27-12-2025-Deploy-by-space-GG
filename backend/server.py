@@ -16,6 +16,10 @@ from enum import Enum
 import shutil
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 
+# Import our new database modules
+from file_database import file_db
+from google_drive_manager import gdrive_manager
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
