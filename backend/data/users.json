@@ -28,7 +28,13 @@
       ],
       "assigned_by": "945930a2-5b00-43ca-907d-82b248302c62",
       "assigned_at": "2025-09-12T14:03:13.582611+00:00"
-    }
+    },
+    "company": null,
+    "ship": "c810ce09-afc4-47ea-98b0-cba976219546",
+    "zalo": null,
+    "gmail": null,
+    "updated_at": "2025-09-12T23:16:18.817606+00:00",
+    "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
   },
   {
     "id": "89c3e8c0-01dd-4214-b66f-94b81f4b8d25",
