@@ -383,6 +383,70 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
     certificates = file_db.find_certificates({"ship_id": ship_id})
     return [Certificate(**cert) for cert in certificates]
 
+# Google Drive Configuration Routes
+@api_router.post("/gdrive/configure")
+async def configure_google_drive(config: GoogleDriveConfig, current_user: UserResponse = Depends(get_current_user)):
+    # Only admin and super_admin can configure Google Drive
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Only admin users can configure Google Drive")
+    
+    try:
+        success = gdrive_manager.configure(config.service_account_json, config.folder_id)
+        if success:
+            return {"message": "Google Drive configured successfully", "status": "success"}
+        else:
+            raise HTTPException(status_code=400, detail="Failed to configure Google Drive")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Configuration error: {str(e)}")
+
+@api_router.get("/gdrive/status", response_model=GoogleDriveStatus)
+async def get_google_drive_status(current_user: UserResponse = Depends(get_current_user)):
+    # Only admin and super_admin can view Google Drive status
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    status = gdrive_manager.get_sync_status()
+    return GoogleDriveStatus(**status)
+
+@api_router.post("/gdrive/sync-to-drive")
+async def sync_to_google_drive(current_user: UserResponse = Depends(get_current_user)):
+    # Only admin and super_admin can sync to Google Drive
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    try:
+        success = gdrive_manager.sync_to_drive()
+        if success:
+            # Update last sync time
+            config_path = os.path.join(gdrive_manager.local_data_path, 'gdrive_config.json')
+            if os.path.exists(config_path):
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+                config['last_sync'] = datetime.now(timezone.utc).isoformat()
+                with open(config_path, 'w') as f:
+                    json.dump(config, f)
+            
+            return {"message": "Data synced to Google Drive successfully", "status": "success"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to sync to Google Drive")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sync error: {str(e)}")
+
+@api_router.post("/gdrive/sync-from-drive") 
+async def sync_from_google_drive(current_user: UserResponse = Depends(get_current_user)):
+    # Only admin and super_admin can sync from Google Drive
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    try:
+        success = gdrive_manager.sync_from_drive()
+        if success:
+            return {"message": "Data synced from Google Drive successfully", "status": "success"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to sync from Google Drive")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sync error: {str(e)}")
+
 # File Upload Routes
 @api_router.post("/upload/logo")
 async def upload_logo(file: UploadFile = File(...), current_user: UserResponse = Depends(get_current_user)):
@@ -397,13 +461,17 @@ async def upload_logo(file: UploadFile = File(...), current_user: UserResponse =
         shutil.copyfileobj(file.file, buffer)
     
     # Update company settings
-    settings = await db.company_settings.find_one() or {}
+    settings = file_db.get_company_settings()
     settings.update({
         "logo_url": f"/uploads/{file_path.name}",
-        "updated_at": datetime.now(timezone.utc)
+        "updated_at": datetime.now(timezone.utc).isoformat()
     })
     
-    await db.company_settings.replace_one({}, settings, upsert=True)
+    file_db.update_company_settings(settings)
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
     return {"logo_url": settings["logo_url"]}
 
 # AI Analysis Routes
