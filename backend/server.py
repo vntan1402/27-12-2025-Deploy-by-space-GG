@@ -129,6 +129,9 @@ class UserResponse(BaseModel):
     full_name: str
     role: UserRole
     department: Department
+    company: Optional[str] = None
+    zalo: Optional[str] = None
+    gmail: Optional[str] = None
     is_active: bool
     created_at: datetime
     permissions: Dict[str, Any]
