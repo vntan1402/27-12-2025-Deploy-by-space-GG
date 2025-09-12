@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import time
 
 class UserManagementTester:
-    def __init__(self, base_url="https://shipdata-sync.preview.emergentagent.com"):
+    def __init__(self, base_url="https://navysys.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
