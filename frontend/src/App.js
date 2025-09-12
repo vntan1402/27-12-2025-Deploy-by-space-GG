@@ -1279,6 +1279,49 @@ const AccountControlPage = () => {
     }
   };
 
+  const handleEditCompany = async () => {
+    if (!editingCompany) return;
+    
+    try {
+      const payload = {
+        ...editingCompany,
+        system_expiry: editingCompany.system_expiry ? new Date(editingCompany.system_expiry).toISOString() : null
+      };
+      
+      await axios.put(`${API}/companies/${editingCompany.id}`, payload);
+      toast.success(language === 'vi' ? 'Công ty đã được cập nhật thành công!' : 'Company updated successfully!');
+      setShowEditCompany(false);
+      setEditingCompany(null);
+      fetchCompanies();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể cập nhật công ty!' : 'Failed to update company!');
+    }
+  };
+
+  const handleDeleteCompany = async (company) => {
+    if (!window.confirm(language === 'vi' ? 
+      `Bạn có chắc muốn xóa công ty "${company.name_vn}"?` : 
+      `Are you sure you want to delete company "${company.name_en}"?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/companies/${company.id}`);
+      toast.success(language === 'vi' ? 'Công ty đã được xóa thành công!' : 'Company deleted successfully!');
+      fetchCompanies();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể xóa công ty!' : 'Failed to delete company!');
+    }
+  };
+
+  const openEditCompany = (company) => {
+    setEditingCompany({
+      ...company,
+      system_expiry: company.system_expiry ? new Date(company.system_expiry).toISOString().split('T')[0] : ''
+    });
+    setShowEditCompany(true);
+  };
+
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
