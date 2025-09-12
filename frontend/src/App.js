@@ -1641,6 +1641,496 @@ const PermissionModal = ({ selectedUsers, onClose, onSuccess }) => {
   );
 };
 
+// Add Record Modal Component
+const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
+  const [recordType, setRecordType] = useState('ship');
+  const [shipData, setShipData] = useState({
+    name: '',
+    imo_number: '',
+    class_society: '',
+    flag: '',
+    gross_tonnage: '',
+    deadweight: '',
+    built_year: ''
+  });
+  const [certificateData, setCertificateData] = useState({
+    ship_id: selectedShip?.id || '',
+    cert_name: '',
+    cert_no: '',
+    issue_date: '',
+    valid_date: '',
+    last_endorse: '',
+    next_survey: '',
+    category: 'certificates',
+    sensitivity_level: 'internal'
+  });
+  const [documentData, setDocumentData] = useState({
+    title: '',
+    category: 'other_documents',
+    description: '',
+    file: null
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const handleSubmitShip = async () => {
+    try {
+      setIsSubmitting(true);
+      const shipPayload = {
+        ...shipData,
+        gross_tonnage: parseFloat(shipData.gross_tonnage),
+        deadweight: parseFloat(shipData.deadweight),
+        built_year: parseInt(shipData.built_year)
+      };
+      
+      const response = await axios.post(`${API}/ships`, shipPayload);
+      onSuccess('ship');
+      toast.success(language === 'vi' ? 'Tàu đã được thêm thành công!' : 'Ship added successfully!');
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể thêm tàu!' : 'Failed to add ship!');
+      console.error('Ship creation error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitCertificate = async () => {
+    try {
+      setIsSubmitting(true);
+      const certPayload = {
+        ...certificateData,
+        issue_date: new Date(certificateData.issue_date).toISOString(),
+        valid_date: new Date(certificateData.valid_date).toISOString(),
+        last_endorse: certificateData.last_endorse ? new Date(certificateData.last_endorse).toISOString() : null,
+        next_survey: certificateData.next_survey ? new Date(certificateData.next_survey).toISOString() : null
+      };
+      
+      const response = await axios.post(`${API}/certificates`, certPayload);
+      onSuccess('certificate');
+      toast.success(language === 'vi' ? 'Chứng chỉ đã được thêm thành công!' : 'Certificate added successfully!');
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể thêm chứng chỉ!' : 'Failed to add certificate!');
+      console.error('Certificate creation error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitDocument = async () => {
+    try {
+      setIsSubmitting(true);
+      // For now, create a basic document record (file upload can be enhanced later)
+      const docPayload = {
+        title: documentData.title,
+        category: documentData.category,
+        description: documentData.description,
+        ship_id: selectedShip?.id || null
+      };
+      
+      // This would need a separate endpoint for documents in the backend
+      toast.info(language === 'vi' ? 'Tính năng tải lên tài liệu đang được phát triển' : 'Document upload feature is under development');
+      onSuccess('document');
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể thêm tài liệu!' : 'Failed to add document!');
+      console.error('Document creation error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (recordType === 'ship') {
+      handleSubmitShip();
+    } else if (recordType === 'certificate') {
+      handleSubmitCertificate();
+    } else if (recordType === 'document') {
+      handleSubmitDocument();
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {language === 'vi' ? 'Thêm hồ sơ mới' : 'Add New Record'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Record Type Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            {language === 'vi' ? 'Loại hồ sơ' : 'Record Type'}
+          </label>
+          <div className="flex space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="ship"
+                checked={recordType === 'ship'}
+                onChange={(e) => setRecordType(e.target.value)}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span>{language === 'vi' ? 'Tàu' : 'Ship'}</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="certificate"
+                checked={recordType === 'certificate'}
+                onChange={(e) => setRecordType(e.target.value)}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span>{language === 'vi' ? 'Chứng chỉ' : 'Certificate'}</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="document"
+                checked={recordType === 'document'}
+                onChange={(e) => setRecordType(e.target.value)}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <span>{language === 'vi' ? 'Tài liệu' : 'Document'}</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Ship Form */}
+        {recordType === 'ship' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên tàu' : 'Ship Name'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={shipData.name}
+                  onChange={(e) => setShipData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Nhập tên tàu' : 'Enter ship name'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Số IMO' : 'IMO Number'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={shipData.imo_number}
+                  onChange={(e) => setShipData(prev => ({ ...prev, imo_number: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="1234567"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Hãng đăng kiểm' : 'Class Society'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={shipData.class_society}
+                  onChange={(e) => setShipData(prev => ({ ...prev, class_society: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="DNV GL, ABS, LR..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Cờ' : 'Flag'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={shipData.flag}
+                  onChange={(e) => setShipData(prev => ({ ...prev, flag: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Việt Nam, Singapore...' : 'Vietnam, Singapore...'}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tổng trọng tải (GT)' : 'Gross Tonnage (GT)'} *
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={shipData.gross_tonnage}
+                  onChange={(e) => setShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Trọng tải chết (DWT)' : 'Deadweight (DWT)'} *
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={shipData.deadweight}
+                  onChange={(e) => setShipData(prev => ({ ...prev, deadweight: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Năm đóng' : 'Built Year'} *
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={shipData.built_year}
+                  onChange={(e) => setShipData(prev => ({ ...prev, built_year: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="2020"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Certificate Form */}
+        {recordType === 'certificate' && (
+          <div className="space-y-4">
+            {!selectedShip && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800 text-sm">
+                  {language === 'vi' ? 'Vui lòng chọn tàu trước khi thêm chứng chỉ' : 'Please select a ship before adding certificates'}
+                </p>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={certificateData.cert_name}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, cert_name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Nhập tên chứng chỉ' : 'Enter certificate name'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={certificateData.cert_no}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, cert_no: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter certificate number'}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày cấp' : 'Issue Date'} *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={certificateData.issue_date}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, issue_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'} *
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={certificateData.valid_date}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, valid_date: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                </label>
+                <input
+                  type="date"
+                  value={certificateData.last_endorse}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, last_endorse: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}
+                </label>
+                <input
+                  type="date"
+                  value={certificateData.next_survey}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, next_survey: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Danh mục' : 'Category'} *
+                </label>
+                <select
+                  required
+                  value={certificateData.category}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="certificates">{language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}</option>
+                  <option value="inspection_records">{language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records'}</option>
+                  <option value="survey_reports">{language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports'}</option>
+                  <option value="drawings_manuals">{language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals'}</option>
+                  <option value="other_documents">{language === 'vi' ? 'Hồ sơ khác' : 'Other Documents'}</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Mức độ bảo mật' : 'Sensitivity Level'} *
+                </label>
+                <select
+                  required
+                  value={certificateData.sensitivity_level}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, sensitivity_level: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="public">{language === 'vi' ? 'Công khai' : 'Public'}</option>
+                  <option value="internal">{language === 'vi' ? 'Nội bộ' : 'Internal'}</option>
+                  <option value="confidential">{language === 'vi' ? 'Bí mật' : 'Confidential'}</option>
+                  <option value="restricted">{language === 'vi' ? 'Hạn chế' : 'Restricted'}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Document Form */}
+        {recordType === 'document' && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tiêu đề tài liệu' : 'Document Title'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={documentData.title}
+                onChange={(e) => setDocumentData(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập tiêu đề tài liệu' : 'Enter document title'}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Danh mục' : 'Category'} *
+              </label>
+              <select
+                required
+                value={documentData.category}
+                onChange={(e) => setDocumentData(prev => ({ ...prev, category: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="other_documents">{language === 'vi' ? 'Hồ sơ khác' : 'Other Documents'}</option>
+                <option value="drawings_manuals">{language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals'}</option>
+                <option value="inspection_records">{language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records'}</option>
+                <option value="survey_reports">{language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports'}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Mô tả' : 'Description'}
+              </label>
+              <textarea
+                value={documentData.description}
+                onChange={(e) => setDocumentData(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows="3"
+                placeholder={language === 'vi' ? 'Nhập mô tả tài liệu (tùy chọn)' : 'Enter document description (optional)'}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tệp tài liệu' : 'Document File'}
+              </label>
+              <input
+                type="file"
+                onChange={(e) => setDocumentData(prev => ({ ...prev, file: e.target.files[0] }))}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' ? 'Hỗ trợ: PDF, DOC, DOCX, JPG, PNG' : 'Supported: PDF, DOC, DOCX, JPG, PNG'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end space-x-4 mt-8">
+          <button
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
+          >
+            {language === 'vi' ? 'Hủy' : 'Cancel'}
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting || (recordType === 'certificate' && !selectedShip)}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
+          >
+            {isSubmitting && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
+            {language === 'vi' ? 'Thêm hồ sơ' : 'Add Record'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Additional components for Ships Page and Ship Detail Page would go here
 const ShipsPage = () => <div>Ships Page - To be implemented</div>;
 const ShipDetailPage = () => <div>Ship Detail Page - To be implemented</div>;
