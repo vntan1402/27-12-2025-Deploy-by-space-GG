@@ -753,7 +753,7 @@ const HomePage = () => {
                 onClick={() => navigate('/account-control')}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all shadow-sm"
               >
-                {language === 'vi' ? 'Quản lý tài khoản' : 'Account Management'}
+                {language === 'vi' ? 'Cài đặt hệ thống' : 'System Settings'}
               </button>
               
               <span className="text-sm text-gray-600">
