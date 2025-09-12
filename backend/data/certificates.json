@@ -96,5 +96,19 @@
     "sensitivity_level": "public",
     "file_path": null,
     "created_at": "2025-09-12 12:51:32.944886+00:00"
+  },
+  {
+    "id": "e3864fb8-8312-4c70-86f5-3e8a8f804c53",
+    "ship_id": "59d799a7-3b5d-4cac-8214-b195dc297e42",
+    "cert_name": "International Gas Carrier Code Certificate",
+    "cert_no": "IGC951357",
+    "issue_date": "2024-09-01 00:00:00+00:00",
+    "valid_date": "2025-09-01 00:00:00+00:00",
+    "last_endorse": "2024-11-01 00:00:00+00:00",
+    "next_survey": "2025-03-01 00:00:00+00:00",
+    "category": "certificates",
+    "sensitivity_level": "restricted",
+    "file_path": null,
+    "created_at": "2025-09-12 12:51:45.470543+00:00"
   }
 ]
