@@ -1473,6 +1473,85 @@ const AccountControlPage = () => {
             </div>
           )}
 
+          {/* Usage Tracking - Admin+ Only */}
+          {(user?.role === 'admin' || user?.role === 'super_admin') && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                {language === 'vi' ? 'Theo dõi sử dụng AI' : 'AI Usage Tracking'}
+              </h3>
+              
+              {/* Usage Statistics */}
+              {usageStats && (
+                <div className="space-y-4">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="text-sm text-blue-600 font-medium">
+                        {language === 'vi' ? 'Tổng yêu cầu' : 'Total Requests'}
+                      </div>
+                      <div className="text-lg font-bold text-blue-800">
+                        {usageStats.total_requests.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-3 rounded-lg">
+                      <div className="text-sm text-green-600 font-medium">
+                        {language === 'vi' ? 'Chi phí ước tính' : 'Estimated Cost'}
+                      </div>
+                      <div className="text-lg font-bold text-green-800">
+                        ${usageStats.total_estimated_cost.toFixed(4)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Token Usage */}
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-2">
+                      {language === 'vi' ? 'Sử dụng token (30 ngày):' : 'Token Usage (30 days):'}
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <div>
+                        <span className="font-medium">Input:</span> {usageStats.total_input_tokens.toLocaleString()} tokens
+                      </div>
+                      <div>
+                        <span className="font-medium">Output:</span> {usageStats.total_output_tokens.toLocaleString()} tokens
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Provider Distribution */}
+                  {Object.keys(usageStats.requests_by_provider).length > 0 && (
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <div className="text-sm text-gray-600 mb-2">
+                        {language === 'vi' ? 'Phân bố nhà cung cấp:' : 'Provider Distribution:'}
+                      </div>
+                      <div className="space-y-1">
+                        {Object.entries(usageStats.requests_by_provider).map(([provider, count]) => (
+                          <div key={provider} className="flex justify-between text-xs">
+                            <span className="capitalize">{provider}</span>
+                            <span className="font-medium">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="mt-4 space-y-2">
+                <button
+                  onClick={() => {
+                    setUsageLoading(true);
+                    fetchUsageStats().finally(() => setUsageLoading(false));
+                  }}
+                  disabled={usageLoading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white py-2 rounded-lg transition-all text-sm"
+                >
+                  {usageLoading ? '⏳' : '🔄'} {language === 'vi' ? 'Làm mới thống kê' : 'Refresh Stats'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Company Management - Super Admin Only */}
           {user?.role === 'super_admin' && (
             <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
