@@ -1404,24 +1404,124 @@ const AccountControlPage = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* User Management */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Quản lý người dùng' : 'User Management'}</h3>
-            <div className="space-y-4">
-              <button
-                onClick={() => setShowAddUser(true)}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all"
-              >
-                {t.addUser}
-              </button>
+          {(user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') && (
+            <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
+              <h3 className="text-lg font-semibold mb-6 text-gray-800">
+                {language === 'vi' ? 'Quản lý người dùng' : 'User Management'}
+              </h3>
               
-              <button
-                onClick={() => setShowPermissions(true)}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-all"
-              >
-                {t.permissions}
-              </button>
+              {/* Action Buttons */}
+              <div className="mb-6 flex space-x-4">
+                <button
+                  onClick={() => setShowAddUser(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all"
+                >
+                  {t.addUser}
+                </button>
+                
+                <button
+                  onClick={() => setShowPermissions(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all"
+                >
+                  {t.permissions}
+                </button>
+              </div>
+              
+              {/* Users Table */}
+              {users.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300 text-sm">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Tên người dùng' : 'User Name'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Công ty' : 'Company'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Phòng ban' : 'Department'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Vai trò' : 'Role'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">Zalo</th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">Gmail</th>
+                        <th className="border border-gray-300 px-4 py-3 text-center">
+                          {language === 'vi' ? 'Thao tác' : 'Actions'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((userItem) => (
+                        <tr key={userItem.id} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-4 py-3 font-medium">
+                            {userItem.full_name}
+                            <div className="text-xs text-gray-500">{userItem.username}</div>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {userItem.company || '-'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {userItem.department || '-'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              userItem.role === 'super_admin' ? 'bg-red-100 text-red-800' :
+                              userItem.role === 'admin' ? 'bg-orange-100 text-orange-800' :
+                              userItem.role === 'manager' ? 'bg-blue-100 text-blue-800' :
+                              userItem.role === 'editor' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {userItem.role === 'super_admin' ? (language === 'vi' ? 'Siêu quản trị' : 'Super Admin') :
+                               userItem.role === 'admin' ? (language === 'vi' ? 'Quản trị' : 'Admin') :
+                               userItem.role === 'manager' ? (language === 'vi' ? 'Quản lý' : 'Manager') :
+                               userItem.role === 'editor' ? (language === 'vi' ? 'Người chỉnh sửa' : 'Editor') :
+                               (language === 'vi' ? 'Người xem' : 'Viewer')}
+                            </span>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {userItem.zalo || '-'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {userItem.gmail || userItem.email || '-'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3 text-center">
+                            <div className="flex justify-center space-x-2">
+                              <button
+                                onClick={() => openEditUser(userItem)}
+                                disabled={userItem.id === user.id} // Prevent self-edit
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-3 py-1 rounded text-xs transition-all"
+                                title={language === 'vi' ? 'Sửa' : 'Edit'}
+                              >
+                                {language === 'vi' ? 'Sửa' : 'Edit'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUser(userItem)}
+                                disabled={userItem.id === user.id || (userItem.role === 'super_admin' && user.role !== 'super_admin')}
+                                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-3 py-1 rounded text-xs transition-all"
+                                title={language === 'vi' ? 'Xóa' : 'Delete'}
+                              >
+                                {language === 'vi' ? 'Xóa' : 'Delete'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-4">👥</div>
+                  <p>{language === 'vi' ? 'Chưa có người dùng nào' : 'No users yet'}</p>
+                  <p className="text-sm mt-2">
+                    {language === 'vi' ? 'Nhấn "Thêm người dùng" để bắt đầu' : 'Click "Add User" to get started'}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* System Google Drive Configuration - Admin Only */}
           {isAdmin && (
