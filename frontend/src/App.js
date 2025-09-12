@@ -1656,6 +1656,22 @@ const AccountControlPage = () => {
             onClose={() => setShowCompanyForm(false)}
             onSubmit={handleCreateCompany}
             language={language}
+            isEdit={false}
+          />
+        )}
+
+        {/* Edit Company Modal */}
+        {showEditCompany && editingCompany && (
+          <CompanyFormModal
+            companyData={editingCompany}
+            setCompanyData={setEditingCompany}
+            onClose={() => {
+              setShowEditCompany(false);
+              setEditingCompany(null);
+            }}
+            onSubmit={handleEditCompany}
+            language={language}
+            isEdit={true}
           />
         )}
       </div>
