@@ -265,7 +265,7 @@
 
 ## test_plan:
   current_focus:
-    - "Company Management UI with Individual Logo Upload"
+    - "User Management UI with Integrated Table and Edit/Delete Features"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
