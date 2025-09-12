@@ -1132,6 +1132,10 @@ const AccountControlPage = () => {
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       fetchGoogleDriveStatus();
     }
+    if (user?.role === 'super_admin') {
+      fetchAIConfig();
+      fetchCompanies();
+    }
   }, [user]);
 
   const fetchUsers = async () => {
@@ -1149,6 +1153,24 @@ const AccountControlPage = () => {
       setGdriveStatus(response.data);
     } catch (error) {
       console.error('Failed to fetch Google Drive status:', error);
+    }
+  };
+
+  const fetchAIConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/ai-config`);
+      setAiConfig(response.data);
+    } catch (error) {
+      console.error('Failed to fetch AI config:', error);
+    }
+  };
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await axios.get(`${API}/companies`);
+      setCompanies(response.data);
+    } catch (error) {
+      console.error('Failed to fetch companies:', error);
     }
   };
 
