@@ -847,7 +847,7 @@ const HomePage = () => {
                   border: '2px solid #2b6cb0'
                 }}
               >
-                {language === 'vi' ? 'Quản lý tài khoản' : 'Account Management'}
+                {language === 'vi' ? 'Cài đặt hệ thống' : 'System Settings'}
               </button>
               
               <button
