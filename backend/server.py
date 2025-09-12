@@ -110,6 +110,9 @@ class UserCreate(BaseModel):
     full_name: str
     role: UserRole
     department: Department
+    company: Optional[str] = None
+    zalo: Optional[str] = None
+    gmail: Optional[str] = None
 
 class UserLogin(BaseModel):
     username: str
