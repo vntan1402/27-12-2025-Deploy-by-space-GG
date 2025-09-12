@@ -1097,6 +1097,8 @@ const AccountControlPage = () => {
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [showAIConfig, setShowAIConfig] = useState(false);
   const [showCompanyForm, setShowCompanyForm] = useState(false);
+  const [showEditCompany, setShowEditCompany] = useState(false);
+  const [editingCompany, setEditingCompany] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [logoFile, setLogoFile] = useState(null);
   const [gdriveConfig, setGdriveConfig] = useState({

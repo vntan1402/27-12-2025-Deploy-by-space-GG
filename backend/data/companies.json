@@ -13,5 +13,33 @@
     "created_at": "2025-09-12 14:13:09.371942+00:00",
     "created_by": "945930a2-5b00-43ca-907d-82b248302c62",
     "updated_at": "2025-09-12T14:13:09.488859+00:00"
+  },
+  {
+    "id": "952e6101-dae9-4811-877f-cd3b84211fb9",
+    "name_vn": "C\u00f4ng ty XYZ",
+    "name_en": "XYZ Company",
+    "address_vn": "12 NVL , H\u1ea3i Ph\u00f2ng",
+    "address_en": "12 NVL HAI PHONG",
+    "tax_id": "0312548756",
+    "gdrive_config": null,
+    "gmail": "xyz@gmail.com",
+    "zalo": "0989357282",
+    "system_expiry": "2025-10-31 00:00:00+00:00",
+    "created_at": "2025-09-12 14:26:22.038425+00:00",
+    "created_by": "945930a2-5b00-43ca-907d-82b248302c62"
+  },
+  {
+    "id": "4bfea7eb-d4e7-40a0-a97a-3e4110bb8525",
+    "name_vn": "C\u00f4ng ty fds",
+    "name_en": "fds Company",
+    "address_vn": "frsa",
+    "address_en": "fgsd ",
+    "tax_id": "354654778",
+    "gdrive_config": null,
+    "gmail": "fds@gmail.com",
+    "zalo": "032567489",
+    "system_expiry": "2025-09-30 00:00:00+00:00",
+    "created_at": "2025-09-12 14:28:34.018927+00:00",
+    "created_by": "945930a2-5b00-43ca-907d-82b248302c62"
   }
 ]

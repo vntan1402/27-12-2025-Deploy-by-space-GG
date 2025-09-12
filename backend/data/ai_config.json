@@ -1,8 +1,8 @@
 {
-  "id": "33707ca8-4286-4369-a8c1-1b8e7a332474",
-  "provider": "anthropic",
-  "model": "claude-3-sonnet",
+  "id": "e9bd41b4-90c3-46b6-a73a-aa3136ec72a7",
+  "provider": "openai",
+  "model": "gpt-4o",
   "is_active": true,
-  "updated_at": "2025-09-12 14:13:09.192575+00:00",
+  "updated_at": "2025-09-12 14:26:59.249413+00:00",
   "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
 }
