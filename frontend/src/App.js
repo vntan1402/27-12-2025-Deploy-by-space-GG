@@ -1334,12 +1334,44 @@ const AccountControlPage = () => {
     }
   };
 
-  const openEditCompany = (company) => {
-    setEditingCompany({
-      ...company,
-      system_expiry: company.system_expiry ? new Date(company.system_expiry).toISOString().split('T')[0] : ''
+  const openEditUser = (user) => {
+    setEditingUser({
+      ...user,
+      password: '' // Don't populate password for security
     });
-    setShowEditCompany(true);
+    setShowEditUser(true);
+  };
+
+  const handleEditUser = async () => {
+    if (!editingUser) return;
+    
+    try {
+      await axios.put(`${API}/users/${editingUser.id}`, editingUser);
+      toast.success(language === 'vi' ? 'Người dùng đã được cập nhật thành công!' : 'User updated successfully!');
+      setShowEditUser(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể cập nhật người dùng!' : 'Failed to update user!');
+      console.error('User update error:', error);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!window.confirm(language === 'vi' ? 
+      `Bạn có chắc muốn xóa người dùng "${user.full_name}"?` : 
+      `Are you sure you want to delete user "${user.full_name}"?`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/users/${user.id}`);
+      toast.success(language === 'vi' ? 'Người dùng đã được xóa thành công!' : 'User deleted successfully!');
+      fetchUsers();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể xóa người dùng!' : 'Failed to delete user!');
+      console.error('User delete error:', error);
+    }
   };
 
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
