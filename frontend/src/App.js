@@ -2057,7 +2057,10 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">
-            {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
+            {isEdit ? 
+              (language === 'vi' ? 'Chỉnh sửa công ty' : 'Edit Company') :
+              (language === 'vi' ? 'Thêm công ty mới' : 'Add New Company')
+            }
           </h2>
           <button
             onClick={onClose}
