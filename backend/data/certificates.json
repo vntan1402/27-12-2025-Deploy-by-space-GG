@@ -68,5 +68,19 @@
     "sensitivity_level": "internal",
     "file_path": null,
     "created_at": "2025-09-12 12:51:10.506232+00:00"
+  },
+  {
+    "id": "adcb5084-3b5a-41c0-9793-2b1cf18e2107",
+    "ship_id": "3aec8486-fa5a-447b-b67d-43348f67c80e",
+    "cert_name": "Passenger Ship Safety Certificate",
+    "cert_no": "PSSC852963",
+    "issue_date": "2024-06-12 00:00:00+00:00",
+    "valid_date": "2025-06-12 00:00:00+00:00",
+    "last_endorse": "2024-09-12 00:00:00+00:00",
+    "next_survey": "2024-12-12 00:00:00+00:00",
+    "category": "certificates",
+    "sensitivity_level": "internal",
+    "file_path": null,
+    "created_at": "2025-09-12 12:51:22.871196+00:00"
   }
 ]
