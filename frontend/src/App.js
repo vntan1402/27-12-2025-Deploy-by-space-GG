@@ -1066,6 +1066,24 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Record Modal */}
+      {showAddRecord && (
+        <AddRecordModal
+          onClose={() => setShowAddRecord(false)}
+          onSuccess={(type) => {
+            setShowAddRecord(false);
+            if (type === 'ship') {
+              fetchShips();
+            } else if (type === 'certificate' && selectedShip) {
+              fetchCertificates(selectedShip.id);
+            }
+            toast.success(language === 'vi' ? 'Thêm hồ sơ thành công!' : 'Record added successfully!');
+          }}
+          language={language}
+          selectedShip={selectedShip}
+        />
+      )}
     </div>
   );
 };
