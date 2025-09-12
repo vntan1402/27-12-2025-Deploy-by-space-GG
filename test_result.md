@@ -202,7 +202,7 @@
 
 ## test_plan:
   current_focus:
-    - "Add New Record Modal/Forms"
+    - "Usage Tracking Backend Implementation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
