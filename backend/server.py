@@ -570,10 +570,11 @@ async def update_settings(settings: CompanySettings, current_user: UserResponse 
     
     return settings
 
-# Initialize default admin user
+# Initialize default admin user and migrate data
 @app.on_event("startup")
-async def create_default_admin():
-    admin_exists = await db.users.find_one({"role": "super_admin"})
+async def startup_tasks():
+    # Create default admin user if not exists
+    admin_exists = file_db.find_user({"role": "super_admin"})
     if not admin_exists:
         default_admin = User(
             username="admin",
@@ -583,8 +584,18 @@ async def create_default_admin():
             role=UserRole.SUPER_ADMIN,
             department=Department.TECHNICAL
         )
-        await db.users.insert_one(default_admin.dict())
+        file_db.insert_user(default_admin.dict())
         print("Default admin user created: username=admin, password=admin123")
+    
+    # Try to sync from Google Drive on startup
+    if gdrive_manager.is_configured:
+        try:
+            gdrive_manager.sync_from_drive()
+            print("Data synced from Google Drive on startup")
+        except Exception as e:
+            print(f"Failed to sync from Google Drive on startup: {e}")
+            
+    print("Ship Management System started successfully with file-based database")
 
 # Include router
 app.include_router(api_router)
