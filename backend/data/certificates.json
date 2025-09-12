@@ -40,5 +40,19 @@
     "sensitivity_level": "confidential",
     "file_path": null,
     "created_at": "2025-09-12 12:50:46.632989+00:00"
+  },
+  {
+    "id": "62910d56-193c-473a-bd56-fa4e4052867d",
+    "ship_id": "35294ade-53f3-4947-83da-65a370f5d0d7",
+    "cert_name": "Certificate of Fitness for Carriage of Noxious Liquid Substances",
+    "cert_no": "NLS147258",
+    "issue_date": "2024-05-25 00:00:00+00:00",
+    "valid_date": "2025-05-25 00:00:00+00:00",
+    "last_endorse": "2024-08-25 00:00:00+00:00",
+    "next_survey": "2025-02-25 00:00:00+00:00",
+    "category": "certificates",
+    "sensitivity_level": "restricted",
+    "file_path": null,
+    "created_at": "2025-09-12 12:50:57.550546+00:00"
   }
 ]
