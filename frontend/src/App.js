@@ -1873,6 +1873,20 @@ const AccountControlPage = () => {
             isEdit={true}
           />
         )}
+
+        {/* Edit User Modal */}
+        {showEditUser && editingUser && (
+          <EditUserModal
+            userData={editingUser}
+            setUserData={setEditingUser}
+            onClose={() => {
+              setShowEditUser(false);
+              setEditingUser(null);
+            }}
+            onSubmit={handleEditUser}
+            language={language}
+          />
+        )}
       </div>
     </div>
   );
