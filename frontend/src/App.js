@@ -1234,6 +1234,49 @@ const AccountControlPage = () => {
     }
   };
 
+  const handleAIConfigUpdate = async () => {
+    try {
+      await axios.post(`${API}/ai-config`, aiConfig);
+      toast.success(language === 'vi' ? 'Cấu hình AI thành công!' : 'AI configuration updated successfully!');
+      setShowAIConfig(false);
+      fetchAIConfig();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Cấu hình AI thất bại!' : 'Failed to update AI configuration!');
+    }
+  };
+
+  const handleCreateCompany = async () => {
+    if (!companyData.name_vn || !companyData.name_en || !companyData.tax_id) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill all required fields');
+      return;
+    }
+
+    try {
+      const payload = {
+        ...companyData,
+        system_expiry: companyData.system_expiry ? new Date(companyData.system_expiry).toISOString() : null
+      };
+      
+      await axios.post(`${API}/companies`, payload);
+      toast.success(language === 'vi' ? 'Công ty đã được tạo thành công!' : 'Company created successfully!');
+      setShowCompanyForm(false);
+      setCompanyData({
+        name_vn: '',
+        name_en: '',
+        address_vn: '',
+        address_en: '',
+        tax_id: '',
+        gmail: '',
+        zalo: '',
+        system_expiry: '',
+        gdrive_config: null
+      });
+      fetchCompanies();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể tạo công ty!' : 'Failed to create company!');
+    }
+  };
+
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
