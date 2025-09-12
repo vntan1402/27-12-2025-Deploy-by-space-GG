@@ -1010,8 +1010,15 @@ const AccountControlPage = () => {
   const [users, setUsers] = useState([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [showPermissions, setShowPermissions] = useState(false);
+  const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [logoFile, setLogoFile] = useState(null);
+  const [gdriveConfig, setGdriveConfig] = useState({
+    service_account_json: '',
+    folder_id: ''
+  });
+  const [gdriveStatus, setGdriveStatus] = useState(null);
+  const [syncLoading, setSyncLoading] = useState(false);
   const navigate = useNavigate();
   
   const t = translations[language];
@@ -1019,6 +1026,9 @@ const AccountControlPage = () => {
   useEffect(() => {
     if (user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') {
       fetchUsers();
+    }
+    if (user?.role === 'admin' || user?.role === 'super_admin') {
+      fetchGoogleDriveStatus();
     }
   }, [user]);
 
@@ -1028,6 +1038,15 @@ const AccountControlPage = () => {
       setUsers(response.data);
     } catch (error) {
       toast.error('Failed to fetch users');
+    }
+  };
+
+  const fetchGoogleDriveStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/gdrive/status`);
+      setGdriveStatus(response.data);
+    } catch (error) {
+      console.error('Failed to fetch Google Drive status:', error);
     }
   };
 
@@ -1047,6 +1066,51 @@ const AccountControlPage = () => {
       toast.error(language === 'vi' ? 'Không thể tải lên logo' : 'Failed to upload logo');
     }
   };
+
+  const handleGoogleDriveConfig = async () => {
+    if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin' : 'Please fill all required fields');
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/gdrive/configure`, gdriveConfig);
+      toast.success(language === 'vi' ? 'Cấu hình Google Drive thành công!' : 'Google Drive configured successfully!');
+      setShowGoogleDrive(false);
+      setGdriveConfig({ service_account_json: '', folder_id: '' });
+      fetchGoogleDriveStatus();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Cấu hình Google Drive thất bại!' : 'Failed to configure Google Drive!');
+    }
+  };
+
+  const handleSyncToGoogleDrive = async () => {
+    setSyncLoading(true);
+    try {
+      await axios.post(`${API}/gdrive/sync-to-drive`);
+      toast.success(language === 'vi' ? 'Đồng bộ lên Google Drive thành công!' : 'Synced to Google Drive successfully!');
+      fetchGoogleDriveStatus();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Đồng bộ thất bại!' : 'Sync failed!');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const handleSyncFromGoogleDrive = async () => {
+    setSyncLoading(true);
+    try {
+      await axios.post(`${API}/gdrive/sync-from-drive`);
+      toast.success(language === 'vi' ? 'Đồng bộ từ Google Drive thành công!' : 'Synced from Google Drive successfully!');
+      fetchGoogleDriveStatus();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Đồng bộ thất bại!' : 'Sync failed!');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -1107,16 +1171,87 @@ const AccountControlPage = () => {
             </div>
           </div>
 
+          {/* Google Drive Configuration - Admin Only */}
+          {isAdmin && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                {language === 'vi' ? 'Cấu hình Google Drive' : 'Google Drive Configuration'}
+              </h3>
+              
+              {/* Google Drive Status */}
+              {gdriveStatus && (
+                <div className="mb-4 p-3 rounded-lg bg-gray-50">
+                  <div className="text-sm space-y-1">
+                    <div className={`font-medium ${gdriveStatus.configured ? 'text-green-600' : 'text-red-600'}`}>
+                      {language === 'vi' ? 'Trạng thái:' : 'Status:'} {gdriveStatus.configured ? 
+                        (language === 'vi' ? 'Đã cấu hình' : 'Configured') : 
+                        (language === 'vi' ? 'Chưa cấu hình' : 'Not configured')}
+                    </div>
+                    {gdriveStatus.configured && (
+                      <>
+                        <div className="text-gray-600">
+                          {language === 'vi' ? 'Files local:' : 'Local files:'} {gdriveStatus.local_files}
+                        </div>
+                        <div className="text-gray-600">
+                          {language === 'vi' ? 'Files Google Drive:' : 'Drive files:'} {gdriveStatus.drive_files}
+                        </div>
+                        {gdriveStatus.last_sync && (
+                          <div className="text-gray-600">
+                            {language === 'vi' ? 'Đồng bộ cuối:' : 'Last sync:'} {new Date(gdriveStatus.last_sync).toLocaleString()}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowGoogleDrive(true)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-all"
+                >
+                  {language === 'vi' ? 'Cấu hình Google Drive' : 'Configure Google Drive'}
+                </button>
+                
+                {gdriveStatus?.configured && (
+                  <>
+                    <button
+                      onClick={handleSyncToGoogleDrive}
+                      disabled={syncLoading}
+                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 rounded-lg transition-all"
+                    >
+                      {syncLoading ? '⏳' : '☁️↑'} {language === 'vi' ? 'Đồng bộ lên Drive' : 'Sync to Drive'}
+                    </button>
+                    
+                    <button
+                      onClick={handleSyncFromGoogleDrive}
+                      disabled={syncLoading}
+                      className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white py-2 rounded-lg transition-all"
+                    >
+                      {syncLoading ? '⏳' : '☁️↓'} {language === 'vi' ? 'Đồng bộ từ Drive' : 'Sync from Drive'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Users List */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Danh sách người dùng' : 'Users List'}</h3>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {users.map((userItem) => (
-                <div key={userItem.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                <div key={userItem.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-800">{userItem.full_name}</p>
-                      <p className="text-sm text-gray-600">{userItem.username} - {t[userItem.role] || userItem.role}</p>
+                      <p className="text-sm text-gray-600">{userItem.username}</p>
+                      <p className="text-xs text-blue-600">{userItem.role === 'super_admin' ? (language === 'vi' ? 'Siêu quản trị' : 'Super Admin') :
+                        userItem.role === 'admin' ? (language === 'vi' ? 'Quản trị viên' : 'Admin') :
+                        userItem.role === 'manager' ? (language === 'vi' ? 'Quản lý' : 'Manager') :
+                        userItem.role === 'editor' ? (language === 'vi' ? 'Người chỉnh sửa' : 'Editor') :
+                        (language === 'vi' ? 'Người xem' : 'Viewer')}</p>
                     </div>
                     <input
                       type="checkbox"
@@ -1137,6 +1272,17 @@ const AccountControlPage = () => {
           </div>
         </div>
 
+        {/* Google Drive Configuration Modal */}
+        {showGoogleDrive && (
+          <GoogleDriveModal
+            config={gdriveConfig}
+            setConfig={setGdriveConfig}
+            onClose={() => setShowGoogleDrive(false)}
+            onSave={handleGoogleDriveConfig}
+            language={language}
+          />
+        )}
+
         {/* Permission Assignment Modal */}
         {showPermissions && (
           <PermissionModal
@@ -1149,6 +1295,97 @@ const AccountControlPage = () => {
             }}
           />
         )}
+      </div>
+    </div>
+  );
+};
+
+// Google Drive Configuration Modal Component
+const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {language === 'vi' ? 'Cấu hình Google Drive' : 'Google Drive Configuration'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? 'Service Account JSON' : 'Service Account JSON'}
+            </label>
+            <textarea
+              value={config.service_account_json}
+              onChange={(e) => setConfig(prev => ({ ...prev, service_account_json: e.target.value }))}
+              placeholder={language === 'vi' ? 'Paste service account JSON key tại đây...' : 'Paste service account JSON key here...'}
+              className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'vi' ? 'Tạo Service Account trong Google Cloud Console và download JSON key' : 'Create Service Account in Google Cloud Console and download JSON key'}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? 'Google Drive Folder ID' : 'Google Drive Folder ID'}
+            </label>
+            <input
+              type="text"
+              value={config.folder_id}
+              onChange={(e) => setConfig(prev => ({ ...prev, folder_id: e.target.value }))}
+              placeholder="1abcDEFghiJKLmnopQRStuv2wxYZ"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'vi' ? 'Folder ID từ URL Google Drive: drive.google.com/drive/folders/[FOLDER_ID]' : 'Folder ID from Google Drive URL: drive.google.com/drive/folders/[FOLDER_ID]'}
+            </p>
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-medium text-yellow-800 mb-2">
+              {language === 'vi' ? 'Hướng dẫn thiết lập:' : 'Setup Instructions:'}
+            </h4>
+            <ol className="text-sm text-yellow-700 space-y-1">
+              <li>1. {language === 'vi' ? 'Tạo project trong Google Cloud Console' : 'Create project in Google Cloud Console'}</li>
+              <li>2. {language === 'vi' ? 'Enable Google Drive API' : 'Enable Google Drive API'}</li>
+              <li>3. {language === 'vi' ? 'Tạo Service Account và download JSON key' : 'Create Service Account and download JSON key'}</li>
+              <li>4. {language === 'vi' ? 'Tạo folder trong Google Drive và share với service account email' : 'Create folder in Google Drive and share with service account email'}</li>
+              <li>5. {language === 'vi' ? 'Copy Folder ID từ URL' : 'Copy Folder ID from URL'}</li>
+            </ol>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-8">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+          >
+            {language === 'vi' ? 'Hủy' : 'Cancel'}
+          </button>
+          <button
+            onClick={onSave}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+          >
+            {language === 'vi' ? 'Lưu cấu hình' : 'Save Configuration'}
+          </button>
+        </div>
       </div>
     </div>
   );
