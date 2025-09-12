@@ -2601,28 +2601,56 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Công ty' : 'Company'}
+                {language === 'vi' ? 'Công ty' : 'Company'} *
               </label>
-              <input
-                type="text"
+              <select
+                required
                 value={userData.company || ''}
                 onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'vi' ? 'Nhập tên công ty' : 'Enter company name'}
-              />
+              >
+                <option value="">
+                  {language === 'vi' ? 'Chọn công ty' : 'Select company'}
+                </option>
+                {companies.map(company => (
+                  <option key={company.id} value={company.name_vn}>
+                    {language === 'vi' ? company.name_vn : company.name_en}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Phòng ban' : 'Department'}
+                {language === 'vi' ? 'Tàu' : 'Ship'}
               </label>
-              <input
-                type="text"
-                value={userData.department || ''}
-                onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
+              <select
+                value={userData.ship || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'vi' ? 'Nhập phòng ban' : 'Enter department'}
-              />
+              >
+                <option value="">
+                  {language === 'vi' ? 'Chọn tàu' : 'Select ship'}
+                </option>
+                {ships.map(ship => (
+                  <option key={ship.id} value={ship.name}>
+                    {ship.name}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Phòng ban' : 'Department'}
+            </label>
+            <input
+              type="text"
+              value={userData.department || ''}
+              onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={language === 'vi' ? 'Nhập phòng ban' : 'Enter department'}
+            />
           </div>
 
           <div>
