@@ -58,5 +58,17 @@
     "built_year": 2024,
     "photo_url": null,
     "created_at": "2025-09-12 12:50:12.366320+00:00"
+  },
+  {
+    "id": "ec24eff0-1c15-40e1-a455-320f5245e200",
+    "name": "Test Ship 1757685793",
+    "imo_number": "IMO1757685793",
+    "class_society": "DNV GL",
+    "flag": "Panama",
+    "gross_tonnage": 50000.0,
+    "deadweight": 75000.0,
+    "built_year": 2020,
+    "photo_url": null,
+    "created_at": "2025-09-12 14:03:13.637796+00:00"
   }
 ]

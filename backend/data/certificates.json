@@ -124,5 +124,19 @@
     "sensitivity_level": "public",
     "file_path": null,
     "created_at": "2025-09-12 12:51:55.015644+00:00"
+  },
+  {
+    "id": "d0cef54a-b3ef-43de-b017-7475a4e54d03",
+    "ship_id": "c810ce09-afc4-47ea-98b0-cba976219546",
+    "cert_name": "Safety Management Certificate",
+    "cert_no": "SMC1757685793",
+    "issue_date": "2024-01-01 00:00:00+00:00",
+    "valid_date": "2025-01-01 00:00:00+00:00",
+    "last_endorse": null,
+    "next_survey": null,
+    "category": "certificates",
+    "sensitivity_level": "internal",
+    "file_path": null,
+    "created_at": "2025-09-12 14:03:13.845323+00:00"
   }
 ]

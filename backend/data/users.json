@@ -10,12 +10,36 @@
     "is_active": true,
     "created_at": "2025-09-12 07:26:07.076738+00:00",
     "permissions": {
-      "categories": [],
-      "departments": [],
-      "sensitivity_levels": [],
-      "permissions": [],
+      "categories": [
+        "certificates",
+        "inspection_records"
+      ],
+      "departments": [
+        "technical",
+        "operations"
+      ],
+      "sensitivity_levels": [
+        "public",
+        "internal"
+      ],
+      "permissions": [
+        "read",
+        "write"
+      ],
       "assigned_by": "945930a2-5b00-43ca-907d-82b248302c62",
-      "assigned_at": "2025-09-12T13:06:24.301958+00:00"
+      "assigned_at": "2025-09-12T14:03:13.582611+00:00"
     }
+  },
+  {
+    "id": "89c3e8c0-01dd-4214-b66f-94b81f4b8d25",
+    "username": "test_user_1757685793",
+    "email": "test_1757685793@example.com",
+    "password_hash": "$2b$12$h6Eqnz.u4S29hZtiRZJPYOyoLVKHjGzqvLj9g/FJq9DN2OTX7e01C",
+    "full_name": "Test User",
+    "role": "viewer",
+    "department": "technical",
+    "is_active": true,
+    "created_at": "2025-09-12 14:03:13.479824+00:00",
+    "permissions": {}
   }
 ]
