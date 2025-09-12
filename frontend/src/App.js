@@ -1374,6 +1374,14 @@ const AccountControlPage = () => {
     }
   };
 
+  const openEditCompany = (company) => {
+    setEditingCompany({
+      ...company,
+      system_expiry: company.system_expiry ? new Date(company.system_expiry).toISOString().split('T')[0] : ''
+    });
+    setShowEditCompany(true);
+  };
+
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
