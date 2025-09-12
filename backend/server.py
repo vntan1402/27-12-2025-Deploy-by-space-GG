@@ -481,9 +481,11 @@ async def analyze_document(request: AIAnalysisRequest, current_user: UserRespons
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     # Find the document
-    certificate = await db.certificates.find_one({"id": request.document_id})
-    if not certificate:
+    certificates = file_db.find_certificates({"id": request.document_id})
+    if not certificates:
         raise HTTPException(status_code=404, detail="Document not found")
+    
+    certificate = certificates[0]
     
     try:
         chat = await init_ai_chat()
@@ -507,10 +509,14 @@ async def analyze_document(request: AIAnalysisRequest, current_user: UserRespons
             "analysis_type": request.analysis_type,
             "result": response,
             "analyzed_by": current_user.id,
-            "analyzed_at": datetime.now(timezone.utc)
+            "analyzed_at": datetime.now(timezone.utc).isoformat()
         }
         
-        await db.ai_analyses.insert_one(analysis)
+        file_db.insert_ai_analysis(analysis)
+        
+        # Sync to Google Drive
+        gdrive_manager.sync_to_drive()
+        
         return {"analysis": response, "analysis_id": analysis["id"]}
         
     except Exception as e:
@@ -525,7 +531,7 @@ async def smart_search(query: str, current_user: UserResponse = Depends(get_curr
             raise HTTPException(status_code=500, detail="AI service not available")
         
         # Get all certificates for context
-        certificates = await db.certificates.find().to_list(length=None)
+        certificates = file_db.find_certificates({})
         
         search_context = f"""
         Search Query: {query}
@@ -549,10 +555,7 @@ async def smart_search(query: str, current_user: UserResponse = Depends(get_curr
 # Company Settings Routes
 @api_router.get("/settings")
 async def get_settings(current_user: UserResponse = Depends(get_current_user)):
-    settings = await db.company_settings.find_one() or {}
-    # Remove MongoDB ObjectId if present
-    if '_id' in settings:
-        del settings['_id']
+    settings = file_db.get_company_settings()
     return settings
 
 @api_router.post("/settings")
@@ -560,7 +563,11 @@ async def update_settings(settings: CompanySettings, current_user: UserResponse 
     if not has_permission(current_user, UserRole.ADMIN):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
-    await db.company_settings.replace_one({}, settings.dict(), upsert=True)
+    file_db.update_company_settings(settings.dict())
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
     return settings
 
 # Initialize default admin user
