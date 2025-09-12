@@ -103,7 +103,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Implement Phase 2: Add New Record ("THÊM HỒ SƠ MỚI") Functionality - create comprehensive forms for adding new ships, certificates, and documents. Additionally, add AI Provider Selection in System Settings (Super Admin only) and New Company Management in System Settings (Super Admin only)."
+"Test the newly implemented Usage Tracking functionality including authentication, usage tracking endpoints, AI endpoints with usage logging, usage stats verification, permission testing, and edge cases."
 
 ## backend:
   - task: "Add New Record Backend Endpoints"
