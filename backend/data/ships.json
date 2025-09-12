@@ -46,5 +46,17 @@
     "built_year": 2023,
     "photo_url": null,
     "created_at": "2025-09-12 12:50:02.350347+00:00"
+  },
+  {
+    "id": "59d799a7-3b5d-4cac-8214-b195dc297e42",
+    "name": "LNG Arctic",
+    "imo_number": "IMO9444666",
+    "class_society": "American Bureau of Shipping",
+    "flag": "United States",
+    "gross_tonnage": 125000.0,
+    "deadweight": 95000.0,
+    "built_year": 2024,
+    "photo_url": null,
+    "created_at": "2025-09-12 12:50:12.366320+00:00"
   }
 ]
