@@ -1113,6 +1113,7 @@ const AccountControlPage = () => {
     model: 'gpt-4o'
   });
   const [companies, setCompanies] = useState([]);
+  const [ships, setShips] = useState([]);
   const [companyData, setCompanyData] = useState({
     name_vn: '',
     name_en: '',
