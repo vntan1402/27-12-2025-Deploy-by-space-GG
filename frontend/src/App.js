@@ -1095,6 +1095,8 @@ const AccountControlPage = () => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [showPermissions, setShowPermissions] = useState(false);
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
+  const [showAIConfig, setShowAIConfig] = useState(false);
+  const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [logoFile, setLogoFile] = useState(null);
   const [gdriveConfig, setGdriveConfig] = useState({
@@ -1103,6 +1105,22 @@ const AccountControlPage = () => {
   });
   const [gdriveStatus, setGdriveStatus] = useState(null);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [aiConfig, setAiConfig] = useState({
+    provider: 'openai',
+    model: 'gpt-4o'
+  });
+  const [companies, setCompanies] = useState([]);
+  const [companyData, setCompanyData] = useState({
+    name_vn: '',
+    name_en: '',
+    address_vn: '',
+    address_en: '',
+    tax_id: '',
+    gmail: '',
+    zalo: '',
+    system_expiry: '',
+    gdrive_config: null
+  });
   const navigate = useNavigate();
   
   const t = translations[language];
