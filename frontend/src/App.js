@@ -1461,40 +1461,120 @@ const AccountControlPage = () => {
 
           {/* Company Management - Super Admin Only */}
           {user?.role === 'super_admin' && (
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
+              <h3 className="text-lg font-semibold mb-6 text-gray-800">
                 {language === 'vi' ? 'Quản lý công ty' : 'Company Management'}
               </h3>
               
-              {/* Companies List */}
-              {companies.length > 0 && (
-                <div className="mb-4 p-3 rounded-lg bg-gray-50">
-                  <div className="text-sm font-medium text-gray-700 mb-2">
-                    {language === 'vi' ? 'Công ty hiện có:' : 'Existing Companies:'}
+              {/* Company Logo Section */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-md font-medium mb-3 text-gray-700">{t.companyLogo}</h4>
+                <div className="flex space-x-4 items-end">
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setLogoFile(e.target.files[0])}
+                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
                   </div>
-                  <div className="space-y-1">
-                    {companies.slice(0, 3).map((company) => (
-                      <div key={company.id} className="text-xs text-gray-600">
-                        {company.name_vn} - {company.tax_id}
-                      </div>
-                    ))}
-                    {companies.length > 3 && (
-                      <div className="text-xs text-gray-500">
-                        {language === 'vi' ? `+${companies.length - 3} công ty khác` : `+${companies.length - 3} more companies`}
-                      </div>
-                    )}
-                  </div>
+                  <button
+                    onClick={handleLogoUpload}
+                    disabled={!logoFile}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-all"
+                  >
+                    {t.uploadLogo}
+                  </button>
                 </div>
-              )}
-              
-              <div className="space-y-3">
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mb-6">
                 <button
                   onClick={() => setShowCompanyForm(true)}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg transition-all"
+                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-all"
                 >
                   {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
                 </button>
               </div>
+              
+              {/* Companies Table */}
+              {companies.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300 text-sm">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Tên công ty (VN)' : 'Company Name (VN)'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Tên công ty (EN)' : 'Company Name (EN)'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Mã số thuế' : 'Tax ID'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">Gmail</th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">
+                          {language === 'vi' ? 'Hết hạn' : 'Expiry'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-3 text-center">
+                          {language === 'vi' ? 'Thao tác' : 'Actions'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {companies.map((company) => (
+                        <tr key={company.id} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 px-4 py-3 font-medium">
+                            {company.name_vn}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {company.name_en}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {company.tax_id}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {company.gmail || '-'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3">
+                            {company.system_expiry ? 
+                              new Date(company.system_expiry).toLocaleDateString() : 
+                              (language === 'vi' ? 'Không giới hạn' : 'Unlimited')
+                            }
+                          </td>
+                          <td className="border border-gray-300 px-4 py-3 text-center">
+                            <div className="flex justify-center space-x-2">
+                              <button
+                                onClick={() => openEditCompany(company)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-all"
+                                title={language === 'vi' ? 'Sửa' : 'Edit'}
+                              >
+                                {language === 'vi' ? 'Sửa' : 'Edit'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteCompany(company)}
+                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-all"
+                                title={language === 'vi' ? 'Xóa' : 'Delete'}
+                              >
+                                {language === 'vi' ? 'Xóa' : 'Delete'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-4">🏢</div>
+                  <p>{language === 'vi' ? 'Chưa có công ty nào' : 'No companies yet'}</p>
+                  <p className="text-sm mt-2">
+                    {language === 'vi' ? 'Nhấn "Thêm công ty mới" để bắt đầu' : 'Click "Add New Company" to get started'}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
