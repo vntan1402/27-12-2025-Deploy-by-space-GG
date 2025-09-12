@@ -117,6 +117,17 @@ class UserCreate(BaseModel):
     zalo: Optional[str] = None
     gmail: Optional[str] = None
 
+class UserUpdate(BaseModel):
+    username: str
+    email: EmailStr
+    password: Optional[str] = None
+    full_name: str
+    role: UserRole
+    department: Department
+    company: Optional[str] = None
+    zalo: Optional[str] = None
+    gmail: Optional[str] = None
+
 class UserLogin(BaseModel):
     username: str
     password: str
