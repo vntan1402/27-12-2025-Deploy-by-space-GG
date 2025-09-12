@@ -45,18 +45,35 @@ const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      // Try to get users to verify token is still valid (more reliable endpoint)
-      await axios.get(`${API}/users`);
-      // Token is valid, keep it
+      // Try to get current user info to verify token and set user data
+      const response = await axios.get(`${API}/auth/me`);
+      if (response.data) {
+        setUser(response.data);
+      }
     } catch (error) {
-      if (error.response?.status === 401) {
-        // Token expired or invalid, clear it
-        console.warn('Token verification failed - logging out');
-        logout();
-      } else {
-        // For other errors (network, etc.), don't automatically logout
-        console.warn('Token verification failed with non-auth error:', error.message);
-        // Don't logout on network errors - keep the token
+      // If /auth/me doesn't exist, try to decode token to get user info
+      try {
+        const tokenData = token.split('.')[1];
+        const decoded = JSON.parse(atob(tokenData));
+        
+        // Create user object from token data
+        const userData = {
+          id: decoded.sub,
+          username: decoded.username,
+          role: decoded.role,
+          full_name: decoded.username // fallback
+        };
+        setUser(userData);
+      } catch (decodeError) {
+        if (error.response?.status === 401) {
+          // Token expired or invalid, clear it
+          console.warn('Token verification failed - logging out');
+          logout();
+        } else {
+          // For other errors (network, etc.), don't automatically logout
+          console.warn('Token verification failed with non-auth error:', error.message);
+          // Don't logout on network errors - keep the token
+        }
       }
     }
   };
