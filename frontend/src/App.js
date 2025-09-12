@@ -22,9 +22,15 @@ const useAuth = () => {
 // Auth Provider
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
+
+  // Check for token in both localStorage and sessionStorage
+  const getStoredToken = () => {
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
+  };
+
+  const [token, setToken] = useState(getStoredToken());
 
   useEffect(() => {
     if (token) {
@@ -37,8 +43,8 @@ const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      // Try to get user info to verify token is still valid
-      const response = await axios.get(`${API}/users`);
+      // Try to get settings to verify token is still valid
+      await axios.get(`${API}/settings`);
       // Token is valid, keep it
     } catch (error) {
       if (error.response?.status === 401) {
@@ -60,10 +66,14 @@ const AuthProvider = ({ children }) => {
       if (remember_me) {
         localStorage.setItem('token', access_token);
         localStorage.setItem('remember_me', 'true');
+        // Clear session token
+        sessionStorage.removeItem('token');
       } else {
         // Use sessionStorage for session-only login
         sessionStorage.setItem('token', access_token);
         localStorage.removeItem('remember_me');
+        // Clear persistent token
+        localStorage.removeItem('token');
       }
       
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
@@ -92,21 +102,16 @@ const AuthProvider = ({ children }) => {
     localStorage.setItem('language', newLang);
   };
 
-  // Check for token in both localStorage and sessionStorage
-  const getStoredToken = () => {
-    return localStorage.getItem('token') || sessionStorage.getItem('token');
-  };
-
   return (
     <AuthContext.Provider value={{
       user,
-      token: getStoredToken(),
+      token,
       loading,
       language,
       login,
       logout,
       toggleLanguage,
-      isAuthenticated: !!(getStoredToken())
+      isAuthenticated: !!token
     }}>
       {children}
     </AuthContext.Provider>
