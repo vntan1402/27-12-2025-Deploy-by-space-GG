@@ -1123,6 +1123,8 @@ const AccountControlPage = () => {
     system_expiry: '',
     gdrive_config: null
   });
+  const [usageStats, setUsageStats] = useState(null);
+  const [usageLoading, setUsageLoading] = useState(false);
   const navigate = useNavigate();
   
   const t = translations[language];
