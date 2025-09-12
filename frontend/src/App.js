@@ -1275,7 +1275,7 @@ const AccountControlPage = () => {
                   onClick={() => setShowGoogleDrive(true)}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-all"
                 >
-                  {language === 'vi' ? 'Cấu hình Google Drive' : 'Configure Google Drive'}
+                  {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'Configure System Google Drive'}
                 </button>
                 
                 {gdriveStatus?.configured && (
