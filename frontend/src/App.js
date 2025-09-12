@@ -35,8 +35,10 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Verify token validity
-      verifyToken();
+      // Only verify token if we don't already have user data
+      if (!user) {
+        verifyToken();
+      }
     }
     setLoading(false);
   }, [token]);
