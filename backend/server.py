@@ -202,8 +202,8 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-def create_access_token(user_id: str, username: str, role: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+def create_access_token(user_id: str, username: str, role: str, expiration_hours: int = JWT_EXPIRATION_HOURS) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(hours=expiration_hours)
     payload = {
         "sub": user_id,
         "username": username,
