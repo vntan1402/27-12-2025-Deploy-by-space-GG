@@ -1235,11 +1235,11 @@ const AccountControlPage = () => {
             </div>
           </div>
 
-          {/* Google Drive Configuration - Admin Only */}
+          {/* System Google Drive Configuration - Admin Only */}
           {isAdmin && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                {language === 'vi' ? 'Cấu hình Google Drive' : 'Google Drive Configuration'}
+                {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'System Google Drive Configuration'}
               </h3>
               
               {/* Google Drive Status */}
