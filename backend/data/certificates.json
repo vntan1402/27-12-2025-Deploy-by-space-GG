@@ -82,5 +82,19 @@
     "sensitivity_level": "internal",
     "file_path": null,
     "created_at": "2025-09-12 12:51:22.871196+00:00"
+  },
+  {
+    "id": "9873a6f3-5bde-4e05-b11d-cfb0c22c8423",
+    "ship_id": "3aec8486-fa5a-447b-b67d-43348f67c80e",
+    "cert_name": "International Sewage Pollution Prevention Certificate",
+    "cert_no": "ISPPC741852",
+    "issue_date": "2024-02-08 00:00:00+00:00",
+    "valid_date": "2029-02-08 00:00:00+00:00",
+    "last_endorse": null,
+    "next_survey": null,
+    "category": "certificates",
+    "sensitivity_level": "public",
+    "file_path": null,
+    "created_at": "2025-09-12 12:51:32.944886+00:00"
   }
 ]
