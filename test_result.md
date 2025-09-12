@@ -194,12 +194,12 @@
           agent: "testing"
           comment: "✅ TESTED AND WORKING - AI Configuration section visible for Admin users in System Settings. Shows current provider (OPENAI) and model (gpt-4). Configure AI button present and functional. Professional styling with purple theme maintained."
 
-  - task: "Company Management UI"
+  - task: "Company Management UI with Individual Logo Upload"
     implemented: true
     working: true
     file: "App.js"
     stuck_count: 0
-    priority: "medium"
+    priority: "high"
     needs_retesting: false
     status_history:
         - working: "NA"
@@ -211,6 +211,9 @@
         - working: true
           agent: "testing"
           comment: "✅ TESTED AND WORKING - Company Management section fully functional with company logo upload, Add New Company button, and comprehensive companies table showing VN/EN names, tax ID, Gmail, expiry dates, and Edit/Delete actions. All CRUD operations working properly."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING COMPLETED - Updated Company Management with Individual Logo Upload functionality tested successfully. Table structure verified: Logo column (first), Company Name (VN), Company Name (EN), Zalo, Expiry, Actions columns present. Tax ID and Gmail columns correctly NOT displayed in table. Logo placeholders ('No Logo'/'Chưa có') working for companies without logos. Company form modal includes logo upload field with proper file validation (JPG, PNG, GIF max 5MB), all required company fields (VN/EN names, addresses, tax ID, Gmail, Zalo, expiry), and Vietnamese language support. Edit functionality available with current logo display and logo change capability. Professional table layout with proper logo sizing (12x12 object-contain). Responsive design tested on desktop (1920x1080), tablet (768x1024), and mobile (390x844) viewports. Minor issue: User role display inconsistency in header, but Super Admin permissions working correctly for Company Management access."
 
   - task: "Usage Tracking Frontend UI"
     implemented: true
