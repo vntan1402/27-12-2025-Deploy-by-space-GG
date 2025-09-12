@@ -1404,6 +1404,75 @@ const AccountControlPage = () => {
             </div>
           )}
 
+          {/* AI Provider Configuration - Super Admin Only */}
+          {user?.role === 'super_admin' && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                {language === 'vi' ? 'Cấu hình AI' : 'AI Configuration'}
+              </h3>
+              
+              {/* Current AI Config Status */}
+              <div className="mb-4 p-3 rounded-lg bg-gray-50">
+                <div className="text-sm space-y-1">
+                  <div className="font-medium text-blue-600">
+                    {language === 'vi' ? 'Nhà cung cấp hiện tại:' : 'Current Provider:'} {aiConfig.provider.toUpperCase()}
+                  </div>
+                  <div className="text-gray-600">
+                    {language === 'vi' ? 'Mô hình:' : 'Model:'} {aiConfig.model}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowAIConfig(true)}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg transition-all"
+                >
+                  {language === 'vi' ? 'Cấu hình AI' : 'Configure AI'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Company Management - Super Admin Only */}
+          {user?.role === 'super_admin' && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                {language === 'vi' ? 'Quản lý công ty' : 'Company Management'}
+              </h3>
+              
+              {/* Companies List */}
+              {companies.length > 0 && (
+                <div className="mb-4 p-3 rounded-lg bg-gray-50">
+                  <div className="text-sm font-medium text-gray-700 mb-2">
+                    {language === 'vi' ? 'Công ty hiện có:' : 'Existing Companies:'}
+                  </div>
+                  <div className="space-y-1">
+                    {companies.slice(0, 3).map((company) => (
+                      <div key={company.id} className="text-xs text-gray-600">
+                        {company.name_vn} - {company.tax_id}
+                      </div>
+                    ))}
+                    {companies.length > 3 && (
+                      <div className="text-xs text-gray-500">
+                        {language === 'vi' ? `+${companies.length - 3} công ty khác` : `+${companies.length - 3} more companies`}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowCompanyForm(true)}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg transition-all"
+                >
+                  {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Users List */}
           <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">{language === 'vi' ? 'Danh sách người dùng' : 'Users List'}</h3>
