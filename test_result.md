@@ -232,7 +232,7 @@
 
 ## test_plan:
   current_focus:
-    - "Usage Tracking Frontend UI"
+    - "Company Management with Logo Upload Backend"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
