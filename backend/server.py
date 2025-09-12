@@ -184,6 +184,43 @@ class CompanySettings(BaseModel):
     language_preference: str = "en"  # "en" or "vi"
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class Company(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name_vn: str
+    name_en: str
+    address_vn: str
+    address_en: str
+    tax_id: str
+    gdrive_config: Optional[Dict[str, Any]] = None
+    gmail: Optional[str] = None
+    zalo: Optional[str] = None
+    system_expiry: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str
+
+class CompanyCreate(BaseModel):
+    name_vn: str
+    name_en: str
+    address_vn: str
+    address_en: str
+    tax_id: str
+    gmail: Optional[str] = None
+    zalo: Optional[str] = None
+    system_expiry: Optional[datetime] = None
+    gdrive_config: Optional[Dict[str, Any]] = None
+
+class AIProviderConfig(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    provider: str  # "openai", "anthropic", "google"
+    model: str
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_by: str
+
+class AIProviderConfigUpdate(BaseModel):
+    provider: str
+    model: str
+
 class GoogleDriveConfig(BaseModel):
     service_account_json: str
     folder_id: str
