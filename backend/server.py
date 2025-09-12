@@ -182,6 +182,17 @@ class CompanySettings(BaseModel):
     language_preference: str = "en"  # "en" or "vi"
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class GoogleDriveConfig(BaseModel):
+    service_account_json: str
+    folder_id: str
+
+class GoogleDriveStatus(BaseModel):
+    configured: bool
+    last_sync: Optional[str] = None
+    local_files: int
+    drive_files: int
+    folder_id: Optional[str] = None
+
 # Helper Functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
