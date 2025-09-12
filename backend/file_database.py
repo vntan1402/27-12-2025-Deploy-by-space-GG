@@ -22,7 +22,9 @@ class FileDatabase:
             'ships.json': [],
             'certificates.json': [],
             'company_settings.json': {},
-            'ai_analyses.json': []
+            'ai_analyses.json': [],
+            'ai_config.json': {},
+            'companies.json': []
         }
         
         for filename, default_content in default_data.items():
