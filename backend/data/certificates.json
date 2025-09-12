@@ -26,5 +26,19 @@
     "sensitivity_level": "public",
     "file_path": null,
     "created_at": "2025-09-12 12:50:36.178725+00:00"
+  },
+  {
+    "id": "de243531-d9d4-4e87-b1e8-8f598bc94d8e",
+    "ship_id": "35294ade-53f3-4947-83da-65a370f5d0d7",
+    "cert_name": "International Oil Pollution Prevention Certificate",
+    "cert_no": "IOPPC987654",
+    "issue_date": "2024-03-10 00:00:00+00:00",
+    "valid_date": "2029-03-10 00:00:00+00:00",
+    "last_endorse": "2024-09-10 00:00:00+00:00",
+    "next_survey": "2025-03-10 00:00:00+00:00",
+    "category": "certificates",
+    "sensitivity_level": "confidential",
+    "file_path": null,
+    "created_at": "2025-09-12 12:50:46.632989+00:00"
   }
 ]
