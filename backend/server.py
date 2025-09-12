@@ -453,7 +453,11 @@ async def register(user_data: UserCreate, current_user: UserResponse = Depends(g
         password_hash=password_hash,
         full_name=user_data.full_name,
         role=user_data.role,
-        department=user_data.department
+        department=user_data.department,
+        company=user_data.company,
+        ship=user_data.ship,
+        zalo=user_data.zalo,
+        gmail=user_data.gmail
     )
     
     created_user = file_db.insert_user(user.dict())
