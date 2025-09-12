@@ -275,6 +275,65 @@ def create_access_token(user_id: str, username: str, role: str, expiration_hours
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
+def estimate_cost(provider: str, model: str, input_tokens: int, output_tokens: int) -> float:
+    """Estimate cost based on provider, model, and token usage"""
+    # Pricing per 1M tokens (as of 2024)
+    pricing = {
+        "openai": {
+            "gpt-4o": {"input": 5.0, "output": 15.0},
+            "gpt-4": {"input": 30.0, "output": 60.0},
+            "gpt-4-turbo": {"input": 10.0, "output": 30.0},
+            "gpt-3.5-turbo": {"input": 0.5, "output": 1.5},
+            "gpt-4o-mini": {"input": 0.15, "output": 0.60}
+        },
+        "anthropic": {
+            "claude-3-sonnet": {"input": 3.0, "output": 15.0},
+            "claude-3-haiku": {"input": 0.25, "output": 1.25},
+            "claude-3-opus": {"input": 15.0, "output": 75.0}
+        },
+        "google": {
+            "gemini-pro": {"input": 0.5, "output": 1.5},
+            "gemini-pro-vision": {"input": 0.5, "output": 1.5}
+        }
+    }
+    
+    if provider not in pricing or model not in pricing[provider]:
+        # Default pricing if model not found
+        return (input_tokens * 1.0 + output_tokens * 3.0) / 1000000
+    
+    model_pricing = pricing[provider][model]
+    input_cost = (input_tokens * model_pricing["input"]) / 1000000
+    output_cost = (output_tokens * model_pricing["output"]) / 1000000
+    
+    return input_cost + output_cost
+
+def log_usage(user_id: str, provider: str, model: str, request_type: str, 
+              input_tokens: int = 0, output_tokens: int = 0, success: bool = True,
+              error_message: str = None, document_id: str = None, search_query: str = None):
+    """Log AI usage for tracking"""
+    try:
+        estimated_cost = estimate_cost(provider, model, input_tokens, output_tokens)
+        
+        usage = UsageTracking(
+            user_id=user_id,
+            provider=provider,
+            model=model,
+            request_type=request_type,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            estimated_cost=estimated_cost,
+            success=success,
+            error_message=error_message,
+            document_id=document_id,
+            search_query=search_query
+        )
+        
+        file_db.insert_usage_tracking(usage.dict())
+        logger.info(f"Usage logged: {provider}/{model} - {input_tokens}+{output_tokens} tokens - ${estimated_cost:.4f}")
+        
+    except Exception as e:
+        logger.error(f"Failed to log usage: {e}")
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
