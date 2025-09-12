@@ -1531,6 +1531,28 @@ const AccountControlPage = () => {
             }}
           />
         )}
+
+        {/* AI Configuration Modal */}
+        {showAIConfig && (
+          <AIConfigModal
+            config={aiConfig}
+            setConfig={setAiConfig}
+            onClose={() => setShowAIConfig(false)}
+            onSave={handleAIConfigUpdate}
+            language={language}
+          />
+        )}
+
+        {/* Company Form Modal */}
+        {showCompanyForm && (
+          <CompanyFormModal
+            companyData={companyData}
+            setCompanyData={setCompanyData}
+            onClose={() => setShowCompanyForm(false)}
+            onSubmit={handleCreateCompany}
+            language={language}
+          />
+        )}
       </div>
     </div>
   );
