@@ -232,7 +232,9 @@ const translations = {
     otherDocuments: "Hồ sơ khác",
     addNew: "Thêm",
     
-    // Account Control
+    // Translations
+    systemSettings: "Cài đặt hệ thống", 
+    systemGoogleDrive: "Cấu hình Google Drive hệ thống",
     accountControl: "Quản lý tài khoản",
     companyLogo: "Logo công ty",
     addUser: "Thêm người dùng",
