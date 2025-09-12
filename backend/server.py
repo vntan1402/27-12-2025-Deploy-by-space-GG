@@ -263,7 +263,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return UserResponse(**user)
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.JWTError:
+    except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 def has_permission(user: UserResponse, required_role: UserRole = None, required_permission: PermissionType = None) -> bool:
