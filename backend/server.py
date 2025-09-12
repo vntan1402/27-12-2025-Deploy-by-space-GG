@@ -613,6 +613,118 @@ async def update_settings(settings: CompanySettings, current_user: UserResponse 
     
     return settings
 
+# AI Provider Configuration Routes (Super Admin only)
+@api_router.get("/ai-config")
+async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can access AI configuration")
+    
+    # Get current AI configuration
+    config = file_db.get_ai_config()
+    if not config:
+        # Return default configuration
+        return {
+            "provider": "openai",
+            "model": "gpt-4o",
+            "is_active": True,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user.id
+        }
+    return config
+
+@api_router.post("/ai-config")
+async def update_ai_config(config_update: AIProviderConfigUpdate, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can configure AI provider")
+    
+    ai_config = AIProviderConfig(
+        provider=config_update.provider,
+        model=config_update.model,
+        updated_by=current_user.id
+    )
+    
+    file_db.update_ai_config(ai_config.dict())
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return {"message": "AI configuration updated successfully", "config": ai_config.dict()}
+
+# Company Management Routes (Super Admin only)
+@api_router.get("/companies", response_model=List[Company])
+async def get_companies(current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can access company management")
+    
+    companies = file_db.find_all_companies()
+    return [Company(**company) for company in companies]
+
+@api_router.post("/companies", response_model=Company)
+async def create_company(company_data: CompanyCreate, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can create companies")
+    
+    company = Company(
+        **company_data.dict(),
+        created_by=current_user.id
+    )
+    
+    created_company = file_db.insert_company(company.dict())
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return Company(**created_company)
+
+@api_router.get("/companies/{company_id}", response_model=Company)
+async def get_company(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can access company details")
+    
+    company = file_db.find_company({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return Company(**company)
+
+@api_router.put("/companies/{company_id}", response_model=Company)
+async def update_company(company_id: str, company_data: CompanyCreate, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can update companies")
+    
+    existing_company = file_db.find_company({"id": company_id})
+    if not existing_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    updated_data = {
+        **existing_company,
+        **company_data.dict(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    file_db.update_company({"id": company_id}, updated_data)
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return Company(**updated_data)
+
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can delete companies")
+    
+    existing_company = file_db.find_company({"id": company_id})
+    if not existing_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    file_db.delete_company({"id": company_id})
+    
+    # Sync to Google Drive
+    gdrive_manager.sync_to_drive()
+    
+    return {"message": "Company deleted successfully"}
+
 # Initialize default admin user and migrate data
 @app.on_event("startup")
 async def startup_tasks():
