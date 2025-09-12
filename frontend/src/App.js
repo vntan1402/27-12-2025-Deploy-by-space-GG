@@ -43,13 +43,17 @@ const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      // Try to get settings to verify token is still valid
-      await axios.get(`${API}/settings`);
+      // Try to get users to verify token is still valid (more reliable endpoint)
+      await axios.get(`${API}/users`);
       // Token is valid, keep it
     } catch (error) {
       if (error.response?.status === 401) {
         // Token expired or invalid, clear it
+        console.warn('Token verification failed - logging out');
         logout();
+      } else {
+        // For other errors (network, etc.), don't automatically logout
+        console.warn('Token verification failed with non-auth error:', error.message);
       }
     }
   };
