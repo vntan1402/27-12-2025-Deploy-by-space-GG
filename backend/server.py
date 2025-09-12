@@ -810,6 +810,69 @@ async def delete_company(company_id: str, current_user: UserResponse = Depends(g
     
     return {"message": "Company deleted successfully"}
 
+# Usage Tracking Routes (Admin+ only)
+@api_router.get("/usage-stats", response_model=UsageStats)
+async def get_usage_stats(
+    days: int = 30,
+    page: int = 1,
+    limit: int = 50,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Only Admin and above can access usage statistics")
+    
+    try:
+        # Get usage data from the last N days
+        usage_data = file_db.get_usage_stats(days=days, page=page, limit=limit)
+        
+        return UsageStats(**usage_data)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get usage stats: {str(e)}")
+
+@api_router.get("/usage-tracking")
+async def get_usage_tracking(
+    days: int = 7,
+    provider: str = None,
+    user_id: str = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Only Admin and above can access usage tracking")
+    
+    try:
+        filters = {"days": days}
+        if provider:
+            filters["provider"] = provider
+        if user_id:
+            filters["user_id"] = user_id
+            
+        usage_logs = file_db.get_usage_tracking(filters)
+        
+        return {"usage_logs": usage_logs, "total": len(usage_logs)}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get usage tracking: {str(e)}")
+
+@api_router.delete("/usage-tracking")
+async def clear_usage_tracking(
+    days_older_than: int = 90,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    if not has_permission(current_user, UserRole.SUPER_ADMIN):
+        raise HTTPException(status_code=403, detail="Only Super Admin can clear usage tracking")
+    
+    try:
+        cleared_count = file_db.clear_old_usage_tracking(days_older_than)
+        
+        # Sync to Google Drive
+        gdrive_manager.sync_to_drive()
+        
+        return {"message": f"Cleared {cleared_count} usage records older than {days_older_than} days"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear usage tracking: {str(e)}")
+
 # Initialize default admin user and migrate data
 @app.on_event("startup")
 async def startup_tasks():
