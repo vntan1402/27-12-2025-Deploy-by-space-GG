@@ -150,6 +150,9 @@
         - working: true
           agent: "testing"
           comment: "✅ PHASE 2 TESTING COMPLETE - Company Management fully implemented and working. GET /api/companies: ✅ (empty list initially), POST /api/companies: ✅ (created company ID: 1d787e92-7676-4945-a2f4-c8ef5f3bbe7c), GET /api/companies/{id}: ✅ (retrieved details), PUT /api/companies/{id}: ✅ (updated successfully), Data integrity verified: ✅. Super Admin permissions properly enforced."
+        - working: true
+          agent: "testing"
+          comment: "✅ ENHANCED COMPANY MANAGEMENT TESTING COMPLETE - All CRUD operations including new DELETE endpoint fully tested and working. Authentication with admin/admin123: ✅, GET /api/companies (initial state): ✅ (3 companies found), POST /api/companies with comprehensive data: ✅ (created company ID: fc1bd9b5-99fd-493c-9701-8cfe2738fbbe), GET /api/companies/{id}: ✅ (retrieved successfully), PUT /api/companies/{id}: ✅ (updated all fields correctly), DELETE /api/companies/{id}: ✅ (NEW FEATURE - deletion successful), Deletion verification: ✅ (company removed from list), Edge cases tested: ✅ (minimal fields, 404 errors for non-existent companies). All 11 API tests passed (11/11). Super Admin permissions properly enforced throughout."
 
 ## frontend:
   - task: "Add New Record Modal/Forms"
