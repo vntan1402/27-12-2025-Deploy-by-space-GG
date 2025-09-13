@@ -16,17 +16,19 @@
   },
   {
     "id": "952e6101-dae9-4811-877f-cd3b84211fb9",
-    "name_vn": "C\u00f4ng ty XYZ",
-    "name_en": "XYZ Company",
-    "address_vn": "12 NVL , H\u1ea3i Ph\u00f2ng",
-    "address_en": "12 NVL HAI PHONG",
-    "tax_id": "0312548756",
+    "name_vn": "C\u00f4ng ty XYZ C\u1eadp Nh\u1eadt",
+    "name_en": "XYZ Company Updated",
+    "address_vn": "123 \u0110\u01b0\u1eddng Test, TP.HCM",
+    "address_en": "123 Test Street, HCMC",
+    "tax_id": "0123456789",
     "gdrive_config": null,
-    "gmail": "xyz@gmail.com",
-    "zalo": "0989357282",
-    "system_expiry": "2025-10-31 00:00:00+00:00",
+    "gmail": "admin@xyzcompany.com",
+    "zalo": "0901234567",
+    "system_expiry": null,
     "created_at": "2025-09-12 14:26:22.038425+00:00",
-    "created_by": "945930a2-5b00-43ca-907d-82b248302c62"
+    "created_by": "945930a2-5b00-43ca-907d-82b248302c62",
+    "logo_url": null,
+    "updated_at": "2025-09-13T08:28:32.638504+00:00"
   },
   {
     "id": "4bfea7eb-d4e7-40a0-a97a-3e4110bb8525",
