@@ -291,6 +291,13 @@ class GoogleDriveStatus(BaseModel):
     local_files: int
     drive_files: int
     folder_id: Optional[str] = None
+    service_account_email: Optional[str] = None
+
+class GoogleDriveTestResponse(BaseModel):
+    success: bool
+    message: str
+    folder_name: Optional[str] = None
+    service_account_email: Optional[str] = None
 
 # Helper Functions
 def hash_password(password: str) -> str:
