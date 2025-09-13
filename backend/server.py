@@ -511,8 +511,8 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
         # Manager can only see users from their own company
         users = [user for user in users if user.get('company') == current_user.company]
     elif current_user.role == UserRole.ADMIN:
-        # Admin can see all users (no filtering)
-        pass
+        # Admin can only see users from their own company
+        users = [user for user in users if user.get('company') == current_user.company]
     elif current_user.role == UserRole.SUPER_ADMIN:
         # Super Admin can see all users (no filtering)
         pass
