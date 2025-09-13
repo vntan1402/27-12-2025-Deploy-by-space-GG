@@ -1495,6 +1495,19 @@ const AccountControlPage = () => {
                 >
                   {t.addUser}
                 </button>
+                <button
+                  onClick={() => setShowUserList(!showUserList)}
+                  className={`px-6 py-2 rounded-lg transition-all ${
+                    showUserList 
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  {showUserList 
+                    ? (language === 'vi' ? 'Ẩn danh sách' : 'Hide List')
+                    : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
+                  }
+                </button>
               </div>
               
               {/* Users Table */}
