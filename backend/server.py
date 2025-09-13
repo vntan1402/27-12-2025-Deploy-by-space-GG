@@ -1072,8 +1072,17 @@ async def get_company(company_id: str, current_user: UserResponse = Depends(get_
 
 @api_router.put("/companies/{company_id}", response_model=Company)
 async def update_company(company_id: str, company_data: CompanyCreate, current_user: UserResponse = Depends(get_current_user)):
-    if not has_permission(current_user, UserRole.SUPER_ADMIN):
-        raise HTTPException(status_code=403, detail="Only Super Admin can update companies")
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    existing_company = file_db.find_company({"id": company_id})
+    if not existing_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check if Admin can update this company
+    if current_user.role == UserRole.ADMIN:
+        if existing_company.get('name_vn') != current_user.company and existing_company.get('name_en') != current_user.company:
+            raise HTTPException(status_code=403, detail="You can only update your own company")
     
     existing_company = file_db.find_company({"id": company_id})
     if not existing_company:
