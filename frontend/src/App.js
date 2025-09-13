@@ -2858,6 +2858,59 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
               {language === 'vi' ? 'Phân quyền chi tiết' : 'Detailed Permissions'}
             </h3>
             
+            {/* Current Permissions Summary */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+              <h4 className="font-medium mb-3 text-gray-700">
+                {language === 'vi' ? 'Trạng thái phân quyền hiện tại:' : 'Current Permission Status:'}
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-blue-600">
+                    {language === 'vi' ? 'Loại tài liệu:' : 'Categories:'}
+                  </span>
+                  <div className="text-gray-600">
+                    {permissions.categories.length > 0 
+                      ? permissions.categories.map(cat => categoryNames[cat]).join(', ')
+                      : (language === 'vi' ? 'Chưa có' : 'None')
+                    }
+                  </div>
+                </div>
+                <div>
+                  <span className="font-medium text-green-600">
+                    {language === 'vi' ? 'Phòng ban:' : 'Departments:'}
+                  </span>
+                  <div className="text-gray-600">
+                    {permissions.departments.length > 0 
+                      ? permissions.departments.map(dept => departmentNames[dept]).join(', ')
+                      : (language === 'vi' ? 'Chưa có' : 'None')
+                    }
+                  </div>
+                </div>
+                <div>
+                  <span className="font-medium text-orange-600">
+                    {language === 'vi' ? 'Mức bảo mật:' : 'Security:'}
+                  </span>
+                  <div className="text-gray-600">
+                    {permissions.sensitivity_levels.length > 0 
+                      ? permissions.sensitivity_levels.map(level => sensitivityNames[level]).join(', ')
+                      : (language === 'vi' ? 'Chưa có' : 'None')
+                    }
+                  </div>
+                </div>
+                <div>
+                  <span className="font-medium text-purple-600">
+                    {language === 'vi' ? 'Quyền hạn:' : 'Permissions:'}
+                  </span>
+                  <div className="text-gray-600">
+                    {permissions.permissions.length > 0 
+                      ? permissions.permissions.map(perm => permissionNames[perm]).join(', ')
+                      : (language === 'vi' ? 'Chưa có' : 'None')
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid md:grid-cols-2 gap-6">
               {/* Document Categories */}
               <div>
