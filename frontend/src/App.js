@@ -2942,8 +2942,11 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
 
               {/* Departments */}
               <div>
-                <h4 className="font-medium mb-3 text-gray-700">
-                  {language === 'vi' ? 'Phòng ban' : 'Departments'}
+                <h4 className="font-medium mb-3 text-gray-700 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Phòng ban' : 'Departments'}</span>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                    {permissions.departments.length}/{departments.length}
+                  </span>
                 </h4>
                 <div className="space-y-2">
                   {departments.map(dept => (
