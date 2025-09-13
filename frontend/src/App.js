@@ -1963,18 +1963,34 @@ const AccountControlPage = () => {
                             <div className="flex justify-center space-x-2">
                               <button
                                 onClick={() => openEditCompany(company)}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs transition-all"
-                                title={language === 'vi' ? 'Sửa' : 'Edit'}
+                                disabled={!canEditCompany(company)}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-xs transition-all"
+                                title={
+                                  !canEditCompany(company) 
+                                    ? (language === 'vi' 
+                                        ? 'Chỉ có thể sửa công ty của bạn' 
+                                        : 'You can only edit your own company')
+                                    : (language === 'vi' ? 'Sửa' : 'Edit')
+                                }
                               >
                                 {language === 'vi' ? 'Sửa' : 'Edit'}
                               </button>
-                              <button
-                                onClick={() => handleDeleteCompany(company)}
-                                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition-all"
-                                title={language === 'vi' ? 'Xóa' : 'Delete'}
-                              >
-                                {language === 'vi' ? 'Xóa' : 'Delete'}
-                              </button>
+                              {user?.role === 'super_admin' && (
+                                <button
+                                  onClick={() => handleDeleteCompany(company)}
+                                  disabled={!canDeleteCompany(company)}
+                                  className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-xs transition-all"
+                                  title={
+                                    !canDeleteCompany(company) 
+                                      ? (language === 'vi' 
+                                          ? 'Chỉ Super Admin mới có thể xóa công ty' 
+                                          : 'Only Super Admin can delete companies')
+                                      : (language === 'vi' ? 'Xóa' : 'Delete')
+                                  }
+                                >
+                                  {language === 'vi' ? 'Xóa' : 'Delete'}
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
