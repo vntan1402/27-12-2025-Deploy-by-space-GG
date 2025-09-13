@@ -2970,8 +2970,11 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
 
               {/* Sensitivity Levels */}
               <div>
-                <h4 className="font-medium mb-3 text-gray-700">
-                  {language === 'vi' ? 'Mức độ bảo mật' : 'Sensitivity Levels'}
+                <h4 className="font-medium mb-3 text-gray-700 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Mức độ bảo mật' : 'Sensitivity Levels'}</span>
+                  <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                    {permissions.sensitivity_levels.length}/{sensitivityLevels.length}
+                  </span>
                 </h4>
                 <div className="space-y-2">
                   {sensitivityLevels.map(level => (
