@@ -284,9 +284,9 @@ const translations = {
     nextSurvey: "Khảo sát tiếp theo",
     
     // Permissions
-    viewer: "Người xem",
-    editor: "Người chỉnh sửa",
-    manager: "Quản lý",
+    viewer: "Thuyền viên",
+    editor: "Sĩ quan",
+    manager: "Cán bộ công ty",
     admin: "Quản trị viên", 
     superAdmin: "Siêu quản trị",
     
