@@ -2599,11 +2599,30 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
 // Edit User Modal Component
 const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, companies, ships }) => {
   const [permissions, setPermissions] = useState({
-    categories: userData?.permissions?.categories || [],
-    departments: userData?.permissions?.departments || [],
-    sensitivity_levels: userData?.permissions?.sensitivity_levels || [],
-    permissions: userData?.permissions?.permissions || []
+    categories: [],
+    departments: [],
+    sensitivity_levels: [],
+    permissions: []
   });
+
+  // Update permissions when userData changes
+  useEffect(() => {
+    if (userData && userData.permissions) {
+      setPermissions({
+        categories: userData.permissions.categories || [],
+        departments: userData.permissions.departments || [],
+        sensitivity_levels: userData.permissions.sensitivity_levels || [],
+        permissions: userData.permissions.permissions || []
+      });
+    } else {
+      setPermissions({
+        categories: [],
+        departments: [],
+        sensitivity_levels: [],
+        permissions: []
+      });
+    }
+  }, [userData]);
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
