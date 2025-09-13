@@ -1,16 +1,29 @@
 <analysis>
-The previous AI engineer successfully initiated a Ship Management System. The initial setup involved a FastAPI backend and React frontend, eventually migrating from MongoDB to a file-based JSON database with Google Drive synchronization, and implementing JWT authentication and user roles. User requests steered development towards a THÊM HỒ SƠ MỚI (Add New Record) feature, AI provider selection (OpenAI GPT-4o) and a comprehensive New Company Management section in System Settings, all designated for Super Admin access. The AI engineer meticulously implemented these, including backend CRUD operations, dynamic frontend forms, and even integrated individual company logo uploads. Subsequent work involved adding Usage Tracking for AI API calls with cost estimation, which was fully implemented and passed automated frontend tests. Most recently, the engineer has been tasked with enhancing User Management, moving the user list into a dedicated section with a detailed table and adding edit/delete functionalities. The backend for this is complete and tested, and frontend implementation is in progress.
+The AI engineer successfully expanded the Ship Management System, focusing heavily on user and company management features. Initial work addressed authentication issues, then progressed to comprehensive User Management, including dynamic fields (Ship, Company), detailed permissions display, and role renaming (Viewer to Crew, Editor to Ship Officer, Manager to Company Officer). A significant effort was made to implement granular access control: Manager/Admin roles seeing only their respective company's data and lower roles restricted from editing higher roles. Per-company Google Drive Configuration was also added. The AI engineer efficiently utilized testing agents and debugging, overcoming frontend state management and backend filtering challenges. The current task involves debugging why an Admin user, despite backend validation, cannot click the Edit button for their own company in the frontend UI.
 </analysis>
 
 <product_requirements>
-The user requested a modern, professional Ship Management System web application, designed according to a provided PDF, with a comprehensive five-tiered user permission system (Viewer, Editor, Manager, Admin, Super Admin). It needed AI support for document analysis/processing and smart search, bilingual support (Vietnamese/English), local storage for file uploads, and JWT authentication. Initial refinements included a dynamic Home Page displaying ship details, persistent views, 1-second hover delays, Google Drive integration for data persistence (Admin+ only), a Remember me checkbox for login, and updated UI text (Account Control to System Settings).
+The user requested a modern Ship Management System with a five-tiered user permission system (Viewer, Editor, Manager, Admin, Super Admin), AI support, bilingualism, local storage, and JWT authentication. Enhancements included a dynamic Home Page, Google Drive integration, a Remember me login, and UI text updates.
 
-During the current trajectory, new features requested and implemented include:
-1.  **AI Provider Selection**: OpenAI GPT-4o, with a dropdown in System Settings (Super Admin only) to switch providers.
-2.  **Add New Record (THÊM HỒ SƠ MỚI)**: Functionality for adding ships, certificates, and documents.
-3.  **New Company Management**: A section in System Settings (Super Admin only) with a form (Company name VN/EN, Address VN/EN, Tax ID, Google Drive Config, Gmail, Zalo, System usage period), company data stored on System Google Drive, an overview table, edit, and delete functionalities. This was refined to include Company Logo as a column with individual uploads, and to hide Tax ID and Gmail columns from the table display.
-4.  **Usage Tracking**: Display AI API usage statistics (total requests, estimated cost, token usage, provider distribution) in System Settings (Admin+ only).
-5.  **User Management**: Integrate User List into User Management, display as a table with columns: User name, Company, Department, Role, Zalo, Gmail, and add Edit/Delete buttons for users.
+During this trajectory, the user explicitly requested:
+1.  **Enhanced User Management**:
+    *   Move Permissions into the Edit User form.
+    *   Implement Add User functionality.
+    *   Display Detailed Permissions status for each user when opening Edit User.
+    *   Add Ship Crew to the Department list in Add User; conditionally show/enable Ship dropdown only for Ship Crew department.
+    *   Rename roles: Viewer to Crew, Editor to Ship Officer, Manager to Company Officer.
+    *   Hide the User list by default in User Management, add a User List toggle button.
+    *   Remove Gmail field from Add User and Gmail column from the User list table. Make Email optional.
+    *   In User Management, Admin should only see users from their own company.
+2.  **Company Google Drive Configuration**:
+    *   Add a Company Google Drive Configuration section (Service Account Email, Project ID, Private Key, Client Email, Client ID, Storage Folder ID) to Add New Company and Edit Company forms.
+3.  **User Creation**: Create one test user for each role.
+4.  **Access Control Refinements**:
+    *   Manager should only see users belonging to their company.
+    *   Users with a lower role cannot edit users with a higher role.
+    *   System Google Drive Configuration should only be visible to Super Admin.
+    *   Admin should be able to view and edit only their own company's details in Company Management.
+5.  **Debugging**: Fix Admin user's inability to see their own company, and subsequently, fix Admin user's inability to edit their own company (disabled edit button).
 </product_requirements>
 
 <key_technical_concepts>
@@ -19,41 +32,70 @@ During the current trajectory, new features requested and implemented include:
 -   **Database**: File-based (JSON) storage.
 -   **Authentication**: JWT (JSON Web Tokens).
 -   **Cloud Integration**: Google Drive API for data synchronization.
--   **AI Integration**: Emergent LLM Key, Emergent Integrations.
 -   **Data Modeling**: Pydantic.
 -   **File Storage**: Local filesystem ().
 -   **Static File Serving**: FastAPI .
 </key_technical_concepts>
 
 <code_architecture>
-The application utilizes a React frontend and a FastAPI backend, with a file-based JSON database and Google Drive synchronization.
+The application uses a React frontend and FastAPI backend, with a file-based JSON database and Google Drive synchronization.
 
 
 -   ****:
-    -   **Importance**: Defines backend API routes and logic.
-    -   **Changes Made**: Added endpoints for AI configuration (GET/POST ), Company Management (CRUD , POST ), Usage Tracking (GET/DELETE , GET ), and User Management (PUT/DELETE ). Integrated  to serve uploaded logos.
+    -   **Importance**: Defines backend API routes, Pydantic models, and logic.
+    -   **Changes Made**:
+        -   Added  field to , , ,  Pydantic models.
+        -   Added  to  Enum.
+        -   Implemented  helper for role hierarchy.
+        -   Updated  to filter users by company for  and  roles.
+        -   Updated  and  endpoints to include  checks.
+        -   Modified , , , and  endpoints to allow  roles to view/edit only their own associated company.
+        -   Corrected a duplicate code block in the  endpoint.
 -   ****:
     -   **Importance**: Manages data persistence to JSON files.
-    -   **Changes Made**: Extended with methods for AI config (, ), Company data (, , , ), Usage Tracking (, , ), and User data (, ).
+    -   **Changes Made**: Implicitly updated through  model changes; handles  field for user data and  for company data during CRUD operations.
 -   ****:
-    -   **Importance**: Manages frontend UI, state, and component rendering.
-    -   **Changes Made**: Incorporated new states and modals for Add New Record (). Updated System Settings page () with sections for AI Configuration (), Company Management (table,  with logo upload, edit/delete buttons), and AI Usage Tracking. Currently being updated to include User Management with a user table and .
+    -   **Importance**: Manages frontend UI, state, and component rendering. Contains most of the React components and logic.
+    -   **Changes Made**:
+        -   Introduced  component with fields for new user creation, including Company and Ship dropdowns.
+        -   Moved the User list into a conditionally displayed section, toggled by a User List button.
+        -   Removed the Gmail field from  and the Gmail column from the User Management table. Made Email input optional.
+        -    updated: now accepts  and  props, displays a Company dropdown, and a conditional Ship dropdown (enabled only for 'Ship Crew' department). Integrated the Permissions section (previously ) directly into this modal with detailed status and counters.
+        -    now fetches  and  data for  roles as well.
+        -   Implemented , , ,  helper functions for role-based and company-based access control on frontend buttons.
+        -   Updated role display names (Viewer -> Crew, Editor -> Ship Officer, Manager -> Company Officer) across the UI (table, dropdowns, translations).
+        -   Implemented  state to toggle the visibility of the user table.
+        -   Added  section to  with detailed input fields and a configuration guide.
+        -   Updated  token verification logic to improve authentication persistence (fix identified by ).
+        -   Restricted System Google Drive Configuration section to Super Admin only.
+-   ****:
+    -   **Importance**: Stores application data.
+    -   **Changes Made**:  now includes  field.  now includes  field. New test companies and users were created during debugging/testing.
+
 </code_architecture>
 
 <pending_tasks>
 -   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend.
--   Implement the detailed Permission Assignment Interface as a checklist within the  modal.
--   Complete frontend implementation and testing for the User Management functionality.
+-   Implement the detailed Permission Assignment Interface as a checklist within the  modal (the permissions UI was moved to EditUserModal, but the specific request for *System* Google Drive Configuration was not fully addressed).
 </pending_tasks>
 
 <current_work>
-The system is a fully functional Ship Management System with a modern UI. It includes JWT authentication with a Remember me option, a dynamic Home Page for ship details, and a comprehensive sidebar. The backend uses a file-based JSON database with Google Drive synchronization, restricted to Admin/Super Admin roles.
+The system is a fully functional Ship Management System with a modern UI and robust access control. All major User Management and Company Management features, including granular permissions and dynamic forms, have been implemented and extensively tested.
 
-The Add New Record functionality for ships, certificates, and documents has a comprehensive frontend modal, and its backend endpoints are confirmed. AI Provider Selection is integrated into System Settings (Super Admin only), allowing choice between OpenAI, Anthropic, and Google. A New Company Management section (Super Admin only) provides full CRUD operations for companies, including a table display with Company Logo (individual uploads), name (VN/EN), Zalo, and System Expiry, with Tax ID and Gmail columns hidden. Edit/Delete functionality is included. AI Usage Tracking for Admin+ roles is fully implemented, tracking requests, costs, and token usage, and has passed automated frontend testing.
+**Recently Completed:**
+*   **User Management UI/UX**: The user list is now hidden by default, with a toggle button to show/hide it. The Add User modal has been created, includes conditional Ship dropdowns for Ship Crew department, and the Gmail field has been removed (Email is now optional). Role names have been updated (Viewer to Crew, Editor to Ship Officer, Manager to Company Officer) across the UI.
+*   **Access Control**:
+    *   Managers and Admins in User Management only see users from their own company.
+    *   Lower role users cannot edit higher role users.
+    *   The System Google Drive Configuration section is now exclusively visible to Super Admin.
+    *   Admins in Company Management can now view and edit only their assigned company.
+*   **Company Google Drive Configuration**: A comprehensive section for Google Drive API settings (Service Account Email, Project ID, Private Key, etc.) has been added to the Add New Company and Edit Company modals, complete with a configuration guide.
+*   **Test Users**: 5 test users (one for each role: crew1, officer1, manager1, admin1, superadmin1) have been created with appropriate company and ship assignments.
 
-Currently, the AI agent is implementing the User Management feature. Backend endpoints for updating and deleting users have been added to  and  and successfully tested. The frontend  is being updated to move the user list into a dedicated User Management section within System Settings, displaying a table with User name, Company, Department, Role, Zalo, and Gmail, along with Edit and Delete buttons for each user. An  component has been created.
+**Current Problem**:
+The  user can see their company listed in Company Management and the Edit button is present, but it appears disabled (grayed out) and cannot be clicked to edit their own company, despite backend tests confirming that Admin can successfully edit their own company. The last action was an attempt to debug this frontend display issue, but the session expired.
 </current_work>
 
 <optional_next_step>
-Test the frontend implementation of the User Management functionality.
+Re-login as admin1 and debug the frontend  logic to understand why the Edit button for their own company is disabled.
 </optional_next_step>
