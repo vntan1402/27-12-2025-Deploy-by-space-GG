@@ -1938,7 +1938,7 @@ const AccountControlPage = () => {
                   </div>
 
                   {/* Provider Distribution */}
-                  {Object.keys(usageStats.requests_by_provider).length > 0 && (
+                  {usageStats.requests_by_provider && Object.keys(usageStats.requests_by_provider).length > 0 && (
                     <div className="bg-gray-50 p-3 rounded-lg">
                       <div className="text-sm text-gray-600 mb-2">
                         {language === 'vi' ? 'Phân bố nhà cung cấp:' : 'Provider Distribution:'}
