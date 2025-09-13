@@ -1909,7 +1909,7 @@ const AccountControlPage = () => {
                         {language === 'vi' ? 'Tổng yêu cầu' : 'Total Requests'}
                       </div>
                       <div className="text-lg font-bold text-blue-800">
-                        {usageStats.total_requests.toLocaleString()}
+                        {usageStats.total_requests ? usageStats.total_requests.toLocaleString() : '0'}
                       </div>
                     </div>
                     <div className="bg-green-50 p-3 rounded-lg">
