@@ -329,6 +329,18 @@
           agent: "testing"
           comment: "✅ ADMIN ROLE ACCESS CONTROL COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - All 10/10 API tests passed and 5/5 feature tests successful. Created dedicated test suite (admin_role_access_test.py) covering all review request scenarios: (1) Authentication Testing: ✅ All 4 test users (admin1, superadmin1, officer1, crew1) successfully authenticated with correct roles and companies verified, (2) Admin User Management Filtering: ✅ admin1 (Admin, XYZ Company) correctly sees only 2 users from same company (officer1, admin1), users from ABC Company properly filtered out, (3) Super Admin User Access: ✅ superadmin1 sees all 8 users from multiple companies (None: 1, Công ty TNHH ABC Cập Nhật: 2, ABC Company Ltd Updated: 3, XYZ Company: 2), (4) Admin Company Filtering: ✅ admin1 correctly sees only 1 company (Công ty XYZ/XYZ Company) matching their company field, (5) Super Admin Company Access: ✅ superadmin1 sees all 5 companies as expected, (6) Admin Company Edit Permissions: ✅ admin1 successfully edited own company (XYZ Company ID: 952e6101-dae9-4811-877f-cd3b84211fb9) with 200 status, admin1 correctly blocked from editing other company (ABC Company ID: 1d787e92-7676-4945-a2f4-c8ef5f3bbe7c) with 403 status. All expected results achieved: Admin sees only same company users (2 users), Admin sees only own company (1 company), Admin can edit own company but cannot edit other companies (403 forbidden), Super Admin sees all users (8 users) and companies (5 companies) with no filtering. Admin role access control functionality is fully functional and working correctly as designed."
 
+  - task: "Debug Admin Company Visibility Issue"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ADMIN COMPANY VISIBILITY DEBUG COMPLETED SUCCESSFULLY - Comprehensive debugging and fix applied for admin1 company visibility issue: (1) AUTHENTICATION TESTING: Successfully logged in as admin1/123456 (Phạm Thị Admin, admin role, XYZ Company) and superadmin1/123456 (Hoàng Văn SuperAdmin, super_admin role, ABC Company Ltd Updated), (2) USER DATA ANALYSIS: admin1.company field confirmed as 'XYZ Company' (string, length 11), (3) COMPANY DATABASE ANALYSIS: Found 5 companies total - 'ABC Company Ltd Updated', 'XYZ Company Updated', 'fds Company', 'Test Logo Company Ltd', 'No Logo Company Ltd' - NONE matched 'XYZ Company' exactly, (4) COMPANY FILTERING VERIFICATION: admin1 sees 0 companies (issue confirmed), superadmin1 sees all 5 companies correctly, (5) STRING MATCHING ANALYSIS: Detailed comparison showed no exact, case-insensitive, or whitespace matches between admin1.company='XYZ Company' and any existing company names, (6) ROOT CAUSE IDENTIFIED: admin1 assigned to non-existent company 'XYZ Company', (7) SOLUTION IMPLEMENTED: Created new company with name_en='XYZ Company', name_vn='Công ty XYZ Company', tax_id='0123456789', gmail='admin@xyzcompany.com' using superadmin1 credentials, (8) VERIFICATION: After fix, admin1 now sees 1 company ('XYZ Company / Công ty XYZ Company') as expected. Created debug test (admin_company_debug_test.py) and fix test (admin_company_fix_test.py). All 6/6 API tests passed. Issue completely resolved - admin1 can now see their company in Company Management section."
+
 ## test_plan:
   current_focus:
     - "Admin Role Access Control After Recent Updates"
