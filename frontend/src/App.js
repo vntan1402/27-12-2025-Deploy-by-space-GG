@@ -1246,6 +1246,8 @@ const AccountControlPage = () => {
     }
     if (user?.role === 'super_admin') {
       fetchAIConfig();
+    }
+    if (user?.role === 'admin' || user?.role === 'super_admin') {
       fetchCompanies();
     }
     if (user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') {
