@@ -2332,7 +2332,10 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                 {/* Departments */}
                 <div>
                   <h5 className="font-medium text-blue-800 mb-2">
-                    {language === 'vi' ? 'Phòng ban (0/6)' : 'Departments (0/6)'}
+                    {language === 'vi' 
+                      ? `Phòng ban (${config.default_permissions?.departments?.length || 0}/6)` 
+                      : `Departments (${config.default_permissions?.departments?.length || 0}/6)`
+                    }
                   </h5>
                   <div className="space-y-2">
                     {['technical', 'operations', 'safety', 'commercial', 'crewing', 'ship_crew'].map(department => (
