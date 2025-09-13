@@ -355,7 +355,7 @@
 
 ## test_plan:
   current_focus:
-    - "Admin1 User Login Functionality Testing"
+    - "Admin1 Company Edit Button Issue Resolution"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
