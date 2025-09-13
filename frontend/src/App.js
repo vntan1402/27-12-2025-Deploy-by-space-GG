@@ -49,36 +49,30 @@ const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      // Try to get current user info to verify token and set user data
-      const response = await axios.get(`${API}/auth/me`);
-      if (response.data) {
-        setUser(response.data);
+      // Try to decode token to get user info
+      const tokenData = token.split('.')[1];
+      const decoded = JSON.parse(atob(tokenData));
+      
+      // Check if token is expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decoded.exp && decoded.exp < currentTime) {
+        console.warn('Token expired - logging out');
+        logout();
+        return;
       }
+      
+      // Create user object from token data
+      const userData = {
+        id: decoded.sub,
+        username: decoded.username,
+        role: decoded.role,
+        company: decoded.company,
+        full_name: decoded.full_name || decoded.username // fallback
+      };
+      setUser(userData);
     } catch (error) {
-      // If /auth/me doesn't exist, try to decode token to get user info
-      try {
-        const tokenData = token.split('.')[1];
-        const decoded = JSON.parse(atob(tokenData));
-        
-        // Create user object from token data
-        const userData = {
-          id: decoded.sub,
-          username: decoded.username,
-          role: decoded.role,
-          full_name: decoded.username // fallback
-        };
-        setUser(userData);
-      } catch (decodeError) {
-        if (error.response?.status === 401) {
-          // Token expired or invalid, clear it
-          console.warn('Token verification failed - logging out');
-          logout();
-        } else {
-          // For other errors (network, etc.), don't automatically logout
-          console.warn('Token verification failed with non-auth error:', error.message);
-          // Don't logout on network errors - keep the token
-        }
-      }
+      console.warn('Token verification failed:', error.message);
+      logout();
     }
   };
 
