@@ -2091,7 +2091,7 @@ const PermissionModal = ({ selectedUsers, onClose, onSuccess }) => {
   const t = translations[language];
 
   const categories = ['certificates', 'inspection_records', 'survey_reports', 'drawings_manuals', 'other_documents'];
-  const departments = ['technical', 'operations', 'safety', 'commercial', 'crewing'];
+  const departments = ['technical', 'operations', 'safety', 'commercial', 'crewing', 'ship_crew'];
   const sensitivityLevels = ['public', 'internal', 'confidential', 'restricted'];
   const permissionTypes = ['read', 'write', 'delete', 'manage_users', 'system_control'];
 
