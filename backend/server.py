@@ -456,7 +456,7 @@ async def login(user_credentials: UserLogin):
     remember_me = getattr(user_credentials, 'remember_me', False)
     expiration_hours = 24 * 30 if remember_me else JWT_EXPIRATION_HOURS  # 30 days vs 24 hours
     
-    access_token = create_access_token(user["id"], user["username"], user["role"], expiration_hours)
+    access_token = create_access_token(user["id"], user["username"], user["role"], user.get("company"), user.get("full_name"), expiration_hours)
     return {
         "access_token": access_token,
         "token_type": "bearer",
