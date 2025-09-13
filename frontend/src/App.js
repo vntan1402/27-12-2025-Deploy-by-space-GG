@@ -2982,10 +2982,10 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
             {language === 'vi' ? 'Hủy' : 'Cancel'}
           </button>
           <button
-            onClick={onSubmit}
+            onClick={handleSubmitWithPermissions}
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
           >
-            {language === 'vi' ? 'Cập nhật người dùng' : 'Update User'}
+            {language === 'vi' ? 'Cập nhật' : 'Update'}
           </button>
         </div>
       </div>
