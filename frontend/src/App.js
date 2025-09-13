@@ -1119,6 +1119,18 @@ const AccountControlPage = () => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [newUserData, setNewUserData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    full_name: '',
+    role: 'viewer',
+    department: 'technical',
+    company: '',
+    ship: '',
+    zalo: '',
+    gmail: ''
+  });
   const [showPermissions, setShowPermissions] = useState(false);
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [showAIConfig, setShowAIConfig] = useState(false);
