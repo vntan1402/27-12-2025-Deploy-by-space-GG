@@ -1468,7 +1468,15 @@ const AccountControlPage = () => {
   const openEditCompany = (company) => {
     setEditingCompany({
       ...company,
-      system_expiry: company.system_expiry ? new Date(company.system_expiry).toISOString().split('T')[0] : ''
+      system_expiry: company.system_expiry ? new Date(company.system_expiry).toISOString().split('T')[0] : '',
+      gdrive_config: company.gdrive_config || {
+        service_account_email: '',
+        project_id: '',
+        private_key: '',
+        client_email: '',
+        client_id: '',
+        folder_id: ''
+      }
     });
     setShowEditCompany(true);
   };
