@@ -1,0 +1,18 @@
+{
+  "migration_date": "2025-09-13T12:59:07.667881+00:00",
+  "source": "json_files",
+  "destination": "mongodb_atlas",
+  "results": {
+    "users": 8,
+    "companies": 3,
+    "ships": 7,
+    "certificates": 12,
+    "usage_tracking": 2,
+    "ai_analyses": 2,
+    "ai_config": 1,
+    "company_settings": 1,
+    "gdrive_config": 1
+  },
+  "backup_location": "/app/backend/data_backup",
+  "status": "completed"
+}
