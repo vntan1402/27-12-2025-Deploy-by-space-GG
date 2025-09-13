@@ -263,6 +263,18 @@
           agent: "testing"
           comment: "✅ ENHANCED USER MANAGEMENT WITH DETAILED PERMISSIONS DISPLAY TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of enhanced permissions functionality completed with all requirements verified: (1) Authentication & Navigation: ✅ Login with admin/admin123 successful, navigation to System Settings (/account-control) working perfectly, (2) User Management Section: ✅ Section loads correctly with user table showing 9 users, all columns visible including Ship column, (3) Edit User Modal Access: ✅ Successfully tested with non-admin users (Viewer role), modal opens properly, admin user Edit button correctly disabled for self-edit restriction, (4) Permissions Status Display: ✅ Current Permission Status summary visible at top of permissions section, detailed permissions with counters working (Document Categories: 0/5, Departments: 0/5, Sensitivity Levels: 0/4, Permission Types: 0/5), permission names displayed correctly (not just IDs), (5) Checkboxes State: ✅ All 19 permission checkboxes properly loaded, checkboxes reflect actual user permissions state, specific permissions verified (Certificates, Inspection Records, Technical, Operations), checkbox interaction working (can toggle permissions), (6) Authentication Issues Handled: ✅ Persistent authentication throughout test, no route protection redirects, authentication state maintained, (7) Responsiveness: ✅ Tested on desktop (1920x1080) and mobile (390x844) viewports, modal responsive and functional on both. All enhanced permissions display functionality is working correctly and production-ready."
 
+  - task: "Create 5 Test Users for Different Roles"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ USER CREATION TESTING COMPLETED SUCCESSFULLY - Created and tested 5 specific users for Ship Management System roles: (1) crew1 (Nguyễn Văn Crew) - viewer/ship_crew with COSCO Shanghai ship assignment and ABC Company Ltd Updated, (2) officer1 (Trần Thị Officer) - editor/technical with XYZ Company, (3) manager1 (Lê Văn Manager) - manager/operations with ABC Company Ltd Updated, (4) admin1 (Phạm Thị Admin) - admin/commercial with XYZ Company, (5) superadmin1 (Hoàng Văn SuperAdmin) - super_admin/safety with ABC Company Ltd Updated. All users created successfully via POST /api/auth/register endpoint using admin/admin123 authentication. Login verification completed for all 5 users with correct role assignments. User list confirmation shows all created users exist in system (8 total users). All 12/12 API tests passed. Expected result achieved: All 5 users created successfully representing each role level in the system hierarchy."
+
   - task: "Enhanced Add User and Edit User with Ship Crew Conditional Logic"
     implemented: true
     working: true
