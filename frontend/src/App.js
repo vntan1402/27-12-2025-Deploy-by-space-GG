@@ -1276,6 +1276,39 @@ const AccountControlPage = () => {
     }
   };
 
+  const fetchGoogleDriveConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/gdrive/config`);
+      setGdriveCurrentConfig(response.data);
+    } catch (error) {
+      console.error('Failed to fetch Google Drive config:', error);
+    }
+  };
+
+  const handleTestGoogleDriveConnection = async () => {
+    if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin!' : 'Please fill in all required information!');
+      return;
+    }
+
+    setTestLoading(true);
+    try {
+      const response = await axios.post(`${API}/gdrive/test`, gdriveConfig);
+      if (response.data.success) {
+        toast.success(language === 'vi' ? 
+          `Kết nối thành công! Folder: ${response.data.folder_name}` : 
+          `Connection successful! Folder: ${response.data.folder_name}`
+        );
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Test kết nối thất bại!' : 'Connection test failed!');
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   const fetchAIConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
