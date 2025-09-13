@@ -1084,10 +1084,6 @@ async def update_company(company_id: str, company_data: CompanyCreate, current_u
         if existing_company.get('name_vn') != current_user.company and existing_company.get('name_en') != current_user.company:
             raise HTTPException(status_code=403, detail="You can only update your own company")
     
-    existing_company = file_db.find_company({"id": company_id})
-    if not existing_company:
-        raise HTTPException(status_code=404, detail="Company not found")
-    
     updated_data = {
         **existing_company,
         **company_data.dict(),
