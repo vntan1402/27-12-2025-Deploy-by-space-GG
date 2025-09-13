@@ -519,6 +519,22 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
     
     return [UserResponse(**user) for user in users]
 
+@api_router.get("/users/{user_id}/can-edit")
+async def can_edit_user_endpoint(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Check if current user can edit the specified user"""
+    if not has_permission(current_user, UserRole.MANAGER):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    # Get target user
+    target_user = file_db.find_user({"id": user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if current user can edit target user
+    can_edit = can_edit_user(current_user, target_user.get('role'), target_user.get('company'))
+    
+    return {"can_edit": can_edit}
+
 @api_router.post("/permissions/assign")
 async def assign_permissions(request: PermissionRequest, current_user: UserResponse = Depends(get_current_user)):
     if not has_permission(current_user, UserRole.MANAGER):
