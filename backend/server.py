@@ -475,6 +475,18 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     users = file_db.find_all_users()
+    
+    # Filter users based on current user's role and company
+    if current_user.role == UserRole.MANAGER:
+        # Manager can only see users from their own company
+        users = [user for user in users if user.get('company') == current_user.company]
+    elif current_user.role == UserRole.ADMIN:
+        # Admin can see all users (no filtering)
+        pass
+    elif current_user.role == UserRole.SUPER_ADMIN:
+        # Super Admin can see all users (no filtering)
+        pass
+    
     return [UserResponse(**user) for user in users]
 
 @api_router.post("/permissions/assign")
