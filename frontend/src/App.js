@@ -1750,32 +1750,67 @@ const AccountControlPage = () => {
               </h3>
               
               {/* Google Drive Status */}
-              {gdriveStatus && (
-                <div className="mb-4 p-3 rounded-lg bg-gray-50">
-                  <div className="text-sm space-y-1">
-                    <div className={`font-medium ${gdriveStatus.configured ? 'text-green-600' : 'text-red-600'}`}>
-                      {language === 'vi' ? 'Trạng thái:' : 'Status:'} {gdriveStatus.configured ? 
+              <div className="mb-4 space-y-3">
+                {/* Configuration Status */}
+                <div className="p-4 rounded-lg bg-gray-50 border">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-800">
+                      {language === 'vi' ? 'Trạng thái cấu hình' : 'Configuration Status'}
+                    </h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      gdriveStatus?.configured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {gdriveStatus?.configured ? 
                         (language === 'vi' ? 'Đã cấu hình' : 'Configured') : 
                         (language === 'vi' ? 'Chưa cấu hình' : 'Not configured')}
-                    </div>
-                    {gdriveStatus.configured && (
-                      <>
-                        <div className="text-gray-600">
-                          {language === 'vi' ? 'Files local:' : 'Local files:'} {gdriveStatus.local_files}
-                        </div>
-                        <div className="text-gray-600">
-                          {language === 'vi' ? 'Files Google Drive:' : 'Drive files:'} {gdriveStatus.drive_files}
-                        </div>
-                        {gdriveStatus.last_sync && (
-                          <div className="text-gray-600">
-                            {language === 'vi' ? 'Đồng bộ cuối:' : 'Last sync:'} {new Date(gdriveStatus.last_sync).toLocaleString()}
-                          </div>
-                        )}
-                      </>
-                    )}
+                    </span>
                   </div>
+                  
+                  {gdriveCurrentConfig?.configured ? (
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div className="flex justify-between">
+                        <span>{language === 'vi' ? 'Service Account:' : 'Service Account:'}</span>
+                        <span className="font-mono text-xs">{gdriveCurrentConfig.service_account_email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</span>
+                        <span className="font-mono text-xs">{gdriveCurrentConfig.folder_id}</span>
+                      </div>
+                      {gdriveCurrentConfig.last_sync && (
+                        <div className="flex justify-between">
+                          <span>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</span>
+                          <span className="text-xs">{new Date(gdriveCurrentConfig.last_sync).toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      {language === 'vi' ? 
+                        'Chưa có cấu hình Google Drive. Nhấn "Cấu hình Google Drive" để bắt đầu.' : 
+                        'No Google Drive configuration yet. Click "Configure Google Drive" to get started.'}
+                    </p>
+                  )}
                 </div>
-              )}
+
+                {/* Sync Status */}
+                {gdriveStatus?.configured && (
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <h4 className="font-medium text-blue-800 mb-2">
+                      {language === 'vi' ? 'Trạng thái đồng bộ' : 'Sync Status'}
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">{gdriveStatus.local_files || 0}</div>
+                        <div className="text-gray-600">{language === 'vi' ? 'Files local' : 'Local files'}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">{gdriveStatus.drive_files || 0}</div>
+                        <div className="text-gray-600">{language === 'vi' ? 'Files Drive' : 'Drive files'}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
               
               <div className="space-y-3">
                 <button
