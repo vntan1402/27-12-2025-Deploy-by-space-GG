@@ -263,6 +263,18 @@
           agent: "testing"
           comment: "✅ ENHANCED USER MANAGEMENT WITH DETAILED PERMISSIONS DISPLAY TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of enhanced permissions functionality completed with all requirements verified: (1) Authentication & Navigation: ✅ Login with admin/admin123 successful, navigation to System Settings (/account-control) working perfectly, (2) User Management Section: ✅ Section loads correctly with user table showing 9 users, all columns visible including Ship column, (3) Edit User Modal Access: ✅ Successfully tested with non-admin users (Viewer role), modal opens properly, admin user Edit button correctly disabled for self-edit restriction, (4) Permissions Status Display: ✅ Current Permission Status summary visible at top of permissions section, detailed permissions with counters working (Document Categories: 0/5, Departments: 0/5, Sensitivity Levels: 0/4, Permission Types: 0/5), permission names displayed correctly (not just IDs), (5) Checkboxes State: ✅ All 19 permission checkboxes properly loaded, checkboxes reflect actual user permissions state, specific permissions verified (Certificates, Inspection Records, Technical, Operations), checkbox interaction working (can toggle permissions), (6) Authentication Issues Handled: ✅ Persistent authentication throughout test, no route protection redirects, authentication state maintained, (7) Responsiveness: ✅ Tested on desktop (1920x1080) and mobile (390x844) viewports, modal responsive and functional on both. All enhanced permissions display functionality is working correctly and production-ready."
 
+  - task: "Enhanced Add User and Edit User with Ship Crew Conditional Logic"
+    implemented: true
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "TESTING REQUIRED - Need to test Ship Crew conditional logic in both Add User and Edit User modals. Requirements: (1) Default state: Non-Ship Crew department should disable Ship dropdown, (2) Ship Crew selected: Ship dropdown should be enabled and required, (3) Department change: Ship dropdown should enable/disable dynamically, (4) Form validation: Ship required only for Ship Crew department, (5) User Table Display: Verify Ship column displays correctly. CRITICAL ISSUE FOUND: EditUserModal has department as text input instead of dropdown, preventing proper conditional logic testing."
+
 ## metadata:
   created_by: "main_agent"
   version: "1.0"
