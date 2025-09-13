@@ -2914,8 +2914,11 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
             <div className="grid md:grid-cols-2 gap-6">
               {/* Document Categories */}
               <div>
-                <h4 className="font-medium mb-3 text-gray-700">
-                  {language === 'vi' ? 'Loại tài liệu' : 'Document Categories'}
+                <h4 className="font-medium mb-3 text-gray-700 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Loại tài liệu' : 'Document Categories'}</span>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {permissions.categories.length}/{categories.length}
+                  </span>
                 </h4>
                 <div className="space-y-2 max-h-32 overflow-y-auto">
                   {categories.map(cat => (
