@@ -1869,15 +1869,17 @@ const AccountControlPage = () => {
                 {language === 'vi' ? 'Quản lý công ty' : 'Company Management'}
               </h3>
               
-              {/* Action Buttons */}
-              <div className="mb-6">
-                <button
-                  onClick={() => setShowCompanyForm(true)}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-all"
-                >
-                  {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
-                </button>
-              </div>
+              {/* Action Buttons - Only Super Admin can add new companies */}
+              {user?.role === 'super_admin' && (
+                <div className="mb-6">
+                  <button
+                    onClick={() => setShowCompanyForm(true)}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-all"
+                  >
+                    {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
+                  </button>
+                </div>
+              )}
               
               {/* Companies Table */}
               {companies.length > 0 ? (
