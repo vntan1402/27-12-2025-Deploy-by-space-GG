@@ -784,9 +784,9 @@ const HomePage = () => {
               <span className="text-sm text-gray-600">
                 {user?.full_name} ({language === 'vi' && user?.role === 'super_admin' ? 'Siêu quản trị' : 
                   language === 'vi' && user?.role === 'admin' ? 'Quản trị viên' :
-                  language === 'vi' && user?.role === 'manager' ? 'Quản lý' :
-                  language === 'vi' && user?.role === 'editor' ? 'Người chỉnh sửa' :
-                  language === 'vi' && user?.role === 'viewer' ? 'Người xem' : user?.role})
+                  language === 'vi' && user?.role === 'manager' ? 'Cán bộ công ty' :
+                  language === 'vi' && user?.role === 'editor' ? 'Sĩ quan' :
+                  language === 'vi' && user?.role === 'viewer' ? 'Thuyền viên' : user?.role})
               </span>
               
               <button
