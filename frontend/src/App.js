@@ -2675,6 +2675,9 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
     system_control: language === 'vi' ? 'Điều khiển hệ thống' : 'System Control'
   };
 
+  // Check if user is ship crew to show/enable ship dropdown
+  const isShipCrew = userData?.department === 'ship_crew';
+
   // Update user data with permissions when saving
   const handleSubmitWithPermissions = () => {
     setUserData(prev => ({ ...prev, permissions }));
