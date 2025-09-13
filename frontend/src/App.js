@@ -1292,9 +1292,24 @@ const AccountControlPage = () => {
       return;
     }
 
+    // Clean and validate folder ID
+    const cleanFolderId = gdriveConfig.folder_id.trim();
+    if (cleanFolderId.length < 20 || cleanFolderId.length > 100 || cleanFolderId.includes(' ')) {
+      toast.error(language === 'vi' ? 
+        `Folder ID không hợp lệ (độ dài: ${cleanFolderId.length}). Vui lòng kiểm tra lại!` :
+        `Invalid Folder ID (length: ${cleanFolderId.length}). Please check again!`
+      );
+      return;
+    }
+
     setTestLoading(true);
     try {
-      const response = await axios.post(`${API}/gdrive/test`, gdriveConfig);
+      const testConfig = {
+        ...gdriveConfig,
+        folder_id: cleanFolderId
+      };
+      
+      const response = await axios.post(`${API}/gdrive/test`, testConfig);
       if (response.data.success) {
         toast.success(language === 'vi' ? 
           `Kết nối thành công! Folder: ${response.data.folder_name}` : 
@@ -1304,7 +1319,11 @@ const AccountControlPage = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error(language === 'vi' ? 'Test kết nối thất bại!' : 'Connection test failed!');
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(language === 'vi' ? 
+        `Test kết nối thất bại: ${errorMessage}` : 
+        `Connection test failed: ${errorMessage}`
+      );
     } finally {
       setTestLoading(false);
     }
