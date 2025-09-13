@@ -1951,6 +1951,33 @@ const AccountControlPage = () => {
           />
         )}
 
+        {/* Add User Modal */}
+        {showAddUser && (
+          <AddUserModal
+            userData={newUserData}
+            setUserData={setNewUserData}
+            onClose={() => {
+              setShowAddUser(false);
+              setNewUserData({
+                username: '',
+                email: '',
+                password: '',
+                full_name: '',
+                role: 'viewer',
+                department: 'technical',
+                company: '',
+                ship: '',
+                zalo: '',
+                gmail: ''
+              });
+            }}
+            onSubmit={handleAddUser}
+            language={language}
+            companies={companies}
+            ships={ships}
+          />
+        )}
+
         {/* Edit User Modal */}
         {showEditUser && editingUser && (
           <EditUserModal
