@@ -1511,7 +1511,7 @@ const AccountControlPage = () => {
               </div>
               
               {/* Users Table */}
-              {users.length > 0 ? (
+              {showUserList && users.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse border border-gray-300 text-sm">
                     <thead>
