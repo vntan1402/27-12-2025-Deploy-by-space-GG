@@ -2054,8 +2054,11 @@ const AccountControlPage = () => {
           <GoogleDriveModal
             config={gdriveConfig}
             setConfig={setGdriveConfig}
+            currentConfig={gdriveCurrentConfig}
             onClose={() => setShowGoogleDrive(false)}
             onSave={handleGoogleDriveConfig}
+            onTest={handleTestGoogleDriveConnection}
+            testLoading={testLoading}
             language={language}
           />
         )}
