@@ -103,7 +103,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Test the updated Company Management functionality with logo upload feature including authentication, company CRUD operations with logo_url field, logo upload endpoint, static file serving, API response verification, and permission testing."
+"Create 5 test users for different roles in the Ship Management System with specific usernames, passwords, roles, departments, companies, and ship assignments. Test user creation via POST /api/auth/register endpoint and verify login functionality for each created user."
 
 ## backend:
   - task: "Add New Record Backend Endpoints"
