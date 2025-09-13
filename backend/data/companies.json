@@ -74,5 +74,20 @@
     "system_expiry": "2025-12-31 23:59:59+00:00",
     "created_at": "2025-09-12 15:19:31.066818+00:00",
     "created_by": "945930a2-5b00-43ca-907d-82b248302c62"
+  },
+  {
+    "id": "3a04396c-e8c3-4c2c-9f3d-69837ec6a96f",
+    "name_vn": "C\u00f4ng ty XYZ Company",
+    "name_en": "XYZ Company",
+    "address_vn": "123 \u0110\u01b0\u1eddng ABC, Qu\u1eadn 1, TP.HCM",
+    "address_en": "123 ABC Street, District 1, Ho Chi Minh City",
+    "tax_id": "0123456789",
+    "logo_url": null,
+    "gdrive_config": null,
+    "gmail": "admin@xyzcompany.com",
+    "zalo": "0901234567",
+    "system_expiry": "2025-12-31 23:59:59+00:00",
+    "created_at": "2025-09-13 08:36:54.552431+00:00",
+    "created_by": "113cede4-8433-4615-96ca-f2cb740bec61"
   }
 ]
