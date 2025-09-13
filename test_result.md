@@ -355,7 +355,7 @@
 
 ## test_plan:
   current_focus:
-    - "Debug Admin Company Visibility Issue"
+    - "Admin1 User Login Functionality Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
