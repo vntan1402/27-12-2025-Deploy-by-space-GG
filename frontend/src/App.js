@@ -33,15 +33,19 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(getStoredToken());
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Only verify token if we don't already have user data
-      if (!user) {
-        verifyToken();
+    const initializeAuth = async () => {
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        // Only verify token if we don't already have user data
+        if (!user) {
+          await verifyToken();
+        }
       }
-    }
-    setLoading(false);
-  }, [token]);
+      setLoading(false);
+    };
+
+    initializeAuth();
+  }, [token, user]);
 
   const verifyToken = async () => {
     try {
