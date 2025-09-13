@@ -1366,6 +1366,7 @@ const AccountControlPage = () => {
       setShowGoogleDrive(false);
       setGdriveConfig({ service_account_json: '', folder_id: '' });
       fetchGoogleDriveStatus();
+      fetchGoogleDriveConfig();
     } catch (error) {
       toast.error(language === 'vi' ? 'Cấu hình Google Drive thất bại!' : 'Failed to configure Google Drive!');
     }
