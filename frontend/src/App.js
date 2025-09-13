@@ -1549,9 +1549,9 @@ const AccountControlPage = () => {
                             }`}>
                               {userItem.role === 'super_admin' ? (language === 'vi' ? 'Siêu quản trị' : 'Super Admin') :
                                userItem.role === 'admin' ? (language === 'vi' ? 'Quản trị' : 'Admin') :
-                               userItem.role === 'manager' ? (language === 'vi' ? 'Quản lý' : 'Manager') :
-                               userItem.role === 'editor' ? (language === 'vi' ? 'Người chỉnh sửa' : 'Editor') :
-                               (language === 'vi' ? 'Người xem' : 'Viewer')}
+                               userItem.role === 'manager' ? (language === 'vi' ? 'Cán bộ công ty' : 'Company Officer') :
+                               userItem.role === 'editor' ? (language === 'vi' ? 'Sĩ quan' : 'Ship Officer') :
+                               (language === 'vi' ? 'Thuyền viên' : 'Crew')}
                             </span>
                           </td>
                           <td className="border border-gray-300 px-4 py-3">
