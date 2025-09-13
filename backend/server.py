@@ -777,6 +777,89 @@ async def sync_from_google_drive(current_user: UserResponse = Depends(get_curren
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Sync error: {str(e)}")
 
+@api_router.post("/gdrive/test", response_model=GoogleDriveTestResponse)
+async def test_google_drive_connection(config: GoogleDriveConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Test Google Drive connection with provided credentials"""
+    # Only admin and super_admin can test Google Drive connection
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    try:
+        import json
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        
+        # Parse service account JSON
+        try:
+            service_account_info = json.loads(config.service_account_json)
+            service_account_email = service_account_info.get('client_email', 'Unknown')
+        except json.JSONDecodeError:
+            return GoogleDriveTestResponse(
+                success=False,
+                message="Invalid Service Account JSON format"
+            )
+        
+        # Create credentials
+        scopes = ['https://www.googleapis.com/auth/drive']
+        credentials = service_account.Credentials.from_service_account_info(
+            service_account_info, scopes=scopes)
+        
+        # Build Google Drive service
+        service = build('drive', 'v3', credentials=credentials)
+        
+        # Test access to the specified folder
+        try:
+            folder_info = service.files().get(fileId=config.folder_id).execute()
+            folder_name = folder_info.get('name', 'Unknown Folder')
+            
+            return GoogleDriveTestResponse(
+                success=True,
+                message=f"Successfully connected to Google Drive folder: {folder_name}",
+                folder_name=folder_name,
+                service_account_email=service_account_email
+            )
+        except Exception as folder_error:
+            return GoogleDriveTestResponse(
+                success=False,
+                message=f"Cannot access folder with ID '{config.folder_id}'. Please check folder ID and permissions. Error: {str(folder_error)}"
+            )
+            
+    except Exception as e:
+        return GoogleDriveTestResponse(
+            success=False,
+            message=f"Connection test failed: {str(e)}"
+        )
+
+@api_router.get("/gdrive/config")
+async def get_google_drive_config(current_user: UserResponse = Depends(get_current_user)):
+    """Get current Google Drive configuration (without sensitive data)"""
+    # Only admin and super_admin can view Google Drive config
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    try:
+        config_path = os.path.join(gdrive_manager.local_data_path, 'gdrive_config.json')
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+            
+            # Return config without sensitive service account JSON
+            return {
+                "configured": True,
+                "folder_id": config.get('folder_id', ''),
+                "service_account_email": config.get('service_account_info', {}).get('client_email', ''),
+                "last_sync": config.get('last_sync', None)
+            }
+        else:
+            return {
+                "configured": False,
+                "folder_id": "",
+                "service_account_email": "",
+                "last_sync": None
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get configuration: {str(e)}")
+
 # File Upload Routes
 @api_router.post("/upload/logo")
 async def upload_logo(file: UploadFile = File(...), current_user: UserResponse = Depends(get_current_user)):
