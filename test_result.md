@@ -355,7 +355,7 @@
 
 ## test_plan:
   current_focus:
-    - "MongoDB Backend Migration Verification"
+    - "MongoDB Frontend Integration Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
