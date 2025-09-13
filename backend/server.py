@@ -83,6 +83,7 @@ class Department(str, Enum):
     SAFETY = "safety"
     COMMERCIAL = "commercial"
     CREWING = "crewing"
+    SHIP_CREW = "ship_crew"
 
 class SensitivityLevel(str, Enum):
     PUBLIC = "public"
