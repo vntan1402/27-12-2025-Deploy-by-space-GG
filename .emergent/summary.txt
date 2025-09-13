@@ -1,101 +1,83 @@
 <analysis>
-The AI engineer successfully expanded the Ship Management System, focusing heavily on user and company management features. Initial work addressed authentication issues, then progressed to comprehensive User Management, including dynamic fields (Ship, Company), detailed permissions display, and role renaming (Viewer to Crew, Editor to Ship Officer, Manager to Company Officer). A significant effort was made to implement granular access control: Manager/Admin roles seeing only their respective company's data and lower roles restricted from editing higher roles. Per-company Google Drive Configuration was also added. The AI engineer efficiently utilized testing agents and debugging, overcoming frontend state management and backend filtering challenges. The current task involves debugging why an Admin user, despite backend validation, cannot click the Edit button for their own company in the frontend UI.
+The trajectory details the AI engineer's work on the Ship Management System. Initially, the focus was on resolving an Admin user's inability to edit their own company, which involved debugging authentication issues (race condition, incorrect token verification) and finally a JWT payload fix in . Following this, the System Google Drive Configuration was implemented, including test connection functionality and detailed setup guides. A major request was then made to migrate the database from file-based JSON to MongoDB (local). This involved setting up MongoDB, creating migration scripts, updating backend models, and refactoring  to use MongoDB. Post-migration, the system faced issues with missing API endpoints, which were subsequently identified and re-integrated into the MongoDB-enabled  from a backup. The entire process was thoroughly tested at each stage, culminating in a fully functional application with a MongoDB backend.
 </analysis>
 
 <product_requirements>
-The user requested a modern Ship Management System with a five-tiered user permission system (Viewer, Editor, Manager, Admin, Super Admin), AI support, bilingualism, local storage, and JWT authentication. Enhancements included a dynamic Home Page, Google Drive integration, a Remember me login, and UI text updates.
+The user requested a Ship Management System with a five-tiered user permission system, AI support, bilingualism, local storage, and JWT authentication. Enhancements included a dynamic Home Page, Google Drive integration, a Remember me login, and UI text updates.
 
-During this trajectory, the user explicitly requested:
-1.  **Enhanced User Management**:
-    *   Move Permissions into the Edit User form.
-    *   Implement Add User functionality.
-    *   Display Detailed Permissions status for each user when opening Edit User.
-    *   Add Ship Crew to the Department list in Add User; conditionally show/enable Ship dropdown only for Ship Crew department.
-    *   Rename roles: Viewer to Crew, Editor to Ship Officer, Manager to Company Officer.
-    *   Hide the User list by default in User Management, add a User List toggle button.
-    *   Remove Gmail field from Add User and Gmail column from the User list table. Make Email optional.
-    *   In User Management, Admin should only see users from their own company.
-2.  **Company Google Drive Configuration**:
-    *   Add a Company Google Drive Configuration section (Service Account Email, Project ID, Private Key, Client Email, Client ID, Storage Folder ID) to Add New Company and Edit Company forms.
-3.  **User Creation**: Create one test user for each role.
-4.  **Access Control Refinements**:
-    *   Manager should only see users belonging to their company.
-    *   Users with a lower role cannot edit users with a higher role.
-    *   System Google Drive Configuration should only be visible to Super Admin.
-    *   Admin should be able to view and edit only their own company's details in Company Management.
-5.  **Debugging**: Fix Admin user's inability to see their own company, and subsequently, fix Admin user's inability to edit their own company (disabled edit button).
+During this trajectory, explicit requests included:
+1.  **Debugging Admin Edit Issue**: Fix Admin user's inability to see/edit their own company.
+2.  **System Google Drive Configuration**: Implement saving Service Account JSON and real Google Drive connection.
+3.  **Database Migration**: Convert the existing File-based JSON Database to MongoDB (initially Atlas, then Local).
+4.  **Database Location Inquiry**: Identify where the current database data is stored.
+5.  **Frontend Testing Post-Migration**: Verify UI functionality after the MongoDB migration.
+6.  **Fix Missing Content Post-Migration**: Resolve issues where Company Management content and System Google Drive Configuration details were not displaying after migration.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack**: FastAPI (backend), React (frontend).
 -   **Styling**: Tailwind CSS, Shadcn UI components.
--   **Database**: File-based (JSON) storage.
+-   **Database**: Transitioned from File-based (JSON) storage to MongoDB (local).
 -   **Authentication**: JWT (JSON Web Tokens).
 -   **Cloud Integration**: Google Drive API for data synchronization.
 -   **Data Modeling**: Pydantic.
--   **File Storage**: Local filesystem ().
--   **Static File Serving**: FastAPI .
+-   **Python Libraries**: ,  (for async MongoDB).
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a React frontend and FastAPI backend, with a file-based JSON database and Google Drive synchronization.
+The application uses a React frontend and FastAPI backend. It transitioned from a file-based JSON database to MongoDB.
 
 
 -   ****:
-    -   **Importance**: Defines backend API routes, Pydantic models, and logic.
+    -   **Importance**: Defines all backend API routes and logic. It's the central hub for frontend-backend communication.
     -   **Changes Made**:
-        -   Added  field to , , ,  Pydantic models.
-        -   Added  to  Enum.
-        -   Implemented  helper for role hierarchy.
-        -   Updated  to filter users by company for  and  roles.
-        -   Updated  and  endpoints to include  checks.
-        -   Modified , , , and  endpoints to allow  roles to view/edit only their own associated company.
-        -   Corrected a duplicate code block in the  endpoint.
+        -   Initially,  was updated to include  and  in JWT payload to fix  logic.
+        -   Modified to integrate MongoDB for all CRUD operations, replacing .
+        -   Added new endpoints for .
+        -   Crucially, after MongoDB migration, it was heavily refactored to re-introduce many missing endpoints (for companies, ships, certificates, AI config, usage stats, settings, etc.) that were inadvertently omitted during the migration, ensuring full functionality with MongoDB.
 -   ****:
-    -   **Importance**: Manages data persistence to JSON files.
-    -   **Changes Made**: Implicitly updated through  model changes; handles  field for user data and  for company data during CRUD operations.
--   ****:
-    -   **Importance**: Manages frontend UI, state, and component rendering. Contains most of the React components and logic.
+    -   **Importance**: Manages frontend UI, state, and component rendering, including authentication and various management pages.
     -   **Changes Made**:
-        -   Introduced  component with fields for new user creation, including Company and Ship dropdowns.
-        -   Moved the User list into a conditionally displayed section, toggled by a User List button.
-        -   Removed the Gmail field from  and the Gmail column from the User Management table. Made Email input optional.
-        -    updated: now accepts  and  props, displays a Company dropdown, and a conditional Ship dropdown (enabled only for 'Ship Crew' department). Integrated the Permissions section (previously ) directly into this modal with detailed status and counters.
-        -    now fetches  and  data for  roles as well.
-        -   Implemented , , ,  helper functions for role-based and company-based access control on frontend buttons.
-        -   Updated role display names (Viewer -> Crew, Editor -> Ship Officer, Manager -> Company Officer) across the UI (table, dropdowns, translations).
-        -   Implemented  state to toggle the visibility of the user table.
-        -   Added  section to  with detailed input fields and a configuration guide.
-        -   Updated  token verification logic to improve authentication persistence (fix identified by ).
-        -   Restricted System Google Drive Configuration section to Super Admin only.
+        -   Fixed  race condition in AuthContext and simplified  logic to resolve authentication issues.
+        -   Updated  and  to fetch, display, and test Google Drive configuration.
+        -   Added client-side validation and cleaning for Google Drive Folder ID.
+        -   Fixed several JavaScript runtime errors related to , , and  on undefined values, particularly after the MongoDB migration.
 -   ****:
-    -   **Importance**: Stores application data.
-    -   **Changes Made**:  now includes  field.  now includes  field. New test companies and users were created during debugging/testing.
-
+    -   **Importance**: Previously managed data persistence to JSON files.
+    -   **Changes Made**: Functionally superseded by  for core data operations, though still present as a file.
+-   ****:
+    -   **Importance**: New file for establishing MongoDB connection and defining Pydantic models for MongoDB documents.
+    -   **Changes Made**: Created to handle MongoDB interactions.
+-   ****:
+    -   **Importance**: Script to migrate existing data from JSON files to MongoDB.
+    -   **Changes Made**: Created and refined with better error handling during execution.
+-   ****:
+    -   **Importance**: Original JSON data files. Now serve as a backup after migration to MongoDB.
+    -   **Changes Made**: Migrated data from these files into MongoDB.
+-   ****:
+    -   **Importance**: A backup of the original  (which used the file-based database) to ensure no functionality was lost during migration.
+    -   **Changes Made**: Created as a backup.
 </code_architecture>
 
 <pending_tasks>
--   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend.
--   Implement the detailed Permission Assignment Interface as a checklist within the  modal (the permissions UI was moved to EditUserModal, but the specific request for *System* Google Drive Configuration was not fully addressed).
+-   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (user chose to do later).
+-   Implement the detailed Permission Assignment Interface as a checklist within the  modal (the UI was added, but the explicit checklist within modal aspect needs verification).
 </pending_tasks>
 
 <current_work>
-The system is a fully functional Ship Management System with a modern UI and robust access control. All major User Management and Company Management features, including granular permissions and dynamic forms, have been implemented and extensively tested.
+The system is a fully functional Ship Management System with a modern UI, robust access control, and a MongoDB backend. All major User Management, Company Management, and Google Drive Configuration features, including granular permissions and dynamic forms, have been implemented. The database has been successfully migrated from file-based JSON to MongoDB Local, with all existing data transferred.
 
-**Recently Completed:**
-*   **User Management UI/UX**: The user list is now hidden by default, with a toggle button to show/hide it. The Add User modal has been created, includes conditional Ship dropdowns for Ship Crew department, and the Gmail field has been removed (Email is now optional). Role names have been updated (Viewer to Crew, Editor to Ship Officer, Manager to Company Officer) across the UI.
-*   **Access Control**:
-    *   Managers and Admins in User Management only see users from their own company.
-    *   Lower role users cannot edit higher role users.
-    *   The System Google Drive Configuration section is now exclusively visible to Super Admin.
-    *   Admins in Company Management can now view and edit only their assigned company.
-*   **Company Google Drive Configuration**: A comprehensive section for Google Drive API settings (Service Account Email, Project ID, Private Key, etc.) has been added to the Add New Company and Edit Company modals, complete with a configuration guide.
-*   **Test Users**: 5 test users (one for each role: crew1, officer1, manager1, admin1, superadmin1) have been created with appropriate company and ship assignments.
-
-**Current Problem**:
-The  user can see their company listed in Company Management and the Edit button is present, but it appears disabled (grayed out) and cannot be clicked to edit their own company, despite backend tests confirming that Admin can successfully edit their own company. The last action was an attempt to debug this frontend display issue, but the session expired.
+**Current State:**
+*   **Authentication**: Fully functional JWT-based authentication with MongoDB.
+*   **Database**: All core application data (users, companies, ships, certificates, AI config, usage tracking) is stored and retrieved from MongoDB.
+*   **API Endpoints**: All previously existing and newly added backend API endpoints are correctly linked to MongoDB, providing full CRUD (Create, Read, Update, Delete) functionality.
+*   **Frontend Display**: The UI correctly displays all data fetched from the MongoDB backend across all management sections (User, Company, Ships, Certificates, System Google Drive Configuration, AI Configuration, AI Usage Tracking).
+*   **Google Drive Configuration**: System Google Drive configuration can be set, tested, and status displayed. Frontend includes validation and cleaning for the folder ID.
+*   **Issues Resolved**:
+    *   Admin user can now successfully edit their own company (fixed JWT payload in ).
+    *   Post-MongoDB migration issues like no content in Company Management and missing Google Drive config info have been resolved by re-integrating all necessary API endpoints into the MongoDB-enabled .
 </current_work>
 
 <optional_next_step>
-Re-login as admin1 and debug the frontend  logic to understand why the Edit button for their own company is disabled.
+The previous task of fixing missing content after MongoDB migration is fully resolved.
 </optional_next_step>
