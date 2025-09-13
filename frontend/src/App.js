@@ -418,7 +418,7 @@ const LoginPage = () => {
               </div>
               <div className="p-4 bg-purple-50 rounded-lg">
                 <h3 className="font-semibold mb-2">3. {language === 'vi' ? 'Phân quyền người dùng' : 'User Permissions'}</h3>
-                <p>{language === 'vi' ? 'Hệ thống có 5 cấp độ quyền từ Viewer đến Super Admin' : 'System has 5 permission levels from Viewer to Super Admin'}</p>
+                <p>{language === 'vi' ? 'Hệ thống có 5 cấp độ quyền từ Thuyền viên đến Super Admin' : 'System has 5 permission levels from Crew to Super Admin'}</p>
               </div>
               <div className="p-4 bg-yellow-50 rounded-lg">
                 <h3 className="font-semibold mb-2">4. {language === 'vi' ? 'Tính năng AI' : 'AI Features'}</h3>
