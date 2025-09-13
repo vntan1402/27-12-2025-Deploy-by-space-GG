@@ -1900,18 +1900,7 @@ const AccountControlPage = () => {
           />
         )}
 
-        {/* Permission Assignment Modal */}
-        {showPermissions && (
-          <PermissionModal
-            selectedUsers={selectedUsers}
-            onClose={() => setShowPermissions(false)}
-            onSuccess={() => {
-              setShowPermissions(false);
-              setSelectedUsers([]);
-              fetchUsers();
-            }}
-          />
-        )}
+
 
         {/* AI Configuration Modal */}
         {showAIConfig && (
