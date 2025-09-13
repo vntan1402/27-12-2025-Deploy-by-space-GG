@@ -1174,6 +1174,51 @@ const AccountControlPage = () => {
   
   const t = translations[language];
 
+  // Role hierarchy helper functions
+  const roleHierarchy = {
+    'viewer': 1,
+    'editor': 2,
+    'manager': 3,
+    'admin': 4,
+    'super_admin': 5
+  };
+
+  const canEditUser = (targetUser) => {
+    // Self-edit prevention
+    if (targetUser.id === user.id) return false;
+    
+    const currentLevel = roleHierarchy[user.role] || 0;
+    const targetLevel = roleHierarchy[targetUser.role] || 0;
+    
+    // Super Admin can edit anyone
+    if (user.role === 'super_admin') return true;
+    
+    // Admin can edit anyone except Super Admin  
+    if (user.role === 'admin') {
+      return targetLevel < roleHierarchy['super_admin'];
+    }
+    
+    // Manager can only edit users in same company with lower or equal role
+    if (user.role === 'manager') {
+      if (targetUser.company !== user.company) return false;
+      return targetLevel <= currentLevel;
+    }
+    
+    // Lower roles cannot edit anyone
+    return false;
+  };
+
+  const canDeleteUser = (targetUser) => {
+    // Self-delete prevention  
+    if (targetUser.id === user.id) return false;
+    
+    // Super Admin protection - only Super Admin can delete Super Admin
+    if (targetUser.role === 'super_admin' && user.role !== 'super_admin') return false;
+    
+    // Use same logic as edit for other cases
+    return canEditUser(targetUser);
+  };
+
   useEffect(() => {
     if (user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') {
       fetchUsers();
