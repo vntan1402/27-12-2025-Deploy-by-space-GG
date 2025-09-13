@@ -2609,6 +2609,13 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
 
 // Edit User Modal Component
 const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, companies, ships }) => {
+  const [permissions, setPermissions] = useState({
+    categories: userData?.permissions?.categories || [],
+    departments: userData?.permissions?.departments || [],
+    sensitivity_levels: userData?.permissions?.sensitivity_levels || [],
+    permissions: userData?.permissions?.permissions || []
+  });
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -2622,6 +2629,48 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
     { value: 'admin', label: language === 'vi' ? 'Quản trị viên' : 'Admin' },
     { value: 'super_admin', label: language === 'vi' ? 'Siêu quản trị' : 'Super Admin' }
   ];
+
+  const categories = ['certificates', 'inspection_records', 'survey_reports', 'drawings_manuals', 'other_documents'];
+  const departments = ['technical', 'operations', 'safety', 'commercial', 'crewing'];
+  const sensitivityLevels = ['public', 'internal', 'confidential', 'restricted'];
+  const permissionTypes = ['read', 'write', 'delete', 'manage_users', 'system_control'];
+
+  const categoryNames = {
+    certificates: language === 'vi' ? 'Chứng chỉ' : 'Certificates',
+    inspection_records: language === 'vi' ? 'Hồ sơ kiểm tra' : 'Inspection Records',
+    survey_reports: language === 'vi' ? 'Báo cáo khảo sát' : 'Survey Reports',
+    drawings_manuals: language === 'vi' ? 'Bản vẽ & Hướng dẫn' : 'Drawings & Manuals',
+    other_documents: language === 'vi' ? 'Tài liệu khác' : 'Other Documents'
+  };
+
+  const departmentNames = {
+    technical: language === 'vi' ? 'Kỹ thuật' : 'Technical',
+    operations: language === 'vi' ? 'Vận hành' : 'Operations',
+    safety: language === 'vi' ? 'An toàn' : 'Safety',
+    commercial: language === 'vi' ? 'Thương mại' : 'Commercial',
+    crewing: language === 'vi' ? 'Thuyền viên' : 'Crewing'
+  };
+
+  const sensitivityNames = {
+    public: language === 'vi' ? 'Công khai' : 'Public',
+    internal: language === 'vi' ? 'Nội bộ' : 'Internal',
+    confidential: language === 'vi' ? 'Bí mật' : 'Confidential',
+    restricted: language === 'vi' ? 'Hạn chế' : 'Restricted'
+  };
+
+  const permissionNames = {
+    read: language === 'vi' ? 'Xem' : 'Read',
+    write: language === 'vi' ? 'Ghi' : 'Write',
+    delete: language === 'vi' ? 'Xóa' : 'Delete',
+    manage_users: language === 'vi' ? 'Quản lý người dùng' : 'Manage Users',
+    system_control: language === 'vi' ? 'Điều khiển hệ thống' : 'System Control'
+  };
+
+  // Update user data with permissions when saving
+  const handleSubmitWithPermissions = () => {
+    setUserData(prev => ({ ...prev, permissions }));
+    onSubmit();
+  };
 
   return (
     <div 
