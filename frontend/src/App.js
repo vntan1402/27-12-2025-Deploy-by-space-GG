@@ -2404,7 +2404,10 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                 {/* Permission Types */}
                 <div>
                   <h5 className="font-medium text-blue-800 mb-2">
-                    {language === 'vi' ? 'Quyền hạn (0/5)' : 'Permission Types (0/5)'}
+                    {language === 'vi' 
+                      ? `Quyền hạn (${config.default_permissions?.permissions?.length || 0}/5)` 
+                      : `Permission Types (${config.default_permissions?.permissions?.length || 0}/5)`
+                    }
                   </h5>
                   <div className="space-y-2">
                     {['read', 'write', 'delete', 'manage_users', 'system_control'].map(permission => (
