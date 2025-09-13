@@ -1018,10 +1018,19 @@ async def update_ai_config(config_update: AIProviderConfigUpdate, current_user: 
 # Company Management Routes (Super Admin only)
 @api_router.get("/companies", response_model=List[Company])
 async def get_companies(current_user: UserResponse = Depends(get_current_user)):
-    if not has_permission(current_user, UserRole.SUPER_ADMIN):
-        raise HTTPException(status_code=403, detail="Only Super Admin can access company management")
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     companies = file_db.find_all_companies()
+    
+    # Filter companies based on user role
+    if current_user.role == UserRole.ADMIN:
+        # Admin can only see their own company
+        companies = [company for company in companies if company.get('name_vn') == current_user.company or company.get('name_en') == current_user.company]
+    elif current_user.role == UserRole.SUPER_ADMIN:
+        # Super Admin can see all companies
+        pass
+    
     return [Company(**company) for company in companies]
 
 @api_router.post("/companies", response_model=Company)
