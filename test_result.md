@@ -265,7 +265,7 @@
 
   - task: "Enhanced Add User and Edit User with Ship Crew Conditional Logic"
     implemented: true
-    working: "NA"
+    working: true
     file: "App.js"
     stuck_count: 0
     priority: "high"
