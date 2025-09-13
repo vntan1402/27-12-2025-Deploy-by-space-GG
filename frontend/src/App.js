@@ -3087,8 +3087,12 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
     { value: 'operations', label: language === 'vi' ? 'Vận hành' : 'Operations' },
     { value: 'safety', label: language === 'vi' ? 'An toàn' : 'Safety' },
     { value: 'commercial', label: language === 'vi' ? 'Thương mại' : 'Commercial' },
-    { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' }
+    { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
+    { value: 'ship_crew', label: language === 'vi' ? 'Thuyền bộ' : 'Ship Crew' }
   ];
+
+  // Check if user is ship crew to show/enable ship dropdown
+  const isShipCrew = userData.department === 'ship_crew';
 
   return (
     <div 
