@@ -1118,6 +1118,7 @@ const AccountControlPage = () => {
   const [users, setUsers] = useState([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
+  const [showUserList, setShowUserList] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [newUserData, setNewUserData] = useState({
     username: '',
