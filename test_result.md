@@ -343,7 +343,7 @@
 
 ## test_plan:
   current_focus:
-    - "Admin Role Access Control After Recent Updates"
+    - "Debug Admin Company Visibility Issue"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
