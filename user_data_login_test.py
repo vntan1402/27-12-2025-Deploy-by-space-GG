@@ -245,10 +245,8 @@ class UserDataLoginTester:
         if duplicate_emails:
             issues_found.append(f"Duplicate emails found: {duplicate_emails}")
         
-        # Check for users without passwords (should have password_hash)
-        users_without_passwords = [user.get('username') for user in self.all_users if not user.get('password_hash')]
-        if users_without_passwords:
-            issues_found.append(f"Users without password hash: {users_without_passwords}")
+        # Note: password_hash is not returned by API for security reasons - this is correct behavior
+        # We verify password functionality through login tests instead
         
         # Check for inactive users
         inactive_users = [user.get('username') for user in self.all_users if not user.get('is_active', True)]
