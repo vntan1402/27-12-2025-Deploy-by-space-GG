@@ -299,12 +299,14 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-def create_access_token(user_id: str, username: str, role: str, expiration_hours: int = JWT_EXPIRATION_HOURS) -> str:
+def create_access_token(user_id: str, username: str, role: str, company: str = None, full_name: str = None, expiration_hours: int = JWT_EXPIRATION_HOURS) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=expiration_hours)
     payload = {
         "sub": user_id,
         "username": username,
         "role": role,
+        "company": company,
+        "full_name": full_name,
         "exp": expire
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
