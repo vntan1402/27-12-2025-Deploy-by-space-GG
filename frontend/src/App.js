@@ -2741,14 +2741,13 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
-              required
               value={userData.email}
               onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập email' : 'Enter email'}
+              placeholder={language === 'vi' ? 'Nhập email (không bắt buộc)' : 'Enter email (optional)'}
             />
           </div>
 
