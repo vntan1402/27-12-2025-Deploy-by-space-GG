@@ -1154,6 +1154,224 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
         logger.error(f"Error fetching ship certificates: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ship certificates")
 
+# AI Configuration Routes  
+@api_router.get("/ai-config")
+async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
+    """Get AI configuration"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        config = await mongo_db.find_one("ai_config", {})
+        if config:
+            # Remove _id and other MongoDB fields
+            if '_id' in config:
+                del config['_id']
+            return config
+        else:
+            return {
+                "provider": "OPENAI",
+                "model": "gpt-4o",
+                "api_key": "",
+                "max_tokens": 1000,
+                "temperature": 0.7
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting AI config: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get AI config")
+
+@api_router.post("/ai-config")
+async def update_ai_config(config_data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Update AI configuration"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Add metadata
+        config_data['updated_by'] = current_user.id
+        config_data['updated_at'] = datetime.now(timezone.utc)
+        
+        # Remove existing config and insert new one
+        await mongo_db.database.ai_config.delete_many({})
+        await mongo_db.create("ai_config", config_data)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "update_ai_config",
+            "resource": "ai_config",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "AI configuration updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating AI config: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update AI config")
+
+# Usage Statistics Routes
+@api_router.get("/usage-stats")
+async def get_usage_stats(current_user: UserResponse = Depends(get_current_user)):
+    """Get usage statistics"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Get usage data from last 30 days
+        usage_data = await mongo_db.get_usage_stats(days=30)
+        
+        # Process and aggregate data
+        total_requests = len(usage_data)
+        requests_by_user = {}
+        requests_by_action = {}
+        
+        for record in usage_data:
+            user_id = record.get('user_id', 'unknown')
+            action = record.get('action', 'unknown')
+            
+            requests_by_user[user_id] = requests_by_user.get(user_id, 0) + 1
+            requests_by_action[action] = requests_by_action.get(action, 0) + 1
+        
+        return {
+            "total_requests": total_requests,
+            "requests_by_user": requests_by_user,
+            "requests_by_action": requests_by_action,
+            "date_range": "Last 30 days"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting usage stats: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get usage stats")
+
+# System Settings Routes
+@api_router.get("/settings")
+async def get_settings(current_user: UserResponse = Depends(get_current_user)):
+    """Get system settings"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        settings = await mongo_db.find_one("company_settings", {})
+        if settings:
+            # Remove _id and other MongoDB fields
+            if '_id' in settings:
+                del settings['_id']
+            return settings
+        else:
+            return {
+                "system_name": "Ship Management System",
+                "version": "2.0.0",
+                "maintenance_mode": False,
+                "max_users": 100
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting settings: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get settings")
+
+@api_router.post("/settings")
+async def update_settings(settings_data: dict, current_user: UserResponse = Depends(get_current_user)):
+    """Update system settings"""
+    try:
+        if not has_permission(current_user, UserRole.SUPER_ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Super Admin can update settings")
+        
+        # Add metadata
+        settings_data['updated_by'] = current_user.id
+        settings_data['updated_at'] = datetime.now(timezone.utc)
+        
+        # Remove existing settings and insert new one
+        await mongo_db.database.company_settings.delete_many({})
+        await mongo_db.create("company_settings", settings_data)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "update_settings",
+            "resource": "settings",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "Settings updated successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating settings: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update settings")
+
+# AI Features Routes (Placeholder)
+@api_router.post("/ai/analyze")
+async def ai_analyze(request: dict, current_user: UserResponse = Depends(get_current_user)):
+    """AI document analysis (placeholder)"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Placeholder for AI analysis functionality
+        # This would integrate with actual AI service when implemented
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "ai_analyze",
+            "resource": "ai",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {
+            "message": "AI analysis feature not yet implemented",
+            "status": "placeholder",
+            "request_logged": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in AI analyze: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI analysis failed")
+
+@api_router.get("/ai/search")
+async def ai_search(q: str = "", current_user: UserResponse = Depends(get_current_user)):
+    """AI smart search (placeholder)"""
+    try:
+        if not has_permission(current_user, UserRole.VIEWER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Placeholder for AI search functionality
+        # This would integrate with actual AI service when implemented
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "ai_search",
+            "resource": "ai",
+            "details": {"query": q},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {
+            "message": "AI search feature not yet implemented",
+            "query": q,
+            "status": "placeholder",
+            "results": []
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in AI search: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI search failed")
+
 # Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
