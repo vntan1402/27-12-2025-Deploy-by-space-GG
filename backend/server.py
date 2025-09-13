@@ -1052,8 +1052,17 @@ async def create_company(company_data: CompanyCreate, current_user: UserResponse
 
 @api_router.get("/companies/{company_id}", response_model=Company)
 async def get_company(company_id: str, current_user: UserResponse = Depends(get_current_user)):
-    if not has_permission(current_user, UserRole.SUPER_ADMIN):
-        raise HTTPException(status_code=403, detail="Only Super Admin can access company details")
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    company = file_db.find_company({"id": company_id})
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check if Admin can access this company
+    if current_user.role == UserRole.ADMIN:
+        if company.get('name_vn') != current_user.company and company.get('name_en') != current_user.company:
+            raise HTTPException(status_code=403, detail="You can only access your own company")
     
     company = file_db.find_company({"id": company_id})
     if not company:
