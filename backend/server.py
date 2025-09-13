@@ -399,6 +399,36 @@ def has_permission(user: UserResponse, required_role: UserRole = None, required_
     
     return True
 
+def can_edit_user(current_user: UserResponse, target_user_role: str, target_user_company: str = None) -> bool:
+    """Check if current user can edit target user based on role hierarchy and company"""
+    role_hierarchy = {
+        "viewer": 1,
+        "editor": 2, 
+        "manager": 3,
+        "admin": 4,
+        "super_admin": 5
+    }
+    
+    current_level = role_hierarchy.get(current_user.role, 0)
+    target_level = role_hierarchy.get(target_user_role, 0)
+    
+    # Super Admin can edit anyone
+    if current_user.role == UserRole.SUPER_ADMIN:
+        return True
+    
+    # Admin can edit anyone except Super Admin
+    if current_user.role == UserRole.ADMIN:
+        return target_level < role_hierarchy["super_admin"]
+    
+    # Manager can only edit users in their company with lower or equal role
+    if current_user.role == UserRole.MANAGER:
+        if target_user_company != current_user.company:
+            return False
+        return target_level <= current_level
+    
+    # Lower roles cannot edit anyone
+    return False
+
 async def init_ai_chat():
     """Initialize AI chat for document analysis"""
     if not EMERGENT_LLM_KEY:
