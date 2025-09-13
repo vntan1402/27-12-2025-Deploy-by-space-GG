@@ -1141,7 +1141,9 @@ const AccountControlPage = () => {
     folder_id: ''
   });
   const [gdriveStatus, setGdriveStatus] = useState(null);
+  const [gdriveCurrentConfig, setGdriveCurrentConfig] = useState(null);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState({
     provider: 'openai',
     model: 'gpt-4o'
