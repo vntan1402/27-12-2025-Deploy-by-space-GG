@@ -1243,6 +1243,7 @@ const AccountControlPage = () => {
     }
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       fetchGoogleDriveStatus();
+      fetchGoogleDriveConfig();
     }
     if (user?.role === 'super_admin') {
       fetchAIConfig();
