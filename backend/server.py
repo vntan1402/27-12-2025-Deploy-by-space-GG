@@ -61,6 +61,9 @@ class Department(str, Enum):
     LOGISTICS = "logistics"
     FINANCE = "finance"
     SHIP_CREW = "ship_crew"
+    CREWING = "crewing"
+    SAFETY = "safety"
+    COMMERCIAL = "commercial"
 
 class UserBase(BaseModel):
     username: str
