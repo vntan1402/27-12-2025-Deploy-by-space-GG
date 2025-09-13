@@ -1406,6 +1406,35 @@ const AccountControlPage = () => {
     }
   };
 
+  const handleAddUser = async () => {
+    if (!newUserData.username || !newUserData.email || !newUserData.password || !newUserData.full_name) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc!' : 'Please fill in all required fields!');
+      return;
+    }
+    
+    try {
+      await axios.post(`${API}/auth/register`, newUserData);
+      toast.success(language === 'vi' ? 'Người dùng đã được tạo thành công!' : 'User created successfully!');
+      setShowAddUser(false);
+      setNewUserData({
+        username: '',
+        email: '',
+        password: '',
+        full_name: '',
+        role: 'viewer',
+        department: 'technical',
+        company: '',
+        ship: '',
+        zalo: '',
+        gmail: ''
+      });
+      fetchUsers();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể tạo người dùng!' : 'Failed to create user!');
+      console.error('User creation error:', error);
+    }
+  };
+
   const handleDeleteUser = async (user) => {
     if (!window.confirm(language === 'vi' ? 
       `Bạn có chắc muốn xóa người dùng "${user.full_name}"?` : 
