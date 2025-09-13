@@ -925,6 +925,235 @@ async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)
         logger.error(f"Error syncing from Google Drive: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync from Google Drive")
 
+# Ships Management Routes
+@api_router.get("/ships", response_model=List[ShipResponse])
+async def get_ships(current_user: UserResponse = Depends(get_current_user)):
+    """Get all ships"""
+    try:
+        if not has_permission(current_user, UserRole.VIEWER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        ships = await mongo_db.find_all("ships")
+        return [ShipResponse(**ship) for ship in ships]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching ships: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ships")
+
+@api_router.post("/ships", response_model=ShipResponse)
+async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depends(get_current_user)):
+    """Create new ship"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Check if IMO already exists (if provided)
+        if ship_data.imo:
+            existing_ship = await mongo_db.find_ship_by_imo(ship_data.imo)
+            if existing_ship:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ship with this IMO already exists")
+        
+        # Create ship data
+        ship_dict = ship_data.dict()
+        ship_dict['id'] = str(uuid.uuid4())
+        ship_dict['created_at'] = datetime.now(timezone.utc)
+        
+        # Save to MongoDB
+        await mongo_db.create("ships", ship_dict)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "create_ship",
+            "resource": "ships",
+            "details": {"ship_id": ship_dict['id']},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return ShipResponse(**ship_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating ship: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create ship")
+
+@api_router.get("/ships/{ship_id}", response_model=ShipResponse)
+async def get_ship(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get ship by ID"""
+    try:
+        if not has_permission(current_user, UserRole.VIEWER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ship not found")
+        
+        return ShipResponse(**ship)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching ship: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ship")
+
+@api_router.put("/ships/{ship_id}", response_model=ShipResponse)
+async def update_ship(ship_id: str, ship_update: ShipUpdate, current_user: UserResponse = Depends(get_current_user)):
+    """Update ship"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Get existing ship
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ship not found")
+        
+        # Prepare update data
+        update_data = {k: v for k, v in ship_update.dict(exclude_unset=True).items() if v is not None}
+        
+        # Check IMO uniqueness if updating IMO
+        if 'imo' in update_data and update_data['imo']:
+            existing_imo = await mongo_db.find_one("ships", {"imo": update_data['imo'], "id": {"$ne": ship_id}})
+            if existing_imo:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="IMO already exists")
+        
+        # Update ship
+        success = await mongo_db.update("ships", {"id": ship_id}, update_data)
+        if not success:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ship not found")
+        
+        # Get updated ship
+        updated_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "update_ship",
+            "resource": "ships",
+            "details": {"ship_id": ship_id},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return ShipResponse(**updated_ship)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating ship: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update ship")
+
+@api_router.delete("/ships/{ship_id}")
+async def delete_ship(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Delete ship"""
+    try:
+        if not has_permission(current_user, UserRole.MANAGER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Check if ship exists
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ship not found")
+        
+        # Delete ship
+        success = await mongo_db.delete("ships", {"id": ship_id})
+        if not success:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ship not found")
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "delete_ship",
+            "resource": "ships",
+            "details": {"ship_id": ship_id},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "Ship deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting ship: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete ship")
+
+# Certificates Management Routes
+@api_router.get("/certificates", response_model=List[CertificateResponse])
+async def get_certificates(current_user: UserResponse = Depends(get_current_user)):
+    """Get all certificates"""
+    try:
+        if not has_permission(current_user, UserRole.VIEWER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        certificates = await mongo_db.find_all("certificates")
+        return [CertificateResponse(**cert) for cert in certificates]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching certificates: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch certificates")
+
+@api_router.post("/certificates", response_model=CertificateResponse)
+async def create_certificate(cert_data: CertificateCreate, current_user: UserResponse = Depends(get_current_user)):
+    """Create new certificate"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": cert_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ship not found")
+        
+        # Create certificate data
+        cert_dict = cert_data.dict()
+        cert_dict['id'] = str(uuid.uuid4())
+        cert_dict['created_at'] = datetime.now(timezone.utc)
+        
+        # Save to MongoDB
+        await mongo_db.create("certificates", cert_dict)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "create_certificate",
+            "resource": "certificates",
+            "details": {"certificate_id": cert_dict['id'], "ship_id": cert_data.ship_id},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return CertificateResponse(**cert_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating certificate: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create certificate")
+
+@api_router.get("/ships/{ship_id}/certificates", response_model=List[CertificateResponse])
+async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get all certificates for a specific ship"""
+    try:
+        if not has_permission(current_user, UserRole.VIEWER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ship not found")
+        
+        certificates = await mongo_db.find_certificates_by_ship(ship_id)
+        return [CertificateResponse(**cert) for cert in certificates]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching ship certificates: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ship certificates")
+
 # Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
