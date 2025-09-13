@@ -2768,21 +2768,36 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Tàu' : 'Ship'}
+                {isShipCrew && <span className="text-red-500"> *</span>}
               </label>
               <select
-                value={userData.ship || ''}
+                required={isShipCrew}
+                disabled={!isShipCrew}
+                value={isShipCrew ? (userData.ship || '') : ''}
                 onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  !isShipCrew ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''
+                }`}
               >
                 <option value="">
-                  {language === 'vi' ? 'Chọn tàu' : 'Select ship'}
+                  {isShipCrew 
+                    ? (language === 'vi' ? 'Chọn tàu' : 'Select ship')
+                    : (language === 'vi' ? 'Chỉ dành cho Thuyền bộ' : 'Ship Crew only')
+                  }
                 </option>
-                {ships.map(ship => (
+                {isShipCrew && ships.map(ship => (
                   <option key={ship.id} value={ship.name}>
                     {ship.name}
                   </option>
                 ))}
               </select>
+              {!isShipCrew && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' 
+                    ? 'Chỉ hiển thị khi chọn phòng ban "Thuyền bộ"' 
+                    : 'Only available for "Ship Crew" department'}
+                </p>
+              )}
             </div>
           </div>
 
