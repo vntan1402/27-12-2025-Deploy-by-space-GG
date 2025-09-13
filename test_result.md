@@ -317,9 +317,21 @@
           agent: "testing"
           comment: "✅ COMPANY FILTERING DETAILED ANALYSIS COMPLETED SUCCESSFULLY - Comprehensive testing of Admin role company filtering completed with all requirements verified and root cause analysis provided. (1) Authentication Testing: admin1 (Admin, XYZ Company) and superadmin1 (Super Admin, ABC Company Ltd Updated) both successfully authenticated with correct user data verified, (2) Company Database Analysis: Found 5 companies total in database with detailed company information (Công ty XYZ/XYZ Company, Công ty TNHH ABC Cập Nhật/ABC Company Ltd Updated, Công ty fds/fds Company, Công ty Test Logo/Test Logo Company Ltd, Công ty Không Logo/No Logo Company Ltd), (3) Admin Company Filtering Verification: admin1 correctly sees 1 company (Công ty XYZ/XYZ Company) which matches their company field 'XYZ Company' through name_en matching, (4) Super Admin Company Access: superadmin1 correctly sees all 5 companies as expected for Super Admin role, (5) Company Matching Logic Analysis: String matching working correctly - admin1's company 'XYZ Company' matches company name_en 'XYZ Company' (exact match), no case sensitivity or encoding issues found, (6) Expected vs Actual Results: admin1 sees 1 company (expected 1), superadmin1 sees 5 companies (expected 5), filtering logic working as designed. CONCLUSION: Company filtering is working correctly. Admin users see only companies where their user.company field matches either company.name_vn OR company.name_en. The review request concern about admin1 seeing 0 companies was not reproduced - admin1 correctly sees 1 matching company. All company filtering functionality is production-ready and working as expected."
 
+  - task: "Admin Role Access Control After Recent Updates"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ADMIN ROLE ACCESS CONTROL COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - All 10/10 API tests passed and 5/5 feature tests successful. Created dedicated test suite (admin_role_access_test.py) covering all review request scenarios: (1) Authentication Testing: ✅ All 4 test users (admin1, superadmin1, officer1, crew1) successfully authenticated with correct roles and companies verified, (2) Admin User Management Filtering: ✅ admin1 (Admin, XYZ Company) correctly sees only 2 users from same company (officer1, admin1), users from ABC Company properly filtered out, (3) Super Admin User Access: ✅ superadmin1 sees all 8 users from multiple companies (None: 1, Công ty TNHH ABC Cập Nhật: 2, ABC Company Ltd Updated: 3, XYZ Company: 2), (4) Admin Company Filtering: ✅ admin1 correctly sees only 1 company (Công ty XYZ/XYZ Company) matching their company field, (5) Super Admin Company Access: ✅ superadmin1 sees all 5 companies as expected, (6) Admin Company Edit Permissions: ✅ admin1 successfully edited own company (XYZ Company ID: 952e6101-dae9-4811-877f-cd3b84211fb9) with 200 status, admin1 correctly blocked from editing other company (ABC Company ID: 1d787e92-7676-4945-a2f4-c8ef5f3bbe7c) with 403 status. All expected results achieved: Admin sees only same company users (2 users), Admin sees only own company (1 company), Admin can edit own company but cannot edit other companies (403 forbidden), Super Admin sees all users (8 users) and companies (5 companies) with no filtering. Admin role access control functionality is fully functional and working correctly as designed."
+
 ## test_plan:
   current_focus:
-    - "Company Filtering for Admin Role Detailed Analysis"
+    - "Admin Role Access Control After Recent Updates"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
