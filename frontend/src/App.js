@@ -1159,7 +1159,14 @@ const AccountControlPage = () => {
     gmail: '',
     zalo: '',
     system_expiry: '',
-    gdrive_config: null
+    gdrive_config: {
+      service_account_email: '',
+      project_id: '',
+      private_key: '',
+      client_email: '',
+      client_id: '',
+      folder_id: ''
+    }
   });
   const [usageStats, setUsageStats] = useState(null);
   const [usageLoading, setUsageLoading] = useState(false);
