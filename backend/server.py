@@ -809,7 +809,22 @@ async def test_google_drive_connection(config: GoogleDriveConfig, current_user: 
         
         # Test access to the specified folder
         try:
-            folder_info = service.files().get(fileId=config.folder_id).execute()
+            # Clean up folder_id (remove any extra characters or duplicates)
+            folder_id = config.folder_id.strip()
+            if not folder_id:
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message="Folder ID cannot be empty"
+                )
+            
+            # Check if folder_id looks valid (basic validation)
+            if len(folder_id) < 20 or len(folder_id) > 100 or ' ' in folder_id:
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Folder ID format appears invalid. Got: '{folder_id}' (length: {len(folder_id)}). Please check your folder ID."
+                )
+            
+            folder_info = service.files().get(fileId=folder_id).execute()
             folder_name = folder_info.get('name', 'Unknown Folder')
             
             return GoogleDriveTestResponse(
@@ -819,10 +834,25 @@ async def test_google_drive_connection(config: GoogleDriveConfig, current_user: 
                 service_account_email=service_account_email
             )
         except Exception as folder_error:
-            return GoogleDriveTestResponse(
-                success=False,
-                message=f"Cannot access folder with ID '{config.folder_id}'. Please check folder ID and permissions. Error: {str(folder_error)}"
-            )
+            error_msg = str(folder_error)
+            folder_id = config.folder_id.strip()
+            
+            # Provide more specific error messages
+            if "404" in error_msg or "not found" in error_msg.lower():
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Folder not found with ID '{folder_id}'. Please check: 1) Folder ID is correct, 2) Folder exists, 3) Service account has access to the folder."
+                )
+            elif "403" in error_msg or "forbidden" in error_msg.lower():
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Access denied to folder '{folder_id}'. Please share the folder with service account email: {service_account_email}"
+                )
+            else:
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Cannot access folder with ID '{folder_id}'. Error: {error_msg}"
+                )
             
     except Exception as e:
         return GoogleDriveTestResponse(
