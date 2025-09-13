@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Migration script to convert File-based JSON Database to MongoDB Atlas
+Migration script to convert File-based JSON Database to MongoDB
 """
 
 import os
@@ -11,6 +11,10 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Any
 import shutil
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv('/app/backend/.env')
 
 # Add backend to path
 sys.path.append('/app/backend')
