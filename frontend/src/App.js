@@ -2998,8 +2998,11 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
 
               {/* Permission Types */}
               <div>
-                <h4 className="font-medium mb-3 text-gray-700">
-                  {language === 'vi' ? 'Loại quyền' : 'Permission Types'}
+                <h4 className="font-medium mb-3 text-gray-700 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Loại quyền' : 'Permission Types'}</span>
+                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                    {permissions.permissions.length}/{permissionTypes.length}
+                  </span>
                 </h4>
                 <div className="space-y-2">
                   {permissionTypes.map(perm => (
