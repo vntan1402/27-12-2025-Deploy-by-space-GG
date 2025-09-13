@@ -1798,7 +1798,7 @@ const AccountControlPage = () => {
                       {gdriveCurrentConfig.last_sync && (
                         <div className="flex justify-between">
                           <span>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</span>
-                          <span className="text-xs">{new Date(gdriveCurrentConfig.last_sync).toLocaleString()}</span>
+                          <span className="text-xs">{gdriveCurrentConfig.last_sync ? new Date(gdriveCurrentConfig.last_sync).toLocaleString() : 'Never'}</span>
                         </div>
                       )}
                     </div>
