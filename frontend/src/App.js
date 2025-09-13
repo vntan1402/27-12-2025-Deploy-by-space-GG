@@ -3099,9 +3099,9 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
   };
 
   const roleOptions = [
-    { value: 'viewer', label: language === 'vi' ? 'Người xem' : 'Viewer' },
-    { value: 'editor', label: language === 'vi' ? 'Người chỉnh sửa' : 'Editor' },
-    { value: 'manager', label: language === 'vi' ? 'Quản lý' : 'Manager' },
+    { value: 'viewer', label: language === 'vi' ? 'Thuyền viên' : 'Crew' },
+    { value: 'editor', label: language === 'vi' ? 'Sĩ quan' : 'Ship Officer' },
+    { value: 'manager', label: language === 'vi' ? 'Cán bộ công ty' : 'Company Officer' },
     { value: 'admin', label: language === 'vi' ? 'Quản trị viên' : 'Admin' },
     { value: 'super_admin', label: language === 'vi' ? 'Siêu quản trị' : 'Super Admin' }
   ];
