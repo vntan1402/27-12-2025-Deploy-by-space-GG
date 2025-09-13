@@ -2844,6 +2844,123 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
             </p>
           </div>
 
+          {/* Permissions Section */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              {language === 'vi' ? 'Phân quyền chi tiết' : 'Detailed Permissions'}
+            </h3>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Document Categories */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-700">
+                  {language === 'vi' ? 'Loại tài liệu' : 'Document Categories'}
+                </h4>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {categories.map(cat => (
+                    <label key={cat} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={permissions.categories.includes(cat)}
+                        onChange={(e) => {
+                          const newCats = e.target.checked
+                            ? [...permissions.categories, cat]
+                            : permissions.categories.filter(c => c !== cat);
+                          setPermissions(prev => ({ ...prev, categories: newCats }));
+                        }}
+                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm">{categoryNames[cat]}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Departments */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-700">
+                  {language === 'vi' ? 'Phòng ban' : 'Departments'}
+                </h4>
+                <div className="space-y-2">
+                  {departments.map(dept => (
+                    <label key={dept} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={permissions.departments.includes(dept)}
+                        onChange={(e) => {
+                          const newDepts = e.target.checked
+                            ? [...permissions.departments, dept]
+                            : permissions.departments.filter(d => d !== dept);
+                          setPermissions(prev => ({ ...prev, departments: newDepts }));
+                        }}
+                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm">{departmentNames[dept]}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sensitivity Levels */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-700">
+                  {language === 'vi' ? 'Mức độ bảo mật' : 'Sensitivity Levels'}
+                </h4>
+                <div className="space-y-2">
+                  {sensitivityLevels.map(level => (
+                    <label key={level} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={permissions.sensitivity_levels.includes(level)}
+                        onChange={(e) => {
+                          const newLevels = e.target.checked
+                            ? [...permissions.sensitivity_levels, level]
+                            : permissions.sensitivity_levels.filter(l => l !== level);
+                          setPermissions(prev => ({ ...prev, sensitivity_levels: newLevels }));
+                        }}
+                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm">{sensitivityNames[level]}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Permission Types */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-700">
+                  {language === 'vi' ? 'Loại quyền' : 'Permission Types'}
+                </h4>
+                <div className="space-y-2">
+                  {permissionTypes.map(perm => (
+                    <label key={perm} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={permissions.permissions.includes(perm)}
+                        onChange={(e) => {
+                          const newPerms = e.target.checked
+                            ? [...permissions.permissions, perm]
+                            : permissions.permissions.filter(p => p !== perm);
+                          setPermissions(prev => ({ ...prev, permissions: newPerms }));
+                        }}
+                        className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm">{permissionNames[perm]}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+              <p className="text-sm text-yellow-700">
+                {language === 'vi' 
+                  ? '💡 Quyền chi tiết này sẽ được áp dụng ngoài quyền cơ bản của vai trò được chọn.' 
+                  : '💡 These detailed permissions will be applied in addition to the basic role permissions.'}
+              </p>
+            </div>
+          </div>
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h4 className="font-medium text-blue-800 mb-2">
               {language === 'vi' ? 'Lưu ý:' : 'Note:'}
@@ -2852,6 +2969,7 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
               <li>• {language === 'vi' ? 'Các trường có dấu (*) là bắt buộc' : 'Fields marked with (*) are required'}</li>
               <li>• {language === 'vi' ? 'Thay đổi vai trò sẽ ảnh hưởng đến quyền truy cập' : 'Role changes will affect access permissions'}</li>
               <li>• {language === 'vi' ? 'Để trống mật khẩu nếu không muốn thay đổi' : 'Leave password blank if no change needed'}</li>
+              <li>• {language === 'vi' ? 'Phân quyền chi tiết sẽ bổ sung cho quyền vai trò cơ bản' : 'Detailed permissions supplement basic role permissions'}</li>
             </ul>
           </div>
         </div>
