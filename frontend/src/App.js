@@ -1944,7 +1944,7 @@ const AccountControlPage = () => {
                         {language === 'vi' ? 'Phân bố nhà cung cấp:' : 'Provider Distribution:'}
                       </div>
                       <div className="space-y-1">
-                        {Object.entries(usageStats.requests_by_provider).map(([provider, count]) => (
+                        {Object.entries(usageStats.requests_by_provider || {}).map(([provider, count]) => (
                           <div key={provider} className="flex justify-between text-xs">
                             <span className="capitalize">{provider}</span>
                             <span className="font-medium">{count}</span>
