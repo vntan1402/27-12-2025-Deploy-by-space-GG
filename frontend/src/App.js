@@ -2368,7 +2368,10 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                 {/* Sensitivity Levels */}
                 <div>
                   <h5 className="font-medium text-blue-800 mb-2">
-                    {language === 'vi' ? 'Mức độ bảo mật (0/4)' : 'Sensitivity Levels (0/4)'}
+                    {language === 'vi' 
+                      ? `Mức độ bảo mật (${config.default_permissions?.sensitivity_levels?.length || 0}/4)` 
+                      : `Sensitivity Levels (${config.default_permissions?.sensitivity_levels?.length || 0}/4)`
+                    }
                   </h5>
                   <div className="space-y-2">
                     {['public', 'internal', 'confidential', 'restricted'].map(level => (
