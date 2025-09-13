@@ -2278,6 +2278,176 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
             </p>
           </div>
 
+          {/* Permission Assignment Interface */}
+          <div className="border-t pt-6">
+            <h4 className="font-medium text-gray-800 mb-4">
+              {language === 'vi' ? 'Giao diện phân quyền' : 'Permission Assignment Interface'}
+            </h4>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-blue-700 mb-3">
+                {language === 'vi' 
+                  ? 'Cấu hình các quyền mặc định sẽ được áp dụng khi tài liệu được đồng bộ từ Google Drive:'
+                  : 'Configure default permissions that will be applied when documents are synced from Google Drive:'
+                }
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Document Categories */}
+                <div>
+                  <h5 className="font-medium text-blue-800 mb-2">
+                    {language === 'vi' ? 'Loại tài liệu (0/5)' : 'Document Categories (0/5)'}
+                  </h5>
+                  <div className="space-y-2">
+                    {['certificates', 'inspection_records', 'survey_reports', 'drawings_manuals', 'other_documents'].map(category => (
+                      <label key={category} className="flex items-center text-sm">
+                        <input
+                          type="checkbox"
+                          checked={config.default_permissions?.categories?.includes(category) || false}
+                          onChange={(e) => {
+                            const newCategories = e.target.checked
+                              ? [...(config.default_permissions?.categories || []), category]
+                              : (config.default_permissions?.categories || []).filter(c => c !== category);
+                            setConfig(prev => ({
+                              ...prev,
+                              default_permissions: {
+                                ...prev.default_permissions,
+                                categories: newCategories
+                              }
+                            }));
+                          }}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="capitalize text-blue-700">
+                          {category.replace('_', ' ')}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Departments */}
+                <div>
+                  <h5 className="font-medium text-blue-800 mb-2">
+                    {language === 'vi' ? 'Phòng ban (0/6)' : 'Departments (0/6)'}
+                  </h5>
+                  <div className="space-y-2">
+                    {['technical', 'operations', 'safety', 'commercial', 'crewing', 'ship_crew'].map(department => (
+                      <label key={department} className="flex items-center text-sm">
+                        <input
+                          type="checkbox"
+                          checked={config.default_permissions?.departments?.includes(department) || false}
+                          onChange={(e) => {
+                            const newDepartments = e.target.checked
+                              ? [...(config.default_permissions?.departments || []), department]
+                              : (config.default_permissions?.departments || []).filter(d => d !== department);
+                            setConfig(prev => ({
+                              ...prev,
+                              default_permissions: {
+                                ...prev.default_permissions,
+                                departments: newDepartments
+                              }
+                            }));
+                          }}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="capitalize text-blue-700">
+                          {department.replace('_', ' ')}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Sensitivity Levels */}
+                <div>
+                  <h5 className="font-medium text-blue-800 mb-2">
+                    {language === 'vi' ? 'Mức độ bảo mật (0/4)' : 'Sensitivity Levels (0/4)'}
+                  </h5>
+                  <div className="space-y-2">
+                    {['public', 'internal', 'confidential', 'restricted'].map(level => (
+                      <label key={level} className="flex items-center text-sm">
+                        <input
+                          type="checkbox"
+                          checked={config.default_permissions?.sensitivity_levels?.includes(level) || false}
+                          onChange={(e) => {
+                            const newLevels = e.target.checked
+                              ? [...(config.default_permissions?.sensitivity_levels || []), level]
+                              : (config.default_permissions?.sensitivity_levels || []).filter(l => l !== level);
+                            setConfig(prev => ({
+                              ...prev,
+                              default_permissions: {
+                                ...prev.default_permissions,
+                                sensitivity_levels: newLevels
+                              }
+                            }));
+                          }}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="capitalize text-blue-700">
+                          {level}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Permission Types */}
+                <div>
+                  <h5 className="font-medium text-blue-800 mb-2">
+                    {language === 'vi' ? 'Quyền hạn (0/5)' : 'Permission Types (0/5)'}
+                  </h5>
+                  <div className="space-y-2">
+                    {['read', 'write', 'delete', 'manage_users', 'system_control'].map(permission => (
+                      <label key={permission} className="flex items-center text-sm">
+                        <input
+                          type="checkbox"
+                          checked={config.default_permissions?.permissions?.includes(permission) || false}
+                          onChange={(e) => {
+                            const newPermissions = e.target.checked
+                              ? [...(config.default_permissions?.permissions || []), permission]
+                              : (config.default_permissions?.permissions || []).filter(p => p !== permission);
+                            setConfig(prev => ({
+                              ...prev,
+                              default_permissions: {
+                                ...prev.default_permissions,
+                                permissions: newPermissions
+                              }
+                            }));
+                          }}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <span className="capitalize text-blue-700">
+                          {permission.replace('_', ' ')}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                <h6 className="font-medium text-blue-800 mb-2">
+                  {language === 'vi' ? 'Trạng thái quyền hiện tại:' : 'Current Permission Status:'}
+                </h6>
+                <div className="text-sm text-blue-700 grid grid-cols-2 gap-2">
+                  <div>
+                    <strong>{language === 'vi' ? 'Loại tài liệu:' : 'Document Categories:'}</strong> {config.default_permissions?.categories?.length || 0}/5
+                  </div>
+                  <div>
+                    <strong>{language === 'vi' ? 'Phòng ban:' : 'Departments:'}</strong> {config.default_permissions?.departments?.length || 0}/6
+                  </div>
+                  <div>
+                    <strong>{language === 'vi' ? 'Mức bảo mật:' : 'Sensitivity Levels:'}</strong> {config.default_permissions?.sensitivity_levels?.length || 0}/4
+                  </div>
+                  <div>
+                    <strong>{language === 'vi' ? 'Quyền hạn:' : 'Permission Types:'}</strong> {config.default_permissions?.permissions?.length || 0}/5
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Test Connection Section */}
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-3">
