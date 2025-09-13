@@ -1123,13 +1123,18 @@ async def upload_company_logo(
     file: UploadFile = File(...),
     current_user: UserResponse = Depends(get_current_user)
 ):
-    if not has_permission(current_user, UserRole.SUPER_ADMIN):
-        raise HTTPException(status_code=403, detail="Only Super Admin can upload company logos")
+    if not has_permission(current_user, UserRole.ADMIN):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
     
     # Check if company exists
     existing_company = file_db.find_company({"id": company_id})
     if not existing_company:
         raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check if Admin can upload logo for this company
+    if current_user.role == UserRole.ADMIN:
+        if existing_company.get('name_vn') != current_user.company and existing_company.get('name_en') != current_user.company:
+            raise HTTPException(status_code=403, detail="You can only upload logo for your own company")
     
     # Validate file type
     if not file.content_type.startswith('image/'):
