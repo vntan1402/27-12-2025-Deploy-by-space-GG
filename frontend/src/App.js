@@ -2240,7 +2240,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
               <div><strong>{language === 'vi' ? 'Service Account:' : 'Service Account:'}</strong> {currentConfig.service_account_email}</div>
               <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {currentConfig.folder_id}</div>
               {currentConfig.last_sync && (
-                <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {new Date(currentConfig.last_sync).toLocaleString()}</div>
+                <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {currentConfig.last_sync ? new Date(currentConfig.last_sync).toLocaleString() : 'Never'}</div>
               )}
             </div>
           </div>
