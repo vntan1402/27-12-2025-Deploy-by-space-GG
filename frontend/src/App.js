@@ -1571,9 +1571,6 @@ const AccountControlPage = () => {
                           <td className="border border-gray-300 px-4 py-3">
                             {userItem.zalo || '-'}
                           </td>
-                          <td className="border border-gray-300 px-4 py-3">
-                            {userItem.gmail || userItem.email || '-'}
-                          </td>
                           <td className="border border-gray-300 px-4 py-3 text-center">
                             <div className="flex justify-center space-x-2">
                               <button
