@@ -270,7 +270,8 @@
   run_ui: false
 
 ## test_plan:
-  current_focus: []
+  current_focus:
+    - "Enhanced Add User and Edit User with Ship Crew Conditional Logic"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
