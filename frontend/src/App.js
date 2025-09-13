@@ -2656,7 +2656,8 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
     operations: language === 'vi' ? 'Vận hành' : 'Operations',
     safety: language === 'vi' ? 'An toàn' : 'Safety',
     commercial: language === 'vi' ? 'Thương mại' : 'Commercial',
-    crewing: language === 'vi' ? 'Thuyền viên' : 'Crewing'
+    crewing: language === 'vi' ? 'Thuyền viên' : 'Crewing',
+    ship_crew: language === 'vi' ? 'Thuyền bộ' : 'Ship Crew'
   };
 
   const sensitivityNames = {
