@@ -215,9 +215,9 @@ const translations = {
     nextSurvey: "Next Survey",
     
     // Permissions
-    viewer: "Viewer",
-    editor: "Editor", 
-    manager: "Manager",
+    viewer: "Crew",
+    editor: "Ship Officer", 
+    manager: "Company Officer",
     admin: "Admin",
     superAdmin: "Super Admin",
     
