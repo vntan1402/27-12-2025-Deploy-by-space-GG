@@ -305,9 +305,21 @@
           agent: "testing"
           comment: "✅ USER MANAGEMENT WITH COMPANY FILTERING AND ROLE HIERARCHY PERMISSIONS COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - All 26/26 API tests passed and 7/7 feature tests successful. (1) Authentication Testing: ✅ All 5 test users (manager1, admin1, superadmin1, crew1, officer1) successfully authenticated with correct roles and companies verified, (2) Company Filtering for Manager Role: ✅ manager1 (Company Officer, ABC Company Ltd Updated) correctly sees only 3 users from same company (crew1, manager1, superadmin1), users from XYZ Company properly filtered out, (3) Admin/Super Admin Access: ✅ admin1 sees all 8 users from multiple companies (None: 1, Công ty TNHH ABC Cập Nhật: 2, ABC Company Ltd Updated: 3, XYZ Company: 2), superadmin1 also sees all 8 users with no filtering, (4) Can-Edit Permissions Endpoint Testing: ✅ GET /api/users/{user_id}/can-edit working perfectly - manager1 can edit lower roles in same company but not cross-company or higher roles, admin1 can edit all except Super Admin, superadmin1 can edit anyone, (5) Role Hierarchy Edit Permissions: ✅ Actual edit operations tested - manager1 successfully edited crew1 (same company, lower role), admin1 correctly blocked from editing Super Admin (403 status), superadmin1 successfully edited crew1, (6) Cross-Company Restrictions: ✅ manager1 correctly blocked from editing officer1 (XYZ Company user) with 403 status, (7) Self-Edit Prevention: ✅ admin1 correctly prevented from deleting self with 400 status. All expected results achieved: Manager sees only same company users (3 users), Admin/Super Admin see all users (8+ users), role hierarchy prevents lower roles from editing higher roles, company restrictions apply only to Manager role, Super Admin protection working for delete operations. User Management system with company filtering and role hierarchy permissions is fully functional and production-ready."
 
+  - task: "Company Filtering for Admin Role Detailed Analysis"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPANY FILTERING DETAILED ANALYSIS COMPLETED SUCCESSFULLY - Comprehensive testing of Admin role company filtering completed with all requirements verified and root cause analysis provided. (1) Authentication Testing: admin1 (Admin, XYZ Company) and superadmin1 (Super Admin, ABC Company Ltd Updated) both successfully authenticated with correct user data verified, (2) Company Database Analysis: Found 5 companies total in database with detailed company information (Công ty XYZ/XYZ Company, Công ty TNHH ABC Cập Nhật/ABC Company Ltd Updated, Công ty fds/fds Company, Công ty Test Logo/Test Logo Company Ltd, Công ty Không Logo/No Logo Company Ltd), (3) Admin Company Filtering Verification: admin1 correctly sees 1 company (Công ty XYZ/XYZ Company) which matches their company field 'XYZ Company' through name_en matching, (4) Super Admin Company Access: superadmin1 correctly sees all 5 companies as expected for Super Admin role, (5) Company Matching Logic Analysis: String matching working correctly - admin1's company 'XYZ Company' matches company name_en 'XYZ Company' (exact match), no case sensitivity or encoding issues found, (6) Expected vs Actual Results: admin1 sees 1 company (expected 1), superadmin1 sees 5 companies (expected 5), filtering logic working as designed. CONCLUSION: Company filtering is working correctly. Admin users see only companies where their user.company field matches either company.name_vn OR company.name_en. The review request concern about admin1 seeing 0 companies was not reproduced - admin1 correctly sees 1 matching company. All company filtering functionality is production-ready and working as expected."
+
 ## test_plan:
   current_focus:
-    - "User Management with Company Filtering and Role Hierarchy Permissions"
+    - "Company Filtering for Admin Role Detailed Analysis"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
