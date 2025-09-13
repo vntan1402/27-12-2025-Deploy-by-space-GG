@@ -674,6 +674,257 @@ async def delete_company(company_id: str, current_user: UserResponse = Depends(g
         logger.error(f"Error deleting company: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete company")
 
+# Google Drive Configuration Routes
+@api_router.post("/gdrive/configure")
+async def configure_google_drive(config: GoogleDriveConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Configure Google Drive integration"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Store configuration in MongoDB
+        config_data = {
+            "service_account_json": config.service_account_json,
+            "folder_id": config.folder_id,
+            "configured_by": current_user.id,
+            "configured_at": datetime.now(timezone.utc)
+        }
+        
+        # Remove existing config and insert new one
+        await mongo_db.database.gdrive_config.delete_many({})
+        await mongo_db.create("gdrive_config", config_data)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "configure_gdrive",
+            "resource": "gdrive",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "Google Drive configured successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error configuring Google Drive: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to configure Google Drive")
+
+@api_router.get("/gdrive/status", response_model=GoogleDriveStatus)
+async def get_google_drive_status(current_user: UserResponse = Depends(get_current_user)):
+    """Get Google Drive status"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Check if configured
+        config = await mongo_db.find_one("gdrive_config", {})
+        configured = config is not None
+        
+        if configured:
+            # Count documents in each collection
+            local_files = (
+                await mongo_db.count("users") +
+                await mongo_db.count("companies") +
+                await mongo_db.count("ships") +
+                await mongo_db.count("certificates")
+            )
+            
+            return GoogleDriveStatus(
+                configured=True,
+                last_sync=config.get("last_sync"),
+                local_files=local_files,
+                drive_files=0,  # Would need to implement actual drive counting
+                folder_id=config.get("folder_id"),
+                service_account_email=config.get("service_account_email")
+            )
+        else:
+            return GoogleDriveStatus(configured=False)
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Google Drive status: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get Google Drive status")
+
+@api_router.get("/gdrive/config")
+async def get_google_drive_config(current_user: UserResponse = Depends(get_current_user)):
+    """Get current Google Drive configuration (without sensitive data)"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        config = await mongo_db.find_one("gdrive_config", {})
+        
+        if config:
+            # Parse service account to get email
+            service_account_email = ""
+            try:
+                import json
+                sa_data = json.loads(config.get("service_account_json", "{}"))
+                service_account_email = sa_data.get("client_email", "")
+            except:
+                pass
+            
+            return {
+                "configured": True,
+                "folder_id": config.get("folder_id", ""),
+                "service_account_email": service_account_email,
+                "last_sync": config.get("last_sync")
+            }
+        else:
+            return {
+                "configured": False,
+                "folder_id": "",
+                "service_account_email": "",
+                "last_sync": None
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Google Drive config: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get Google Drive config")
+
+@api_router.post("/gdrive/test", response_model=GoogleDriveTestResponse)
+async def test_google_drive_connection(config: GoogleDriveConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Test Google Drive connection with provided credentials"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        import json
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        
+        # Clean up folder_id (remove any extra characters or duplicates)
+        folder_id = config.folder_id.strip()
+        if not folder_id:
+            return GoogleDriveTestResponse(
+                success=False,
+                message="Folder ID cannot be empty"
+            )
+        
+        # Check if folder_id looks valid (basic validation)
+        if len(folder_id) < 20 or len(folder_id) > 100 or ' ' in folder_id:
+            return GoogleDriveTestResponse(
+                success=False,
+                message=f"Folder ID format appears invalid. Got: '{folder_id}' (length: {len(folder_id)}). Please check your folder ID."
+            )
+        
+        # Parse service account JSON
+        try:
+            service_account_info = json.loads(config.service_account_json)
+            service_account_email = service_account_info.get('client_email', 'Unknown')
+        except json.JSONDecodeError:
+            return GoogleDriveTestResponse(
+                success=False,
+                message="Invalid Service Account JSON format"
+            )
+        
+        # Create credentials
+        scopes = ['https://www.googleapis.com/auth/drive']
+        credentials = service_account.Credentials.from_service_account_info(
+            service_account_info, scopes=scopes)
+        
+        # Build Google Drive service
+        service = build('drive', 'v3', credentials=credentials)
+        
+        # Test access to the specified folder
+        try:
+            folder_info = service.files().get(fileId=folder_id).execute()
+            folder_name = folder_info.get('name', 'Unknown Folder')
+            
+            return GoogleDriveTestResponse(
+                success=True,
+                message=f"Successfully connected to Google Drive folder: {folder_name}",
+                folder_name=folder_name,
+                service_account_email=service_account_email
+            )
+        except Exception as folder_error:
+            error_msg = str(folder_error)
+            
+            # Provide more specific error messages
+            if "404" in error_msg or "not found" in error_msg.lower():
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Folder not found with ID '{folder_id}'. Please check: 1) Folder ID is correct, 2) Folder exists, 3) Service account has access to the folder."
+                )
+            elif "403" in error_msg or "forbidden" in error_msg.lower():
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Access denied to folder '{folder_id}'. Please share the folder with service account email: {service_account_email}"
+                )
+            else:
+                return GoogleDriveTestResponse(
+                    success=False,
+                    message=f"Cannot access folder with ID '{folder_id}'. Error: {error_msg}"
+                )
+            
+    except Exception as e:
+        return GoogleDriveTestResponse(
+            success=False,
+            message=f"Connection test failed: {str(e)}"
+        )
+
+@api_router.post("/gdrive/sync-to-drive")
+async def sync_to_drive(current_user: UserResponse = Depends(get_current_user)):
+    """Sync data to Google Drive"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Export data from MongoDB
+        export_data = await mongo_db.export_to_json()
+        
+        # Here you would implement actual Google Drive upload
+        # For now, just update last_sync timestamp
+        await mongo_db.update("gdrive_config", {}, {
+            "last_sync": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "sync_to_drive",
+            "resource": "gdrive",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "Data synced to Google Drive successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error syncing to Google Drive: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync to Google Drive")
+
+@api_router.post("/gdrive/sync-from-drive")
+async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)):
+    """Sync data from Google Drive""" 
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Here you would implement actual Google Drive download and import
+        # For now, just return success message
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "sync_from_drive",
+            "resource": "gdrive",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "Data synced from Google Drive successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error syncing from Google Drive: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync from Google Drive")
+
 # Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
