@@ -1862,8 +1862,8 @@ const AccountControlPage = () => {
             </div>
           )}
 
-          {/* Company Management - Super Admin Only */}
-          {user?.role === 'super_admin' && (
+          {/* Company Management - Admin+ Only */}
+          {(user?.role === 'admin' || user?.role === 'super_admin') && (
             <div className="bg-white rounded-xl shadow-lg p-6 lg:col-span-full">
               <h3 className="text-lg font-semibold mb-6 text-gray-800">
                 {language === 'vi' ? 'Quản lý công ty' : 'Company Management'}
