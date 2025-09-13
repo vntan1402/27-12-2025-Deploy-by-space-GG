@@ -587,6 +587,10 @@ async def update_user(
     if not existing_user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Check if current user can edit this user
+    if not can_edit_user(current_user, existing_user.get('role'), existing_user.get('company')):
+        raise HTTPException(status_code=403, detail="You cannot edit this user due to role hierarchy or company restrictions")
+    
     # Check if username is being changed and if it's already taken
     if user_update.username != existing_user.get("username"):
         if file_db.find_user({"username": user_update.username}):
