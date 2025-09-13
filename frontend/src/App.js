@@ -1932,7 +1932,7 @@ const AccountControlPage = () => {
                         <span className="font-medium">Input:</span> {usageStats.total_input_tokens ? usageStats.total_input_tokens.toLocaleString() : '0'} tokens
                       </div>
                       <div>
-                        <span className="font-medium">Output:</span> {usageStats.total_output_tokens.toLocaleString()} tokens
+                        <span className="font-medium">Output:</span> {usageStats.total_output_tokens ? usageStats.total_output_tokens.toLocaleString() : '0'} tokens
                       </div>
                     </div>
                   </div>
