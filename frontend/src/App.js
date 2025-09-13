@@ -1219,6 +1219,24 @@ const AccountControlPage = () => {
     return canEditUser(targetUser);
   };
 
+  const canEditCompany = (company) => {
+    // Super Admin can edit any company
+    if (user.role === 'super_admin') return true;
+    
+    // Admin can only edit their own company
+    if (user.role === 'admin') {
+      return company.name_vn === user.company || company.name_en === user.company;
+    }
+    
+    // Lower roles cannot edit companies
+    return false;
+  };
+
+  const canDeleteCompany = (company) => {
+    // Only Super Admin can delete companies
+    return user.role === 'super_admin';
+  };
+
   useEffect(() => {
     if (user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') {
       fetchUsers();
