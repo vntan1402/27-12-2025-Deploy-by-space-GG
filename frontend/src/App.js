@@ -1917,7 +1917,7 @@ const AccountControlPage = () => {
                         {language === 'vi' ? 'Chi phí ước tính' : 'Estimated Cost'}
                       </div>
                       <div className="text-lg font-bold text-green-800">
-                        ${usageStats.total_estimated_cost.toFixed(4)}
+                        ${usageStats.total_estimated_cost ? usageStats.total_estimated_cost.toFixed(4) : '0.0000'}
                       </div>
                     </div>
                   </div>
