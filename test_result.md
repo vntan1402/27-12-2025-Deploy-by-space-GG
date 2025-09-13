@@ -295,7 +295,7 @@
 
 ## test_plan:
   current_focus:
-    - "Enhanced Add User and Edit User with Ship Crew Conditional Logic"
+    - "Create 5 Test Users for Different Roles"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
