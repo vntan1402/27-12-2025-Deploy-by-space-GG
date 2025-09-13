@@ -2151,7 +2151,7 @@ const AccountControlPage = () => {
 };
 
 // Google Drive Configuration Modal Component
-const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
+const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, onTest, testLoading, language }) => {
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -2163,7 +2163,7 @@ const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
       onClick={handleOverlayClick}
     >
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto mx-4">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto mx-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">
             {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'System Google Drive Configuration'}
@@ -2175,6 +2175,22 @@ const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
             ×
           </button>
         </div>
+
+        {/* Current Configuration Display */}
+        {currentConfig?.configured && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="font-medium text-green-800 mb-2">
+              {language === 'vi' ? 'Cấu hình hiện tại:' : 'Current Configuration:'}
+            </h4>
+            <div className="text-sm text-green-700 space-y-1">
+              <div><strong>{language === 'vi' ? 'Service Account:' : 'Service Account:'}</strong> {currentConfig.service_account_email}</div>
+              <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {currentConfig.folder_id}</div>
+              {currentConfig.last_sync && (
+                <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {new Date(currentConfig.last_sync).toLocaleString()}</div>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="space-y-6">
           <div>
@@ -2185,7 +2201,7 @@ const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
               value={config.service_account_json}
               onChange={(e) => setConfig(prev => ({ ...prev, service_account_json: e.target.value }))}
               placeholder={language === 'vi' ? 'Paste service account JSON key tại đây...' : 'Paste service account JSON key here...'}
-              className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
             />
             <p className="text-xs text-gray-500 mt-1">
               {language === 'vi' ? 'Tạo Service Account trong Google Cloud Console và download JSON key' : 'Create Service Account in Google Cloud Console and download JSON key'}
@@ -2201,10 +2217,30 @@ const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
               value={config.folder_id}
               onChange={(e) => setConfig(prev => ({ ...prev, folder_id: e.target.value }))}
               placeholder="1abcDEFghiJKLmnopQRStuv2wxYZ"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
             />
             <p className="text-xs text-gray-500 mt-1">
               {language === 'vi' ? 'Folder ID từ URL Google Drive: drive.google.com/drive/folders/[FOLDER_ID]' : 'Folder ID from Google Drive URL: drive.google.com/drive/folders/[FOLDER_ID]'}
+            </p>
+          </div>
+
+          {/* Test Connection Section */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium text-gray-800">
+                {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
+              </h4>
+              <button
+                onClick={onTest}
+                disabled={testLoading || !config.service_account_json || !config.folder_id}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center gap-2"
+              >
+                {testLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
+                {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              {language === 'vi' ? 'Kiểm tra kết nối trước khi lưu cấu hình' : 'Test connection before saving configuration'}
             </p>
           </div>
 
@@ -2218,6 +2254,7 @@ const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
               <li>3. {language === 'vi' ? 'Tạo Service Account và download JSON key' : 'Create Service Account and download JSON key'}</li>
               <li>4. {language === 'vi' ? 'Tạo folder trong Google Drive và share với service account email' : 'Create folder in Google Drive and share with service account email'}</li>
               <li>5. {language === 'vi' ? 'Copy Folder ID từ URL' : 'Copy Folder ID from URL'}</li>
+              <li>6. {language === 'vi' ? 'Test kết nối trước khi lưu' : 'Test connection before saving'}</li>
             </ol>
           </div>
         </div>
@@ -2231,7 +2268,8 @@ const GoogleDriveModal = ({ config, setConfig, onClose, onSave, language }) => {
           </button>
           <button
             onClick={onSave}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+            disabled={!config.service_account_json || !config.folder_id}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all"
           >
             {language === 'vi' ? 'Lưu cấu hình' : 'Save Configuration'}
           </button>
