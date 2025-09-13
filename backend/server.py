@@ -1088,7 +1088,24 @@ async def get_certificates(current_user: UserResponse = Depends(get_current_user
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         
         certificates = await mongo_db.find_all("certificates")
-        return [CertificateResponse(**cert) for cert in certificates]
+        
+        # Transform certificates to match the expected schema
+        transformed_certificates = []
+        for cert in certificates:
+            # Map old field names to new ones for backward compatibility
+            transformed_cert = {
+                'id': cert.get('id'),
+                'ship_id': cert.get('ship_id'),
+                'type': cert.get('cert_name', cert.get('type', 'Unknown')),  # cert_name -> type
+                'issuer': cert.get('cert_no', cert.get('issuer', 'Unknown')),  # cert_no -> issuer (temporary mapping)
+                'issue_date': cert.get('issue_date'),
+                'expiry_date': cert.get('valid_date', cert.get('expiry_date')),  # valid_date -> expiry_date
+                'status': cert.get('status', 'valid'),
+                'created_at': cert.get('created_at')
+            }
+            transformed_certificates.append(CertificateResponse(**transformed_cert))
+        
+        return transformed_certificates
         
     except HTTPException:
         raise
