@@ -2826,6 +2826,235 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
   );
 };
 
+// Add User Modal Component
+const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, companies, ships }) => {
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const roleOptions = [
+    { value: 'viewer', label: language === 'vi' ? 'Người xem' : 'Viewer' },
+    { value: 'editor', label: language === 'vi' ? 'Người chỉnh sửa' : 'Editor' },
+    { value: 'manager', label: language === 'vi' ? 'Quản lý' : 'Manager' },
+    { value: 'admin', label: language === 'vi' ? 'Quản trị viên' : 'Admin' },
+    { value: 'super_admin', label: language === 'vi' ? 'Siêu quản trị' : 'Super Admin' }
+  ];
+
+  const departmentOptions = [
+    { value: 'technical', label: language === 'vi' ? 'Kỹ thuật' : 'Technical' },
+    { value: 'operations', label: language === 'vi' ? 'Vận hành' : 'Operations' },
+    { value: 'safety', label: language === 'vi' ? 'An toàn' : 'Safety' },
+    { value: 'commercial', label: language === 'vi' ? 'Thương mại' : 'Commercial' },
+    { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' }
+  ];
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {language === 'vi' ? 'Thêm người dùng mới' : 'Add New User'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tên đăng nhập' : 'Username'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={userData.username}
+                onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập tên đăng nhập' : 'Enter username'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={userData.full_name}
+                onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+            <input
+              type="email"
+              required
+              value={userData.email}
+              onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={language === 'vi' ? 'Nhập email' : 'Enter email'}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Mật khẩu' : 'Password'} *
+            </label>
+            <input
+              type="password"
+              required
+              value={userData.password}
+              onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={language === 'vi' ? 'Nhập mật khẩu' : 'Enter password'}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Công ty' : 'Company'} *
+              </label>
+              <select
+                required
+                value={userData.company || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">
+                  {language === 'vi' ? 'Chọn công ty' : 'Select company'}
+                </option>
+                {companies.map(company => (
+                  <option key={company.id} value={company.name_vn}>
+                    {language === 'vi' ? company.name_vn : company.name_en}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tàu' : 'Ship'}
+              </label>
+              <select
+                value={userData.ship || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">
+                  {language === 'vi' ? 'Chọn tàu' : 'Select ship'}
+                </option>
+                {ships.map(ship => (
+                  <option key={ship.id} value={ship.name}>
+                    {ship.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Phòng ban' : 'Department'} *
+            </label>
+            <select
+              required
+              value={userData.department}
+              onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {departmentOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Vai trò' : 'Role'} *
+            </label>
+            <select
+              required
+              value={userData.role}
+              onChange={(e) => setUserData(prev => ({ ...prev, role: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {roleOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Zalo</label>
+              <input
+                type="text"
+                value={userData.zalo || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, zalo: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Số điện thoại Zalo' : 'Zalo phone number'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gmail</label>
+              <input
+                type="email"
+                value={userData.gmail || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, gmail: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="user@gmail.com"
+              />
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="font-medium text-blue-800 mb-2">
+              {language === 'vi' ? 'Lưu ý:' : 'Note:'}
+            </h4>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• {language === 'vi' ? 'Tất cả trường có dấu (*) là bắt buộc' : 'All fields with (*) are required'}</li>
+              <li>• {language === 'vi' ? 'Người dùng mới sẽ nhận được thông tin đăng nhập qua email' : 'New user will receive login credentials via email'}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-4 mt-8">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+          >
+            {language === 'vi' ? 'Hủy' : 'Cancel'}
+          </button>
+          <button
+            onClick={onSubmit}
+            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all"
+          >
+            {language === 'vi' ? 'Tạo người dùng' : 'Create User'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Add Record Modal Component
 const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
   const [recordType, setRecordType] = useState('ship');
