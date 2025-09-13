@@ -1642,17 +1642,29 @@ const AccountControlPage = () => {
                             <div className="flex justify-center space-x-2">
                               <button
                                 onClick={() => openEditUser(userItem)}
-                                disabled={userItem.id === user.id} // Prevent self-edit
-                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-3 py-1 rounded text-xs transition-all"
-                                title={language === 'vi' ? 'Sửa' : 'Edit'}
+                                disabled={!canEditUser(userItem)}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-xs transition-all"
+                                title={
+                                  !canEditUser(userItem) 
+                                    ? (language === 'vi' 
+                                        ? 'Không có quyền chỉnh sửa người dùng này' 
+                                        : 'No permission to edit this user')
+                                    : (language === 'vi' ? 'Sửa' : 'Edit')
+                                }
                               >
                                 {language === 'vi' ? 'Sửa' : 'Edit'}
                               </button>
                               <button
                                 onClick={() => handleDeleteUser(userItem)}
-                                disabled={userItem.id === user.id || (userItem.role === 'super_admin' && user.role !== 'super_admin')}
-                                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 text-white px-3 py-1 rounded text-xs transition-all"
-                                title={language === 'vi' ? 'Xóa' : 'Delete'}
+                                disabled={!canDeleteUser(userItem)}
+                                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-xs transition-all"
+                                title={
+                                  !canDeleteUser(userItem) 
+                                    ? (language === 'vi' 
+                                        ? 'Không có quyền xóa người dùng này' 
+                                        : 'No permission to delete this user')
+                                    : (language === 'vi' ? 'Xóa' : 'Delete')
+                                }
                               >
                                 {language === 'vi' ? 'Xóa' : 'Delete'}
                               </button>
