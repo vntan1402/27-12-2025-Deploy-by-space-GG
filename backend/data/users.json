@@ -55,24 +55,6 @@
     "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
   },
   {
-    "id": "085e0ad4-2efa-490b-8717-1a7c02f75bce",
-    "username": "viewer_test_1757688628",
-    "email": "viewer_1757688628@example.com",
-    "password_hash": "$2b$12$ia9WVDuFCIGpbx1G6AlXEuh5Ez99JbpKxsSOhdujaXIvdKCO3ZR42",
-    "full_name": "Viewer Test User",
-    "role": "viewer",
-    "department": "technical",
-    "is_active": true,
-    "created_at": "2025-09-12 14:50:29.032074+00:00",
-    "permissions": {},
-    "company": "C\u00f4ng ty TNHH ABC C\u1eadp Nh\u1eadt",
-    "ship": "COSCO Shanghai",
-    "zalo": null,
-    "gmail": null,
-    "updated_at": "2025-09-12T23:44:39.215915+00:00",
-    "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
-  },
-  {
     "id": "d0f3a42b-0a38-404b-bddb-d0134135fc50",
     "username": "Name 1",
     "email": "Testname1@gmail.com",
