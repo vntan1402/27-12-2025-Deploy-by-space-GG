@@ -71,5 +71,23 @@
     "gmail": null,
     "updated_at": "2025-09-12T23:44:39.215915+00:00",
     "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
+  },
+  {
+    "id": "d0f3a42b-0a38-404b-bddb-d0134135fc50",
+    "username": "Name 1",
+    "email": "Testname1@gmail.com",
+    "password_hash": "$2b$12$HIBEj943PBAdoeV2gcl2pO7QbFYIKa3Ugx3XocCgmFERuRVHIC8EC",
+    "full_name": "Test Name 1",
+    "role": "viewer",
+    "department": "crewing",
+    "company": "C\u00f4ng ty TNHH ABC C\u1eadp Nh\u1eadt",
+    "ship": "COSCO Shanghai",
+    "zalo": "0321554774",
+    "gmail": "Testname1@gmail.com",
+    "is_active": true,
+    "created_at": "2025-09-13 00:45:04.317679+00:00",
+    "permissions": {},
+    "updated_at": "2025-09-13T00:47:04.623346+00:00",
+    "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
   }
 ]
