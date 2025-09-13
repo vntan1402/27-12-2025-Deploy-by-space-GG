@@ -2296,7 +2296,10 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                 {/* Document Categories */}
                 <div>
                   <h5 className="font-medium text-blue-800 mb-2">
-                    {language === 'vi' ? 'Loại tài liệu (0/5)' : 'Document Categories (0/5)'}
+                    {language === 'vi' 
+                      ? `Loại tài liệu (${config.default_permissions?.categories?.length || 0}/5)` 
+                      : `Document Categories (${config.default_permissions?.categories?.length || 0}/5)`
+                    }
                   </h5>
                   <div className="space-y-2">
                     {['certificates', 'inspection_records', 'survey_reports', 'drawings_manuals', 'other_documents'].map(category => (
