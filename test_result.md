@@ -270,8 +270,7 @@
   run_ui: false
 
 ## test_plan:
-  current_focus:
-    - "User Management UI with Enhanced Permissions Display"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
