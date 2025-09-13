@@ -1,0 +1,32 @@
+[
+  {
+    "id": "c78c0733-f7f9-45d9-aab7-18a647727a37",
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "provider": "openai",
+    "model": "gpt-4",
+    "request_type": "document_analysis",
+    "input_tokens": 26,
+    "output_tokens": 505,
+    "estimated_cost": 0.03108,
+    "success": true,
+    "error_message": null,
+    "timestamp": "2025-09-12 14:50:12.104891+00:00",
+    "document_id": "e6cba0fa-6f4c-432d-9bfb-9a776b301d1d",
+    "search_query": null
+  },
+  {
+    "id": "2ad603f5-3aa3-480c-9dee-ae199d63e1bd",
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "provider": "openai",
+    "model": "gpt-4",
+    "request_type": "smart_search",
+    "input_tokens": 269,
+    "output_tokens": 416,
+    "estimated_cost": 0.033030000000000004,
+    "success": true,
+    "error_message": null,
+    "timestamp": "2025-09-12 14:50:26.402811+00:00",
+    "document_id": null,
+    "search_query": "safety management certificate compliance"
+  }
+]
