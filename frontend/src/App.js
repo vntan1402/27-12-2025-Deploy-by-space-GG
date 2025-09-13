@@ -1138,7 +1138,13 @@ const AccountControlPage = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [gdriveConfig, setGdriveConfig] = useState({
     service_account_json: '',
-    folder_id: ''
+    folder_id: '',
+    default_permissions: {
+      categories: [],
+      departments: [],
+      sensitivity_levels: [],
+      permissions: []
+    }
   });
   const [gdriveStatus, setGdriveStatus] = useState(null);
   const [gdriveCurrentConfig, setGdriveCurrentConfig] = useState(null);
