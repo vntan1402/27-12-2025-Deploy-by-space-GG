@@ -643,6 +643,10 @@ async def delete_user(user_id: str, current_user: UserResponse = Depends(get_cur
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="Cannot delete your own account")
     
+    # Check if current user can delete this user
+    if not can_edit_user(current_user, existing_user.get('role'), existing_user.get('company')):
+        raise HTTPException(status_code=403, detail="You cannot delete this user due to role hierarchy or company restrictions")
+    
     # Prevent deletion of Super Admin by non-Super Admin
     if existing_user.get("role") == "super_admin" and current_user.role != "super_admin":
         raise HTTPException(status_code=403, detail="Only Super Admin can delete Super Admin accounts")
