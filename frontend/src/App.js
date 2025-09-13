@@ -2803,15 +2803,20 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Phòng ban' : 'Department'}
+              {language === 'vi' ? 'Phòng ban' : 'Department'} *
             </label>
-            <input
-              type="text"
+            <select
+              required
               value={userData.department || ''}
               onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập phòng ban' : 'Enter department'}
-            />
+            >
+              {departments.map(dept => (
+                <option key={dept} value={dept}>
+                  {departmentNames[dept]}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
