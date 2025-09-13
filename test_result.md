@@ -341,6 +341,18 @@
           agent: "testing"
           comment: "✅ ADMIN COMPANY VISIBILITY DEBUG COMPLETED SUCCESSFULLY - Comprehensive debugging and fix applied for admin1 company visibility issue: (1) AUTHENTICATION TESTING: Successfully logged in as admin1/123456 (Phạm Thị Admin, admin role, XYZ Company) and superadmin1/123456 (Hoàng Văn SuperAdmin, super_admin role, ABC Company Ltd Updated), (2) USER DATA ANALYSIS: admin1.company field confirmed as 'XYZ Company' (string, length 11), (3) COMPANY DATABASE ANALYSIS: Found 5 companies total - 'ABC Company Ltd Updated', 'XYZ Company Updated', 'fds Company', 'Test Logo Company Ltd', 'No Logo Company Ltd' - NONE matched 'XYZ Company' exactly, (4) COMPANY FILTERING VERIFICATION: admin1 sees 0 companies (issue confirmed), superadmin1 sees all 5 companies correctly, (5) STRING MATCHING ANALYSIS: Detailed comparison showed no exact, case-insensitive, or whitespace matches between admin1.company='XYZ Company' and any existing company names, (6) ROOT CAUSE IDENTIFIED: admin1 assigned to non-existent company 'XYZ Company', (7) SOLUTION IMPLEMENTED: Created new company with name_en='XYZ Company', name_vn='Công ty XYZ Company', tax_id='0123456789', gmail='admin@xyzcompany.com' using superadmin1 credentials, (8) VERIFICATION: After fix, admin1 now sees 1 company ('XYZ Company / Công ty XYZ Company') as expected. Created debug test (admin_company_debug_test.py) and fix test (admin_company_fix_test.py). All 6/6 API tests passed. Issue completely resolved - admin1 can now see their company in Company Management section."
 
+  - task: "Admin1 User Login Functionality Testing"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ADMIN1 LOGIN FUNCTIONALITY TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of admin1 user login functionality completed with all requirements verified. Created dedicated test suite (admin1_login_test.py) specifically for the review request: (1) Admin1 Login Test: ✅ PASSED - Successfully authenticated with username 'admin1' and password '123456', received valid JWT token and complete user data, (2) Response Validation: ✅ PASSED - All required fields present (access_token, token_type, user), token format valid, token_type correctly set to 'bearer', (3) User Data Validation: ✅ PASSED - All expected user fields present (id, username, email, full_name, role, department, company), admin1 user data correctly returned (Username: admin1, Role: admin, Company: XYZ Company, Full Name: Phạm Thị Admin, Department: commercial, Email: admin1@shipmanagement.com), (4) Token Validation: ✅ PASSED - Received token works for authenticated requests, successfully used token to access GET /api/users endpoint and retrieved 2 users, (5) Security Testing: ✅ PASSED - Invalid credentials properly rejected with 401 status and 'Invalid credentials' error message. All 3/3 API tests passed and 3/3 feature tests successful. The POST /api/auth/login endpoint is working correctly for admin1 user, returning valid token and complete user data as expected. Backend login functionality for admin1 user is fully functional and production-ready."
+
 ## test_plan:
   current_focus:
     - "Debug Admin Company Visibility Issue"
