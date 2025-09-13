@@ -372,6 +372,18 @@
           agent: "testing"
           comment: "✅ FRONTEND AUTHENTICATION COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - Extensive testing of login functionality with admin/admin123 credentials completed with all scenarios passing: (1) INITIAL LOGIN TEST: ✅ Login form elements found, POST /api/auth/login successful (200 status), token stored in sessionStorage, successfully redirected to /home, toast notification 'Login successful!' appeared, user displayed as 'admin (super_admin)' in header, (2) COMPREHENSIVE SCENARIO TESTING: ✅ Fresh Session Login - Successfully navigated to /home, ✅ Logout and Re-login - Successfully re-logged in, ✅ Login with Remember Me - Token correctly stored in localStorage, ✅ Invalid Credentials - Correctly stayed on login page with error toast 'Login failed!', ✅ Protected Route Without Auth - Correctly redirected to login, ✅ Token Expiration Simulation - Correctly redirected to login with invalid token. ALL AUTHENTICATION FUNCTIONALITY WORKING CORRECTLY: Users CAN login successfully with admin/admin123, they ARE redirected to /home properly, API calls made successfully, authentication state management working, token handling proper (localStorage for remember me, sessionStorage otherwise), routing/redirects working, useEffect authentication logic working, token storage/retrieval working. The issue described in review request is NOT reproducible - authentication system functioning perfectly in all test scenarios."
 
+  - task: "Admin1 Company Edit Button Issue Resolution"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ ADMIN1 COMPANY EDIT BUTTON ISSUE RESOLVED - Comprehensive testing and fix completed successfully. ROOT CAUSE IDENTIFIED: JWT token creation function was missing company and full_name fields, causing canEditCompany logic to fail with null comparison. SOLUTION IMPLEMENTED: Updated create_access_token function to include company and full_name fields in JWT payload. TESTING RESULTS: (1) Login as admin1/123456: ✅ SUCCESSFUL, (2) Navigation to System Settings -> Company Management: ✅ SUCCESSFUL, (3) Company visibility: ✅ admin1 can see XYZ Company listed, (4) JWT token analysis: ✅ Now correctly includes company='XYZ Company' and full_name='Phạm Thị Admin', (5) canEditCompany logic: ✅ Returns true because user.company='XYZ Company' matches company.name_en='XYZ Company', (6) Edit button status: ✅ ENABLED (disabled: false), (7) Edit button functionality: ✅ Successfully opens Edit Company modal with all fields populated, (8) Company editing capability: ✅ FULLY FUNCTIONAL. BACKEND CHANGES: Modified create_access_token function in server.py to include company and full_name parameters, updated login endpoint to pass user company and full_name to token creation. The reported issue 'Admin1 user can see their company listed but Edit button appears disabled' has been completely resolved. Admin1 can now successfully edit their own company as expected."
+
 ## agent_communication:
     - agent: "main"
       message: "Starting Phase 2 implementation. Backend endpoints for ships and certificates already exist. Now implementing frontend forms and additional features as requested by user."
