@@ -499,6 +499,181 @@ async def delete_user(user_id: str, current_user: UserResponse = Depends(get_cur
         logger.error(f"Error deleting user: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete user")
 
+# Company Management Routes
+@api_router.get("/companies", response_model=List[CompanyResponse])
+async def get_companies(current_user: UserResponse = Depends(get_current_user)):
+    """Get all companies (filtered by role)"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        if current_user.role == UserRole.ADMIN:
+            # Admin can only see their own company
+            companies = await mongo_db.find_all("companies", {
+                "$or": [
+                    {"name_vn": current_user.company},
+                    {"name_en": current_user.company}
+                ]
+            })
+        else:
+            # Super Admin can see all companies
+            companies = await mongo_db.find_all("companies")
+        
+        return [CompanyResponse(**company) for company in companies]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching companies: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch companies")
+
+@api_router.post("/companies", response_model=CompanyResponse)
+async def create_company(company_data: CompanyCreate, current_user: UserResponse = Depends(get_current_user)):
+    """Create new company"""
+    try:
+        if not has_permission(current_user, UserRole.SUPER_ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Super Admin can create companies")
+        
+        # Check if tax_id already exists
+        existing_company = await mongo_db.find_company_by_tax_id(company_data.tax_id)
+        if existing_company:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Company with this tax ID already exists")
+        
+        # Create company data
+        company_dict = company_data.dict()
+        company_dict['id'] = str(uuid.uuid4())
+        company_dict['created_at'] = datetime.now(timezone.utc)
+        company_dict['created_by'] = current_user.id
+        
+        # Save to MongoDB
+        await mongo_db.create("companies", company_dict)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "create_company",
+            "resource": "companies",
+            "details": {"company_id": company_dict['id']},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return CompanyResponse(**company_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating company: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create company")
+
+@api_router.get("/companies/{company_id}", response_model=CompanyResponse)
+async def get_company_by_id(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get company by ID"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Check if Admin can access this company
+        if current_user.role == UserRole.ADMIN:
+            if company.get('name_vn') != current_user.company and company.get('name_en') != current_user.company:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this company")
+        
+        return CompanyResponse(**company)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching company: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch company")
+
+@api_router.put("/companies/{company_id}", response_model=CompanyResponse)
+async def update_company(company_id: str, company_update: CompanyUpdate, current_user: UserResponse = Depends(get_current_user)):
+    """Update company"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Get existing company
+        existing_company = await mongo_db.find_one("companies", {"id": company_id})
+        if not existing_company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Check if Admin can edit this company
+        if current_user.role == UserRole.ADMIN:
+            if existing_company.get('name_vn') != current_user.company and existing_company.get('name_en') != current_user.company:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this company")
+        
+        # Prepare update data
+        update_data = {k: v for k, v in company_update.dict(exclude_unset=True).items() if v is not None}
+        
+        # Check tax_id uniqueness if updating tax_id
+        if 'tax_id' in update_data:
+            existing_tax = await mongo_db.find_one("companies", {"tax_id": update_data['tax_id'], "id": {"$ne": company_id}})
+            if existing_tax:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tax ID already exists")
+        
+        # Update company
+        success = await mongo_db.update("companies", {"id": company_id}, update_data)
+        if not success:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Get updated company
+        updated_company = await mongo_db.find_one("companies", {"id": company_id})
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "update_company",
+            "resource": "companies",
+            "details": {"company_id": company_id},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return CompanyResponse(**updated_company)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating company: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update company")
+
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Delete company"""
+    try:
+        if not has_permission(current_user, UserRole.SUPER_ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only Super Admin can delete companies")
+        
+        # Check if company exists
+        existing_company = await mongo_db.find_one("companies", {"id": company_id})
+        if not existing_company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Delete company
+        success = await mongo_db.delete("companies", {"id": company_id})
+        if not success:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "delete_company",
+            "resource": "companies",
+            "details": {"company_id": company_id},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": "Company deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting company: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete company")
+
 # Startup and shutdown events
 @app.on_event("startup")
 async def startup_event():
