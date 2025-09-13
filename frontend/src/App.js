@@ -1687,8 +1687,8 @@ const AccountControlPage = () => {
             </div>
           )}
 
-          {/* System Google Drive Configuration - Admin Only */}
-          {isAdmin && (
+          {/* System Google Drive Configuration - Super Admin Only */}
+          {user?.role === 'super_admin' && (
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-lg font-semibold mb-4 text-gray-800">
                 {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'System Google Drive Configuration'}
