@@ -1129,8 +1129,7 @@ const AccountControlPage = () => {
     department: 'technical',
     company: '',
     ship: '',
-    zalo: '',
-    gmail: ''
+    zalo: ''
   });
   const [showPermissions, setShowPermissions] = useState(false);
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
