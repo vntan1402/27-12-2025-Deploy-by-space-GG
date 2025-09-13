@@ -221,7 +221,7 @@ class GoogleDriveConfigTester:
                 f"Unauthenticated {endpoint_name}",
                 method,
                 endpoint,
-                401,  # Expecting 401 Unauthorized
+                403,  # Expecting 403 Forbidden (FastAPI returns 403 for unauthenticated)
                 data={"test": "data"} if method == "POST" else None
             )
             if success:
