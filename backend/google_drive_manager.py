@@ -144,8 +144,21 @@ class GoogleDriveManager:
             logger.error(f"Failed to handle OAuth callback: {e}")
             return None
 
-    def configure(self, service_account_json: str, folder_id: str) -> bool:
-        """Configure Google Drive integration with service account credentials"""
+    def configure(self, service_account_json: str = None, folder_id: str = None, client_config: Dict[str, Any] = None, oauth_credentials: Dict[str, Any] = None) -> bool:
+        """Configure Google Drive integration with Service Account or OAuth credentials"""
+        
+        # OAuth configuration
+        if client_config and oauth_credentials and folder_id:
+            return self.configure_oauth(client_config, oauth_credentials, folder_id)
+        
+        # Service Account configuration (legacy)
+        if service_account_json and folder_id:
+            return self.configure_service_account(service_account_json, folder_id)
+        
+        raise ValueError("Invalid configuration parameters. Provide either OAuth or Service Account credentials.")
+
+    def configure_service_account(self, service_account_json: str, folder_id: str) -> bool:
+        """Configure Google Drive integration with service account credentials (legacy)"""
         try:
             # Parse service account JSON
             credentials_dict = json.loads(service_account_json)
@@ -163,12 +176,14 @@ class GoogleDriveManager:
             # Build Drive service
             self.service = build('drive', 'v3', credentials=self.credentials)
             self.folder_id = folder_id
+            self.auth_method = 'service_account'
             
             # Test connection by listing files
             self.service.files().list(q=f"parents in '{folder_id}'", pageSize=1).execute()
             
             # Save configuration
             config = {
+                'auth_method': 'service_account',
                 'service_account_json': service_account_json,
                 'folder_id': folder_id,
                 'configured_at': datetime.now(timezone.utc).isoformat()
@@ -176,11 +191,15 @@ class GoogleDriveManager:
             
             config_path = os.path.join(self.local_data_path, 'gdrive_config.json')
             with open(config_path, 'w') as f:
-                json.dump(config, f)
+                json.dump(config, f, indent=2)
             
             self.is_configured = True
-            logger.info("Google Drive configured successfully")
+            logger.info("Google Drive configured successfully with Service Account")
             return True
+            
+        except Exception as e:
+            logger.error(f"Failed to configure Google Drive with Service Account: {e}")
+            return False
             
         except Exception as e:
             logger.error(f"Failed to configure Google Drive: {e}")
