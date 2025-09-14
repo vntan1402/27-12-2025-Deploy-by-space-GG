@@ -3252,7 +3252,7 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
                 <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
                 <path d="M8 6h4v2H8V6zM8 10h4v2H8v-2z"/>
               </svg>
-              {language === 'vi' ? 'Cấu hình Google Drive API' : 'Google Drive API Configuration'}
+              {language === 'vi' ? 'Cấu hình Google Drive công ty' : 'Company Google Drive Configuration'}
             </h3>
             
             <div className="space-y-4">
