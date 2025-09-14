@@ -2421,33 +2421,32 @@ const AccountControlPage = () => {
         )}
 
         {/* Company Google Drive Configuration Modal */}
-        {showCompanyGoogleDrive && (
+        {showCompanyGoogleDrive && editingCompany && (
           <CompanyGoogleDriveModal
-            companyId={companyGdriveCompanyId}
+            companyId={editingCompany.id}
             config={companyGdriveConfig}
             setConfig={setCompanyGdriveConfig}
             currentConfig={companyGdriveCurrentConfig}
             onClose={() => {
               console.log('🔍 Debug - Closing Company Google Drive modal');
               setShowCompanyGoogleDrive(false);
-              setCompanyGdriveCompanyId(null); // Clear company ID
             }}
             onSave={() => {
               console.log('🔍 Debug - Company Google Drive Save clicked');
-              console.log('   companyGdriveCompanyId:', companyGdriveCompanyId);
+              console.log('   editingCompany.id:', editingCompany.id);
               
-              if (companyGdriveCompanyId) {
-                handleCompanyGoogleDriveConfig(companyGdriveCompanyId);
+              if (editingCompany.id) {
+                handleCompanyGoogleDriveConfig(editingCompany.id);
               } else {
                 toast.error(language === 'vi' ? 'Lỗi: Không có Company ID để lưu' : 'Error: No Company ID to save');
               }
             }}
             onTest={() => {
               console.log('🔍 Debug - Company Google Drive Test clicked (onTest prop)');
-              console.log('   companyGdriveCompanyId:', companyGdriveCompanyId);
+              console.log('   editingCompany.id:', editingCompany.id);
               
-              if (companyGdriveCompanyId) {
-                handleTestCompanyGoogleDriveConnection(companyGdriveCompanyId);
+              if (editingCompany.id) {
+                handleTestCompanyGoogleDriveConnection(editingCompany.id);
               } else {
                 toast.error(language === 'vi' ? 'Lỗi: Không có Company ID để test' : 'Error: No Company ID to test');
               }
