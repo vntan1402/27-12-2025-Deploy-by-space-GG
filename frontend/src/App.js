@@ -3387,8 +3387,8 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
             />
           </div>
 
-          {/* Google Drive Configuration */}
-          <div className="border-t pt-6">
+          {/* Company Google Drive Configuration */}
+          <div>
             <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
               <svg className="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
@@ -3397,150 +3397,83 @@ const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, lang
               {language === 'vi' ? 'Cấu hình Google Drive công ty' : 'Company Google Drive Configuration'}
             </h3>
             
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Service Account Email' : 'Service Account Email'} *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={companyData.gdrive_config?.service_account_email || ''}
-                    onChange={(e) => setCompanyData(prev => ({ 
-                      ...prev, 
-                      gdrive_config: { 
-                        ...prev.gdrive_config, 
-                        service_account_email: e.target.value 
-                      } 
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="service-account@project-id.iam.gserviceaccount.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Project ID' : 'Project ID'} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={companyData.gdrive_config?.project_id || ''}
-                    onChange={(e) => setCompanyData(prev => ({ 
-                      ...prev, 
-                      gdrive_config: { 
-                        ...prev.gdrive_config, 
-                        project_id: e.target.value 
-                      } 
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="your-project-id"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Private Key' : 'Private Key'} *
-                </label>
-                <textarea
-                  required
-                  rows="4"
-                  value={companyData.gdrive_config?.private_key || ''}
-                  onChange={(e) => setCompanyData(prev => ({ 
-                    ...prev, 
-                    gdrive_config: { 
-                      ...prev.gdrive_config, 
-                      private_key: e.target.value 
-                    } 
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-xs"
-                  placeholder="-----BEGIN PRIVATE KEY-----&#10;MIIEvgIBADANBgkqhkiG9w0BAQE...&#10;-----END PRIVATE KEY-----"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' ? 'Paste toàn bộ private key từ service account JSON file' : 'Paste the complete private key from service account JSON file'}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Client Email' : 'Client Email'} *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={companyData.gdrive_config?.client_email || ''}
-                    onChange={(e) => setCompanyData(prev => ({ 
-                      ...prev, 
-                      gdrive_config: { 
-                        ...prev.gdrive_config, 
-                        client_email: e.target.value 
-                      } 
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="service-account@project-id.iam.gserviceaccount.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Client ID' : 'Client ID'} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={companyData.gdrive_config?.client_id || ''}
-                    onChange={(e) => setCompanyData(prev => ({ 
-                      ...prev, 
-                      gdrive_config: { 
-                        ...prev.gdrive_config, 
-                        client_id: e.target.value 
-                      } 
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="1234567890123456789"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Folder ID (Thư mục lưu trữ)' : 'Storage Folder ID'} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={companyData.gdrive_config?.folder_id || ''}
-                  onChange={(e) => setCompanyData(prev => ({ 
-                    ...prev, 
-                    gdrive_config: { 
-                      ...prev.gdrive_config, 
-                      folder_id: e.target.value 
-                    } 
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' ? 'ID của thư mục Google Drive để lưu trữ dữ liệu công ty này' : 'Google Drive folder ID where this company\'s data will be stored'}
-                </p>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2 flex items-center">
-                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
-                  </svg>
-                  {language === 'vi' ? 'Hướng dẫn cấu hình:' : 'Configuration Guide:'}
+            {/* Current Configuration Status */}
+            {companyGdriveCurrentConfig && companyGdriveCurrentConfig.configured && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-medium text-green-800 mb-2">
+                  {language === 'vi' ? 'Cấu hình hiện tại:' : 'Current Configuration:'}
                 </h4>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• {language === 'vi' ? 'Tạo Service Account trong Google Cloud Console' : 'Create Service Account in Google Cloud Console'}</li>
-                  <li>• {language === 'vi' ? 'Enable Google Drive API cho project' : 'Enable Google Drive API for your project'}</li>
-                  <li>• {language === 'vi' ? 'Tải xuống Service Account JSON file' : 'Download Service Account JSON file'}</li>
-                  <li>• {language === 'vi' ? 'Tạo thư mục riêng trên Google Drive cho công ty' : 'Create dedicated folder on Google Drive for this company'}</li>
-                  <li>• {language === 'vi' ? 'Share thư mục với Service Account email' : 'Share folder with Service Account email'}</li>
-                </ul>
+                <div className="text-sm text-green-700 space-y-1">
+                  <div><strong>{language === 'vi' ? 'Phương thức:' : 'Auth Method:'}</strong> {
+                    companyGdriveCurrentConfig.auth_method === 'apps_script' 
+                      ? 'Apps Script' 
+                      : companyGdriveCurrentConfig.auth_method === 'oauth' 
+                        ? 'OAuth 2.0' 
+                        : 'Service Account'
+                  }</div>
+                  <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {companyGdriveCurrentConfig.folder_id}</div>
+                  {companyGdriveCurrentConfig.service_account_email && (
+                    <div><strong>{language === 'vi' ? 'Account Email:' : 'Account Email:'}</strong> {companyGdriveCurrentConfig.service_account_email}</div>
+                  )}
+                  {companyGdriveCurrentConfig.last_sync && (
+                    <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {new Date(companyGdriveCurrentConfig.last_sync).toLocaleString()}</div>
+                  )}
+                </div>
               </div>
+            )}
+
+            {/* Configuration Status Badge */}
+            <div className="mb-4 flex items-center space-x-3">
+              <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                companyGdriveCurrentConfig?.configured 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {companyGdriveCurrentConfig?.configured 
+                  ? (language === 'vi' ? 'Đã cấu hình' : 'Configured')
+                  : (language === 'vi' ? 'Chưa cấu hình' : 'Not configured')
+                }
+              </div>
+              
+              {companyGdriveCurrentConfig?.configured && (
+                <button
+                  onClick={() => {
+                    if (companyData.id) {
+                      fetchCompanyGoogleDriveConfig(companyData.id);
+                      fetchCompanyGoogleDriveStatus(companyData.id);
+                      setShowCompanyGoogleDrive(true);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-all"
+                >
+                  {language === 'vi' ? 'Đồng bộ ngay' : 'Sync Now'}
+                </button>
+              )}
+            </div>
+
+            {/* Configure Button */}
+            <button
+              onClick={() => {
+                if (companyData.id) {
+                  fetchCompanyGoogleDriveConfig(companyData.id);
+                  fetchCompanyGoogleDriveStatus(companyData.id);
+                  setShowCompanyGoogleDrive(true);
+                } else {
+                  toast.warning(language === 'vi' ? 'Vui lòng lưu công ty trước khi cấu hình Google Drive' : 'Please save company before configuring Google Drive');
+                }
+              }}
+              className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all font-medium"
+            >
+              {language === 'vi' ? 'Cấu hình Google Drive công ty' : 'Configure Company Google Drive'}
+            </button>
+
+            <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
+              <p className="text-sm text-purple-700">
+                {language === 'vi' 
+                  ? 'Cấu hình Google Drive riêng cho công ty này. Hỗ trợ 3 phương thức: Apps Script (đơn giản), OAuth 2.0 (khuyên dùng), Service Account (cũ).'
+                  : 'Configure dedicated Google Drive for this company. Supports 3 methods: Apps Script (easiest), OAuth 2.0 (recommended), Service Account (legacy).'
+                }
+              </p>
             </div>
           </div>
 
