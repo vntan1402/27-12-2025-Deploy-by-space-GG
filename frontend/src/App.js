@@ -1261,6 +1261,121 @@ const HomePage = () => {
           availableCompanies={availableCompanies}
         />
       )}
+
+      {/* Ship List Modal */}
+      {showShipListModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800">
+                {language === 'vi' ? 'Danh mục tàu công ty' : 'Company Ship List'}
+              </h3>
+              <button
+                onClick={() => setShowShipListModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+              {(() => {
+                const userCompanyShips = getUserCompanyShips();
+                return (
+                  <>
+                    <div className="mb-4 flex justify-between items-center">
+                      <p className="text-sm text-gray-600">
+                        {language === 'vi' 
+                          ? `Hiển thị ${userCompanyShips.length} tàu thuộc công ty: ${user?.company || 'N/A'}`
+                          : `Showing ${userCompanyShips.length} ships from company: ${user?.company || 'N/A'}`
+                        }
+                      </p>
+                    </div>
+                    
+                    {userCompanyShips.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">🚢</div>
+                        <h4 className="text-lg font-semibold text-gray-700 mb-2">
+                          {language === 'vi' ? 'Chưa có tàu nào' : 'No ships available'}
+                        </h4>
+                        <p className="text-gray-500">
+                          {language === 'vi' ? 'Chưa có tàu nào thuộc công ty của bạn' : 'No ships belong to your company yet'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse border border-gray-300 rounded-lg">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                                {language === 'vi' ? 'Tên tàu' : 'Ship Name'}
+                              </th>
+                              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                                {language === 'vi' ? 'IMO' : 'IMO'}
+                              </th>
+                              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                                {language === 'vi' ? 'Cờ' : 'Flag'}
+                              </th>
+                              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                                {language === 'vi' ? 'Hạng' : 'Class'}
+                              </th>
+                              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                                {language === 'vi' ? 'Tổng Dung Tích' : 'Gross Tonnage'}
+                              </th>
+                              <th className="border border-gray-300 px-4 py-3 text-left font-semibold">
+                                {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'}
+                              </th>
+                              <th className="border border-gray-300 px-4 py-3 text-center font-semibold">
+                                {language === 'vi' ? 'Thao tác' : 'Actions'}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {userCompanyShips.map((ship) => (
+                              <tr key={ship.id} className="hover:bg-gray-50">
+                                <td className="border border-gray-300 px-4 py-3 font-medium text-gray-800">
+                                  {ship.name}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-3 text-gray-600">
+                                  {ship.imo_number || '-'}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-3">
+                                  {ship.flag || '-'}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-3">
+                                  {ship.class_society || '-'}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-3">
+                                  {ship.gross_tonnage?.toLocaleString() || '-'}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-3">
+                                  {ship.ship_owner || '-'}
+                                </td>
+                                <td className="border border-gray-300 px-4 py-3 text-center">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedShip(ship);
+                                      setSelectedCategory('documents');
+                                      setShowShipListModal(false);
+                                    }}
+                                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-all"
+                                  >
+                                    {language === 'vi' ? 'Xem chi tiết' : 'View Details'}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
