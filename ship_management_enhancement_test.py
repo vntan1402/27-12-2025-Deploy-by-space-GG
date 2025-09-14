@@ -119,6 +119,7 @@ class ShipManagementEnhancementTester:
             print(f"   ✅ Company: {ship1.get('company')}")
         
         # Test 2: Create ship without ship_owner and company fields (backward compatibility)
+        time.sleep(1)  # Ensure unique timestamp
         ship_without_owner_company = {
             "name": f"Legacy Ship {int(time.time())}",
             "imo": f"IMO{int(time.time())}",
@@ -144,6 +145,7 @@ class ShipManagementEnhancementTester:
             print(f"   ✅ Company: {ship2.get('company', 'None (as expected)')}")
         
         # Test 3: Create ship with only ship_owner field
+        time.sleep(1)  # Ensure unique timestamp
         ship_with_owner_only = {
             "name": f"Owner Only Ship {int(time.time())}",
             "imo": f"IMO{int(time.time())}",
@@ -170,6 +172,7 @@ class ShipManagementEnhancementTester:
             print(f"   ✅ Company: {ship3.get('company', 'None (as expected)')}")
         
         # Test 4: Create ship with only company field
+        time.sleep(1)  # Ensure unique timestamp
         ship_with_company_only = {
             "name": f"Company Only Ship {int(time.time())}",
             "imo": f"IMO{int(time.time())}",
