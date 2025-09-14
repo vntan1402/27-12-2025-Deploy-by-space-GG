@@ -113,8 +113,10 @@ class GoogleDriveOAuthTester:
         if success:
             # Verify response structure
             if 'authorization_url' in response and 'state' in response:
-                print(f"   ✅ Authorization URL generated: {response.get('authorization_url', '')[:100]}...")
-                print(f"   ✅ State parameter: {response.get('state', '')}")
+                auth_url = response.get('authorization_url', '') or ''
+                state = response.get('state', '') or ''
+                print(f"   ✅ Authorization URL generated: {auth_url[:100]}...")
+                print(f"   ✅ State parameter: {state}")
                 
                 # Store state for callback test
                 self.mock_callback_data['state'] = response.get('state', '')
