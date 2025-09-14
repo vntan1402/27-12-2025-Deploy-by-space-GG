@@ -5480,7 +5480,9 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
                 >
                   <option value="">{language === 'vi' ? 'Chọn chủ tàu' : 'Select ship owner'}</option>
                   {availableCompanies.map(company => (
-                    <option key={company.id} value={company.name}>{company.name}</option>
+                    <option key={company.id} value={language === 'vi' ? company.name_vn : company.name_en}>
+                      {language === 'vi' ? company.name_vn : company.name_en}
+                    </option>
                   ))}
                 </select>
               </div>
