@@ -2996,14 +2996,20 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
   };
 
   const handleAppsScriptTest = async () => {
+    console.log('🔍 Debug - handleAppsScriptTest called');
+    console.log('   CompanyId:', companyId);
+    console.log('   Config:', config);
+    
+    if (!companyId) {
+      console.error('❌ No Company ID available in handleAppsScriptTest');
+      toast.error(language === 'vi' ? 'Lỗi: Không có Company ID' : 'Error: No Company ID');
+      return;
+    }
+    
     try {
       setOauthLoading(true);
       
-      if (!companyId) {
-        toast.error(language === 'vi' ? 'Lỗi: Không có Company ID' : 'Error: No Company ID');
-        return;
-      }
-      
+      // Use the test configuration endpoint instead of configure endpoint for testing
       const response = await axios.post(`${API}/companies/${companyId}/gdrive/configure-proxy`, {
         web_app_url: config.web_app_url,
         folder_id: config.folder_id
