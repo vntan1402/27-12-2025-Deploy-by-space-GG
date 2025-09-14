@@ -19,7 +19,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithM
 
 # Import our MongoDB database modules
 from mongodb_database import mongo_db
-from google_drive_manager import gdrive_manager
+from google_drive_manager import GoogleDriveManager
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
