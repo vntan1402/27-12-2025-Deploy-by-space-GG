@@ -155,6 +155,8 @@ class ShipUpdate(BaseModel):
     ship_type: Optional[str] = None
     gross_tonnage: Optional[float] = None
     year_built: Optional[int] = None
+    ship_owner: Optional[str] = None
+    company: Optional[str] = None
 
 class ShipResponse(ShipBase):
     id: str
