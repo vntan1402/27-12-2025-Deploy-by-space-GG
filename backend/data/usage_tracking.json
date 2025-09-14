@@ -883,5 +883,19 @@
     "resource": "auth",
     "timestamp": "2025-09-14 07:05:34.530000",
     "created_at": "2025-09-14 07:05:34.530000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "sync_to_drive_proxy",
+    "resource": "gdrive",
+    "timestamp": "2025-09-14 07:05:58.672000",
+    "created_at": "2025-09-14 07:05:58.672000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:06:54.823000",
+    "created_at": "2025-09-14 07:06:54.823000"
   }
 ]
