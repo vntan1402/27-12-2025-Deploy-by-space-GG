@@ -1137,8 +1137,13 @@ const AccountControlPage = () => {
   const [editingCompany, setEditingCompany] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [gdriveConfig, setGdriveConfig] = useState({
-    service_account_json: '',
-    folder_id: ''
+    auth_method: 'oauth', // 'oauth' or 'service_account'
+    // OAuth fields
+    client_id: '',
+    client_secret: '',
+    folder_id: '',
+    // Service Account fields (legacy)
+    service_account_json: ''
   });
   const [gdriveStatus, setGdriveStatus] = useState(null);
   const [gdriveCurrentConfig, setGdriveCurrentConfig] = useState(null);
