@@ -679,6 +679,7 @@ const HomePage = () => {
   const [companyLogo, setCompanyLogo] = useState(null);
   const [hoverTimeout, setHoverTimeout] = useState(null);
   const [showAddRecord, setShowAddRecord] = useState(false);
+  const [availableCompanies, setAvailableCompanies] = useState([]);
   const navigate = useNavigate();
   
   const t = translations[language];
