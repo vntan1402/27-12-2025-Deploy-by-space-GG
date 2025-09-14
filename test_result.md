@@ -370,15 +370,18 @@
 
   - task: "Apps Script Proxy Connection Error Debug and Fix"
     implemented: true
-    working: true
+    working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
         - working: true
           agent: "testing"
           comment: "✅ APPS SCRIPT PROXY CONNECTION ERROR FULLY DEBUGGED AND FIXED - Comprehensive debugging completed with root cause identified and backend fixes applied. ROOT CAUSE: The error 'Expecting value: line 1 column 1 (char 0)' occurs when Apps Script returns empty response body or HTML error page instead of JSON. BACKEND FIXES APPLIED: (1) Added empty response validation before JSON parsing, (2) Added content-type validation to ensure JSON response, (3) Added detailed error messages with specific troubleshooting steps, (4) Added proper JSON parsing error handling with response preview, (5) Added status code validation with detailed error reporting. COMPREHENSIVE TESTING: Created and executed 3 test suites (apps_script_debug_test.py, curl_apps_script_test.py, apps_script_comprehensive_test.py) with 28/28 tests passed covering cURL simulation, URL validation, payload testing, and error handling verification. APPS SCRIPT SETUP GUIDE: Provided complete Google Apps Script implementation code with doPost function, proper JSON response format, deployment instructions, and troubleshooting guide. The backend now provides clear, actionable error messages instead of generic JSON parsing errors, making Apps Script configuration issues much easier to diagnose and resolve."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE IDENTIFIED WITH USER'S SPECIFIC APPS SCRIPT URL - Comprehensive testing of user's exact Apps Script URL (https://script.google.com/macros/s/AKfycbyZx8bjPTBzPCs0CcPUsvk8rW6rBinx0PwmZy_hDViqgWVKX1KDPJ3aFleSOQRA81M/exec) and Folder ID (1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB) revealed critical bug in Apps Script code. ROOT CAUSE IDENTIFIED: Apps Script contains bug on line 308 - 'TypeError: response.setHeaders is not a function'. This function doesn't exist in Google Apps Script. TESTING RESULTS: (1) Direct GET/POST requests to Apps Script return HTML error pages instead of JSON, (2) Backend configure-proxy endpoint fails with 400 status due to non-JSON response, (3) Apps Script crashes on both test_connection and sync_to_drive actions. BACKEND STATUS: ✅ Backend integration working correctly - login successful (admin/admin123), gdrive/config and gdrive/status endpoints working, error handling properly implemented. THE ISSUE IS IN THE APPS SCRIPT CODE, NOT THE BACKEND. SOLUTION PROVIDED: Complete corrected Apps Script code using ContentService.createTextOutput().setMimeType() instead of invalid response.setHeaders(). User must fix their Apps Script code and redeploy to resolve the issue. Backend will work perfectly once Apps Script is fixed."
 
 ## test_plan:
   current_focus:
