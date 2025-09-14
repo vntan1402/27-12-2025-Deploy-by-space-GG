@@ -108,39 +108,48 @@
 ## backend:
   - task: "Enhanced User Filtering and Sorting API"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Added new filtered users endpoint /api/users/filtered with query parameters for company, department, ship filtering and sorting by various fields (full_name, company, department, role, ship, created_at). Includes role-based access control."
+        - working: true
+          agent: "testing"
+          comment: "✅ ENHANCED USER FILTERING AND SORTING API FULLY TESTED AND WORKING - Comprehensive testing completed with all filtering and sorting functionality verified: (1) GET /api/users/filtered endpoint working correctly: ✅ Basic endpoint returns 8 users, ✅ Company filtering returns 5 users for 'AMCSC', ✅ Department filtering returns 2 users for 'operations', ✅ Sorting by full_name (ASC) working correctly, ✅ Sorting by company (DESC) working correctly, ✅ Sorting by created_at working correctly, ✅ Combined filter and sort returns 5 users for company 'AMCSC' sorted by role. (2) Role-based access control verified: ✅ Manager users correctly see only same company users (5 users from AMCSC), ✅ Super Admin sees all users (8 users) with no filtering restrictions. (3) All valid sort fields tested: full_name, company, department, role, ship, created_at with both ASC and DESC ordering. (4) Filter parameters tested: company, department, ship with proper query parameter handling. All Enhanced User Filtering and Sorting API functionality is production-ready and working correctly."
 
   - task: "Self-Edit Permissions for Crew Role"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Added /api/users/{user_id}/self-edit endpoint allowing crew (viewer role) to edit their own email and zalo fields. Added /api/users/{user_id}/editable-fields endpoint to check what fields each user can edit."
+        - working: true
+          agent: "testing"
+          comment: "✅ SELF-EDIT PERMISSIONS FOR CREW ROLE FULLY TESTED AND WORKING - Comprehensive testing completed with all self-edit functionality verified: (1) GET /api/users/{user_id}/editable-fields endpoint working correctly: ✅ Crew (viewer role) can edit ['email', 'zalo', 'password'] fields as expected, ✅ Proper field restrictions enforced for different user roles. (2) PUT /api/users/{user_id}/self-edit endpoint working correctly: ✅ Crew successfully updated email from 'crew_1757846172@shipmanagement.com' to 'updated_crew_1757846175@shipmanagement.com', ✅ Crew successfully updated zalo from '0904840303' to '0921276020', ✅ Restricted fields (role, company) properly ignored when crew tries to edit them - role remains 'viewer' and company remains 'AMCSC', ✅ Security verified - crew correctly blocked from editing other users with 403 Forbidden status. (3) Authentication and permissions working: ✅ Crew user login successful with proper JWT token, ✅ Self-edit permissions properly enforced, ✅ Cross-user edit attempts properly blocked. All Self-Edit Permissions for Crew Role functionality is production-ready and working correctly."
 
   - task: "User Model Enhancement with Zalo and Gmail"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Updated UserBase model to include required zalo field and optional gmail field. Added validation in create_user endpoint to ensure Zalo field is provided and not empty."
+        - working: true
+          agent: "testing"
+          comment: "✅ USER MODEL ENHANCEMENT WITH ZALO AND GMAIL FULLY TESTED AND WORKING - Comprehensive testing completed with all model enhancements verified: (1) User creation with zalo and gmail fields working correctly: ✅ Successfully created user with zalo '0932573341' and gmail 'zalo.gmail_1757846175@gmail.com', ✅ Both fields properly stored and retrieved in user responses. (2) Zalo field validation working correctly: ✅ User creation without zalo field properly fails with 422 validation error 'Field required', ✅ User creation with empty zalo field properly fails with 400 error 'Zalo field is required', ✅ Backend validation ensures zalo field is not empty or null. (3) Existing functionality compatibility verified: ✅ All existing users updated with zalo field (9 users with zalo field found), ✅ Gmail field optional and working (6 users with gmail field found), ✅ User creation, update, and retrieval all working with new model structure. (4) Authentication integration working: ✅ Login with admin/admin123 successful after fixing existing users without zalo field, ✅ UserResponse model properly handles both required zalo and optional gmail fields. All User Model Enhancement functionality is production-ready and working correctly."
 
   - task: "Add New Record Backend Endpoints"
     implemented: true
