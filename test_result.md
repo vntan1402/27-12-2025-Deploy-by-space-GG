@@ -484,15 +484,18 @@
 
   - task: "Google Drive Sync Functionality After Fix"
     implemented: true
-    working: false
+    working: true
     file: "server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
           comment: "❌ GOOGLE DRIVE SYNC TESTING COMPLETED - Comprehensive testing of Google Drive sync functionality after reported fixes completed with 4/5 tests passed (80% success rate). WORKING COMPONENTS: (1) Google Drive Status Updated: ✅ GET /api/gdrive/status working correctly, reports 32 local files and 0 drive files, configuration status properly displayed, (2) Data Export Verification: ✅ All 10 JSON files created in /app/backend/data/ with valid format (users.json: 8 records, certificates.json: 12 records, ships.json: 7 records, companies.json: 3 records, etc.), total 38 data records verified, (3) Error Handling: ✅ Invalid credentials properly rejected, empty folder ID validation working, malformed JSON detection working, proper error messages returned, (4) Sync Status Comparison: ✅ Local vs drive file counts tracked correctly, status comparison available. CRITICAL ISSUE FOUND: ❌ Sync To Drive Functionality FAILED - POST /api/gdrive/sync-to-drive returns 500 Internal Server Error with 'Failed to initialize Google Drive connection'. ROOT CAUSE: PEM file parsing error in service account credentials - private key contains escaped newlines (\\n) instead of actual newlines, causing 'Unable to load PEM file' error. BACKEND LOGS CONFIRM: Multiple 'InvalidData(InvalidByte(51, 46))' errors when trying to parse service account JSON. ACTUAL UPLOAD STATUS: No files uploaded to Google Drive (drive_files count remains 0), sync operations are failing due to credential format issues. RECOMMENDATION: Fix service account JSON private key format by replacing escaped newlines with actual newlines in the stored credentials."
+        - working: true
+          agent: "testing"
+          comment: "✅ GOOGLE DRIVE SYNC FUNCTIONALITY AFTER PEM FIX TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of Google Drive sync functionality after PEM parsing fix completed with 7/7 tests passed (100% success rate). CRITICAL FIX VERIFIED: (1) PEM Parsing Error RESOLVED: ✅ POST /api/gdrive/configure with properly formatted private key now works successfully, Google Drive manager's fix on line 36 (credentials_dict['private_key'].replace('\\n', '\n')) is working correctly, (2) Authentication: ✅ admin/admin123 credentials working perfectly, (3) Data Export Verification: ✅ Found 8 files with 35 total records in /app/backend/data/ (users.json: 8 records, companies.json: 3 records, ships.json: 7 records, certificates.json: 12 records, ai_config.json: 1 record, gdrive_config.json: 1 record, usage_tracking.json: 2 records, company_settings.json: 1 record), (4) Sync To Drive: ✅ POST /api/gdrive/sync-to-drive now returns 200 status with 'Data synced to Google Drive successfully' message, no more PEM parsing errors, (5) Status Updates: ✅ GET /api/gdrive/status shows last_sync timestamp properly updated to '2025-09-14T00:18:40.509618+00:00', configured status remains true, (6) Backend Logs: ✅ No recent PEM parsing errors found in logs, error handling working correctly. SYNC FUNCTIONALITY WORKING: The Google Drive sync is now functional with proper credential handling. The fix in google_drive_manager.py successfully resolves escaped newlines in private keys. All API endpoints responding correctly and sync operations completing successfully."
 
 ## agent_communication:
     - agent: "main"
