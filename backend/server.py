@@ -74,6 +74,8 @@ class UserBase(BaseModel):
     department: Department
     company: Optional[str] = None
     ship: Optional[str] = None
+    zalo: str  # Now required field
+    gmail: Optional[str] = None
     is_active: bool = True
 
 class UserCreate(UserBase):
