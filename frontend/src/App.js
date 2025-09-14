@@ -2506,7 +2506,11 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
           </button>
           <button
             onClick={onSave}
-            disabled={!config.service_account_json || !config.folder_id}
+            disabled={
+              authMethod === 'oauth' 
+                ? (!config.client_id || !config.client_secret || !config.folder_id)
+                : (!config.service_account_json || !config.folder_id)
+            }
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all"
           >
             {language === 'vi' ? 'Lưu cấu hình' : 'Save Configuration'}
