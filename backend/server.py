@@ -936,9 +936,31 @@ async def configure_google_apps_script_proxy(config: GoogleAppsScriptConfig, cur
         )
         
         if test_response.status_code != 200:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to connect to Apps Script proxy")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed to connect to Apps Script proxy. Status: {test_response.status_code}")
         
-        result = test_response.json()
+        # Check if response has content before parsing JSON
+        if not test_response.text.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Apps Script returned empty response. Please check: 1) Apps Script is deployed, 2) URL is correct, 3) Script has proper doPost function"
+            )
+        
+        # Check content type
+        content_type = test_response.headers.get('content-type', '').lower()
+        if 'application/json' not in content_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Apps Script returned non-JSON response (Content-Type: {content_type}). Response: {test_response.text[:200]}"
+            )
+        
+        try:
+            result = test_response.json()
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Apps Script returned invalid JSON response: {str(e)}. Response: {test_response.text[:200]}"
+            )
+        
         if not result.get("success"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Apps Script test failed: {result.get('error', 'Unknown error')}")
         
