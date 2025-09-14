@@ -472,7 +472,7 @@
 
 ## test_plan:
   current_focus:
-    - "Google Drive Configuration Display Issue Resolved"
+    - "User Management Improvements Testing Completed"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
