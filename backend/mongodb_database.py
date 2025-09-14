@@ -126,19 +126,23 @@ class MongoDatabase:
             logger.error(f"Error finding document in {collection}: {e}")
             raise
 
-    async def update(self, collection: str, filter_dict: Dict[str, Any], update_data: Dict[str, Any]) -> bool:
+    async def update(self, collection: str, filter_dict: Dict[str, Any], update_data: Dict[str, Any], upsert: bool = False) -> bool:
         """Update document(s) matching filter"""
         try:
             update_data['updated_at'] = datetime.now(timezone.utc)
             
             result = await self.database[collection].update_one(
                 filter_dict, 
-                {"$set": update_data}
+                {"$set": update_data},
+                upsert=upsert
             )
             
-            success = result.modified_count > 0
+            success = result.modified_count > 0 or (upsert and result.upserted_id is not None)
             if success:
-                logger.info(f"Updated document in {collection}")
+                if result.upserted_id:
+                    logger.info(f"Upserted document in {collection}: {result.upserted_id}")
+                else:
+                    logger.info(f"Updated document in {collection}")
             else:
                 logger.warning(f"No document updated in {collection} with filter: {filter_dict}")
             
