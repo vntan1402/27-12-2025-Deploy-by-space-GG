@@ -4980,7 +4980,9 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
     flag: '',
     gross_tonnage: '',
     deadweight: '',
-    built_year: ''
+    built_year: '',
+    ship_owner: '',
+    company: ''
   });
   const [certificateData, setCertificateData] = useState({
     ship_id: selectedShip?.id || '',
