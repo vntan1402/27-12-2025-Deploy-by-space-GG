@@ -5412,9 +5412,9 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       // Prepare ship payload with proper data cleaning
       const shipPayload = {
         name: shipData.name?.trim() || '',
-        imo: shipData.imo_number?.trim() || null, // Convert empty string to null
+        imo: shipData.imo_number?.trim() || null, // Frontend uses imo_number, backend expects imo
         flag: shipData.flag?.trim() || '',
-        ship_type: shipData.class_society?.trim() || '',
+        ship_type: shipData.class_society?.trim() || '', // Frontend uses class_society, backend expects ship_type
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
         ship_owner: shipData.ship_owner?.trim() || '',
