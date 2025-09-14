@@ -1028,20 +1028,6 @@ const HomePage = () => {
                           </div>
                         </div>
 
-                        {/* Ship Particular Button */}
-                        <div className="flex justify-center mb-4">
-                          <button
-                            onClick={() => setShowFullShipInfo(!showFullShipInfo)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all flex items-center"
-                          >
-                            <span className="mr-2">🚢</span>
-                            {language === 'vi' ? 'Thông số kỹ thuật tàu' : 'Ship Particular'}
-                            <span className="ml-2">
-                              {showFullShipInfo ? '▲' : '▼'}
-                            </span>
-                          </button>
-                        </div>
-
                         {/* Full Ship Info (Toggle visibility) */}
                         {showFullShipInfo && (
                           <div className="grid grid-cols-2 gap-4 text-sm p-4 bg-gray-50 rounded-lg border">
