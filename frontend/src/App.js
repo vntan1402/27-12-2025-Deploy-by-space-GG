@@ -1928,7 +1928,21 @@ const AccountControlPage = () => {
                   {gdriveCurrentConfig?.configured ? (
                     <div className="text-sm text-gray-600 space-y-1">
                       <div className="flex justify-between">
-                        <span>{language === 'vi' ? 'Service Account:' : 'Service Account:'}</span>
+                        <span>{language === 'vi' ? 'Method:' : 'Auth Method:'}</span>
+                        <span className="font-mono text-xs">
+                          {gdriveCurrentConfig.auth_method === 'apps_script' 
+                            ? 'Apps Script' 
+                            : gdriveCurrentConfig.auth_method === 'oauth' 
+                              ? 'OAuth 2.0' 
+                              : 'Service Account'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>
+                          {gdriveCurrentConfig.auth_method === 'apps_script' 
+                            ? (language === 'vi' ? 'Email Account:' : 'Account Email:')
+                            : (language === 'vi' ? 'Service Account:' : 'Service Account:')}
+                        </span>
                         <span className="font-mono text-xs">{gdriveCurrentConfig.service_account_email}</span>
                       </div>
                       <div className="flex justify-between">
