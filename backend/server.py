@@ -820,6 +820,7 @@ async def get_google_drive_config(current_user: UserResponse = Depends(get_curre
                 "configured": True,
                 "folder_id": config.get("folder_id", ""),
                 "service_account_email": service_account_email,
+                "auth_method": config.get("auth_method", "service_account"),
                 "last_sync": config.get("last_sync")
             }
         else:
