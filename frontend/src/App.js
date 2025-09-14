@@ -2125,13 +2125,14 @@ const AccountControlPage = () => {
                           {language === 'vi' ? 'Tàu' : 'Ship'}
                         </th>
                         <th className="border border-gray-300 px-4 py-3 text-left">Zalo</th>
+                        <th className="border border-gray-300 px-4 py-3 text-left">Gmail</th>
                         <th className="border border-gray-300 px-4 py-3 text-center">
                           {language === 'vi' ? 'Thao tác' : 'Actions'}
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map((userItem) => (
+                      {filteredUsers.map((userItem) => (
                         <tr key={userItem.id} className="hover:bg-gray-50">
                           <td className="border border-gray-300 px-4 py-3 font-medium">
                             {userItem.full_name}
