@@ -907,17 +907,43 @@ const HomePage = () => {
                   {/* Ships dropdown - now uses hoveredCategory instead of selectedCategory */}
                   {hoveredCategory === category.key && (
                     <div className="absolute left-full top-0 ml-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 w-64 z-10 text-gray-800">
-                      <h4 className="font-medium mb-3 text-gray-700">{language === 'vi' ? 'Danh sách tàu' : 'Ships List'}</h4>
-                      {ships.length === 0 ? (
-                        <p className="text-gray-500 text-sm">{language === 'vi' ? 'Chưa có tàu nào' : 'No ships available'}</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {ships.map((ship) => (
-                            <button
-                              key={ship.id}
-                              onClick={() => handleShipClick(ship, category.key)}
-                              className="block w-full text-left p-2 rounded hover:bg-blue-50 transition-all text-sm border border-gray-100 hover:border-blue-200"
-                            >
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium text-gray-700">{language === 'vi' ? 'Danh sách tàu' : 'Ships List'}</h4>
+                        <button
+                          onClick={() => setShowShipListModal(true)}
+                          className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-all"
+                        >
+                          {language === 'vi' ? 'Xem danh mục' : 'See All List'}
+                        </button>
+                      </div>
+                      {(() => {
+                        const userCompanyShips = getUserCompanyShips();
+                        return userCompanyShips.length === 0 ? (
+                          <p className="text-gray-500 text-sm">
+                            {language === 'vi' ? 'Chưa có tàu nào trong công ty' : 'No ships in your company'}
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            {userCompanyShips.slice(0, 5).map((ship) => (
+                              <button
+                                key={ship.id}
+                                onClick={() => handleShipClick(ship, category.key)}
+                                className="block w-full text-left p-2 rounded hover:bg-blue-50 transition-all text-sm border border-gray-100 hover:border-blue-200"
+                              >
+                                <div className="font-medium text-gray-800">{ship.name}</div>
+                                <div className="text-xs text-gray-500">{ship.flag} • {ship.class_society}</div>
+                              </button>
+                            ))}
+                            {userCompanyShips.length > 5 && (
+                              <div className="text-center pt-2 border-t border-gray-100">
+                                <span className="text-xs text-gray-500">
+                                  {language === 'vi' ? `+${userCompanyShips.length - 5} tàu khác` : `+${userCompanyShips.length - 5} more ships`}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                               <div className="font-medium">{ship.name}</div>
                               <div className="text-xs text-gray-500">
                                 IMO: {ship.imo_number}
