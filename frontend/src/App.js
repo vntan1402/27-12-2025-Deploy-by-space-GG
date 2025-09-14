@@ -1215,6 +1215,7 @@ const AccountControlPage = () => {
   const [testLoading, setTestLoading] = useState(false);
   // Company Google Drive state
   const [showCompanyGoogleDrive, setShowCompanyGoogleDrive] = useState(false);
+  const [companyGdriveCompanyId, setCompanyGdriveCompanyId] = useState(null); // Store company ID for modal
   const [companyGdriveConfig, setCompanyGdriveConfig] = useState({
     auth_method: 'apps_script',
     web_app_url: '',
