@@ -2380,11 +2380,22 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
           <h4 className="font-medium text-gray-800 mb-3">
             {language === 'vi' ? 'Phương thức xác thực' : 'Authentication Method'}
           </h4>
-          <div className="flex space-x-4 mb-4">
+          <div className="flex space-x-2 mb-4 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleAuthMethodChange('apps_script')}
+              className={`px-3 py-2 rounded-lg transition-all text-sm ${
+                authMethod === 'apps_script'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Apps Script ({language === 'vi' ? 'Đơn giản nhất' : 'Easiest'})
+            </button>
             <button
               type="button"
               onClick={() => handleAuthMethodChange('oauth')}
-              className={`px-4 py-2 rounded-lg transition-all ${
+              className={`px-3 py-2 rounded-lg transition-all text-sm ${
                 authMethod === 'oauth'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -2395,9 +2406,9 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
             <button
               type="button"
               onClick={() => handleAuthMethodChange('service_account')}
-              className={`px-4 py-2 rounded-lg transition-all ${
+              className={`px-3 py-2 rounded-lg transition-all text-sm ${
                 authMethod === 'service_account'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-yellow-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -2407,6 +2418,86 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
         </div>
         
         <div className="space-y-6">
+          {/* Apps Script Configuration */}
+          {authMethod === 'apps_script' && (
+            <>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                <h5 className="font-medium text-green-800 mb-2">
+                  ✨ {language === 'vi' ? 'Google Apps Script (Đơn giản nhất)' : 'Google Apps Script (Easiest)'}
+                </h5>
+                <p className="text-sm text-green-700">
+                  {language === 'vi' 
+                    ? 'Sử dụng Google Apps Script làm proxy để bypass vấn đề OAuth consent screen. Không cần verification từ Google!'
+                    : 'Use Google Apps Script as a proxy to bypass OAuth consent screen issues. No Google verification needed!'
+                  }
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Google Apps Script Web App URL' : 'Google Apps Script Web App URL'}
+                </label>
+                <input
+                  type="url"
+                  value={config.web_app_url}
+                  onChange={(e) => setConfig(prev => ({ ...prev, web_app_url: e.target.value }))}
+                  placeholder="https://script.google.com/macros/s/AKfycby.../exec"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Google Drive Folder ID' : 'Google Drive Folder ID'}
+                </label>
+                <input
+                  type="text"
+                  value={config.folder_id}
+                  onChange={(e) => setConfig(prev => ({ ...prev, folder_id: e.target.value }))}
+                  placeholder="1abcDEFghiJKLmnopQRStuv2wxYZ"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' ? 'Folder ID từ URL Google Drive: drive.google.com/drive/folders/[FOLDER_ID]' : 'Folder ID from Google Drive URL: drive.google.com/drive/folders/[FOLDER_ID]'}
+                </p>
+              </div>
+
+              {/* Apps Script Test Connection */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-800">
+                    {language === 'vi' ? 'Test kết nối Apps Script' : 'Test Apps Script Connection'}
+                  </h4>
+                  <button
+                    onClick={handleAppsScriptTest}
+                    disabled={oauthLoading || !config.web_app_url || !config.folder_id}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center gap-2"
+                  >
+                    {oauthLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
+                    {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {language === 'vi' ? 'Test kết nối Apps Script trước khi lưu' : 'Test Apps Script connection before saving'}
+                </p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2">
+                  📋 {language === 'vi' ? 'Hướng dẫn setup Apps Script:' : 'Apps Script Setup Instructions:'}
+                </h4>
+                <ol className="text-sm text-green-700 space-y-1">
+                  <li>1. {language === 'vi' ? 'Truy cập' : 'Go to'} <a href="https://script.google.com" target="_blank" className="underline">script.google.com</a></li>
+                  <li>2. {language === 'vi' ? 'Tạo New project: "Ship Management Drive Proxy"' : 'Create New project: "Ship Management Drive Proxy"'}</li>
+                  <li>3. {language === 'vi' ? 'Copy code từ file GOOGLE_APPS_SCRIPT_PROXY.js' : 'Copy code from GOOGLE_APPS_SCRIPT_PROXY.js file'}</li>
+                  <li>4. {language === 'vi' ? 'Sửa FOLDER_ID với folder ID thực tế' : 'Update FOLDER_ID with your actual folder ID'}</li>
+                  <li>5. {language === 'vi' ? 'Deploy as Web app → Execute as: Me → Who has access: Anyone' : 'Deploy as Web app → Execute as: Me → Who has access: Anyone'}</li>
+                  <li>6. {language === 'vi' ? 'Copy Web app URL và paste vào trên' : 'Copy Web app URL and paste above'}</li>
+                </ol>
+              </div>
+            </>
+          )}
+
           {/* OAuth Configuration */}
           {authMethod === 'oauth' && (
             <>
