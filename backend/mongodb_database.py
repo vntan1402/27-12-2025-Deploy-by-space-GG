@@ -262,5 +262,48 @@ class MongoDatabase:
         
         return export_data
 
+    async def import_from_json(self) -> Dict[str, int]:
+        """Import data from JSON files (for restore from backup)"""
+        import os
+        import json
+        
+        data_path = "/app/backend/data"
+        collections = [
+            "users", "companies", "ships", "certificates", 
+            "ai_config", "usage_tracking", "ai_analyses"
+        ]
+        
+        import_results = {}
+        
+        for collection in collections:
+            try:
+                json_file = os.path.join(data_path, f"{collection}.json")
+                if os.path.exists(json_file):
+                    with open(json_file, 'r') as f:
+                        data = json.load(f)
+                    
+                    if data:
+                        # Clear existing data in collection
+                        await self.database[collection].delete_many({})
+                        
+                        # Insert new data
+                        if isinstance(data, list) and data:
+                            await self.database[collection].insert_many(data)
+                            import_results[collection] = len(data)
+                            logger.info(f"Imported {len(data)} documents to {collection}")
+                        else:
+                            import_results[collection] = 0
+                    else:
+                        import_results[collection] = 0
+                else:
+                    logger.warning(f"JSON file not found for {collection}")
+                    import_results[collection] = 0
+                    
+            except Exception as e:
+                logger.error(f"Error importing {collection}: {e}")
+                import_results[collection] = -1
+        
+        return import_results
+
 # Global database instance
 mongo_db = MongoDatabase()
