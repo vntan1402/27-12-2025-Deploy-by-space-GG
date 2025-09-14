@@ -1581,6 +1581,135 @@ const AccountControlPage = () => {
     }
   };
 
+  // Company Google Drive Configuration Functions
+  const fetchCompanyGoogleDriveStatus = async (companyId) => {
+    try {
+      const response = await axios.get(`${API}/companies/${companyId}/gdrive/status`);
+      setCompanyGdriveStatus(response.data);
+    } catch (error) {
+      console.error('Failed to fetch company Google Drive status:', error);
+    }
+  };
+
+  const fetchCompanyGoogleDriveConfig = async (companyId) => {
+    try {
+      const response = await axios.get(`${API}/companies/${companyId}/gdrive/config`);
+      setCompanyGdriveCurrentConfig(response.data);
+    } catch (error) {
+      console.error('Failed to fetch company Google Drive config:', error);
+    }
+  };
+
+  const handleCompanyGoogleDriveConfig = async (companyId) => {
+    // Validate required fields based on auth method
+    const authMethod = companyGdriveConfig.auth_method || 'apps_script';
+    
+    let missingFields = false;
+    if (authMethod === 'apps_script') {
+      if (!companyGdriveConfig.web_app_url || !companyGdriveConfig.folder_id) {
+        missingFields = true;
+      }
+    } else if (authMethod === 'oauth') {
+      if (!companyGdriveConfig.client_id || !companyGdriveConfig.client_secret || !companyGdriveConfig.folder_id) {
+        missingFields = true;
+      }
+    } else if (authMethod === 'service_account') {
+      if (!companyGdriveConfig.service_account_json || !companyGdriveConfig.folder_id) {
+        missingFields = true;
+      }
+    }
+    
+    if (missingFields) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin' : 'Please fill all required fields');
+      return;
+    }
+
+    try {
+      let endpoint;
+      let payload;
+      
+      if (authMethod === 'apps_script') {
+        endpoint = `/companies/${companyId}/gdrive/configure-proxy`;
+        payload = {
+          web_app_url: companyGdriveConfig.web_app_url,
+          folder_id: companyGdriveConfig.folder_id
+        };
+      } else if (authMethod === 'oauth') {
+        endpoint = `/companies/${companyId}/gdrive/oauth/authorize`;
+        payload = {
+          client_id: companyGdriveConfig.client_id,
+          client_secret: companyGdriveConfig.client_secret,
+          redirect_uri: 'https://shipgooglesync.preview.emergentagent.com/oauth2callback',
+          folder_id: companyGdriveConfig.folder_id
+        };
+      } else {
+        endpoint = `/companies/${companyId}/gdrive/configure`;
+        payload = {
+          service_account_json: companyGdriveConfig.service_account_json,
+          folder_id: companyGdriveConfig.folder_id
+        };
+      }
+      
+      const response = await axios.post(`${API}${endpoint}`, payload);
+      
+      if (authMethod === 'oauth' && response.data.authorization_url) {
+        // For OAuth, redirect to authorization URL
+        sessionStorage.setItem('oauth_state', response.data.state);
+        window.location.href = response.data.authorization_url;
+      } else {
+        // For Apps Script and Service Account, show success
+        toast.success(language === 'vi' ? 'Cấu hình Google Drive công ty thành công!' : 'Company Google Drive configured successfully!');
+        setShowCompanyGoogleDrive(false);
+        // Reset config based on auth method
+        if (authMethod === 'apps_script') {
+          setCompanyGdriveConfig(prev => ({ ...prev, web_app_url: '', folder_id: '' }));
+        } else if (authMethod === 'oauth') {
+          setCompanyGdriveConfig(prev => ({ ...prev, client_id: '', client_secret: '', folder_id: '' }));
+        } else {
+          setCompanyGdriveConfig(prev => ({ ...prev, service_account_json: '', folder_id: '' }));
+        }
+        fetchCompanyGoogleDriveStatus(companyId);
+        fetchCompanyGoogleDriveConfig(companyId);
+      }
+    } catch (error) {
+      console.error('Company Google Drive configuration error:', error);
+      toast.error(language === 'vi' ? 'Cấu hình Google Drive công ty thất bại!' : 'Failed to configure company Google Drive!');
+    }
+  };
+
+  const handleTestCompanyGoogleDriveConnection = async (companyId) => {
+    if (!companyGdriveConfig.service_account_json || !companyGdriveConfig.folder_id) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin!' : 'Please fill in all required information!');
+      return;
+    }
+
+    setCompanyGdriveTestLoading(true);
+    try {
+      const testConfig = {
+        service_account_json: companyGdriveConfig.service_account_json,
+        folder_id: companyGdriveConfig.folder_id
+      };
+      
+      const response = await axios.post(`${API}/companies/${companyId}/gdrive/test`, testConfig);
+      if (response.data.success) {
+        toast.success(language === 'vi' ? 
+          `Kết nối thành công! Folder: ${response.data.folder_name}` : 
+          `Connection successful! Folder: ${response.data.folder_name}`
+        );
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(language === 'vi' ? 
+        `Test kết nối thất bại: ${errorMessage}` : 
+        `Connection test failed: ${errorMessage}`
+      );
+    } finally {
+      setCompanyGdriveTestLoading(false);
+    }
+  };
+
   const handleCreateCompany = async () => {
     if (!companyData.name_vn || !companyData.name_en || !companyData.tax_id) {
       toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill all required fields');
