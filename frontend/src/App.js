@@ -5473,11 +5473,10 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tổng Dung Tích (GT)' : 'Gross Tonnage (GT)'} *
+                  {language === 'vi' ? 'Tổng Dung Tích (GT)' : 'Gross Tonnage (GT)'}
                 </label>
                 <input
                   type="number"
-                  required
                   value={shipData.gross_tonnage}
                   onChange={(e) => setShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -5486,11 +5485,10 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Trọng Tải (DWT)' : 'Deadweight (DWT)'} *
+                  {language === 'vi' ? 'Trọng Tải (DWT)' : 'Deadweight (DWT)'}
                 </label>
                 <input
                   type="number"
-                  required
                   value={shipData.deadweight}
                   onChange={(e) => setShipData(prev => ({ ...prev, deadweight: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -5499,11 +5497,10 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Năm đóng' : 'Built Year'} *
+                  {language === 'vi' ? 'Năm đóng' : 'Built Year'}
                 </label>
                 <input
                   type="number"
-                  required
                   value={shipData.built_year}
                   onChange={(e) => setShipData(prev => ({ ...prev, built_year: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
