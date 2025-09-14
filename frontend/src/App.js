@@ -1199,7 +1199,9 @@ const AccountControlPage = () => {
   const [editingCompany, setEditingCompany] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [gdriveConfig, setGdriveConfig] = useState({
-    auth_method: 'oauth', // 'oauth' or 'service_account'
+    auth_method: 'apps_script', // 'apps_script', 'oauth', or 'service_account' 
+    // Apps Script fields
+    web_app_url: '',
     // OAuth fields
     client_id: '',
     client_secret: '',
