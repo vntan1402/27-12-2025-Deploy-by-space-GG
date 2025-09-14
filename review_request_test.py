@@ -12,7 +12,7 @@ import sys
 import json
 
 class ReviewRequestTester:
-    def __init__(self, base_url="https://shipdesk.preview.emergentagent.com"):
+    def __init__(self, base_url="https://shipgooglesync.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
