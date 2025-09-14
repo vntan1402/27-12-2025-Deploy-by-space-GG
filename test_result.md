@@ -497,6 +497,8 @@
 ## agent_communication:
     - agent: "main"
       message: "Starting Phase 2 implementation. Backend endpoints for ships and certificates already exist. Now implementing frontend forms and additional features as requested by user."
+    - agent: "testing"
+      message: "✅ GOOGLE DRIVE SYNC TESTING COMPLETED - Comprehensive testing of all 5 requirements from review request completed with 4/5 tests passed. WORKING: Google Drive status endpoints, data export verification (10 valid JSON files with 38 records), error handling, and sync status tracking. CRITICAL ISSUE: Sync operations failing due to PEM file parsing error in service account credentials - private key format has escaped newlines instead of actual newlines. Drive files count remains 0, no actual upload occurring. Backend logs show 'InvalidData(InvalidByte(51, 46))' errors. Main agent needs to fix service account JSON private key format to enable actual Google Drive sync functionality."
     - agent: "main"  
       message: "✅ PHASE 2 COMPLETED - Successfully implemented all requested features: (1) Add New Record functionality with comprehensive forms for ships, certificates, and documents, (2) AI Provider Configuration (Super Admin only) with OpenAI/Anthropic/Google provider selection, (3) Company Management (Super Admin only) with bilingual forms and full CRUD operations. All backend endpoints tested and working. Frontend UI components implemented with proper authentication and permissions. Ready for frontend testing or user acceptance."
     - agent: "main"
