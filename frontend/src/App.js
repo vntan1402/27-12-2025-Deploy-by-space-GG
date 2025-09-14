@@ -5000,6 +5000,10 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 // Add Record Modal Component
 const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies }) => {
   const [recordType, setRecordType] = useState('ship');
+  // PDF Analysis state
+  const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfAnalyzing, setPdfAnalyzing] = useState(false);
   const [shipData, setShipData] = useState({
     name: '',
     imo_number: '',
