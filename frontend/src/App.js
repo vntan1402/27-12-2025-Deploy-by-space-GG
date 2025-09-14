@@ -1189,8 +1189,20 @@ const AccountControlPage = () => {
     department: 'technical',
     company: '',
     ship: '',
-    zalo: ''
+    zalo: '',
+    gmail: ''
   });
+  // User filtering and sorting state
+  const [userFilters, setUserFilters] = useState({
+    company: '',
+    department: '',
+    ship: ''
+  });
+  const [userSorting, setUserSorting] = useState({
+    sortBy: 'full_name',
+    sortOrder: 'asc'
+  });
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [showPermissions, setShowPermissions] = useState(false);
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [showAIConfig, setShowAIConfig] = useState(false);
