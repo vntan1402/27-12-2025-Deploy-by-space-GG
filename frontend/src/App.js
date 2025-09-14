@@ -5560,19 +5560,27 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Công ty quản lý' : 'Company'} *
                 </label>
-                <select
-                  required
-                  value={shipData.company}
-                  onChange={(e) => setShipData(prev => ({ ...prev, company: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">{language === 'vi' ? 'Chọn công ty quản lý' : 'Select company'}</option>
-                  {availableCompanies.map(company => (
-                    <option key={company.id} value={language === 'vi' ? company.name_vn : company.name_en}>
-                      {language === 'vi' ? company.name_vn : company.name_en}
+                <div className="relative">
+                  <select
+                    required
+                    disabled
+                    value={shipData.company}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                  >
+                    <option value={shipData.company}>
+                      {shipData.company || (language === 'vi' ? 'Công ty của bạn' : 'Your company')}
                     </option>
-                  ))}
-                </select>
+                  </select>
+                  <div className="absolute right-2 top-2 text-gray-400">
+                    🔒
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' 
+                    ? 'Tự động điền từ công ty của bạn' 
+                    : 'Auto-filled from your company'
+                  }
+                </p>
               </div>
             </div>
           </div>
