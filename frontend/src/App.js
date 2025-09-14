@@ -5153,6 +5153,54 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handlePdfAnalysis = async () => {
+    if (!pdfFile) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn file PDF!' : 'Please select a PDF file!');
+      return;
+    }
+
+    setPdfAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', pdfFile);
+
+      const response = await axios.post(`${API}/analyze-ship-certificate`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      if (response.data.success) {
+        // Auto-fill ship data with extracted information
+        const extractedData = response.data.analysis;
+        setShipData(prev => ({
+          ...prev,
+          name: extractedData.ship_name || prev.name,
+          imo_number: extractedData.imo_number || prev.imo_number,
+          class_society: extractedData.class_society || prev.class_society,
+          flag: extractedData.flag || prev.flag,
+          gross_tonnage: extractedData.gross_tonnage || prev.gross_tonnage,
+          deadweight: extractedData.deadweight || prev.deadweight,
+          built_year: extractedData.built_year || prev.built_year,
+          ship_owner: extractedData.ship_owner || prev.ship_owner,
+          company: extractedData.company || prev.company
+        }));
+        
+        toast.success(language === 'vi' ? 'Phân tích PDF thành công! Đã tự động điền thông tin tàu.' : 'PDF analysis completed! Ship information auto-filled.');
+        setShowPdfAnalysis(false);
+        setPdfFile(null);
+      } else {
+        toast.error(language === 'vi' ? 'Phân tích PDF thất bại!' : 'PDF analysis failed!');
+      }
+    } catch (error) {
+      console.error('PDF analysis error:', error);
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(language === 'vi' ? `Lỗi phân tích PDF: ${errorMessage}` : `PDF analysis error: ${errorMessage}`);
+    } finally {
+      setPdfAnalyzing(false);
+    }
+  };
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
