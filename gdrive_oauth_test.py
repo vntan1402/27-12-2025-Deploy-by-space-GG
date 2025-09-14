@@ -11,7 +11,7 @@ import time
 from datetime import datetime, timezone
 
 class GoogleDriveOAuthTester:
-    def __init__(self, base_url="https://shipgooglesync.preview.emergentagent.com"):
+    def __init__(self, base_url="https://company-gdrive.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
@@ -23,7 +23,7 @@ class GoogleDriveOAuthTester:
         self.mock_oauth_config = {
             "client_id": "123456789-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com",
             "client_secret": "GOCSPX-abcdefghijklmnopqrstuvwxyz123456",
-            "redirect_uri": "https://shipgooglesync.preview.emergentagent.com/oauth/callback",
+            "redirect_uri": "https://company-gdrive.preview.emergentagent.com/oauth/callback",
             "folder_id": "1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB"
         }
         

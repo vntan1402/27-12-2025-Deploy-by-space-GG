@@ -1,83 +1,86 @@
 <analysis>
-The trajectory details the AI engineer's work on the Ship Management System. Initially, the focus was on resolving an Admin user's inability to edit their own company, which involved debugging authentication issues (race condition, incorrect token verification) and finally a JWT payload fix in . Following this, the System Google Drive Configuration was implemented, including test connection functionality and detailed setup guides. A major request was then made to migrate the database from file-based JSON to MongoDB (local). This involved setting up MongoDB, creating migration scripts, updating backend models, and refactoring  to use MongoDB. Post-migration, the system faced issues with missing API endpoints, which were subsequently identified and re-integrated into the MongoDB-enabled  from a backup. The entire process was thoroughly tested at each stage, culminating in a fully functional application with a MongoDB backend.
+The AI engineer's work in this trajectory primarily focused on implementing a Company Google Drive Configuration feature, mirroring the existing system-wide Google Drive setup. This involved renaming an existing section, adding comprehensive backend API endpoints in  for company-specific Google Drive settings (Service Account, OAuth 2.0, Apps Script proxy), and extensively modifying the frontend . A new  was created with dedicated state management and event handlers.
+
+Significant debugging resolved critical issues: a  conflict causing the new modal to appear behind the  modal, and persistent  /   errors during configuration and testing. The  flow was meticulously traced and fixed. Test data cleanup was also performed. The trajectory concluded with successful verification of the company-specific Google Drive configuration using real-world credentials, confirming full functionality of all three authentication methods.
 </analysis>
 
 <product_requirements>
-The user requested a Ship Management System with a five-tiered user permission system, AI support, bilingualism, local storage, and JWT authentication. Enhancements included a dynamic Home Page, Google Drive integration, a Remember me login, and UI text updates.
+The Ship Management System is a full-stack application featuring a React frontend, FastAPI backend, and MongoDB for persistence. Key features include a 5-tiered user permission system, AI support, bilingualism, JWT authentication, and Google Drive integration.
 
-During this trajectory, explicit requests included:
-1.  **Debugging Admin Edit Issue**: Fix Admin user's inability to see/edit their own company.
-2.  **System Google Drive Configuration**: Implement saving Service Account JSON and real Google Drive connection.
-3.  **Database Migration**: Convert the existing File-based JSON Database to MongoDB (initially Atlas, then Local).
-4.  **Database Location Inquiry**: Identify where the current database data is stored.
-5.  **Frontend Testing Post-Migration**: Verify UI functionality after the MongoDB migration.
-6.  **Fix Missing Content Post-Migration**: Resolve issues where Company Management content and System Google Drive Configuration details were not displaying after migration.
+Previous development phases addressed:
+1.  Fixing Admin user editing permissions.
+2.  Implementing and saving System Google Drive Configuration (Service Account).
+3.  Migrating the database from JSON files to MongoDB.
+4.  Verifying frontend functionality post-migration and resolving content display issues.
+5.  Developing and then removing a Permission Assignment Interface.
+6.  Extensive debugging and enhancement of System Google Drive Sync, transitioning from Service Account to OAuth 2.0, and finally to a Google Apps Script proxy to overcome Google API limitations.
+
+The explicit request for this trajectory was:
+1.  **Rename Google Drive API Configuration** within the Edit Company section to **Company Google Drive Configuration.**
+2.  **Create this new Company Google Drive Configuration section** inside the Edit Company modal, mirroring the existing **3-method structure** (Service Account, OAuth 2.0, Apps Script proxy) of the System Google Drive Configuration. The objective is to provide each company with its dedicated Google Drive integration settings.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack**: FastAPI (backend), React (frontend).
--   **Styling**: Tailwind CSS, Shadcn UI components.
--   **Database**: Transitioned from File-based (JSON) storage to MongoDB (local).
--   **Authentication**: JWT (JSON Web Tokens).
--   **Cloud Integration**: Google Drive API for data synchronization.
--   **Data Modeling**: Pydantic.
--   **Python Libraries**: ,  (for async MongoDB).
+-   **Database**: MongoDB (local) for data persistence.
+-   **Authentication**: JWT, OAuth 2.0 (Google).
+-   **Cloud Integration**: Google Drive API (Service Account, OAuth 2.0, Google Apps Script proxy).
+-   **Data Modeling**: Pydantic for API request/response validation.
+-   **Frontend**: React Context for state management, Tailwind CSS, Shadcn UI for styling.
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a React frontend and FastAPI backend. It transitioned from a file-based JSON database to MongoDB.
+The application consists of a React frontend and a FastAPI backend, utilizing MongoDB for data persistence.
 
 
+
 -   ****:
-    -   **Importance**: Defines all backend API routes and logic. It's the central hub for frontend-backend communication.
+    -   **Importance**: The core of the backend, defining all API routes and business logic. It now manages both system-wide and company-specific data, including Google Drive configurations.
+    -   **Changes Made**: New API endpoints were added under  to handle operations for company-specific Google Drive configurations. These include routes for configuring and testing Service Account, OAuth 2.0, and Apps Script proxy methods (, , , , , , ). The  Pydantic model was implicitly updated to support a nested  field for storing these settings.
+
+-   ****:
+    -   **Importance**: The main React component, responsible for the application's UI, state management, and interaction with the backend. It was heavily modified to incorporate the new company-specific Google Drive configuration.
     -   **Changes Made**:
-        -   Initially,  was updated to include  and  in JWT payload to fix  logic.
-        -   Modified to integrate MongoDB for all CRUD operations, replacing .
-        -   Added new endpoints for .
-        -   Crucially, after MongoDB migration, it was heavily refactored to re-introduce many missing endpoints (for companies, ships, certificates, AI config, usage stats, settings, etc.) that were inadvertently omitted during the migration, ensuring full functionality with MongoDB.
+        -   The Google Drive API Configuration section within the  was replaced by a Company Google Drive Configuration display and a button to open the new configuration modal.
+        -   New React state variables (e.g., , ) and associated handler functions (, ) were added to manage the company's Google Drive settings.
+        -   A new  component was created, mirroring the existing 's tabbed interface for Service Account, OAuth 2.0, and Apps Script proxy.
+        -   The  function was updated to fetch the relevant  when a company is selected for editing.
+        -   Critical debugging resolved  conflicts (modal overlay issues) and  errors, ensuring the correct  was passed and used in API calls. Error handling for Apps Script configuration was improved.
+
 -   ****:
-    -   **Importance**: Manages frontend UI, state, and component rendering, including authentication and various management pages.
-    -   **Changes Made**:
-        -   Fixed  race condition in AuthContext and simplified  logic to resolve authentication issues.
-        -   Updated  and  to fetch, display, and test Google Drive configuration.
-        -   Added client-side validation and cleaning for Google Drive Folder ID.
-        -   Fixed several JavaScript runtime errors related to , , and  on undefined values, particularly after the MongoDB migration.
+    -   **Importance**: A newly created Python script designed for safe removal of all test data (companies, users, ships, certificates, usage tracking, Google Drive configs) from MongoDB, leaving only essential admin users.
+    -   **Changes Made**: Initial creation, followed by debugging to correctly load environment variables and handle potential  errors during database interactions.
+
 -   ****:
-    -   **Importance**: Previously managed data persistence to JSON files.
-    -   **Changes Made**: Functionally superseded by  for core data operations, though still present as a file.
--   ****:
-    -   **Importance**: New file for establishing MongoDB connection and defining Pydantic models for MongoDB documents.
-    -   **Changes Made**: Created to handle MongoDB interactions.
--   ****:
-    -   **Importance**: Script to migrate existing data from JSON files to MongoDB.
-    -   **Changes Made**: Created and refined with better error handling during execution.
--   ****:
-    -   **Importance**: Original JSON data files. Now serve as a backup after migration to MongoDB.
-    -   **Changes Made**: Migrated data from these files into MongoDB.
--   ****:
-    -   **Importance**: A backup of the original  (which used the file-based database) to ensure no functionality was lost during migration.
-    -   **Changes Made**: Created as a backup.
+    -   **Importance**: New documentation providing detailed guidance for troubleshooting common issues related to the company-specific Google Drive Apps Script proxy configuration.
+    -   **Changes Made**: Created to assist users in diagnosing and resolving  messages and other configuration problems.
 </code_architecture>
 
 <pending_tasks>
--   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (user chose to do later).
--   Implement the detailed Permission Assignment Interface as a checklist within the  modal (the UI was added, but the explicit checklist within modal aspect needs verification).
+-   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (deferred by user).
 </pending_tasks>
 
 <current_work>
-The system is a fully functional Ship Management System with a modern UI, robust access control, and a MongoDB backend. All major User Management, Company Management, and Google Drive Configuration features, including granular permissions and dynamic forms, have been implemented. The database has been successfully migrated from file-based JSON to MongoDB Local, with all existing data transferred.
+The AI engineer has successfully completed the implementation of the **Company Google Drive Configuration** feature. This functionality enables each company in the Ship Management System to configure its own dedicated Google Drive integration using three distinct authentication methods: Service Account, OAuth 2.0, and the Google Apps Script proxy.
 
-**Current State:**
-*   **Authentication**: Fully functional JWT-based authentication with MongoDB.
-*   **Database**: All core application data (users, companies, ships, certificates, AI config, usage tracking) is stored and retrieved from MongoDB.
-*   **API Endpoints**: All previously existing and newly added backend API endpoints are correctly linked to MongoDB, providing full CRUD (Create, Read, Update, Delete) functionality.
-*   **Frontend Display**: The UI correctly displays all data fetched from the MongoDB backend across all management sections (User, Company, Ships, Certificates, System Google Drive Configuration, AI Configuration, AI Usage Tracking).
-*   **Google Drive Configuration**: System Google Drive configuration can be set, tested, and status displayed. Frontend includes validation and cleaning for the folder ID.
-*   **Issues Resolved**:
-    *   Admin user can now successfully edit their own company (fixed JWT payload in ).
-    *   Post-MongoDB migration issues like no content in Company Management and missing Google Drive config info have been resolved by re-integrating all necessary API endpoints into the MongoDB-enabled .
+**Current State of the Product:**
+-   **Backend ():** Fully equipped with new API endpoints () to handle the configuration, syncing, and testing of company-specific Google Drive settings for all three authentication methods. The  model in MongoDB now stores  data for each company.
+-   **Frontend ():**
+    -   The  modal now displays a Company Google Drive Configuration section with the current status (e.g., Not configured or Apps Script configured) and a Configure Company Google Drive button.
+    -   A new  provides a tabbed interface for configuring Service Account, OAuth 2.0, or Apps Script proxy, mirroring the system-wide configuration.
+    -   All necessary state management and event handlers (, , etc.) are in place.
+    -   The  function correctly fetches and displays the existing company's Google Drive configuration upon editing.
+
+**Nuances and Resolutions:**
+-   **Z-index Fix:** An initial issue where the  appeared behind the  modal was successfully resolved, ensuring proper UI layering and interactivity.
+-   **No Company ID Error Fix:** This was a persistent bug where API calls from the  failed due to an . The AI meticulously debugged the  flow, from the Configure Company Google Drive button's  handler to the modal's internal API calls, ensuring  was consistently and correctly passed. This involved removing conflicting state variables and streamlining data propagation.
+-   **Apps Script test error Resolution:** This error, often linked to the  or incorrect external configurations, was addressed by fixing the  issue, improving frontend error messages, and providing a working example Apps Script URL. Backend API tests with user-provided real credentials confirmed the backend's functionality.
+-   **Test Data Cleanup:** A script () was developed and executed to safely remove all test data from the MongoDB database, leaving a clean environment with only essential admin users.
+-   **Troubleshooting Documentation:** A new markdown file () was created to assist users with debugging common issues related to the company-specific Apps Script proxy.
+
+The application is now fully functional with the requested company-specific Google Drive integration, tested, and ready for use with real data.
 </current_work>
 
 <optional_next_step>
-The previous task of fixing missing content after MongoDB migration is fully resolved.
+The Company Google Drive Configuration feature is complete and verified. No explicit next steps were requested by the user.
 </optional_next_step>

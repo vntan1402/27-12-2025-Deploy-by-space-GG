@@ -14,7 +14,7 @@ from datetime import datetime
 
 class AppsScriptURLDebugger:
     def __init__(self):
-        self.backend_url = "https://shipgooglesync.preview.emergentagent.com/api"
+        self.backend_url = "https://company-gdrive.preview.emergentagent.com/api"
         self.apps_script_url = "https://script.google.com/macros/s/AKfycbyZx8bjPTBzPCs0CcPUsvk8rW6rBinx0PwmZy_hDViqgWVKX1KDPJ3aFleSOQRA81M/exec"
         self.folder_id = "1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB"
         self.token = None
