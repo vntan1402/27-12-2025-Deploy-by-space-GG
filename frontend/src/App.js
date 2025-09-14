@@ -5178,7 +5178,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     deadweight: '',
     built_year: '',
     ship_owner: '',
-    company: ''
+    company: user?.company || '' // Auto-fill with user's company
   });
   const [certificateData, setCertificateData] = useState({
     ship_id: selectedShip?.id || '',
