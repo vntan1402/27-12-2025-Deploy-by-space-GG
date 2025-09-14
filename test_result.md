@@ -248,6 +248,18 @@
           comment: "✅ USER MANAGEMENT WITH SHIP FIELD COMPREHENSIVE TESTING COMPLETED - All 11/11 API tests passed and 7/7 feature tests successful. Authentication with admin/admin123: ✅ (Super Admin role verified), GET /api/users: ✅ (ship field present in all 3 users, currently 0 users with ship assigned), GET /api/companies: ✅ (found 5 companies with proper data structure), GET /api/ships: ✅ (found 7 ships with proper data structure), User Models Ship Field Support: ✅ (UserCreate, UserUpdate, UserResponse models properly support ship field), PUT /api/users/{user_id}: ✅ (successfully updates users with ship field, admin user updated with ship ID c810ce09-afc4-47ea-98b0-cba976219546), Edge Cases Testing: ✅ (empty ship field handled correctly as None, non-existent ship IDs accepted as optional validation). Created test user 'ship_test_user_1757718978' with ship field successfully assigned. All User Management backend functionality with updated ship field is working correctly and production-ready."
 
 ## frontend:
+  - task: "Ship Form Enhancement with PDF Analysis and Required Fields"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Updated AddRecordModal with: 1) Ship Owner and Company as required dropdown fields from existing companies, 2) Changed 'Hãng đăng kiểm' to 'Tổ chức Phân cấp', 3) Added 'Thêm tàu mới từ Giấy chứng nhận' button with PDF upload modal, AI analysis, and auto-fill functionality. Added fetchAvailableCompanies function and PDF analysis state management."
+
   - task: "Ship Form Enhancement with Owner and Company Fields"
     implemented: true
     working: false
