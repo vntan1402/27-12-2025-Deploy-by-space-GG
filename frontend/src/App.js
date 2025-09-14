@@ -1130,8 +1130,8 @@ const HomePage = () => {
                             <span className="ml-2">{selectedShip.name}</span>
                           </div>
                           <div>
-                            <span className="font-semibold">{language === 'vi' ? 'Hạng:' : 'Class:'}</span>
-                            <span className="ml-2">{selectedShip.class_society}</span>
+                            <span className="font-semibold">{language === 'vi' ? 'Tổ chức Phân cấp:' : 'Class Society:'}</span>
+                            <span className="ml-2">{selectedShip.ship_type || selectedShip.class_society || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
