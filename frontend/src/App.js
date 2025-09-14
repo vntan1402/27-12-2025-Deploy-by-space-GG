@@ -1638,6 +1638,41 @@ const AccountControlPage = () => {
     }
   };
 
+  const handlePdfAnalysis = async () => {
+    if (!pdfFile) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn file PDF!' : 'Please select a PDF file!');
+      return;
+    }
+
+    setPdfAnalyzing(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', pdfFile);
+
+      const response = await axios.post(`${API}/analyze-pdf`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
+      });
+
+      if (response.data.success) {
+        toast.success(language === 'vi' ? 'Phân tích PDF thành công!' : 'PDF analysis completed!');
+        // You can handle the analysis results here
+        console.log('PDF Analysis Results:', response.data.analysis);
+      } else {
+        toast.error(language === 'vi' ? 'Phân tích PDF thất bại!' : 'PDF analysis failed!');
+      }
+    } catch (error) {
+      console.error('PDF analysis error:', error);
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(language === 'vi' ? `Lỗi phân tích PDF: ${errorMessage}` : `PDF analysis error: ${errorMessage}`);
+    } finally {
+      setPdfAnalyzing(false);
+      setShowPdfAnalysis(false);
+      setPdfFile(null);
+    }
+  };
+
   // Company Google Drive Configuration Functions
   const fetchCompanyGoogleDriveStatus = async (companyId) => {
     try {
