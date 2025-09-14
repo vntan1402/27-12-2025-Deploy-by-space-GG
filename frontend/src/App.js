@@ -681,6 +681,7 @@ const HomePage = () => {
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
+  const [showShipListModal, setShowShipListModal] = useState(false);
   const navigate = useNavigate();
   
   const t = translations[language];
