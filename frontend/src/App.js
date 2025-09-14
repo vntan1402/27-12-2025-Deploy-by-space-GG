@@ -4463,15 +4463,30 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Zalo</label>
-            <input
-              type="text"
-              value={userData.zalo || ''}
-              onChange={(e) => setUserData(prev => ({ ...prev, zalo: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Số điện thoại Zalo' : 'Zalo phone number'}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Zalo *
+              </label>
+              <input
+                type="text"
+                required
+                value={userData.zalo || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, zalo: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Số điện thoại Zalo (bắt buộc)' : 'Zalo phone number (required)'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gmail</label>
+              <input
+                type="email"
+                value={userData.gmail || ''}
+                onChange={(e) => setUserData(prev => ({ ...prev, gmail: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Địa chỉ Gmail (không bắt buộc)' : 'Gmail address (optional)'}
+              />
+            </div>
           </div>
 
           <div>
