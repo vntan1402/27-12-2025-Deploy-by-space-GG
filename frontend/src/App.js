@@ -2424,30 +2424,31 @@ const AccountControlPage = () => {
         {/* Company Google Drive Configuration Modal */}
         {showCompanyGoogleDrive && (
           <CompanyGoogleDriveModal
-            companyId={companyData?.id}
+            companyId={companyGdriveCompanyId}
             config={companyGdriveConfig}
             setConfig={setCompanyGdriveConfig}
             currentConfig={companyGdriveCurrentConfig}
             onClose={() => {
               console.log('🔍 Debug - Closing Company Google Drive modal');
               setShowCompanyGoogleDrive(false);
+              setCompanyGdriveCompanyId(null); // Clear company ID
             }}
             onSave={() => {
               console.log('🔍 Debug - Company Google Drive Save clicked');
-              console.log('   companyData?.id:', companyData?.id);
+              console.log('   companyGdriveCompanyId:', companyGdriveCompanyId);
               
-              if (companyData?.id) {
-                handleCompanyGoogleDriveConfig(companyData.id);
+              if (companyGdriveCompanyId) {
+                handleCompanyGoogleDriveConfig(companyGdriveCompanyId);
               } else {
                 toast.error(language === 'vi' ? 'Lỗi: Không có Company ID để lưu' : 'Error: No Company ID to save');
               }
             }}
             onTest={() => {
               console.log('🔍 Debug - Company Google Drive Test clicked (onTest prop)');
-              console.log('   companyData?.id:', companyData?.id);
+              console.log('   companyGdriveCompanyId:', companyGdriveCompanyId);
               
-              if (companyData?.id) {
-                handleTestCompanyGoogleDriveConnection(companyData.id);
+              if (companyGdriveCompanyId) {
+                handleTestCompanyGoogleDriveConnection(companyGdriveCompanyId);
               } else {
                 toast.error(language === 'vi' ? 'Lỗi: Không có Company ID để test' : 'Error: No Company ID to test');
               }
