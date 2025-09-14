@@ -119,10 +119,9 @@ class GoogleDriveOAuthTester:
                 print(f"   ✅ State parameter: {state}")
                 
                 # Store state for callback test
-                self.mock_callback_data['state'] = response.get('state', '')
+                self.mock_callback_data['state'] = state
                 
                 # Verify URL contains expected parameters
-                auth_url = response.get('authorization_url', '')
                 if 'accounts.google.com' in auth_url and 'client_id' in auth_url:
                     print(f"   ✅ Authorization URL format valid")
                     return True
