@@ -2169,6 +2169,189 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
         logger.error(f"Error fetching ship certificates: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ship certificates")
 
+# Certificate Upload with Company Google Drive Integration
+@api_router.post("/certificates/upload-with-file", response_model=CertificateResponse)
+async def create_certificate_with_file_upload(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    cert_name: str = Form(...),
+    cert_no: str = Form(...),
+    issue_date: str = Form(...),
+    valid_date: str = Form(...),
+    last_endorse: Optional[str] = Form(None),
+    next_survey: Optional[str] = Form(None),
+    category: str = Form(...),
+    sensitivity_level: str = Form(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create new certificate with file upload to Company Google Drive"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # File size validation (150MB limit as specified by user)
+        MAX_FILE_SIZE = 150 * 1024 * 1024  # 150MB in bytes
+        if file.size and file.size > MAX_FILE_SIZE:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File size exceeds 150MB limit")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ship not found")
+        
+        # Get user's company information
+        if not current_user.company:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not associated with any company")
+        
+        # Find company by name (matching either name_vn or name_en)
+        company = await mongo_db.find_one("companies", {
+            "$or": [
+                {"name_vn": current_user.company},
+                {"name_en": current_user.company}
+            ]
+        })
+        
+        if not company:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Company not found")
+        
+        # Check if company has Google Drive configured
+        gdrive_config = company.get('gdrive_config', {})
+        if not gdrive_config.get('configured', False):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Google Drive not configured for your company. Please contact administrator to configure Google Drive."
+            )
+        
+        # Create certificate metadata
+        cert_dict = {
+            'id': str(uuid.uuid4()),
+            'ship_id': ship_id,
+            'cert_name': cert_name,
+            'cert_no': cert_no,
+            'issue_date': datetime.fromisoformat(issue_date.replace('Z', '+00:00')),
+            'valid_date': datetime.fromisoformat(valid_date.replace('Z', '+00:00')),
+            'last_endorse': datetime.fromisoformat(last_endorse.replace('Z', '+00:00')) if last_endorse else None,
+            'next_survey': datetime.fromisoformat(next_survey.replace('Z', '+00:00')) if next_survey else None,
+            'category': category,
+            'sensitivity_level': sensitivity_level,
+            'created_at': datetime.now(timezone.utc),
+            'file_uploaded': False,
+            'google_drive_file_id': None,
+            'file_name': file.filename,
+            'file_size': file.size
+        }
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Upload file to Company Google Drive "DATA INPUT" folder organized by date
+        try:
+            upload_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            
+            auth_method = gdrive_config.get("auth_method", "service_account")
+            
+            if auth_method == "apps_script":
+                # Upload via Apps Script proxy
+                web_app_url = gdrive_config.get("web_app_url")
+                folder_id = gdrive_config.get("folder_id")
+                
+                if not web_app_url or not folder_id:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google Drive configuration incomplete")
+                
+                # Create DATA INPUT folder structure: ROOT_FOLDER/DATA INPUT/YYYY-MM-DD/
+                folder_structure_payload = {
+                    "action": "create_folder_structure",
+                    "parent_folder_id": folder_id,
+                    "folder_path": f"DATA INPUT/{upload_date}"
+                }
+                
+                folder_response = requests.post(web_app_url, json=folder_structure_payload, timeout=30)
+                
+                if folder_response.status_code != 200:
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                                      detail="Failed to create folder structure in Google Drive")
+                
+                folder_result = folder_response.json()
+                if not folder_result.get('success'):
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                                      detail=f"Failed to create folder: {folder_result.get('message')}")
+                
+                target_folder_id = folder_result.get('folder_id')
+                
+                # Upload file to the date-organized folder
+                import base64
+                file_content_base64 = base64.b64encode(file_content).decode('utf-8')
+                
+                upload_payload = {
+                    "action": "upload_file",
+                    "folder_id": target_folder_id,
+                    "file_name": f"{cert_name}_{cert_no}_{file.filename}",
+                    "file_content": file_content_base64,
+                    "mime_type": file.content_type or "application/octet-stream"
+                }
+                
+                upload_response = requests.post(web_app_url, json=upload_payload, timeout=60)
+                
+                if upload_response.status_code != 200:
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                                      detail="Failed to upload file to Google Drive")
+                
+                upload_result = upload_response.json()
+                if not upload_result.get('success'):
+                    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                                      detail=f"File upload failed: {upload_result.get('message')}")
+                
+                cert_dict['file_uploaded'] = True
+                cert_dict['google_drive_file_id'] = upload_result.get('file_id')
+                cert_dict['google_drive_folder_path'] = f"DATA INPUT/{upload_date}"
+                
+            elif auth_method == "service_account":
+                # Upload via Service Account (to be implemented if needed)
+                raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, 
+                                  detail="Service Account upload not yet implemented")
+            
+            elif auth_method == "oauth":
+                # Upload via OAuth (to be implemented if needed)
+                raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, 
+                                  detail="OAuth upload not yet implemented")
+            
+            else:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                                  detail="Unsupported Google Drive authentication method")
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Google Drive upload error: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                              detail="Failed to upload file to Google Drive")
+        
+        # Save certificate record to MongoDB
+        await mongo_db.create("certificates", cert_dict)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "create_certificate_with_file",
+            "resource": "certificates",
+            "details": {
+                "certificate_id": cert_dict['id'], 
+                "ship_id": ship_id,
+                "company_id": company['id'],
+                "file_name": file.filename,
+                "file_size": file.size,
+                "google_drive_uploaded": cert_dict['file_uploaded']
+            },
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return CertificateResponse(**cert_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating certificate with file upload: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                          detail="Failed to create certificate with file upload")
+
 # AI Configuration Routes  
 @api_router.get("/ai-config")
 async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
