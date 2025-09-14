@@ -106,6 +106,18 @@
 "Ship management enhancements: Make Ship Owner and Company fields mandatory with dropdown selection from existing companies. Change 'Hãng đăng kiểm' to 'Tổ chức Phân cấp'. Add 'Thêm tàu mới từ Giấy chứng nhận' button with PDF upload and AI analysis using Emergent LLM key to auto-fill ship form fields (max 5MB PDF files)."
 
 ## backend:
+  - task: "PDF Analysis API with Emergent LLM Integration"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Added /api/analyze-ship-certificate endpoint using Emergent LLM key with Gemini 2.0 Flash model. Supports PDF upload (max 5MB), extracts ship information, and returns structured JSON data for auto-filling ship forms. Includes proper error handling and temporary file cleanup."
+
   - task: "Ship Management Enhancement with Owner and Company Fields"
     implemented: true
     working: true
