@@ -2451,7 +2451,13 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
               {language === 'vi' ? 'Cấu hình hiện tại:' : 'Current Configuration:'}
             </h4>
             <div className="text-sm text-green-700 space-y-1">
-              <div><strong>{language === 'vi' ? 'Method:' : 'Auth Method:'}</strong> {currentConfig.auth_method === 'oauth' ? 'OAuth 2.0' : 'Service Account'}</div>
+              <div><strong>{language === 'vi' ? 'Method:' : 'Auth Method:'}</strong> {
+                currentConfig.auth_method === 'apps_script' 
+                  ? 'Apps Script' 
+                  : currentConfig.auth_method === 'oauth' 
+                    ? 'OAuth 2.0' 
+                    : 'Service Account'
+              }</div>
               <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {currentConfig.folder_id}</div>
               {currentConfig.last_sync && (
                 <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {currentConfig.last_sync ? new Date(currentConfig.last_sync).toLocaleString() : 'Never'}</div>
