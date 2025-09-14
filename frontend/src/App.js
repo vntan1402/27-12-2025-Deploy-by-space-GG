@@ -994,39 +994,83 @@ const HomePage = () => {
                       </div>
                       
                       {/* Ship Information */}
-                      <div className="grid grid-cols-2 gap-4 text-sm mb-6">
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
-                          <span className="ml-2">{selectedShip.name}</span>
+                      <div className="mb-6">
+                        {/* Basic Ship Info (Always visible) */}
+                        <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
+                            <span className="ml-2">{selectedShip.name}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Hạng:' : 'Class:'}</span>
+                            <span className="ml-2">{selectedShip.class_society}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
+                            <span className="ml-2">{selectedShip.flag}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
+                            <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Hạng:' : 'Class:'}</span>
-                          <span className="ml-2">{selectedShip.class_society}</span>
+
+                        {/* Ship Particular Button */}
+                        <div className="flex justify-center mb-4">
+                          <button
+                            onClick={() => setShowFullShipInfo(!showFullShipInfo)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all flex items-center"
+                          >
+                            <span className="mr-2">🚢</span>
+                            {language === 'vi' ? 'Thông số kỹ thuật tàu' : 'Ship Particular'}
+                            <span className="ml-2">
+                              {showFullShipInfo ? '▲' : '▼'}
+                            </span>
+                          </button>
                         </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
-                          <span className="ml-2">{selectedShip.flag}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
-                          <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
-                          <span className="ml-2">{selectedShip.deadweight?.toLocaleString()}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
-                          <span className="ml-2">{selectedShip.built_year}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
-                          <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Company:'}</span>
-                          <span className="ml-2">{selectedShip.company || '-'}</span>
-                        </div>
+
+                        {/* Full Ship Info (Toggle visibility) */}
+                        {showFullShipInfo && (
+                          <div className="grid grid-cols-2 gap-4 text-sm p-4 bg-gray-50 rounded-lg border">
+                            <div className="col-span-2">
+                              <h4 className="font-semibold text-gray-700 mb-3 border-b pb-2">
+                                {language === 'vi' ? 'Thông tin chi tiết tàu' : 'Detailed Ship Information'}
+                              </h4>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
+                              <span className="ml-2">{selectedShip.name}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Hạng:' : 'Class:'}</span>
+                              <span className="ml-2">{selectedShip.class_society}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
+                              <span className="ml-2">{selectedShip.flag}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
+                              <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
+                              <span className="ml-2">{selectedShip.deadweight?.toLocaleString()}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
+                              <span className="ml-2">{selectedShip.built_year}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
+                              <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Company:'}</span>
+                              <span className="ml-2">{selectedShip.company || '-'}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Sub Menu */}
