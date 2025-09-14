@@ -980,27 +980,8 @@ const HomePage = () => {
                         </button>
                       </div>
                       
-                      {/* Sub Menu */}
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-2">
-                          {subMenuItems[selectedCategory] && subMenuItems[selectedCategory].map((item) => (
-                            <button
-                              key={item.key}
-                              onClick={() => setSelectedSubMenu(item.key)}
-                              className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                                selectedSubMenu === item.key 
-                                  ? 'bg-blue-600 text-white' 
-                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                              }`}
-                            >
-                              {item.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      
                       {/* Ship Information */}
-                      <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                         <div>
                           <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
                           <span className="ml-2">{selectedShip.name}</span>
@@ -1032,6 +1013,25 @@ const HomePage = () => {
                         <div>
                           <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Company:'}</span>
                           <span className="ml-2">{selectedShip.company || '-'}</span>
+                        </div>
+                      </div>
+
+                      {/* Sub Menu */}
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {subMenuItems[selectedCategory] && subMenuItems[selectedCategory].map((item) => (
+                            <button
+                              key={item.key}
+                              onClick={() => setSelectedSubMenu(item.key)}
+                              className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                                selectedSubMenu === item.key 
+                                  ? 'bg-blue-600 text-white' 
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              }`}
+                            >
+                              {item.name}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     </div>
