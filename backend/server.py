@@ -165,11 +165,19 @@ class ShipResponse(ShipBase):
 # Certificate models
 class CertificateBase(BaseModel):
     ship_id: str
-    type: str
-    issuer: str
+    cert_name: str
+    cert_no: str
     issue_date: datetime
-    expiry_date: datetime
-    status: str = "valid"
+    valid_date: datetime
+    last_endorse: Optional[datetime] = None
+    next_survey: Optional[datetime] = None
+    category: str = "certificates"
+    sensitivity_level: str = "public"
+    file_uploaded: bool = False
+    google_drive_file_id: Optional[str] = None
+    google_drive_folder_path: Optional[str] = None
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
 
 class CertificateCreate(CertificateBase):
     pass
