@@ -715,6 +715,16 @@ const HomePage = () => {
     }
   };
 
+  const fetchAvailableCompanies = async () => {
+    try {
+      const response = await axios.get(`${API}/companies`);
+      setAvailableCompanies(response.data);
+    } catch (error) {
+      console.error('Failed to fetch companies:', error);
+      setAvailableCompanies([]);
+    }
+  };
+
   const fetchCertificates = async (shipId) => {
     try {
       const response = await axios.get(`${API}/ships/${shipId}/certificates`);
