@@ -2211,9 +2211,47 @@ const AccountControlPage = () => {
 
 // Google Drive Configuration Modal Component
 const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, onTest, testLoading, language }) => {
+  const [authMethod, setAuthMethod] = useState(config.auth_method || 'oauth');
+  const [oauthLoading, setOauthLoading] = useState(false);
+  
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
+    }
+  };
+
+  const handleAuthMethodChange = (method) => {
+    setAuthMethod(method);
+    setConfig(prev => ({ ...prev, auth_method: method }));
+  };
+
+  const handleOAuthAuthorize = async () => {
+    try {
+      setOauthLoading(true);
+      
+      const oauthConfig = {
+        client_id: config.client_id,
+        client_secret: config.client_secret,
+        redirect_uri: `${window.location.origin}/oauth2callback`,
+        folder_id: config.folder_id
+      };
+
+      const response = await axios.post(`${API}/gdrive/oauth/authorize`, oauthConfig);
+      
+      if (response.data.success && response.data.authorization_url) {
+        // Store state for later use
+        sessionStorage.setItem('oauth_state', response.data.state);
+        
+        // Redirect to Google OAuth
+        window.location.href = response.data.authorization_url;
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tạo URL xác thực' : 'Failed to generate authorization URL');
+      }
+    } catch (error) {
+      console.error('OAuth authorization error:', error);
+      toast.error(language === 'vi' ? 'Lỗi xác thực OAuth' : 'OAuth authorization error');
+    } finally {
+      setOauthLoading(false);
     }
   };
 
