@@ -958,11 +958,34 @@ const HomePage = () => {
                   {/* Ship Header with Photo */}
                   <div className="grid md:grid-cols-3 gap-6 mb-6">
                     <div className="md:col-span-1">
-                      <div className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center">
+                      <div className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center mb-4">
                         <div className="text-center">
                           <div className="text-4xl mb-2">🚢</div>
                           <p className="font-semibold">SHIP PHOTO</p>
                         </div>
+                      </div>
+                      
+                      {/* Quick Access Menu under Photo */}
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                          {language === 'vi' ? 'Truy cập nhanh' : 'Quick Access'}
+                        </h3>
+                        {subMenuItems.documents && subMenuItems.documents.map((item) => (
+                          <button
+                            key={item.key}
+                            onClick={() => {
+                              setSelectedCategory('documents');
+                              setSelectedSubMenu(item.key);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                              selectedCategory === 'documents' && selectedSubMenu === item.key 
+                                ? 'bg-blue-100 text-blue-800 border-l-4 border-blue-600' 
+                                : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {item.name}
+                          </button>
+                        ))}
                       </div>
                     </div>
                     
