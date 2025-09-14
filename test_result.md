@@ -391,7 +391,7 @@
 
 ## test_plan:
   current_focus:
-    - "Apps Script Proxy Connection Error Debug and Fix"
+    - "Google Drive Configuration Display Issue Resolved"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
