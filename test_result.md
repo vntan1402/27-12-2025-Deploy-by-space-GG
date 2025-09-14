@@ -548,16 +548,19 @@
   test_priority: "high_first"
 
   - task: "Certificate Upload Integration with Company Google Drive"
-    implemented: false
+    implemented: true
     working: false
     file: "server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Starting implementation of certificate upload integration with Company Google Drive. Current certificate upload only saves data to MongoDB database without file uploads. Need to modify the certificate upload process to upload actual certificate files to company-specific Google Drive 'DATA INPUT' folder organized by upload date."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL IMPLEMENTATION ISSUES IDENTIFIED - Comprehensive testing of certificate upload functionality completed with 6/8 tests passed but 2 CRITICAL failures found. AUTHENTICATION & BASIC FUNCTIONALITY: ✅ Authentication with admin/admin123 successful, ✅ New endpoint /api/certificates/upload-with-file exists and responds (not 404), ✅ Existing /api/certificates endpoint still working correctly, ✅ Users have companies assigned (test user assigned to AMCSC), ✅ Company Google Drive configurations exist (AMCSC configured with Apps Script), ✅ File size validation logic present (150MB limit implemented). CRITICAL ISSUES FOUND: 🔥 Apps Script Compatibility Failure - Backend code uses actions 'create_folder_structure' and 'upload_file' but the configured Apps Script only supports ['test_connection', 'sync_to_drive', 'list_files']. This is a fundamental mismatch between backend implementation and Apps Script capabilities. 🔥 Complete Certificate Upload Workflow Failure - All upload attempts fail with 500 status 'Failed to create folder: None' due to Apps Script incompatibility. ROOT CAUSE: The backend certificate upload implementation expects Apps Script to support folder creation and file upload actions that don't exist in the current Apps Script. The Apps Script URL (https://script.google.com/macros/s/AKfycbzi8DdyZ85Oi9H6s-HH5CTp28HFquCWB-CquduS7MT1SBytLB_awx1UqASBVvL51SE/exec) only supports basic sync operations, not individual file uploads with folder organization. IMPACT: Certificate upload with file functionality is completely non-functional due to this implementation mismatch."
 
 ## agent_communication:
     - agent: "main"
