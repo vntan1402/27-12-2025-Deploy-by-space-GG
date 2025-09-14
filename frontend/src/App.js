@@ -3960,8 +3960,6 @@ const CompanyFormModal = ({
                 console.log('🔍 Debug - Configure Company Google Drive clicked');
                 console.log('   companyData:', companyData);
                 console.log('   companyData.id:', companyData.id);
-                console.log('   editingCompany:', editingCompany);
-                console.log('   editingCompany?.id:', editingCompany?.id);
                 
                 if (companyData.id) {
                   console.log('✅ Using companyData.id:', companyData.id);
