@@ -874,11 +874,22 @@ async def sync_to_drive(current_user: UserResponse = Depends(get_current_user)):
         if not has_permission(current_user, UserRole.ADMIN):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         
-        # Export data from MongoDB
+        # Initialize Google Drive manager
+        gdrive_manager = GoogleDriveManager()
+        
+        if not gdrive_manager.is_configured:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google Drive not configured")
+        
+        # Export data from MongoDB to JSON files
         export_data = await mongo_db.export_to_json()
         
-        # Here you would implement actual Google Drive upload
-        # For now, just update last_sync timestamp
+        # Actually sync to Google Drive using the manager
+        sync_success = gdrive_manager.sync_to_drive()
+        
+        if not sync_success:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync data to Google Drive")
+        
+        # Update last_sync timestamp
         await mongo_db.update("gdrive_config", {}, {
             "last_sync": datetime.now(timezone.utc).isoformat()
         })
@@ -891,13 +902,13 @@ async def sync_to_drive(current_user: UserResponse = Depends(get_current_user)):
             "timestamp": datetime.now(timezone.utc)
         })
         
-        return {"message": "Data synced to Google Drive successfully"}
+        return {"message": "Data synced to Google Drive successfully", "success": True}
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error syncing to Google Drive: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync to Google Drive")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to sync to Google Drive: {str(e)}")
 
 @api_router.post("/gdrive/sync-from-drive")
 async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)):
