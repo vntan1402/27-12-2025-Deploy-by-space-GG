@@ -183,11 +183,14 @@ class CertificateCreate(CertificateBase):
     pass
 
 class CertificateUpdate(BaseModel):
-    type: Optional[str] = None
-    issuer: Optional[str] = None
+    cert_name: Optional[str] = None
+    cert_no: Optional[str] = None
     issue_date: Optional[datetime] = None
-    expiry_date: Optional[datetime] = None
-    status: Optional[str] = None
+    valid_date: Optional[datetime] = None
+    last_endorse: Optional[datetime] = None
+    next_survey: Optional[datetime] = None
+    category: Optional[str] = None
+    sensitivity_level: Optional[str] = None
 
 class CertificateResponse(CertificateBase):
     id: str
