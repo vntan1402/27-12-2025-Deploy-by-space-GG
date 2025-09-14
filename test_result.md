@@ -386,7 +386,8 @@
 ## test_plan:
   current_focus:
     - "Apps Script Proxy Connection Error Debug and Fix"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Apps Script Proxy Connection Error Debug and Fix"
   test_all: false
   test_priority: "high_first"
 
