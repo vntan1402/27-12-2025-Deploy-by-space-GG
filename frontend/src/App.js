@@ -586,6 +586,62 @@ const LoginPage = () => {
 
 // Main App Component
 const App = () => {
+  const { language } = useAuth();
+  const [gdriveConfig, setGdriveConfig] = useState({
+    folder_id: ''
+  });
+
+  // Handle OAuth 2.0 callback
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      const storedState = sessionStorage.getItem('oauth_state');
+
+      if (window.location.pathname === '/oauth2callback' && code && state && state === storedState) {
+        try {
+          const response = await axios.post(`${API}/gdrive/oauth/callback`, {
+            authorization_code: code,
+            state: state,
+            folder_id: gdriveConfig.folder_id
+          });
+
+          if (response.data.success) {
+            toast.success(language === 'vi' ? 'OAuth xác thực thành công!' : 'OAuth authorization successful!');
+            
+            // Clean up
+            sessionStorage.removeItem('oauth_state');
+            
+            // Redirect back to settings page
+            window.location.href = '/';
+          } else {
+            toast.error(language === 'vi' ? 'OAuth xác thực thất bại' : 'OAuth authorization failed');
+          }
+        } catch (error) {
+          console.error('OAuth callback error:', error);
+          toast.error(language === 'vi' ? 'Lỗi xử lý OAuth callback' : 'OAuth callback processing error');
+        }
+      }
+    };
+
+    handleOAuthCallback();
+  }, []);
+
+  // OAuth callback route handling
+  if (window.location.pathname === '/oauth2callback') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {language === 'vi' ? 'Đang xử lý xác thực OAuth...' : 'Processing OAuth authorization...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -596,6 +652,7 @@ const App = () => {
             <Route path="/account-control" element={<ProtectedRoute><AccountControlPage /></ProtectedRoute>} />
             <Route path="/ships" element={<ProtectedRoute><ShipsPage /></ProtectedRoute>} />
             <Route path="/ships/:shipId" element={<ProtectedRoute><ShipDetailPage /></ProtectedRoute>} />
+            <Route path="/oauth2callback" element={<div>Processing OAuth...</div>} />
             <Route path="/" element={<Navigate to="/login" />} />
           </Routes>
           <Toaster position="top-right" />
