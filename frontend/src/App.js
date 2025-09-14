@@ -1852,8 +1852,8 @@ const AccountControlPage = () => {
   };
 
   const handleAddUser = async () => {
-    if (!newUserData.username || !newUserData.password || !newUserData.full_name) {
-      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc (Tên đăng nhập, Mật khẩu, Họ tên)!' : 'Please fill in all required fields (Username, Password, Full Name)!');
+    if (!newUserData.username || !newUserData.password || !newUserData.full_name || !newUserData.zalo) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc (Tên đăng nhập, Mật khẩu, Họ tên, Zalo)!' : 'Please fill in all required fields (Username, Password, Full Name, Zalo)!');
       return;
     }
     
@@ -1870,7 +1870,8 @@ const AccountControlPage = () => {
         department: 'technical',
         company: '',
         ship: '',
-        zalo: ''
+        zalo: '',
+        gmail: ''
       });
       fetchUsers();
     } catch (error) {
