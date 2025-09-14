@@ -5164,7 +5164,11 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user } = useAuth();
-  const [recordType, setRecordType] = useState('ship');
+  const [recordType, setRecordType] = useState(() => {
+    // Default to 'certificate' if user can't create ships
+    const allowedRoles = ['manager', 'admin', 'super_admin'];
+    return allowedRoles.includes(user?.role) ? 'ship' : 'certificate';
+  });
   // PDF Analysis state
   const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
