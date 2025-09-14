@@ -31,6 +31,10 @@ class GoogleDriveManager:
             # Parse service account JSON
             credentials_dict = json.loads(service_account_json)
             
+            # Fix escaped newlines in private key
+            if 'private_key' in credentials_dict:
+                credentials_dict['private_key'] = credentials_dict['private_key'].replace('\\n', '\n')
+            
             # Create credentials from service account info
             scopes = ['https://www.googleapis.com/auth/drive']
             self.credentials = service_account.Credentials.from_service_account_info(
