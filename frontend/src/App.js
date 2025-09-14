@@ -682,6 +682,8 @@ const HomePage = () => {
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
   const [showShipListModal, setShowShipListModal] = useState(false);
+  const [showEditShipModal, setShowEditShipModal] = useState(false);
+  const [editingShipData, setEditingShipData] = useState(null);
   const navigate = useNavigate();
   
   const t = translations[language];
