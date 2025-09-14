@@ -2717,6 +2717,12 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                   placeholder="https://script.google.com/macros/s/AKfycby.../exec"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' 
+                    ? 'Ví dụ: https://script.google.com/macros/s/AKfycbzi8DdyZ85Oi9H6s-HH5CTp28HFquCWB-CquduS7MT1SBytLB_awx1UqASBVvL51SE/exec'
+                    : 'Example: https://script.google.com/macros/s/AKfycbzi8DdyZ85Oi9H6s-HH5CTp28HFquCWB-CquduS7MT1SBytLB_awx1UqASBVvL51SE/exec'
+                  }
+                </p>
               </div>
 
               <div>
