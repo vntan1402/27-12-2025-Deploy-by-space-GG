@@ -3970,6 +3970,8 @@ const CompanyFormModal = ({
                 
                 if (companyData.id) {
                   console.log('✅ Using companyData.id:', companyData.id);
+                  // Store company ID for modal to use
+                  setCompanyGdriveCompanyId(companyData.id);
                   fetchCompanyGoogleDriveConfig(companyData.id);
                   fetchCompanyGoogleDriveStatus(companyData.id);
                   setShowCompanyGoogleDrive(true);
