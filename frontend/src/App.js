@@ -5119,7 +5119,6 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 // Add Record Modal Component
 const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies }) => {
   const API = process.env.REACT_APP_BACKEND_URL;
-  const { toast } = useToast();
   const [recordType, setRecordType] = useState('ship');
   // PDF Analysis state
   const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
