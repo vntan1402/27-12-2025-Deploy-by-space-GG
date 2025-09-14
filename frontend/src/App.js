@@ -2454,6 +2454,10 @@ const AccountControlPage = () => {
             onSubmit={handleEditCompany}
             language={language}
             isEdit={true}
+            companyGdriveCurrentConfig={companyGdriveCurrentConfig}
+            fetchCompanyGoogleDriveConfig={fetchCompanyGoogleDriveConfig}
+            fetchCompanyGoogleDriveStatus={fetchCompanyGoogleDriveStatus}
+            setShowCompanyGoogleDrive={setShowCompanyGoogleDrive}
           />
         )}
 
