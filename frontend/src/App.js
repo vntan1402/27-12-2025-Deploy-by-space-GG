@@ -5199,6 +5199,12 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Check if user can create ships (Company Officer role and above)
+  const canCreateShip = () => {
+    const allowedRoles = ['manager', 'admin', 'super_admin'];
+    return allowedRoles.includes(user?.role);
+  };
+
   const handlePdfAnalysis = async () => {
     if (!pdfFile) {
       toast.error(language === 'vi' ? 'Vui lòng chọn file PDF!' : 'Please select a PDF file!');
