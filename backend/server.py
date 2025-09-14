@@ -2491,8 +2491,8 @@ async def analyze_ship_certificate(
                 
                 analysis_result = json.loads(response_text)
                 
-                # Validate extracted data structure
-                expected_fields = ['ship_name', 'imo_number', 'class_society', 'flag', 'gross_tonnage', 'deadweight', 'built_year', 'ship_owner', 'company']
+                # Validate extracted data structure (excluding company field)
+                expected_fields = ['ship_name', 'imo_number', 'class_society', 'flag', 'gross_tonnage', 'deadweight', 'built_year', 'ship_owner']
                 cleaned_result = {}
                 
                 for field in expected_fields:
