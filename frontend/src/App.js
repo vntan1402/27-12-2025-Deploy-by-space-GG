@@ -1014,11 +1014,11 @@ const HomePage = () => {
                           <span className="ml-2">{selectedShip.flag}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Tổng trọng tải:' : 'Gross Tonnage:'}</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
                           <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Trọng tải chết:' : 'Deadweight:'}</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
                           <span className="ml-2">{selectedShip.deadweight?.toLocaleString()}</span>
                         </div>
                         <div>
@@ -1030,7 +1030,7 @@ const HomePage = () => {
                           <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
                         </div>
                         <div>
-                          <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Management Company:'}</span>
+                          <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Company:'}</span>
                           <span className="ml-2">{selectedShip.company || '-'}</span>
                         </div>
                       </div>
