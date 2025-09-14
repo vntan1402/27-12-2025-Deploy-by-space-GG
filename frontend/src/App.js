@@ -4998,7 +4998,7 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 };
 
 // Add Record Modal Component
-const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
+const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies }) => {
   const [recordType, setRecordType] = useState('ship');
   const [shipData, setShipData] = useState({
     name: '',
