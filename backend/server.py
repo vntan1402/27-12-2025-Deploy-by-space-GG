@@ -874,11 +874,15 @@ async def sync_to_drive(current_user: UserResponse = Depends(get_current_user)):
         if not has_permission(current_user, UserRole.ADMIN):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         
-        # Initialize Google Drive manager
-        gdrive_manager = GoogleDriveManager()
-        
-        if not gdrive_manager.is_configured:
+        # Get Google Drive configuration from MongoDB
+        config = await mongo_db.find_one("gdrive_config", {})
+        if not config:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google Drive not configured")
+        
+        # Initialize Google Drive manager with configuration
+        gdrive_manager = GoogleDriveManager()
+        if not gdrive_manager.configure(config.get("service_account_json"), config.get("folder_id")):
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to initialize Google Drive connection")
         
         # Export data from MongoDB to JSON files
         export_data = await mongo_db.export_to_json()
