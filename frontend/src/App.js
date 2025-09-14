@@ -2428,8 +2428,20 @@ const AccountControlPage = () => {
             setConfig={setCompanyGdriveConfig}
             currentConfig={companyGdriveCurrentConfig}
             onClose={() => setShowCompanyGoogleDrive(false)}
-            onSave={() => handleCompanyGoogleDriveConfig(editingCompany?.id)}
-            onTest={() => handleTestCompanyGoogleDriveConnection(editingCompany?.id)}
+            onSave={() => {
+              if (editingCompany?.id) {
+                handleCompanyGoogleDriveConfig(editingCompany.id);
+              } else {
+                toast.error(language === 'vi' ? 'Lỗi: Không có Company ID để lưu' : 'Error: No Company ID to save');
+              }
+            }}
+            onTest={() => {
+              if (editingCompany?.id) {
+                handleTestCompanyGoogleDriveConnection(editingCompany.id);
+              } else {
+                toast.error(language === 'vi' ? 'Lỗi: Không có Company ID để test' : 'Error: No Company ID to test');
+              }
+            }}
             testLoading={companyGdriveTestLoading}
             language={language}
           />
