@@ -3931,10 +3931,12 @@ const CompanyFormModal = ({
             <button
               onClick={() => {
                 if (companyData.id) {
+                  console.log('Opening Company Google Drive modal for company:', companyData.id);
                   fetchCompanyGoogleDriveConfig(companyData.id);
                   fetchCompanyGoogleDriveStatus(companyData.id);
                   setShowCompanyGoogleDrive(true);
                 } else {
+                  console.log('No company ID found, companyData:', companyData);
                   toast.warning(language === 'vi' ? 'Vui lòng lưu công ty trước khi cấu hình Google Drive' : 'Please save company before configuring Google Drive');
                 }
               }}
