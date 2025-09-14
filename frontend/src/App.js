@@ -1522,10 +1522,22 @@ const AccountControlPage = () => {
   const handleSyncToGoogleDrive = async () => {
     setSyncLoading(true);
     try {
-      await axios.post(`${API}/gdrive/sync-to-drive`);
+      // Check current auth method from config
+      const currentConfig = await axios.get(`${API}/gdrive/config`);
+      const authMethod = currentConfig.data?.auth_method || 'service_account';
+      
+      let endpoint;
+      if (authMethod === 'apps_script') {
+        endpoint = '/gdrive/sync-to-drive-proxy';
+      } else {
+        endpoint = '/gdrive/sync-to-drive';
+      }
+      
+      await axios.post(`${API}${endpoint}`);
       toast.success(language === 'vi' ? 'Đồng bộ lên Google Drive thành công!' : 'Synced to Google Drive successfully!');
       fetchGoogleDriveStatus();
     } catch (error) {
+      console.error('Sync to Google Drive error:', error);
       toast.error(language === 'vi' ? 'Đồng bộ thất bại!' : 'Sync failed!');
     } finally {
       setSyncLoading(false);
