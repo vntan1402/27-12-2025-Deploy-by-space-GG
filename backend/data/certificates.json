@@ -11,7 +11,9 @@
     "category": "certificates",
     "sensitivity_level": "internal",
     "file_path": null,
-    "created_at": "2025-09-12 12:50:25.189411+00:00"
+    "created_at": "2025-09-12 12:50:25.189000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "99ef7328-6d3b-43ce-8b51-c90083c2fff3",
@@ -25,7 +27,9 @@
     "category": "certificates",
     "sensitivity_level": "public",
     "file_path": null,
-    "created_at": "2025-09-12 12:50:36.178725+00:00"
+    "created_at": "2025-09-12 12:50:36.178000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "de243531-d9d4-4e87-b1e8-8f598bc94d8e",
@@ -39,7 +43,9 @@
     "category": "certificates",
     "sensitivity_level": "confidential",
     "file_path": null,
-    "created_at": "2025-09-12 12:50:46.632989+00:00"
+    "created_at": "2025-09-12 12:50:46.632000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "62910d56-193c-473a-bd56-fa4e4052867d",
@@ -53,7 +59,9 @@
     "category": "certificates",
     "sensitivity_level": "restricted",
     "file_path": null,
-    "created_at": "2025-09-12 12:50:57.550546+00:00"
+    "created_at": "2025-09-12 12:50:57.550000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "86f6adbb-ae19-4ed8-9281-3f95ec077cd5",
@@ -67,7 +75,9 @@
     "category": "certificates",
     "sensitivity_level": "internal",
     "file_path": null,
-    "created_at": "2025-09-12 12:51:10.506232+00:00"
+    "created_at": "2025-09-12 12:51:10.506000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "adcb5084-3b5a-41c0-9793-2b1cf18e2107",
@@ -81,7 +91,9 @@
     "category": "certificates",
     "sensitivity_level": "internal",
     "file_path": null,
-    "created_at": "2025-09-12 12:51:22.871196+00:00"
+    "created_at": "2025-09-12 12:51:22.871000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "9873a6f3-5bde-4e05-b11d-cfb0c22c8423",
@@ -95,7 +107,9 @@
     "category": "certificates",
     "sensitivity_level": "public",
     "file_path": null,
-    "created_at": "2025-09-12 12:51:32.944886+00:00"
+    "created_at": "2025-09-12 12:51:32.944000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "e3864fb8-8312-4c70-86f5-3e8a8f804c53",
@@ -109,7 +123,9 @@
     "category": "certificates",
     "sensitivity_level": "restricted",
     "file_path": null,
-    "created_at": "2025-09-12 12:51:45.470543+00:00"
+    "created_at": "2025-09-12 12:51:45.470000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "8b68e72b-45c9-45e0-97ef-21700cdf6c35",
@@ -123,7 +139,9 @@
     "category": "certificates",
     "sensitivity_level": "public",
     "file_path": null,
-    "created_at": "2025-09-12 12:51:55.015644+00:00"
+    "created_at": "2025-09-12 12:51:55.015000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "d0cef54a-b3ef-43de-b017-7475a4e54d03",
@@ -137,7 +155,9 @@
     "category": "certificates",
     "sensitivity_level": "internal",
     "file_path": null,
-    "created_at": "2025-09-12 14:03:13.845323+00:00"
+    "created_at": "2025-09-12 14:03:13.845000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "0c75cf71-9a66-4bee-a9e0-67e94f0af2ad",
@@ -151,7 +171,9 @@
     "category": "certificates",
     "sensitivity_level": "internal",
     "file_path": null,
-    "created_at": "2025-09-12 14:04:26.168906+00:00"
+    "created_at": "2025-09-12 14:04:26.168000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "b8d7c107-4fb3-4440-8742-3b840df9bbaf",
@@ -165,6 +187,8 @@
     "category": "certificates",
     "sensitivity_level": "public",
     "file_path": null,
-    "created_at": "2025-09-12 14:24:04.364734+00:00"
+    "created_at": "2025-09-12 14:24:04.364000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   }
 ]

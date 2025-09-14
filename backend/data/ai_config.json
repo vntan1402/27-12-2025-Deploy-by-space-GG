@@ -1,8 +1,14 @@
-{
-  "id": "3ef81e01-88e2-4d61-a066-db6f42f1cfa8",
-  "provider": "openai",
-  "model": "gpt-4",
-  "is_active": true,
-  "updated_at": "2025-09-12 14:44:12.237339+00:00",
-  "updated_by": "945930a2-5b00-43ca-907d-82b248302c62"
-}
+[
+  {
+    "id": "3ef81e01-88e2-4d61-a066-db6f42f1cfa8",
+    "provider": "openai",
+    "model": "gpt-4",
+    "is_active": true,
+    "updated_at": "2025-09-12 14:44:12.237000",
+    "updated_by": "945930a2-5b00-43ca-907d-82b248302c62",
+    "_type": "ai_config",
+    "created_at": "2025-09-13 12:59:07.638000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
+  }
+]

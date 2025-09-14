@@ -9,7 +9,9 @@
     "deadweight": 199000.0,
     "built_year": 2019,
     "photo_url": null,
-    "created_at": "2025-09-12 12:49:21.118710+00:00"
+    "created_at": "2025-09-12 12:49:21.118000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "35294ade-53f3-4947-83da-65a370f5d0d7",
@@ -21,7 +23,9 @@
     "deadweight": 160000.0,
     "built_year": 2020,
     "photo_url": null,
-    "created_at": "2025-09-12 12:49:40.612177+00:00"
+    "created_at": "2025-09-12 12:49:40.612000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "8c5ca0fa-ec32-44f1-a18c-bf7168942e2f",
@@ -33,7 +37,9 @@
     "deadweight": 180000.0,
     "built_year": 2022,
     "photo_url": null,
-    "created_at": "2025-09-12 12:49:50.921881+00:00"
+    "created_at": "2025-09-12 12:49:50.921000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "3aec8486-fa5a-447b-b67d-43348f67c80e",
@@ -45,7 +51,9 @@
     "deadweight": 25000.0,
     "built_year": 2023,
     "photo_url": null,
-    "created_at": "2025-09-12 12:50:02.350347+00:00"
+    "created_at": "2025-09-12 12:50:02.350000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "59d799a7-3b5d-4cac-8214-b195dc297e42",
@@ -57,7 +65,9 @@
     "deadweight": 95000.0,
     "built_year": 2024,
     "photo_url": null,
-    "created_at": "2025-09-12 12:50:12.366320+00:00"
+    "created_at": "2025-09-12 12:50:12.366000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "ec24eff0-1c15-40e1-a455-320f5245e200",
@@ -69,7 +79,9 @@
     "deadweight": 75000.0,
     "built_year": 2020,
     "photo_url": null,
-    "created_at": "2025-09-12 14:03:13.637796+00:00"
+    "created_at": "2025-09-12 14:03:13.637000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   },
   {
     "id": "3b67d5d0-81e9-41a2-9a1b-6007a88d98d7",
@@ -81,6 +93,8 @@
     "deadweight": 80000.0,
     "built_year": 2020,
     "photo_url": null,
-    "created_at": "2025-09-12 14:04:26.115467+00:00"
+    "created_at": "2025-09-12 14:04:26.115000",
+    "_migrated_at": "2025-09-13 12:59:07.639000",
+    "_migration_source": "json_file"
   }
 ]
