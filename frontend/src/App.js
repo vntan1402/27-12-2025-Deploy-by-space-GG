@@ -1970,6 +1970,139 @@ const AccountControlPage = () => {
                 </button>
               </div>
               
+              {/* Filtering and Sorting Controls */}
+              {showUserList && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+                  <h4 className="font-medium mb-3 text-gray-800">
+                    {language === 'vi' ? 'Bộ lọc và sắp xếp' : 'Filter and Sort'}
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {/* Company Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Công ty' : 'Company'}
+                      </label>
+                      <select
+                        value={userFilters.company}
+                        onChange={(e) => {
+                          const newFilters = { ...userFilters, company: e.target.value };
+                          setUserFilters(newFilters);
+                          fetchFilteredUsers(newFilters, userSorting);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">{language === 'vi' ? 'Tất cả công ty' : 'All Companies'}</option>
+                        {[...new Set(users.map(u => u.company).filter(Boolean))].map(company => (
+                          <option key={company} value={company}>{company}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Department Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Phòng ban' : 'Department'}
+                      </label>
+                      <select
+                        value={userFilters.department}
+                        onChange={(e) => {
+                          const newFilters = { ...userFilters, department: e.target.value };
+                          setUserFilters(newFilters);
+                          fetchFilteredUsers(newFilters, userSorting);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">{language === 'vi' ? 'Tất cả phòng ban' : 'All Departments'}</option>
+                        <option value="technical">{language === 'vi' ? 'Kỹ thuật' : 'Technical'}</option>
+                        <option value="operations">{language === 'vi' ? 'Vận hành' : 'Operations'}</option>
+                        <option value="safety">{language === 'vi' ? 'An toàn' : 'Safety'}</option>
+                        <option value="commercial">{language === 'vi' ? 'Thương mại' : 'Commercial'}</option>
+                        <option value="crewing">{language === 'vi' ? 'Thuyền viên' : 'Crewing'}</option>
+                        <option value="ship_crew">{language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew'}</option>
+                      </select>
+                    </div>
+                    
+                    {/* Ship Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Tàu' : 'Ship'}
+                      </label>
+                      <select
+                        value={userFilters.ship}
+                        onChange={(e) => {
+                          const newFilters = { ...userFilters, ship: e.target.value };
+                          setUserFilters(newFilters);
+                          fetchFilteredUsers(newFilters, userSorting);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">{language === 'vi' ? 'Tất cả tàu' : 'All Ships'}</option>
+                        {[...new Set(users.map(u => u.ship).filter(Boolean))].map(ship => (
+                          <option key={ship} value={ship}>{ship}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Sort By */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Sắp xếp theo' : 'Sort By'}
+                      </label>
+                      <select
+                        value={userSorting.sortBy}
+                        onChange={(e) => {
+                          const newSorting = { ...userSorting, sortBy: e.target.value };
+                          setUserSorting(newSorting);
+                          fetchFilteredUsers(userFilters, newSorting);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="full_name">{language === 'vi' ? 'Tên' : 'Name'}</option>
+                        <option value="company">{language === 'vi' ? 'Công ty' : 'Company'}</option>
+                        <option value="department">{language === 'vi' ? 'Phòng ban' : 'Department'}</option>
+                        <option value="role">{language === 'vi' ? 'Vai trò' : 'Role'}</option>
+                        <option value="ship">{language === 'vi' ? 'Tàu' : 'Ship'}</option>
+                        <option value="created_at">{language === 'vi' ? 'Ngày tạo' : 'Created Date'}</option>
+                      </select>
+                    </div>
+                    
+                    {/* Sort Order */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Thứ tự' : 'Order'}
+                      </label>
+                      <select
+                        value={userSorting.sortOrder}
+                        onChange={(e) => {
+                          const newSorting = { ...userSorting, sortOrder: e.target.value };
+                          setUserSorting(newSorting);
+                          fetchFilteredUsers(userFilters, newSorting);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="asc">{language === 'vi' ? 'Tăng dần' : 'Ascending'}</option>
+                        <option value="desc">{language === 'vi' ? 'Giảm dần' : 'Descending'}</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Clear Filters Button */}
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => {
+                        setUserFilters({ company: '', department: '', ship: '' });
+                        setUserSorting({ sortBy: 'full_name', sortOrder: 'asc' });
+                        fetchUsers();
+                      }}
+                      className="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all"
+                    >
+                      {language === 'vi' ? 'Xóa bộ lọc' : 'Clear Filters'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               {/* Users Table */}
               {showUserList && users.length > 0 ? (
                 <div className="overflow-x-auto">
