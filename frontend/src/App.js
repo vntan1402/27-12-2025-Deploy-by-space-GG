@@ -728,6 +728,12 @@ const HomePage = () => {
     }
   };
 
+  // Filter ships by user's company
+  const getUserCompanyShips = () => {
+    if (!user?.company) return ships;
+    return ships.filter(ship => ship.company === user.company);
+  };
+
   const fetchCertificates = async (shipId) => {
     try {
       const response = await axios.get(`${API}/ships/${shipId}/certificates`);
