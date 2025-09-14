@@ -237,13 +237,20 @@ class MongoDatabase:
         return migration_results
 
     async def export_to_json(self) -> Dict[str, List[Dict[str, Any]]]:
-        """Export all data to JSON structure (for backup)"""
+        """Export all data to JSON structure and save to files (for backup)"""
+        import os
+        import json
+        
         collections = [
             "users", "companies", "ships", "certificates", 
             "ai_config", "usage_tracking", "ai_analyses"
         ]
         
         export_data = {}
+        data_path = "/app/backend/data"
+        
+        # Create data directory if it doesn't exist
+        os.makedirs(data_path, exist_ok=True)
         
         for collection in collections:
             try:
@@ -254,7 +261,13 @@ class MongoDatabase:
                         del doc['_id']
                 
                 export_data[collection] = documents
-                logger.info(f"Exported {len(documents)} documents from {collection}")
+                
+                # Save to JSON file
+                json_file = os.path.join(data_path, f"{collection}.json")
+                with open(json_file, 'w') as f:
+                    json.dump(documents, f, indent=2, default=str)
+                
+                logger.info(f"Exported {len(documents)} documents from {collection} to {json_file}")
                 
             except Exception as e:
                 logger.error(f"Error exporting {collection}: {e}")
