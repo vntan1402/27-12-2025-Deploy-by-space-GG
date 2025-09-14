@@ -233,6 +233,18 @@
           comment: "✅ USER MANAGEMENT WITH SHIP FIELD COMPREHENSIVE TESTING COMPLETED - All 11/11 API tests passed and 7/7 feature tests successful. Authentication with admin/admin123: ✅ (Super Admin role verified), GET /api/users: ✅ (ship field present in all 3 users, currently 0 users with ship assigned), GET /api/companies: ✅ (found 5 companies with proper data structure), GET /api/ships: ✅ (found 7 ships with proper data structure), User Models Ship Field Support: ✅ (UserCreate, UserUpdate, UserResponse models properly support ship field), PUT /api/users/{user_id}: ✅ (successfully updates users with ship field, admin user updated with ship ID c810ce09-afc4-47ea-98b0-cba976219546), Edge Cases Testing: ✅ (empty ship field handled correctly as None, non-existent ship IDs accepted as optional validation). Created test user 'ship_test_user_1757718978' with ship field successfully assigned. All User Management backend functionality with updated ship field is working correctly and production-ready."
 
 ## frontend:
+  - task: "Ship Form Enhancement with Owner and Company Fields"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Updated AddRecordModal ship form to include ship_owner and company fields. Added corresponding fields to shipData state. Updated ship information display in HomePage to show Ship Owner and Management Company with proper fallback values."
+
   - task: "Enhanced User Management UI with Filtering and Sorting"
     implemented: true
     working: false
