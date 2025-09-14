@@ -1317,6 +1317,440 @@ async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)
         logger.error(f"Error syncing from Google Drive: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to sync from Google Drive: {str(e)}")
 
+# Company Google Drive Configuration Routes
+@api_router.get("/companies/{company_id}/gdrive/config")
+async def get_company_gdrive_config(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get company-specific Google Drive configuration"""
+    try:
+        # Check if user can access this company's Google Drive config
+        if not has_permission(current_user, UserRole.ADMIN):
+            # For non-admin users, check if they belong to this company
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            if not company:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+            
+            if current_user.role != 'super_admin' and current_user.company not in [company.get('name_vn'), company.get('name_en')]:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot access other company's configuration")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        gdrive_config = company.get('gdrive_config', {})
+        
+        # Return configuration with safe information (hide sensitive data)
+        config_response = {
+            "configured": bool(gdrive_config.get('configured', False)),
+            "auth_method": gdrive_config.get('auth_method', 'service_account'),
+            "folder_id": gdrive_config.get('folder_id', ''),
+            "service_account_email": gdrive_config.get('service_account_email', ''),
+            "last_sync": gdrive_config.get('last_sync')
+        }
+        
+        return config_response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching company Google Drive config: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch Google Drive configuration")
+
+@api_router.get("/companies/{company_id}/gdrive/status")
+async def get_company_gdrive_status(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get company-specific Google Drive status"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.ADMIN):
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            if not company:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+            
+            if current_user.role != 'super_admin' and current_user.company not in [company.get('name_vn'), company.get('name_en')]:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot access other company's status")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        gdrive_config = company.get('gdrive_config', {})
+        
+        # Initialize status response
+        status_response = {
+            "configured": bool(gdrive_config.get('configured', False)),
+            "auth_method": gdrive_config.get('auth_method', 'service_account'),
+            "last_sync": gdrive_config.get('last_sync'),
+            "local_files": 0,
+            "drive_files": 0,
+            "folder_id": gdrive_config.get('folder_id'),
+            "service_account_email": gdrive_config.get('service_account_email')
+        }
+        
+        # Count local files for this company (simplified)
+        local_files_count = 0
+        
+        # If configured, try to get drive files count
+        if gdrive_config.get('configured') and gdrive_config.get('folder_id'):
+            try:
+                auth_method = gdrive_config.get("auth_method", "service_account")
+                gdrive_manager = GoogleDriveManager()
+                
+                if auth_method == "apps_script":
+                    # For Apps Script, we can't easily count files without making a request
+                    status_response["drive_files"] = "N/A"
+                elif auth_method == "oauth":
+                    client_config = gdrive_config.get("client_config")
+                    oauth_credentials = gdrive_config.get("oauth_credentials")
+                    folder_id = gdrive_config.get("folder_id")
+                    
+                    if gdrive_manager.configure_oauth(client_config, oauth_credentials, folder_id):
+                        drive_files_list = gdrive_manager.list_files()
+                        status_response["drive_files"] = len(drive_files_list)
+                else:
+                    # Service Account
+                    service_account_json = gdrive_config.get("service_account_json")
+                    folder_id = gdrive_config.get("folder_id")
+                    
+                    if gdrive_manager.configure_service_account(service_account_json, folder_id):
+                        drive_files_list = gdrive_manager.list_files()
+                        status_response["drive_files"] = len(drive_files_list)
+                        
+            except Exception as e:
+                logger.warning(f"Could not get drive files count for company {company_id}: {e}")
+                status_response["drive_files"] = "Error"
+        
+        return status_response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching company Google Drive status: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch Google Drive status")
+
+@api_router.post("/companies/{company_id}/gdrive/configure-proxy")
+async def configure_company_gdrive_proxy(company_id: str, config: GoogleDriveAppsScriptConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Configure company-specific Google Drive using Apps Script proxy"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.ADMIN):
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            if not company:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+            
+            if current_user.role != 'super_admin' and current_user.company not in [company.get('name_vn'), company.get('name_en')]:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot configure other company's Google Drive")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Test Apps Script connection first
+        try:
+            response = requests.post(config.web_app_url, 
+                json={"action": "test_connection", "folder_id": config.folder_id},
+                timeout=30,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code != 200:
+                return GoogleDriveProxyResponse(
+                    success=False,
+                    message=f"Apps Script returned HTTP {response.status_code}. Please check your deployment."
+                )
+            
+            # Check if response is JSON
+            content_type = response.headers.get('content-type', '').lower()
+            if 'application/json' not in content_type and 'text/plain' not in content_type:
+                return GoogleDriveProxyResponse(
+                    success=False,
+                    message=f"Apps Script returned invalid content type: {content_type}. Expected JSON response."
+                )
+            
+            # Try to parse response
+            try:
+                result = response.json()
+            except json.JSONDecodeError:
+                response_preview = response.text[:200] + "..." if len(response.text) > 200 else response.text
+                return GoogleDriveProxyResponse(
+                    success=False,
+                    message=f"Apps Script returned invalid JSON. Response preview: {response_preview}"
+                )
+            
+            if not result.get('success'):
+                return GoogleDriveProxyResponse(
+                    success=False,
+                    message=result.get('message', 'Apps Script test failed')
+                )
+                
+        except requests.exceptions.RequestException as e:
+            return GoogleDriveProxyResponse(
+                success=False,
+                message=f"Cannot connect to Apps Script URL: {str(e)}"
+            )
+        except Exception as e:
+            return GoogleDriveProxyResponse(
+                success=False,
+                message=f"Apps Script test error: {str(e)}"
+            )
+        
+        # Save configuration to company
+        gdrive_config = {
+            "auth_method": "apps_script",
+            "web_app_url": config.web_app_url,
+            "folder_id": config.folder_id,
+            "configured": True,
+            "service_account_email": current_user.email,  # Store configuring user's email
+            "configured_at": datetime.now(timezone.utc).isoformat(),
+            "configured_by": current_user.id
+        }
+        
+        # Update company with Google Drive config
+        update_data = {"gdrive_config": gdrive_config}
+        await mongo_db.update("companies", {"id": company_id}, update_data)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "configure_company_gdrive_proxy",
+            "resource": f"company_gdrive:{company_id}",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return GoogleDriveProxyResponse(
+            success=True,
+            message="Company Google Drive Apps Script proxy configured successfully",
+            folder_name=result.get('folder_name', 'Google Drive Folder')
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error configuring company Google Drive proxy: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to configure Google Drive proxy: {str(e)}")
+
+@api_router.post("/companies/{company_id}/gdrive/configure")
+async def configure_company_gdrive_service_account(company_id: str, config: GoogleDriveConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Configure company-specific Google Drive using Service Account"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.ADMIN):
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            if not company:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+            
+            if current_user.role != 'super_admin' and current_user.company not in [company.get('name_vn'), company.get('name_en')]:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot configure other company's Google Drive")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Save configuration to company
+        gdrive_config = {
+            "auth_method": "service_account",
+            "service_account_json": config.service_account_json,
+            "folder_id": config.folder_id,
+            "configured": True,
+            "configured_at": datetime.now(timezone.utc).isoformat(),
+            "configured_by": current_user.id
+        }
+        
+        # Extract service account email for display
+        try:
+            service_account_data = json.loads(config.service_account_json)
+            gdrive_config["service_account_email"] = service_account_data.get("client_email", "")
+        except:
+            pass
+        
+        # Update company with Google Drive config
+        update_data = {"gdrive_config": gdrive_config}
+        await mongo_db.update("companies", {"id": company_id}, update_data)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "configure_company_gdrive",
+            "resource": f"company_gdrive:{company_id}",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"success": True, "message": "Company Google Drive configured successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error configuring company Google Drive: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to configure Google Drive: {str(e)}")
+
+@api_router.post("/companies/{company_id}/gdrive/oauth/authorize", response_model=GoogleDriveOAuthResponse)
+async def company_gdrive_oauth_authorize(company_id: str, config: GoogleDriveOAuthConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Initiate company-specific Google Drive OAuth 2.0 authorization"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.ADMIN):
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            if not company:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+            
+            if current_user.role != 'super_admin' and current_user.company not in [company.get('name_vn'), company.get('name_en')]:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot configure other company's Google Drive")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        # Prepare OAuth configuration
+        client_config = {
+            "client_id": config.client_id,
+            "client_secret": config.client_secret,
+            "redirect_uri": config.redirect_uri
+        }
+        
+        # Initialize Google Drive manager
+        gdrive_manager = GoogleDriveManager()
+        
+        # Get authorization URL
+        authorization_url, state = gdrive_manager.get_oauth_authorization_url(client_config)
+        
+        if not authorization_url:
+            return GoogleDriveOAuthResponse(
+                success=False,
+                message="Failed to generate authorization URL"
+            )
+        
+        # Store client config and folder_id for later use (company-specific)
+        await mongo_db.update(f"company_gdrive_oauth_temp_{company_id}", {}, {
+            "client_config": client_config,
+            "folder_id": config.folder_id,
+            "state": state,
+            "user_id": current_user.id,
+            "company_id": company_id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }, upsert=True)
+        
+        return GoogleDriveOAuthResponse(
+            success=True,
+            message="Authorization URL generated successfully",
+            authorization_url=authorization_url,
+            state=state
+        )
+        
+    except Exception as e:
+        logger.error(f"Error initiating company OAuth: {e}")
+        return GoogleDriveOAuthResponse(
+            success=False,
+            message=f"Failed to initiate OAuth: {str(e)}"
+        )
+
+@api_router.post("/companies/{company_id}/gdrive/sync-to-drive-proxy")
+async def sync_company_to_drive_proxy(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Sync company data to Google Drive using Apps Script proxy"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.ADMIN):
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            if not company:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+            
+            if current_user.role != 'super_admin' and current_user.company not in [company.get('name_vn'), company.get('name_en')]:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot sync other company's data")
+        
+        # Get company with Google Drive configuration
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
+        
+        gdrive_config = company.get('gdrive_config', {})
+        if gdrive_config.get("auth_method") != "apps_script":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Company Google Drive not configured with Apps Script")
+        
+        web_app_url = gdrive_config.get("web_app_url")
+        folder_id = gdrive_config.get("folder_id")
+        
+        if not web_app_url or not folder_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Company Google Drive configuration missing")
+        
+        # Get company-specific data for sync
+        company_data = {
+            "company_info": company,
+            "users": await mongo_db.find_all("users", {"company": {"$in": [company.get('name_vn'), company.get('name_en')]}}),
+            "ships": await mongo_db.find_all("ships", {"company_id": company_id}) if await mongo_db.find_one("ships", {"company_id": company_id}) else [],
+            "certificates": []  # Get company-specific certificates if needed
+        }
+        
+        # Sync data to Google Drive via Apps Script
+        files_uploaded = []
+        
+        for data_type, data in company_data.items():
+            if not data:
+                continue
+                
+            try:
+                payload = {
+                    "action": "sync_to_drive",
+                    "folder_id": folder_id,
+                    "file_name": f"{company.get('name_en', 'company')}_{data_type}.json",
+                    "file_content": json.dumps(data, indent=2, default=str)
+                }
+                
+                response = requests.post(web_app_url, json=payload, timeout=30)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('success'):
+                        files_uploaded.append({
+                            "file": f"{company.get('name_en', 'company')}_{data_type}.json",
+                            "status": "uploaded",
+                            "file_id": result.get('file_id')
+                        })
+                    else:
+                        files_uploaded.append({
+                            "file": f"{company.get('name_en', 'company')}_{data_type}.json",
+                            "status": "failed",
+                            "error": result.get('message')
+                        })
+                else:
+                    files_uploaded.append({
+                        "file": f"{company.get('name_en', 'company')}_{data_type}.json",
+                        "status": "failed",
+                        "error": f"HTTP {response.status_code}"
+                    })
+                    
+            except Exception as e:
+                files_uploaded.append({
+                    "file": f"{company.get('name_en', 'company')}_{data_type}.json",
+                    "status": "failed",
+                    "error": str(e)
+                })
+        
+        # Update last sync timestamp
+        gdrive_config["last_sync"] = datetime.now(timezone.utc).isoformat()
+        await mongo_db.update("companies", {"id": company_id}, {"gdrive_config": gdrive_config})
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "sync_company_to_drive_proxy",
+            "resource": f"company_gdrive:{company_id}",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {
+            "message": f"Company data synced to Google Drive: {len([f for f in files_uploaded if f['status'] == 'uploaded'])} files uploaded successfully",
+            "success": True,
+            "files": files_uploaded
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error syncing company to Google Drive: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to sync to Google Drive: {str(e)}")
+
 # Ships Management Routes
 @api_router.get("/ships", response_model=List[ShipResponse])
 async def get_ships(current_user: UserResponse = Depends(get_current_user)):
