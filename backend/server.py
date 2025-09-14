@@ -1948,6 +1948,16 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         ship_dict['id'] = str(uuid.uuid4())
         ship_dict['created_at'] = datetime.now(timezone.utc)
         
+        # Handle empty fields - convert empty strings to None and remove None values for unique constraints
+        if not ship_dict.get('imo') or ship_dict.get('imo', '').strip() == '':
+            # Remove IMO field entirely if empty to avoid unique constraint issues
+            ship_dict.pop('imo', None)
+        
+        # Convert empty strings to None for optional fields
+        for field in ['gross_tonnage', 'year_built']:
+            if ship_dict.get(field) == '' or ship_dict.get(field) == 0:
+                ship_dict[field] = None
+        
         # Save to MongoDB
         await mongo_db.create("ships", ship_dict)
         
