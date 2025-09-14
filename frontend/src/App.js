@@ -1187,6 +1187,7 @@ const HomePage = () => {
           }}
           language={language}
           selectedShip={selectedShip}
+          availableCompanies={availableCompanies}
         />
       )}
     </div>
