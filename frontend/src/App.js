@@ -5358,16 +5358,19 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
             {language === 'vi' ? 'Loại hồ sơ' : 'Record Type'}
           </label>
           <div className="flex space-x-4">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="ship"
-                checked={recordType === 'ship'}
-                onChange={(e) => setRecordType(e.target.value)}
-                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span>{language === 'vi' ? 'Tàu' : 'Ship'}</span>
-            </label>
+            {/* Ship option - only for Company Officer and above */}
+            {canCreateShip() && (
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  value="ship"
+                  checked={recordType === 'ship'}
+                  onChange={(e) => setRecordType(e.target.value)}
+                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span>{language === 'vi' ? 'Tàu' : 'Ship'}</span>
+              </label>
+            )}
             <label className="flex items-center">
               <input
                 type="radio"
@@ -5381,14 +5384,28 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
             <label className="flex items-center">
               <input
                 type="radio"
-                value="document"
-                checked={recordType === 'document'}
+                value="survey_report"
+                checked={recordType === 'survey_report'}
                 onChange={(e) => setRecordType(e.target.value)}
                 className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
               />
-              <span>{language === 'vi' ? 'Tài liệu' : 'Document'}</span>
+              <span>{language === 'vi' ? 'Báo cáo khảo sát' : 'Survey Report'}</span>
             </label>
           </div>
+          
+          {/* Permission message for non-eligible users */}
+          {!canCreateShip() && (
+            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <span className="font-medium">ℹ️ {language === 'vi' ? 'Lưu ý:' : 'Note:'}</span>
+                {' '}
+                {language === 'vi' 
+                  ? 'Chỉ có Company Officer trở lên mới có thể tạo hồ sơ tàu mới.'
+                  : 'Only Company Officer and above can create new ship records.'
+                }
+              </p>
+            </div>
+          )}
         </div>
 
         {/* PDF Analysis Section for Ship */}
