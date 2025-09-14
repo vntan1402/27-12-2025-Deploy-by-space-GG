@@ -5185,7 +5185,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Hãng đăng kiểm' : 'Class Society'} *
+                  {language === 'vi' ? 'Tổ chức Phân cấp' : 'Class Society'} *
                 </label>
                 <input
                   type="text"
