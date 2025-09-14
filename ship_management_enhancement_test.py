@@ -395,6 +395,7 @@ class ShipManagementEnhancementTester:
         print("=" * 50)
         
         # Test 1: Create ship with very long ship_owner and company names
+        time.sleep(1)  # Ensure unique timestamp
         long_names_ship = {
             "name": f"Long Names Ship {int(time.time())}",
             "imo": f"IMO{int(time.time())}",
@@ -422,6 +423,7 @@ class ShipManagementEnhancementTester:
             print(f"   ✅ Company length: {len(long_ship.get('company', ''))}")
         
         # Test 2: Create ship with special characters in ship_owner and company
+        time.sleep(1)  # Ensure unique timestamp
         special_chars_ship = {
             "name": f"Special Chars Ship {int(time.time())}",
             "imo": f"IMO{int(time.time())}",
