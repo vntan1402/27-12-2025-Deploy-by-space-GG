@@ -1443,19 +1443,78 @@ const AccountControlPage = () => {
   };
 
   const handleGoogleDriveConfig = async () => {
-    if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
+    // Validate required fields based on auth method
+    const authMethod = gdriveConfig.auth_method || 'apps_script';
+    
+    let missingFields = false;
+    if (authMethod === 'apps_script') {
+      if (!gdriveConfig.web_app_url || !gdriveConfig.folder_id) {
+        missingFields = true;
+      }
+    } else if (authMethod === 'oauth') {
+      if (!gdriveConfig.client_id || !gdriveConfig.client_secret || !gdriveConfig.folder_id) {
+        missingFields = true;
+      }
+    } else if (authMethod === 'service_account') {
+      if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
+        missingFields = true;
+      }
+    }
+    
+    if (missingFields) {
       toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin' : 'Please fill all required fields');
       return;
     }
 
     try {
-      await axios.post(`${API}/gdrive/configure`, gdriveConfig);
-      toast.success(language === 'vi' ? 'Cấu hình Google Drive thành công!' : 'Google Drive configured successfully!');
-      setShowGoogleDrive(false);
-      setGdriveConfig({ service_account_json: '', folder_id: '' });
-      fetchGoogleDriveStatus();
-      fetchGoogleDriveConfig();
+      let endpoint;
+      let payload;
+      
+      if (authMethod === 'apps_script') {
+        endpoint = '/gdrive/configure-proxy';
+        payload = {
+          web_app_url: gdriveConfig.web_app_url,
+          folder_id: gdriveConfig.folder_id
+        };
+      } else if (authMethod === 'oauth') {
+        endpoint = '/gdrive/oauth/authorize';
+        payload = {
+          client_id: gdriveConfig.client_id,
+          client_secret: gdriveConfig.client_secret,
+          redirect_uri: 'https://shipdesk.preview.emergentagent.com/oauth2callback',
+          folder_id: gdriveConfig.folder_id
+        };
+      } else {
+        endpoint = '/gdrive/configure';
+        payload = {
+          service_account_json: gdriveConfig.service_account_json,
+          folder_id: gdriveConfig.folder_id
+        };
+      }
+      
+      const response = await axios.post(`${API}${endpoint}`, payload);
+      
+      if (authMethod === 'oauth' && response.data.authorization_url) {
+        // For OAuth, redirect to authorization URL
+        sessionStorage.setItem('oauth_state', response.data.state);
+        window.location.href = response.data.authorization_url;
+      } else {
+        // For Apps Script and Service Account, show success
+        toast.success(language === 'vi' ? 'Cấu hình Google Drive thành công!' : 'Google Drive configured successfully!');
+        setShowGoogleDrive(false);
+        // Reset config based on auth method
+        if (authMethod === 'apps_script') {
+          setGdriveConfig(prev => ({ ...prev, web_app_url: '', folder_id: '' }));
+        } else if (authMethod === 'oauth') {
+          setGdriveConfig(prev => ({ ...prev, client_id: '', client_secret: '', folder_id: '' }));
+        } else {
+          setGdriveConfig(prev => ({ ...prev, service_account_json: '', folder_id: '' }));
+        }
+        fetchGoogleDriveStatus();
+        fetchGoogleDriveConfig();
+      }
     } catch (error) {
+      console.error('Google Drive configuration error:', error);
       toast.error(language === 'vi' ? 'Cấu hình Google Drive thất bại!' : 'Failed to configure Google Drive!');
     }
   };
