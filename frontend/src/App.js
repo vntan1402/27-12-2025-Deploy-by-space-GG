@@ -1218,6 +1218,11 @@ const AccountControlPage = () => {
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [showEditCompany, setShowEditCompany] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
+  // PDF Analysis state
+  const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfAnalyzing, setPdfAnalyzing] = useState(false);
+  const [availableCompanies, setAvailableCompanies] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [gdriveConfig, setGdriveConfig] = useState({
     auth_method: 'apps_script', // 'apps_script', 'oauth', or 'service_account' 
