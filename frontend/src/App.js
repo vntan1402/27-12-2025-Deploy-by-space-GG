@@ -1213,6 +1213,19 @@ const AccountControlPage = () => {
   const [gdriveCurrentConfig, setGdriveCurrentConfig] = useState(null);
   const [syncLoading, setSyncLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
+  // Company Google Drive state
+  const [showCompanyGoogleDrive, setShowCompanyGoogleDrive] = useState(false);
+  const [companyGdriveConfig, setCompanyGdriveConfig] = useState({
+    auth_method: 'apps_script',
+    web_app_url: '',
+    client_id: '',
+    client_secret: '',
+    folder_id: '',
+    service_account_json: ''
+  });
+  const [companyGdriveStatus, setCompanyGdriveStatus] = useState(null);
+  const [companyGdriveCurrentConfig, setCompanyGdriveCurrentConfig] = useState(null);
+  const [companyGdriveTestLoading, setCompanyGdriveTestLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState({
     provider: 'openai',
     model: 'gpt-4o'
