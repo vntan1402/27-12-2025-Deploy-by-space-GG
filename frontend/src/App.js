@@ -1018,15 +1018,15 @@ const HomePage = () => {
 
                       {/* Sub Menu */}
                       <div className="mb-4">
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-5 gap-2 w-full">
                           {subMenuItems[selectedCategory] && subMenuItems[selectedCategory].map((item) => (
                             <button
                               key={item.key}
                               onClick={() => setSelectedSubMenu(item.key)}
-                              className={`px-4 py-2 rounded-lg text-sm transition-all ${
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-center ${
                                 selectedSubMenu === item.key 
-                                  ? 'bg-blue-600 text-white' 
-                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                  ? 'bg-blue-600 text-white shadow-lg' 
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-md'
                               }`}
                             >
                               {item.name}
