@@ -2981,6 +2981,11 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
     try {
       setOauthLoading(true);
       
+      if (!companyId) {
+        toast.error(language === 'vi' ? 'Lỗi: Không có Company ID' : 'Error: No Company ID');
+        return;
+      }
+      
       const response = await axios.post(`${API}/companies/${companyId}/gdrive/configure-proxy`, {
         web_app_url: config.web_app_url,
         folder_id: config.folder_id
@@ -2993,7 +2998,8 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
       }
     } catch (error) {
       console.error('Apps Script test error:', error);
-      toast.error(language === 'vi' ? 'Lỗi test Apps Script' : 'Apps Script test error');
+      const errorMessage = error.response?.data?.message || error.message;
+      toast.error(language === 'vi' ? `Lỗi test Apps Script: ${errorMessage}` : `Apps Script test error: ${errorMessage}`);
     } finally {
       setOauthLoading(false);
     }
