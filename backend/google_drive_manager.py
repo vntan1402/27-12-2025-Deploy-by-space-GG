@@ -3,6 +3,8 @@ import json
 import io
 from typing import Dict, Any, Optional, List
 from google.oauth2 import service_account
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 from datetime import datetime, timezone
@@ -17,13 +19,130 @@ class GoogleDriveManager:
         self.credentials = None
         self.folder_id = None
         self.is_configured = False
+        self.auth_method = None  # 'service_account' or 'oauth'
         self.local_data_path = "/app/backend/data"
+        
+        # OAuth specific
+        self.client_config = None
+        self.oauth_credentials = None
         
         # Create local data directory
         os.makedirs(self.local_data_path, exist_ok=True)
         
         # Load configuration if exists
         self.load_configuration()
+
+    def configure_oauth(self, client_config: Dict[str, Any], oauth_credentials: Dict[str, Any], folder_id: str) -> bool:
+        """Configure Google Drive integration with OAuth 2.0 credentials"""
+        try:
+            # Store client config for future token refresh
+            self.client_config = client_config
+            
+            # Create credentials from OAuth token data
+            self.oauth_credentials = Credentials(
+                token=oauth_credentials.get('token'),
+                refresh_token=oauth_credentials.get('refresh_token'),
+                token_uri=oauth_credentials.get('token_uri'),
+                client_id=oauth_credentials.get('client_id'),
+                client_secret=oauth_credentials.get('client_secret'),
+                scopes=oauth_credentials.get('scopes', ['https://www.googleapis.com/auth/drive.file'])
+            )
+            
+            # Build Drive service
+            self.service = build('drive', 'v3', credentials=self.oauth_credentials)
+            self.folder_id = folder_id
+            self.auth_method = 'oauth'
+            
+            # Test connection by listing files
+            self.service.files().list(q=f"parents in '{folder_id}'", pageSize=1).execute()
+            
+            # Save configuration
+            config = {
+                'auth_method': 'oauth',
+                'client_config': client_config,
+                'oauth_credentials': {
+                    'token': oauth_credentials.get('token'),
+                    'refresh_token': oauth_credentials.get('refresh_token'),
+                    'token_uri': oauth_credentials.get('token_uri'),
+                    'client_id': oauth_credentials.get('client_id'),
+                    'client_secret': oauth_credentials.get('client_secret'),
+                    'scopes': oauth_credentials.get('scopes')
+                },
+                'folder_id': folder_id,
+                'configured_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            config_path = os.path.join(self.local_data_path, 'gdrive_config.json')
+            with open(config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            
+            self.is_configured = True
+            logger.info("Google Drive configured successfully with OAuth 2.0")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to configure Google Drive with OAuth: {e}")
+            return False
+
+    def get_oauth_authorization_url(self, client_config: Dict[str, Any]) -> tuple[str, str]:
+        """Generate OAuth 2.0 authorization URL"""
+        try:
+            scopes = ['https://www.googleapis.com/auth/drive.file']
+            
+            # Create flow instance
+            flow = Flow.from_client_config(
+                client_config, 
+                scopes=scopes
+            )
+            
+            # Set redirect URI (this should match your registered redirect URI)
+            flow.redirect_uri = client_config.get('redirect_uri', 'http://localhost:8000/oauth2callback')
+            
+            # Generate authorization URL
+            authorization_url, state = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true'
+            )
+            
+            # Store flow for later use
+            self._temp_flow = flow
+            
+            return authorization_url, state
+            
+        except Exception as e:
+            logger.error(f"Failed to generate OAuth authorization URL: {e}")
+            return None, None
+
+    def handle_oauth_callback(self, authorization_response: str) -> Dict[str, Any]:
+        """Handle OAuth 2.0 callback and exchange code for tokens"""
+        try:
+            if not hasattr(self, '_temp_flow'):
+                raise ValueError("No OAuth flow found. Call get_oauth_authorization_url first.")
+            
+            # Fetch token using authorization response
+            self._temp_flow.fetch_token(authorization_response=authorization_response)
+            
+            # Get credentials
+            credentials = self._temp_flow.credentials
+            
+            # Convert credentials to dict
+            oauth_credentials = {
+                'token': credentials.token,
+                'refresh_token': credentials.refresh_token,
+                'token_uri': credentials.token_uri,
+                'client_id': credentials.client_id,
+                'client_secret': credentials.client_secret,
+                'scopes': credentials.scopes
+            }
+            
+            # Clean up temp flow
+            delattr(self, '_temp_flow')
+            
+            return oauth_credentials
+            
+        except Exception as e:
+            logger.error(f"Failed to handle OAuth callback: {e}")
+            return None
 
     def configure(self, service_account_json: str, folder_id: str) -> bool:
         """Configure Google Drive integration with service account credentials"""
