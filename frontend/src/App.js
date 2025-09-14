@@ -5168,6 +5168,30 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
           </div>
         </div>
 
+        {/* PDF Analysis Section for Ship */}
+        {recordType === 'ship' && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-blue-800 mb-1">
+                  {language === 'vi' ? 'Thêm tàu mới từ Giấy chứng nhận' : 'Add Ship from Certificate'}
+                </h4>
+                <p className="text-sm text-blue-600">
+                  {language === 'vi' ? 'Upload file PDF và AI sẽ tự động điền thông tin tàu' : 'Upload PDF file and AI will auto-fill ship information'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPdfAnalysis(true)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-all flex items-center"
+              >
+                <span className="mr-2">📄</span>
+                {language === 'vi' ? 'Upload PDF' : 'Upload PDF'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Ship Form */}
         {recordType === 'ship' && (
           <div className="space-y-4">
