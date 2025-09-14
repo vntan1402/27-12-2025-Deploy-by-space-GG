@@ -15,6 +15,7 @@ import bcrypt
 import jwt
 from enum import Enum
 import shutil
+import requests
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 
 # Import our MongoDB database modules
