@@ -5715,20 +5715,61 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
   const handleSubmitCertificate = async () => {
     try {
       setIsSubmitting(true);
-      const certPayload = {
-        ...certificateData,
-        issue_date: new Date(certificateData.issue_date).toISOString(),
-        valid_date: new Date(certificateData.valid_date).toISOString(),
-        last_endorse: certificateData.last_endorse ? new Date(certificateData.last_endorse).toISOString() : null,
-        next_survey: certificateData.next_survey ? new Date(certificateData.next_survey).toISOString() : null
-      };
       
-      const response = await axios.post(`${API}/certificates`, certPayload);
+      if (certificateFile) {
+        // Submit certificate with file upload to Company Google Drive
+        const formData = new FormData();
+        formData.append('file', certificateFile);
+        formData.append('ship_id', selectedShip?.id || '');
+        formData.append('cert_name', certificateData.cert_name);
+        formData.append('cert_no', certificateData.cert_no);
+        formData.append('issue_date', new Date(certificateData.issue_date).toISOString());
+        formData.append('valid_date', new Date(certificateData.valid_date).toISOString());
+        formData.append('last_endorse', certificateData.last_endorse ? new Date(certificateData.last_endorse).toISOString() : '');
+        formData.append('next_survey', certificateData.next_survey ? new Date(certificateData.next_survey).toISOString() : '');
+        formData.append('category', certificateData.category);
+        formData.append('sensitivity_level', certificateData.sensitivity_level);
+        
+        const response = await axios.post(`${API}/certificates/upload-with-file`, formData, {
+          headers: {
+            // Content-Type is automatically set by axios for FormData with proper boundary
+          }
+        });
+        
+        toast.success(language === 'vi' ? 'Chứng chỉ và tập tin đã được tải lên thành công!' : 'Certificate and file uploaded successfully!');
+      } else {
+        // Submit certificate metadata only (existing functionality)
+        const certPayload = {
+          ...certificateData,
+          issue_date: new Date(certificateData.issue_date).toISOString(),
+          valid_date: new Date(certificateData.valid_date).toISOString(),
+          last_endorse: certificateData.last_endorse ? new Date(certificateData.last_endorse).toISOString() : null,
+          next_survey: certificateData.next_survey ? new Date(certificateData.next_survey).toISOString() : null
+        };
+        
+        const response = await axios.post(`${API}/certificates`, certPayload);
+        toast.success(language === 'vi' ? 'Chứng chỉ đã được thêm thành công!' : 'Certificate added successfully!');
+      }
+      
       onSuccess('certificate');
-      toast.success(language === 'vi' ? 'Chứng chỉ đã được thêm thành công!' : 'Certificate added successfully!');
     } catch (error) {
-      toast.error(language === 'vi' ? 'Không thể thêm chứng chỉ!' : 'Failed to add certificate!');
       console.error('Certificate creation error:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
+      
+      // Handle specific Google Drive configuration errors
+      if (errorMessage.includes('Google Drive not configured')) {
+        toast.error(language === 'vi' 
+          ? 'Google Drive chưa được cấu hình cho công ty của bạn. Vui lòng liên hệ quản trị viên để cấu hình Google Drive.' 
+          : 'Google Drive not configured for your company. Please contact administrator to configure Google Drive.');
+      } else if (errorMessage.includes('File size exceeds')) {
+        toast.error(language === 'vi' 
+          ? 'Kích thước tập tin vượt quá giới hạn 150MB' 
+          : 'File size exceeds 150MB limit');
+      } else {
+        toast.error(language === 'vi' 
+          ? `Không thể tải lên chứng chỉ: ${errorMessage}` 
+          : `Failed to upload certificate: ${errorMessage}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
