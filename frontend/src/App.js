@@ -1025,6 +1025,14 @@ const HomePage = () => {
                           <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
                           <span className="ml-2">{selectedShip.built_year}</span>
                         </div>
+                        <div>
+                          <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
+                          <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Management Company:'}</span>
+                          <span className="ml-2">{selectedShip.company || '-'}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
