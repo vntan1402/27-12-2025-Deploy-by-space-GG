@@ -255,25 +255,31 @@
     implemented: true
     working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Updated AddRecordModal with: 1) Ship Owner and Company as required dropdown fields from existing companies, 2) Changed 'Hãng đăng kiểm' to 'Tổ chức Phân cấp', 3) Added 'Thêm tàu mới từ Giấy chứng nhận' button with PDF upload modal, AI analysis, and auto-fill functionality. Added fetchAvailableCompanies function and PDF analysis state management."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUES FOUND: (1) PDF Analysis Modal Missing: The 'Upload PDF' button exists and is clickable, but no PDF modal appears when clicked. The AddRecordModal component has showPdfAnalysis state and handlePdfAnalysis function, but the PDF modal is not rendered in the component's return statement. (2) Company Dropdown Population Issue: Companies API returns data successfully (1 company found: AMCSC), but dropdowns show empty options. The availableCompanies prop is passed but company.name is undefined - should use company.name_en or company.name_vn. (3) Form Validation Working: HTML5 validation prevents submission without required fields, shows proper error messages. ✅ WORKING FEATURES: Ship form fields present with correct labels, required field indicators (*) working, form structure correct, language toggle functional, backend API responding correctly."
 
   - task: "Ship Form Enhancement with Owner and Company Fields"
     implemented: true
     working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Updated AddRecordModal ship form to include ship_owner and company fields. Added corresponding fields to shipData state. Updated ship information display in HomePage to show Ship Owner and Management Company with proper fallback values."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUES IDENTIFIED: (1) Company Dropdown Data Mapping Issue: Ship Owner and Company dropdowns are present with correct labels and required indicators, but show empty options despite successful API response. The issue is in the dropdown mapping - using company.name which is undefined, should use company.name_en or company.name_vn from the API response structure. (2) Label Translation Issue: Vietnamese labels ('Tổ chức Phân cấp', 'Chủ tàu', 'Công ty quản lý') are not displaying when language is switched to Vietnamese - form shows English labels only. ✅ WORKING FEATURES: Ship Owner and Company fields implemented as required dropdowns, form validation working correctly, required field indicators present, backend API returning company data successfully."
 
   - task: "Enhanced User Management UI with Filtering and Sorting"
     implemented: true
