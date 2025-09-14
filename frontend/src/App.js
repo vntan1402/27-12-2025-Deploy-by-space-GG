@@ -5167,7 +5167,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
 
       const response = await axios.post(`${API}/analyze-ship-certificate`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          // Content-Type is automatically set by axios for FormData with proper boundary
         }
       });
 
