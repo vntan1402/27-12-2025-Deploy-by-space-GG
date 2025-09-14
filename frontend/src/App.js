@@ -5213,7 +5213,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tổng trọng tải (GT)' : 'Gross Tonnage (GT)'} *
+                  {language === 'vi' ? 'Tổng Dung Tích (GT)' : 'Gross Tonnage (GT)'} *
                 </label>
                 <input
                   type="number"
@@ -5226,7 +5226,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Trọng tải chết (DWT)' : 'Deadweight (DWT)'} *
+                  {language === 'vi' ? 'Trọng Tải (DWT)' : 'Deadweight (DWT)'} *
                 </label>
                 <input
                   type="number"
