@@ -549,6 +549,100 @@ async def update_user(user_id: str, user_update: UserUpdate, current_user: UserR
         logger.error(f"Error updating user: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update user")
 
+@api_router.put("/users/{user_id}/self-edit")
+async def self_edit_user(user_id: str, user_update: UserUpdate, current_user: UserResponse = Depends(get_current_user)):
+    """Allow users to edit their own email and zalo (crew can only edit email/zalo)"""
+    try:
+        # Check if user is editing themselves
+        if user_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Can only edit your own profile")
+        
+        # Get existing user
+        existing_user = await mongo_db.find_one("users", {"id": user_id})
+        if not existing_user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+        # Define what fields each role can edit
+        allowed_fields = set()
+        if current_user.role == 'viewer':  # Crew role
+            allowed_fields = {'email', 'zalo'}
+        else:
+            # Higher roles can edit more fields
+            allowed_fields = {'email', 'zalo', 'full_name'}
+        
+        # Filter update data to only allowed fields
+        update_data = {}
+        for field, value in user_update.dict(exclude_unset=True).items():
+            if field in allowed_fields and value is not None:
+                update_data[field] = value
+        
+        # Handle password update (all users can change their own password)
+        if user_update.password:
+            update_data['password_hash'] = hash_password(user_update.password)
+        
+        # Check email uniqueness if updating email
+        if 'email' in update_data and update_data['email']:
+            existing_email = await mongo_db.find_one("users", {"email": update_data['email'], "id": {"$ne": user_id}})
+            if existing_email:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+        
+        if not update_data:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No allowed fields to update")
+        
+        # Update user
+        success = await mongo_db.update("users", {"id": user_id}, update_data)
+        if not success:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+        # Get updated user
+        updated_user = await mongo_db.find_one("users", {"id": user_id})
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "self_edit_user",
+            "resource": "users",
+            "details": {"updated_fields": list(update_data.keys())},
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return UserResponse(**updated_user)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in self-edit user: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update profile")
+
+@api_router.get("/users/{user_id}/editable-fields")
+async def get_editable_fields(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get list of fields the current user can edit for the specified user"""
+    try:
+        # Check if user is editing themselves
+        if user_id == current_user.id:
+            # Self-edit permissions
+            if current_user.role == 'viewer':  # Crew role
+                return {"editable_fields": ["email", "zalo", "password"]}
+            else:
+                return {"editable_fields": ["email", "zalo", "full_name", "password"]}
+        else:
+            # Check management permissions
+            existing_user = await mongo_db.find_one("users", {"id": user_id})
+            if not existing_user:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            
+            if not can_edit_user_role(current_user, UserRole(existing_user['role'])):
+                return {"editable_fields": []}
+            
+            # Full edit permissions for managers/admins
+            return {"editable_fields": ["username", "email", "full_name", "role", "department", "company", "ship", "zalo", "gmail", "is_active", "password"]}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting editable fields: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get editable fields")
+
 @api_router.delete("/users/{user_id}")
 async def delete_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
     """Delete user (soft delete by setting is_active=False)"""
