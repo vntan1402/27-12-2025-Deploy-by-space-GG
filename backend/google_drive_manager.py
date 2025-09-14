@@ -213,9 +213,25 @@ class GoogleDriveManager:
                 with open(config_path, 'r') as f:
                     config = json.load(f)
                 
-                # Reconfigure with saved settings
-                if self.configure(config['service_account_json'], config['folder_id']):
-                    logger.info("Google Drive configuration loaded from saved settings")
+                auth_method = config.get('auth_method', 'service_account')
+                
+                if auth_method == 'oauth':
+                    # Load OAuth configuration
+                    client_config = config.get('client_config')
+                    oauth_credentials = config.get('oauth_credentials')
+                    folder_id = config.get('folder_id')
+                    
+                    if client_config and oauth_credentials and folder_id:
+                        if self.configure_oauth(client_config, oauth_credentials, folder_id):
+                            logger.info("Google Drive OAuth configuration loaded from saved settings")
+                elif auth_method == 'service_account':
+                    # Load Service Account configuration (legacy)
+                    service_account_json = config.get('service_account_json')
+                    folder_id = config.get('folder_id')
+                    
+                    if service_account_json and folder_id:
+                        if self.configure_service_account(service_account_json, folder_id):
+                            logger.info("Google Drive Service Account configuration loaded from saved settings")
         except Exception as e:
             logger.error(f"Failed to load Google Drive configuration: {e}")
 
