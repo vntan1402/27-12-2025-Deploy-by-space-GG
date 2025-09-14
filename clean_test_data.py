@@ -6,10 +6,15 @@ This script removes all test data from the MongoDB database while preserving ess
 
 import asyncio
 import sys
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Add backend directory to path  
 sys.path.append(str(Path(__file__).parent / "backend"))
+
+# Load environment variables
+load_dotenv(Path(__file__).parent / "backend" / ".env")
 
 from mongodb_database import mongo_db
 
