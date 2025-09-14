@@ -5408,19 +5408,39 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
   const handleSubmitShip = async () => {
     try {
       setIsSubmitting(true);
+      
+      // Prepare ship payload with proper data cleaning
       const shipPayload = {
-        ...shipData,
-        gross_tonnage: parseFloat(shipData.gross_tonnage),
-        deadweight: parseFloat(shipData.deadweight),
-        built_year: parseInt(shipData.built_year)
+        name: shipData.name?.trim() || '',
+        imo: shipData.imo_number?.trim() || null, // Convert empty string to null
+        flag: shipData.flag?.trim() || '',
+        ship_type: shipData.class_society?.trim() || '',
+        gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
+        year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
+        ship_owner: shipData.ship_owner?.trim() || '',
+        company: shipData.company?.trim() || user?.company || ''
       };
+      
+      // Remove null values to avoid database constraint issues
+      Object.keys(shipPayload).forEach(key => {
+        if (shipPayload[key] === null || shipPayload[key] === '') {
+          if (key === 'imo') {
+            delete shipPayload[key]; // Remove IMO entirely if empty
+          } else if (['gross_tonnage', 'year_built'].includes(key)) {
+            delete shipPayload[key]; // Remove optional numeric fields if empty
+          }
+        }
+      });
+      
+      console.log('Ship payload:', shipPayload); // Debug log
       
       const response = await axios.post(`${API}/ships`, shipPayload);
       onSuccess('ship');
       toast.success(language === 'vi' ? 'Tàu đã được thêm thành công!' : 'Ship added successfully!');
     } catch (error) {
-      toast.error(language === 'vi' ? 'Không thể thêm tàu!' : 'Failed to add ship!');
       console.error('Ship creation error:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' ? `Không thể thêm tàu: ${errorMessage}` : `Failed to add ship: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
