@@ -895,6 +895,126 @@ async def test_google_drive_connection(config: GoogleDriveConfig, current_user: 
             message=f"Connection test failed: {str(e)}"
         )
 
+# Google Drive OAuth Endpoints
+@api_router.post("/gdrive/oauth/authorize", response_model=GoogleDriveOAuthResponse)
+async def initiate_google_drive_oauth(config: GoogleDriveOAuthConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Initiate Google Drive OAuth 2.0 authorization flow"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Create client config
+        client_config = {
+            "web": {
+                "client_id": config.client_id,
+                "client_secret": config.client_secret,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [config.redirect_uri]
+            },
+            "redirect_uri": config.redirect_uri
+        }
+        
+        # Initialize Google Drive manager
+        gdrive_manager = GoogleDriveManager()
+        
+        # Get authorization URL
+        authorization_url, state = gdrive_manager.get_oauth_authorization_url(client_config)
+        
+        if not authorization_url:
+            return GoogleDriveOAuthResponse(
+                success=False,
+                message="Failed to generate authorization URL"
+            )
+        
+        # Store client config and folder_id for later use (in session or database)
+        await mongo_db.update("gdrive_oauth_temp", {}, {
+            "client_config": client_config,
+            "folder_id": config.folder_id,
+            "state": state,
+            "user_id": current_user.id,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }, upsert=True)
+        
+        return GoogleDriveOAuthResponse(
+            success=True,
+            message="Authorization URL generated successfully",
+            authorization_url=authorization_url,
+            state=state
+        )
+        
+    except Exception as e:
+        logger.error(f"Error initiating OAuth: {e}")
+        return GoogleDriveOAuthResponse(
+            success=False,
+            message=f"Failed to initiate OAuth: {str(e)}"
+        )
+
+@api_router.post("/gdrive/oauth/callback", response_model=GoogleDriveOAuthResponse)
+async def handle_google_drive_oauth_callback(request: GoogleDriveOAuthRequest, current_user: UserResponse = Depends(get_current_user)):
+    """Handle Google Drive OAuth 2.0 callback and complete configuration"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Get temporary OAuth data
+        oauth_temp = await mongo_db.find_one("gdrive_oauth_temp", {"state": request.state, "user_id": current_user.id})
+        if not oauth_temp:
+            return GoogleDriveOAuthResponse(
+                success=False,
+                message="Invalid state parameter or expired OAuth session"
+            )
+        
+        # Construct authorization response URL
+        client_config = oauth_temp.get("client_config")
+        redirect_uri = client_config.get("redirect_uri")
+        authorization_response = f"{redirect_uri}?code={request.authorization_code}&state={request.state}"
+        
+        # Initialize Google Drive manager
+        gdrive_manager = GoogleDriveManager()
+        
+        # Handle OAuth callback
+        oauth_credentials = gdrive_manager.handle_oauth_callback(authorization_response)
+        
+        if not oauth_credentials:
+            return GoogleDriveOAuthResponse(
+                success=False,
+                message="Failed to exchange authorization code for tokens"
+            )
+        
+        # Configure Google Drive with OAuth credentials
+        folder_id = oauth_temp.get("folder_id")
+        if not gdrive_manager.configure_oauth(client_config, oauth_credentials, folder_id):
+            return GoogleDriveOAuthResponse(
+                success=False,
+                message="Failed to configure Google Drive with OAuth credentials"
+            )
+        
+        # Save configuration to MongoDB
+        await mongo_db.update("gdrive_config", {}, {
+            "auth_method": "oauth",
+            "client_config": client_config,
+            "oauth_credentials": oauth_credentials,
+            "folder_id": folder_id,
+            "service_account_email": oauth_credentials.get("client_id"),  # Use client_id as identifier
+            "configured_at": datetime.now(timezone.utc).isoformat()
+        }, upsert=True)
+        
+        # Clean up temporary data
+        await mongo_db.delete("gdrive_oauth_temp", {"state": request.state})
+        
+        return GoogleDriveOAuthResponse(
+            success=True,
+            message="Google Drive configured successfully with OAuth 2.0"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error handling OAuth callback: {e}")
+        return GoogleDriveOAuthResponse(
+            success=False,
+            message=f"Failed to handle OAuth callback: {str(e)}"
+        )
+
 @api_router.post("/gdrive/sync-to-drive")
 async def sync_to_drive(current_user: UserResponse = Depends(get_current_user)):
     """Sync data to Google Drive"""
