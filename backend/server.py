@@ -730,11 +730,21 @@ async def get_google_drive_status(current_user: UserResponse = Depends(get_curre
                 await mongo_db.count("certificates")
             )
             
+            # Count files on Google Drive
+            drive_files = 0
+            try:
+                gdrive_manager = GoogleDriveManager()
+                if gdrive_manager.configure(config.get("service_account_json"), config.get("folder_id")):
+                    drive_files_list = gdrive_manager.list_files()
+                    drive_files = len(drive_files_list)
+            except Exception as e:
+                logger.warning(f"Could not count Google Drive files: {e}")
+            
             return GoogleDriveStatus(
                 configured=True,
                 last_sync=config.get("last_sync"),
                 local_files=local_files,
-                drive_files=0,  # Would need to implement actual drive counting
+                drive_files=drive_files,
                 folder_id=config.get("folder_id"),
                 service_account_email=config.get("service_account_email")
             )
