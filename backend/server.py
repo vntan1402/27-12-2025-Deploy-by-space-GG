@@ -917,6 +917,119 @@ async def test_google_drive_connection(config: GoogleDriveConfig, current_user: 
             message=f"Connection test failed: {str(e)}"
         )
 
+# Google Apps Script Proxy Models
+class GoogleAppsScriptConfig(BaseModel):
+    web_app_url: str
+    folder_id: str
+
+@api_router.post("/gdrive/configure-proxy")
+async def configure_google_apps_script_proxy(config: GoogleAppsScriptConfig, current_user: UserResponse = Depends(get_current_user)):
+    """Configure Google Drive using Apps Script proxy"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Test connection to Apps Script
+        test_response = requests.post(config.web_app_url, 
+            json={"action": "test_connection"},
+            timeout=30
+        )
+        
+        if test_response.status_code != 200:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to connect to Apps Script proxy")
+        
+        result = test_response.json()
+        if not result.get("success"):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Apps Script test failed: {result.get('error', 'Unknown error')}")
+        
+        # Save configuration
+        await mongo_db.update("gdrive_config", {}, {
+            "auth_method": "apps_script",
+            "web_app_url": config.web_app_url,
+            "folder_id": config.folder_id,
+            "service_account_email": result.get("service_account_email"),
+            "configured_at": datetime.now(timezone.utc).isoformat()
+        }, upsert=True)
+        
+        return GoogleDriveTestResponse(
+            success=True,
+            message="Google Apps Script proxy configured successfully",
+            folder_name=result.get("folder_name"),
+            service_account_email=result.get("service_account_email")
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error configuring Apps Script proxy: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to configure proxy: {str(e)}")
+
+@api_router.post("/gdrive/sync-to-drive-proxy")
+async def sync_to_drive_using_proxy(current_user: UserResponse = Depends(get_current_user)):
+    """Sync data to Google Drive using Apps Script proxy"""
+    try:
+        if not has_permission(current_user, UserRole.ADMIN):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Get Apps Script configuration
+        config = await mongo_db.find_one("gdrive_config", {"auth_method": "apps_script"})
+        if not config:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Apps Script proxy not configured")
+        
+        # Export data from MongoDB
+        export_data = await mongo_db.export_to_json()
+        
+        # Prepare files for upload
+        files_to_upload = []
+        data_path = "/app/backend/data"
+        
+        for filename in os.listdir(data_path):
+            if filename.endswith('.json'):
+                file_path = os.path.join(data_path, filename)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                files_to_upload.append({
+                    "name": filename,
+                    "content": content
+                })
+        
+        # Send to Apps Script
+        response = requests.post(config["web_app_url"], 
+            json={
+                "action": "sync_to_drive",
+                "files": files_to_upload
+            },
+            timeout=60
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync via Apps Script proxy")
+        
+        result = response.json()
+        if not result.get("success"):
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Sync failed: {result.get('error', 'Unknown error')}")
+        
+        # Update last_sync timestamp
+        await mongo_db.update("gdrive_config", {}, {
+            "last_sync": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "sync_to_drive_proxy",
+            "resource": "gdrive",
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {"message": f"Data synced successfully via Apps Script. {result.get('uploaded_files', 0)} files uploaded.", "success": True}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error syncing via Apps Script proxy: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to sync: {str(e)}")
+
 # Google Drive OAuth Endpoints
 @api_router.post("/gdrive/oauth/authorize", response_model=GoogleDriveOAuthResponse)
 async def initiate_google_drive_oauth(config: GoogleDriveOAuthConfig, current_user: UserResponse = Depends(get_current_user)):
