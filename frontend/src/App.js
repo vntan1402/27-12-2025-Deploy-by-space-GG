@@ -5369,7 +5369,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       });
 
       if (response.data.success) {
-        // Auto-fill ship data with extracted information
+        // Auto-fill ship data with extracted information (excluding company)
         const extractedData = response.data.analysis;
         setShipData(prev => ({
           ...prev,
@@ -5380,8 +5380,8 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
           gross_tonnage: extractedData.gross_tonnage || prev.gross_tonnage,
           deadweight: extractedData.deadweight || prev.deadweight,
           built_year: extractedData.built_year || prev.built_year,
-          ship_owner: extractedData.ship_owner || prev.ship_owner,
-          company: extractedData.company || prev.company
+          ship_owner: extractedData.ship_owner || prev.ship_owner
+          // company field intentionally NOT updated - keeps user's company
         }));
         
         toast.success(language === 'vi' ? 'Phân tích PDF thành công! Đã tự động điền thông tin tàu.' : 'PDF analysis completed! Ship information auto-filled.');
