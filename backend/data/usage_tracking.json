@@ -1,39 +1,5 @@
 [
   {
-    "id": "c78c0733-f7f9-45d9-aab7-18a647727a37",
-    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
-    "provider": "openai",
-    "model": "gpt-4",
-    "request_type": "document_analysis",
-    "input_tokens": 26,
-    "output_tokens": 505,
-    "estimated_cost": 0.03108,
-    "success": true,
-    "error_message": null,
-    "timestamp": "2025-09-12 14:50:12.104000",
-    "document_id": "e6cba0fa-6f4c-432d-9bfb-9a776b301d1d",
-    "search_query": null,
-    "_migrated_at": "2025-09-13 12:59:07.639000",
-    "_migration_source": "json_file"
-  },
-  {
-    "id": "2ad603f5-3aa3-480c-9dee-ae199d63e1bd",
-    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
-    "provider": "openai",
-    "model": "gpt-4",
-    "request_type": "smart_search",
-    "input_tokens": 269,
-    "output_tokens": 416,
-    "estimated_cost": 0.033030000000000004,
-    "success": true,
-    "error_message": null,
-    "timestamp": "2025-09-12 14:50:26.402000",
-    "document_id": null,
-    "search_query": "safety management certificate compliance",
-    "_migrated_at": "2025-09-13 12:59:07.639000",
-    "_migration_source": "json_file"
-  },
-  {
     "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
     "action": "login",
     "resource": "auth",
@@ -897,5 +863,211 @@
     "resource": "auth",
     "timestamp": "2025-09-14 07:06:54.823000",
     "created_at": "2025-09-14 07:06:54.823000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "sync_from_drive",
+    "resource": "gdrive",
+    "timestamp": "2025-09-14 07:09:12.753000",
+    "created_at": "2025-09-14 07:09:12.753000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:12:15.149000",
+    "created_at": "2025-09-14 07:12:15.149000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:16:36.299000",
+    "created_at": "2025-09-14 07:16:36.299000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:17:39.198000",
+    "created_at": "2025-09-14 07:17:39.198000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:18:08.107000",
+    "created_at": "2025-09-14 07:18:08.107000"
+  },
+  {
+    "user_id": "95bb3604-a740-43dc-9087-41af77802890",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:24:17.081000",
+    "created_at": "2025-09-14 07:24:17.081000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:47:37.863000",
+    "created_at": "2025-09-14 07:47:37.863000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:48:04.988000",
+    "created_at": "2025-09-14 07:48:04.988000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:48:28.617000",
+    "created_at": "2025-09-14 07:48:28.617000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:50:45.163000",
+    "created_at": "2025-09-14 07:50:45.163000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "configure_company_gdrive_proxy",
+    "resource": "company_gdrive:e9dc0d53-8bee-430a-ad9b-1ad4008c4f5f",
+    "timestamp": "2025-09-14 07:50:46.842000",
+    "created_at": "2025-09-14 07:50:46.842000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "configure_company_gdrive",
+    "resource": "company_gdrive:e9dc0d53-8bee-430a-ad9b-1ad4008c4f5f",
+    "timestamp": "2025-09-14 07:50:46.903000",
+    "created_at": "2025-09-14 07:50:46.903000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:52:16.768000",
+    "created_at": "2025-09-14 07:52:16.768000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "configure_company_gdrive_proxy",
+    "resource": "company_gdrive:e9dc0d53-8bee-430a-ad9b-1ad4008c4f5f",
+    "timestamp": "2025-09-14 07:52:19.220000",
+    "created_at": "2025-09-14 07:52:19.220000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "configure_company_gdrive",
+    "resource": "company_gdrive:e9dc0d53-8bee-430a-ad9b-1ad4008c4f5f",
+    "timestamp": "2025-09-14 07:52:19.309000",
+    "created_at": "2025-09-14 07:52:19.309000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 07:57:45.046000",
+    "created_at": "2025-09-14 07:57:45.046000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 08:02:12.064000",
+    "created_at": "2025-09-14 08:02:12.064000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 08:03:27.772000",
+    "created_at": "2025-09-14 08:03:27.772000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 08:05:51.069000",
+    "created_at": "2025-09-14 08:05:51.069000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 08:25:05.191000",
+    "created_at": "2025-09-14 08:25:05.191000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "update_company",
+    "resource": "companies",
+    "details": {
+      "company_id": "aa8b19ad-0230-4c1d-914e-2fcb41831bb1"
+    },
+    "timestamp": "2025-09-14 08:25:57.842000",
+    "created_at": "2025-09-14 08:25:57.842000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 08:26:23.429000",
+    "created_at": "2025-09-14 08:26:23.429000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 08:56:21.495000",
+    "created_at": "2025-09-14 08:56:21.495000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 09:01:09.612000",
+    "created_at": "2025-09-14 09:01:09.612000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 09:01:34.340000",
+    "created_at": "2025-09-14 09:01:34.340000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 09:02:30.664000",
+    "created_at": "2025-09-14 09:02:30.664000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "configure_company_gdrive_proxy",
+    "resource": "company_gdrive:aa8b19ad-0230-4c1d-914e-2fcb41831bb1",
+    "timestamp": "2025-09-14 09:02:33.190000",
+    "created_at": "2025-09-14 09:02:33.190000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 09:13:16.323000",
+    "created_at": "2025-09-14 09:13:16.323000"
+  },
+  {
+    "user_id": "945930a2-5b00-43ca-907d-82b248302c62",
+    "action": "login",
+    "resource": "auth",
+    "timestamp": "2025-09-14 09:15:03.704000",
+    "created_at": "2025-09-14 09:15:03.704000"
   }
 ]
