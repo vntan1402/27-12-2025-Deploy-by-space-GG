@@ -1018,19 +1018,19 @@ const HomePage = () => {
 
                       {/* Sub Menu */}
                       <div className="mb-6">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 w-full">
+                        <div className="grid grid-cols-5 gap-1 w-full">
                           {subMenuItems[selectedCategory] && subMenuItems[selectedCategory].map((item) => (
                             <button
                               key={item.key}
                               onClick={() => setSelectedSubMenu(item.key)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-center whitespace-nowrap ${
+                              className={`px-2 py-3 rounded-lg text-sm font-medium transition-all text-center whitespace-nowrap flex-1 ${
                                 selectedSubMenu === item.key 
                                   ? 'bg-blue-600 text-white shadow-lg transform scale-105' 
                                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-md hover:transform hover:scale-102'
                               }`}
                               style={{ minHeight: '48px' }}
                             >
-                              {item.name}
+                              <span className="text-xs leading-tight">{item.name}</span>
                             </button>
                           ))}
                         </div>
