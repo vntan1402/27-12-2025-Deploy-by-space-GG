@@ -212,6 +212,42 @@
           comment: "✅ USER MANAGEMENT WITH SHIP FIELD COMPREHENSIVE TESTING COMPLETED - All 11/11 API tests passed and 7/7 feature tests successful. Authentication with admin/admin123: ✅ (Super Admin role verified), GET /api/users: ✅ (ship field present in all 3 users, currently 0 users with ship assigned), GET /api/companies: ✅ (found 5 companies with proper data structure), GET /api/ships: ✅ (found 7 ships with proper data structure), User Models Ship Field Support: ✅ (UserCreate, UserUpdate, UserResponse models properly support ship field), PUT /api/users/{user_id}: ✅ (successfully updates users with ship field, admin user updated with ship ID c810ce09-afc4-47ea-98b0-cba976219546), Edge Cases Testing: ✅ (empty ship field handled correctly as None, non-existent ship IDs accepted as optional validation). Created test user 'ship_test_user_1757718978' with ship field successfully assigned. All User Management backend functionality with updated ship field is working correctly and production-ready."
 
 ## frontend:
+  - task: "Enhanced User Management UI with Filtering and Sorting"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Added comprehensive filtering controls above User Management table with Company, Department, Ship filters and Sort By/Order controls. Updated table to use filteredUsers state and added Gmail column. Added Clear Filters functionality."
+
+  - task: "Mandatory Zalo Field in User Forms"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Updated AddUserModal and EditUserModal to make Zalo field required with asterisk (*) indicator and updated validation. Added Gmail field alongside Zalo in both forms using grid layout. Updated handleAddUser validation to check for Zalo field."
+
+  - task: "User State Management Enhancement"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Added userFilters, userSorting, and filteredUsers state variables. Added fetchFilteredUsers function to call new backend filtering endpoint. Updated newUserData to include gmail field."
+
   - task: "Add New Record Modal/Forms"
     implemented: true
     working: true
