@@ -271,7 +271,7 @@
 
   - task: "Ship Form Enhancement with Owner and Company Fields"
     implemented: true
-    working: false
+    working: true
     file: "App.js"
     stuck_count: 1
     priority: "high"
@@ -283,6 +283,9 @@
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL ISSUES IDENTIFIED: (1) Company Dropdown Data Mapping Issue: Ship Owner and Company dropdowns are present with correct labels and required indicators, but show empty options despite successful API response. The issue is in the dropdown mapping - using company.name which is undefined, should use company.name_en or company.name_vn from the API response structure. (2) Label Translation Issue: Vietnamese labels ('Tổ chức Phân cấp', 'Chủ tàu', 'Công ty quản lý') are not displaying when language is switched to Vietnamese - form shows English labels only. ✅ WORKING FEATURES: Ship Owner and Company fields implemented as required dropdowns, form validation working correctly, required field indicators present, backend API returning company data successfully."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL FIXES VERIFIED - Ship Form Enhancement with Owner and Company Fields FULLY WORKING: (1) Company Dropdown Population VERIFIED: Ship Owner and Company dropdowns correctly populated with company names using proper data mapping (company.name_en/company.name_vn based on language), successfully displaying AMCSC company data, dropdowns functional and selectable. (2) Label Translation VERIFIED: Vietnamese labels ('Tổ chức Phân cấp', 'Chủ tàu', 'Công ty quản lý') display correctly when language is switched to Vietnamese, English labels ('Class Society', 'Ship Owner', 'Company') display correctly in English mode. (3) Form Structure VERIFIED: Ship Owner and Company fields implemented as required dropdowns with proper validation, required field indicators (*) present and working, form validation prevents submission without required fields. (4) Backend Integration VERIFIED: Companies API returning data successfully (1 company: AMCSC), proper data structure with required fields (id, name_vn, name_en), availableCompanies prop passed correctly to modal. All ship form enhancements with owner and company fields are production-ready and fully functional."
 
   - task: "Enhanced User Management UI with Filtering and Sorting"
     implemented: true
