@@ -1357,8 +1357,26 @@ const AccountControlPage = () => {
     try {
       const response = await axios.get(`${API}/users`);
       setUsers(response.data);
+      setFilteredUsers(response.data);
     } catch (error) {
       toast.error('Failed to fetch users');
+    }
+  };
+
+  const fetchFilteredUsers = async (filters = userFilters, sorting = userSorting) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.company) params.append('company', filters.company);
+      if (filters.department) params.append('department', filters.department);
+      if (filters.ship) params.append('ship', filters.ship);
+      params.append('sort_by', sorting.sortBy);
+      params.append('sort_order', sorting.sortOrder);
+      
+      const response = await axios.get(`${API}/users/filtered?${params.toString()}`);
+      setFilteredUsers(response.data);
+    } catch (error) {
+      console.error('Failed to fetch filtered users:', error);
+      toast.error('Failed to fetch filtered users');
     }
   };
 
