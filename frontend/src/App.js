@@ -586,6 +586,18 @@ const LoginPage = () => {
 
 // Main App Component
 const App = () => {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppContent />
+        <Toaster position="top-right" />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
+
+// App Content Component (inside AuthProvider)
+const AppContent = () => {
   const { language } = useAuth();
   const [gdriveConfig, setGdriveConfig] = useState({
     folder_id: ''
@@ -643,22 +655,15 @@ const App = () => {
   }
 
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="App">
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-            <Route path="/account-control" element={<ProtectedRoute><AccountControlPage /></ProtectedRoute>} />
-            <Route path="/ships" element={<ProtectedRoute><ShipsPage /></ProtectedRoute>} />
-            <Route path="/ships/:shipId" element={<ProtectedRoute><ShipDetailPage /></ProtectedRoute>} />
-            <Route path="/oauth2callback" element={<div>Processing OAuth...</div>} />
-            <Route path="/" element={<Navigate to="/login" />} />
-          </Routes>
-          <Toaster position="top-right" />
-        </div>
-      </BrowserRouter>
-    </AuthProvider>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/account-control" element={<ProtectedRoute><AccountControlPage /></ProtectedRoute>} />
+      <Route path="/ships" element={<ProtectedRoute><ShipsPage /></ProtectedRoute>} />
+      <Route path="/ships/:shipId" element={<ProtectedRoute><ShipDetailPage /></ProtectedRoute>} />
+      <Route path="/oauth2callback" element={<div>Processing OAuth...</div>} />
+      <Route path="/" element={<Navigate to="/login" />} />
+    </Routes>
   );
 };
 
