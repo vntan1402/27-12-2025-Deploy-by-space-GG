@@ -2413,7 +2413,20 @@ const AccountControlPage = () => {
           />
         )}
 
-
+        {/* Company Google Drive Configuration Modal */}
+        {showCompanyGoogleDrive && (
+          <CompanyGoogleDriveModal
+            companyId={editingCompany?.id}
+            config={companyGdriveConfig}
+            setConfig={setCompanyGdriveConfig}
+            currentConfig={companyGdriveCurrentConfig}
+            onClose={() => setShowCompanyGoogleDrive(false)}
+            onSave={() => handleCompanyGoogleDriveConfig(editingCompany?.id)}
+            onTest={() => handleTestCompanyGoogleDriveConnection(editingCompany?.id)}
+            testLoading={companyGdriveTestLoading}
+            language={language}
+          />
+        )}
 
         {/* AI Configuration Modal */}
         {showAIConfig && (
