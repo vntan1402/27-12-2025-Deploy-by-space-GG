@@ -2275,7 +2275,7 @@ const AccountControlPage = () => {
 
 // Google Drive Configuration Modal Component
 const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, onTest, testLoading, language }) => {
-  const [authMethod, setAuthMethod] = useState(config.auth_method || 'oauth');
+  const [authMethod, setAuthMethod] = useState(config.auth_method || 'apps_script');
   const [oauthLoading, setOauthLoading] = useState(false);
   
   const handleOverlayClick = (e) => {
@@ -2287,6 +2287,28 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
   const handleAuthMethodChange = (method) => {
     setAuthMethod(method);
     setConfig(prev => ({ ...prev, auth_method: method }));
+  };
+
+  const handleAppsScriptTest = async () => {
+    try {
+      setOauthLoading(true);
+      
+      const response = await axios.post(`${API}/gdrive/configure-proxy`, {
+        web_app_url: config.web_app_url,
+        folder_id: config.folder_id
+      });
+      
+      if (response.data.success) {
+        toast.success(language === 'vi' ? 'Apps Script proxy hoạt động!' : 'Apps Script proxy working!');
+      } else {
+        toast.error(language === 'vi' ? 'Apps Script proxy lỗi' : 'Apps Script proxy error');
+      }
+    } catch (error) {
+      console.error('Apps Script test error:', error);
+      toast.error(language === 'vi' ? 'Lỗi test Apps Script' : 'Apps Script test error');
+    } finally {
+      setOauthLoading(false);
+    }
   };
 
   const handleOAuthAuthorize = async () => {
