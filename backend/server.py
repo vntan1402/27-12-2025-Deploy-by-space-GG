@@ -380,6 +380,62 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
         logger.error(f"Error fetching users: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch users")
 
+@api_router.get("/users/filtered", response_model=List[UserResponse])
+async def get_users_filtered(
+    company: Optional[str] = None,
+    department: Optional[str] = None, 
+    ship: Optional[str] = None,
+    sort_by: Optional[str] = "full_name",
+    sort_order: Optional[str] = "asc",
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get users with filtering and sorting options"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.MANAGER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Build filter query
+        filter_query = {"is_active": True}
+        
+        # Apply role-based filtering first
+        if current_user.role in ['manager', 'admin']:
+            # Manager and Admin only see users from their company
+            if current_user.company:
+                filter_query["company"] = current_user.company
+        
+        # Apply additional filters
+        if company:
+            filter_query["company"] = company
+        if department:
+            filter_query["department"] = department
+        if ship:
+            filter_query["ship"] = ship
+        
+        # Get users from database
+        users = await mongo_db.find_all("users", filter_query)
+        
+        # Sort users
+        valid_sort_fields = ["full_name", "username", "company", "department", "role", "ship", "zalo", "gmail", "created_at"]
+        if sort_by not in valid_sort_fields:
+            sort_by = "full_name"
+        
+        reverse_order = sort_order.lower() == "desc"
+        
+        # Handle None values in sorting
+        users_sorted = sorted(users, key=lambda x: (
+            x.get(sort_by) is None,  # None values go to end
+            str(x.get(sort_by, "")).lower() if x.get(sort_by) is not None else ""
+        ), reverse=reverse_order)
+        
+        return [UserResponse(**user) for user in users_sorted]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching filtered users: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch filtered users")
+
 @api_router.post("/users", response_model=UserResponse)
 async def create_user(user_create: UserCreate, current_user: UserResponse = Depends(get_current_user)):
     """Create new user"""
