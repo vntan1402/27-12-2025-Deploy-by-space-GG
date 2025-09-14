@@ -2397,6 +2397,131 @@ async def shutdown_event():
     except Exception as e:
         logger.error(f"❌ Error closing MongoDB connection: {e}")
 
+# PDF Analysis Route
+@api_router.post("/analyze-ship-certificate")
+async def analyze_ship_certificate(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Analyze PDF certificate to extract ship information using AI"""
+    try:
+        # Check permissions
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Validate file type and size
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only PDF files are allowed")
+        
+        # Read file content
+        file_content = await file.read()
+        file_size = len(file_content)
+        
+        if file_size > 5 * 1024 * 1024:  # 5MB limit
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File size exceeds 5MB limit")
+        
+        # Save file temporarily
+        temp_dir = Path("temp_uploads")
+        temp_dir.mkdir(exist_ok=True)
+        
+        temp_file_path = temp_dir / f"{uuid.uuid4()}_{file.filename}"
+        with open(temp_file_path, "wb") as temp_file:
+            temp_file.write(file_content)
+        
+        try:
+            # Initialize AI chat with Emergent LLM key
+            api_key = os.environ.get('EMERGENT_LLM_KEY')
+            if not api_key:
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service not configured")
+            
+            # Create LLM chat instance with Gemini for file support
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=f"pdf_analysis_{uuid.uuid4()}",
+                system_message="""You are an expert ship certificate analyzer. Extract ship information from PDF certificates.
+                
+                Return ONLY a JSON object with these exact fields (use null for missing information):
+                {
+                    "ship_name": "string or null",
+                    "imo_number": "string or null", 
+                    "class_society": "string or null",
+                    "flag": "string or null",
+                    "gross_tonnage": "number or null",
+                    "deadweight": "number or null", 
+                    "built_year": "number or null",
+                    "ship_owner": "string or null",
+                    "company": "string or null"
+                }
+                
+                Extract only accurate information from the document. Do not make assumptions."""
+            ).with_model("gemini", "gemini-2.0-flash")
+            
+            # Create file content for analysis
+            pdf_file = FileContentWithMimeType(
+                file_path=str(temp_file_path),
+                mime_type="application/pdf"
+            )
+            
+            # Send message for analysis
+            user_message = UserMessage(
+                text="Analyze this ship certificate PDF and extract the ship information. Return only the JSON object with the specified structure.",
+                file_contents=[pdf_file]
+            )
+            
+            response = await chat.send_message(user_message)
+            
+            # Parse AI response
+            try:
+                # Clean the response to extract JSON
+                response_text = response.strip()
+                if '```json' in response_text:
+                    response_text = response_text.split('```json')[1].split('```')[0].strip()
+                elif '```' in response_text:
+                    response_text = response_text.split('```')[1].split('```')[0].strip()
+                
+                analysis_result = json.loads(response_text)
+                
+                # Validate extracted data structure
+                expected_fields = ['ship_name', 'imo_number', 'class_society', 'flag', 'gross_tonnage', 'deadweight', 'built_year', 'ship_owner', 'company']
+                cleaned_result = {}
+                
+                for field in expected_fields:
+                    value = analysis_result.get(field)
+                    if value == "" or value == "null" or value == "N/A":
+                        cleaned_result[field] = None
+                    else:
+                        cleaned_result[field] = value
+                
+                # Log usage
+                await mongo_db.create("usage_tracking", {
+                    "user_id": current_user.id,
+                    "action": "pdf_analysis",
+                    "resource": "ship_certificate",
+                    "details": {"filename": file.filename, "file_size": file_size},
+                    "timestamp": datetime.now(timezone.utc)
+                })
+                
+                return {
+                    "success": True,
+                    "analysis": cleaned_result,
+                    "message": "PDF analysis completed successfully"
+                }
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse AI response as JSON: {response}")
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI response parsing failed")
+                
+        finally:
+            # Clean up temporary file
+            if temp_file_path.exists():
+                temp_file_path.unlink()
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing PDF certificate: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"PDF analysis failed: {str(e)}")
+
 # CORS middleware
 origins = os.environ.get('CORS_ORIGINS', '*').split(',')
 app.add_middleware(
