@@ -459,6 +459,10 @@ async def create_user(user_create: UserCreate, current_user: UserResponse = Depe
             if existing_email:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
         
+        # Validate Zalo field (required)
+        if not user_create.zalo or user_create.zalo.strip() == "":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Zalo field is required")
+        
         # Create user data
         user_data = user_create.dict()
         user_data['id'] = str(uuid.uuid4())
