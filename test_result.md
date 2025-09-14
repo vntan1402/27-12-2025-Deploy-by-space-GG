@@ -106,6 +106,42 @@
 "User management improvements: Enhance User Management with filtering by Company, Department, Ship and sorting options (ascending/descending) for each column. Update Crew role permissions to allow viewing and editing their own Email and Zalo information. Make Zalo field mandatory in Add User and Edit User forms. Add Gmail field support across the system."
 
 ## backend:
+  - task: "Enhanced User Filtering and Sorting API"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Added new filtered users endpoint /api/users/filtered with query parameters for company, department, ship filtering and sorting by various fields (full_name, company, department, role, ship, created_at). Includes role-based access control."
+
+  - task: "Self-Edit Permissions for Crew Role"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Added /api/users/{user_id}/self-edit endpoint allowing crew (viewer role) to edit their own email and zalo fields. Added /api/users/{user_id}/editable-fields endpoint to check what fields each user can edit."
+
+  - task: "User Model Enhancement with Zalo and Gmail"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Updated UserBase model to include required zalo field and optional gmail field. Added validation in create_user endpoint to ensure Zalo field is provided and not empty."
+
   - task: "Add New Record Backend Endpoints"
     implemented: true
     working: true
