@@ -195,6 +195,24 @@ class GoogleDriveTestResponse(BaseModel):
     folder_name: Optional[str] = None
     service_account_email: Optional[str] = None
 
+# Google Drive OAuth Models
+class GoogleDriveOAuthConfig(BaseModel):
+    client_id: str
+    client_secret: str
+    redirect_uri: str
+    folder_id: str
+
+class GoogleDriveOAuthRequest(BaseModel):
+    authorization_code: str
+    state: str
+    folder_id: str
+
+class GoogleDriveOAuthResponse(BaseModel):
+    success: bool
+    message: str
+    authorization_url: Optional[str] = None
+    state: Optional[str] = None
+
 # Usage tracking
 class UsageRequest(BaseModel):
     user_id: str
