@@ -807,20 +807,27 @@ async def get_google_drive_config(current_user: UserResponse = Depends(get_curre
         config = await mongo_db.find_one("gdrive_config", {})
         
         if config:
-            # Parse service account to get email
+            # Get service account email based on auth method
             service_account_email = ""
-            try:
-                import json
-                sa_data = json.loads(config.get("service_account_json", "{}"))
-                service_account_email = sa_data.get("client_email", "")
-            except:
-                pass
+            auth_method = config.get("auth_method", "service_account")
+            
+            if auth_method == "apps_script":
+                # For Apps Script, use the stored service_account_email
+                service_account_email = config.get("service_account_email", "")
+            else:
+                # For service account, parse from JSON
+                try:
+                    import json
+                    sa_data = json.loads(config.get("service_account_json", "{}"))
+                    service_account_email = sa_data.get("client_email", "")
+                except:
+                    pass
             
             return {
                 "configured": True,
                 "folder_id": config.get("folder_id", ""),
                 "service_account_email": service_account_email,
-                "auth_method": config.get("auth_method", "service_account"),
+                "auth_method": auth_method,
                 "last_sync": config.get("last_sync")
             }
         else:
