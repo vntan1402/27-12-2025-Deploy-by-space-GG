@@ -736,6 +736,79 @@ const HomePage = () => {
     return ships.filter(ship => ship.company === user.company);
   };
 
+  const handleEditShip = async (updatedShipData) => {
+    try {
+      // Prepare ship payload similar to create ship
+      const shipPayload = {
+        name: updatedShipData.name?.trim() || '',
+        imo: updatedShipData.imo?.trim() || null,
+        flag: updatedShipData.flag?.trim() || '',
+        ship_type: updatedShipData.ship_type?.trim() || '',
+        gross_tonnage: updatedShipData.gross_tonnage ? parseFloat(updatedShipData.gross_tonnage) : null,
+        year_built: updatedShipData.year_built ? parseInt(updatedShipData.year_built) : null,
+        ship_owner: updatedShipData.ship_owner?.trim() || '',
+        company: user?.company || '' // Always use user's company
+      };
+      
+      // Remove null/empty values
+      Object.keys(shipPayload).forEach(key => {
+        if (shipPayload[key] === null || shipPayload[key] === '') {
+          if (key === 'imo') {
+            delete shipPayload[key];
+          } else if (['gross_tonnage', 'year_built'].includes(key)) {
+            delete shipPayload[key];
+          }
+        }
+      });
+      
+      await axios.put(`${API}/ships/${updatedShipData.id}`, shipPayload);
+      
+      // Update local state
+      setShips(ships.map(ship => 
+        ship.id === updatedShipData.id 
+          ? { ...ship, ...shipPayload, id: updatedShipData.id } 
+          : ship
+      ));
+      
+      // Update selected ship
+      setSelectedShip({ ...selectedShip, ...shipPayload });
+      
+      toast.success(language === 'vi' ? 'Cập nhật tàu thành công!' : 'Ship updated successfully!');
+      setShowEditShipModal(false);
+      setEditingShipData(null);
+    } catch (error) {
+      console.error('Ship update error:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' ? `Không thể cập nhật tàu: ${errorMessage}` : `Failed to update ship: ${errorMessage}`);
+    }
+  };
+
+  const handleDeleteShip = async (shipId) => {
+    if (!window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa tàu này?' : 'Are you sure you want to delete this ship?')) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API}/ships/${shipId}`);
+      
+      // Update local state
+      setShips(ships.filter(ship => ship.id !== shipId));
+      
+      // Clear selected ship if it was deleted
+      if (selectedShip?.id === shipId) {
+        setSelectedShip(null);
+      }
+      
+      toast.success(language === 'vi' ? 'Xóa tàu thành công!' : 'Ship deleted successfully!');
+      setShowEditShipModal(false);
+      setEditingShipData(null);
+    } catch (error) {
+      console.error('Ship delete error:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' ? `Không thể xóa tàu: ${errorMessage}` : `Failed to delete ship: ${errorMessage}`);
+    }
+  };
+
   const fetchCertificates = async (shipId) => {
     try {
       const response = await axios.get(`${API}/ships/${shipId}/certificates`);
