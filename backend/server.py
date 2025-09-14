@@ -1337,7 +1337,7 @@ async def get_company_gdrive_config(company_id: str, current_user: UserResponse 
         if not company:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Company not found")
         
-        gdrive_config = company.get('gdrive_config', {})
+        gdrive_config = company.get('gdrive_config') or {}
         
         # Return configuration with safe information (hide sensitive data)
         config_response = {
