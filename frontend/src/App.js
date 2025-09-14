@@ -1017,17 +1017,18 @@ const HomePage = () => {
                       </div>
 
                       {/* Sub Menu */}
-                      <div className="mb-4">
-                        <div className="grid grid-cols-5 gap-2 w-full">
+                      <div className="mb-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 w-full">
                           {subMenuItems[selectedCategory] && subMenuItems[selectedCategory].map((item) => (
                             <button
                               key={item.key}
                               onClick={() => setSelectedSubMenu(item.key)}
-                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-center ${
+                              className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-center whitespace-nowrap ${
                                 selectedSubMenu === item.key 
-                                  ? 'bg-blue-600 text-white shadow-lg' 
-                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-md'
+                                  ? 'bg-blue-600 text-white shadow-lg transform scale-105' 
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-md hover:transform hover:scale-102'
                               }`}
+                              style={{ minHeight: '48px' }}
                             >
                               {item.name}
                             </button>
