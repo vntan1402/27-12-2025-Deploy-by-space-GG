@@ -214,6 +214,16 @@ class GoogleDriveOAuthResponse(BaseModel):
     authorization_url: Optional[str] = None
     state: Optional[str] = None
 
+# Google Drive Apps Script Models
+class GoogleDriveAppsScriptConfig(BaseModel):
+    web_app_url: str
+    folder_id: str
+
+class GoogleDriveProxyResponse(BaseModel):
+    success: bool
+    message: str
+    folder_name: Optional[str] = None
+
 # Usage tracking
 class UsageRequest(BaseModel):
     user_id: str
