@@ -752,7 +752,28 @@ async def get_google_drive_status(current_user: UserResponse = Depends(get_curre
             drive_files = 0
             try:
                 gdrive_manager = GoogleDriveManager()
-                if gdrive_manager.configure(config.get("service_account_json"), config.get("folder_id")):
+                
+                # Configure based on auth method
+                auth_method = config.get("auth_method", "service_account")
+                configured_successfully = False
+                
+                if auth_method == "oauth":
+                    # OAuth configuration
+                    client_config = config.get("client_config")
+                    oauth_credentials = config.get("oauth_credentials")
+                    folder_id = config.get("folder_id")
+                    
+                    if client_config and oauth_credentials and folder_id:
+                        configured_successfully = gdrive_manager.configure_oauth(client_config, oauth_credentials, folder_id)
+                else:
+                    # Service Account configuration (legacy)
+                    service_account_json = config.get("service_account_json")
+                    folder_id = config.get("folder_id")
+                    
+                    if service_account_json and folder_id:
+                        configured_successfully = gdrive_manager.configure_service_account(service_account_json, folder_id)
+                
+                if configured_successfully:
                     drive_files_list = gdrive_manager.list_files()
                     drive_files = len(drive_files_list)
             except Exception as e:
