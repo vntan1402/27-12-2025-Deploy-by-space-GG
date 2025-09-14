@@ -3948,13 +3948,19 @@ const CompanyFormModal = ({
             {/* Configure Button */}
             <button
               onClick={() => {
+                console.log('🔍 Debug - Configure Company Google Drive clicked');
+                console.log('   companyData:', companyData);
+                console.log('   companyData.id:', companyData.id);
+                console.log('   editingCompany:', editingCompany);
+                console.log('   editingCompany?.id:', editingCompany?.id);
+                
                 if (companyData.id) {
-                  console.log('Opening Company Google Drive modal for company:', companyData.id);
+                  console.log('✅ Using companyData.id:', companyData.id);
                   fetchCompanyGoogleDriveConfig(companyData.id);
                   fetchCompanyGoogleDriveStatus(companyData.id);
                   setShowCompanyGoogleDrive(true);
                 } else {
-                  console.log('No company ID found, companyData:', companyData);
+                  console.log('❌ No company ID found');
                   toast.warning(language === 'vi' ? 'Vui lòng lưu công ty trước khi cấu hình Google Drive' : 'Please save company before configuring Google Drive');
                 }
               }}
