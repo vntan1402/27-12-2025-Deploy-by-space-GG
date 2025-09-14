@@ -103,7 +103,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Create 5 test users for different roles in the Ship Management System with specific usernames, passwords, roles, departments, companies, and ship assignments. Test user creation via POST /api/auth/register endpoint and verify login functionality for each created user."
+"User management improvements: Enhance User Management with filtering by Company, Department, Ship and sorting options (ascending/descending) for each column. Update Crew role permissions to allow viewing and editing their own Email and Zalo information. Make Zalo field mandatory in Add User and Edit User forms. Add Gmail field support across the system."
 
 ## backend:
   - task: "Add New Record Backend Endpoints"
