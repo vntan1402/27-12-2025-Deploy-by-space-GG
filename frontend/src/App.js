@@ -2427,8 +2427,14 @@ const AccountControlPage = () => {
             config={companyGdriveConfig}
             setConfig={setCompanyGdriveConfig}
             currentConfig={companyGdriveCurrentConfig}
-            onClose={() => setShowCompanyGoogleDrive(false)}
+            onClose={() => {
+              console.log('🔍 Debug - Closing Company Google Drive modal');
+              setShowCompanyGoogleDrive(false);
+            }}
             onSave={() => {
+              console.log('🔍 Debug - Company Google Drive Save clicked');
+              console.log('   editingCompany?.id:', editingCompany?.id);
+              
               if (editingCompany?.id) {
                 handleCompanyGoogleDriveConfig(editingCompany.id);
               } else {
@@ -2436,6 +2442,9 @@ const AccountControlPage = () => {
               }
             }}
             onTest={() => {
+              console.log('🔍 Debug - Company Google Drive Test clicked (onTest prop)');
+              console.log('   editingCompany?.id:', editingCompany?.id);
+              
               if (editingCompany?.id) {
                 handleTestCompanyGoogleDriveConnection(editingCompany.id);
               } else {
