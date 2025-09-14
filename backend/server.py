@@ -1093,8 +1093,25 @@ async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)
         
         # Initialize Google Drive manager with configuration
         gdrive_manager = GoogleDriveManager()
-        if not gdrive_manager.configure(config.get("service_account_json"), config.get("folder_id")):
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to initialize Google Drive connection")
+        
+        # Configure based on auth method
+        auth_method = config.get("auth_method", "service_account")
+        
+        if auth_method == "oauth":
+            # OAuth configuration
+            client_config = config.get("client_config")
+            oauth_credentials = config.get("oauth_credentials")
+            folder_id = config.get("folder_id")
+            
+            if not gdrive_manager.configure_oauth(client_config, oauth_credentials, folder_id):
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to initialize Google Drive OAuth connection")
+        else:
+            # Service Account configuration (legacy)
+            service_account_json = config.get("service_account_json")
+            folder_id = config.get("folder_id")
+            
+            if not gdrive_manager.configure_service_account(service_account_json, folder_id):
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to initialize Google Drive Service Account connection")
         
         # Actually sync from Google Drive using the manager
         sync_success = gdrive_manager.sync_from_drive()
