@@ -2619,7 +2619,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto mx-4">
