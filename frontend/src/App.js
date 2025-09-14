@@ -2435,6 +2435,10 @@ const AccountControlPage = () => {
             onSubmit={handleCreateCompany}
             language={language}
             isEdit={false}
+            companyGdriveCurrentConfig={companyGdriveCurrentConfig}
+            fetchCompanyGoogleDriveConfig={fetchCompanyGoogleDriveConfig}
+            fetchCompanyGoogleDriveStatus={fetchCompanyGoogleDriveStatus}
+            setShowCompanyGoogleDrive={setShowCompanyGoogleDrive}
           />
         )}
 
