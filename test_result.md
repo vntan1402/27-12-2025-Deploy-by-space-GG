@@ -106,6 +106,18 @@
 "User management improvements: Enhance User Management with filtering by Company, Department, Ship and sorting options (ascending/descending) for each column. Update Crew role permissions to allow viewing and editing their own Email and Zalo information. Make Zalo field mandatory in Add User and Edit User forms. Add Gmail field support across the system. Enhance Ship management by adding Ship Owner and Company fields to all ships."
 
 ## backend:
+  - task: "Ship Management Enhancement with Owner and Company Fields"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Updated ShipBase and ShipUpdate models to include ship_owner and company fields. Existing ship API endpoints will automatically support the new fields through model inheritance."
+
   - task: "Enhanced User Filtering and Sorting API"
     implemented: true
     working: true
