@@ -917,8 +917,20 @@ async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)
         if not has_permission(current_user, UserRole.ADMIN):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
         
-        # Here you would implement actual Google Drive download and import
-        # For now, just return success message
+        # Initialize Google Drive manager
+        gdrive_manager = GoogleDriveManager()
+        
+        if not gdrive_manager.is_configured:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google Drive not configured")
+        
+        # Actually sync from Google Drive using the manager
+        sync_success = gdrive_manager.sync_from_drive()
+        
+        if not sync_success:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync data from Google Drive")
+        
+        # Import data from downloaded JSON files to MongoDB
+        import_data = await mongo_db.import_from_json()
         
         # Log usage
         await mongo_db.create("usage_tracking", {
@@ -928,13 +940,13 @@ async def sync_from_drive(current_user: UserResponse = Depends(get_current_user)
             "timestamp": datetime.now(timezone.utc)
         })
         
-        return {"message": "Data synced from Google Drive successfully"}
+        return {"message": "Data synced from Google Drive successfully", "success": True}
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error syncing from Google Drive: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to sync from Google Drive")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to sync from Google Drive: {str(e)}")
 
 # Ships Management Routes
 @api_router.get("/ships", response_model=List[ShipResponse])
