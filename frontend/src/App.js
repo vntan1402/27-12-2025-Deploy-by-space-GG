@@ -948,16 +948,6 @@ const HomePage = () => {
                       })()}
                     </div>
                   )}
-                              <div className="font-medium">{ship.name}</div>
-                              <div className="text-xs text-gray-500">
-                                IMO: {ship.imo_number}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
