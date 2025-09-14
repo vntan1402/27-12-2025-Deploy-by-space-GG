@@ -3,7 +3,7 @@ import sys
 import json
 
 class AdminCompanyVerificationTester:
-    def __init__(self, base_url="https://company-gdrive.preview.emergentagent.com"):
+    def __init__(self, base_url="https://vessel-docs-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
 
