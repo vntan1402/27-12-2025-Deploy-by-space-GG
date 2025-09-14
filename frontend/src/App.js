@@ -2993,6 +2993,12 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
   const [authMethod, setAuthMethod] = useState(config.auth_method || 'apps_script');
   const [oauthLoading, setOauthLoading] = useState(false);
   
+  // Debug logging on modal render
+  console.log('🔍 CompanyGoogleDriveModal rendered with:');
+  console.log('   companyId:', companyId);
+  console.log('   config:', config);
+  console.log('   authMethod:', authMethod);
+  
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
