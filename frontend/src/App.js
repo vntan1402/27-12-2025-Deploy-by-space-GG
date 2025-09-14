@@ -686,6 +686,7 @@ const HomePage = () => {
   useEffect(() => {
     fetchShips();
     fetchSettings();
+    fetchAvailableCompanies();
   }, []);
 
   useEffect(() => {
