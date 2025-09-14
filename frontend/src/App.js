@@ -2294,7 +2294,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
       const oauthConfig = {
         client_id: config.client_id,
         client_secret: config.client_secret,
-        redirect_uri: `${window.location.origin}/oauth2callback`,
+        redirect_uri: 'http://localhost:8000/oauth2callback', // Use localhost for testing
         folder_id: config.folder_id
       };
 
