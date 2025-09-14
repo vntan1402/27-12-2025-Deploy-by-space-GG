@@ -2459,10 +2459,10 @@ async def analyze_ship_certificate(
                     "gross_tonnage": "number or null",
                     "deadweight": "number or null", 
                     "built_year": "number or null",
-                    "ship_owner": "string or null",
-                    "company": "string or null"
+                    "ship_owner": "string or null"
                 }
                 
+                IMPORTANT: Do NOT extract company/management company information. Only extract the fields listed above.
                 Extract only accurate information from the document. Do not make assumptions."""
             ).with_model("gemini", "gemini-2.0-flash")
             
