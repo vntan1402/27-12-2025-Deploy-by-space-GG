@@ -2124,7 +2124,7 @@ async def get_certificates(current_user: UserResponse = Depends(get_current_user
 
 @api_router.post("/certificates", response_model=CertificateResponse)
 async def create_certificate(cert_data: CertificateCreate, current_user: UserResponse = Depends(get_current_user)):
-    """Create new certificate"""
+    """Create new certificate (metadata only, without file upload)"""
     try:
         if not has_permission(current_user, UserRole.EDITOR):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
