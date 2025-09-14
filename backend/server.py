@@ -88,6 +88,8 @@ class UserUpdate(BaseModel):
     department: Optional[Department] = None
     company: Optional[str] = None
     ship: Optional[str] = None
+    zalo: Optional[str] = None
+    gmail: Optional[str] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
 
