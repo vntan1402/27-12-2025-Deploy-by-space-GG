@@ -103,7 +103,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"User management improvements: Enhance User Management with filtering by Company, Department, Ship and sorting options (ascending/descending) for each column. Update Crew role permissions to allow viewing and editing their own Email and Zalo information. Make Zalo field mandatory in Add User and Edit User forms. Add Gmail field support across the system. Enhance Ship management by adding Ship Owner and Company fields to all ships."
+"Ship management enhancements: Make Ship Owner and Company fields mandatory with dropdown selection from existing companies. Change 'Hãng đăng kiểm' to 'Tổ chức Phân cấp'. Add 'Thêm tàu mới từ Giấy chứng nhận' button with PDF upload and AI analysis using Emergent LLM key to auto-fill ship form fields (max 5MB PDF files)."
 
 ## backend:
   - task: "Ship Management Enhancement with Owner and Company Fields"
