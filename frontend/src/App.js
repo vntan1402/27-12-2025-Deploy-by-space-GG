@@ -2467,7 +2467,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                 <ol className="text-sm text-green-700 space-y-1">
                   <li>1. {language === 'vi' ? 'Truy cập Google Cloud Console' : 'Go to Google Cloud Console'}</li>
                   <li>2. {language === 'vi' ? 'Tạo OAuth 2.0 Client IDs' : 'Create OAuth 2.0 Client IDs'}</li>
-                  <li>3. {language === 'vi' ? 'Thêm Authorized redirect URI:' : 'Add Authorized redirect URI:'} <code>{window.location.origin}/oauth2callback</code></li>
+                  <li>3. {language === 'vi' ? 'Thêm Authorized redirect URI:' : 'Add Authorized redirect URI:'} <code>http://localhost:8000/oauth2callback</code></li>
                   <li>4. {language === 'vi' ? 'Copy Client ID và Client Secret' : 'Copy Client ID and Client Secret'}</li>
                   <li>5. {language === 'vi' ? 'Tạo folder trong Google Drive và copy Folder ID' : 'Create folder in Google Drive and copy Folder ID'}</li>
                   <li>6. {language === 'vi' ? 'Nhấn "Xác thực với Google" để kết nối' : 'Click "Authorize with Google" to connect'}</li>
