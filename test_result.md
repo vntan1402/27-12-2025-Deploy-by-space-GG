@@ -526,7 +526,8 @@
 
 ## test_plan:
   current_focus:
-    - "Ship Management Enhancement Testing Completed Successfully"
+    - "PDF Analysis API with Emergent LLM Integration - COMPLETED SUCCESSFULLY"
+    - "Ship Management Enhancement with Owner and Company Fields - COMPLETED SUCCESSFULLY"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
