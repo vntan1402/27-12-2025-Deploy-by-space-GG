@@ -981,9 +981,22 @@ const HomePage = () => {
                     
                     <div className="md:col-span-2">
                       <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-bold text-gray-800">
-                          {language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio'}
-                        </h2>
+                        <div className="flex items-center gap-4">
+                          <h2 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio'}
+                          </h2>
+                          {/* Ship Particular Button */}
+                          <button
+                            onClick={() => setShowFullShipInfo(!showFullShipInfo)}
+                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                          >
+                            <span className="mr-1">🚢</span>
+                            {language === 'vi' ? 'Thông số kỹ thuật' : 'Ship Particular'}
+                            <span className="ml-1 text-xs">
+                              {showFullShipInfo ? '▲' : '▼'}
+                            </span>
+                          </button>
+                        </div>
                         <button
                           onClick={() => setSelectedShip(null)}
                           className="text-gray-400 hover:text-gray-600 text-xl px-2 py-1"
