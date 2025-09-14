@@ -3205,7 +3205,18 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
 };
 
 // Company Form Modal Component
-const CompanyFormModal = ({ companyData, setCompanyData, onClose, onSubmit, language, isEdit = false }) => {
+const CompanyFormModal = ({ 
+  companyData, 
+  setCompanyData, 
+  onClose, 
+  onSubmit, 
+  language, 
+  isEdit = false,
+  companyGdriveCurrentConfig,
+  fetchCompanyGoogleDriveConfig,
+  fetchCompanyGoogleDriveStatus,
+  setShowCompanyGoogleDrive
+}) => {
   const [logoFile, setLogoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
