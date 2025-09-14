@@ -2280,7 +2280,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
               {language === 'vi' ? 'Cấu hình hiện tại:' : 'Current Configuration:'}
             </h4>
             <div className="text-sm text-green-700 space-y-1">
-              <div><strong>{language === 'vi' ? 'Service Account:' : 'Service Account:'}</strong> {currentConfig.service_account_email}</div>
+              <div><strong>{language === 'vi' ? 'Method:' : 'Auth Method:'}</strong> {currentConfig.auth_method === 'oauth' ? 'OAuth 2.0' : 'Service Account'}</div>
               <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {currentConfig.folder_id}</div>
               {currentConfig.last_sync && (
                 <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {currentConfig.last_sync ? new Date(currentConfig.last_sync).toLocaleString() : 'Never'}</div>
@@ -2288,72 +2288,213 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
             </div>
           </div>
         )}
+
+        {/* Authentication Method Selector */}
+        <div className="mb-6">
+          <h4 className="font-medium text-gray-800 mb-3">
+            {language === 'vi' ? 'Phương thức xác thực' : 'Authentication Method'}
+          </h4>
+          <div className="flex space-x-4 mb-4">
+            <button
+              type="button"
+              onClick={() => handleAuthMethodChange('oauth')}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                authMethod === 'oauth'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              OAuth 2.0 ({language === 'vi' ? 'Khuyên dùng' : 'Recommended'})
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAuthMethodChange('service_account')}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                authMethod === 'service_account'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Service Account ({language === 'vi' ? 'Cũ' : 'Legacy'})
+            </button>
+          </div>
+        </div>
         
         <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {language === 'vi' ? 'Service Account JSON' : 'Service Account JSON'}
-            </label>
-            <textarea
-              value={config.service_account_json}
-              onChange={(e) => setConfig(prev => ({ ...prev, service_account_json: e.target.value }))}
-              placeholder={language === 'vi' ? 'Paste service account JSON key tại đây...' : 'Paste service account JSON key here...'}
-              className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? 'Tạo Service Account trong Google Cloud Console và download JSON key' : 'Create Service Account in Google Cloud Console and download JSON key'}
-            </p>
-          </div>
+          {/* OAuth Configuration */}
+          {authMethod === 'oauth' && (
+            <>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h5 className="font-medium text-blue-800 mb-2">
+                  {language === 'vi' ? 'OAuth 2.0 Configuration' : 'OAuth 2.0 Configuration'}
+                </h5>
+                <p className="text-sm text-blue-700">
+                  {language === 'vi' 
+                    ? 'OAuth 2.0 cho phép ứng dụng truy cập Google Drive của bạn một cách an toàn mà không cần chia sẻ mật khẩu.'
+                    : 'OAuth 2.0 allows the application to securely access your Google Drive without sharing passwords.'
+                  }
+                </p>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {language === 'vi' ? 'Google Drive Folder ID' : 'Google Drive Folder ID'}
-            </label>
-            <input
-              type="text"
-              value={config.folder_id}
-              onChange={(e) => setConfig(prev => ({ ...prev, folder_id: e.target.value }))}
-              placeholder="1abcDEFghiJKLmnopQRStuv2wxYZ"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? 'Folder ID từ URL Google Drive: drive.google.com/drive/folders/[FOLDER_ID]' : 'Folder ID from Google Drive URL: drive.google.com/drive/folders/[FOLDER_ID]'}
-            </p>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Client ID' : 'Client ID'}
+                </label>
+                <input
+                  type="text"
+                  value={config.client_id}
+                  onChange={(e) => setConfig(prev => ({ ...prev, client_id: e.target.value }))}
+                  placeholder="123456789012-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
 
-          {/* Test Connection Section */}
-          <div className="border-t pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium text-gray-800">
-                {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
-              </h4>
-              <button
-                onClick={onTest}
-                disabled={testLoading || !config.service_account_json || !config.folder_id}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center gap-2"
-              >
-                {testLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
-                {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
-              </button>
-            </div>
-            <p className="text-xs text-gray-500">
-              {language === 'vi' ? 'Kiểm tra kết nối trước khi lưu cấu hình' : 'Test connection before saving configuration'}
-            </p>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Client Secret' : 'Client Secret'}
+                </label>
+                <input
+                  type="password"
+                  value={config.client_secret}
+                  onChange={(e) => setConfig(prev => ({ ...prev, client_secret: e.target.value }))}
+                  placeholder="GOCSPX-abcdefghijklmnopqrstuvwxyz123456"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-medium text-yellow-800 mb-2">
-              {language === 'vi' ? 'Hướng dẫn thiết lập:' : 'Setup Instructions:'}
-            </h4>
-            <ol className="text-sm text-yellow-700 space-y-1">
-              <li>1. {language === 'vi' ? 'Tạo project trong Google Cloud Console' : 'Create project in Google Cloud Console'}</li>
-              <li>2. {language === 'vi' ? 'Enable Google Drive API' : 'Enable Google Drive API'}</li>
-              <li>3. {language === 'vi' ? 'Tạo Service Account và download JSON key' : 'Create Service Account and download JSON key'}</li>
-              <li>4. {language === 'vi' ? 'Tạo folder trong Google Drive và share với service account email' : 'Create folder in Google Drive and share with service account email'}</li>
-              <li>5. {language === 'vi' ? 'Copy Folder ID từ URL' : 'Copy Folder ID from URL'}</li>
-              <li>6. {language === 'vi' ? 'Test kết nối trước khi lưu' : 'Test connection before saving'}</li>
-            </ol>
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Google Drive Folder ID' : 'Google Drive Folder ID'}
+                </label>
+                <input
+                  type="text"
+                  value={config.folder_id}
+                  onChange={(e) => setConfig(prev => ({ ...prev, folder_id: e.target.value }))}
+                  placeholder="1abcDEFghiJKLmnopQRStuv2wxYZ"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' ? 'Folder ID từ URL Google Drive: drive.google.com/drive/folders/[FOLDER_ID]' : 'Folder ID from Google Drive URL: drive.google.com/drive/folders/[FOLDER_ID]'}
+                </p>
+              </div>
+
+              {/* OAuth Authorization Button */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-800">
+                    {language === 'vi' ? 'Xác thực OAuth' : 'OAuth Authorization'}
+                  </h4>
+                  <button
+                    onClick={handleOAuthAuthorize}
+                    disabled={oauthLoading || !config.client_id || !config.client_secret || !config.folder_id}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center gap-2"
+                  >
+                    {oauthLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
+                    {language === 'vi' ? 'Xác thực với Google' : 'Authorize with Google'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {language === 'vi' ? 'Nhấn để xác thực ứng dụng với Google Drive' : 'Click to authorize the application with Google Drive'}
+                </p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2">
+                  {language === 'vi' ? 'Hướng dẫn thiết lập OAuth:' : 'OAuth Setup Instructions:'}
+                </h4>
+                <ol className="text-sm text-green-700 space-y-1">
+                  <li>1. {language === 'vi' ? 'Truy cập Google Cloud Console' : 'Go to Google Cloud Console'}</li>
+                  <li>2. {language === 'vi' ? 'Tạo OAuth 2.0 Client IDs' : 'Create OAuth 2.0 Client IDs'}</li>
+                  <li>3. {language === 'vi' ? 'Thêm Authorized redirect URI:' : 'Add Authorized redirect URI:'} <code>{window.location.origin}/oauth2callback</code></li>
+                  <li>4. {language === 'vi' ? 'Copy Client ID và Client Secret' : 'Copy Client ID and Client Secret'}</li>
+                  <li>5. {language === 'vi' ? 'Tạo folder trong Google Drive và copy Folder ID' : 'Create folder in Google Drive and copy Folder ID'}</li>
+                  <li>6. {language === 'vi' ? 'Nhấn "Xác thực với Google" để kết nối' : 'Click "Authorize with Google" to connect'}</li>
+                </ol>
+              </div>
+            </>
+          )}
+
+          {/* Service Account Configuration (Legacy) */}
+          {authMethod === 'service_account' && (
+            <>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <h5 className="font-medium text-yellow-800 mb-2">
+                  {language === 'vi' ? 'Service Account (Cũ)' : 'Service Account (Legacy)'}
+                </h5>
+                <p className="text-sm text-yellow-700">
+                  {language === 'vi' 
+                    ? 'Service Account có giới hạn storage quota. Khuyên dùng OAuth 2.0 thay thế.'
+                    : 'Service Account has storage quota limitations. OAuth 2.0 is recommended instead.'
+                  }
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Service Account JSON' : 'Service Account JSON'}
+                </label>
+                <textarea
+                  value={config.service_account_json}
+                  onChange={(e) => setConfig(prev => ({ ...prev, service_account_json: e.target.value }))}
+                  placeholder={language === 'vi' ? 'Paste service account JSON key tại đây...' : 'Paste service account JSON key here...'}
+                  className="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none font-mono text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' ? 'Tạo Service Account trong Google Cloud Console và download JSON key' : 'Create Service Account in Google Cloud Console and download JSON key'}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Google Drive Folder ID' : 'Google Drive Folder ID'}
+                </label>
+                <input
+                  type="text"
+                  value={config.folder_id}
+                  onChange={(e) => setConfig(prev => ({ ...prev, folder_id: e.target.value }))}
+                  placeholder="1abcDEFghiJKLmnopQRStuv2wxYZ"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' ? 'Folder ID từ URL Google Drive: drive.google.com/drive/folders/[FOLDER_ID]' : 'Folder ID from Google Drive URL: drive.google.com/drive/folders/[FOLDER_ID]'}
+                </p>
+              </div>
+
+              {/* Test Connection Section for Service Account */}
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-800">
+                    {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
+                  </h4>
+                  <button
+                    onClick={onTest}
+                    disabled={testLoading || !config.service_account_json || !config.folder_id}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center gap-2"
+                  >
+                    {testLoading && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>}
+                    {language === 'vi' ? 'Test kết nối' : 'Test Connection'}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  {language === 'vi' ? 'Kiểm tra kết nối trước khi lưu cấu hình' : 'Test connection before saving configuration'}
+                </p>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 className="font-medium text-yellow-800 mb-2">
+                  {language === 'vi' ? 'Hướng dẫn thiết lập:' : 'Setup Instructions:'}
+                </h4>
+                <ol className="text-sm text-yellow-700 space-y-1">
+                  <li>1. {language === 'vi' ? 'Tạo project trong Google Cloud Console' : 'Create project in Google Cloud Console'}</li>
+                  <li>2. {language === 'vi' ? 'Enable Google Drive API' : 'Enable Google Drive API'}</li>
+                  <li>3. {language === 'vi' ? 'Tạo Service Account và download JSON key' : 'Create Service Account and download JSON key'}</li>
+                  <li>4. {language === 'vi' ? 'Tạo folder trong Google Drive và share với service account email' : 'Create folder in Google Drive and share with service account email'}</li>
+                  <li>5. {language === 'vi' ? 'Copy Folder ID từ URL' : 'Copy Folder ID from URL'}</li>
+                  <li>6. {language === 'vi' ? 'Test kết nối trước khi lưu' : 'Test connection before saving'}</li>
+                </ol>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex justify-end space-x-4 mt-8">
