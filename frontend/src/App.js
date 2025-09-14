@@ -1464,6 +1464,183 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Ship Modal */}
+      {showEditShipModal && editingShipData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800">
+                {language === 'vi' ? 'Chỉnh sửa thông tin tàu' : 'Edit Ship Information'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowEditShipModal(false);
+                  setEditingShipData(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleEditShip(editingShipData);
+              }}>
+                {/* Ship Name */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Tên tàu' : 'Ship Name'} *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingShipData.name || ''}
+                    onChange={(e) => setEditingShipData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* IMO and Flag */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Số IMO' : 'IMO Number'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editingShipData.imo || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, imo: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="1234567"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Cờ' : 'Flag'} *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingShipData.flag || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, flag: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Class Society */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Tổ chức Phân cấp' : 'Class Society'} *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingShipData.ship_type || ''}
+                    onChange={(e) => setEditingShipData(prev => ({ ...prev, ship_type: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Gross Tonnage, Year Built */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Tổng Dung Tích (GT)' : 'Gross Tonnage (GT)'}
+                    </label>
+                    <input
+                      type="number"
+                      value={editingShipData.gross_tonnage || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Năm đóng' : 'Built Year'}
+                    </label>
+                    <input
+                      type="number"
+                      value={editingShipData.year_built || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, year_built: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="2020"
+                    />
+                  </div>
+                </div>
+
+                {/* Ship Owner */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'} *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editingShipData.ship_owner || ''}
+                    onChange={(e) => setEditingShipData(prev => ({ ...prev, ship_owner: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Company (Read-only) */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Công ty quản lý' : 'Company'} *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      disabled
+                      value={user?.company || 'N/A'}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    />
+                    <div className="absolute right-2 top-2 text-gray-400">🔒</div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {language === 'vi' ? 'Không thể thay đổi công ty' : 'Company cannot be changed'}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteShip(editingShipData.id)}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center"
+                  >
+                    <span className="mr-2">🗑️</span>
+                    {language === 'vi' ? 'Xóa tàu' : 'Delete Ship'}
+                  </button>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditShipModal(false);
+                        setEditingShipData(null);
+                      }}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                    >
+                      {language === 'vi' ? 'Hủy' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                    >
+                      {language === 'vi' ? 'Cập nhật' : 'Update'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
