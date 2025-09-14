@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
+"""
+Ship Management Enhancement Testing Suite
+Tests PDF Analysis API and Ship Management enhancements as requested in review.
+"""
+
 import requests
 import sys
 import json
-from datetime import datetime, timezone
 import time
+import io
+import os
+from datetime import datetime, timezone
 
 class ShipManagementEnhancementTester:
     def __init__(self, base_url="https://company-gdrive.preview.emergentagent.com"):
