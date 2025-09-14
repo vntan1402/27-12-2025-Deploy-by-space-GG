@@ -5274,27 +5274,35 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'}
+                  {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'} *
                 </label>
-                <input
-                  type="text"
+                <select
+                  required
                   value={shipData.ship_owner}
                   onChange={(e) => setShipData(prev => ({ ...prev, ship_owner: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Nhập tên chủ tàu' : 'Enter ship owner name'}
-                />
+                >
+                  <option value="">{language === 'vi' ? 'Chọn chủ tàu' : 'Select ship owner'}</option>
+                  {availableCompanies.map(company => (
+                    <option key={company.id} value={company.name}>{company.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Công ty quản lý' : 'Company'}
+                  {language === 'vi' ? 'Công ty quản lý' : 'Company'} *
                 </label>
-                <input
-                  type="text"
+                <select
+                  required
                   value={shipData.company}
                   onChange={(e) => setShipData(prev => ({ ...prev, company: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Nhập tên công ty quản lý' : 'Enter company name'}
-                />
+                >
+                  <option value="">{language === 'vi' ? 'Chọn công ty quản lý' : 'Select company'}</option>
+                  {availableCompanies.map(company => (
+                    <option key={company.id} value={company.name}>{company.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
