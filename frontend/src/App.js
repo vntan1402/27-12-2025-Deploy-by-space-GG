@@ -1879,6 +1879,13 @@ const AccountControlPage = () => {
         folder_id: ''
       }
     });
+    
+    // Fetch company Google Drive configuration
+    if (company.id) {
+      fetchCompanyGoogleDriveConfig(company.id);
+      fetchCompanyGoogleDriveStatus(company.id);
+    }
+    
     setShowEditCompany(true);
   };
 
