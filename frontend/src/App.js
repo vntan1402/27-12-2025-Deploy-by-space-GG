@@ -2780,6 +2780,84 @@ const AccountControlPage = () => {
             ships={ships}
           />
         )}
+        
+        {/* PDF Analysis Modal */}
+        {showPdfAnalysis && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+              <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Phân tích Giấy chứng nhận' : 'Certificate Analysis'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowPdfAnalysis(false);
+                    setPdfFile(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'vi' ? 'Chọn file PDF (tối đa 5MB)' : 'Select PDF file (max 5MB)'}
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        toast.error(language === 'vi' ? 'File quá lớn! Tối đa 5MB' : 'File too large! Max 5MB');
+                        return;
+                      }
+                      setPdfFile(file);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                {pdfFile && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      📄 {pdfFile.name} ({(pdfFile.size / 1024 / 1024).toFixed(2)}MB)
+                    </p>
+                  </div>
+                )}
+                
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowPdfAnalysis(false);
+                      setPdfFile(null);
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                    disabled={pdfAnalyzing}
+                  >
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={handlePdfAnalysis}
+                    disabled={pdfAnalyzing || !pdfFile}
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center justify-center"
+                  >
+                    {pdfAnalyzing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {language === 'vi' ? 'Đang phân tích...' : 'Analyzing...'}
+                      </>
+                    ) : (
+                      language === 'vi' ? 'Phân tích PDF' : 'Analyze PDF'
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
