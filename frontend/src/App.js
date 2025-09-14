@@ -1014,17 +1014,30 @@ const HomePage = () => {
                           <h2 className="text-2xl font-bold text-gray-800">
                             {language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio'}
                           </h2>
-                          {/* Ship Particular Button */}
-                          <button
-                            onClick={() => setShowFullShipInfo(!showFullShipInfo)}
-                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
-                          >
-                            <span className="mr-1">🚢</span>
-                            {language === 'vi' ? 'Thông số kỹ thuật' : 'Ship Particular'}
-                            <span className="ml-1 text-xs">
-                              {showFullShipInfo ? '▲' : '▼'}
-                            </span>
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {/* Ship Particular Button */}
+                            <button
+                              onClick={() => setShowFullShipInfo(!showFullShipInfo)}
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                            >
+                              <span className="mr-1">🚢</span>
+                              {language === 'vi' ? 'Thông số kỹ thuật' : 'Ship Particular'}
+                              <span className="ml-1 text-xs">
+                                {showFullShipInfo ? '▲' : '▼'}
+                              </span>
+                            </button>
+                            {/* Edit Ship Button */}
+                            <button
+                              onClick={() => {
+                                setEditingShipData({...selectedShip});
+                                setShowEditShipModal(true);
+                              }}
+                              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                            >
+                              <span className="mr-1">✏️</span>
+                              {language === 'vi' ? 'Sửa tàu' : 'Edit Ship'}
+                            </button>
+                          </div>
                         </div>
                         <button
                           onClick={() => setSelectedShip(null)}
