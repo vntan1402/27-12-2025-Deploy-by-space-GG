@@ -2933,7 +2933,7 @@ async def upload_multi_files_with_ai_processing(
                 
             except Exception as e:
                 file_result["status"] = "failed"
-                file_result["errors"].append(f"Processing failed: {str(e)}")
+                file_result["errors"].append("Processing failed: " + str(e))
                 processing_results.append(file_result)
         
         # Log usage
