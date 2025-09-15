@@ -5844,7 +5844,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       
       // Refresh data if needed
       if (certificateCount > 0) {
-        await fetchShips(); // Refresh ships if new ones were created
+        await fetchData(); // Refresh data if new ships/certificates were created
       }
       
     } catch (error) {
