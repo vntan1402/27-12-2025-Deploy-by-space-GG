@@ -5602,7 +5602,6 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     category: 'certificates',
     sensitivity_level: 'internal'
   });
-  const [certificateFile, setCertificateFile] = useState(null);
   const [multiFileUploads, setMultiFileUploads] = useState([]);
   const [isMultiFileProcessing, setIsMultiFileProcessing] = useState(false);
   const [documentData, setDocumentData] = useState({
