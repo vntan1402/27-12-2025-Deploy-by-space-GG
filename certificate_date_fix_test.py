@@ -524,20 +524,19 @@ class CertificateDateFixTester:
         
         if not success:
             # Check if the error is about missing file (expected) or date error (bug)
-            error_detail = response.get('error', response.get('detail', {}))
-            error_str = str(error_detail)
+            response_str = str(response)
             
             # Check for "Invalid time value" error (the bug we're testing)
-            if "Invalid time value" in error_str:
+            if "Invalid time value" in response_str:
                 self.log_test(
                     "Certificate upload without file - 'Invalid time value' error STILL EXISTS", 
                     False, 
-                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {error_str}"
+                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {response_str}"
                 )
                 return False
             
             # Check if it's the expected validation error for missing file
-            if response.get('status_code') == 422 and ("Field required" in error_str or "missing" in error_str):
+            if response.get('status_code') == 422 and ("Field required" in response_str or "missing" in response_str):
                 self.log_test(
                     "Certificate upload without file - Date handling test", 
                     True, 
