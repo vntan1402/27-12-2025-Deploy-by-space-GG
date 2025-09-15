@@ -162,6 +162,37 @@ class ShipResponse(ShipBase):
     id: str
     created_at: datetime
 
+# Ship Survey Status models
+class ShipSurveyStatusBase(BaseModel):
+    ship_id: str
+    survey_type: str  # Annual, Intermediate, Renewal, etc.
+    survey_item: str  # Hull, Safety Equipment, Radio, etc.
+    due_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    status: str = "due"  # due, completed, overdue
+    surveyor: Optional[str] = None
+    certificate_reference: Optional[str] = None
+    remarks: Optional[str] = None
+    next_survey_due: Optional[datetime] = None
+
+class ShipSurveyStatusCreate(ShipSurveyStatusBase):
+    pass
+
+class ShipSurveyStatusUpdate(BaseModel):
+    survey_type: Optional[str] = None
+    survey_item: Optional[str] = None
+    due_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    status: Optional[str] = None
+    surveyor: Optional[str] = None
+    certificate_reference: Optional[str] = None
+    remarks: Optional[str] = None
+    next_survey_due: Optional[datetime] = None
+
+class ShipSurveyStatusResponse(ShipSurveyStatusBase):
+    id: str
+    created_at: datetime
+
 # Certificate models
 class CertificateBase(BaseModel):
     ship_id: str
