@@ -2324,10 +2324,14 @@ EXAMPLE OUTPUT:
                     
                     response = await chat.send_message(user_message)
                     
+                    # Debug: Check response type and content
+                    logger.info("AI Response type: %s", type(response))
+                    logger.info("AI Response content (first 200 chars): %s", str(response)[:200])
+                    
                     # Parse AI response
                     try:
                         # Clean the response to extract JSON
-                        response_text = response.strip()
+                        response_text = str(response).strip()
                         if '```json' in response_text:
                             response_text = response_text.split('```json')[1].split('```')[0].strip()
                         elif '```' in response_text:
