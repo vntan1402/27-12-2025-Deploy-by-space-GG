@@ -165,29 +165,41 @@ class ShipResponse(ShipBase):
 # Ship Survey Status models
 class ShipSurveyStatusBase(BaseModel):
     ship_id: str
-    survey_type: str  # Annual, Intermediate, Renewal, etc.
-    survey_item: str  # Hull, Safety Equipment, Radio, etc.
-    due_date: Optional[datetime] = None
-    completed_date: Optional[datetime] = None
-    status: str = "due"  # due, completed, overdue
+    certificate_type: str  # CLASS, STATUTORY, AUDITS, Bottom Surveys
+    certificate_number: Optional[str] = None
+    survey_type: str  # Annual, Intermediate, Renewal, Change of RO, Approval, Initial Audit
+    issuance_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    renewal_range_start: Optional[datetime] = None
+    renewal_range_end: Optional[datetime] = None
+    due_date_1: Optional[datetime] = None
+    due_date_2: Optional[datetime] = None
+    due_date_3: Optional[datetime] = None
+    due_date_4: Optional[datetime] = None
+    last_annual_survey_place: Optional[str] = None
+    survey_status: str = "due"  # due, completed, overdue, pending
     surveyor: Optional[str] = None
-    certificate_reference: Optional[str] = None
     remarks: Optional[str] = None
-    next_survey_due: Optional[datetime] = None
 
 class ShipSurveyStatusCreate(ShipSurveyStatusBase):
     pass
 
 class ShipSurveyStatusUpdate(BaseModel):
+    certificate_type: Optional[str] = None
+    certificate_number: Optional[str] = None
     survey_type: Optional[str] = None
-    survey_item: Optional[str] = None
-    due_date: Optional[datetime] = None
-    completed_date: Optional[datetime] = None
-    status: Optional[str] = None
+    issuance_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    renewal_range_start: Optional[datetime] = None
+    renewal_range_end: Optional[datetime] = None
+    due_date_1: Optional[datetime] = None
+    due_date_2: Optional[datetime] = None
+    due_date_3: Optional[datetime] = None
+    due_date_4: Optional[datetime] = None
+    last_annual_survey_place: Optional[str] = None
+    survey_status: Optional[str] = None
     surveyor: Optional[str] = None
-    certificate_reference: Optional[str] = None
     remarks: Optional[str] = None
-    next_survey_due: Optional[datetime] = None
 
 class ShipSurveyStatusResponse(ShipSurveyStatusBase):
     id: str
