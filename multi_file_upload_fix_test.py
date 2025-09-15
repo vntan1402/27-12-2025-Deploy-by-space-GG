@@ -73,7 +73,7 @@ class MultiFileUploadFixTester:
         success, status, response = self.make_request(
             'POST', 
             'auth/login',
-            data={"username": "admin", "password": "admin123"}
+            data={"username": "admin1", "password": "123456"}
         )
         
         if success and 'access_token' in response:
