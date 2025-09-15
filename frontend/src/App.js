@@ -6151,6 +6151,15 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
                 <h3 className="text-lg font-medium text-blue-900 mb-2">
                   {language === 'vi' ? 'Tải lên và phân loại tự động bằng AI' : 'Upload & Auto-Classify with AI'}
                 </h3>
+                
+                {/* AI Model Display */}
+                <div className="mb-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                  </svg>
+                  {language === 'vi' ? 'AI Model' : 'AI Model'}: {aiConfig?.provider?.toUpperCase()} {aiConfig?.model}
+                </div>
+                
                 <p className="text-blue-700 mb-4">
                   {language === 'vi' 
                     ? 'Tải lên nhiều file chứng chỉ cùng lúc. AI sẽ tự động phân loại và tạo record.' 
