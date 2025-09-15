@@ -2752,6 +2752,225 @@ async def create_certificate_with_file_upload(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
                           detail="Failed to create certificate with file upload")
 
+# Multi-File Upload with AI Classification and Processing
+@api_router.post("/certificates/upload-multi-files")
+async def upload_multi_files_with_ai_processing(
+    files: List[UploadFile] = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Upload multiple files, AI classify and process automatically"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # File size validation (150MB limit per file)
+        MAX_FILE_SIZE = 150 * 1024 * 1024  # 150MB in bytes
+        for file in files:
+            if file.size and file.size > MAX_FILE_SIZE:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, 
+                    detail=f"File {file.filename} exceeds 150MB limit"
+                )
+        
+        # Get user's company information
+        if not current_user.company:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not associated with any company")
+        
+        # Find company by name
+        company = await mongo_db.find_one("companies", {
+            "$or": [
+                {"name_vn": current_user.company},
+                {"name_en": current_user.company}
+            ]
+        })
+        
+        if not company:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Company not found")
+        
+        # Check if company has Google Drive configured
+        gdrive_config = company.get('gdrive_config', {})
+        if not gdrive_config.get('configured', False):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Google Drive not configured for your company. Please contact administrator to configure Google Drive."
+            )
+        
+        # Get AI configuration
+        ai_config = await mongo_db.find_one("ai_config", {})
+        if not ai_config:
+            ai_config = {
+                "provider": "OPENAI",
+                "model": "gpt-4o",
+                "api_key": EMERGENT_LLM_KEY,  # Fallback to Emergent LLM key
+                "max_tokens": 1000,
+                "temperature": 0.1
+            }
+        
+        processing_results = []
+        
+        # Process each file
+        for file in files:
+            try:
+                file_result = {
+                    "filename": file.filename,
+                    "size": file.size,
+                    "status": "processing",
+                    "category": None,
+                    "ship_name": None,
+                    "certificate_created": False,
+                    "survey_status_updated": False,
+                    "google_drive_uploaded": False,
+                    "errors": [],
+                    "extracted_info": {}
+                }
+                
+                # Read file content
+                file_content = await file.read()
+                
+                # AI Analysis using configured AI
+                try:
+                    analysis_result = await analyze_document_with_ai(
+                        file_content, file.filename, file.content_type, ai_config
+                    )
+                    
+                    file_result["extracted_info"] = analysis_result
+                    file_result["category"] = analysis_result.get("category", "other_documents")
+                    file_result["ship_name"] = analysis_result.get("ship_name", "Unknown_Ship")
+                    
+                except Exception as e:
+                    file_result["errors"].append(f"AI analysis failed: {str(e)}")
+                    file_result["category"] = "other_documents"
+                    file_result["ship_name"] = "Unknown_Ship"
+                
+                # Create/ensure folder structure exists
+                try:
+                    folder_structure = await create_ship_folder_structure(
+                        gdrive_config, file_result["ship_name"]
+                    )
+                    file_result["folder_created"] = True
+                except Exception as e:
+                    file_result["errors"].append(f"Folder creation failed: {str(e)}")
+                
+                # Upload file to appropriate category folder
+                try:
+                    upload_result = await upload_file_to_category_folder(
+                        gdrive_config, file_content, file.filename, 
+                        file_result["ship_name"], file_result["category"]
+                    )
+                    file_result["google_drive_uploaded"] = True
+                    file_result["google_drive_file_id"] = upload_result.get("file_id")
+                except Exception as e:
+                    file_result["errors"].append(f"File upload failed: {str(e)}")
+                
+                # Auto-create certificate record if category is "certificates"
+                if file_result["category"] == "certificates" and analysis_result:
+                    try:
+                        cert_record = await create_certificate_from_analysis(
+                            analysis_result, current_user, file.filename, file.size,
+                            file_result.get("google_drive_file_id")
+                        )
+                        file_result["certificate_created"] = True
+                        file_result["certificate_id"] = cert_record["id"]
+                    except Exception as e:
+                        file_result["errors"].append(f"Certificate creation failed: {str(e)}")
+                
+                # Update Ship Survey Status if relevant information found
+                if analysis_result and analysis_result.get("survey_info"):
+                    try:
+                        await update_ship_survey_status(analysis_result, current_user)
+                        file_result["survey_status_updated"] = True
+                    except Exception as e:
+                        file_result["errors"].append(f"Survey status update failed: {str(e)}")
+                
+                file_result["status"] = "completed" if not file_result["errors"] else "completed_with_errors"
+                processing_results.append(file_result)
+                
+            except Exception as e:
+                file_result["status"] = "failed"
+                file_result["errors"].append(f"Processing failed: {str(e)}")
+                processing_results.append(file_result)
+        
+        # Log usage
+        await mongo_db.create("usage_tracking", {
+            "user_id": current_user.id,
+            "action": "multi_file_upload_ai_processing",
+            "resource": "certificates",
+            "details": {
+                "files_processed": len(files),
+                "successful_uploads": len([r for r in processing_results if r["status"] == "completed"]),
+                "certificates_created": len([r for r in processing_results if r["certificate_created"]]),
+                "company_id": company['id']
+            },
+            "timestamp": datetime.now(timezone.utc)
+        })
+        
+        return {
+            "message": f"Processed {len(files)} files",
+            "total_files": len(files),
+            "successful_uploads": len([r for r in processing_results if r["google_drive_uploaded"]]),
+            "certificates_created": len([r for r in processing_results if r["certificate_created"]]),
+            "results": processing_results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in multi-file upload processing: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                          detail="Failed to process multi-file upload")
+
+# Ship Survey Status Routes
+@api_router.get("/ships/{ship_id}/survey-status", response_model=List[ShipSurveyStatusResponse])
+async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get survey status for a ship"""
+    try:
+        if not has_permission(current_user, UserRole.VIEWER):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ship not found")
+        
+        # Get survey status records
+        survey_statuses = await mongo_db.find_many("ship_survey_status", {"ship_id": ship_id})
+        
+        return [ShipSurveyStatusResponse(**status) for status in survey_statuses]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching ship survey status: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ship survey status")
+
+@api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
+async def create_ship_survey_status(ship_id: str, status_data: ShipSurveyStatusCreate, current_user: UserResponse = Depends(get_current_user)):
+    """Create new survey status record"""
+    try:
+        if not has_permission(current_user, UserRole.EDITOR):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Ship not found")
+        
+        # Create survey status data
+        status_dict = status_data.dict()
+        status_dict['id'] = str(uuid.uuid4())
+        status_dict['created_at'] = datetime.now(timezone.utc)
+        
+        # Save to MongoDB
+        await mongo_db.create("ship_survey_status", status_dict)
+        
+        return ShipSurveyStatusResponse(**status_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating ship survey status: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create ship survey status")
+
 # AI Configuration Routes  
 @api_router.get("/ai-config")
 async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
