@@ -2883,7 +2883,7 @@ async def upload_multi_files_with_ai_processing(
                     file_result["ship_name"] = analysis_result.get("ship_name", "Unknown_Ship")
                     
                 except Exception as e:
-                    file_result["errors"].append(f"AI analysis failed: {str(e)}")
+                    file_result["errors"].append("AI analysis failed: " + str(e))
                     file_result["category"] = "other_documents"
                     file_result["ship_name"] = "Unknown_Ship"
                 
