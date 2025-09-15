@@ -67,7 +67,7 @@ class MultiFileUploadDebugTester:
         print("\n🔐 Logging in as admin...")
         success, response = self.run_test(
             "Admin Login", "POST", "auth/login", 200,
-            {"username": "admin", "password": "admin123"}
+            {"username": "admin1", "password": "123456"}
         )
         
         if success and "access_token" in response:
