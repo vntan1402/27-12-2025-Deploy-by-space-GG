@@ -3113,7 +3113,13 @@ async def upload_multi_files_with_ai_processing(
                     
                     file_result["extracted_info"] = analysis_result
                     file_result["category"] = analysis_result.get("category", "other_documents")
-                    file_result["ship_name"] = analysis_result.get("ship_name", "Unknown_Ship")
+                    
+                    # Validate and clean ship_name from AI analysis
+                    ai_ship_name = analysis_result.get("ship_name")
+                    if ai_ship_name and isinstance(ai_ship_name, str) and ai_ship_name.strip():
+                        file_result["ship_name"] = ai_ship_name.strip()
+                    else:
+                        file_result["ship_name"] = "Unknown_Ship"
                     
                 except Exception as e:
                     file_result["errors"].append("AI analysis failed: " + str(e))
