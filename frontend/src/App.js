@@ -6240,17 +6240,26 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
               {/* Multi-file upload progress */}
               {multiFileUploads && multiFileUploads.length > 0 && (
                 <div className="mt-6 space-y-3">
-                  <h4 className="font-medium text-gray-900">
+                  <h4 className="font-medium text-gray-900 flex items-center">
                     {language === 'vi' ? 'Tiến trình xử lý' : 'Processing Progress'}
+                    {isMultiFileProcessing && (
+                      <div className="ml-2 animate-spin">
+                        <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                    )}
                   </h4>
                   {multiFileUploads.map((fileUpload, index) => (
-                    <div key={index} className="bg-white p-3 rounded-lg border">
-                      <div className="flex items-center justify-between">
+                    <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
                           <div className={`w-3 h-3 rounded-full mr-3 ${
                             fileUpload.status === 'completed' ? 'bg-green-500' :
-                            fileUpload.status === 'processing' ? 'bg-yellow-500 animate-pulse' :
-                            fileUpload.status === 'failed' ? 'bg-red-500' : 'bg-gray-300'
+                            fileUpload.status === 'failed' ? 'bg-red-500' :
+                            fileUpload.status === 'waiting' ? 'bg-gray-300' :
+                            'bg-blue-500 animate-pulse'
                           }`}></div>
                           <span className="font-medium text-sm">{fileUpload.filename}</span>
                         </div>
@@ -6259,28 +6268,57 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
                         </div>
                       </div>
                       
-                      {fileUpload.category && (
-                        <div className="mt-2 text-sm">
-                          <span className="text-blue-600">
-                            {language === 'vi' ? 'Phân loại' : 'Category'}: {fileUpload.category}
-                          </span>
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-500 ${
+                            fileUpload.status === 'completed' ? 'bg-green-500' :
+                            fileUpload.status === 'failed' ? 'bg-red-500' :
+                            'bg-blue-500'
+                          }`}
+                          style={{ width: `${fileUpload.progress || 0}%` }}
+                        ></div>
+                      </div>
+                      
+                      {/* Stage Display */}
+                      <div className="text-sm mb-2">
+                        <span className={`font-medium ${
+                          fileUpload.status === 'completed' ? 'text-green-600' :
+                          fileUpload.status === 'failed' ? 'text-red-600' :
+                          'text-blue-600'
+                        }`}>
+                          {fileUpload.stage || 'Ready'}
+                        </span>
+                        {fileUpload.status !== 'waiting' && fileUpload.status !== 'failed' && fileUpload.status !== 'completed' && (
+                          <span className="ml-2 text-gray-500">({fileUpload.progress || 0}%)</span>
+                        )}
+                      </div>
+                      
+                      {/* Results Display */}
+                      {(fileUpload.category || fileUpload.ship_name) && (
+                        <div className="text-sm space-y-1">
+                          {fileUpload.category && (
+                            <div className="text-blue-600">
+                              <span className="font-medium">{language === 'vi' ? 'Phân loại' : 'Category'}:</span> {fileUpload.category}
+                            </div>
+                          )}
                           {fileUpload.ship_name && (
-                            <span className="text-green-600 ml-4">
-                              {language === 'vi' ? 'Tàu' : 'Ship'}: {fileUpload.ship_name}
-                            </span>
+                            <div className="text-green-600">
+                              <span className="font-medium">{language === 'vi' ? 'Tàu' : 'Ship'}:</span> {fileUpload.ship_name}
+                            </div>
+                          )}
+                          {fileUpload.certificate_created && (
+                            <div className="text-green-600 text-xs">
+                              ✅ {language === 'vi' ? 'Đã tạo certificate record' : 'Certificate record created'}
+                            </div>
                           )}
                         </div>
                       )}
                       
+                      {/* Error Display */}
                       {fileUpload.errors && fileUpload.errors.length > 0 && (
-                        <div className="mt-2 text-xs text-red-600">
-                          {fileUpload.errors.join(', ')}
-                        </div>
-                      )}
-                      
-                      {fileUpload.certificate_created && (
-                        <div className="mt-2 text-xs text-green-600">
-                          ✅ {language === 'vi' ? 'Đã tạo certificate record' : 'Certificate record created'}
+                        <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                          {fileUpload.errors[0]}
                         </div>
                       )}
                     </div>
