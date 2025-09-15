@@ -2358,7 +2358,7 @@ EXAMPLE OUTPUT:
                         pass
                 
             except Exception as e:
-                logger.error("Emergent LLM analysis failed: %s", str(e))
+                logger.error("Emergent LLM analysis failed: %s", str(e).replace('%', '%%'))
                 # Return basic classification based on filename
                 return classify_by_filename(filename)
         
