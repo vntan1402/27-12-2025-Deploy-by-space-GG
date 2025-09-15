@@ -5781,6 +5781,94 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     }
   };
 
+  const handleMultiFileUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    try {
+      setIsMultiFileProcessing(true);
+      
+      // Initialize file upload tracking
+      const fileUploads = Array.from(files).map(file => ({
+        filename: file.name,
+        size: file.size,
+        status: 'uploading',
+        category: null,
+        ship_name: null,
+        certificate_created: false,
+        survey_status_updated: false,
+        google_drive_uploaded: false,
+        errors: [],
+        extracted_info: {}
+      }));
+      
+      setMultiFileUploads(fileUploads);
+      
+      // Create FormData with all files
+      const formData = new FormData();
+      Array.from(files).forEach(file => {
+        formData.append('files', file);
+      });
+      
+      // Call multi-file upload API
+      const response = await axios.post(`${API}/certificates/upload-multi-files`, formData, {
+        headers: {
+          // Content-Type is automatically set by axios for FormData
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          // Update progress for all files (simplified)
+          setMultiFileUploads(prev => prev.map(file => ({
+            ...file,
+            uploadProgress: progress
+          })));
+        }
+      });
+      
+      // Update file upload results
+      const results = response.data.results || [];
+      setMultiFileUploads(prev => prev.map((file, index) => ({
+        ...file,
+        ...results[index],
+        status: results[index]?.status || 'completed'
+      })));
+      
+      // Show summary toast
+      const successCount = results.filter(r => r.status === 'completed').length;
+      const certificateCount = results.filter(r => r.certificate_created).length;
+      
+      toast.success(
+        language === 'vi' 
+          ? `Xử lý thành công ${successCount}/${files.length} file. Tạo được ${certificateCount} certificate record.`
+          : `Successfully processed ${successCount}/${files.length} files. Created ${certificateCount} certificate records.`
+      );
+      
+      // Refresh data if needed
+      if (certificateCount > 0) {
+        await fetchShips(); // Refresh ships if new ones were created
+      }
+      
+    } catch (error) {
+      console.error('Multi-file upload error:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
+      
+      toast.error(
+        language === 'vi' 
+          ? `Lỗi xử lý file: ${errorMessage}`
+          : `File processing error: ${errorMessage}`
+      );
+      
+      // Mark all files as failed
+      setMultiFileUploads(prev => prev.map(file => ({
+        ...file,
+        status: 'failed',
+        errors: [errorMessage]
+      })));
+      
+    } finally {
+      setIsMultiFileProcessing(false);
+    }
+  };
+
   const handleSubmitDocument = async () => {
     try {
       setIsSubmitting(true);
