@@ -541,9 +541,10 @@
 
 ## test_plan:
   current_focus:
-    - "PDF Analysis API with Emergent LLM Integration - COMPLETED SUCCESSFULLY"
-    - "Ship Management Enhancement with Owner and Company Fields - COMPLETED SUCCESSFULLY"
-  stuck_tasks: []
+    - "Multi-File Upload with AI Processing and Google Drive Integration"
+    - "Certificate Upload Integration with Company Google Drive"
+  stuck_tasks:
+    - "Multi-File Upload with AI Processing and Google Drive Integration"
   test_all: false
   test_priority: "high_first"
 
