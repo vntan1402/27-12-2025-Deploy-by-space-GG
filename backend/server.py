@@ -2362,11 +2362,11 @@ async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> d
             if not web_app_url or not folder_id:
                 raise Exception("Apps Script configuration incomplete")
             
-            # Create main ship folder
+            # Create main ship folder and subfolders in one call
             ship_folder_payload = {
                 "action": "create_folder_structure",
-                "parent_folder_id": folder_id,
-                "folder_path": ship_name
+                "folder_id": folder_id,
+                "ship_name": ship_name
             }
             
             response = requests.post(web_app_url, json=ship_folder_payload, timeout=30)
