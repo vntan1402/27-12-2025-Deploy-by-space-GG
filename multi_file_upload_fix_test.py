@@ -81,9 +81,9 @@ class MultiFileUploadFixTester:
             user_data = response.get('user', {})
             
             return self.log_test(
-                "Authentication with admin/admin123",
+                "Authentication with admin1/123456",
                 True,
-                f"User: {user_data.get('full_name')} ({user_data.get('role')})"
+                f"User: {user_data.get('full_name')} ({user_data.get('role')}) - Company: {user_data.get('company')}"
             )
         else:
             return self.log_test(
