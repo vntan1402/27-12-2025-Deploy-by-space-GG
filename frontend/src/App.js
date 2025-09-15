@@ -5763,11 +5763,13 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     try {
       setIsMultiFileProcessing(true);
       
-      // Initialize file upload tracking
+      // Initialize file upload tracking with detailed stages
       const fileUploads = Array.from(files).map(file => ({
         filename: file.name,
         size: file.size,
-        status: 'uploading',
+        status: 'waiting', // waiting -> uploading -> analyzing -> database -> completed/failed
+        stage: 'Ready to process',
+        progress: 0,
         category: null,
         ship_name: null,
         certificate_created: false,
@@ -5779,61 +5781,106 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       
       setMultiFileUploads(fileUploads);
       
-      // Create FormData with all files
-      const formData = new FormData();
-      Array.from(files).forEach(file => {
-        formData.append('files', file);
-      });
-      
-      // Call multi-file upload API
-      const response = await axios.post(`${API}/certificates/upload-multi-files`, formData, {
-        headers: {
-          // Content-Type is automatically set by axios for FormData
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          // Update progress for all files (simplified)
-          setMultiFileUploads(prev => prev.map(file => ({
-            ...file,
-            uploadProgress: progress
-          })));
+      // Process files sequentially instead of all at once
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        try {
+          // Update status to uploading
+          setMultiFileUploads(prev => prev.map((item, index) => 
+            index === i ? { ...item, status: 'uploading', stage: '📤 Uploading file...', progress: 10 } : item
+          ));
+          
+          await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for UI feedback
+          
+          // Create FormData for single file
+          const formData = new FormData();
+          formData.append('files', file);
+          
+          // Update status to analyzing
+          setMultiFileUploads(prev => prev.map((item, index) => 
+            index === i ? { ...item, status: 'analyzing', stage: '🤖 Analyzing by AI...', progress: 30 } : item
+          ));
+          
+          // Call multi-file upload API (it will handle single file too)
+          const response = await axios.post(`${API}/certificates/upload-multi-files`, formData, {
+            headers: {
+              // Content-Type is automatically set by axios for FormData
+            },
+            timeout: 120000 // 2 minutes timeout for AI processing
+          });
+          
+          // Update status to database operations
+          setMultiFileUploads(prev => prev.map((item, index) => 
+            index === i ? { ...item, status: 'database', stage: '💾 Updating database...', progress: 70 } : item
+          ));
+          
+          await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for UI feedback
+          
+          // Get result for this file
+          const results = response.data.results || [];
+          const fileResult = results[0] || {};
+          
+          // Update with final results
+          setMultiFileUploads(prev => prev.map((item, index) => 
+            index === i ? {
+              ...item,
+              ...fileResult,
+              status: fileResult.errors && fileResult.errors.length > 0 ? 'failed' : 'completed',
+              stage: fileResult.errors && fileResult.errors.length > 0 ? 
+                `❌ ${fileResult.errors[0]}` : 
+                '✅ Complete',
+              progress: 100
+            } : item
+          ));
+          
+          // Show individual file result toast
+          if (fileResult.errors && fileResult.errors.length > 0) {
+            toast.error(`${file.name}: ${fileResult.errors[0]}`);
+          } else {
+            toast.success(
+              language === 'vi' 
+                ? `${file.name}: Xử lý thành công${fileResult.certificate_created ? ' - Đã tạo certificate' : ''}`
+                : `${file.name}: Processed successfully${fileResult.certificate_created ? ' - Certificate created' : ''}`
+            );
+          }
+          
+        } catch (error) {
+          console.error(`Error processing ${file.name}:`, error);
+          const errorMessage = error.response?.data?.detail || error.message;
+          
+          // Update with error
+          setMultiFileUploads(prev => prev.map((item, index) => 
+            index === i ? {
+              ...item,
+              status: 'failed',
+              stage: `❌ ${errorMessage}`,
+              progress: 100,
+              errors: [errorMessage]
+            } : item
+          ));
+          
+          toast.error(`${file.name}: ${errorMessage}`);
         }
-      });
+      }
       
-      // Update file upload results
-      const results = response.data.results || [];
-      setMultiFileUploads(prev => prev.map((file, index) => ({
-        ...file,
-        ...results[index],
-        status: results[index]?.status || 'completed'
-      })));
-      
-      // Show summary toast
-      const successCount = results.filter(r => r.status === 'completed').length;
-      const certificateCount = results.filter(r => r.certificate_created).length;
+      // Show final summary
+      const results = fileUploads.filter(file => file.status === 'completed').length;
+      const certificateCount = fileUploads.filter(file => file.certificate_created).length;
       
       toast.success(
         language === 'vi' 
-          ? `Xử lý thành công ${successCount}/${files.length} file. Tạo được ${certificateCount} certificate record.`
-          : `Successfully processed ${successCount}/${files.length} files. Created ${certificateCount} certificate records.`
+          ? `Hoàn thành xử lý ${results}/${files.length} file. Tạo được ${certificateCount} certificate record.`
+          : `Completed processing ${results}/${files.length} files. Created ${certificateCount} certificate records.`
       );
       
     } catch (error) {
       console.error('Multi-file upload error:', error);
-      const errorMessage = error.response?.data?.detail || error.message;
-      
       toast.error(
         language === 'vi' 
-          ? `Lỗi xử lý file: ${errorMessage}`
-          : `File processing error: ${errorMessage}`
+          ? `Lỗi xử lý file: ${error.message}`
+          : `File processing error: ${error.message}`
       );
-      
-      // Mark all files as failed
-      setMultiFileUploads(prev => prev.map(file => ({
-        ...file,
-        status: 'failed',
-        errors: [errorMessage]
-      })));
       
     } finally {
       setIsMultiFileProcessing(false);
