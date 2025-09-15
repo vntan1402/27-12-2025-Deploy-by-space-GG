@@ -5799,7 +5799,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
         deadweight: extractedInfo?.deadweight || '',
         year_built: extractedInfo?.built_year || '',
         ship_owner: extractedInfo?.ship_owner || '',
-        company: currentUser?.company || ''
+        company: user?.company || ''
       });
       
       toast.success(
