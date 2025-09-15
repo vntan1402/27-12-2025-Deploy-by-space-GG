@@ -2228,6 +2228,249 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
 
 # Helper Functions for AI Document Processing
 
+async def analyze_with_openai(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
+    """Analyze document using OpenAI API"""
+    try:
+        import openai
+        import base64
+        
+        # Set up OpenAI client
+        client = openai.OpenAI(api_key=api_key)
+        
+        # Convert file content to base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Create messages for OpenAI
+        messages = [
+            {
+                "role": "system",
+                "content": "You are an expert maritime document analyzer. Classify and extract information from ship documents accurately. Always return valid JSON format."
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": analysis_prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:{content_type};base64,{file_base64}"
+                        }
+                    }
+                ]
+            }
+        ]
+        
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_tokens=1000,
+            temperature=0.1
+        )
+        
+        # Parse response
+        response_text = response.choices[0].message.content.strip()
+        
+        # Clean the response to extract JSON
+        if '```json' in response_text:
+            response_text = response_text.split('```json')[1].split('```')[0].strip()
+        elif '```' in response_text:
+            response_text = response_text.split('```')[1].split('```')[0].strip()
+        
+        analysis_result = json.loads(response_text)
+        
+        # Clean and validate result
+        for key, value in analysis_result.items():
+            if value == "" or value == "null" or value == "N/A":
+                analysis_result[key] = None
+        
+        return analysis_result
+        
+    except Exception as e:
+        logger.error(f"OpenAI analysis failed: {e}")
+        return classify_by_filename(filename)
+
+async def analyze_with_anthropic(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
+    """Analyze document using Anthropic Claude API"""
+    try:
+        import anthropic
+        import base64
+        
+        # Set up Anthropic client
+        client = anthropic.Anthropic(api_key=api_key)
+        
+        # Convert file content to base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Create message for Anthropic
+        message = client.messages.create(
+            model=model,
+            max_tokens=1000,
+            temperature=0.1,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": content_type,
+                                "data": file_base64
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": analysis_prompt
+                        }
+                    ]
+                }
+            ]
+        )
+        
+        # Parse response
+        response_text = message.content[0].text.strip()
+        
+        # Clean the response to extract JSON
+        if '```json' in response_text:
+            response_text = response_text.split('```json')[1].split('```')[0].strip()
+        elif '```' in response_text:
+            response_text = response_text.split('```')[1].split('```')[0].strip()
+        
+        analysis_result = json.loads(response_text)
+        
+        # Clean and validate result
+        for key, value in analysis_result.items():
+            if value == "" or value == "null" or value == "N/A":
+                analysis_result[key] = None
+        
+        return analysis_result
+        
+    except Exception as e:
+        logger.error(f"Anthropic analysis failed: {e}")
+        return classify_by_filename(filename)
+
+async def analyze_with_google(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
+    """Analyze document using Google Gemini API"""
+    try:
+        import google.generativeai as genai
+        import tempfile
+        
+        # Configure Google AI
+        genai.configure(api_key=api_key)
+        
+        # Create model instance
+        model_instance = genai.GenerativeModel(model)
+        
+        # Create temporary file for analysis
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Upload file to Google AI
+            uploaded_file = genai.upload_file(temp_file_path, mime_type=content_type)
+            
+            # Generate content
+            response = model_instance.generate_content([analysis_prompt, uploaded_file])
+            
+            # Parse response
+            response_text = response.text.strip()
+            
+            # Clean the response to extract JSON
+            if '```json' in response_text:
+                response_text = response_text.split('```json')[1].split('```')[0].strip()
+            elif '```' in response_text:
+                response_text = response_text.split('```')[1].split('```')[0].strip()
+            
+            analysis_result = json.loads(response_text)
+            
+            # Clean and validate result
+            for key, value in analysis_result.items():
+                if value == "" or value == "null" or value == "N/A":
+                    analysis_result[key] = None
+            
+            return analysis_result
+            
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(temp_file_path)
+            except:
+                pass
+        
+    except Exception as e:
+        logger.error(f"Google AI analysis failed: {e}")
+        return classify_by_filename(filename)
+
+async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_type: str, api_key: str, analysis_prompt: str) -> dict:
+    """Analyze document using Emergent LLM API"""
+    try:
+        # Create LLM chat instance with Gemini for file support
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"multi_doc_analysis_{uuid.uuid4()}",
+            system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately. Always return valid JSON format."
+        ).with_model("gemini", "gemini-2.0-flash")
+        
+        # Create temporary file for analysis
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Create file content for analysis
+            file_obj = FileContentWithMimeType(
+                file_path=temp_file_path,
+                mime_type=content_type or "application/pdf"
+            )
+            
+            # Send message for analysis
+            user_message = UserMessage(
+                text=analysis_prompt,
+                file_contents=[file_obj]
+            )
+            
+            response = await chat.send_message(user_message)
+            
+            # Debug: Check response type and content
+            logger.info("AI Response type: " + str(type(response)))
+            logger.info("AI Response content (first 200 chars): " + str(response)[:200])
+            
+            # Parse AI response
+            try:
+                # Clean the response to extract JSON
+                response_text = str(response).strip()
+                if '```json' in response_text:
+                    response_text = response_text.split('```json')[1].split('```')[0].strip()
+                elif '```' in response_text:
+                    response_text = response_text.split('```')[1].split('```')[0].strip()
+                
+                analysis_result = json.loads(response_text)
+                
+                # Clean and validate result
+                for key, value in analysis_result.items():
+                    if value == "" or value == "null" or value == "N/A":
+                        analysis_result[key] = None
+                
+                return analysis_result
+                
+            except json.JSONDecodeError as e:
+                logger.error("JSON parsing error: " + str(e) + ", Response: " + str(response)[:200])
+                return classify_by_filename(filename)
+            
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(temp_file_path)
+            except:
+                pass
+        
+    except Exception as e:
+        logger.error("Emergent LLM analysis failed: " + str(e))
+        return classify_by_filename(filename)
+
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
     try:
