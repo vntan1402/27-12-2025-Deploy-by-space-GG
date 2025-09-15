@@ -6070,6 +6070,120 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
               </div>
             )}
             
+            {/* Multi-File Upload Section */}
+            <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
+              <div className="text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-blue-400 mb-4"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-blue-900 mb-2">
+                  {language === 'vi' ? 'Tải lên và phân loại tự động bằng AI' : 'Upload & Auto-Classify with AI'}
+                </h3>
+                <p className="text-blue-700 mb-4">
+                  {language === 'vi' 
+                    ? 'Tải lên nhiều file chứng chỉ cùng lúc. AI sẽ tự động phân loại và tạo record.' 
+                    : 'Upload multiple certificate files at once. AI will automatically classify and create records.'}
+                </p>
+                
+                <label
+                  htmlFor="multi-file-upload"
+                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  {language === 'vi' ? 'Chọn nhiều file' : 'Select Multiple Files'}
+                  <input
+                    id="multi-file-upload"
+                    name="multi-file-upload"
+                    type="file"
+                    multiple
+                    className="sr-only"
+                    onChange={(e) => handleMultiFileUpload(e.target.files)}
+                    accept="*/*"
+                  />
+                </label>
+                
+                <p className="text-xs text-blue-600 mt-2">
+                  {language === 'vi' ? 'Tối đa 150MB mỗi file • Tất cả định dạng được hỗ trợ' : 'Max 150MB per file • All formats supported'}
+                </p>
+              </div>
+              
+              {/* Multi-file upload progress */}
+              {multiFileUploads && multiFileUploads.length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <h4 className="font-medium text-gray-900">
+                    {language === 'vi' ? 'Tiến trình xử lý' : 'Processing Progress'}
+                  </h4>
+                  {multiFileUploads.map((fileUpload, index) => (
+                    <div key={index} className="bg-white p-3 rounded-lg border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full mr-3 ${
+                            fileUpload.status === 'completed' ? 'bg-green-500' :
+                            fileUpload.status === 'processing' ? 'bg-yellow-500 animate-pulse' :
+                            fileUpload.status === 'failed' ? 'bg-red-500' : 'bg-gray-300'
+                          }`}></div>
+                          <span className="font-medium text-sm">{fileUpload.filename}</span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {(fileUpload.size / 1024 / 1024).toFixed(2)} MB
+                        </div>
+                      </div>
+                      
+                      {fileUpload.category && (
+                        <div className="mt-2 text-sm">
+                          <span className="text-blue-600">
+                            {language === 'vi' ? 'Phân loại' : 'Category'}: {fileUpload.category}
+                          </span>
+                          {fileUpload.ship_name && (
+                            <span className="text-green-600 ml-4">
+                              {language === 'vi' ? 'Tàu' : 'Ship'}: {fileUpload.ship_name}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      
+                      {fileUpload.errors && fileUpload.errors.length > 0 && (
+                        <div className="mt-2 text-xs text-red-600">
+                          {fileUpload.errors.join(', ')}
+                        </div>
+                      )}
+                      
+                      {fileUpload.certificate_created && (
+                        <div className="mt-2 text-xs text-green-600">
+                          ✅ {language === 'vi' ? 'Đã tạo certificate record' : 'Certificate record created'}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* OR Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  {language === 'vi' ? 'HOẶC tạo thủ công' : 'OR create manually'}
+                </span>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
