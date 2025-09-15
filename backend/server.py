@@ -2367,7 +2367,7 @@ EXAMPLE OUTPUT:
             return classify_by_filename(filename)
             
     except Exception as e:
-        logger.error("AI document analysis failed: %s", str(e))
+        logger.error("AI document analysis failed: %s", str(e).replace('%', '%%'))
         return classify_by_filename(filename)
 
 def classify_by_filename(filename: str) -> dict:
