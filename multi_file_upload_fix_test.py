@@ -198,7 +198,7 @@ This certificate is valid until: January 1, 2025
         
         try:
             with open(test_file_path, 'rb') as f:
-                files = {'files': ('test_certificate_validation.txt', f, 'text/plain')}
+                files = {'files': ('safety_management_certificate.txt', f, 'text/plain')}
                 
                 success, status, response = self.make_request(
                     'POST',
