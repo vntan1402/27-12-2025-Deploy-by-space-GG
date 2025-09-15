@@ -2415,8 +2415,9 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
         
         # Create temporary file for analysis
         import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_file:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
             temp_file.write(file_content)
+            temp_file.flush()  # Ensure content is written to disk
             temp_file_path = temp_file.name
         
         try:
