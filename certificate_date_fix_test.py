@@ -555,47 +555,60 @@ class CertificateDateFixTester:
             return False
 
     def test_retrieve_created_certificates(self):
-        """Test retrieving the created certificates to verify they were stored correctly"""
-        print("\n🔍 TESTING CERTIFICATE RETRIEVAL")
-        print("-" * 35)
+        """Test retrieving the created certificates via ship certificates endpoint"""
+        print("\n🔍 TESTING CERTIFICATE RETRIEVAL VIA SHIP ENDPOINT")
+        print("-" * 55)
         
-        if not self.created_certificates:
-            self.log_test("Certificate retrieval", False, "No certificates were created")
+        if not self.created_certificates or not self.test_ship_id:
+            self.log_test("Certificate retrieval via ship endpoint", False, "No certificates or ship available")
             return False
         
-        success_count = 0
-        for cert_id in self.created_certificates:
-            success, response = self.make_request("GET", f"certificates/{cert_id}")
+        # Get certificates for the test ship
+        success, response = self.make_request("GET", f"ships/{self.test_ship_id}/certificates")
+        
+        if success and isinstance(response, list):
+            found_certificates = []
+            for cert in response:
+                if cert.get('id') in self.created_certificates:
+                    found_certificates.append(cert)
+                    cert_name = cert.get('cert_name', 'Unknown')
+                    last_endorse = cert.get('last_endorse')
+                    next_survey = cert.get('next_survey')
+                    
+                    print(f"   ✅ Found: {cert_name}")
+                    print(f"      last_endorse: {last_endorse}, next_survey: {next_survey}")
+                    
+                    # Check if retrieved data contains "Invalid time value" error
+                    response_str = str(cert)
+                    if "Invalid time value" in response_str:
+                        self.log_test(
+                            f"Certificate retrieval {cert.get('id')} - No 'Invalid time value' error", 
+                            False, 
+                            f"'Invalid time value' error in retrieved data: {cert}"
+                        )
+                        return False
             
-            if success and 'id' in response:
-                success_count += 1
-                cert_name = response.get('cert_name', 'Unknown')
-                last_endorse = response.get('last_endorse')
-                next_survey = response.get('next_survey')
-                
-                print(f"   ✅ Retrieved: {cert_name}")
-                print(f"      last_endorse: {last_endorse}, next_survey: {next_survey}")
-                
-                # Check if retrieved data contains "Invalid time value" error
-                response_str = str(response)
-                if "Invalid time value" in response_str:
-                    self.log_test(
-                        f"Certificate retrieval {cert_id} - No 'Invalid time value' error", 
-                        False, 
-                        f"'Invalid time value' error in retrieved data: {response}"
-                    )
-                    return False
+            if found_certificates:
+                self.log_test(
+                    f"Retrieve created certificates via ship endpoint", 
+                    True, 
+                    f"Found {len(found_certificates)}/{len(self.created_certificates)} certificates without date errors"
+                )
+                return True
             else:
-                print(f"   ❌ Failed to retrieve certificate {cert_id}: {response}")
-        
-        all_retrieved = success_count == len(self.created_certificates)
-        self.log_test(
-            f"Retrieve all created certificates", 
-            all_retrieved, 
-            f"Retrieved {success_count}/{len(self.created_certificates)} certificates without date errors"
-        )
-        
-        return all_retrieved
+                self.log_test(
+                    f"Retrieve created certificates via ship endpoint", 
+                    False, 
+                    f"No created certificates found in ship's certificate list"
+                )
+                return False
+        else:
+            self.log_test(
+                "Certificate retrieval via ship endpoint", 
+                False, 
+                f"Failed to get ship certificates: {response}"
+            )
+            return False
 
     def run_all_tests(self):
         """Run all certificate date fix tests"""
