@@ -2416,7 +2416,7 @@ async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> d
         logger.error(f"Folder structure creation failed: {e}")
         raise
 
-async def upload_file_to_category_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str) -> dict:
+async def upload_file_to_category_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str, folder_structure: dict = None) -> dict:
     """Upload file to appropriate category subfolder"""
     try:
         auth_method = gdrive_config.get("auth_method", "service_account")
@@ -2435,12 +2435,16 @@ async def upload_file_to_category_folder(gdrive_config: dict, file_content: byte
             
             folder_name = category_folders.get(category, "Other Documents")
             
-            # Get target folder ID (create if not exists)
-            folder_structure = await create_ship_folder_structure(gdrive_config, ship_name)
+            # Use provided folder_structure or create new one
+            if not folder_structure:
+                folder_structure = await create_ship_folder_structure(gdrive_config, ship_name)
+            
             target_folder_id = folder_structure["subfolder_ids"].get(folder_name)
             
             if not target_folder_id:
-                raise Exception(f"Target folder not found for category: {category}")
+                # Debug info
+                available_folders = list(folder_structure["subfolder_ids"].keys())
+                raise Exception(f"Target folder not found for category: {category} -> {folder_name}. Available folders: {available_folders}")
             
             # Upload file
             import base64
