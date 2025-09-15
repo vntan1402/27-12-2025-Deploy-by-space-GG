@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Multi-File Upload with AI Processing Test Suite
-Tests the new POST /api/certificates/upload-multi-files endpoint
+Multi-File Upload with Enhanced Date Parsing Test
+Focus: Debug "Invalid time value" error in AI analysis date parsing
 """
 
 import requests
@@ -9,7 +9,8 @@ import json
 import time
 import io
 import os
-from datetime import datetime
+import sys
+from datetime import datetime, timezone
 
 class MultiFileUploadTester:
     def __init__(self, base_url="https://vessel-docs-1.preview.emergentagent.com"):
