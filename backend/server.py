@@ -2862,6 +2862,7 @@ async def upload_multi_files_with_ai_processing(
                     file_result["ship_name"] = "Unknown_Ship"
                 
                 # Create/ensure folder structure exists
+                folder_structure = None
                 try:
                     folder_structure = await create_ship_folder_structure(
                         gdrive_config, file_result["ship_name"]
@@ -2874,7 +2875,7 @@ async def upload_multi_files_with_ai_processing(
                 try:
                     upload_result = await upload_file_to_category_folder(
                         gdrive_config, file_content, file.filename, 
-                        file_result["ship_name"], file_result["category"]
+                        file_result["ship_name"], file_result["category"], folder_structure
                     )
                     file_result["google_drive_uploaded"] = True
                     file_result["google_drive_file_id"] = upload_result.get("file_id")
