@@ -2717,6 +2717,13 @@ async def create_certificate_from_analysis(analysis_result: dict, current_user: 
             await mongo_db.create("ships", ship_data)
             ship = ship_data
         
+        # Debug: Log AI analysis results for date parsing
+        logger.info(f"AI Analysis results for {filename}:")
+        logger.info(f"  issue_date: '{analysis_result.get('issue_date')}'")
+        logger.info(f"  valid_date: '{analysis_result.get('valid_date')}'")
+        logger.info(f"  last_endorse: '{analysis_result.get('last_endorse')}'")
+        logger.info(f"  next_survey: '{analysis_result.get('next_survey')}'")
+        
         # Create certificate record
         cert_dict = {
             'id': str(uuid.uuid4()),
