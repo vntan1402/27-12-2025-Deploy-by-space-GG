@@ -2275,7 +2275,11 @@ Mark any uncertain extractions in a 'confidence' field (high/medium/low).
         # Use Emergent LLM key for analysis
         if EMERGENT_LLM_KEY:
             try:
-                llm_chat = LlmChat(api_key=EMERGENT_LLM_KEY)
+                llm_chat = LlmChat(
+                    api_key=EMERGENT_LLM_KEY,
+                    session_id=f"multi_doc_analysis_{uuid.uuid4()}",
+                    system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately."
+                )
                 
                 # Create file content for analysis
                 file_obj = FileContentWithMimeType(
