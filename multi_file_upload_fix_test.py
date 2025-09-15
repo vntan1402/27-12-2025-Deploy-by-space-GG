@@ -217,6 +217,9 @@ This certificate is valid until: January 1, 2025
                     certificate_created = first_result.get('certificate_created', False)
                     certificate_id = first_result.get('certificate_id')
                     
+                    print(f"   Debug: certificates_created={certificates_created}, certificate_created={certificate_created}, certificate_id={certificate_id}")
+                    print(f"   Debug: first_result keys: {list(first_result.keys())}")
+                    
                     if certificate_created and certificate_id:
                         # Try to retrieve the created certificate to verify it has required fields with fallback values
                         cert_success, cert_status, cert_data = self.make_request(
