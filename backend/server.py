@@ -2474,9 +2474,14 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
     try:
-        # Convert file content to base64 for AI analysis
-        import base64
-        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        # Use system AI configuration instead of hardcoded Emergent LLM
+        provider = ai_config.get("provider", "openai").lower()
+        model = ai_config.get("model", "gpt-4")
+        api_key = ai_config.get("api_key")
+        
+        if not api_key:
+            logger.error("No API key found in AI configuration")
+            return classify_by_filename(filename)
         
         # Create AI analysis prompt
         analysis_prompt = f"""
@@ -2536,77 +2541,18 @@ EXAMPLE OUTPUT:
 }
 """
 
-        # Use Emergent LLM key for analysis
-        if EMERGENT_LLM_KEY:
-            try:
-                # Create LLM chat instance with Gemini for file support
-                chat = LlmChat(
-                    api_key=EMERGENT_LLM_KEY,
-                    session_id=f"multi_doc_analysis_{uuid.uuid4()}",
-                    system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately. Always return valid JSON format."
-                ).with_model("gemini", "gemini-2.0-flash")
-                
-                # Create temporary file for analysis
-                import tempfile
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_file:
-                    temp_file.write(file_content)
-                    temp_file_path = temp_file.name
-                
-                try:
-                    # Create file content for analysis
-                    file_obj = FileContentWithMimeType(
-                        file_path=temp_file_path,
-                        mime_type=content_type or "application/pdf"
-                    )
-                    
-                    # Send message for analysis
-                    user_message = UserMessage(
-                        text=analysis_prompt,
-                        file_contents=[file_obj]
-                    )
-                    
-                    response = await chat.send_message(user_message)
-                    
-                    # Debug: Check response type and content
-                    logger.info("AI Response type: " + str(type(response)))
-                    logger.info("AI Response content (first 200 chars): " + str(response)[:200])
-                    
-                    # Parse AI response
-                    try:
-                        # Clean the response to extract JSON
-                        response_text = str(response).strip()
-                        if '```json' in response_text:
-                            response_text = response_text.split('```json')[1].split('```')[0].strip()
-                        elif '```' in response_text:
-                            response_text = response_text.split('```')[1].split('```')[0].strip()
-                        
-                        analysis_result = json.loads(response_text)
-                        
-                        # Clean and validate result
-                        for key, value in analysis_result.items():
-                            if value == "" or value == "null" or value == "N/A":
-                                analysis_result[key] = None
-                        
-                        return analysis_result
-                        
-                    except json.JSONDecodeError as e:
-                        logger.error("JSON parsing error: " + str(e) + ", Response: " + str(response)[:200])
-                        return classify_by_filename(filename)
-                    
-                finally:
-                    # Clean up temporary file
-                    try:
-                        os.unlink(temp_file_path)
-                    except:
-                        pass
-                
-            except Exception as e:
-                logger.error("Emergent LLM analysis failed: " + str(e))
-                # Return basic classification based on filename
-                return classify_by_filename(filename)
-        
+        # Use different AI providers based on configuration
+        if provider == "openai":
+            return await analyze_with_openai(file_content, filename, content_type, api_key, model, analysis_prompt)
+        elif provider == "anthropic":
+            return await analyze_with_anthropic(file_content, filename, content_type, api_key, model, analysis_prompt)
+        elif provider == "google":
+            return await analyze_with_google(file_content, filename, content_type, api_key, model, analysis_prompt)
+        elif provider == "emergent" or not provider:
+            # Fallback to Emergent LLM if provider is emergent or not specified
+            return await analyze_with_emergent_llm(file_content, filename, content_type, api_key, analysis_prompt)
         else:
-            # Fallback to filename-based classification
+            logger.error("Unsupported AI provider: " + provider)
             return classify_by_filename(filename)
             
     except Exception as e:
