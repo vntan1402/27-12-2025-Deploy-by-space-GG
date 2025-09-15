@@ -2591,6 +2591,12 @@ def classify_by_filename(filename: str) -> dict:
 async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> dict:
     """Create folder structure: Ship Name -> 5 category subfolders"""
     try:
+        # Validate ship_name
+        if not ship_name or not isinstance(ship_name, str) or ship_name.strip() == "":
+            ship_name = "Unknown_Ship"
+        else:
+            ship_name = ship_name.strip()
+        
         auth_method = gdrive_config.get("auth_method", "service_account")
         
         if auth_method == "apps_script":
