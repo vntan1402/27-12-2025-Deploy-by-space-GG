@@ -21,53 +21,59 @@ class MultiFileUploadTester:
         self.tests_passed = 0
         self.user_info = None
 
-    def log_test(self, name, success, details=""):
-        """Log test result"""
-        self.tests_run += 1
-        if success:
-            self.tests_passed += 1
-            print(f"✅ {name}")
-            if details:
-                print(f"   {details}")
-        else:
-            print(f"❌ {name}")
-            if details:
-                print(f"   {details}")
+    def log(self, message, level="INFO"):
+        """Enhanced logging with timestamps"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"[{timestamp}] {level}: {message}")
 
-    def make_request(self, method, endpoint, data=None, files=None, expected_status=200):
-        """Make API request with proper headers"""
+    def run_test(self, name, method, endpoint, expected_status, data=None, files=None, timeout=60):
+        """Run a single API test with enhanced error reporting"""
         url = f"{self.api_url}/{endpoint}"
         headers = {}
-        
         if self.token:
             headers['Authorization'] = f'Bearer {self.token}'
         
-        # Don't set Content-Type for multipart uploads
-        if not files and data:
+        # Don't set Content-Type for file uploads - let requests handle it
+        if not files:
             headers['Content-Type'] = 'application/json'
 
+        self.tests_run += 1
+        self.log(f"Testing {name}...")
+        self.log(f"   URL: {url}")
+        
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=30)
+                response = requests.get(url, headers=headers, timeout=timeout)
             elif method == 'POST':
                 if files:
-                    response = requests.post(url, data=data, files=files, headers=headers, timeout=60)
+                    response = requests.post(url, data=data, files=files, headers=headers, timeout=timeout)
                 else:
-                    response = requests.post(url, json=data, headers=headers, timeout=30)
+                    response = requests.post(url, json=data, headers=headers, timeout=timeout)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=headers, timeout=30)
-            
+                response = requests.put(url, json=data, headers=headers, timeout=timeout)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers, timeout=timeout)
+
             success = response.status_code == expected_status
-            
-            try:
-                response_data = response.json() if response.content else {}
-            except:
-                response_data = {"text": response.text}
-            
-            return success, response.status_code, response_data
-            
+            if success:
+                self.tests_passed += 1
+                self.log(f"✅ {name} - Status: {response.status_code}", "PASS")
+                try:
+                    return True, response.json() if response.content else {}
+                except:
+                    return True, {}
+            else:
+                self.log(f"❌ {name} - Expected {expected_status}, got {response.status_code}", "FAIL")
+                try:
+                    error_detail = response.json()
+                    self.log(f"   Error: {json.dumps(error_detail, indent=2)}", "ERROR")
+                except:
+                    self.log(f"   Error: {response.text}", "ERROR")
+                return False, {}
+
         except Exception as e:
-            return False, 0, {"error": str(e)}
+            self.log(f"❌ {name} - Exception: {str(e)}", "FAIL")
+            return False, {}
 
     def test_authentication(self):
         """Test 1: Authentication with admin/admin123"""
