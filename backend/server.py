@@ -2918,7 +2918,7 @@ async def upload_multi_files_with_ai_processing(
                         file_result["certificate_created"] = True
                         file_result["certificate_id"] = cert_record["id"]
                     except Exception as e:
-                        file_result["errors"].append(f"Certificate creation failed: {str(e)}")
+                        file_result["errors"].append("Certificate creation failed: " + str(e))
                 
                 # Update Ship Survey Status if relevant information found
                 if analysis_result and analysis_result.get("survey_info"):
