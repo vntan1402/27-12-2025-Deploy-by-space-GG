@@ -5582,7 +5582,7 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 };
 
 // Add Record Modal Component
-const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies }) => {
+const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies, ships }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user } = useAuth();
   const [recordType, setRecordType] = useState(() => {
