@@ -3541,22 +3541,7 @@ async def analyze_ship_certificate(
             chat = LlmChat(
                 api_key=api_key,
                 session_id=f"pdf_analysis_{uuid.uuid4()}",
-                system_message="""You are an expert ship certificate analyzer. Extract ship information from PDF certificates.
-                
-                Return ONLY a JSON object with these exact fields (use null for missing information):
-                {
-                    "ship_name": "string or null",
-                    "imo_number": "string or null", 
-                    "class_society": "string or null",
-                    "flag": "string or null",
-                    "gross_tonnage": "number or null",
-                    "deadweight": "number or null", 
-                    "built_year": "number or null",
-                    "ship_owner": "string or null"
-                }
-                
-                IMPORTANT: Do NOT extract company/management company information. Only extract the fields listed above.
-                Extract only accurate information from the document. Do not make assumptions."""
+                system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately. Always return valid JSON format."
             ).with_model("gemini", "gemini-2.0-flash")
             
             # Create file content for analysis
