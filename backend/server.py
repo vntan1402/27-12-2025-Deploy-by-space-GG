@@ -2528,7 +2528,7 @@ Return response as JSON format. If information is not found, return null for tha
 Mark any uncertain extractions in a 'confidence' field (high/medium/low).
 
 EXAMPLE OUTPUT:
-{
+{{
   "category": "certificates",
   "ship_name": "BROTHER 36",
   "cert_name": "International Air Pollution Prevention Certificate",
@@ -2538,7 +2538,7 @@ EXAMPLE OUTPUT:
   "valid_date": "2028-03-18",
   "issued_by": "Panama Maritime Documentation Services Inc",
   "confidence": "high"
-}
+}}
 """
 
         # Use different AI providers based on configuration
