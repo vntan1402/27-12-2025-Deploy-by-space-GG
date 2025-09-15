@@ -2895,7 +2895,7 @@ async def upload_multi_files_with_ai_processing(
                     )
                     file_result["folder_created"] = True
                 except Exception as e:
-                    file_result["errors"].append(f"Folder creation failed: {str(e)}")
+                    file_result["errors"].append("Folder creation failed: " + str(e))
                 
                 # Upload file to appropriate category folder
                 try:
