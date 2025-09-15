@@ -5884,6 +5884,27 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
           const results = response.data.results || [];
           const fileResult = results[0] || {};
           
+          // Check if ship exists in our ship list
+          const extractedShipName = fileResult.ship_name;
+          const shipExists = checkShipExistence(extractedShipName);
+          
+          if (!shipExists && extractedShipName && extractedShipName !== 'Unknown_Ship') {
+            // Ship not found - show confirmation modal
+            setMultiFileUploads(prev => prev.map((item, index) => 
+              index === i ? {
+                ...item,
+                status: 'pending_ship',
+                stage: '⚠️ Ship not found - awaiting decision',
+                progress: 90,
+                ...fileResult
+              } : item
+            ));
+            
+            // Show ship confirmation modal
+            handleShipNotFound(extractedShipName, fileResult);
+            return; // Don't continue processing until user decides
+          }
+          
           // Update with final results
           setMultiFileUploads(prev => prev.map((item, index) => 
             index === i ? {
