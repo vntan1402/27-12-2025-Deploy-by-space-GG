@@ -2439,7 +2439,7 @@ async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> d
             raise Exception("Only Apps Script method supported for folder creation")
             
     except Exception as e:
-        logger.error(f"Folder structure creation failed: {e}")
+        logger.error("Folder structure creation failed: " + str(e))
         raise
 
 async def upload_file_to_category_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str, folder_structure: dict = None) -> dict:
