@@ -2226,6 +2226,349 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
         logger.error(f"Error fetching ship certificates: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to fetch ship certificates")
 
+# Helper Functions for AI Document Processing
+
+async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
+    """Analyze document using configured AI to extract information and classify"""
+    try:
+        # Convert file content to base64 for AI analysis
+        import base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Create AI analysis prompt
+        analysis_prompt = f"""
+Analyze this document ({filename}) and extract the following information:
+
+1. DOCUMENT CLASSIFICATION - Classify into one of these categories:
+   - certificates: Certificates issued by Classification Society, Flags, Insurance
+   - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment
+   - survey_reports: Survey reports issued by Classification Society
+   - drawings_manuals: DWG files, technical drawings, manuals
+   - other_documents: Documents not fitting above categories
+
+2. SHIP INFORMATION:
+   - ship_name: Name of the ship mentioned in the document
+
+3. CERTIFICATE INFORMATION (if category is 'certificates'):
+   - cert_name: Full certificate name
+   - cert_type: Type (Interim, Provisional, Short term, Full Term)
+   - cert_no: Certificate number
+   - issue_date: Issue date (ISO format YYYY-MM-DD)
+   - valid_date: Valid until date (ISO format YYYY-MM-DD)
+   - last_endorse: Last endorsement date (ISO format YYYY-MM-DD, if available)
+   - next_survey: Next survey date (ISO format YYYY-MM-DD, if available)
+   - issued_by: Issuing authority/organization
+
+4. SURVEY STATUS INFORMATION (if relevant):
+   - certificate_type: CLASS, STATUTORY, AUDITS, Bottom Surveys
+   - survey_type: Annual, Intermediate, Renewal, Change of RO, Approval, Initial Audit
+   - issuance_date: When certificate was issued
+   - expiration_date: When certificate expires
+   - renewal_range_start: Renewal range start date
+   - renewal_range_end: Renewal range end date
+   - due_dates: Any due dates mentioned (as array)
+
+Return response as JSON format. If information is not found, return null for that field.
+Mark any uncertain extractions in a 'confidence' field (high/medium/low).
+"""
+
+        # Use Emergent LLM key for analysis
+        if EMERGENT_LLM_KEY:
+            try:
+                llm_chat = LlmChat(api_key=EMERGENT_LLM_KEY)
+                
+                # Create file content for analysis
+                file_obj = FileContentWithMimeType(
+                    content=file_base64,
+                    mime_type=content_type or "application/pdf"
+                )
+                
+                response = llm_chat.get_response_from_llm(
+                    messages=[UserMessage(content=analysis_prompt, files=[file_obj])],
+                    provider="google",
+                    model="gemini-2.0-flash-exp"
+                )
+                
+                # Parse AI response as JSON
+                import json
+                analysis_result = json.loads(response.content)
+                return analysis_result
+                
+            except Exception as e:
+                logger.error(f"Emergent LLM analysis failed: {e}")
+                # Return basic classification based on filename
+                return classify_by_filename(filename)
+        
+        else:
+            # Fallback to filename-based classification
+            return classify_by_filename(filename)
+            
+    except Exception as e:
+        logger.error(f"AI document analysis failed: {e}")
+        return classify_by_filename(filename)
+
+def classify_by_filename(filename: str) -> dict:
+    """Fallback classification based on filename"""
+    filename_lower = filename.lower()
+    
+    # Basic classification rules
+    if any(ext in filename_lower for ext in ['.dwg', 'drawing', 'manual', 'handbook']):
+        category = "drawings_manuals"
+    elif any(term in filename_lower for term in ['test', 'maintenance', 'inspection', 'check']):
+        category = "test_reports"
+    elif any(term in filename_lower for term in ['survey', 'audit', 'examination']):
+        category = "survey_reports"
+    elif any(term in filename_lower for term in ['certificate', 'cert', 'license', 'permit']):
+        category = "certificates"
+    else:
+        category = "other_documents"
+    
+    return {
+        "category": category,
+        "ship_name": "Unknown_Ship",
+        "confidence": "low",
+        "cert_name": None,
+        "cert_type": None,
+        "cert_no": None,
+        "issue_date": None,
+        "valid_date": None,
+        "issued_by": None
+    }
+
+async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> dict:
+    """Create folder structure: Ship Name -> 5 category subfolders"""
+    try:
+        auth_method = gdrive_config.get("auth_method", "service_account")
+        
+        if auth_method == "apps_script":
+            web_app_url = gdrive_config.get("web_app_url")
+            folder_id = gdrive_config.get("folder_id")
+            
+            if not web_app_url or not folder_id:
+                raise Exception("Apps Script configuration incomplete")
+            
+            # Create main ship folder
+            ship_folder_payload = {
+                "action": "create_folder_structure",
+                "parent_folder_id": folder_id,
+                "folder_path": ship_name
+            }
+            
+            response = requests.post(web_app_url, json=ship_folder_payload, timeout=30)
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to create ship folder: HTTP {response.status_code}")
+            
+            result = response.json()
+            if not result.get('success'):
+                raise Exception(f"Ship folder creation failed: {result.get('message')}")
+            
+            ship_folder_id = result.get('folder_id')
+            
+            # Create 5 category subfolders
+            categories = [
+                "Certificates",
+                "Test Reports", 
+                "Survey Reports",
+                "Drawings & Manuals",
+                "Other Documents"
+            ]
+            
+            subfolder_ids = {}
+            for category in categories:
+                subfolder_payload = {
+                    "action": "create_folder_structure",
+                    "parent_folder_id": ship_folder_id,
+                    "folder_path": category
+                }
+                
+                subfolder_response = requests.post(web_app_url, json=subfolder_payload, timeout=30)
+                
+                if subfolder_response.status_code == 200:
+                    subfolder_result = subfolder_response.json()
+                    if subfolder_result.get('success'):
+                        subfolder_ids[category] = subfolder_result.get('folder_id')
+            
+            return {
+                "ship_folder_id": ship_folder_id,
+                "subfolder_ids": subfolder_ids
+            }
+        
+        else:
+            raise Exception("Only Apps Script method supported for folder creation")
+            
+    except Exception as e:
+        logger.error(f"Folder structure creation failed: {e}")
+        raise
+
+async def upload_file_to_category_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str) -> dict:
+    """Upload file to appropriate category subfolder"""
+    try:
+        auth_method = gdrive_config.get("auth_method", "service_account")
+        
+        if auth_method == "apps_script":
+            web_app_url = gdrive_config.get("web_app_url")
+            
+            # Map category to folder name
+            category_folders = {
+                "certificates": "Certificates",
+                "test_reports": "Test Reports",
+                "survey_reports": "Survey Reports", 
+                "drawings_manuals": "Drawings & Manuals",
+                "other_documents": "Other Documents"
+            }
+            
+            folder_name = category_folders.get(category, "Other Documents")
+            
+            # Get target folder ID (create if not exists)
+            folder_structure = await create_ship_folder_structure(gdrive_config, ship_name)
+            target_folder_id = folder_structure["subfolder_ids"].get(folder_name)
+            
+            if not target_folder_id:
+                raise Exception(f"Target folder not found for category: {category}")
+            
+            # Upload file
+            import base64
+            file_content_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            upload_payload = {
+                "action": "upload_file",
+                "folder_id": target_folder_id,
+                "file_name": filename,
+                "file_content": file_content_base64,
+                "mime_type": "application/octet-stream"
+            }
+            
+            upload_response = requests.post(web_app_url, json=upload_payload, timeout=60)
+            
+            if upload_response.status_code != 200:
+                raise Exception(f"File upload failed: HTTP {upload_response.status_code}")
+            
+            upload_result = upload_response.json()
+            if not upload_result.get('success'):
+                raise Exception(f"File upload failed: {upload_result.get('message')}")
+            
+            return {
+                "file_id": upload_result.get('file_id'),
+                "folder_path": f"{ship_name}/{folder_name}"
+            }
+        
+        else:
+            raise Exception("Only Apps Script method supported for file upload")
+            
+    except Exception as e:
+        logger.error(f"File upload failed: {e}")
+        raise
+
+async def create_certificate_from_analysis(analysis_result: dict, current_user: UserResponse, filename: str, file_size: int, google_drive_file_id: str) -> dict:
+    """Create certificate record from AI analysis results"""
+    try:
+        # Find or create ship based on ship_name
+        ship_name = analysis_result.get("ship_name", "Unknown_Ship")
+        ship = None
+        
+        # Try to find existing ship by name
+        if ship_name != "Unknown_Ship":
+            ship = await mongo_db.find_one("ships", {"name": {"$regex": ship_name, "$options": "i"}})
+        
+        # If no ship found, create a basic ship record
+        if not ship:
+            ship_data = {
+                "id": str(uuid.uuid4()),
+                "name": ship_name,
+                "company": current_user.company,
+                "created_at": datetime.now(timezone.utc)
+            }
+            await mongo_db.create("ships", ship_data)
+            ship = ship_data
+        
+        # Create certificate record
+        cert_dict = {
+            'id': str(uuid.uuid4()),
+            'ship_id': ship['id'],
+            'cert_name': analysis_result.get('cert_name', f'Certificate from {filename}'),
+            'cert_type': analysis_result.get('cert_type'),
+            'cert_no': analysis_result.get('cert_no', f'AUTO-{int(datetime.now().timestamp())}'),
+            'issue_date': parse_date_string(analysis_result.get('issue_date')),
+            'valid_date': parse_date_string(analysis_result.get('valid_date')),
+            'last_endorse': parse_date_string(analysis_result.get('last_endorse')),
+            'next_survey': parse_date_string(analysis_result.get('next_survey')),
+            'issued_by': analysis_result.get('issued_by'),
+            'category': 'certificates',
+            'sensitivity_level': 'internal',
+            'created_at': datetime.now(timezone.utc),
+            'file_uploaded': True,
+            'google_drive_file_id': google_drive_file_id,
+            'file_name': filename,
+            'file_size': file_size,
+            'ship_name': ship_name
+        }
+        
+        # Save to MongoDB
+        await mongo_db.create("certificates", cert_dict)
+        
+        return cert_dict
+        
+    except Exception as e:
+        logger.error(f"Certificate creation from analysis failed: {e}")
+        raise
+
+async def update_ship_survey_status(analysis_result: dict, current_user: UserResponse) -> None:
+    """Update ship survey status from analysis results"""
+    try:
+        survey_info = analysis_result.get("survey_info", {})
+        if not survey_info:
+            return
+        
+        # Find ship
+        ship_name = analysis_result.get("ship_name", "Unknown_Ship")
+        ship = await mongo_db.find_one("ships", {"name": {"$regex": ship_name, "$options": "i"}})
+        
+        if not ship:
+            return
+        
+        # Create survey status record
+        survey_data = {
+            'id': str(uuid.uuid4()),
+            'ship_id': ship['id'],
+            'certificate_type': survey_info.get('certificate_type', 'CLASS'),
+            'certificate_number': survey_info.get('certificate_number'),
+            'survey_type': survey_info.get('survey_type', 'Annual'),
+            'issuance_date': parse_date_string(survey_info.get('issuance_date')),
+            'expiration_date': parse_date_string(survey_info.get('expiration_date')),
+            'renewal_range_start': parse_date_string(survey_info.get('renewal_range_start')),
+            'renewal_range_end': parse_date_string(survey_info.get('renewal_range_end')),
+            'survey_status': 'completed',
+            'created_at': datetime.now(timezone.utc)
+        }
+        
+        # Handle multiple due dates
+        due_dates = survey_info.get('due_dates', [])
+        if due_dates:
+            for i, due_date in enumerate(due_dates[:4]):  # Max 4 due dates
+                survey_data[f'due_date_{i+1}'] = parse_date_string(due_date)
+        
+        await mongo_db.create("ship_survey_status", survey_data)
+        
+    except Exception as e:
+        logger.error(f"Survey status update failed: {e}")
+        raise
+
+def parse_date_string(date_str: str) -> Optional[datetime]:
+    """Parse date string to datetime object"""
+    if not date_str:
+        return None
+    
+    try:
+        # Try ISO format first
+        if 'T' in date_str:
+            return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+        else:
+            # Try date only format
+            return datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+    except:
+        return None
+
 # Certificate Upload with Company Google Drive Integration
 @api_router.post("/certificates/upload-with-file", response_model=CertificateResponse)
 async def create_certificate_with_file_upload(
