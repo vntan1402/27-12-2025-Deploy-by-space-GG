@@ -525,31 +525,25 @@ class CertificateDateFixTester:
         if not success and response.get('status_code') == 422:
             # Check if the error is about missing file (expected) or date error (bug)
             error_detail = response.get('error', {})
-            if isinstance(error_detail, dict) and 'detail' in error_detail:
-                error_list = error_detail['detail']
-                if isinstance(error_list, list):
-                    # Check if any error is about "Invalid time value"
-                    for error in error_list:
-                        if isinstance(error, dict) and 'msg' in error:
-                            if "Invalid time value" in error['msg']:
-                                self.log_test(
-                                    "Certificate upload without file - 'Invalid time value' error STILL EXISTS", 
-                                    False, 
-                                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {error}"
-                                )
-                                return False
-                    
-                    # Check if file is required (expected behavior)
-                    file_required = any(error.get('loc', [])[-1] == 'file' and error.get('type') == 'missing' 
-                                      for error in error_list if isinstance(error, dict))
-                    
-                    if file_required:
-                        self.log_test(
-                            "Certificate upload without file - Date handling test", 
-                            True, 
-                            f"Upload endpoint correctly validates missing file (no date error detected)"
-                        )
-                        return True
+            error_str = str(error_detail)
+            
+            # Check for "Invalid time value" error (the bug we're testing)
+            if "Invalid time value" in error_str:
+                self.log_test(
+                    "Certificate upload without file - 'Invalid time value' error STILL EXISTS", 
+                    False, 
+                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {error_str}"
+                )
+                return False
+            
+            # Check if it's the expected validation error for missing file
+            if "Field required" in error_str and ("file" in error_str or "body" in error_str):
+                self.log_test(
+                    "Certificate upload without file - Date handling test", 
+                    True, 
+                    f"Upload endpoint correctly validates missing file (no date error detected)"
+                )
+                return True
             
             self.log_test(
                 "Certificate upload without file", 
