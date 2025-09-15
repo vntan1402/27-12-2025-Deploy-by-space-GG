@@ -522,23 +522,21 @@ class CertificateDateFixTester:
             expected_status=422  # Expect validation error for missing file
         )
         
-        if not success:
-            # Check if the error is about missing file (expected) or date error (bug)
-            status_code = response.get('status_code', 0)
-            error_detail = response.get('error', {})
-            response_str = str(error_detail)
+        if success and response.get('detail'):
+            # This is the expected 422 validation error
+            detail_str = str(response.get('detail', []))
             
             # Check for "Invalid time value" error (the bug we're testing)
-            if "Invalid time value" in response_str:
+            if "Invalid time value" in detail_str:
                 self.log_test(
                     "Certificate upload without file - 'Invalid time value' error STILL EXISTS", 
                     False, 
-                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {response_str}"
+                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {detail_str}"
                 )
                 return False
             
             # Check if it's the expected validation error for missing file
-            if status_code == 422 and ("Field required" in response_str or "missing" in response_str):
+            if "Field required" in detail_str or "missing" in detail_str:
                 self.log_test(
                     "Certificate upload without file - Date handling test", 
                     True, 
@@ -546,21 +544,12 @@ class CertificateDateFixTester:
                 )
                 return True
             
-            # If it's a 422 error but not about missing fields, it might be a date error
-            if status_code == 422:
-                self.log_test(
-                    "Certificate upload without file - Validation error analysis", 
-                    True, 
-                    f"422 validation error received, no 'Invalid time value' error detected"
-                )
-                return True
-            
             self.log_test(
-                "Certificate upload without file", 
-                False, 
-                f"Unexpected error (status {status_code}): {response}"
+                "Certificate upload without file - Validation error analysis", 
+                True, 
+                f"422 validation error received, no 'Invalid time value' error detected"
             )
-            return False
+            return True
         else:
             self.log_test(
                 "Certificate upload without file", 
