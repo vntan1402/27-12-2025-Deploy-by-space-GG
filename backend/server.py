@@ -3552,11 +3552,11 @@ async def analyze_ship_certificate(
             
             # Send message for analysis
             user_message = UserMessage(
-                text="""Analyze this maritime document and extract the following information:
+                text=f"""Analyze this maritime document (filename: {file.filename}) and extract the following information:
 
 CRITICAL: Look for the ship name in multiple places:
 1. Document content (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
-2. Filename (the filename may contain the ship name)
+2. Filename: "{file.filename}" - the ship name may be at the beginning of the filename
 3. Certificate headers or vessel identification sections
 
 SHIP INFORMATION - Extract ship details:
@@ -3579,8 +3579,10 @@ CERTIFICATE INFORMATION (if this is a certificate):
 
 Return response as FLAT JSON format (not nested). If information is not found, return null for that field.
 
+EXAMPLE: If filename is "BROTHER 36 -EIAPP-PM242757.pdf", the ship_name should be "BROTHER 36"
+
 EXAMPLE OUTPUT:
-{
+{{
   "ship_name": "BROTHER 36",
   "imo_number": "1234567",
   "class_society": "DNV GL",
@@ -3595,7 +3597,7 @@ EXAMPLE OUTPUT:
   "issue_date": "2024-11-29",
   "valid_date": "2028-03-18",
   "issued_by": "Panama Maritime Authority"
-}""",
+}}""",
                 file_contents=[pdf_file]
             )
             
