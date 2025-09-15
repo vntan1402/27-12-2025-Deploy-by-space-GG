@@ -5842,11 +5842,6 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
           : `Successfully processed ${successCount}/${files.length} files. Created ${certificateCount} certificate records.`
       );
       
-      // Refresh data if needed
-      if (certificateCount > 0) {
-        await fetchShips(); // Refresh ships if new ones were created
-      }
-      
     } catch (error) {
       console.error('Multi-file upload error:', error);
       const errorMessage = error.response?.data?.detail || error.message;
