@@ -2300,7 +2300,7 @@ Mark any uncertain extractions in a 'confidence' field (high/medium/low).
                     
                     # Parse AI response as JSON
                     import json
-                    analysis_result = json.loads(response.content)
+                    analysis_result = json.loads(response)
                     return analysis_result
                     
                 finally:
