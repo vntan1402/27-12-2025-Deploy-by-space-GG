@@ -3552,7 +3552,54 @@ async def analyze_ship_certificate(
             
             # Send message for analysis
             user_message = UserMessage(
-                text="Analyze this ship certificate PDF and extract the ship information. Return only the JSON object with the specified structure.",
+                text="""Analyze this maritime document and extract the following information:
+
+1. DOCUMENT CLASSIFICATION - Classify into one of these categories:
+   - certificates: Maritime certificates issued by Classification Society, Flag State, Port State, or Maritime Authorities. 
+     Examples: Safety Management Certificate, IAPP Certificate, IOPP Certificate, Load Line Certificate, 
+     Radio Survey Certificate, Safety Construction Certificate, Tonnage Certificate, etc.
+   - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment, safety systems
+   - survey_reports: Survey reports issued by Classification Society (annual, intermediate, special surveys)
+   - drawings_manuals: DWG files, technical drawings, equipment manuals, ship plans
+   - other_documents: Documents not fitting above categories (crew lists, commercial documents, etc.)
+
+2. SHIP INFORMATION - Extract ship details:
+   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+   - imo_number: IMO number if available
+   - class_society: Classification society name
+   - flag: Flag state/country
+   - gross_tonnage: Gross tonnage as number
+   - deadweight: Deadweight tonnage as number
+   - built_year: Year built as number
+   - ship_owner: Ship owner name
+
+3. CERTIFICATE INFORMATION (if category is 'certificates'):
+   - cert_name: Full certificate name (e.g., "International Air Pollution Prevention Certificate")
+   - cert_type: Certificate type (Interim, Provisional, Short term, Full Term, Initial, etc.)
+   - cert_no: Certificate number or reference number
+   - issue_date: Issue date (convert to ISO format YYYY-MM-DD)
+   - valid_date: Valid until/expiry date (convert to ISO format YYYY-MM-DD)
+   - issued_by: Issuing authority/organization
+
+IMPORTANT CLASSIFICATION RULES:
+- ANY document with "Certificate" in the name AND maritime/ship information = "certificates"
+- Documents from Classification Societies (DNV GL, ABS, Lloyd's Register, etc.) = usually "certificates" or "survey_reports"
+- Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
+- IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
+
+Return response as JSON format. If information is not found, return null for that field.
+
+EXAMPLE OUTPUT:
+{
+  "ship_name": "BROTHER 36",
+  "imo_number": "1234567",
+  "class_society": "DNV GL",
+  "flag": "THE REPUBLIC OF PANAMA",
+  "gross_tonnage": 2930,
+  "deadweight": 4500,
+  "built_year": 2008,
+  "ship_owner": "Maritime Holdings Ltd"
+}""",
                 file_contents=[pdf_file]
             )
             
