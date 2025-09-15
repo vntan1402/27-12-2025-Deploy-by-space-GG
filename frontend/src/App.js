@@ -684,6 +684,7 @@ const HomePage = () => {
   const [showShipListModal, setShowShipListModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [editingShipData, setEditingShipData] = useState(null);
+  const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
   const navigate = useNavigate();
   
   const t = translations[language];
