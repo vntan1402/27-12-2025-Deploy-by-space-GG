@@ -693,6 +693,7 @@ const HomePage = () => {
     fetchShips();
     fetchSettings();
     fetchAvailableCompanies();
+    fetchAiConfig(); // Fetch AI config when component mounts
   }, []);
 
   useEffect(() => {
