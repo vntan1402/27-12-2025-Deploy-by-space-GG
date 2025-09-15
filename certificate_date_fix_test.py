@@ -524,28 +524,39 @@ class CertificateDateFixTester:
         
         if not success and response.get('status_code') == 422:
             # Check if the error is about missing file (expected) or date error (bug)
-            error_str = str(response.get('error', ''))
-            if "Invalid time value" in error_str:
-                self.log_test(
-                    "Certificate upload without file - 'Invalid time value' error STILL EXISTS", 
-                    False, 
-                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {error_str}"
-                )
-                return False
-            elif "Field required" in error_str and "file" in error_str:
-                self.log_test(
-                    "Certificate upload without file - Date handling test", 
-                    True, 
-                    f"Upload endpoint correctly validates missing file (no date error detected)"
-                )
-                return True
-            else:
-                self.log_test(
-                    "Certificate upload without file", 
-                    False, 
-                    f"Unexpected validation error: {response}"
-                )
-                return False
+            error_detail = response.get('error', {})
+            if isinstance(error_detail, dict) and 'detail' in error_detail:
+                error_list = error_detail['detail']
+                if isinstance(error_list, list):
+                    # Check if any error is about "Invalid time value"
+                    for error in error_list:
+                        if isinstance(error, dict) and 'msg' in error:
+                            if "Invalid time value" in error['msg']:
+                                self.log_test(
+                                    "Certificate upload without file - 'Invalid time value' error STILL EXISTS", 
+                                    False, 
+                                    f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {error}"
+                                )
+                                return False
+                    
+                    # Check if file is required (expected behavior)
+                    file_required = any(error.get('loc', [])[-1] == 'file' and error.get('type') == 'missing' 
+                                      for error in error_list if isinstance(error, dict))
+                    
+                    if file_required:
+                        self.log_test(
+                            "Certificate upload without file - Date handling test", 
+                            True, 
+                            f"Upload endpoint correctly validates missing file (no date error detected)"
+                        )
+                        return True
+            
+            self.log_test(
+                "Certificate upload without file", 
+                False, 
+                f"Unexpected validation error format: {response}"
+            )
+            return False
         else:
             self.log_test(
                 "Certificate upload without file", 
