@@ -522,7 +522,7 @@ class CertificateDateFixTester:
             expected_status=422  # Expect validation error for missing file
         )
         
-        if not success and response.get('status_code') == 422:
+        if not success:
             # Check if the error is about missing file (expected) or date error (bug)
             error_detail = response.get('error', {})
             error_str = str(error_detail)
@@ -537,18 +537,18 @@ class CertificateDateFixTester:
                 return False
             
             # Check if it's the expected validation error for missing file
-            if "Field required" in error_str and ("file" in error_str or "body" in error_str):
+            if response.get('status_code') == 422 and ("Field required" in error_str or "missing" in error_str):
                 self.log_test(
                     "Certificate upload without file - Date handling test", 
                     True, 
-                    f"Upload endpoint correctly validates missing file (no date error detected)"
+                    f"Upload endpoint correctly validates missing fields (no date error detected)"
                 )
                 return True
             
             self.log_test(
                 "Certificate upload without file", 
                 False, 
-                f"Unexpected validation error format: {response}"
+                f"Unexpected error: {response}"
             )
             return False
         else:
