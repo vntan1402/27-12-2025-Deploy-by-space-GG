@@ -227,7 +227,7 @@ class MultiFileUploadDebugTester:
             
             for company in companies:
                 print(f"   Company: {company.get('name_en', 'N/A')} / {company.get('name_vn', 'N/A')}")
-                gdrive_config = company.get('gdrive_config', {})
+                gdrive_config = company.get('gdrive_config') or {}
                 configured = gdrive_config.get('configured', False)
                 print(f"   Google Drive Configured: {configured}")
                 
