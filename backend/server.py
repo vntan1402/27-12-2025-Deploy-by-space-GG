@@ -3554,17 +3554,13 @@ async def analyze_ship_certificate(
             user_message = UserMessage(
                 text="""Analyze this maritime document and extract the following information:
 
-1. DOCUMENT CLASSIFICATION - Classify into one of these categories:
-   - certificates: Maritime certificates issued by Classification Society, Flag State, Port State, or Maritime Authorities. 
-     Examples: Safety Management Certificate, IAPP Certificate, IOPP Certificate, Load Line Certificate, 
-     Radio Survey Certificate, Safety Construction Certificate, Tonnage Certificate, etc.
-   - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment, safety systems
-   - survey_reports: Survey reports issued by Classification Society (annual, intermediate, special surveys)
-   - drawings_manuals: DWG files, technical drawings, equipment manuals, ship plans
-   - other_documents: Documents not fitting above categories (crew lists, commercial documents, etc.)
+CRITICAL: Look for the ship name in multiple places:
+1. Document content (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+2. Filename (the filename may contain the ship name)
+3. Certificate headers or vessel identification sections
 
-2. SHIP INFORMATION - Extract ship details:
-   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+SHIP INFORMATION - Extract ship details:
+   - ship_name: Full name of the vessel (REQUIRED - look carefully in document content AND filename)
    - imo_number: IMO number if available
    - class_society: Classification society name
    - flag: Flag state/country
@@ -3573,7 +3569,7 @@ async def analyze_ship_certificate(
    - built_year: Year built as number
    - ship_owner: Ship owner name
 
-3. CERTIFICATE INFORMATION (if category is 'certificates'):
+CERTIFICATE INFORMATION (if this is a certificate):
    - cert_name: Full certificate name (e.g., "International Air Pollution Prevention Certificate")
    - cert_type: Certificate type (Interim, Provisional, Short term, Full Term, Initial, etc.)
    - cert_no: Certificate number or reference number
@@ -3581,13 +3577,7 @@ async def analyze_ship_certificate(
    - valid_date: Valid until/expiry date (convert to ISO format YYYY-MM-DD)
    - issued_by: Issuing authority/organization
 
-IMPORTANT CLASSIFICATION RULES:
-- ANY document with "Certificate" in the name AND maritime/ship information = "certificates"
-- Documents from Classification Societies (DNV GL, ABS, Lloyd's Register, etc.) = usually "certificates" or "survey_reports"
-- Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
-- IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
-
-Return response as JSON format. If information is not found, return null for that field.
+Return response as FLAT JSON format (not nested). If information is not found, return null for that field.
 
 EXAMPLE OUTPUT:
 {
@@ -3598,7 +3588,13 @@ EXAMPLE OUTPUT:
   "gross_tonnage": 2930,
   "deadweight": 4500,
   "built_year": 2008,
-  "ship_owner": "Maritime Holdings Ltd"
+  "ship_owner": "Maritime Holdings Ltd",
+  "cert_name": "International Air Pollution Prevention Certificate",
+  "cert_type": "Full Term",
+  "cert_no": "PM242757",
+  "issue_date": "2024-11-29",
+  "valid_date": "2028-03-18",
+  "issued_by": "Panama Maritime Authority"
 }""",
                 file_contents=[pdf_file]
             )
