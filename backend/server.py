@@ -197,11 +197,13 @@ class ShipSurveyStatusResponse(ShipSurveyStatusBase):
 class CertificateBase(BaseModel):
     ship_id: str
     cert_name: str
+    cert_type: Optional[str] = None  # Interim, Provisional, Short term, Full Term
     cert_no: str
     issue_date: datetime
     valid_date: datetime
     last_endorse: Optional[datetime] = None
     next_survey: Optional[datetime] = None
+    issued_by: Optional[str] = None  # Classification Society, Flag, Insurance, etc.
     category: str = "certificates"
     sensitivity_level: str = "public"
     file_uploaded: bool = False
@@ -209,6 +211,7 @@ class CertificateBase(BaseModel):
     google_drive_folder_path: Optional[str] = None
     file_name: Optional[str] = None
     file_size: Optional[int] = None
+    ship_name: Optional[str] = None  # For folder organization
 
 class CertificateCreate(CertificateBase):
     pass
