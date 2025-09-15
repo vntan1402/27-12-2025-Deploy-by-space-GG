@@ -115,14 +115,14 @@ class MultiFileUploadTester:
             self.token = response['access_token']
             self.user_info = response.get('user', {})
             self.log_test(
-                "Authentication with admin/admin123", 
+                "Authentication with test user (has company)", 
                 True, 
-                f"User: {self.user_info.get('full_name')} ({self.user_info.get('role')})"
+                f"User: {self.user_info.get('full_name')} ({self.user_info.get('role')}) - Company: {self.user_info.get('company')}"
             )
             return True
         else:
             self.log_test(
-                "Authentication with admin/admin123", 
+                "Authentication with test user (has company)", 
                 False, 
                 f"Status: {status}, Response: {response}"
             )
