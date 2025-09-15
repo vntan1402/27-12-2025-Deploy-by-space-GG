@@ -2295,7 +2295,7 @@ Mark any uncertain extractions in a 'confidence' field (high/medium/low).
                     )
                     
                     response = await llm_chat.with_model("google", "gemini-2.0-flash-exp").send_message(
-                        UserMessage(content=analysis_prompt, files=[file_obj])
+                        UserMessage(text=analysis_prompt, file_contents=[file_obj])
                     )
                     
                     # Parse AI response as JSON
