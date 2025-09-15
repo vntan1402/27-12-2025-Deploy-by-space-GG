@@ -2372,37 +2372,15 @@ async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> d
             response = requests.post(web_app_url, json=ship_folder_payload, timeout=30)
             
             if response.status_code != 200:
-                raise Exception(f"Failed to create ship folder: HTTP {response.status_code}")
+                raise Exception(f"Failed to create ship folder structure: HTTP {response.status_code}")
             
             result = response.json()
             if not result.get('success'):
-                raise Exception(f"Ship folder creation failed: {result.get('message')}")
+                raise Exception(f"Ship folder structure creation failed: {result.get('message')}")
             
-            ship_folder_id = result.get('folder_id')
-            
-            # Create 5 category subfolders
-            categories = [
-                "Certificates",
-                "Test Reports", 
-                "Survey Reports",
-                "Drawings & Manuals",
-                "Other Documents"
-            ]
-            
-            subfolder_ids = {}
-            for category in categories:
-                subfolder_payload = {
-                    "action": "create_folder_structure",
-                    "parent_folder_id": ship_folder_id,
-                    "folder_path": category
-                }
-                
-                subfolder_response = requests.post(web_app_url, json=subfolder_payload, timeout=30)
-                
-                if subfolder_response.status_code == 200:
-                    subfolder_result = subfolder_response.json()
-                    if subfolder_result.get('success'):
-                        subfolder_ids[category] = subfolder_result.get('folder_id')
+            # Apps Script returns all subfolder IDs in one response
+            subfolder_ids = result.get('subfolder_ids', {})
+            ship_folder_id = result.get('ship_folder_id')  # If provided by Apps Script
             
             return {
                 "ship_folder_id": ship_folder_id,
