@@ -2699,12 +2699,24 @@ async def create_certificate_from_analysis(analysis_result: dict, current_user: 
     """Create certificate record from AI analysis results"""
     try:
         # Find or create ship based on ship_name
-        ship_name = analysis_result.get("ship_name", "Unknown_Ship")
+        ship_name = analysis_result.get("ship_name")
+        
+        # Validate and clean ship_name
+        if not ship_name or not isinstance(ship_name, str) or ship_name.strip() == "":
+            ship_name = "Unknown_Ship"
+        else:
+            ship_name = str(ship_name).strip()
+        
         ship = None
         
-        # Try to find existing ship by name
+        # Try to find existing ship by name (only if we have a valid ship name)
         if ship_name != "Unknown_Ship":
-            ship = await mongo_db.find_one("ships", {"name": {"$regex": ship_name, "$options": "i"}})
+            try:
+                ship = await mongo_db.find_one("ships", {"name": {"$regex": ship_name, "$options": "i"}})
+            except Exception as e:
+                logger.error(f"Error searching for ship with name '{ship_name}': {e}")
+                # Fallback to exact match if regex fails
+                ship = await mongo_db.find_one("ships", {"name": ship_name})
         
         # If no ship found, create a basic ship record
         if not ship:
