@@ -2906,7 +2906,7 @@ async def upload_multi_files_with_ai_processing(
                     file_result["google_drive_uploaded"] = True
                     file_result["google_drive_file_id"] = upload_result.get("file_id")
                 except Exception as e:
-                    file_result["errors"].append(f"File upload failed: {str(e)}")
+                    file_result["errors"].append("File upload failed: " + str(e))
                 
                 # Auto-create certificate record if category is "certificates"
                 if file_result["category"] == "certificates" and analysis_result:
