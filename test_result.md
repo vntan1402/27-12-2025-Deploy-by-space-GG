@@ -541,7 +541,7 @@
 
 ## test_plan:
   current_focus:
-    - "Certificate Upload Integration with Company Google Drive"
+    - "AI Analysis Improvements for Certificate Classification"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
