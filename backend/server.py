@@ -3605,6 +3605,9 @@ EXAMPLE OUTPUT:
             
             response = await chat.send_message(user_message)
             
+            # Debug: Log the AI response
+            logger.info(f"AI Response for single analysis: {str(response)[:500]}")
+            
             # Parse AI response
             try:
                 # Clean the response to extract JSON
