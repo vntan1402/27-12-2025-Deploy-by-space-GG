@@ -5725,8 +5725,12 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
         formData.append('cert_no', certificateData.cert_no);
         formData.append('issue_date', new Date(certificateData.issue_date).toISOString());
         formData.append('valid_date', new Date(certificateData.valid_date).toISOString());
-        formData.append('last_endorse', certificateData.last_endorse ? new Date(certificateData.last_endorse).toISOString() : null);
-        formData.append('next_survey', certificateData.next_survey ? new Date(certificateData.next_survey).toISOString() : null);
+        if (certificateData.last_endorse) {
+          formData.append('last_endorse', new Date(certificateData.last_endorse).toISOString());
+        }
+        if (certificateData.next_survey) {
+          formData.append('next_survey', new Date(certificateData.next_survey).toISOString());
+        }
         formData.append('category', certificateData.category);
         formData.append('sensitivity_level', certificateData.sensitivity_level);
         
