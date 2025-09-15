@@ -541,10 +541,8 @@
 
 ## test_plan:
   current_focus:
-    - "Multi-File Upload with AI Processing and Google Drive Integration"
     - "Certificate Upload Integration with Company Google Drive"
-  stuck_tasks:
-    - "Multi-File Upload with AI Processing and Google Drive Integration"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
