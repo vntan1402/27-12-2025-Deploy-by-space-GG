@@ -72,9 +72,43 @@ class MultiFileUploadTester:
         """Test 1: Authentication with admin/admin123"""
         print("\n🔐 Testing Authentication")
         
-        success, status, response = self.make_request(
+        # First login as admin to create test user
+        admin_success, admin_status, admin_response = self.make_request(
             'POST', 'auth/login', 
             data={"username": "admin", "password": "admin123"}
+        )
+        
+        if not admin_success:
+            self.log_test("Authentication with admin/admin123", False, f"Admin login failed: {admin_status}")
+            return False
+        
+        admin_token = admin_response['access_token']
+        
+        # Create test user with company association
+        import time
+        test_username = f'test_upload_user_{int(time.time())}'
+        test_user_data = {
+            'username': test_username,
+            'email': f'test_upload_{int(time.time())}@example.com',
+            'password': 'TestPass123!',
+            'full_name': 'Test Upload User',
+            'role': 'editor',
+            'department': 'technical',
+            'company': 'AMCSC',
+            'zalo': '0901234567'
+        }
+        
+        headers = {'Authorization': f'Bearer {admin_token}', 'Content-Type': 'application/json'}
+        create_response = requests.post(f'{self.api_url}/users', headers=headers, json=test_user_data, timeout=30)
+        
+        if create_response.status_code != 200:
+            self.log_test("Authentication with admin/admin123", False, f"Failed to create test user: {create_response.status_code}")
+            return False
+        
+        # Now login with test user
+        success, status, response = self.make_request(
+            'POST', 'auth/login', 
+            data={"username": test_username, "password": "TestPass123!"}
         )
         
         if success and 'access_token' in response:
