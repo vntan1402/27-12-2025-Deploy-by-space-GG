@@ -2237,27 +2237,29 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
         
         # Create AI analysis prompt
         analysis_prompt = f"""
-Analyze this document ({filename}) and extract the following information:
+Analyze this maritime document ({filename}) and extract the following information:
 
 1. DOCUMENT CLASSIFICATION - Classify into one of these categories:
-   - certificates: Certificates issued by Classification Society, Flags, Insurance
-   - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment
-   - survey_reports: Survey reports issued by Classification Society
-   - drawings_manuals: DWG files, technical drawings, manuals
-   - other_documents: Documents not fitting above categories
+   - certificates: Maritime certificates issued by Classification Society, Flag State, Port State, or Maritime Authorities. 
+     Examples: Safety Management Certificate, IAPP Certificate, IOPP Certificate, Load Line Certificate, 
+     Radio Survey Certificate, Safety Construction Certificate, Tonnage Certificate, etc.
+   - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment, safety systems
+   - survey_reports: Survey reports issued by Classification Society (annual, intermediate, special surveys)
+   - drawings_manuals: DWG files, technical drawings, equipment manuals, ship plans
+   - other_documents: Documents not fitting above categories (crew lists, commercial documents, etc.)
 
-2. SHIP INFORMATION:
-   - ship_name: Name of the ship mentioned in the document
-
+2. SHIP INFORMATION - Extract ship details:
+   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+   
 3. CERTIFICATE INFORMATION (if category is 'certificates'):
-   - cert_name: Full certificate name
-   - cert_type: Type (Interim, Provisional, Short term, Full Term)
-   - cert_no: Certificate number
-   - issue_date: Issue date (ISO format YYYY-MM-DD)
-   - valid_date: Valid until date (ISO format YYYY-MM-DD)
+   - cert_name: Full certificate name (e.g., "International Air Pollution Prevention Certificate")
+   - cert_type: Certificate type (Interim, Provisional, Short term, Full Term, Initial, etc.)
+   - cert_no: Certificate number or reference number
+   - issue_date: Issue date (convert to ISO format YYYY-MM-DD)
+   - valid_date: Valid until/expiry date (convert to ISO format YYYY-MM-DD)
    - last_endorse: Last endorsement date (ISO format YYYY-MM-DD, if available)
    - next_survey: Next survey date (ISO format YYYY-MM-DD, if available)
-   - issued_by: Issuing authority/organization
+   - issued_by: Issuing authority/organization (e.g., "DNV GL", "Panama Maritime Authority", etc.)
 
 4. SURVEY STATUS INFORMATION (if relevant):
    - certificate_type: CLASS, STATUTORY, AUDITS, Bottom Surveys
@@ -2268,8 +2270,27 @@ Analyze this document ({filename}) and extract the following information:
    - renewal_range_end: Renewal range end date
    - due_dates: Any due dates mentioned (as array)
 
+IMPORTANT CLASSIFICATION RULES:
+- ANY document with "Certificate" in the name AND maritime/ship information = "certificates"
+- Documents from Classification Societies (DNV GL, ABS, Lloyd's Register, etc.) = usually "certificates" or "survey_reports"
+- Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
+- IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
+
 Return response as JSON format. If information is not found, return null for that field.
 Mark any uncertain extractions in a 'confidence' field (high/medium/low).
+
+EXAMPLE OUTPUT:
+{
+  "category": "certificates",
+  "ship_name": "BROTHER 36",
+  "cert_name": "International Air Pollution Prevention Certificate",
+  "cert_type": "Full Term",
+  "cert_no": "PM242838",
+  "issue_date": "2024-12-10",
+  "valid_date": "2028-03-18",
+  "issued_by": "Panama Maritime Documentation Services Inc",
+  "confidence": "high"
+}
 """
 
         # Use Emergent LLM key for analysis
