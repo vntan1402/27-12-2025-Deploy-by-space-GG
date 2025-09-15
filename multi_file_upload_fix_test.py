@@ -87,7 +87,7 @@ class MultiFileUploadFixTester:
             )
         else:
             return self.log_test(
-                "Authentication with admin/admin123",
+                "Authentication with admin1/123456",
                 False,
                 f"Status: {status}, Response: {response}"
             )
