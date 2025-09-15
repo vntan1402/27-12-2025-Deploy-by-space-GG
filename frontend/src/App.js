@@ -6706,6 +6706,70 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
           </div>
         </div>
       )}
+
+      {/* Ship Confirmation Modal */}
+      {showShipConfirmModal && pendingShipData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {language === 'vi' ? 'Tàu chưa có trong danh sách' : 'Ship not found in list'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {language === 'vi' ? 'Tàu này chưa được thêm vào hệ thống' : 'This ship is not yet added to the system'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">{language === 'vi' ? 'Tên tàu từ giấy chứng nhận' : 'Ship name from certificate'}:</span>
+                  </p>
+                  <p className="text-lg font-bold text-blue-900 mt-1">
+                    {pendingShipData.shipName}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleShipConfirmation(true)}
+                  className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  {language === 'vi' 
+                    ? '🚢 Tự động thêm tàu mới và tiếp tục' 
+                    : '🚢 Auto-add new ship and continue'}
+                </button>
+                
+                <button
+                  onClick={() => handleShipConfirmation(false)}
+                  className="w-full bg-gray-100 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  {language === 'vi' 
+                    ? '❌ Hủy bỏ việc thêm certificate' 
+                    : '❌ Cancel certificate addition'}
+                </button>
+              </div>
+              
+              <div className="mt-4 text-center">
+                <p className="text-xs text-gray-500">
+                  {language === 'vi' 
+                    ? 'Chọn "Tự động thêm tàu mới" sẽ chuyển sang mục tạo tàu với thông tin từ giấy chứng nhận'
+                    : 'Selecting "Auto-add new ship" will switch to ship creation with certificate information'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
