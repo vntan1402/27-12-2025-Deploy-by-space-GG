@@ -2294,10 +2294,8 @@ Mark any uncertain extractions in a 'confidence' field (high/medium/low).
                         file_path=temp_file_path
                     )
                     
-                    response = llm_chat.get_response_from_llm(
-                        messages=[UserMessage(content=analysis_prompt, files=[file_obj])],
-                        provider="google",
-                        model="gemini-2.0-flash-exp"
+                    response = await llm_chat.with_model("google", "gemini-2.0-flash-exp").send_message(
+                        UserMessage(content=analysis_prompt, files=[file_obj])
                     )
                     
                     # Parse AI response as JSON
