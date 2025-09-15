@@ -2347,7 +2347,7 @@ EXAMPLE OUTPUT:
                         return analysis_result
                         
                     except json.JSONDecodeError as e:
-                        logger.error("JSON parsing error: %s, Response: %s", str(e), str(response)[:200])
+                        logger.error("JSON parsing error: %s, Response: %s", str(e).replace('%', '%%'), str(response)[:200].replace('%', '%%'))
                         return classify_by_filename(filename)
                     
                 finally:
