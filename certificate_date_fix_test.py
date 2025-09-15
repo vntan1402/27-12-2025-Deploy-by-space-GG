@@ -524,7 +524,7 @@ class CertificateDateFixTester:
         
         if not success:
             # Check if the error is about missing file (expected) or date error (bug)
-            error_detail = response.get('error', {})
+            error_detail = response.get('error', response.get('detail', {}))
             error_str = str(error_detail)
             
             # Check for "Invalid time value" error (the bug we're testing)
