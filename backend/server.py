@@ -2296,11 +2296,12 @@ EXAMPLE OUTPUT:
         # Use Emergent LLM key for analysis
         if EMERGENT_LLM_KEY:
             try:
-                llm_chat = LlmChat(
+                # Create LLM chat instance with Gemini for file support
+                chat = LlmChat(
                     api_key=EMERGENT_LLM_KEY,
                     session_id=f"multi_doc_analysis_{uuid.uuid4()}",
-                    system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately."
-                )
+                    system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately. Always return valid JSON format."
+                ).with_model("gemini", "gemini-2.0-flash")
                 
                 # Create temporary file for analysis
                 import tempfile
@@ -2311,24 +2312,46 @@ EXAMPLE OUTPUT:
                 try:
                     # Create file content for analysis
                     file_obj = FileContentWithMimeType(
-                        mime_type=content_type or "application/pdf",
-                        file_path=temp_file_path
+                        file_path=temp_file_path,
+                        mime_type=content_type or "application/pdf"
                     )
                     
-                    response = await llm_chat.with_model("google", "gemini-2.0-flash-exp").send_message(
-                        UserMessage(text=analysis_prompt, file_contents=[file_obj])
+                    # Send message for analysis
+                    user_message = UserMessage(
+                        text=analysis_prompt,
+                        file_contents=[file_obj]
                     )
                     
-                    # Parse AI response as JSON
-                    import json
-                    analysis_result = json.loads(response)
-                    return analysis_result
+                    response = await chat.send_message(user_message)
+                    
+                    # Parse AI response
+                    try:
+                        # Clean the response to extract JSON
+                        response_text = response.strip()
+                        if '```json' in response_text:
+                            response_text = response_text.split('```json')[1].split('```')[0].strip()
+                        elif '```' in response_text:
+                            response_text = response_text.split('```')[1].split('```')[0].strip()
+                        
+                        analysis_result = json.loads(response_text)
+                        
+                        # Clean and validate result
+                        for key, value in analysis_result.items():
+                            if value == "" or value == "null" or value == "N/A":
+                                analysis_result[key] = None
+                        
+                        return analysis_result
+                        
+                    except json.JSONDecodeError as e:
+                        logger.error(f"JSON parsing error: {e}, Response: {response}")
+                        return classify_by_filename(filename)
                     
                 finally:
                     # Clean up temporary file
-                    import os
-                    if os.path.exists(temp_file_path):
+                    try:
                         os.unlink(temp_file_path)
+                    except:
+                        pass
                 
             except Exception as e:
                 logger.error(f"Emergent LLM analysis failed: {e}")
