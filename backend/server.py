@@ -3619,6 +3619,17 @@ EXAMPLE OUTPUT:
                 
                 analysis_result = json.loads(response_text)
                 
+                # Handle nested structure if present
+                if 'SHIP_INFORMATION' in analysis_result:
+                    ship_info = analysis_result.get('SHIP_INFORMATION', {})
+                    cert_info = analysis_result.get('CERTIFICATE_INFORMATION', {})
+                    
+                    # Flatten the structure
+                    flattened_result = {}
+                    flattened_result.update(ship_info)
+                    flattened_result.update(cert_info)
+                    analysis_result = flattened_result
+                
                 # Validate extracted data structure (excluding company field)
                 expected_fields = ['ship_name', 'imo_number', 'class_society', 'flag', 'gross_tonnage', 'deadweight', 'built_year', 'ship_owner']
                 cleaned_result = {}
