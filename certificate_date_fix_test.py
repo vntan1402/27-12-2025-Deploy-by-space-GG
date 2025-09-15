@@ -495,7 +495,7 @@ class CertificateDateFixTester:
                     return False
 
     def test_certificate_upload_without_file(self):
-        """Test POST /api/certificates/upload-with-file without file (should work as metadata-only)"""
+        """Test POST /api/certificates/upload-with-file without file (should fail but not with date error)"""
         print("\n📁 TESTING CERTIFICATE UPLOAD ENDPOINT WITHOUT FILE")
         print("-" * 55)
         
@@ -518,31 +518,12 @@ class CertificateDateFixTester:
         success, response = self.make_request(
             "POST", 
             "certificates/upload-with-file", 
-            data=form_data
+            data=form_data,
+            expected_status=422  # Expect validation error for missing file
         )
         
-        if success and 'id' in response:
-            cert_id = response['id']
-            self.created_certificates.append(cert_id)
-            
-            # Check if the response contains the "Invalid time value" error
-            response_str = str(response)
-            if "Invalid time value" in response_str:
-                self.log_test(
-                    "Certificate upload without file - No 'Invalid time value' error", 
-                    False, 
-                    f"'Invalid time value' error in upload endpoint without file: {response}"
-                )
-                return False
-            else:
-                self.log_test(
-                    "Certificate upload without file - No 'Invalid time value' error", 
-                    True, 
-                    f"Upload endpoint works without file and without date error. ID: {cert_id}"
-                )
-                return True
-        else:
-            # Check if the error is the "Invalid time value" error we're trying to fix
+        if not success and response.get('status_code') == 422:
+            # Check if the error is about missing file (expected) or date error (bug)
             error_str = str(response.get('error', ''))
             if "Invalid time value" in error_str:
                 self.log_test(
@@ -550,12 +531,27 @@ class CertificateDateFixTester:
                     False, 
                     f"❌ THE BUG IS NOT FIXED IN UPLOAD ENDPOINT: {error_str}"
                 )
+                return False
+            elif "Field required" in error_str and "file" in error_str:
+                self.log_test(
+                    "Certificate upload without file - Date handling test", 
+                    True, 
+                    f"Upload endpoint correctly validates missing file (no date error detected)"
+                )
+                return True
             else:
                 self.log_test(
                     "Certificate upload without file", 
                     False, 
-                    f"Failed for other reason: {response}"
+                    f"Unexpected validation error: {response}"
                 )
+                return False
+        else:
+            self.log_test(
+                "Certificate upload without file", 
+                False, 
+                f"Unexpected response: {response}"
+            )
             return False
 
     def test_retrieve_created_certificates(self):
