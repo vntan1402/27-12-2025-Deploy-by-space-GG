@@ -2790,18 +2790,42 @@ async def update_ship_survey_status(analysis_result: dict, current_user: UserRes
         raise
 
 def parse_date_string(date_str: str) -> Optional[datetime]:
-    """Parse date string to datetime object"""
-    if not date_str:
+    """Parse date string to datetime object with enhanced error handling"""
+    if not date_str or date_str in ['', 'null', 'None', 'N/A']:
         return None
     
     try:
+        # Clean the date string
+        date_str = str(date_str).strip()
+        
         # Try ISO format first
         if 'T' in date_str:
             return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
         else:
-            # Try date only format
-            return datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=timezone.utc)
-    except:
+            # Try various date formats
+            date_formats = [
+                '%Y-%m-%d',           # 2024-12-10
+                '%d/%m/%Y',           # 10/12/2024
+                '%m/%d/%Y',           # 12/10/2024
+                '%d-%m-%Y',           # 10-12-2024
+                '%Y/%m/%d',           # 2024/12/10
+                '%B %d, %Y',          # December 10, 2024
+                '%d %B %Y',           # 10 December 2024
+                '%b %d, %Y',          # Dec 10, 2024
+            ]
+            
+            for date_format in date_formats:
+                try:
+                    return datetime.strptime(date_str, date_format).replace(tzinfo=timezone.utc)
+                except ValueError:
+                    continue
+                    
+        # If all formats fail, log the issue
+        logger.warning(f"Unable to parse date string: '{date_str}'")
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error parsing date string '{date_str}': {e}")
         return None
 
 # Certificate Upload with Company Google Drive Integration
