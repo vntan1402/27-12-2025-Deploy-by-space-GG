@@ -95,26 +95,31 @@ class MultiFileUploadFixTester:
     def create_test_certificate_file(self):
         """Create a test certificate-like file with ship information"""
         certificate_content = """
-CERTIFICATE OF CLASS
-Certificate No: SMC-2024-TEST-001
+SAFETY MANAGEMENT CERTIFICATE
+
+Certificate Number: SMC-2024-TEST-001
 Ship Name: MV Test Vessel Alpha
 IMO Number: 1234567
 Flag State: Panama
-Class Society: DNV GL
+Classification Society: DNV GL
 Gross Tonnage: 50000
 Deadweight: 75000
 Built Year: 2020
 Ship Owner: Maritime Holdings Ltd
-Company: Global Shipping Company
-Issue Date: 2024-01-01
+Management Company: Global Shipping Company
+
+Date of Issue: 2024-01-01
 Valid Until: 2025-01-01
 
-This is to certify that the above vessel has been surveyed and found to comply
-with the applicable requirements of the International Safety Management Code.
+This certificate is issued under the provisions of the International Safety Management Code
+to certify that the Safety Management System of the above ship has been audited and that
+it complies with the requirements of the ISM Code.
 
 Issued by: DNV GL Classification Society
-Date of Issue: January 1, 2024
-Valid Until: January 1, 2025
+Place of Issue: Singapore
+Date: January 1, 2024
+
+This certificate is valid until: January 1, 2025
         """
         
         # Create temporary file
