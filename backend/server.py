@@ -2281,22 +2281,35 @@ Mark any uncertain extractions in a 'confidence' field (high/medium/low).
                     system_message="You are an expert maritime document analyzer. Classify and extract information from ship documents accurately."
                 )
                 
-                # Create file content for analysis
-                file_obj = FileContentWithMimeType(
-                    content=file_base64,
-                    mime_type=content_type or "application/pdf"
-                )
+                # Create temporary file for analysis
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as temp_file:
+                    temp_file.write(file_content)
+                    temp_file_path = temp_file.name
                 
-                response = llm_chat.get_response_from_llm(
-                    messages=[UserMessage(content=analysis_prompt, files=[file_obj])],
-                    provider="google",
-                    model="gemini-2.0-flash-exp"
-                )
-                
-                # Parse AI response as JSON
-                import json
-                analysis_result = json.loads(response.content)
-                return analysis_result
+                try:
+                    # Create file content for analysis
+                    file_obj = FileContentWithMimeType(
+                        mime_type=content_type or "application/pdf",
+                        file_path=temp_file_path
+                    )
+                    
+                    response = llm_chat.get_response_from_llm(
+                        messages=[UserMessage(content=analysis_prompt, files=[file_obj])],
+                        provider="google",
+                        model="gemini-2.0-flash-exp"
+                    )
+                    
+                    # Parse AI response as JSON
+                    import json
+                    analysis_result = json.loads(response.content)
+                    return analysis_result
+                    
+                finally:
+                    # Clean up temporary file
+                    import os
+                    if os.path.exists(temp_file_path):
+                        os.unlink(temp_file_path)
                 
             except Exception as e:
                 logger.error(f"Emergent LLM analysis failed: {e}")
