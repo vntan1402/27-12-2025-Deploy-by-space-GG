@@ -5618,6 +5618,8 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
   const [multiFileUploads, setMultiFileUploads] = useState([]);
   const [isMultiFileProcessing, setIsMultiFileProcessing] = useState(false);
   const [aiConfig, setAiConfig] = useState(null);
+  const [showShipConfirmModal, setShowShipConfirmModal] = useState(false);
+  const [pendingShipData, setPendingShipData] = useState(null);
   const [documentData, setDocumentData] = useState({
     title: '',
     category: 'other_documents',
