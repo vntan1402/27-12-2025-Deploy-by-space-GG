@@ -700,6 +700,17 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+  const fetchAiConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/ai-config`);
+      setAiConfig(response.data);
+    } catch (error) {
+      console.error('Failed to fetch AI config:', error);
+      // Set default if can't fetch
+      setAiConfig({ provider: 'Unknown', model: 'Unknown' });
+    }
+  };
+
   const fetchShips = async () => {
     try {
       const response = await axios.get(`${API}/ships`);
