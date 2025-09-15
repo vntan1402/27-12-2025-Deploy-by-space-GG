@@ -5759,6 +5759,67 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     }
   };
 
+  const checkShipExistence = (shipName) => {
+    if (!shipName || shipName === 'Unknown_Ship') return false;
+    
+    // Check if ship exists in current ships list
+    return ships.some(ship => 
+      ship.name.toLowerCase().includes(shipName.toLowerCase()) ||
+      shipName.toLowerCase().includes(ship.name.toLowerCase())
+    );
+  };
+
+  const handleShipNotFound = (extractedShipName, fileData) => {
+    setPendingShipData({
+      shipName: extractedShipName,
+      fileData: fileData,
+      extractedInfo: fileData.extracted_info
+    });
+    setShowShipConfirmModal(true);
+  };
+
+  const handleShipConfirmation = async (createNewShip) => {
+    if (createNewShip && pendingShipData) {
+      // Close modal first
+      setShowShipConfirmModal(false);
+      
+      // Switch to Ship tab and use Add Ship from Certificate
+      setRecordType('ship');
+      setShowPdfAnalysis(true);
+      
+      // Auto-fill ship data from extracted info
+      const extractedInfo = pendingShipData.extractedInfo;
+      setShipData({
+        name: pendingShipData.shipName,
+        imo: extractedInfo?.imo_number || '',
+        ship_type: extractedInfo?.class_society || '',
+        flag: extractedInfo?.flag || '',
+        gross_tonnage: extractedInfo?.gross_tonnage || '',
+        deadweight: extractedInfo?.deadweight || '',
+        year_built: extractedInfo?.built_year || '',
+        ship_owner: extractedInfo?.ship_owner || '',
+        company: currentUser?.company || ''
+      });
+      
+      toast.success(
+        language === 'vi' 
+          ? `Chuyển sang tạo tàu mới: ${pendingShipData.shipName}` 
+          : `Switching to create new ship: ${pendingShipData.shipName}`
+      );
+    } else {
+      // Cancel - just close modal
+      setShowShipConfirmModal(false);
+      toast.info(
+        language === 'vi' 
+          ? 'Đã hủy thêm certificate' 
+          : 'Certificate addition cancelled'
+      );
+    }
+    
+    // Clear pending data
+    setPendingShipData(null);
+  };
+
   const handleMultiFileUpload = async (files) => {
     if (!files || files.length === 0) return;
     
