@@ -86,6 +86,7 @@ class MultiFileUploadTester:
         
         # Create test user with company association
         import time
+        import requests
         test_username = f'test_upload_user_{int(time.time())}'
         test_user_data = {
             'username': test_username,
