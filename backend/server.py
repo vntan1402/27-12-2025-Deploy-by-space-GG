@@ -2926,7 +2926,7 @@ async def upload_multi_files_with_ai_processing(
                         await update_ship_survey_status(analysis_result, current_user)
                         file_result["survey_status_updated"] = True
                     except Exception as e:
-                        file_result["errors"].append(f"Survey status update failed: {str(e)}")
+                        file_result["errors"].append("Survey status update failed: " + str(e))
                 
                 file_result["status"] = "completed" if not file_result["errors"] else "completed_with_errors"
                 processing_results.append(file_result)
