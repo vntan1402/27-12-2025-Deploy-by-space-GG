@@ -2961,7 +2961,7 @@ async def upload_multi_files_with_ai_processing(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error in multi-file upload processing: {e}")
+        logger.error("Error in multi-file upload processing: " + str(e))
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
                           detail="Failed to process multi-file upload")
 
