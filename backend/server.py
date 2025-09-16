@@ -148,7 +148,16 @@ class ShipResponse(ShipBase):
         super().__init__(**data)
 
 class CompanyBase(BaseModel):
-    name: str
+    name_vn: str
+    name_en: str
+    address_vn: str
+    address_en: str
+    tax_id: str
+    gmail: Optional[str] = None
+    zalo: Optional[str] = None
+    system_expiry: Optional[str] = None
+    # Legacy fields for backward compatibility
+    name: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
