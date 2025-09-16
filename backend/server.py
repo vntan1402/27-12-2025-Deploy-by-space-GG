@@ -758,6 +758,52 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
     except Exception as e:
         logger.error(f"Error creating user: {e}")
         raise HTTPException(status_code=500, detail="Failed to create user")
+@api_router.get("/users/filtered", response_model=List[UserResponse])
+async def get_filtered_users(
+    company: Optional[str] = None,
+    department: Optional[str] = None, 
+    ship: Optional[str] = None,
+    sort_by: Optional[str] = "full_name",
+    sort_order: Optional[str] = "asc",
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get filtered and sorted users with query parameters"""
+    try:
+        # Build filter criteria
+        filter_criteria = {}
+        
+        if company:
+            filter_criteria["company"] = company
+        if department:
+            filter_criteria["department"] = department
+        if ship:
+            filter_criteria["ship"] = ship
+        
+        # For Manager role, filter by same company only
+        if current_user.role == UserRole.MANAGER:
+            filter_criteria["company"] = current_user.company
+        
+        # Get users from database
+        users = await mongo_db.find_all("users", filter_criteria)
+        
+        # Sort users
+        valid_sort_fields = ["full_name", "company", "department", "role", "ship", "created_at"]
+        if sort_by not in valid_sort_fields:
+            sort_by = "full_name"
+        
+        reverse_sort = sort_order.lower() == "desc"
+        
+        def safe_get(user, field):
+            value = user.get(field, "")
+            return value if value is not None else ""
+        
+        users.sort(key=lambda user: safe_get(user, sort_by), reverse=reverse_sort)
+        
+        return [UserResponse(**user) for user in users]
+        
+    except Exception as e:
+        logger.error(f"Error fetching filtered users: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch filtered users")
 
 @api_router.put("/users/{user_id}", response_model=UserResponse)
 async def update_user(user_id: str, user_data: UserUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
