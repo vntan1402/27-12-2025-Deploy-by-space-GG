@@ -1590,6 +1590,8 @@ const HomePage = () => {
                                       }
                                     </span>
                                   </td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                   <td className="border border-gray-300 px-4 py-2 text-center" title={cert.notes}>
                                     {cert.has_notes ? (
                                       <span className="text-orange-600 font-bold cursor-help text-lg">*</span>
@@ -1597,8 +1599,6 @@ const HomePage = () => {
                                       <span className="text-gray-400">-</span>
                                     )}
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                 </tr>
                               ))
                             )}
