@@ -2787,7 +2787,7 @@ const AccountControlPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <header className="bg-white shadow-lg border-b">
-        <div className="container mx-auto px-6 py-4">
+        <div className="w-full px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800">{language === 'vi' ? 'Cài đặt hệ thống' : 'System Settings'}</h1>
             <button
