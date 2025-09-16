@@ -815,7 +815,16 @@ async def delete_user(user_id: str, current_user: UserResponse = Depends(check_p
 async def get_companies(current_user: UserResponse = Depends(get_current_user)):
     try:
         companies = await mongo_db.find_all("companies")
-        return [CompanyResponse(**company) for company in companies]
+        
+        # Fix companies that don't have 'name' field but have 'name_en' or 'name_vn'
+        fixed_companies = []
+        for company in companies:
+            if 'name' not in company:
+                # Use name_en if available, otherwise name_vn, otherwise create default
+                company['name'] = company.get('name_en') or company.get('name_vn') or 'Unknown Company'
+            fixed_companies.append(company)
+        
+        return [CompanyResponse(**company) for company in fixed_companies]
     except Exception as e:
         logger.error(f"Error fetching companies: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch companies")
