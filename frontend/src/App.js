@@ -1363,6 +1363,7 @@ const HomePage = () => {
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Tên viết tắt' : 'Cert. Name'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Loại' : 'Type'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Trạng thái' : 'Status'}</th>
