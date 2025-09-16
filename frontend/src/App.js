@@ -699,14 +699,16 @@ const HomePage = () => {
     duplicates: [],
     currentFile: null,
     analysisResult: null,
-    uploadResult: null
+    uploadResult: null,
+    fileIndex: null
   });
   const [mismatchModal, setMismatchModal] = useState({
     show: false,
     mismatchInfo: null,
     currentFile: null,
     analysisResult: null,
-    uploadResult: null
+    uploadResult: null,
+    fileIndex: null
   });
   const navigate = useNavigate();
   
