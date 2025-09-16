@@ -2009,6 +2009,13 @@ const AccountControlPage = () => {
     uploadResult: null,
     status: 'all'
   });
+  // Ship mismatch modal state for AccountControlPage
+  const [mismatchModal, setMismatchModal] = useState({
+    show: false,
+    mismatchInfo: null,
+    analysisResult: null,
+    uploadResult: null
+  });
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [gdriveConfig, setGdriveConfig] = useState({
