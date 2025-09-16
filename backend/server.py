@@ -241,6 +241,7 @@ class CertificateResponse(CertificateBase):
     created_at: datetime
     cert_abbreviation: Optional[str] = None  # NEW: Certificate abbreviation
     status: Optional[str] = None  # NEW: Valid/Expired status
+    issued_by_abbreviation: Optional[str] = None  # NEW: Organization abbreviation
 
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
