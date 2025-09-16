@@ -278,14 +278,17 @@ def generate_certificate_abbreviation(cert_name: str) -> str:
     if not cert_name:
         return ""
     
-    # Remove common words and focus on key terms
+    # Remove common words and focus on key terms, but keep important maritime terms
     common_words = {'the', 'of', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
     
     # Clean the name and split into words
     words = re.findall(r'\b[A-Za-z]+\b', cert_name.upper())
     
-    # Filter out common words and take first letter of remaining significant words
-    significant_words = [word for word in words if word.lower() not in common_words]
+    # Filter out common words but keep all significant maritime terms
+    significant_words = []
+    for word in words:
+        if word.lower() not in common_words:
+            significant_words.append(word)
     
     # Handle special cases for maritime certificates
     if not significant_words:
