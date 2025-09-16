@@ -685,6 +685,13 @@ const HomePage = () => {
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [editingShipData, setEditingShipData] = useState(null);
   const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
+  
+  // Certificate List filters
+  const [certificateFilters, setCertificateFilters] = useState({
+    certificateType: 'all',
+    status: 'all'
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   
   const t = translations[language];
