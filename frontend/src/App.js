@@ -946,12 +946,38 @@ const HomePage = () => {
     ],
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
+  const handleCertificateDoubleClick = async (cert) => {
     try {
-      return new Date(dateString).toLocaleDateString('vi-VN');
+      if (!cert.google_drive_file_id) {
+        toast.error(language === 'vi' 
+          ? 'Chứng chỉ này chưa có file đính kèm' 
+          : 'No file attached to this certificate'
+        );
+        return;
+      }
+
+      // Get Google Drive file view URL
+      const response = await axios.get(`${API}/gdrive/file/${cert.google_drive_file_id}/view`);
+      
+      if (response.data.success && response.data.view_url) {
+        // Open file in new window
+        window.open(response.data.view_url, '_blank', 'noopener,noreferrer');
+        toast.success(language === 'vi' 
+          ? 'Đang mở file chứng chỉ...' 
+          : 'Opening certificate file...'
+        );
+      } else {
+        toast.error(language === 'vi' 
+          ? 'Không thể mở file chứng chỉ' 
+          : 'Cannot open certificate file'
+        );
+      }
     } catch (error) {
-      return '-';
+      console.error('Error opening certificate file:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi mở file chứng chỉ' 
+        : 'Error opening certificate file'
+      );
     }
   };
 
