@@ -2013,6 +2013,101 @@ async def get_gdrive_status(current_user: UserResponse = Depends(get_current_use
         logger.error(f"Error checking Google Drive status: {e}")
         return {"status": "error", "message": str(e)}
 
+@api_router.post("/gdrive/sync-to-drive-proxy")
+async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """Sync local files to Google Drive via Apps Script proxy"""
+    try:
+        # Get Google Drive configuration
+        config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        if not config:
+            raise HTTPException(status_code=400, detail="Google Drive not configured")
+        
+        web_app_url = config.get("web_app_url")
+        if not web_app_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Get all data from collections
+        collections_to_sync = ["users", "companies", "ships", "certificates", "ship_survey_status"]
+        files_uploaded = 0
+        upload_details = []
+        
+        for collection_name in collections_to_sync:
+            try:
+                # Get data from collection
+                data = await mongo_db.find_all(collection_name, {})
+                if not data:
+                    continue
+                
+                # Convert to JSON string
+                json_data = json.dumps(data, default=str, indent=2)
+                
+                # Upload to Google Drive via Apps Script
+                payload = {
+                    "action": "upload_file",
+                    "folder_id": config.get("folder_id", ""),
+                    "filename": f"{collection_name}.json",
+                    "content": json_data,
+                    "mimeType": "application/json"
+                }
+                
+                response = requests.post(web_app_url, json=payload, timeout=30)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get("success"):
+                        files_uploaded += 1
+                        upload_details.append({
+                            "collection": collection_name,
+                            "filename": f"{collection_name}.json",
+                            "status": "uploaded",
+                            "records": len(data),
+                            "file_id": result.get("file_id")
+                        })
+                    else:
+                        upload_details.append({
+                            "collection": collection_name,
+                            "filename": f"{collection_name}.json", 
+                            "status": "failed",
+                            "error": result.get("error")
+                        })
+                else:
+                    upload_details.append({
+                        "collection": collection_name,
+                        "filename": f"{collection_name}.json",
+                        "status": "failed", 
+                        "error": f"HTTP {response.status_code}"
+                    })
+                    
+            except Exception as e:
+                upload_details.append({
+                    "collection": collection_name,
+                    "filename": f"{collection_name}.json",
+                    "status": "failed",
+                    "error": str(e)
+                })
+        
+        # Update last sync timestamp
+        await mongo_db.update(
+            "gdrive_config",
+            {"id": "system_gdrive"},
+            {"last_sync": datetime.now(timezone.utc)}
+        )
+        
+        return {
+            "success": True,
+            "message": f"Sync completed. {files_uploaded} files uploaded",
+            "files_uploaded": files_uploaded,
+            "upload_details": upload_details
+        }
+        
+    except Exception as e:
+        logger.error(f"Error syncing to Google Drive: {e}")
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
+
+@api_router.post("/gdrive/sync-to-drive") 
+async def sync_to_drive(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """Legacy sync endpoint - redirects to proxy version"""
+    return await sync_to_drive_proxy(current_user)
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
 async def get_usage_stats(
