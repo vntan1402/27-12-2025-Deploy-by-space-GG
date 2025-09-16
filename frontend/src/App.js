@@ -831,12 +831,37 @@ const HomePage = () => {
 
   const fetchCertificates = async (shipId) => {
     try {
+      setIsRefreshing(true);
       const response = await axios.get(`${API}/ships/${shipId}/certificates`);
       setCertificates(response.data);
     } catch (error) {
       console.error('Failed to fetch certificates:', error);
       setCertificates([]);
+    } finally {
+      setIsRefreshing(false);
     }
+  };
+
+  const handleRefreshCertificates = async () => {
+    if (selectedShip) {
+      await fetchCertificates(selectedShip.id);
+      toast.success(language === 'vi' ? 'Đã cập nhật danh sách chứng chỉ!' : 'Certificate list refreshed!');
+    }
+  };
+
+  const getFilteredCertificates = () => {
+    return certificates.filter(cert => {
+      const typeMatch = certificateFilters.certificateType === 'all' || 
+                       cert.cert_type === certificateFilters.certificateType;
+      const statusMatch = certificateFilters.status === 'all' || 
+                         cert.status === certificateFilters.status;
+      return typeMatch && statusMatch;
+    });
+  };
+
+  const getUniqueValues = (field) => {
+    const values = certificates.map(cert => cert[field]).filter(Boolean);
+    return [...new Set(values)];
   };
 
   const handleCategoryMouseEnter = (categoryKey) => {
