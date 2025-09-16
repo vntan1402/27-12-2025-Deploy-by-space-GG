@@ -1374,7 +1374,7 @@ const HomePage = () => {
                           <tbody>
                             {getFilteredCertificates().length === 0 ? (
                               <tr>
-                                <td colSpan="9" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                <td colSpan="10" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
                                   {certificates.length === 0 
                                     ? (language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates available')
                                     : (language === 'vi' ? 'Không có chứng chỉ nào phù hợp với bộ lọc' : 'No certificates match the current filters')
@@ -1385,10 +1385,12 @@ const HomePage = () => {
                               getFilteredCertificates().map((cert, index) => (
                                 <tr 
                                   key={cert.id} 
-                                  className="hover:bg-gray-50 cursor-pointer"
-                                  onDoubleClick={() => {
-                                    toast.info(language === 'vi' ? `Mở chứng chỉ: ${cert.cert_name}` : `Open certificate: ${cert.cert_name}`);
-                                  }}
+                                  className={`hover:bg-gray-50 cursor-pointer transition-colors ${cert.google_drive_file_id ? 'hover:bg-blue-50' : ''}`}
+                                  onDoubleClick={() => handleCertificateDoubleClick(cert)}
+                                  title={cert.google_drive_file_id 
+                                    ? (language === 'vi' ? 'Nhấn đúp để mở file chứng chỉ' : 'Double-click to open certificate file')
+                                    : (language === 'vi' ? 'Chưa có file đính kèm' : 'No file attached')
+                                  }
                                 >
                                   <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
                                   <td 
@@ -1409,7 +1411,14 @@ const HomePage = () => {
                                       {cert.cert_type || 'Unknown'}
                                     </span>
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{cert.cert_no}</td>
+                                  <td className="border border-gray-300 px-4 py-2 font-mono">{cert.cert_no}</td>
+                                  <td className="border border-gray-300 px-4 py-2 text-sm" title={cert.issued_by}>
+                                    {cert.issued_by ? (
+                                      cert.issued_by.length > 25 
+                                        ? `${cert.issued_by.substring(0, 25)}...`
+                                        : cert.issued_by
+                                    ) : '-'}
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">
