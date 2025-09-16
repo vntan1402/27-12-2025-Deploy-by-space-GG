@@ -103,7 +103,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Ship management enhancements: Make Ship Owner and Company fields mandatory with dropdown selection from existing companies. Change 'Hãng đăng kiểm' to 'Tổ chức Phân cấp'. Add 'Thêm tàu mới từ Giấy chứng nhận' button with PDF upload and AI analysis using Emergent LLM key to auto-fill ship form fields (max 5MB PDF files)."
+"Focus on fixing existing functionality first and proceed with automated testing. Google Apps Script URL updated to real URL: https://script.google.com/macros/s/AKfycbwphwgJwjyW4V-Y2y0J4uIa40zZwybm7s9maqNemi04EawcOhxRX99rbSXGWxk_D6o/exec. Primary issues to resolve: 1) Test current system state including duplicateModal error fix, 2) Google Drive integration with real Apps Script URL, 3) Multi-file upload with AI processing, 4) Certificate management functionality"
 
 ## backend:
   - task: "PDF Analysis API with Emergent LLM Integration"
