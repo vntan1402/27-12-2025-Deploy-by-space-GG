@@ -692,6 +692,22 @@ const HomePage = () => {
     status: 'all'
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Multi-file upload enhancement states
+  const [duplicateModal, setDuplicateModal] = useState({
+    show: false,
+    duplicates: [],
+    currentFile: null,
+    analysisResult: null,
+    uploadResult: null
+  });
+  const [mismatchModal, setMismatchModal] = useState({
+    show: false,
+    mismatchInfo: null,
+    currentFile: null,
+    analysisResult: null,
+    uploadResult: null
+  });
   const navigate = useNavigate();
   
   const t = translations[language];
