@@ -1595,56 +1595,6 @@ async def upload_file_to_gdrive_with_analysis(file_content: bytes, filename: str
         logger.error(f"Google Drive upload with analysis failed: {e}")
         return {"success": False, "error": str(e)}
 
-async def create_certificate_from_analysis(analysis_result: dict, upload_result: dict, current_user) -> dict:
-    """Create certificate record from AI analysis results"""
-    try:
-        # Find or create ship
-        ship_name = analysis_result.get("ship_name", "Unknown_Ship")
-        
-        # Search for ship (case-insensitive, handle string properly)
-        if isinstance(ship_name, str) and ship_name.strip():
-            ship = await mongo_db.find_one("ships", {"name": {"$regex": f"^{ship_name}$", "$options": "i"}})
-        else:
-            ship = None
-        
-        if not ship:
-            logger.warning(f"Ship not found: {ship_name}")
-            return {"success": False, "error": f"Ship '{ship_name}' not found"}
-        
-        # Create certificate data
-        cert_data = {
-            'id': str(uuid.uuid4()),
-            'ship_id': ship['id'],
-            'cert_name': analysis_result.get('cert_name', 'Unknown Certificate'),
-            'cert_type': analysis_result.get('cert_type', 'Full Term'),
-            'cert_no': analysis_result.get('cert_no', 'Unknown'),
-            'issue_date': parse_date_string(analysis_result.get('issue_date')),
-            'valid_date': parse_date_string(analysis_result.get('valid_date')),
-            'last_endorse': parse_date_string(analysis_result.get('last_endorse')),
-            'next_survey': parse_date_string(analysis_result.get('next_survey')),
-            'issued_by': analysis_result.get('issued_by'),
-            'category': analysis_result.get('category', 'certificates'),
-            'file_uploaded': upload_result.get('success', False),
-            'google_drive_file_id': upload_result.get('file_id'),
-            'google_drive_folder_path': upload_result.get('folder_path'),
-            'file_name': analysis_result.get('filename'),
-            'ship_name': ship_name,
-            'created_at': datetime.now(timezone.utc)
-        }
-        
-        # Remove None values
-        cert_data = {k: v for k, v in cert_data.items() if v is not None}
-        
-        await mongo_db.create("certificates", cert_data)
-        
-        cert_dict = dict(cert_data)
-        logger.info(f"Certificate created successfully: {cert_dict.get('cert_name')} for ship {ship_name}")
-        
-        return cert_dict
-        
-    except Exception as e:
-        logger.error(f"Certificate creation from analysis failed: {e}")
-        raise
 
 async def create_certificate_from_analysis_with_notes(analysis_result: dict, upload_result: dict, current_user, ship_id: str, notes: str = None) -> dict:
     """Create certificate record from AI analysis results with support for notes and specific ship_id"""
