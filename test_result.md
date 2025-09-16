@@ -627,13 +627,11 @@
 
 ## test_plan:
   current_focus:
-    - "Google Drive Integration with New Apps Script URL"
-    - "Multi-File Upload with AI Processing"
-    - "Certificate Management Backend APIs"
-    - "Frontend duplicateModal Error Resolution"
+    - "Missing Google Drive Sync Endpoints Implementation"
+    - "Missing Enhanced User Filtering Backend Endpoint"
+    - "Missing General Certificates Endpoint"
   stuck_tasks:
     - "Enhanced User Management UI with Filtering and Sorting"
-    - "Mandatory Zalo Field in User Forms"
     - "User State Management Enhancement"
   test_all: false
   test_priority: "high_first"
