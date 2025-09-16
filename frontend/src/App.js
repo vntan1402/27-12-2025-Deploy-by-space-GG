@@ -1191,7 +1191,7 @@ const HomePage = () => {
       </header>
 
       <div className="w-full px-4 py-8">
-        <div className="grid lg:grid-cols-5 gap-8">
+        <div className="grid lg:grid-cols-5 gap-4">
           {/* Left Sidebar - Categories and Ships (Reduced width: 1/5 instead of 1/4) */}
           <div className="bg-blue-600 rounded-xl shadow-lg p-4 text-white">
             <h3 className="text-lg font-semibold mb-6">{language === 'vi' ? 'Danh mục quản lý' : 'Management Categories'}</h3>
