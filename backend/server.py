@@ -977,7 +977,14 @@ Analyze this maritime document ({filename}) and extract the following informatio
    - valid_date: Valid until/expiry date (convert to ISO format YYYY-MM-DD)
    - last_endorse: Last endorsement date (ISO format YYYY-MM-DD, if available)
    - next_survey: Next survey date (ISO format YYYY-MM-DD, if available)
-   - issued_by: Issuing authority/organization (e.g., "DNV GL", "Panama Maritime Authority", etc.)
+   - issued_by: Issuing authority/organization - Be very thorough in identifying this. Look for:
+     * Classification Societies: DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, ClassNK, CCS, KR, RS, etc.
+     * Flag State Authorities: Panama Maritime Authority, Liberia Maritime Authority, Marshall Islands Maritime Authority, etc.
+     * Port State Control Authorities: Various national maritime administrations
+     * Survey Companies: Maritime survey and inspection companies
+     * Government Agencies: Coast Guard, Maritime Safety Administration, etc.
+     * Look for signatures, letterheads, company stamps, contact information
+     * Check for phrases like "Issued by", "Certified by", "Authorized by", "On behalf of"
 
 4. SURVEY STATUS INFORMATION (if relevant):
    IMPORTANT: Always include this section as 'survey_info' in your JSON response when analyzing certificates.
@@ -995,6 +1002,13 @@ IMPORTANT CLASSIFICATION RULES:
 - Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
 - IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
 
+CRITICAL: Pay special attention to identifying the "issued_by" organization. This is crucial information that must be extracted accurately by examining:
+- Document headers and letterheads
+- Signature blocks
+- Official stamps or seals
+- Contact information
+- Any text indicating the certifying authority
+
 Return response as JSON format. If information is not found, return null for that field.
 Mark any uncertain extractions in a 'confidence' field (high/medium/low).
 
@@ -1009,7 +1023,7 @@ EXAMPLE OUTPUT:
   "cert_no": "PM242838",
   "issue_date": "2024-12-10",
   "valid_date": "2028-03-18",
-  "issued_by": "Panama Maritime Documentation Services Inc",
+  "issued_by": "Panama Maritime Documentation Services Inc (on behalf of Panama Maritime Authority)",
   "confidence": "high",
   "survey_info": {{
     "certificate_type": "STATUTORY",
