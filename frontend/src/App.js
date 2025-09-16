@@ -6795,34 +6795,23 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
             {/* Multi-File Upload Section */}
             <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
               <div className="text-center">
-                <svg
-                  className="mx-auto h-12 w-12 text-blue-400 mb-4"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <h3 className="text-lg font-medium text-blue-900 mb-2">
-                  {language === 'vi' ? 'Tải lên và phân loại tự động bằng AI' : 'Upload & Auto-Classify with AI'}
-                </h3>
-                
-                {/* AI Model Display */}
-                <div className="mb-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-                  </svg>
-                  {language === 'vi' ? 'AI Model' : 'AI Model'}: {
-                    aiConfig?.provider && aiConfig?.model 
-                      ? `${aiConfig.provider.toUpperCase()} ${aiConfig.model}` 
-                      : 'Loading...'
-                  }
+                {/* Title and AI Model on same line */}
+                <div className="flex items-center justify-center gap-4 mb-2">
+                  <h3 className="text-lg font-medium text-blue-900">
+                    {language === 'vi' ? 'Tải lên và phân loại tự động bằng AI' : 'Upload & Auto-Classify with AI'}
+                  </h3>
+                  
+                  {/* AI Model Display */}
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                    </svg>
+                    {language === 'vi' ? 'AI Model' : 'AI Model'}: {
+                      aiConfig?.provider && aiConfig?.model 
+                        ? `${aiConfig.provider.toUpperCase()} ${aiConfig.model}` 
+                        : 'Loading...'
+                    }
+                  </div>
                 </div>
                 
                 <p className="text-blue-700 mb-4">
