@@ -294,8 +294,9 @@ def generate_certificate_abbreviation(cert_name: str) -> str:
     # Generate abbreviation by taking first letter of each significant word
     abbreviation = ''.join([word[0] for word in significant_words[:6]])  # Max 6 letters
     
-    # Remove trailing 'C' if present (Certificate → remove final C)
-    if abbreviation.endswith('C') and len(abbreviation) > 1:
+    # Remove trailing 'C' only if it's from the word "Certificate" (last word)
+    if (abbreviation.endswith('C') and len(abbreviation) > 1 and 
+        len(significant_words) > 0 and significant_words[-1].upper() == 'CERTIFICATE'):
         abbreviation = abbreviation[:-1]
     
     return abbreviation
