@@ -2800,7 +2800,7 @@ const AccountControlPage = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="w-full px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* User Management */}
           {(user?.role === 'manager' || user?.role === 'admin' || user?.role === 'super_admin') && (
