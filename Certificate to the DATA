@@ -1,0 +1,33 @@
+<analysis>
+This trajectory chronicles the AI engineer's work on the Ship Management System, focusing initially on multi-file upload with AI analysis and Google Drive integration. Key tasks included refining AI prompts for document classification and data extraction (including ), implementing robust UI for sequential file processing with progress tracking, and incorporating smart validation for ship names. Significant effort was dedicated to debugging date parsing, LLM integration ( to ), and rectifying MongoDB query errors. The development then shifted to extensive UI/UX enhancements, adding abbreviation logic for certificates and organizations, status calculation for certificates, duplicate/mismatch file handling, and comprehensive layout adjustments. The most recent efforts involved troubleshooting critical runtime errors () in the frontend, after resolving backend AI configuration and company validation issues. The core problem of Google Drive file upload not persisting remains due to a fake Apps Script URL.
+</analysis>
+
+<product_requirements>
+The Ship Management System is a full-stack application for managing ship-related data, featuring a 5-tiered user permission system, AI support, bilingualism, JWT authentication, and Google Drive integration.
+
+Initial user requests focused on:
+1.  **Company Google Drive Configuration**: Renaming and creating new sections in the Edit Company modal, mirroring a 3-method system.
+2.  **Certificate Upload Integration**: Uploading certificate data from Add New Record INPUT folder in Company Google Drive, organized by upload date, with a 150MB file size limit and no format restrictions. This should error if Google Drive is not configured.
+3.  **Multi-File Upload UI Enhancement**: Move Certificate File upload to a prominent drag-and-drop area, allowing multiple files, and displaying detailed progress (Uploading, Analyzing, Updating DB, Complete).
+4.  **Advanced AI Analysis**: Utilize an AI model (OpenAI GPT-4) to analyze each uploaded certificate file for:
+    *   **Classification**: Into 5 categories (Certificates, Test Reports, Survey Reports, Drawings & Manuals, Other Documents).
+    *   **Folder Creation**: Create a ship-specific folder, and if not present, create 5 subfolders for categories.
+    *   **File Movement**: Move processed files into their respective category subfolders.
+    *   **Auto-Record Creation (for Certificates)**: Automatically populate certificate records from AI analysis (Name, Type, Number, Dates, Ship Name, Issued by).
+    *   **Ship Survey Status**: Extract additional information for a separate Ship Survey Status database.
+    *   **Error Handling**: Create records with available data if AI fails to find all info.
+5.  **Ship Name Validation**: If an AI-extracted ship name is not in the existing Ship List, prompt the user to either cancel or auto-add the new ship before proceeding.
+6.  **UI Refinement**: Remove the old single-file Certificate File section.
+7.  **Certificate List Enhancements**:
+    *   Add Cert. Name abbreviation column (e.g., CSSE for CARGO SHIP SAFETY EQUIPMENT).
+    *   Display  (Full term, Interim, Short term, Provision).
+    *   Add  column (Valid/Expired based on , no grace period).
+    *   Implement options to filter certificates by  and .
+    *   Add a Refresh button to update the table data.
+    *   Issued By column should display abbreviations of organizations (e.g., PMDS for Panama Maritime Documentation Services Inc) with a tooltip for the full name.
+    *   Implement double-click on a certificate row to open the corresponding file from Google Drive in a new window.
+8.  **Layout Refinements**:
+    *   Reduce sidebar width to ~20% of screen, expanding main content to ~80%.
+    *   Expand the entire web page to full screen width, removing empty space on sides.
+    *   Reduce the gap between the content area and sidebar by 50%.
+    *   Redesign Multi-file upload UI: remove the top icon, move AI Model badge to the same line as Upload
