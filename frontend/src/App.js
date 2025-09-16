@@ -2079,6 +2079,49 @@ const AccountControlPage = () => {
     }
   };
 
+  // Handle duplicate resolution
+  const handleDuplicateResolution = async (action) => {
+    try {
+      if (!duplicateModal || !duplicateModal.show) {
+        console.warn('Duplicate modal not initialized');
+        return;
+      }
+
+      if (action === 'overwrite') {
+        // Process certificate with overwrite resolution
+        const resolutionData = {
+          analysis_result: duplicateModal.analysisResult,
+          upload_result: duplicateModal.uploadResult,
+          duplicate_resolution: 'overwrite',
+          duplicate_target_id: duplicateModal.duplicates[0].certificate.id
+        };
+        
+        const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+        const response = await axios.post(`${API}/certificates/process-with-resolution`, resolutionData);
+        
+        if (response.data.status === 'success') {
+          toast.success(language === 'vi' ? 'Đã cập nhật giấy chứng nhận trùng lặp' : 'Duplicate certificate updated');
+          // Refresh data if needed
+        }
+      }
+      // If action is 'cancel', just close the modal
+      
+    } catch (error) {
+      console.error('Error handling duplicate resolution:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý trùng lặp' : 'Error handling duplicate');
+    }
+    
+    // Close the modal
+    setDuplicateModal({
+      show: false,
+      duplicates: [],
+      currentFile: null,
+      analysisResult: null,
+      uploadResult: null,
+      status: 'all'
+    });
+  };
+
   // Role hierarchy helper functions
   const roleHierarchy = {
     'viewer': 1,
