@@ -1269,9 +1269,19 @@ async def upload_multi_files(
                 # Create certificate record if classified as certificate
                 cert_result = None
                 if analysis_result.get("category") == "certificates":
-                    cert_result = await create_certificate_from_analysis(
-                        analysis_result, upload_result, current_user
-                    )
+                    # Find ship by name from AI analysis
+                    ship_name = analysis_result.get("ship_name", "Unknown_Ship")
+                    ship = None
+                    if isinstance(ship_name, str) and ship_name.strip():
+                        ship = await mongo_db.find_one("ships", {"name": {"$regex": f"^{ship_name}$", "$options": "i"}})
+                    
+                    if ship:
+                        cert_result = await create_certificate_from_analysis_with_notes(
+                            analysis_result, upload_result, current_user, ship['id'], None
+                        )
+                    else:
+                        logger.warning(f"Ship not found for certificate: {ship_name}")
+                        cert_result = {"success": False, "error": f"Ship '{ship_name}' not found"}
                 
                 # Update ship survey status if relevant information exists
                 await update_ship_survey_status(analysis_result, current_user)
