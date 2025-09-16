@@ -865,13 +865,62 @@ const HomePage = () => {
     }
   };
 
-  const handleDuplicateResolution = (action) => {
-    if (action === 'overwrite') {
-      // Handle overwrite logic here
-      toast.success(language === 'vi' ? 'Đã ghi đè dữ liệu' : 'Data overwritten');
-    } else if (action === 'cancel') {
-      // Handle cancel logic here
-      toast.info(language === 'vi' ? 'Đã hủy thêm chứng chỉ' : 'Certificate upload cancelled');
+  const handleDuplicateResolution = async (action) => {
+    try {
+      if (action === 'overwrite') {
+        // Process certificate with overwrite resolution
+        const resolutionData = {
+          analysis_result: duplicateModal.analysisResult,
+          upload_result: duplicateModal.uploadResult,
+          ship_id: selectedShip.id,
+          duplicate_resolution: 'overwrite',
+          duplicate_target_id: duplicateModal.duplicates[0].certificate.id // Use highest similarity duplicate
+        };
+        
+        const response = await axios.post(`${API}/certificates/process-with-resolution`, resolutionData);
+        
+        if (response.data.status === 'success') {
+          toast.success(language === 'vi' ? 'Đã ghi đè dữ liệu thành công' : 'Data overwritten successfully');
+          
+          // Update file status to completed
+          setMultiFileUploads(prev => prev.map((item, index) => 
+            index === duplicateModal.fileIndex ? {
+              ...item,
+              status: 'completed',
+              stage: '✅ Complete (Overwritten)',
+              progress: 100
+            } : item
+          ));
+          
+          // Refresh certificates list
+          await fetchCertificates(selectedShip.id);
+        }
+      } else if (action === 'cancel') {
+        // Update file status to cancelled
+        setMultiFileUploads(prev => prev.map((item, index) => 
+          index === duplicateModal.fileIndex ? {
+            ...item,
+            status: 'cancelled',
+            stage: '❌ Cancelled by user',
+            progress: 100
+          } : item
+        ));
+        
+        toast.info(language === 'vi' ? 'Đã hủy thêm giấy chứng nhận' : 'Certificate upload cancelled');
+      }
+    } catch (error) {
+      console.error('Error handling duplicate resolution:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý trùng lặp' : 'Error handling duplicate');
+      
+      // Update file status to failed
+      setMultiFileUploads(prev => prev.map((item, index) => 
+        index === duplicateModal.fileIndex ? {
+          ...item,
+          status: 'failed',
+          stage: '❌ Resolution failed',
+          progress: 100
+        } : item
+      ));
     }
     
     // Close the modal
@@ -880,17 +929,68 @@ const HomePage = () => {
       duplicates: [],
       currentFile: null,
       analysisResult: null,
-      uploadResult: null
+      uploadResult: null,
+      fileIndex: null
     });
   };
 
-  const handleMismatchResolution = (action) => {
-    if (action === 'use_ai_ship') {
-      // Handle using AI detected ship logic here
-      toast.success(language === 'vi' ? 'Đã lưu vào tàu AI phát hiện' : 'Saved to AI detected ship');
-    } else if (action === 'use_current_ship') {
-      // Handle using current ship with reference note logic here
-      toast.success(language === 'vi' ? 'Đã lưu vào tàu hiện tại với ghi chú tham khảo' : 'Saved to current ship with reference note');
+  const handleMismatchResolution = async (action) => {
+    try {
+      let resolutionData = {
+        analysis_result: mismatchModal.analysisResult,
+        upload_result: mismatchModal.uploadResult,
+        ship_id: selectedShip.id,
+        mismatch_resolution: action
+      };
+      
+      if (action === 'use_ai_ship') {
+        // Use AI detected ship
+        if (mismatchModal.mismatchInfo.ai_ship_exists) {
+          resolutionData.target_ship_id = mismatchModal.mismatchInfo.ai_ship.id;
+        } else {
+          toast.error(language === 'vi' ? 'Tàu AI phát hiện không tồn tại' : 'AI detected ship does not exist');
+          return;
+        }
+      } else {
+        // Use current ship with reference note
+        resolutionData.target_ship_id = selectedShip.id;
+      }
+      
+      const response = await axios.post(`${API}/certificates/process-with-resolution`, resolutionData);
+      
+      if (response.data.status === 'success') {
+        const successMessage = action === 'use_ai_ship' 
+          ? (language === 'vi' ? 'Đã lưu vào tàu AI phát hiện' : 'Saved to AI detected ship')
+          : (language === 'vi' ? 'Đã lưu với ghi chú tham khảo' : 'Saved with reference note');
+        
+        toast.success(successMessage);
+        
+        // Update file status to completed
+        setMultiFileUploads(prev => prev.map((item, index) => 
+          index === mismatchModal.fileIndex ? {
+            ...item,
+            status: 'completed',
+            stage: action === 'use_ai_ship' ? '✅ Complete (AI Ship)' : '✅ Complete (Reference)',
+            progress: 100
+          } : item
+        ));
+        
+        // Refresh certificates list
+        await fetchCertificates(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Error handling mismatch resolution:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý không khớp tàu' : 'Error handling ship mismatch');
+      
+      // Update file status to failed
+      setMultiFileUploads(prev => prev.map((item, index) => 
+        index === mismatchModal.fileIndex ? {
+          ...item,
+          status: 'failed',
+          stage: '❌ Resolution failed',
+          progress: 100
+        } : item
+      ));
     }
     
     // Close the modal
@@ -899,7 +999,8 @@ const HomePage = () => {
       mismatchInfo: null,
       currentFile: null,
       analysisResult: null,
-      uploadResult: null
+      uploadResult: null,
+      fileIndex: null
     });
   };
 
