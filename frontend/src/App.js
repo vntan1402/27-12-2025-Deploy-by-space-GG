@@ -1144,8 +1144,8 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Main Content Area */}
-          <div className="lg:col-span-3">
+          {/* Main Content Area (Expanded width: 4/5 instead of 3/4) */}
+          <div className="lg:col-span-4">
             <div className="bg-white rounded-xl shadow-lg p-8 min-h-96">
               {/* Ship Details - now persists after click */}
               {selectedShip ? (
