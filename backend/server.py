@@ -244,6 +244,7 @@ class CertificateResponse(CertificateBase):
     cert_abbreviation: Optional[str] = None  # NEW: Certificate abbreviation
     status: Optional[str] = None  # NEW: Valid/Expired status
     issued_by_abbreviation: Optional[str] = None  # NEW: Organization abbreviation
+    has_notes: Optional[bool] = None  # NEW: Flag to indicate if certificate has notes
 
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
