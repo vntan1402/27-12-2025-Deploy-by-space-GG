@@ -1383,6 +1383,7 @@ const HomePage = () => {
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Trạng thái' : 'Status'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ghi chú' : 'Notes'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</th>
                             </tr>
