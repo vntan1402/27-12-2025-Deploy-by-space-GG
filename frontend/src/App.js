@@ -865,6 +865,44 @@ const HomePage = () => {
     }
   };
 
+  const handleDuplicateResolution = (action) => {
+    if (action === 'overwrite') {
+      // Handle overwrite logic here
+      toast.success(language === 'vi' ? 'Đã ghi đè dữ liệu' : 'Data overwritten');
+    } else if (action === 'cancel') {
+      // Handle cancel logic here
+      toast.info(language === 'vi' ? 'Đã hủy thêm chứng chỉ' : 'Certificate upload cancelled');
+    }
+    
+    // Close the modal
+    setDuplicateModal({
+      show: false,
+      duplicates: [],
+      currentFile: null,
+      analysisResult: null,
+      uploadResult: null
+    });
+  };
+
+  const handleMismatchResolution = (action) => {
+    if (action === 'use_ai_ship') {
+      // Handle using AI detected ship logic here
+      toast.success(language === 'vi' ? 'Đã lưu vào tàu AI phát hiện' : 'Saved to AI detected ship');
+    } else if (action === 'use_current_ship') {
+      // Handle using current ship with reference note logic here
+      toast.success(language === 'vi' ? 'Đã lưu vào tàu hiện tại với ghi chú tham khảo' : 'Saved to current ship with reference note');
+    }
+    
+    // Close the modal
+    setMismatchModal({
+      show: false,
+      mismatchInfo: null,
+      currentFile: null,
+      analysisResult: null,
+      uploadResult: null
+    });
+  };
+
   const getFilteredCertificates = () => {
     return certificates.filter(cert => {
       const typeMatch = certificateFilters.certificateType === 'all' || 
