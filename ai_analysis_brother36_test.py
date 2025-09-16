@@ -8,7 +8,7 @@ import requests
 import os
 
 def test_ai_analysis():
-    base_url = "https://vessel-docs-1.preview.emergentagent.com"
+    base_url = "https://aicert-analyzer.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first

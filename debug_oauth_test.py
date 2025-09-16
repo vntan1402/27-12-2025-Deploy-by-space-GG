@@ -7,7 +7,7 @@ import requests
 import json
 
 def test_oauth_debug():
-    base_url = "https://vessel-docs-1.preview.emergentagent.com"
+    base_url = "https://aicert-analyzer.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first
@@ -30,7 +30,7 @@ def test_oauth_debug():
     oauth_config = {
         "client_id": "123456789-abcdefghijklmnopqrstuvwxyz.apps.googleusercontent.com",
         "client_secret": "GOCSPX-abcdefghijklmnopqrstuvwxyz123456",
-        "redirect_uri": "https://vessel-docs-1.preview.emergentagent.com/oauth/callback",
+        "redirect_uri": "https://aicert-analyzer.preview.emergentagent.com/oauth/callback",
         "folder_id": "1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB"
     }
     

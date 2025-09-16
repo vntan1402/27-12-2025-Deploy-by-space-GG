@@ -13,7 +13,7 @@ import os
 from datetime import datetime
 
 class FStringFixTester:
-    def __init__(self, base_url="https://vessel-docs-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://aicert-analyzer.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
@@ -136,7 +136,7 @@ class FStringFixTester:
         print(f"\n📥 Downloading BROTHER 36 IAPP Certificate PDF")
         
         # URL from the review request context
-        pdf_url = "https://vessel-docs-1.preview.emergentagent.com/uploads/certificates/BROTHER%2036%20-%20IAPP%20Certificate.pdf"
+        pdf_url = "https://aicert-analyzer.preview.emergentagent.com/uploads/certificates/BROTHER%2036%20-%20IAPP%20Certificate.pdf"
         
         try:
             response = requests.get(pdf_url, timeout=60)

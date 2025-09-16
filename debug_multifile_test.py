@@ -9,7 +9,7 @@ import tempfile
 import os
 
 def test_multifile_debug():
-    base_url = "https://vessel-docs-1.preview.emergentagent.com"
+    base_url = "https://aicert-analyzer.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login as admin

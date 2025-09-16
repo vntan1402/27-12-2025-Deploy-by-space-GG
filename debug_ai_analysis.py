@@ -10,7 +10,7 @@ def test_ai_analysis_directly():
     """Test the AI analysis function directly"""
     
     # Login first
-    response = requests.post('https://vessel-docs-1.preview.emergentagent.com/api/auth/login', 
+    response = requests.post('https://aicert-analyzer.preview.emergentagent.com/api/auth/login', 
                             json={'username': 'admin1', 'password': '123456'})
     token = response.json()['access_token']
     headers = {'Authorization': f'Bearer {token}'}
@@ -32,7 +32,7 @@ def test_ai_analysis_directly():
         with open(temp_file_path, 'rb') as f:
             files = {'file': (filename, f, 'application/pdf')}
             response = requests.post(
-                'https://vessel-docs-1.preview.emergentagent.com/api/analyze-ship-certificate',
+                'https://aicert-analyzer.preview.emergentagent.com/api/analyze-ship-certificate',
                 files=files, 
                 headers=headers,
                 timeout=60
@@ -60,7 +60,7 @@ def test_ai_analysis_directly():
         with open(temp_file_path, 'rb') as f:
             files = {'files': (filename, f, 'application/pdf')}
             response = requests.post(
-                'https://vessel-docs-1.preview.emergentagent.com/api/certificates/upload-multi-files',
+                'https://aicert-analyzer.preview.emergentagent.com/api/certificates/upload-multi-files',
                 files=files, 
                 headers=headers,
                 timeout=60

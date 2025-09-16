@@ -1,32 +1,34 @@
 <analysis>
-The AI engineer's work in this trajectory primarily focused on implementing a Company Google Drive Configuration feature, mirroring the existing system-wide Google Drive setup. This involved renaming an existing section, adding comprehensive backend API endpoints in  for company-specific Google Drive settings (Service Account, OAuth 2.0, Apps Script proxy), and extensively modifying the frontend . A new  was created with dedicated state management and event handlers.
-
-Significant debugging resolved critical issues: a  conflict causing the new modal to appear behind the  modal, and persistent  /   errors during configuration and testing. The  flow was meticulously traced and fixed. Test data cleanup was also performed. The trajectory concluded with successful verification of the company-specific Google Drive configuration using real-world credentials, confirming full functionality of all three authentication methods.
+This trajectory details the extensive development of the Ship Management System, focusing on a robust multi-file upload feature with AI-powered analysis and Google Drive integration. The AI engineer addressed initial user requests for certificate uploads to company-specific Google Drives, file organization, and size limits. Subsequent iterative refinements involved integrating a comprehensive AI workflow for document classification, data extraction (including ), and automated record creation. Critical debugging cycles focused on date parsing, LLM integration ( vs. ), f-string formatting, MongoDB  errors, and ensuring correct ship name extraction and folder creation logic. The work culminated in an enhanced frontend UI with sequential file processing, detailed progress tracking, AI model display, and a smart ship validation/auto-creation modal. The final action involved safely cleaning up all test data, leaving the system production-ready.
 </analysis>
 
 <product_requirements>
-The Ship Management System is a full-stack application featuring a React frontend, FastAPI backend, and MongoDB for persistence. Key features include a 5-tiered user permission system, AI support, bilingualism, JWT authentication, and Google Drive integration.
+The Ship Management System, a full-stack application (React, FastAPI, MongoDB), features a 5-tiered user permission system, AI support, bilingualism, JWT auth, and Google Drive integration.
 
-Previous development phases addressed:
-1.  Fixing Admin user editing permissions.
-2.  Implementing and saving System Google Drive Configuration (Service Account).
-3.  Migrating the database from JSON files to MongoDB.
-4.  Verifying frontend functionality post-migration and resolving content display issues.
-5.  Developing and then removing a Permission Assignment Interface.
-6.  Extensive debugging and enhancement of System Google Drive Sync, transitioning from Service Account to OAuth 2.0, and finally to a Google Apps Script proxy to overcome Google API limitations.
+Initial requests focused on **Company Google Drive Configuration** (renaming and creating new sections in Edit Company modal, mirroring the system-wide 3-method structure).
 
-The explicit request for this trajectory was:
-1.  **Rename Google Drive API Configuration** within the Edit Company section to **Company Google Drive Configuration.**
-2.  **Create this new Company Google Drive Configuration section** inside the Edit Company modal, mirroring the existing **3-method structure** (Service Account, OAuth 2.0, Apps Script proxy) of the System Google Drive Configuration. The objective is to provide each company with its dedicated Google Drive integration settings.
+The core of this trajectory's development focused on:
+1.  **Certificate Upload Integration**: Upload all certificate data from Add New Record INPUT folder within the Company Google Drive, organized by upload date, with a 150MB file size limit and no format restrictions. Only new uploads, showing an error if Google Drive isn't configured.
+2.  **Multi-File Upload UI Enhancement**: Move Certificate File upload above Certificate Name, allow multiple file uploads, display progress (Uploading, Analyzing, Updating DB, Complete).
+3.  **Advanced AI Analysis**: Use configured AI (initially Emergent LLM, then system AI config like OpenAI GPT-4) to analyze each uploaded certificate file.
+    *   **Classification**: Classify files into 5 categories: Certificates, Test Reports, Survey Reports, Drawings & Manuals, Other Documents.
+    *   **Folder Creation**: Create a folder by Ship name found in the certificate; if not present, create 5 subfolders for each category.
+    *   **File Movement**: Move processed files into respective subfolders.
+    *   **Auto-Record Creation (for Certificates)**: Automatically create certificate records, filling information from AI analysis (Certificate Name, Type, Number, Issue/Valid Dates, Last Endorse, Next Survey, Ship Name, Issued by).
+    *   **Ship Survey Status**: Extract additional information for Ship Survey Status database, without filling the certificate form.
+    *   **Error Handling**: If AI can't find information, create a record with available data, leave missing fields blank, and inform the user.
+4.  **Ship Name Validation**: If the Ship Name from AI analysis is not in the Ship List, notify the user and offer two choices: Cancel adding the certificate or automatically add the new ship based on the certificate, then proceed with certificate addition.
+5.  **UI Refinement**: Remove the old Certificate File section at the bottom of the Add New Record form.
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-stack**: FastAPI (backend), React (frontend).
--   **Database**: MongoDB (local) for data persistence.
--   **Authentication**: JWT, OAuth 2.0 (Google).
--   **Cloud Integration**: Google Drive API (Service Account, OAuth 2.0, Google Apps Script proxy).
--   **Data Modeling**: Pydantic for API request/response validation.
--   **Frontend**: React Context for state management, Tailwind CSS, Shadcn UI for styling.
+-   **Full-stack**: FastAPI (Python backend), React (JavaScript frontend).
+-   **Database**: MongoDB for data persistence, UUIDs for IDs.
+-   **Authentication**: JWT, Role-Based Access Control.
+-   **Cloud Integration**: Google Drive API (via Google Apps Script proxy) for file storage.
+-   **AI Integration**: Emergent LLM library (Gemini 2.0 Flash) and configurable system AI (e.g., OpenAI GPT-4) for PDF analysis and data extraction.
+-   **Frontend**: React Context, State Management, Axios, Tailwind CSS, multi-file upload.
+-   **Concurrency**: Asynchronous processing for file uploads and AI analysis.
 </key_technical_concepts>
 
 <code_architecture>
@@ -35,52 +37,63 @@ The application consists of a React frontend and a FastAPI backend, utilizing Mo
 
 
 -   ****:
-    -   **Importance**: The core of the backend, defining all API routes and business logic. It now manages both system-wide and company-specific data, including Google Drive configurations.
-    -   **Changes Made**: New API endpoints were added under  to handle operations for company-specific Google Drive configurations. These include routes for configuring and testing Service Account, OAuth 2.0, and Apps Script proxy methods (, , , , , , ). The  Pydantic model was implicitly updated to support a nested  field for storing these settings.
-
--   ****:
-    -   **Importance**: The main React component, responsible for the application's UI, state management, and interaction with the backend. It was heavily modified to incorporate the new company-specific Google Drive configuration.
+    -   **Importance**: Central API hub, handling all backend logic.
     -   **Changes Made**:
-        -   The Google Drive API Configuration section within the  was replaced by a Company Google Drive Configuration display and a button to open the new configuration modal.
-        -   New React state variables (e.g., , ) and associated handler functions (, ) were added to manage the company's Google Drive settings.
-        -   A new  component was created, mirroring the existing 's tabbed interface for Service Account, OAuth 2.0, and Apps Script proxy.
-        -   The  function was updated to fetch the relevant  when a company is selected for editing.
-        -   Critical debugging resolved  conflicts (modal overlay issues) and  errors, ensuring the correct  was passed and used in API calls. Error handling for Apps Script configuration was improved.
+        -   **Models**: , ,  updated with file-related fields. New  model created based on user-provided PDF, then enhanced.
+        -   **Endpoints**:
+            -   : Original endpoint, now primarily for metadata-only certificate creation.
+            -   : New endpoint for single file uploads, initially.
+            -   : Major new endpoint for multi-file upload, AI analysis, classification, Google Drive integration, and record creation.
+            -   : New endpoint to fetch the active AI configuration.
+        -   **AI Integration**: Functions  for LLM interaction,  for auto-filling,  for robust date handling. Switched from  to configurable  due to issues.
+        -   **Google Drive**: Logic for  and  refined, integrating with the Google Apps Script proxy. Category mapping fixed (e.g.,  to ).
+        -   **Error Handling**: Robust error handling for date parsing, MongoDB queries ( expecting string), and missing ship names in AI analysis, with fallbacks.
 
 -   ****:
-    -   **Importance**: A newly created Python script designed for safe removal of all test data (companies, users, ships, certificates, usage tracking, Google Drive configs) from MongoDB, leaving only essential admin users.
-    -   **Changes Made**: Initial creation, followed by debugging to correctly load environment variables and handle potential  errors during database interactions.
+    -   **Importance**: Main React component managing UI and interaction.
+    -   **Changes Made**:
+        -   **Multi-File Upload UI**: New drag-and-drop area implemented at the top of the Certificate form, replacing the old single-file upload at the bottom.
+        -   **State Management**: Added states for , , , , etc.
+        -   ****: Implemented for sequential file processing, detailed progress tracking (Uploading, Analyzing by AI, Updating database, Complete), and displaying AI model used.
+        -   **UI Display**: Shows AI model (), progress bars, stage indicators, and individual file processing cards.
+        -   **Ship Validation**: Implemented  to validate AI-extracted ship names against existing ships. A  prompts the user to either cancel or auto-add a new ship if not found.
+        -   ****: Simplified to only handle metadata submission as multi-file upload is handled separately.
+        -   **Cleanup**: Removed the old  state and related UI elements.
 
 -   ****:
-    -   **Importance**: New documentation providing detailed guidance for troubleshooting common issues related to the company-specific Google Drive Apps Script proxy configuration.
-    -   **Changes Made**: Created to assist users in diagnosing and resolving  messages and other configuration problems.
+    -   **Importance**: Script to safely remove test data from MongoDB.
+    -   **Changes Made**: Initial version required confirmation, later an  version was created for direct execution, and finally this script was created as a robust solution.
+
+-   ****:
+    -   **Importance**: A completely new Google Apps Script to address compatibility issues with the backend's Google Drive integration.
+    -   **Changes Made**: Supports , , , , . Includes proper JSON responses, better error handling, duplicate file handling, auto-creation of 5 category subfolders, Base64 decoding, and folder existence checking.
+
+-   ****:
+    -   **Importance**: Provides detailed instructions for users to deploy the new Google Apps Script.
+
 </code_architecture>
 
 <pending_tasks>
 -   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (deferred by user).
+-   Further processing for files classified other than Certificate (e.g., Test Reports, Survey Reports, Drawings & Manuals, Other Documents).
 </pending_tasks>
 
 <current_work>
-The AI engineer has successfully completed the implementation of the **Company Google Drive Configuration** feature. This functionality enables each company in the Ship Management System to configure its own dedicated Google Drive integration using three distinct authentication methods: Service Account, OAuth 2.0, and the Google Apps Script proxy.
+The AI engineer has just successfully completed a comprehensive set of improvements and bug fixes related to the **multi-file upload system with AI-powered analysis and Google Drive integration**.
 
-**Current State of the Product:**
--   **Backend ():** Fully equipped with new API endpoints () to handle the configuration, syncing, and testing of company-specific Google Drive settings for all three authentication methods. The  model in MongoDB now stores  data for each company.
--   **Frontend ():**
-    -   The  modal now displays a Company Google Drive Configuration section with the current status (e.g., Not configured or Apps Script configured) and a Configure Company Google Drive button.
-    -   A new  provides a tabbed interface for configuring Service Account, OAuth 2.0, or Apps Script proxy, mirroring the system-wide configuration.
-    -   All necessary state management and event handlers (, , etc.) are in place.
-    -   The  function correctly fetches and displays the existing company's Google Drive configuration upon editing.
+The immediate work before this summary involved:
+1.  **Fixing AI Model Display**: Ensuring the AI Model: OPENAI GPT-4 badge correctly displays in the multi-file upload UI, adding fallback for loading states.
+2.  **Implementing Ship Name Validation Logic**:
+    *   Adding state for a .
+    *   Creating a  function to verify if an AI-extracted ship name exists in the system's  list.
+    *   Integrating this logic into  to trigger the modal if a ship is not found.
+    *   Adding the  to the UI, offering options to Auto-add new ship and continue or Cancel certificate addition.
+3.  **Debugging  State Scope**: Resolving  not defined errors by correctly referencing the  state within the  component.
+4.  **Backend AI Fixes**: Ensuring AI analysis correctly extracts BROTHER 36 (not Unknown ship) from certificates, which was previously an intermittent issue.
 
-**Nuances and Resolutions:**
--   **Z-index Fix:** An initial issue where the  appeared behind the  modal was successfully resolved, ensuring proper UI layering and interactivity.
--   **No Company ID Error Fix:** This was a persistent bug where API calls from the  failed due to an . The AI meticulously debugged the  flow, from the Configure Company Google Drive button's  handler to the modal's internal API calls, ensuring  was consistently and correctly passed. This involved removing conflicting state variables and streamlining data propagation.
--   **Apps Script test error Resolution:** This error, often linked to the  or incorrect external configurations, was addressed by fixing the  issue, improving frontend error messages, and providing a working example Apps Script URL. Backend API tests with user-provided real credentials confirmed the backend's functionality.
--   **Test Data Cleanup:** A script () was developed and executed to safely remove all test data from the MongoDB database, leaving a clean environment with only essential admin users.
--   **Troubleshooting Documentation:** A new markdown file () was created to assist users with debugging common issues related to the company-specific Apps Script proxy.
-
-The application is now fully functional with the requested company-specific Google Drive integration, tested, and ready for use with real data.
+The product is now in a state where the **multi-file upload system is fully functional and production-ready**. Users can upload multiple certificate files, see the AI model (OpenAI GPT-4) being used, observe sequential processing with detailed progress, and interact with a confirmation modal if a new ship name is detected, allowing for automatic ship creation before certificate processing continues. All critical bugs, including date parsing errors, MongoDB  issues, and incorrect AI classification/extraction, have been resolved. Test data has also been safely cleaned from the database.
 </current_work>
 
 <optional_next_step>
-The Company Google Drive Configuration feature is complete and verified. No explicit next steps were requested by the user.
+No explicit next step, as the current work is concluded. The user can begin using the system.
 </optional_next_step>
