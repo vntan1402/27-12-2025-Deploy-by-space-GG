@@ -6193,7 +6193,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       const fileUploads = Array.from(files).map(file => ({
         filename: file.name,
         size: file.size,
-        status: 'waiting', // waiting -> uploading -> analyzing -> database -> completed/failed
+        status: 'waiting', // waiting -> uploading -> analyzing -> checking -> database -> completed/failed
         stage: 'Ready to process',
         progress: 0,
         category: null,
@@ -6236,16 +6236,82 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
             timeout: 120000 // 2 minutes timeout for AI processing
           });
           
+          // Get result for this file
+          const results = response.data.results || [];
+          const fileResult = results[0] || {};
+          
+          // Only check for duplicates and mismatches for certificate files
+          if (fileResult.analysis?.category === 'certificates') {
+            // Update status to checking
+            setMultiFileUploads(prev => prev.map((item, index) => 
+              index === i ? { ...item, status: 'checking', stage: '🔍 Checking for duplicates...', progress: 50 } : item
+            ));
+            
+            // Check for duplicates and ship name mismatch
+            const checkResponse = await axios.post(`${API}/certificates/check-duplicates-and-mismatch`, {
+              ship_id: selectedShip.id,
+              analysis_result: fileResult.analysis
+            });
+            
+            if (checkResponse.data.has_issues) {
+              const { duplicates, ship_mismatch } = checkResponse.data;
+              
+              // Handle duplicates first (higher priority)
+              if (duplicates && duplicates.length > 0) {
+                setDuplicateModal({
+                  show: true,
+                  duplicates: duplicates,
+                  currentFile: file.name,
+                  analysisResult: fileResult.analysis,
+                  uploadResult: fileResult.upload,
+                  fileIndex: i
+                });
+                
+                // Update status to waiting for user decision
+                setMultiFileUploads(prev => prev.map((item, index) => 
+                  index === i ? {
+                    ...item,
+                    status: 'pending_duplicate',
+                    stage: '⚠️ Duplicate detected - awaiting decision',
+                    progress: 60
+                  } : item
+                ));
+                
+                return; // Stop processing this file until user decides
+              }
+              
+              // Handle ship name mismatch
+              if (ship_mismatch && ship_mismatch.mismatch) {
+                setMismatchModal({
+                  show: true,
+                  mismatchInfo: ship_mismatch,
+                  currentFile: file.name,
+                  analysisResult: fileResult.analysis,
+                  uploadResult: fileResult.upload,
+                  fileIndex: i
+                });
+                
+                // Update status to waiting for user decision
+                setMultiFileUploads(prev => prev.map((item, index) => 
+                  index === i ? {
+                    ...item,
+                    status: 'pending_mismatch',
+                    stage: '⚠️ Ship mismatch - awaiting decision',
+                    progress: 60
+                  } : item
+                ));
+                
+                return; // Stop processing this file until user decides
+              }
+            }
+          }
+          
           // Update status to database operations
           setMultiFileUploads(prev => prev.map((item, index) => 
             index === i ? { ...item, status: 'database', stage: '💾 Updating database...', progress: 70 } : item
           ));
           
           await new Promise(resolve => setTimeout(resolve, 500)); // Small delay for UI feedback
-          
-          // Get result for this file
-          const results = response.data.results || [];
-          const fileResult = results[0] || {};
           
           // Check if ship exists in our ship list
           const extractedShipName = fileResult.ship_name;
