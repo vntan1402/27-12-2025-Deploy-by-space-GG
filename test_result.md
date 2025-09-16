@@ -296,11 +296,14 @@
     file: "App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
           comment: "Added comprehensive filtering controls above User Management table with Company, Department, Ship filters and Sort By/Order controls. Updated table to use filteredUsers state and added Gmail column. Added Clear Filters functionality."
+        - working: false
+          agent: "testing"
+          comment: "❌ BACKEND ENDPOINT MISSING - Enhanced User Filtering endpoint GET /api/users/filtered not implemented in backend server.py. Frontend implementation exists but backend endpoint returns 405 Method Not Allowed. Basic GET /api/users endpoint works correctly (found 3 users). The enhanced filtering functionality requires backend implementation of the /api/users/filtered endpoint with query parameters for company, department, ship filtering and sorting capabilities. This is a backend implementation gap, not a frontend issue."
 
   - task: "Mandatory Zalo Field in User Forms"
     implemented: true
