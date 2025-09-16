@@ -892,6 +892,10 @@ async def create_company(company_data: CompanyCreate, current_user: UserResponse
         company_dict["id"] = str(uuid.uuid4())
         company_dict["created_at"] = datetime.now(timezone.utc)
         
+        # Ensure legacy 'name' field for backward compatibility
+        if not company_dict.get('name'):
+            company_dict['name'] = company_dict.get('name_en') or company_dict.get('name_vn') or 'Unknown Company'
+        
         await mongo_db.create("companies", company_dict)
         return CompanyResponse(**company_dict)
         
