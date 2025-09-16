@@ -1449,6 +1449,68 @@ async def get_gdrive_config(current_user: UserResponse = Depends(get_current_use
         logger.error(f"Error fetching Google Drive config: {e}")
         return {"configured": False, "error": str(e)}
 
+@api_router.get("/gdrive/file/{file_id}/view")
+async def get_gdrive_file_view_url(
+    file_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get Google Drive file view URL for opening in new window"""
+    try:
+        # Get Google Drive configuration
+        gdrive_config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        if not gdrive_config:
+            raise HTTPException(status_code=500, detail="Google Drive not configured")
+        
+        auth_method = gdrive_config.get("auth_method", "apps_script")
+        
+        if auth_method == "apps_script":
+            script_url = gdrive_config.get("apps_script_url")
+            if not script_url:
+                raise HTTPException(status_code=500, detail="Apps Script URL not configured")
+            
+            try:
+                # Get file view URL from Apps Script
+                payload = {
+                    "action": "get_file_view_url",
+                    "file_id": file_id
+                }
+                
+                response = requests.post(script_url, json=payload, timeout=30)
+                response.raise_for_status()
+                
+                result = response.json()
+                
+                if result.get("success"):
+                    view_url = result.get("view_url")
+                    if view_url:
+                        return {"success": True, "view_url": view_url}
+                    else:
+                        # Fallback to standard Google Drive view URL
+                        view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                        return {"success": True, "view_url": view_url}
+                else:
+                    # Fallback to standard Google Drive view URL
+                    view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                    return {"success": True, "view_url": view_url}
+                    
+            except Exception as e:
+                logger.error(f"Apps Script file view URL failed: {e}")
+                # Fallback to standard Google Drive view URL
+                view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                return {"success": True, "view_url": view_url}
+        else:
+            # Fallback to standard Google Drive view URL
+            view_url = f"https://drive.google.com/file/d/{file_id}/view"
+            return {"success": True, "view_url": view_url}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Google Drive file view URL: {e}")
+        # Final fallback
+        view_url = f"https://drive.google.com/file/d/{file_id}/view"
+        return {"success": True, "view_url": view_url}
+
 @api_router.post("/gdrive/config")
 async def update_gdrive_config(
     config_data: dict,
