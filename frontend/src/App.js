@@ -869,6 +869,11 @@ const HomePage = () => {
 
   const handleDuplicateResolution = async (action) => {
     try {
+      if (!duplicateModal || !duplicateModal.show) {
+        console.warn('Duplicate modal not initialized');
+        return;
+      }
+
       if (action === 'overwrite') {
         // Process certificate with overwrite resolution
         const resolutionData = {
@@ -876,7 +881,7 @@ const HomePage = () => {
           upload_result: duplicateModal.uploadResult,
           ship_id: selectedShip.id,
           duplicate_resolution: 'overwrite',
-          duplicate_target_id: duplicateModal.duplicates[0].certificate.id // Use highest similarity duplicate
+          duplicate_target_id: duplicateModal.duplicates[0].certificate.id
         };
         
         const response = await axios.post(`${API}/certificates/process-with-resolution`, resolutionData);
@@ -884,45 +889,17 @@ const HomePage = () => {
         if (response.data.status === 'success') {
           toast.success(language === 'vi' ? 'Đã ghi đè dữ liệu thành công' : 'Data overwritten successfully');
           
-          // Update file status to completed
-          setMultiFileUploads(prev => prev.map((item, index) => 
-            index === duplicateModal.fileIndex ? {
-              ...item,
-              status: 'completed',
-              stage: '✅ Complete (Overwritten)',
-              progress: 100
-            } : item
-          ));
-          
           // Refresh certificates list
-          await fetchCertificates(selectedShip.id);
+          if (selectedShip) {
+            await fetchCertificates(selectedShip.id);
+          }
         }
       } else if (action === 'cancel') {
-        // Update file status to cancelled
-        setMultiFileUploads(prev => prev.map((item, index) => 
-          index === duplicateModal.fileIndex ? {
-            ...item,
-            status: 'cancelled',
-            stage: '❌ Cancelled by user',
-            progress: 100
-          } : item
-        ));
-        
         toast.info(language === 'vi' ? 'Đã hủy thêm giấy chứng nhận' : 'Certificate upload cancelled');
       }
     } catch (error) {
       console.error('Error handling duplicate resolution:', error);
       toast.error(language === 'vi' ? 'Lỗi xử lý trùng lặp' : 'Error handling duplicate');
-      
-      // Update file status to failed
-      setMultiFileUploads(prev => prev.map((item, index) => 
-        index === duplicateModal.fileIndex ? {
-          ...item,
-          status: 'failed',
-          stage: '❌ Resolution failed',
-          progress: 100
-        } : item
-      ));
     }
     
     // Close the modal
@@ -938,6 +915,11 @@ const HomePage = () => {
 
   const handleMismatchResolution = async (action) => {
     try {
+      if (!mismatchModal || !mismatchModal.show) {
+        console.warn('Mismatch modal not initialized');
+        return;
+      }
+
       let resolutionData = {
         analysis_result: mismatchModal.analysisResult,
         upload_result: mismatchModal.uploadResult,
@@ -967,32 +949,14 @@ const HomePage = () => {
         
         toast.success(successMessage);
         
-        // Update file status to completed
-        setMultiFileUploads(prev => prev.map((item, index) => 
-          index === mismatchModal.fileIndex ? {
-            ...item,
-            status: 'completed',
-            stage: action === 'use_ai_ship' ? '✅ Complete (AI Ship)' : '✅ Complete (Reference)',
-            progress: 100
-          } : item
-        ));
-        
         // Refresh certificates list
-        await fetchCertificates(selectedShip.id);
+        if (selectedShip) {
+          await fetchCertificates(selectedShip.id);
+        }
       }
     } catch (error) {
       console.error('Error handling mismatch resolution:', error);
       toast.error(language === 'vi' ? 'Lỗi xử lý không khớp tàu' : 'Error handling ship mismatch');
-      
-      // Update file status to failed
-      setMultiFileUploads(prev => prev.map((item, index) => 
-        index === mismatchModal.fileIndex ? {
-          ...item,
-          status: 'failed',
-          stage: '❌ Resolution failed',
-          progress: 100
-        } : item
-      ));
     }
     
     // Close the modal
