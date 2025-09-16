@@ -642,7 +642,10 @@
     - "Frontend Multi-File Upload UI Testing" 
     - "Certificate List Display and Functionality"
     - "User Management UI with Enhanced Filtering"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Enhanced User Management UI with Filtering and Sorting"
+    - "Mandatory Zalo Field in User Forms"
+    - "User State Management Enhancement"
   test_all: false
   test_priority: "high_first"
 
