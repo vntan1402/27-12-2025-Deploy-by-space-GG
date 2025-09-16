@@ -236,6 +236,7 @@ class CertificateUpdate(BaseModel):
     next_survey: Optional[datetime] = None
     category: Optional[str] = None
     sensitivity_level: Optional[str] = None
+    notes: Optional[str] = None  # NEW: Notes field for reference certificates
 
 class CertificateResponse(CertificateBase):
     id: str
