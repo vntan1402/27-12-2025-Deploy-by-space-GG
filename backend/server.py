@@ -294,6 +294,10 @@ def generate_certificate_abbreviation(cert_name: str) -> str:
     # Generate abbreviation by taking first letter of each significant word
     abbreviation = ''.join([word[0] for word in significant_words[:6]])  # Max 6 letters
     
+    # Remove trailing 'C' if present (Certificate → remove final C)
+    if abbreviation.endswith('C') and len(abbreviation) > 1:
+        abbreviation = abbreviation[:-1]
+    
     return abbreviation
 
 def calculate_certificate_status(valid_date: datetime, cert_type: str = None) -> str:
