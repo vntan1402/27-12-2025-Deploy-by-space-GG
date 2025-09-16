@@ -1726,8 +1726,12 @@ def parse_date_string(date_str: str) -> Optional[datetime]:
 async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_type: str, api_key: str, analysis_prompt: str) -> dict:
     """Analyze document using Emergent LLM"""
     try:
-        # Initialize LLM chat
-        chat = LlmChat(api_key=api_key)
+        # Initialize LLM chat with required parameters
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"cert_analysis_{uuid.uuid4().hex[:8]}",
+            system_message="You are a maritime document analysis expert. Analyze documents and extract certificate information in JSON format."
+        )
         
         # Create file content for LLM
         file_obj = FileContentWithMimeType(
