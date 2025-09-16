@@ -222,6 +222,7 @@ class CertificateBase(BaseModel):
     file_name: Optional[str] = None
     file_size: Optional[int] = None
     ship_name: Optional[str] = None  # For folder organization
+    notes: Optional[str] = None  # NEW: Notes field for reference certificates
 
 class CertificateCreate(CertificateBase):
     pass
