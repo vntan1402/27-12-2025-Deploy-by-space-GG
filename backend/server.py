@@ -995,6 +995,18 @@ async def delete_certificate(cert_id: str, current_user: UserResponse = Depends(
         logger.error(f"Error deleting certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete certificate")
 
+# General certificates endpoint
+@api_router.get("/certificates", response_model=List[CertificateResponse])
+async def get_all_certificates(current_user: UserResponse = Depends(get_current_user)):
+    """Get all certificates with filtering"""
+    try:
+        certificates = await mongo_db.find_all("certificates", {})
+        # Enhance each certificate with abbreviation and status
+        enhanced_certificates = [enhance_certificate_response(cert) for cert in certificates]
+        return [CertificateResponse(**cert) for cert in enhanced_certificates]
+    except Exception as e:
+        logger.error(f"Error fetching all certificates: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch certificates")
 # Ship Survey Status endpoints
 @api_router.get("/ships/{ship_id}/survey-status", response_model=List[ShipSurveyStatusResponse])
 async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
