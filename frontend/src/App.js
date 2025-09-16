@@ -2129,6 +2129,45 @@ const AccountControlPage = () => {
     });
   };
 
+  // Handle ship name mismatch resolution
+  const handleMismatchResolution = async (action) => {
+    try {
+      if (!mismatchModal || !mismatchModal.show) {
+        console.warn('Mismatch modal not initialized');
+        return;
+      }
+
+      const resolutionData = {
+        analysis_result: mismatchModal.analysisResult,
+        upload_result: mismatchModal.uploadResult,
+        ship_mismatch_resolution: action
+      };
+      
+      const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+      const response = await axios.post(`${API}/certificates/process-with-resolution`, resolutionData);
+      
+      if (response.data.status === 'success') {
+        const message = action === 'save_to_ai_ship' 
+          ? (language === 'vi' ? 'Đã lưu vào tàu từ AI' : 'Saved to AI-detected ship')
+          : (language === 'vi' ? 'Đã lưu với ghi chú tham khảo' : 'Saved with reference note');
+        toast.success(message);
+        // Refresh data if needed
+      }
+      
+    } catch (error) {
+      console.error('Error handling mismatch resolution:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý không khớp tên tàu' : 'Error handling ship name mismatch');
+    }
+    
+    // Close the modal
+    setMismatchModal({
+      show: false,
+      mismatchInfo: null,
+      analysisResult: null,
+      uploadResult: null
+    });
+  };
+
   // Role hierarchy helper functions
   const roleHierarchy = {
     'viewer': 1,
