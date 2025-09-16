@@ -410,8 +410,12 @@ def calculate_certificate_status(valid_date: datetime, cert_type: str = None) ->
 def enhance_certificate_response(cert_dict: dict) -> dict:
     """Enhance certificate response with abbreviation and status"""
     try:
-        # Generate abbreviation
+        # Generate certificate abbreviation
         cert_dict['cert_abbreviation'] = generate_certificate_abbreviation(cert_dict.get('cert_name', ''))
+        
+        # Generate organization abbreviation
+        issued_by = cert_dict.get('issued_by', '')
+        cert_dict['issued_by_abbreviation'] = generate_organization_abbreviation(issued_by)
         
         # Calculate status
         valid_date = cert_dict.get('valid_date')
@@ -427,6 +431,7 @@ def enhance_certificate_response(cert_dict: dict) -> dict:
     except Exception as e:
         logger.error(f"Error enhancing certificate response: {e}")
         cert_dict['cert_abbreviation'] = ""
+        cert_dict['issued_by_abbreviation'] = ""
         cert_dict['status'] = "Unknown"
         return cert_dict
 
