@@ -155,7 +155,7 @@ class CompanyBase(BaseModel):
     tax_id: str
     gmail: Optional[str] = None
     zalo: Optional[str] = None
-    system_expiry: Optional[str] = None
+    system_expiry: Optional[datetime] = None
     # Legacy fields for backward compatibility
     name: Optional[str] = None
     address: Optional[str] = None
