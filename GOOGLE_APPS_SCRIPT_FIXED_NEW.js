@@ -66,6 +66,9 @@ function handleRequest(e) {
       case 'list_files':
         return handleListFiles(requestData);
         
+      case 'get_file_view_url':
+        return handleGetFileViewUrl(requestData);
+        
       case 'sync_to_drive':
         return handleSyncToDrive(requestData);
         
