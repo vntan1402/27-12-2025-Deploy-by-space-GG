@@ -6165,6 +6165,21 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     file: null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Duplicate and mismatch modal states for AddRecordModal
+  const [duplicateModal, setDuplicateModal] = useState({
+    show: false,
+    duplicates: [],
+    currentFile: null,
+    analysisResult: null,
+    uploadResult: null,
+    status: 'all'
+  });
+  const [mismatchModal, setMismatchModal] = useState({
+    show: false,
+    mismatchInfo: null,
+    analysisResult: null,
+    uploadResult: null
+  });
 
   // Check if user can create ships (Company Officer role and above)
   const canCreateShip = () => {
