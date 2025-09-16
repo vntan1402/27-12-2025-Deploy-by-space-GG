@@ -1412,12 +1412,11 @@ const HomePage = () => {
                                     </span>
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{cert.cert_no}</td>
-                                  <td className="border border-gray-300 px-4 py-2 text-sm" title={cert.issued_by}>
-                                    {cert.issued_by ? (
-                                      cert.issued_by.length > 25 
-                                        ? `${cert.issued_by.substring(0, 25)}...`
-                                        : cert.issued_by
-                                    ) : '-'}
+                                  <td className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" title={cert.issued_by}>
+                                    {cert.issued_by_abbreviation || (cert.issued_by ? 
+                                      (cert.issued_by.length > 8 ? `${cert.issued_by.substring(0, 8)}...` : cert.issued_by)
+                                      : '-'
+                                    )}
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
