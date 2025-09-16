@@ -480,13 +480,160 @@ def enhance_certificate_response(cert_dict: dict) -> dict:
         
         cert_dict['status'] = calculate_certificate_status(valid_date, cert_dict.get('cert_type'))
         
+        # Add has_notes flag
+        cert_dict['has_notes'] = bool(cert_dict.get('notes'))
+        
         return cert_dict
     except Exception as e:
         logger.error(f"Error enhancing certificate response: {e}")
         cert_dict['cert_abbreviation'] = ""
         cert_dict['issued_by_abbreviation'] = ""
         cert_dict['status'] = "Unknown"
+        cert_dict['has_notes'] = False
         return cert_dict
+
+def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
+    """Calculate similarity percentage between two certificates"""
+    try:
+        # Define fields to compare and their weights
+        comparison_fields = {
+            'cert_name': 0.25,
+            'cert_type': 0.15,
+            'cert_no': 0.20,
+            'issue_date': 0.15,
+            'valid_date': 0.15,
+            'issued_by': 0.10
+        }
+        
+        total_weight = 0
+        matching_weight = 0
+        
+        for field, weight in comparison_fields.items():
+            val1 = cert1.get(field)
+            val2 = cert2.get(field)
+            
+            # Skip if either value is None or empty
+            if not val1 or not val2:
+                continue
+                
+            total_weight += weight
+            
+            # Compare values based on type
+            if field in ['issue_date', 'valid_date']:
+                # Date comparison - convert to datetime if string
+                try:
+                    if isinstance(val1, str):
+                        val1 = datetime.fromisoformat(val1.replace('Z', '+00:00'))
+                    if isinstance(val2, str):
+                        val2 = datetime.fromisoformat(val2.replace('Z', '+00:00'))
+                    
+                    if val1 == val2:
+                        matching_weight += weight
+                except:
+                    pass
+            else:
+                # String comparison - case insensitive
+                if str(val1).lower().strip() == str(val2).lower().strip():
+                    matching_weight += weight
+                elif field == 'cert_name':
+                    # Partial match for certificate names
+                    similarity = calculate_string_similarity(str(val1), str(val2))
+                    if similarity > 0.8:  # 80% string similarity
+                        matching_weight += weight * similarity
+        
+        # Calculate percentage
+        if total_weight == 0:
+            return 0.0
+        
+        return (matching_weight / total_weight) * 100
+        
+    except Exception as e:
+        logger.error(f"Error calculating certificate similarity: {e}")
+        return 0.0
+
+def calculate_string_similarity(str1: str, str2: str) -> float:
+    """Calculate string similarity using simple character overlap"""
+    try:
+        str1 = str1.lower().strip()
+        str2 = str2.lower().strip()
+        
+        if str1 == str2:
+            return 1.0
+        
+        # Simple character-based similarity
+        set1 = set(str1.replace(' ', ''))
+        set2 = set(str2.replace(' ', ''))
+        
+        intersection = set1.intersection(set2)
+        union = set1.union(set2)
+        
+        if len(union) == 0:
+            return 0.0
+        
+        return len(intersection) / len(union)
+        
+    except Exception as e:
+        logger.error(f"Error calculating string similarity: {e}")
+        return 0.0
+
+async def check_certificate_duplicates(analysis_result: dict, ship_id: str) -> list:
+    """Check for duplicate certificates in the database"""
+    try:
+        # Get all certificates for comparison
+        all_certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+        
+        duplicates = []
+        
+        for existing_cert in all_certificates:
+            similarity = calculate_certificate_similarity(analysis_result, existing_cert)
+            
+            if similarity >= 70.0:  # 70% similarity threshold
+                duplicates.append({
+                    'certificate': existing_cert,
+                    'similarity': similarity
+                })
+        
+        # Sort by similarity descending
+        duplicates.sort(key=lambda x: x['similarity'], reverse=True)
+        
+        return duplicates
+        
+    except Exception as e:
+        logger.error(f"Error checking certificate duplicates: {e}")
+        return []
+
+async def check_ship_name_mismatch(analysis_result: dict, current_ship_id: str) -> dict:
+    """Check if AI-detected ship name matches current selected ship"""
+    try:
+        ai_ship_name = analysis_result.get('ship_name', '').strip()
+        if not ai_ship_name or ai_ship_name.upper() in ['UNKNOWN_SHIP', 'UNKNOWN SHIP', '']:
+            return {"mismatch": False}
+        
+        # Get current ship
+        current_ship = await mongo_db.find_one("ships", {"id": current_ship_id})
+        if not current_ship:
+            return {"mismatch": False}
+        
+        current_ship_name = current_ship.get('name', '').strip()
+        
+        # Compare ship names (case insensitive)
+        if ai_ship_name.upper() == current_ship_name.upper():
+            return {"mismatch": False}
+        
+        # Find the AI-detected ship in database
+        ai_ship = await mongo_db.find_one("ships", {"name": {"$regex": f"^{ai_ship_name}$", "$options": "i"}})
+        
+        return {
+            "mismatch": True,
+            "ai_ship_name": ai_ship_name,
+            "current_ship_name": current_ship_name,
+            "ai_ship_exists": bool(ai_ship),
+            "ai_ship": ai_ship
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking ship name mismatch: {e}")
+        return {"mismatch": False}
 
 # Authentication functions
 def create_access_token(data: dict, expires_delta: timedelta = None):
