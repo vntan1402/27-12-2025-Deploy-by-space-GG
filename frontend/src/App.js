@@ -2069,6 +2069,16 @@ const AccountControlPage = () => {
   
   const t = translations[language];
 
+  // Helper function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('vi-VN');
+    } catch (error) {
+      return '-';
+    }
+  };
+
   // Role hierarchy helper functions
   const roleHierarchy = {
     'viewer': 1,
