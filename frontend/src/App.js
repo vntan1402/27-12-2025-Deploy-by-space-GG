@@ -1190,7 +1190,7 @@ const HomePage = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="w-full px-4 py-8">
         <div className="grid lg:grid-cols-5 gap-8">
           {/* Left Sidebar - Categories and Ships (Reduced width: 1/5 instead of 1/4) */}
           <div className="bg-blue-600 rounded-xl shadow-lg p-4 text-white">
