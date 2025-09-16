@@ -1257,32 +1257,96 @@ const HomePage = () => {
                   {/* Content based on selected category and submenu */}
                   {selectedCategory === 'documents' && selectedSubMenu === 'certificates' && (
                     <div>
-                      <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                        {language === 'vi' ? 'Danh mục Giấy chứng nhận' : 'Certificate List'}
-                      </h3>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {language === 'vi' ? 'Danh mục Giấy chứng nhận' : 'Certificate List'}
+                        </h3>
+                        
+                        {/* Refresh Button */}
+                        <button
+                          onClick={handleRefreshCertificates}
+                          disabled={isRefreshing}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-all"
+                        >
+                          <span className={`${isRefreshing ? 'animate-spin' : ''}`}>🔄</span>
+                          {isRefreshing 
+                            ? (language === 'vi' ? 'Đang cập nhật...' : 'Refreshing...') 
+                            : (language === 'vi' ? 'Refresh' : 'Refresh')
+                          }
+                        </button>
+                      </div>
+
+                      {/* Filter Controls */}
+                      <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+                        <div className="flex gap-4 items-center flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                              {language === 'vi' ? 'Loại chứng chỉ:' : 'Certificate Type:'}
+                            </label>
+                            <select
+                              value={certificateFilters.certificateType}
+                              onChange={(e) => setCertificateFilters(prev => ({...prev, certificateType: e.target.value}))}
+                              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              {getUniqueValues('cert_type').map(type => (
+                                <option key={type} value={type}>{type}</option>
+                              ))}
+                            </select>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                              {language === 'vi' ? 'Trạng thái:' : 'Status:'}
+                            </label>
+                            <select
+                              value={certificateFilters.status}
+                              onChange={(e) => setCertificateFilters(prev => ({...prev, status: e.target.value}))}
+                              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              <option value="Valid">{language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
+                              <option value="Expired">{language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
+                            </select>
+                          </div>
+                          
+                          {/* Results Count */}
+                          <div className="ml-auto text-sm text-gray-600">
+                            {language === 'vi' 
+                              ? `Hiển thị ${getFilteredCertificates().length} / ${certificates.length} chứng chỉ`
+                              : `Showing ${getFilteredCertificates().length} / ${certificates.length} certificates`
+                            }
+                          </div>
+                        </div>
+                      </div>
                       
                       <div className="overflow-x-auto">
                         <table className="w-full border-collapse border border-gray-300 text-sm">
                           <thead>
                             <tr className="bg-gray-50">
                               <th className="border border-gray-300 px-4 py-2 text-left">No.</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Tên viết tắt' : 'Cert. Name'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Loại' : 'Type'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Trạng thái' : 'Status'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}</th>
                               <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {certificates.length === 0 ? (
+                            {getFilteredCertificates().length === 0 ? (
                               <tr>
-                                <td colSpan="7" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
-                                  {language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates available'}
+                                <td colSpan="9" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                  {certificates.length === 0 
+                                    ? (language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates available')
+                                    : (language === 'vi' ? 'Không có chứng chỉ nào phù hợp với bộ lọc' : 'No certificates match the current filters')
+                                  }
                                 </td>
                               </tr>
                             ) : (
-                              certificates.map((cert, index) => (
+                              getFilteredCertificates().map((cert, index) => (
                                 <tr 
                                   key={cert.id} 
                                   className="hover:bg-gray-50 cursor-pointer"
@@ -1291,10 +1355,41 @@ const HomePage = () => {
                                   }}
                                 >
                                   <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{cert.cert_name}</td>
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 font-mono font-bold text-blue-600"
+                                    title={cert.cert_name}
+                                    style={{ cursor: 'help' }}
+                                  >
+                                    {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      cert.cert_type === 'Full Term' ? 'bg-green-100 text-green-800' :
+                                      cert.cert_type === 'Interim' ? 'bg-yellow-100 text-yellow-800' :
+                                      cert.cert_type === 'Provisional' ? 'bg-orange-100 text-orange-800' :
+                                      cert.cert_type === 'Short term' ? 'bg-red-100 text-red-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {cert.cert_type || 'Unknown'}
+                                    </span>
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{cert.cert_no}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      cert.status === 'Valid' ? 'bg-green-100 text-green-800' :
+                                      cert.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {cert.status === 'Valid' 
+                                        ? (language === 'vi' ? 'Còn hiệu lực' : 'Valid')
+                                        : cert.status === 'Expired' 
+                                        ? (language === 'vi' ? 'Hết hiệu lực' : 'Expired')
+                                        : (language === 'vi' ? 'Không rõ' : 'Unknown')
+                                      }
+                                    </span>
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                 </tr>
