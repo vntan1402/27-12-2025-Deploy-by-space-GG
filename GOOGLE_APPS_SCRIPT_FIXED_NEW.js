@@ -323,6 +323,43 @@ function handleSyncToDrive(requestData) {
 }
 
 /**
+ * Handle get file view URL request
+ */
+function handleGetFileViewUrl(requestData) {
+  debugLog('Getting file view URL');
+  
+  try {
+    const fileId = requestData.file_id;
+    
+    if (!fileId) {
+      return createJsonResponse(false, 'File ID is required');
+    }
+    
+    // Try to get file by ID
+    try {
+      const file = DriveApp.getFileById(fileId);
+      
+      // Generate view URL
+      const viewUrl = `https://drive.google.com/file/d/${fileId}/view`;
+      
+      return createJsonResponse(true, 'File view URL generated', {
+        file_id: fileId,
+        file_name: file.getName(),
+        view_url: viewUrl,
+        file_size: file.getSize()
+      });
+      
+    } catch (fileError) {
+      // File not found or no access
+      return createJsonResponse(false, `File not accessible: ${fileError.toString()}`);
+    }
+    
+  } catch (error) {
+    return createJsonResponse(false, `Get file view URL failed: ${error.toString()}`);
+  }
+}
+
+/**
  * Helper function to find or create folder
  */
 function findOrCreateFolder(parentFolder, folderName) {
