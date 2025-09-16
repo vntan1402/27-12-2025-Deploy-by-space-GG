@@ -981,6 +981,15 @@ const HomePage = () => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      return new Date(dateString).toLocaleDateString('vi-VN');
+    } catch (error) {
+      return '-';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
