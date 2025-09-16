@@ -1122,6 +1122,97 @@ async def update_ai_config(
         raise HTTPException(status_code=500, detail="Failed to update AI configuration")
 
 # File upload endpoints
+@api_router.post("/certificates/check-duplicates-and-mismatch")
+async def check_duplicates_and_mismatch(
+    analysis_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Check for certificate duplicates and ship name mismatch before processing"""
+    try:
+        ship_id = analysis_data.get('ship_id')
+        analysis_result = analysis_data.get('analysis_result', {})
+        
+        if not ship_id or not analysis_result:
+            raise HTTPException(status_code=400, detail="Missing ship_id or analysis_result")
+        
+        # Check for duplicates
+        duplicates = await check_certificate_duplicates(analysis_result, ship_id)
+        
+        # Check for ship name mismatch
+        ship_mismatch = await check_ship_name_mismatch(analysis_result, ship_id)
+        
+        return {
+            "duplicates": duplicates,
+            "ship_mismatch": ship_mismatch,
+            "has_issues": len(duplicates) > 0 or ship_mismatch.get("mismatch", False)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking duplicates and mismatch: {e}")
+        raise HTTPException(status_code=500, detail=f"Check failed: {str(e)}")
+
+@api_router.post("/certificates/process-with-resolution")
+async def process_certificate_with_resolution(
+    resolution_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Process certificate upload with user resolution for duplicates and mismatch"""
+    try:
+        analysis_result = resolution_data.get('analysis_result', {})
+        upload_result = resolution_data.get('upload_result', {})
+        ship_id = resolution_data.get('ship_id')
+        
+        # Resolution decisions
+        duplicate_resolution = resolution_data.get('duplicate_resolution')  # 'overwrite' or 'cancel'
+        duplicate_target_id = resolution_data.get('duplicate_target_id')
+        
+        mismatch_resolution = resolution_data.get('mismatch_resolution')  # 'use_ai_ship' or 'use_current_ship'
+        target_ship_id = resolution_data.get('target_ship_id', ship_id)
+        
+        # Handle duplicate resolution
+        if duplicate_resolution == 'cancel':
+            return {
+                "status": "cancelled",
+                "message": "Certificate upload cancelled by user"
+            }
+        elif duplicate_resolution == 'overwrite' and duplicate_target_id:
+            # Delete the existing certificate
+            await mongo_db.delete("certificates", {"id": duplicate_target_id})
+            logger.info(f"Overwritten existing certificate: {duplicate_target_id}")
+        
+        # Prepare certificate data
+        notes = None
+        if mismatch_resolution == 'use_current_ship':
+            # Add reference note when saving to current ship despite mismatch
+            ai_ship_name = analysis_result.get('ship_name', 'Unknown Ship')
+            notes = f"Giấy chứng nhận này để tham khảo, không phải của tàu này. Ship name từ AI: {ai_ship_name}"
+        
+        # Create certificate record
+        cert_result = await create_certificate_from_analysis_with_notes(
+            analysis_result, upload_result, current_user, target_ship_id, notes
+        )
+        
+        # Update ship survey status if relevant information exists
+        await update_ship_survey_status(analysis_result, current_user)
+        
+        return {
+            "status": "success",
+            "certificate": cert_result,
+            "resolution": {
+                "duplicate_resolution": duplicate_resolution,
+                "mismatch_resolution": mismatch_resolution,
+                "notes_added": bool(notes)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error processing certificate with resolution: {e}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+
 @api_router.post("/certificates/upload-multi-files")
 async def upload_multi_files(
     files: List[UploadFile] = File(...),
