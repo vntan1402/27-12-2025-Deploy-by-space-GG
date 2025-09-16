@@ -57,8 +57,8 @@
 ##   test_priority: "high_first"  # or "sequential" or "stuck_first"
 ##
 ## agent_communication:
-##     -agent: "main"  # or "testing" or "user"
-##     -message: "Communication message between agents"
+    -agent: "main"
+    -message: "CRITICAL UPDATE - APPS SCRIPT URL CHANGED: Updated Google Apps Script URL from fake test URL to real user-provided URL: https://script.google.com/macros/s/AKfycbwphwgJwjyW4V-Y2y0J4uIa40zZwybm7s9maqNemi04EawcOhxRX99rbSXGWxk_D6o/exec. This should resolve Google Drive integration issues. Need to test: 1) Google Drive connection with new URL, 2) Multi-file upload functionality, 3) Certificate creation and management, 4) Frontend duplicateModal error resolution after recent rebuild. Priority: Test backend first, then frontend."
 
 # Protocol Guidelines for Main agent
 #
