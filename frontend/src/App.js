@@ -3518,6 +3518,135 @@ const AccountControlPage = () => {
             </div>
           </div>
         )}
+
+      {/* Duplicate Certificate Modal */}
+      {duplicateModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-red-600 mb-2">
+                ⚠️ {language === 'vi' ? 'Phát hiện giấy chứng nhận trùng lặp' : 'Duplicate Certificate Detected'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'vi' 
+                  ? `File "${duplicateModal.currentFile}" có dữ liệu trùng lặp trên 70% với giấy chứng nhận đã có:`
+                  : `File "${duplicateModal.currentFile}" has more than 70% data overlap with existing certificate:`}
+              </p>
+            </div>
+
+            {/* Show duplicate certificates */}
+            <div className="mb-6 max-h-60 overflow-y-auto">
+              {duplicateModal.duplicates.map((duplicate, index) => (
+                <div key={index} className="border rounded-lg p-4 mb-3 bg-yellow-50">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold text-gray-800">
+                      {duplicate.certificate.cert_name}
+                    </h4>
+                    <span className="text-sm font-medium text-red-600">
+                      {duplicate.similarity.toFixed(1)}% {language === 'vi' ? 'trùng lặp' : 'similar'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                    <div><strong>{language === 'vi' ? 'Số' : 'No'}:</strong> {duplicate.certificate.cert_no}</div>
+                    <div><strong>{language === 'vi' ? 'Loại' : 'Type'}:</strong> {duplicate.certificate.cert_type}</div>
+                    <div><strong>{language === 'vi' ? 'Ngày cấp' : 'Issue'}:</strong> {formatDate(duplicate.certificate.issue_date)}</div>
+                    <div><strong>{language === 'vi' ? 'Hết hạn' : 'Valid'}:</strong> {formatDate(duplicate.certificate.valid_date)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => handleDuplicateResolution('overwrite')}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+              >
+                {language === 'vi' 
+                  ? '🔄 Ghi đè lên dữ liệu đang có' 
+                  : '🔄 Overwrite existing data'}
+              </button>
+              
+              <button
+                onClick={() => handleDuplicateResolution('cancel')}
+                className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors font-medium"
+              >
+                {language === 'vi' 
+                  ? '❌ Hủy bỏ việc thêm giấy chứng nhận' 
+                  : '❌ Cancel certificate upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ship Name Mismatch Modal */}
+      {mismatchModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-orange-600 mb-2">
+                ⚠️ {language === 'vi' ? 'Tên tàu không khớp' : 'Ship Name Mismatch'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'vi' 
+                  ? 'AI phát hiện tên tàu trong giấy chứng nhận khác với tàu đang được chọn:'
+                  : 'AI detected ship name in the certificate differs from currently selected ship:'}
+              </p>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <strong className="text-blue-700">{language === 'vi' ? 'Tàu đang chọn:' : 'Current Ship:'}</strong>
+                  <p className="text-gray-700 font-medium mt-1">{mismatchModal.mismatchInfo?.current_ship_name}</p>
+                </div>
+                <div>
+                  <strong className="text-orange-700">{language === 'vi' ? 'Tàu từ AI:' : 'AI Detected Ship:'}</strong>
+                  <p className="text-gray-700 font-medium mt-1">{mismatchModal.mismatchInfo?.ai_ship_name}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => handleMismatchResolution('use_ai_ship')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors font-medium text-left"
+                disabled={!mismatchModal.mismatchInfo?.ai_ship_exists}
+              >
+                <div className="flex items-center justify-between">
+                  <span>
+                    {language === 'vi' 
+                      ? `🚢 Lưu vào database của tàu "${mismatchModal.mismatchInfo?.ai_ship_name}"` 
+                      : `🚢 Save to "${mismatchModal.mismatchInfo?.ai_ship_name}" database`}
+                  </span>
+                  {!mismatchModal.mismatchInfo?.ai_ship_exists && (
+                    <span className="text-xs bg-red-500 px-2 py-1 rounded">
+                      {language === 'vi' ? 'Tàu không tồn tại' : 'Ship not found'}
+                    </span>
+                  )}
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleMismatchResolution('use_current_ship')}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg transition-colors font-medium text-left"
+              >
+                {language === 'vi' 
+                  ? `📋 Lưu vào tàu "${mismatchModal.mismatchInfo?.current_ship_name}" kèm ghi chú tham khảo` 
+                  : `📋 Save to "${mismatchModal.mismatchInfo?.current_ship_name}" with reference note`}
+              </button>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <p className="text-xs text-gray-500">
+                {language === 'vi' 
+                  ? 'Chọn tùy chọn thứ 2 sẽ thêm ghi chú: "Giấy chứng nhận này để tham khảo, không phải của tàu này"'
+                  : 'Option 2 will add note: "This certificate is for reference, not belonging to this ship"'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
