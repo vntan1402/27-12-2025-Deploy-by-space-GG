@@ -2000,6 +2000,15 @@ const AccountControlPage = () => {
   const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfAnalyzing, setPdfAnalyzing] = useState(false);
+  // Duplicate modal state for AccountControlPage
+  const [duplicateModal, setDuplicateModal] = useState({
+    show: false,
+    duplicates: [],
+    currentFile: null,
+    analysisResult: null,
+    uploadResult: null,
+    status: 'all'
+  });
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [gdriveConfig, setGdriveConfig] = useState({
