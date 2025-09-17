@@ -5252,17 +5252,17 @@ const CompanyFormModal = ({
             {/* Configuration Status Badge */}
             <div className="mb-4 flex items-center space-x-3">
               <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                companyGdriveCurrentConfig?.configured 
+                (companyGdriveCurrentConfig?.config?.web_app_url && companyGdriveCurrentConfig?.config?.folder_id)
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-gray-100 text-gray-800'
               }`}>
-                {companyGdriveCurrentConfig?.configured 
+                {(companyGdriveCurrentConfig?.config?.web_app_url && companyGdriveCurrentConfig?.config?.folder_id)
                   ? (language === 'vi' ? 'Đã cấu hình' : 'Configured')
                   : (language === 'vi' ? 'Chưa cấu hình' : 'Not configured')
                 }
               </div>
               
-              {companyGdriveCurrentConfig?.configured && (
+              {(companyGdriveCurrentConfig?.config?.web_app_url && companyGdriveCurrentConfig?.config?.folder_id) && (
                 <button
                   onClick={() => {
                     if (companyData.id) {
