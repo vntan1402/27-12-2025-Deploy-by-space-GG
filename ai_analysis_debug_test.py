@@ -155,6 +155,50 @@ Place: Panama City, Panama
             return True
         else:
             self.log_test("Admin Authentication", False, f"Response: {response}")
+            self.log_issue("AUTHENTICATION", "Login failed", response)
+            return False
+
+    def test_ai_configuration(self):
+        """Test current AI configuration"""
+        print(f"\n🤖 Testing AI Configuration")
+        
+        success, response = self.run_api_request(
+            "GET",
+            "ai-config",
+            200
+        )
+        
+        if success:
+            print(f"   Current AI Configuration:")
+            print(f"     Provider: {response.get('provider', 'Not set')}")
+            print(f"     Model: {response.get('model', 'Not set')}")
+            print(f"     Use Emergent Key: {response.get('use_emergent_key', 'Not set')}")
+            
+            # Check if configuration looks valid
+            provider = response.get('provider')
+            model = response.get('model')
+            use_emergent = response.get('use_emergent_key', True)
+            
+            if not provider:
+                self.log_issue("AI_CONFIG", "AI provider not configured", response)
+            if not model:
+                self.log_issue("AI_CONFIG", "AI model not configured", response)
+            
+            # Check if using Emergent LLM key
+            if use_emergent:
+                emergent_key = os.environ.get('EMERGENT_LLM_KEY')
+                if emergent_key:
+                    print(f"     Emergent Key: Available (prefix: {emergent_key[:20]}...)")
+                    if not emergent_key.startswith('sk-emergent-'):
+                        self.log_issue("EMERGENT_KEY", "Key format may be incorrect", f"Key starts with: {emergent_key[:15]}")
+                else:
+                    self.log_issue("EMERGENT_KEY", "EMERGENT_LLM_KEY not found in environment", None)
+            
+            self.log_test("AI Configuration", True, f"Provider: {provider}, Model: {model}")
+            return True
+        else:
+            self.log_test("AI Configuration", False, f"Response: {response}")
+            self.log_issue("AI_CONFIG", "Failed to retrieve AI configuration", response)
             return False
 
     def download_test_pdf(self):
