@@ -715,16 +715,17 @@ Issued By: Panama Maritime Documentation Services
         return len(self.issues_found) == 0
 
 def main():
-    """Main test execution"""
+    """Main debug execution"""
     tester = AIAnalysisDebugTester()
-    
-    success = tester.run_comprehensive_test()
+    success = tester.run_comprehensive_debug()
     
     if success:
-        print("\n🎉 AI Analysis debugging completed successfully!")
+        print("🎉 AI Analysis debugging completed successfully!")
+        print("Certificate information extraction should be working correctly.")
         return 0
     else:
-        print("\n⚠️ AI Analysis debugging found issues - check details above")
+        print("⚠️ Issues found during AI Analysis debugging - check details above")
+        print("Certificate information extraction may be returning N/A values due to identified issues.")
         return 1
 
 if __name__ == "__main__":
