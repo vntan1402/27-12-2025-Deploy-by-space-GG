@@ -1224,7 +1224,7 @@ async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
         config = await mongo_db.find_one("ai_config", {"id": "system_ai"})
         if not config:
             # Return default config
-            return AIConfigResponse(provider="openai", model="gpt-4")
+            return AIConfigResponse(provider="openai", model="gpt-4", use_emergent_key=True)
         
         # Don't expose the API key
         return AIConfigResponse(
