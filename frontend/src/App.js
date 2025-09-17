@@ -4998,22 +4998,75 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              API Key *
+              {language === 'vi' ? 'Cấu hình API Key' : 'API Key Configuration'}
             </label>
-            <input
-              type="password"
-              value={config.api_key || ''}
-              onChange={(e) => setConfig(prev => ({ ...prev, api_key: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập API key của bạn' : 'Enter your API key'}
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' 
-                ? 'API key sẽ được mã hóa và lưu trữ an toàn. Cần thiết để sử dụng các tính năng AI.'
-                : 'API key will be encrypted and stored securely. Required to use AI features.'
-              }
-            </p>
+            
+            <div className="space-y-3">
+              {/* Option 1: Use Emergent LLM Key */}
+              <div className="flex items-center p-3 border border-green-200 rounded-lg bg-green-50">
+                <input
+                  type="radio"
+                  id="use-emergent-key"
+                  name="api-key-option"
+                  checked={config.use_emergent_key !== false}
+                  onChange={() => setConfig(prev => ({ 
+                    ...prev, 
+                    use_emergent_key: true, 
+                    api_key: 'EMERGENT_LLM_KEY' 
+                  }))}
+                  className="mr-3"
+                />
+                <div className="flex-1">
+                  <label htmlFor="use-emergent-key" className="text-sm font-medium text-green-800 cursor-pointer">
+                    ✨ {language === 'vi' ? 'Sử dụng Emergent LLM Key (Khuyến nghị)' : 'Use Emergent LLM Key (Recommended)'}
+                  </label>
+                  <p className="text-xs text-green-600 mt-1">
+                    {language === 'vi' 
+                      ? 'Miễn phí sử dụng với tất cả models. Không cần nhập API key riêng.'
+                      : 'Free to use with all models. No need to enter your own API key.'
+                    }
+                  </p>
+                </div>
+              </div>
+
+              {/* Option 2: Use Custom API Key */}
+              <div className="flex items-start p-3 border border-gray-200 rounded-lg">
+                <input
+                  type="radio"
+                  id="use-custom-key"
+                  name="api-key-option"
+                  checked={config.use_emergent_key === false}
+                  onChange={() => setConfig(prev => ({ 
+                    ...prev, 
+                    use_emergent_key: false, 
+                    api_key: '' 
+                  }))}
+                  className="mr-3 mt-1"
+                />
+                <div className="flex-1">
+                  <label htmlFor="use-custom-key" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    🔑 {language === 'vi' ? 'Sử dụng API Key riêng' : 'Use Custom API Key'}
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    {language === 'vi' 
+                      ? 'Nhập API key từ OpenAI, Anthropic, hoặc Google'
+                      : 'Enter your API key from OpenAI, Anthropic, or Google'
+                    }
+                  </p>
+                  
+                  {config.use_emergent_key === false && (
+                    <input
+                      type="password"
+                      value={config.api_key || ''}
+                      onChange={(e) => setConfig(prev => ({ ...prev, api_key: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder={language === 'vi' ? 'Nhập API key của bạn' : 'Enter your API key'}
+                      required
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
