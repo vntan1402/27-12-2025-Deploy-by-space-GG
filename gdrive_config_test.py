@@ -65,25 +65,33 @@ class GoogleDriveConfigTester:
         except Exception as e:
             return False, 0, {"error": str(e)}
 
-    def test_login(self, username="admin", password="admin123"):
-        """Test login and get token"""
-        print(f"\n🔐 Testing Authentication with {username}/{password}")
-        success, response = self.run_test(
-            "Admin Login",
-            "POST",
-            "auth/login",
-            200,
-            data={"username": username, "password": password}
-        )
+    def test_authentication(self):
+        """Test authentication as admin/admin123"""
+        print("\n🔐 TESTING AUTHENTICATION")
+        
+        login_data = {
+            "username": "admin",
+            "password": "admin123"
+        }
+        
+        success, status, response = self.make_request('POST', 'auth/login', login_data, 200)
+        
         if success and 'access_token' in response:
             self.token = response['access_token']
-            self.admin_user_id = response.get('user', {}).get('id')
             user_info = response.get('user', {})
-            print(f"✅ Login successful, token obtained")
-            print(f"   User: {user_info.get('full_name')} ({user_info.get('role')})")
-            print(f"   Company: {user_info.get('company', 'N/A')}")
+            self.log_test(
+                "Admin Login", 
+                True, 
+                f"User: {user_info.get('full_name')} ({user_info.get('role')})"
+            )
             return True
-        return False
+        else:
+            self.log_test(
+                "Admin Login", 
+                False, 
+                f"Status: {status}, Response: {response}"
+            )
+            return False
 
     def test_gdrive_config_get(self):
         """Test GET /api/gdrive/config - Get current Google Drive configuration"""
