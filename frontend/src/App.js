@@ -3742,8 +3742,8 @@ const AccountControlPage = () => {
               </h3>
               <p className="text-gray-600">
                 {language === 'vi' 
-                  ? `File "${duplicateModal.currentFile}" có dữ liệu trùng lặp trên 70% với giấy chứng nhận đã có:`
-                  : `File "${duplicateModal.currentFile}" has more than 70% data overlap with existing certificate:`}
+                  ? `File "${duplicateModal.currentFile}" có dữ liệu hoàn toàn trùng lặp với giấy chứng nhận đã có:`
+                  : `File "${duplicateModal.currentFile}" has identical data with existing certificate:`}
               </p>
             </div>
 
