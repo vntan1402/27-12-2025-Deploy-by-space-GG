@@ -837,7 +837,7 @@
 
 ## test_plan:
   current_focus:
-    - "System Google Drive Configuration Status Display Fix"
+    - "Enhanced Add New Ship Workflow with Google Drive Folder Creation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
