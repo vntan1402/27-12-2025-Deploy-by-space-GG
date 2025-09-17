@@ -2120,6 +2120,96 @@ async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permiss
 @api_router.post("/gdrive/sync-to-drive") 
 async def sync_to_drive(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     """Legacy sync endpoint - redirects to proxy version"""
+@api_router.post("/gdrive/configure-proxy")
+async def configure_google_drive_proxy(
+    web_app_url: str = None,
+    folder_id: str = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Configure Google Drive Apps Script proxy and test connection"""
+    try:
+        if not web_app_url or not folder_id:
+            raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
+        
+        # Test the Apps Script URL first
+        test_payload = {
+            "action": "test_connection",
+            "folder_id": folder_id
+        }
+        
+        response = requests.post(web_app_url, json=test_payload, timeout=30)
+        
+        if response.status_code != 200:
+            return {
+                "success": False,
+                "message": f"Apps Script test failed with status {response.status_code}",
+                "error": f"HTTP {response.status_code}",
+                "response_text": response.text[:500] if response.text else "No response"
+            }
+        
+        try:
+            result = response.json()
+            
+            if result.get("success"):
+                # If test successful, update the database configuration
+                config_update = {
+                    "web_app_url": web_app_url,
+                    "folder_id": folder_id,
+                    "auth_method": "apps_script",
+                    "last_tested": datetime.now(timezone.utc).isoformat(),
+                    "test_result": "success"
+                }
+                
+                await mongo_db.update(
+                    "gdrive_config",
+                    {"id": "system_gdrive"},
+                    config_update,
+                    upsert=True
+                )
+                
+                return {
+                    "success": True,
+                    "message": "Google Drive configuration successful!",
+                    "folder_name": result.get("folder_name", "Unknown"),
+                    "folder_id": folder_id,
+                    "test_result": "PASSED",
+                    "configuration_saved": True
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Apps Script test failed: {result.get('message', 'Unknown error')}",
+                    "error": result.get("error", "Test connection failed"),
+                    "apps_script_response": result
+                }
+                
+        except json.JSONDecodeError:
+            return {
+                "success": False,
+                "message": "Apps Script returned invalid JSON response",
+                "error": "Invalid JSON response",
+                "response_text": response.text[:500]
+            }
+        
+    except requests.exceptions.Timeout:
+        return {
+            "success": False,
+            "message": "Apps Script request timed out",
+            "error": "Request timeout after 30 seconds"
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "message": f"Apps Script request failed: {str(e)}",
+            "error": str(e)
+        }
+    except Exception as e:
+        logger.error(f"Error configuring Google Drive proxy: {e}")
+        return {
+            "success": False,
+            "message": f"Configuration failed: {str(e)}",
+            "error": str(e)
+        }
     return await sync_to_drive_proxy(current_user)
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
