@@ -599,7 +599,7 @@ const App = () => {
 // App Content Component (inside AuthProvider)
 const AppContent = () => {
   const { language } = useAuth();
-  const [gdriveConfig, setGdriveConfig] = useState({
+  const [systemGdriveConfig, setGdriveConfig] = useState({
     folder_id: ''
   });
 
@@ -616,7 +616,7 @@ const AppContent = () => {
           const response = await axios.post(`${API}/gdrive/oauth/callback`, {
             authorization_code: code,
             state: state,
-            folder_id: gdriveConfig.folder_id
+            folder_id: systemGdriveConfig.folder_id
           });
 
           if (response.data.success) {
@@ -2300,13 +2300,13 @@ const AccountControlPage = () => {
   };
 
   const handleTestGoogleDriveConnection = async () => {
-    if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
+    if (!systemGdriveConfig.service_account_json || !systemGdriveConfig.folder_id) {
       toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin!' : 'Please fill in all required information!');
       return;
     }
 
     // Clean and validate folder ID
-    const cleanFolderId = gdriveConfig.folder_id.trim();
+    const cleanFolderId = systemGdriveConfig.folder_id.trim();
     if (cleanFolderId.length < 20 || cleanFolderId.length > 100 || cleanFolderId.includes(' ')) {
       toast.error(language === 'vi' ? 
         `Folder ID không hợp lệ (độ dài: ${cleanFolderId.length}). Vui lòng kiểm tra lại!` :
@@ -2318,7 +2318,7 @@ const AccountControlPage = () => {
     setTestLoading(true);
     try {
       const testConfig = {
-        ...gdriveConfig,
+        ...systemGdriveConfig,
         folder_id: cleanFolderId
       };
       
@@ -2393,19 +2393,19 @@ const AccountControlPage = () => {
 
   const handleGoogleDriveConfig = async () => {
     // Validate required fields based on auth method
-    const authMethod = gdriveConfig.auth_method || 'apps_script';
+    const authMethod = systemGdriveConfig.auth_method || 'apps_script';
     
     let missingFields = false;
     if (authMethod === 'apps_script') {
-      if (!gdriveConfig.web_app_url || !gdriveConfig.folder_id) {
+      if (!systemGdriveConfig.web_app_url || !systemGdriveConfig.folder_id) {
         missingFields = true;
       }
     } else if (authMethod === 'oauth') {
-      if (!gdriveConfig.client_id || !gdriveConfig.client_secret || !gdriveConfig.folder_id) {
+      if (!systemGdriveConfig.client_id || !systemGdriveConfig.client_secret || !systemGdriveConfig.folder_id) {
         missingFields = true;
       }
     } else if (authMethod === 'service_account') {
-      if (!gdriveConfig.service_account_json || !gdriveConfig.folder_id) {
+      if (!systemGdriveConfig.service_account_json || !systemGdriveConfig.folder_id) {
         missingFields = true;
       }
     }
@@ -2422,22 +2422,22 @@ const AccountControlPage = () => {
       if (authMethod === 'apps_script') {
         endpoint = '/gdrive/configure-proxy';
         payload = {
-          web_app_url: gdriveConfig.web_app_url,
-          folder_id: gdriveConfig.folder_id
+          web_app_url: systemGdriveConfig.web_app_url,
+          folder_id: systemGdriveConfig.folder_id
         };
       } else if (authMethod === 'oauth') {
         endpoint = '/gdrive/oauth/authorize';
         payload = {
-          client_id: gdriveConfig.client_id,
-          client_secret: gdriveConfig.client_secret,
+          client_id: systemGdriveConfig.client_id,
+          client_secret: systemGdriveConfig.client_secret,
           redirect_uri: 'https://shipwise-13.preview.emergentagent.com/oauth2callback',
-          folder_id: gdriveConfig.folder_id
+          folder_id: systemGdriveConfig.folder_id
         };
       } else {
         endpoint = '/gdrive/configure';
         payload = {
-          service_account_json: gdriveConfig.service_account_json,
-          folder_id: gdriveConfig.folder_id
+          service_account_json: systemGdriveConfig.service_account_json,
+          folder_id: systemGdriveConfig.folder_id
         };
       }
       
@@ -3518,7 +3518,7 @@ const AccountControlPage = () => {
         {/* Google Drive Configuration Modal */}
         {showGoogleDrive && (
           <GoogleDriveModal
-            config={gdriveConfig}
+            config={systemGdriveConfig}
             setConfig={setGdriveConfig}
             currentConfig={gdriveCurrentConfig}
             onClose={() => setShowGoogleDrive(false)}
