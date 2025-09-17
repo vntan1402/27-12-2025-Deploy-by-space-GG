@@ -3251,7 +3251,7 @@ const AccountControlPage = () => {
                   {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'Configure System Google Drive'}
                 </button>
                 
-                {gdriveStatus?.configured && (
+                {(gdriveStatus?.status === 'connected' || gdriveCurrentConfig?.configured) && (
                   <>
                     <button
                       onClick={handleSyncToGoogleDrive}
