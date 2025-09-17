@@ -6616,6 +6616,19 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
             index === i ? {
               ...item,
               ...fileResult,
+              // Extract AI analysis results for display
+              category: fileResult.analysis?.category || 'Unknown',
+              ship_name: fileResult.analysis?.ship_name || fileResult.ship_name || 'Not detected',
+              cert_name: fileResult.analysis?.cert_name || 'Not detected',
+              cert_type: fileResult.analysis?.cert_type || 'Not detected',
+              cert_no: fileResult.analysis?.cert_no || 'Not detected',
+              issue_date: fileResult.analysis?.issue_date || 'Not detected',
+              valid_date: fileResult.analysis?.valid_date || 'Not detected',
+              issued_by: fileResult.analysis?.issued_by || 'Not detected',
+              // Google Drive upload status
+              google_drive_uploaded: fileResult.upload?.success || false,
+              google_drive_file_id: fileResult.upload?.file_id || null,
+              google_drive_folder_path: fileResult.upload?.folder_path || null,
               status: fileResult.errors && fileResult.errors.length > 0 ? 'failed' : 'completed',
               stage: fileResult.errors && fileResult.errors.length > 0 ? 
                 `❌ ${fileResult.errors[0]}` : 
