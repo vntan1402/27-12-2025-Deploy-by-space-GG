@@ -1648,6 +1648,162 @@ const HomePage = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Certificate Context Menu */}
+                  {contextMenu.show && (
+                    <div 
+                      className="fixed bg-white border border-gray-200 rounded-lg shadow-lg py-2 z-[100]"
+                      style={{ 
+                        left: `${contextMenu.x}px`, 
+                        top: `${contextMenu.y}px`,
+                        minWidth: '150px'
+                      }}
+                    >
+                      <button
+                        onClick={handleEditCertificate}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-blue-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                      </button>
+                      <button
+                        onClick={handleDeleteCertificate}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        {language === 'vi' ? 'Xóa' : 'Delete'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Edit Certificate Modal */}
+                  {showEditCertModal && editingCertificate && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                        <div className="mb-6">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">
+                            {language === 'vi' ? 'Chỉnh sửa chứng chỉ' : 'Edit Certificate'}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            {language === 'vi' ? 'Cập nhật thông tin chứng chỉ' : 'Update certificate information'}
+                          </p>
+                        </div>
+
+                        <form className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
+                            </label>
+                            <input
+                              type="text"
+                              value={editingCertificate.cert_name || ''}
+                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              required
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'} *
+                            </label>
+                            <input
+                              type="text"
+                              value={editingCertificate.cert_no || ''}
+                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingCertificate.cert_type || ''}
+                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_type: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingCertificate.issue_date?.split('T')[0] || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, issue_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingCertificate.valid_date?.split('T')[0] || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, valid_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingCertificate.issued_by || ''}
+                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, issued_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                          </div>
+                        </form>
+
+                        <div className="flex justify-end space-x-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowEditCertModal(false);
+                              setEditingCertificate(null);
+                            }}
+                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                          >
+                            {language === 'vi' ? 'Hủy' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                await axios.put(`${API}/certificates/${editingCertificate.id}`, editingCertificate, {
+                                  headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                
+                                toast.success(language === 'vi' ? 'Cập nhật chứng chỉ thành công!' : 'Certificate updated successfully!');
+                                setShowEditCertModal(false);
+                                setEditingCertificate(null);
+                                await fetchCertificates(selectedShip.id); // Refresh list
+                              } catch (error) {
+                                console.error('Error updating certificate:', error);
+                                toast.error(language === 'vi' ? 'Lỗi khi cập nhật chứng chỉ!' : 'Error updating certificate!');
+                              }
+                            }}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                          >
+                            {language === 'vi' ? 'Lưu' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Other categories content */}
                   {selectedCategory !== 'documents' || selectedSubMenu !== 'certificates' ? (
