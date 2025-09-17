@@ -2227,12 +2227,14 @@ async def sync_to_drive(current_user: UserResponse = Depends(check_permission([U
     """Legacy sync endpoint - redirects to proxy version"""
 @api_router.post("/gdrive/configure-proxy")
 async def configure_google_drive_proxy(
-    web_app_url: str = None,
-    folder_id: str = None,
+    config_data: dict,
     current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Configure Google Drive Apps Script proxy and test connection"""
     try:
+        web_app_url = config_data.get("web_app_url")
+        folder_id = config_data.get("folder_id")
+        
         if not web_app_url or not folder_id:
             raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
         
