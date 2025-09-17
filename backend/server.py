@@ -2204,7 +2204,8 @@ async def get_gdrive_status(current_user: UserResponse = Depends(get_current_use
         auth_method = config.get("auth_method", "apps_script")
         
         if auth_method == "apps_script":
-            script_url = config.get("apps_script_url")
+            # Handle both system config (apps_script_url) and company config (web_app_url)
+            script_url = config.get("apps_script_url") or config.get("web_app_url")
             if not script_url:
                 return {"status": "error", "message": "Apps Script URL not configured"}
             
