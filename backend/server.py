@@ -520,22 +520,22 @@ def enhance_certificate_response(cert_dict: dict) -> dict:
         return cert_dict
 
 def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
-    """Calculate similarity percentage between two certificates"""
+    """Calculate similarity percentage between two certificates - returns 100% only for exact matches"""
     try:
-        # Define fields to compare and their weights
-        comparison_fields = {
-            'cert_name': 0.25,
-            'cert_type': 0.15,
-            'cert_no': 0.20,
-            'issue_date': 0.15,
-            'valid_date': 0.15,
-            'issued_by': 0.10
-        }
+        # Define fields that must match EXACTLY for duplicate detection
+        comparison_fields = [
+            'cert_name',
+            'cert_type', 
+            'cert_no',
+            'issue_date',
+            'valid_date',
+            'issued_by'
+        ]
         
-        total_weight = 0
-        matching_weight = 0
+        fields_checked = 0
+        fields_matched = 0
         
-        for field, weight in comparison_fields.items():
+        for field in comparison_fields:
             val1 = cert1.get(field)
             val2 = cert2.get(field)
             
@@ -543,11 +543,11 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
             if not val1 or not val2:
                 continue
                 
-            total_weight += weight
+            fields_checked += 1
             
-            # Compare values based on type
+            # Compare values based on type - must be EXACT match
             if field in ['issue_date', 'valid_date']:
-                # Date comparison - convert to datetime if string
+                # Date comparison - exact match only
                 try:
                     if isinstance(val1, str):
                         val1 = datetime.fromisoformat(val1.replace('Z', '+00:00'))
@@ -555,24 +555,23 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
                         val2 = datetime.fromisoformat(val2.replace('Z', '+00:00'))
                     
                     if val1 == val2:
-                        matching_weight += weight
+                        fields_matched += 1
                 except:
                     pass
             else:
-                # String comparison - case insensitive
+                # String comparison - must be exactly identical (case insensitive)
                 if str(val1).lower().strip() == str(val2).lower().strip():
-                    matching_weight += weight
-                elif field == 'cert_name':
-                    # Partial match for certificate names
-                    similarity = calculate_string_similarity(str(val1), str(val2))
-                    if similarity > 0.8:  # 80% string similarity
-                        matching_weight += weight * similarity
+                    fields_matched += 1
         
-        # Calculate percentage
-        if total_weight == 0:
+        # Return 100% only if ALL available fields match exactly
+        if fields_checked == 0:
             return 0.0
         
-        return (matching_weight / total_weight) * 100
+        # Calculate percentage - only 100% if all fields match
+        similarity_percentage = (fields_matched / fields_checked) * 100
+        
+        # Return 100% only for perfect matches, otherwise return actual percentage
+        return similarity_percentage if similarity_percentage == 100.0 else 0.0
         
     except Exception as e:
         logger.error(f"Error calculating certificate similarity: {e}")
