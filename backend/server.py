@@ -2210,7 +2210,6 @@ async def configure_google_drive_proxy(
             "message": f"Configuration failed: {str(e)}",
             "error": str(e)
         }
-    return await sync_to_drive_proxy(current_user)
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
 async def get_usage_stats(
