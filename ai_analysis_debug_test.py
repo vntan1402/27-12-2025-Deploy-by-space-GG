@@ -28,6 +28,19 @@ class AIAnalysisDebugTester:
         # Test PDF file mentioned in review request
         self.test_pdf_filename = "PM252494430.pdf"
 
+    def log_issue(self, issue_type, description, details=None):
+        """Log an issue found during testing"""
+        issue = {
+            "type": issue_type,
+            "description": description,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.issues_found.append(issue)
+        print(f"🚨 ISSUE FOUND: {issue_type} - {description}")
+        if details:
+            print(f"   Details: {details}")
+
     def log_test(self, name, success, details=""):
         """Log test result"""
         self.tests_run += 1
