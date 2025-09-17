@@ -6318,6 +6318,13 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     return allowedRoles.includes(user?.role);
   };
   // Multi-file upload functions will be rebuilt from scratch
+  const handleDuplicateResolution = (action) => {
+    toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
+  };
+
+  const handleMismatchResolution = (action) => {
+    toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
+  };
 
   const handlePdfAnalysis = async () => {
     if (!pdfFile) {
