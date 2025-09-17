@@ -1961,7 +1961,18 @@ async def analyze_with_google(file_content: bytes, filename: str, content_type: 
         
         if not extracted_text or len(extracted_text.strip()) < 10:
             logger.warning(f"Could not extract meaningful text from {filename}")
-            return classify_by_filename(filename)
+            return {
+                "category": "certificates",  # Default to certificates for certificate uploads
+                "cert_name": f"Certificate from {filename}",
+                "cert_type": "Unknown Certificate Type",
+                "cert_no": f"EXTRACT_FAILED_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "issue_date": None,
+                "valid_date": None,
+                "issued_by": "Text extraction failed",
+                "ship_name": "Unknown Ship",
+                "confidence": 0.0,
+                "extraction_error": "PDF text extraction failed - file may be corrupted or image-based"
+            }
         
         # Use Emergent LLM with text-only analysis
         chat = LlmChat(
