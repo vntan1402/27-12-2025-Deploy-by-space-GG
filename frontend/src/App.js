@@ -5028,7 +5028,13 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
             {language === 'vi' ? 'Hủy' : 'Cancel'}
           </button>
           <button
-            onClick={onSave}
+            onClick={() => {
+              if (!config.api_key || config.api_key.trim() === '') {
+                alert(language === 'vi' ? 'Vui lòng nhập API key' : 'Please enter API key');
+                return;
+              }
+              onSave();
+            }}
             className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all"
           >
             {language === 'vi' ? 'Lưu cấu hình' : 'Save Configuration'}
