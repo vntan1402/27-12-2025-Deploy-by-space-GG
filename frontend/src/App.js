@@ -926,6 +926,13 @@ const HomePage = () => {
   }, [contextMenu.show]);
 
   // Multi-file upload functions will be rebuilt from scratch
+  const handleDuplicateResolution = (action) => {
+    toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
+  };
+
+  const handleMismatchResolution = (action) => {
+    toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
+  };
 
   const getFilteredCertificates = () => {
     return certificates.filter(cert => {
