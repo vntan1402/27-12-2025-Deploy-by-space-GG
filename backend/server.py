@@ -919,6 +919,50 @@ async def create_company(company_data: CompanyCreate, current_user: UserResponse
         logger.error(f"Error creating company: {e}")
         raise HTTPException(status_code=500, detail="Failed to create company")
 
+@api_router.put("/companies/{company_id}", response_model=CompanyResponse)
+async def update_company(company_id: str, company_data: CompanyUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    try:
+        # Check if company exists
+        existing_company = await mongo_db.find_one("companies", {"id": company_id})
+        if not existing_company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Prepare update data
+        update_data = company_data.dict(exclude_unset=True)
+        
+        # Handle system_expiry field - convert string to datetime if needed
+        if 'system_expiry' in update_data and update_data['system_expiry']:
+            if isinstance(update_data['system_expiry'], str):
+                try:
+                    update_data['system_expiry'] = datetime.fromisoformat(update_data['system_expiry'].replace('Z', '+00:00'))
+                except ValueError:
+                    # If parsing fails, keep as string and let MongoDB handle it
+                    pass
+        
+        # Update legacy 'name' field for backward compatibility
+        if 'name_en' in update_data or 'name_vn' in update_data:
+            name_en = update_data.get('name_en') or existing_company.get('name_en')
+            name_vn = update_data.get('name_vn') or existing_company.get('name_vn')
+            update_data['name'] = name_en or name_vn or 'Unknown Company'
+        
+        if update_data:  # Only update if there's data to update
+            await mongo_db.update("companies", {"id": company_id}, update_data)
+        
+        # Get updated company
+        updated_company = await mongo_db.find_one("companies", {"id": company_id})
+        
+        # Fix companies that don't have 'name' field but have 'name_en' or 'name_vn'
+        if 'name' not in updated_company:
+            updated_company['name'] = updated_company.get('name_en') or updated_company.get('name_vn') or 'Unknown Company'
+        
+        return CompanyResponse(**updated_company)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating company: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update company")
+
 # Ship endpoints
 @api_router.get("/ships", response_model=List[ShipResponse])
 async def get_ships(current_user: UserResponse = Depends(get_current_user)):
