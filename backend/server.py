@@ -1248,6 +1248,7 @@ async def update_ai_config(
             "provider": config.provider,
             "model": config.model,
             "api_key": config.api_key,
+            "use_emergent_key": config.use_emergent_key,
             "updated_at": datetime.now(timezone.utc)
         }
         
