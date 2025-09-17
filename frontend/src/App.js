@@ -877,6 +877,70 @@ const HomePage = () => {
     }
   };
 
+  // Context Menu Functions
+  const handleCertificateRightClick = (e, certificate) => {
+    e.preventDefault();
+    
+    // Check if user has Company Officer role or higher
+    const allowedRoles = ['company_officer', 'manager', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(user?.role)) {
+      return; // Don't show context menu for unauthorized users
+    }
+    
+    setContextMenu({
+      show: true,
+      x: e.clientX,
+      y: e.clientY,
+      certificate: certificate
+    });
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+  };
+
+  const handleEditCertificate = () => {
+    setEditingCertificate(contextMenu.certificate);
+    setShowEditCertModal(true);
+    handleCloseContextMenu();
+  };
+
+  const handleDeleteCertificate = async () => {
+    if (!contextMenu.certificate) return;
+    
+    const confirmMessage = language === 'vi' 
+      ? `Bạn có chắc chắn muốn xóa chứng chỉ "${contextMenu.certificate.cert_name}"?`
+      : `Are you sure you want to delete certificate "${contextMenu.certificate.cert_name}"?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        await axios.delete(`${API}/certificates/${contextMenu.certificate.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        toast.success(language === 'vi' ? 'Đã xóa chứng chỉ!' : 'Certificate deleted!');
+        await fetchCertificates(selectedShip.id); // Refresh list
+      } catch (error) {
+        console.error('Error deleting certificate:', error);
+        toast.error(language === 'vi' ? 'Lỗi khi xóa chứng chỉ!' : 'Error deleting certificate!');
+      }
+    }
+    
+    handleCloseContextMenu();
+  };
+
+  // Close context menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu.show) {
+        handleCloseContextMenu();
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [contextMenu.show]);
+
   const handleDuplicateResolution = async (action) => {
     try {
       if (!duplicateModal || !duplicateModal.show) {
