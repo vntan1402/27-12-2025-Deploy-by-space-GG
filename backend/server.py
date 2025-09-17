@@ -1991,12 +1991,12 @@ async def get_gdrive_config(current_user: UserResponse = Depends(get_current_use
                 "apps_script_url": None
             }
         
-        # Don't expose sensitive data
+        # Return configuration data (apps_script_url needed for frontend display)
         return {
             "configured": True,
             "auth_method": config.get("auth_method"),
             "folder_id": config.get("folder_id"),
-            "apps_script_url": config.get("apps_script_url") is not None
+            "apps_script_url": config.get("apps_script_url")  # Return actual URL for frontend
         }
     except Exception as e:
         logger.error(f"Error fetching Google Drive config: {e}")
