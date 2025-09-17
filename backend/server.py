@@ -1229,7 +1229,8 @@ async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
         # Don't expose the API key
         return AIConfigResponse(
             provider=config.get("provider", "openai"),
-            model=config.get("model", "gpt-4")
+            model=config.get("model", "gpt-4"),
+            use_emergent_key=config.get("use_emergent_key", True)
         )
     except Exception as e:
         logger.error(f"Error fetching AI config: {e}")
