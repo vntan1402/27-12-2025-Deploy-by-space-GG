@@ -398,10 +398,10 @@
 
   - task: "AI Provider Selection UI"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
-    stuck_count: 0
-    priority: "medium"
+    stuck_count: 1
+    priority: "high"
     needs_retesting: false
     status_history:
         - working: "NA"
@@ -413,6 +413,9 @@
         - working: true
           agent: "testing"
           comment: "✅ TESTED AND WORKING - AI Configuration section visible for Admin users in System Settings. Shows current provider (OPENAI) and model (gpt-4). Configure AI button present and functional. Professional styling with purple theme maintained."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL FRONTEND BUG IDENTIFIED - AI Configuration save functionality completely broken due to missing API key field. Backend AIConfig model requires {provider, model, api_key} but frontend AIConfigModal only sends {provider, model}. All save attempts return 422 'Field required' error. Modal UI works correctly (opens, dropdowns functional, responsive design), but core save functionality is non-functional. Frontend implementation is incomplete - missing required API key input field in modal form. This makes the entire AI configuration feature unusable for end users despite appearing to work visually."
 
   - task: "Company Management UI with Individual Logo Upload"
     implemented: true
