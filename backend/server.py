@@ -1879,26 +1879,26 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
             
             # Create user message with file
             user_message = UserMessage(content=analysis_prompt, files=[file_obj])
-        
-        # Get AI response
-        response = await chat.achat([user_message])
-        
-        logger.info(f"AI Response type: {type(response)}")
-        logger.info(f"AI Response content (first 200 chars): {str(response)[:200]}")
-        
-        # Parse JSON response
-        response_text = str(response)
-        
-        # Clean up response (remove markdown code blocks if present)
-        if "```json" in response_text:
-            start = response_text.find("```json") + 7
-            end = response_text.rfind("```")
-            response_text = response_text[start:end].strip()
-        elif "```" in response_text:
-            start = response_text.find("```") + 3
-            end = response_text.rfind("```")
-            response_text = response_text[start:end].strip()
-        
+            
+            # Get AI response
+            response = await chat.achat([user_message])
+            
+            logger.info(f"AI Response type: {type(response)}")
+            logger.info(f"AI Response content (first 200 chars): {str(response)[:200]}")
+            
+            # Parse JSON response
+            response_text = str(response)
+            
+            # Clean up response (remove markdown code blocks if present)
+            if "```json" in response_text:
+                start = response_text.find("```json") + 7
+                end = response_text.rfind("```")
+                response_text = response_text[start:end].strip()
+            elif "```" in response_text:
+                start = response_text.find("```") + 3
+                end = response_text.rfind("```")
+                response_text = response_text[start:end].strip()
+            
             try:
                 parsed_response = json.loads(response_text)
                 return parsed_response
