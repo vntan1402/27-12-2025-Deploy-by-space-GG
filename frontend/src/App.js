@@ -2345,9 +2345,14 @@ const AccountControlPage = () => {
   const fetchAIConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
-      setAiConfig(response.data);
+      setAiConfig({
+        provider: response.data.provider || 'openai',
+        model: response.data.model || 'gpt-4o', 
+        api_key: response.data.api_key || ''
+      });
     } catch (error) {
       console.error('Failed to fetch AI config:', error);
+      setAiConfig({ provider: 'openai', model: 'gpt-4o', api_key: '' });
     }
   };
 
