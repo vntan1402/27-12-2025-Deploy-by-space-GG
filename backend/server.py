@@ -1876,9 +1876,9 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
                 mime_type=content_type,
                 file_path=temp_file_path
             )
-        
-        # Create user message with file
-        user_message = UserMessage(content=analysis_prompt, files=[file_obj])
+            
+            # Create user message with file
+            user_message = UserMessage(content=analysis_prompt, files=[file_obj])
         
         # Get AI response
         response = await chat.achat([user_message])
