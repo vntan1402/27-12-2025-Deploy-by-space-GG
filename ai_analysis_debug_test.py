@@ -239,66 +239,105 @@ Place: Panama City, Panama
             self.log_issue("PDF_EXTRACTION", "PDF text extraction failed", str(e))
             return None
 
-    def test_single_pdf_analysis(self, pdf_path):
-        """Test the single PDF analysis endpoint"""
-        print(f"\n🤖 Testing Single PDF Analysis Endpoint")
+    def test_ai_analysis_endpoint(self, pdf_content):
+        """Test AI Analysis endpoint with maritime certificate"""
+        print(f"\n🔍 Testing AI Analysis Endpoint")
         
         try:
-            with open(pdf_path, 'rb') as pdf_file:
-                files = {'file': ('BROTHER_36_EIAPP.pdf', pdf_file, 'application/pdf')}
+            # Create file-like object from content
+            files = {
+                'files': (self.test_pdf_filename, io.BytesIO(pdf_content), 'application/pdf')
+            }
+            
+            print(f"   Uploading test certificate PDF: {self.test_pdf_filename}")
+            success, response = self.run_api_request(
+                "POST",
+                "certificates/upload-multi-files",
+                200,
+                files=files,
+                timeout=120  # Extended timeout for AI processing
+            )
+            
+            if success:
+                print(f"✅ AI Analysis endpoint accessible")
                 
-                success, response = self.run_api_request(
-                    "POST",
-                    "analyze-ship-certificate",
-                    200,
-                    files=files,
-                    timeout=120  # AI analysis can take time
-                )
-                
-                if success:
-                    # Check if ship_name is correctly extracted
-                    ship_name = response.get('ship_name', 'NOT_FOUND')
+                # Analyze the response
+                results = response.get('results', [])
+                if results:
+                    result = results[0]
+                    print(f"   File processed: {result.get('filename')}")
+                    print(f"   Status: {result.get('status')}")
                     
-                    print(f"   AI Analysis Response:")
-                    print(f"   Ship Name: {ship_name}")
-                    print(f"   IMO Number: {response.get('imo_number', 'N/A')}")
-                    print(f"   Class Society: {response.get('class_society', 'N/A')}")
-                    print(f"   Flag: {response.get('flag', 'N/A')}")
-                    print(f"   Gross Tonnage: {response.get('gross_tonnage', 'N/A')}")
-                    print(f"   Built Year: {response.get('built_year', 'N/A')}")
-                    print(f"   Ship Owner: {response.get('ship_owner', 'N/A')}")
-                    print(f"   Company: {response.get('company', 'N/A')}")
-                    
-                    # Check if ship name matches expected
-                    ship_name_correct = ship_name == self.expected_ship_name
-                    
-                    self.log_test(
-                        "Single PDF Analysis - API Call", 
-                        True, 
-                        f"Analysis completed successfully"
-                    )
-                    
-                    self.log_test(
-                        "Ship Name Extraction", 
-                        ship_name_correct, 
-                        f"Expected: '{self.expected_ship_name}', Got: '{ship_name}'"
-                    )
-                    
-                    # Log full response for debugging
-                    print(f"\n   Full AI Response:")
-                    print(json.dumps(response, indent=2, default=str))
-                    
-                    return ship_name_correct, response
+                    analysis = result.get('analysis', {})
+                    if analysis:
+                        print(f"   Analysis results:")
+                        cert_name = analysis.get('cert_name', 'N/A')
+                        cert_no = analysis.get('cert_no', 'N/A')
+                        issue_date = analysis.get('issue_date', 'N/A')
+                        valid_date = analysis.get('valid_date', 'N/A')
+                        issued_by = analysis.get('issued_by', 'N/A')
+                        ship_name = analysis.get('ship_name', 'N/A')
+                        
+                        print(f"     Ship Name: {ship_name}")
+                        print(f"     Cert Name: {cert_name}")
+                        print(f"     Cert No: {cert_no}")
+                        print(f"     Issue Date: {issue_date}")
+                        print(f"     Valid Date: {valid_date}")
+                        print(f"     Issued By: {issued_by}")
+                        print(f"     Category: {analysis.get('category', 'N/A')}")
+                        
+                        # Check for N/A values (the main issue we're debugging)
+                        na_fields = []
+                        key_fields = ['cert_name', 'cert_no', 'issue_date', 'valid_date', 'issued_by']
+                        for field in key_fields:
+                            value = analysis.get(field, 'N/A')
+                            if value == 'N/A' or value is None or value == '' or str(value).strip() == '':
+                                na_fields.append(field)
+                        
+                        if na_fields:
+                            self.log_issue(
+                                "AI_EXTRACTION", 
+                                f"Certificate fields returning N/A: {', '.join(na_fields)}", 
+                                {
+                                    "na_fields": na_fields,
+                                    "full_analysis": analysis,
+                                    "expected_values": {
+                                        "cert_name": "Safety Management Certificate",
+                                        "cert_no": "SMC-PM-2024-001",
+                                        "issue_date": "2024-01-15",
+                                        "valid_date": "2025-01-15",
+                                        "issued_by": "Panama Maritime Documentation Services"
+                                    }
+                                }
+                            )
+                            self.log_test("Certificate Information Extraction", False, f"N/A fields: {', '.join(na_fields)}")
+                        else:
+                            print(f"✅ All certificate fields extracted successfully")
+                            self.log_test("Certificate Information Extraction", True, "All fields extracted")
+                            
+                        # Log full analysis for debugging
+                        print(f"\n   Full Analysis Response:")
+                        print(json.dumps(analysis, indent=2, default=str))
+                        
+                        return True, analysis
+                        
+                    else:
+                        self.log_issue("AI_ANALYSIS", "No analysis results in response", result)
+                        self.log_test("AI Analysis Response", False, "No analysis data")
+                        return False, result
                 else:
-                    self.log_test(
-                        "Single PDF Analysis - API Call", 
-                        False, 
-                        f"API Error: {response}"
-                    )
+                    self.log_issue("AI_ANALYSIS", "No results in upload response", response)
+                    self.log_test("AI Analysis Response", False, "No results array")
                     return False, response
                     
+            else:
+                self.log_issue("AI_ENDPOINT", "AI analysis endpoint failed", response)
+                self.log_test("AI Analysis Endpoint", False, f"HTTP error: {response}")
+                return False, response
+                
         except Exception as e:
-            self.log_test("Single PDF Analysis", False, f"Error: {str(e)}")
+            self.log_test("AI Analysis Endpoint", False, f"Error: {str(e)}")
+            self.log_issue("AI_ENDPOINT", "Exception during AI analysis", str(e))
             return False, {"error": str(e)}
 
     def test_multi_file_upload(self, pdf_path):
