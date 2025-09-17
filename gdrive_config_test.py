@@ -24,16 +24,26 @@ class GoogleDriveConfigTester:
             "folder_id": "1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB"
         }
 
-    def run_test(self, name, method, endpoint, expected_status, data=None):
-        """Run a single API test"""
+    def log_test(self, name, success, details=""):
+        """Log test results"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name}")
+            if details:
+                print(f"   {details}")
+        else:
+            print(f"❌ {name}")
+            if details:
+                print(f"   {details}")
+
+    def make_request(self, method, endpoint, data=None, expected_status=200):
+        """Make API request with proper headers"""
         url = f"{self.api_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'}
+        
         if self.token:
             headers['Authorization'] = f'Bearer {self.token}'
-
-        self.tests_run += 1
-        print(f"\n🔍 Testing {name}...")
-        print(f"   URL: {url}")
         
         try:
             if method == 'GET':
@@ -42,32 +52,18 @@ class GoogleDriveConfigTester:
                 response = requests.post(url, json=data, headers=headers, timeout=30)
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=headers, timeout=30)
-            elif method == 'DELETE':
-                response = requests.delete(url, headers=headers, timeout=30)
-
+            
             success = response.status_code == expected_status
-            if success:
-                self.tests_passed += 1
-                print(f"✅ Passed - Status: {response.status_code}")
-                try:
-                    response_data = response.json() if response.content else {}
-                    if response_data:
-                        print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
-                    return True, response_data
-                except:
-                    return True, {}
-            else:
-                print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                try:
-                    error_detail = response.json()
-                    print(f"   Error: {error_detail}")
-                except:
-                    print(f"   Error: {response.text}")
-                return False, {}
-
+            
+            try:
+                response_data = response.json() if response.content else {}
+            except:
+                response_data = {"text": response.text}
+            
+            return success, response.status_code, response_data
+            
         except Exception as e:
-            print(f"❌ Failed - Error: {str(e)}")
-            return False, {}
+            return False, 0, {"error": str(e)}
 
     def test_login(self, username="admin", password="admin123"):
         """Test login and get token"""
