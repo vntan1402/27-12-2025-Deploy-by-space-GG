@@ -4792,7 +4792,7 @@ const PermissionModal = ({ selectedUsers, onClose, onSuccess }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full max-h-[80vh] overflow-y-auto mx-4">
@@ -4938,7 +4938,7 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
@@ -5118,7 +5118,7 @@ const CompanyFormModal = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
@@ -5497,7 +5497,7 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
@@ -5933,7 +5933,7 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
@@ -6769,7 +6769,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-4">
