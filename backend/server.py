@@ -2382,6 +2382,16 @@ async def configure_company_gdrive(
     except Exception as e:
         logger.error(f"Error configuring company Google Drive: {e}")
         raise HTTPException(status_code=500, detail=f"Configuration failed: {str(e)}")
+
+# Proxy endpoint for frontend compatibility
+@api_router.post("/companies/{company_id}/gdrive/configure-proxy")
+async def configure_company_gdrive_proxy(
+    company_id: str,
+    config_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Company-specific Google Drive configuration proxy (frontend compatibility)"""
+    return await configure_company_gdrive(company_id, config_data, current_user)
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
 async def get_usage_stats(
