@@ -1460,7 +1460,13 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
         provider = ai_config.get("provider", "openai").lower()
         model = ai_config.get("model", "gpt-4")
         api_key = ai_config.get("api_key")
+        use_emergent_key = ai_config.get("use_emergent_key", True)  # Default to True
         
+        # Handle Emergent LLM Key
+        if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
+            api_key = EMERGENT_LLM_KEY
+            provider = "emergent"  # Force emergent provider when using Emergent key
+            
         if not api_key:
             logger.error("No API key found in AI configuration")
             return classify_by_filename(filename)
