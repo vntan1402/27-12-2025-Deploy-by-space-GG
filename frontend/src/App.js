@@ -4989,6 +4989,26 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
             </select>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              API Key *
+            </label>
+            <input
+              type="password"
+              value={config.api_key || ''}
+              onChange={(e) => setConfig(prev => ({ ...prev, api_key: e.target.value }))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder={language === 'vi' ? 'Nhập API key của bạn' : 'Enter your API key'}
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'vi' 
+                ? 'API key sẽ được mã hóa và lưu trữ an toàn. Cần thiết để sử dụng các tính năng AI.'
+                : 'API key will be encrypted and stored securely. Required to use AI features.'
+              }
+            </p>
+          </div>
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
               {language === 'vi' ? 
