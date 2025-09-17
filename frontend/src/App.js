@@ -7598,6 +7598,75 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
         </div>
       )}
 
+      {/* Duplicate Certificate Modal */}
+      {duplicateModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-red-600 mb-2">
+                ⚠️ {language === 'vi' ? 'Phát hiện giấy chứng nhận trùng lặp' : 'Duplicate Certificate Detected'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'vi' 
+                  ? `File "${duplicateModal.currentFile}" có Certificate No và Cert Name trùng với giấy chứng nhận đã có:`
+                  : `File "${duplicateModal.currentFile}" has matching Certificate No and Cert Name with existing certificate:`}
+              </p>
+            </div>
+
+            {/* Show duplicate certificates */}
+            <div className="mb-6 max-h-60 overflow-y-auto">
+              {duplicateModal.duplicates && duplicateModal.duplicates.map((duplicate, index) => (
+                <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4 mb-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Tên chứng chỉ:' : 'Cert Name:'}</span>
+                      <p className="text-gray-900">{duplicate.existing_cert?.cert_name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Số chứng chỉ:' : 'Cert No:'}</span>
+                      <p className="text-gray-900">{duplicate.existing_cert?.cert_no || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}</span>
+                      <p className="text-gray-900">{duplicate.existing_cert?.issue_date || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span>
+                      <p className="text-gray-900">{duplicate.existing_cert?.valid_date || 'N/A'}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-red-600">
+                    {language === 'vi' ? 'Độ trùng lặp:' : 'Similarity:'} {duplicate.similarity?.toFixed(1)}%
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => handleDuplicateResolution('cancel')}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={() => handleDuplicateResolution('overwrite')}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
+              >
+                {language === 'vi' ? 'Ghi đè' : 'Overwrite'}
+              </button>
+              <button
+                onClick={() => handleDuplicateResolution('keep_both')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+              >
+                {language === 'vi' ? 'Giữ cả hai' : 'Keep Both'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ship Confirmation Modal */}
       {showShipConfirmModal && pendingShipData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
