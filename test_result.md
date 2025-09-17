@@ -713,10 +713,9 @@
 
 ## test_plan:
   current_focus:
-    - "Ship Form Enhancement with PDF Analysis and Required Fields"
-    - "Google Apps Script Integration for Certificate Upload"
+    - "AI Provider Selection UI"
   stuck_tasks:
-    - "Ship Form Enhancement with PDF Analysis and Required Fields"
+    - "AI Provider Selection UI"
   test_all: false
   test_priority: "high_first"
 
