@@ -1582,6 +1582,9 @@ def classify_by_filename(filename: str) -> dict:
         category = "survey_reports"
     elif any(term in filename_lower for term in ['certificate', 'cert', 'license', 'permit']):
         category = "certificates"
+    elif filename_lower.endswith('.pdf'):
+        # Default PDF files to certificates for maritime document management
+        category = "certificates"
     else:
         category = "other_documents"
     
