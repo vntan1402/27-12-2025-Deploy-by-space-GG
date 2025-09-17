@@ -78,8 +78,11 @@ class ShipManagementAPITester:
         if success and 'access_token' in response:
             self.token = response['access_token']
             self.admin_user_id = response.get('user', {}).get('id')
+            self.current_user = response.get('user', {})
+            self.company_id = self.current_user.get('company')
             print(f"✅ Login successful, token obtained")
             print(f"   User: {response.get('user', {}).get('full_name')} ({response.get('user', {}).get('role')})")
+            print(f"   Company: {self.company_id}")
             return True
         return False
 
