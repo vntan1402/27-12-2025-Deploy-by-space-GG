@@ -734,7 +734,7 @@ const HomePage = () => {
     } catch (error) {
       console.error('Failed to fetch AI config:', error);
       // Set default if can't fetch
-      setAiConfig({ provider: 'Unknown', model: 'Unknown' });
+      setAiConfig({ provider: 'Unknown', model: 'Unknown', api_key: '' });
     }
   };
 
