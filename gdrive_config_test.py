@@ -226,24 +226,28 @@ class GoogleDriveConfigTester:
         success, status, response = self.make_request('GET', 'gdrive/config', None, 200)
         
         if success:
-            config = response.get('config', {})
-            web_app_url = config.get('web_app_url', '')
-            folder_id = config.get('folder_id', '')
+            # The response structure is different - it's not nested under 'config'
+            configured = response.get('configured', False)
+            folder_id = response.get('folder_id', '')
+            apps_script_url_present = response.get('apps_script_url', False)
+            auth_method = response.get('auth_method', '')
             
-            # Check if our configuration is saved
-            if (web_app_url == self.user_config["web_app_url"] and 
-                folder_id == self.user_config["folder_id"]):
+            # Check if our configuration is saved (backend doesn't expose actual URL for security)
+            if (configured and 
+                folder_id == self.user_config["folder_id"] and 
+                apps_script_url_present and 
+                auth_method == "apps_script"):
                 self.log_test(
                     "Configuration Persistence", 
                     True, 
-                    f"Configuration correctly saved and retrieved"
+                    f"Configuration correctly saved - Folder: {folder_id}, Auth: {auth_method}, URL configured: {apps_script_url_present}"
                 )
                 return True
             else:
                 self.log_test(
                     "Configuration Persistence", 
                     False, 
-                    f"Configuration mismatch - URL: {web_app_url}, Folder: {folder_id}"
+                    f"Configuration issue - Configured: {configured}, Folder: {folder_id}, URL present: {apps_script_url_present}, Auth: {auth_method}"
                 )
                 return False
         else:
