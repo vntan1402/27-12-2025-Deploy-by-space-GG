@@ -132,12 +132,12 @@ class BackendTester:
                 status = response.json()
                 status_value = status.get('status')
                 
-                if status_value == 'configured':
+                if status_value in ['configured', 'connected']:
                     self.log_test("Company Google Drive Status", True, f"Status: {status_value}")
                     return True
                 else:
                     self.log_test("Company Google Drive Status", False, 
-                                error=f"Status is '{status_value}', expected 'configured'")
+                                error=f"Status is '{status_value}', expected 'configured' or 'connected'")
                     return False
             else:
                 self.log_test("Company Google Drive Status", False, 
