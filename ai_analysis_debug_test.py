@@ -602,67 +602,117 @@ Issued By: Panama Maritime Documentation Services
             self.log_test("Error Message Check", False, f"Error: {str(e)}")
             return False
 
-    def run_comprehensive_test(self):
-        """Run comprehensive AI analysis debugging"""
-        print("🚢 AI Analysis Debug Test for Ship Name Extraction")
-        print("=" * 60)
-        print(f"Target PDF: {self.test_pdf_url}")
-        print(f"Expected Ship Name: {self.expected_ship_name}")
-        print("=" * 60)
+    def run_comprehensive_debug(self):
+        """Run comprehensive AI analysis debugging for certificate information extraction"""
+        print("🔍 AI ANALYSIS DEBUG - CERTIFICATE INFORMATION EXTRACTION")
+        print("=" * 70)
+        print("Focus: Debug why certificate information extraction returns all 'N/A' values")
+        print("File: PM252494430.pdf processing issue")
+        print("=" * 70)
         
-        # Step 1: Authentication
+        # Test sequence
+        test_results = []
+        
+        # 1. Authentication
         if not self.test_authentication():
             print("❌ Authentication failed, stopping tests")
             return False
+        test_results.append(("Authentication", True))
         
-        # Step 2: Download test PDF
-        pdf_path = self.download_test_pdf()
-        if not pdf_path:
-            print("❌ PDF download failed, stopping tests")
+        # 2. AI Configuration
+        ai_config_success = self.test_ai_configuration()
+        test_results.append(("AI Configuration", ai_config_success))
+        
+        # 3. PDF Text Extraction
+        pdf_content = self.test_pdf_text_extraction()
+        pdf_success = pdf_content is not None
+        test_results.append(("PDF Text Extraction", pdf_success))
+        
+        if not pdf_success:
+            print("❌ PDF text extraction failed, stopping tests")
             return False
         
-        try:
-            # Step 3: Test single PDF analysis
-            single_success, single_response = self.test_single_pdf_analysis(pdf_path)
+        # 4. Google Provider Integration
+        google_success = self.test_google_provider_integration()
+        test_results.append(("Google Provider", google_success))
+        
+        # 5. AI Analysis Endpoint
+        ai_success, ai_response = self.test_ai_analysis_endpoint(pdf_content)
+        test_results.append(("AI Analysis Endpoint", ai_success))
+        
+        # 6. Different Certificate Types
+        cert_types_success = self.test_different_certificate_types()
+        test_results.append(("Certificate Types", cert_types_success))
+        
+        # 7. Error Message Handling
+        error_handling_success = self.check_error_messages()
+        test_results.append(("Error Handling", error_handling_success))
+        
+        # 8. Backend Logs
+        self.debug_backend_logs()
+        test_results.append(("Backend Logs", True))  # Always passes as it's informational
+        
+        # Print results
+        print("\n" + "=" * 70)
+        print("📊 DEBUG TEST RESULTS")
+        print("=" * 70)
+        
+        passed_tests = 0
+        for test_name, result in test_results:
+            status = "✅ PASSED" if result else "❌ FAILED"
+            print(f"{test_name:25} {status}")
+            if result:
+                passed_tests += 1
+        
+        print(f"\nAPI Tests: {self.tests_passed}/{self.tests_run}")
+        print(f"Debug Tests: {passed_tests}/{len(test_results)}")
+        
+        # Print issues found
+        if self.issues_found:
+            print(f"\n🚨 ISSUES IDENTIFIED ({len(self.issues_found)}):")
+            print("=" * 70)
+            for i, issue in enumerate(self.issues_found, 1):
+                print(f"{i}. {issue['type']}: {issue['description']}")
+                if issue['details']:
+                    if isinstance(issue['details'], dict):
+                        print(f"   Details: {json.dumps(issue['details'], indent=4, default=str)}")
+                    else:
+                        print(f"   Details: {issue['details']}")
+                print()
+                
+            # Provide specific recommendations
+            print("🔧 RECOMMENDATIONS:")
+            print("=" * 70)
             
-            # Step 4: Test multi-file upload
-            multi_success, multi_response = self.test_multi_file_upload(pdf_path)
+            ai_extraction_issues = [issue for issue in self.issues_found if issue['type'] == 'AI_EXTRACTION']
+            if ai_extraction_issues:
+                print("1. AI EXTRACTION ISSUES FOUND:")
+                print("   - Check if AI prompt is correctly formatted for certificate extraction")
+                print("   - Verify Google/Gemini model is processing PDF text correctly")
+                print("   - Test with simpler certificate formats")
+                print()
             
-            # Step 5: Check AI configuration
-            self.test_ai_prompt_analysis()
+            google_provider_issues = [issue for issue in self.issues_found if issue['type'] == 'GOOGLE_PROVIDER']
+            if google_provider_issues:
+                print("2. GOOGLE PROVIDER ISSUES FOUND:")
+                print("   - Verify EMERGENT_LLM_KEY is valid and working")
+                print("   - Check if Google/Gemini API is accessible")
+                print("   - Test with different models (gemini-pro, gemini-2.0-flash)")
+                print()
             
-            # Step 6: Check backend logs
-            self.debug_backend_logs()
-            
-            # Summary
-            print("\n" + "=" * 60)
-            print("🔍 DEBUG ANALYSIS SUMMARY")
-            print("=" * 60)
-            
-            print(f"Tests Run: {self.tests_run}")
-            print(f"Tests Passed: {self.tests_passed}")
-            
-            # Specific findings
-            if single_success:
-                ship_name = single_response.get('ship_name', 'NOT_FOUND')
-                if ship_name == self.expected_ship_name:
-                    print(f"✅ ISSUE RESOLVED: Ship name correctly extracted as '{ship_name}'")
-                else:
-                    print(f"❌ ISSUE PERSISTS: Ship name extracted as '{ship_name}' instead of '{self.expected_ship_name}'")
-                    print(f"   Full AI Response: {json.dumps(single_response, indent=2, default=str)}")
-            else:
-                print(f"❌ CRITICAL: Single PDF analysis endpoint failed")
-                print(f"   Error Details: {single_response}")
-            
-            return single_success
-            
-        finally:
-            # Clean up temporary file
-            try:
-                os.unlink(pdf_path)
-                print(f"   Cleaned up temporary file: {pdf_path}")
-            except:
-                pass
+            ai_config_issues = [issue for issue in self.issues_found if issue['type'] == 'AI_CONFIG']
+            if ai_config_issues:
+                print("3. AI CONFIGURATION ISSUES FOUND:")
+                print("   - Configure AI provider and model in system settings")
+                print("   - Ensure Emergent LLM key is properly set")
+                print("   - Test AI configuration endpoint")
+                print()
+                
+        else:
+            print(f"\n✅ NO CRITICAL ISSUES FOUND")
+            print("Certificate information extraction should be working correctly.")
+        
+        return len(self.issues_found) == 0
 
 def main():
     """Main test execution"""
