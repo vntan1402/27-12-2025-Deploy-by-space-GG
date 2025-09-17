@@ -3224,7 +3224,7 @@ const AccountControlPage = () => {
                 </div>
 
                 {/* Sync Status */}
-                {gdriveStatus?.configured && (
+                {(gdriveStatus?.status === 'connected' || gdriveCurrentConfig?.configured) && (
                   <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                     <h4 className="font-medium text-blue-800 mb-2">
                       {language === 'vi' ? 'Trạng thái đồng bộ' : 'Sync Status'}
