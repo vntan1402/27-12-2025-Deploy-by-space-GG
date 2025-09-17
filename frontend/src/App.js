@@ -7091,23 +7091,72 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
                       </div>
                       
                       {/* Results Display */}
-                      {(fileUpload.category || fileUpload.ship_name) && (
-                        <div className="text-sm space-y-1">
-                          {fileUpload.category && (
-                            <div className="text-blue-600">
-                              <span className="font-medium">{language === 'vi' ? 'Phân loại' : 'Category'}:</span> {fileUpload.category}
+                      {fileUpload.status === 'completed' && (fileUpload.category || fileUpload.ship_name) && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                          <h5 className="text-sm font-semibold text-gray-700 mb-2">
+                            🤖 {language === 'vi' ? 'Kết quả phân tích AI' : 'AI Analysis Results'}
+                          </h5>
+                          <div className="text-sm space-y-1">
+                            {fileUpload.category && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-blue-600">{language === 'vi' ? 'Phân loại:' : 'Category:'}</span>
+                                <span className="text-blue-800 font-medium">{fileUpload.category}</span>
+                              </div>
+                            )}
+                            {fileUpload.ship_name && fileUpload.ship_name !== 'Not detected' && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-green-600">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
+                                <span className="text-green-800">{fileUpload.ship_name}</span>
+                              </div>
+                            )}
+                            {fileUpload.cert_name && fileUpload.cert_name !== 'Not detected' && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-purple-600">{language === 'vi' ? 'Tên chứng chỉ:' : 'Certificate:'}</span>
+                                <span className="text-purple-800 text-xs">{fileUpload.cert_name}</span>
+                              </div>
+                            )}
+                            {fileUpload.cert_no && fileUpload.cert_no !== 'Not detected' && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-orange-600">{language === 'vi' ? 'Số chứng chỉ:' : 'Cert No:'}</span>
+                                <span className="text-orange-800">{fileUpload.cert_no}</span>
+                              </div>
+                            )}
+                            {fileUpload.valid_date && fileUpload.valid_date !== 'Not detected' && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-red-600">{language === 'vi' ? 'Hết hạn:' : 'Valid Until:'}</span>
+                                <span className="text-red-800">{fileUpload.valid_date}</span>
+                              </div>
+                            )}
+                            
+                            {/* Google Drive Upload Status */}
+                            <div className="border-t pt-2 mt-2">
+                              <div className="flex justify-between">
+                                <span className="font-medium text-indigo-600">☁️ Google Drive:</span>
+                                <span className={`text-xs font-medium ${fileUpload.google_drive_uploaded ? 'text-green-600' : 'text-red-600'}`}>
+                                  {fileUpload.google_drive_uploaded 
+                                    ? (language === 'vi' ? '✅ Đã upload' : '✅ Uploaded')
+                                    : (language === 'vi' ? '❌ Lỗi upload' : '❌ Upload failed')
+                                  }
+                                </span>
+                              </div>
+                              {fileUpload.google_drive_file_id && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  ID: {fileUpload.google_drive_file_id}
+                                </div>
+                              )}
                             </div>
-                          )}
-                          {fileUpload.ship_name && (
-                            <div className="text-green-600">
-                              <span className="font-medium">{language === 'vi' ? 'Tàu' : 'Ship'}:</span> {fileUpload.ship_name}
+                            
+                            {/* Certificate Record Status */}
+                            <div className="flex justify-between">
+                              <span className="font-medium text-teal-600">💾 {language === 'vi' ? 'Database:' : 'Database:'}</span>
+                              <span className={`text-xs font-medium ${fileUpload.certificate_created ? 'text-green-600' : 'text-orange-600'}`}>
+                                {fileUpload.certificate_created 
+                                  ? (language === 'vi' ? '✅ Đã tạo record' : '✅ Record created')
+                                  : (language === 'vi' ? '⚠️ Chưa tạo record' : '⚠️ No record created')
+                                }
+                              </span>
                             </div>
-                          )}
-                          {fileUpload.certificate_created && (
-                            <div className="text-green-600 text-xs">
-                              ✅ {language === 'vi' ? 'Đã tạo certificate record' : 'Certificate record created'}
-                            </div>
-                          )}
+                          </div>
                         </div>
                       )}
                       
