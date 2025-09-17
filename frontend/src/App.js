@@ -3867,7 +3867,7 @@ const AccountControlPage = () => {
 
 // Google Drive Configuration Modal Component
 const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, onTest, testLoading, language }) => {
-  const [authMethod, setAuthMethod] = useState(config.auth_method || 'apps_script');
+  const [authMethod, setAuthMethod] = useState('apps_script'); // Force apps_script as default
   const [oauthLoading, setOauthLoading] = useState(false);
   
   const handleOverlayClick = (e) => {
@@ -4306,7 +4306,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
 
 // Company Google Drive Configuration Modal Component
 const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, onClose, onSave, onTest, testLoading, language }) => {
-  const [authMethod, setAuthMethod] = useState(config.auth_method || 'apps_script');
+  const [authMethod, setAuthMethod] = useState('apps_script'); // Force apps_script as default
   const [oauthLoading, setOauthLoading] = useState(false);
   
   // Debug logging on modal render
