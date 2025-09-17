@@ -363,10 +363,16 @@ in accordance with the Convention.
             self.log("✅ Google Drive Upload: Successful")
         
         # Issue 4: Certificate Record Creation
-        if not certificate or not certificate.get('success', False):
-            issues_found.append(f"❌ DATABASE RECORD CREATION ISSUE: {certificate.get('error', 'Unknown error')}")
+        if not certificate or not (isinstance(certificate, dict) and certificate.get('success', False)):
+            error_msg = "Unknown error"
+            if isinstance(certificate, dict):
+                error_msg = certificate.get('error', 'Unknown error')
+            elif certificate is not None:
+                error_msg = f"Invalid certificate data type: {type(certificate)}"
+            
+            issues_found.append(f"❌ DATABASE RECORD CREATION ISSUE: {error_msg}")
             self.log("Database Record Creation Problem:")
-            self.log(f"  - Error: {certificate.get('error', 'Unknown error')}")
+            self.log(f"  - Error: {error_msg}")
             self.log("  - This is likely due to AI classification issues")
             self.log("  - Records are only created when category='certificates'")
         else:
