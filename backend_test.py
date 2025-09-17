@@ -357,6 +357,217 @@ class ShipManagementAPITester:
         
         return success
 
+    def test_enhanced_ship_creation_workflow(self):
+        """Test enhanced Add New Ship workflow with Google Drive folder creation"""
+        print(f"\n🚢 Testing Enhanced Add New Ship Workflow with Google Drive Integration")
+        
+        # Step 1: Verify user has proper company assignment
+        if not self.company_id:
+            print("❌ User not assigned to any company - cannot test company Google Drive")
+            return False
+        
+        print(f"✅ User assigned to company: {self.company_id}")
+        
+        # Step 2: Check company Google Drive configuration
+        success, gdrive_config = self.run_test(
+            "Get Company Google Drive Config",
+            "GET",
+            f"companies/{self.company_id}/gdrive/config",
+            200
+        )
+        
+        if not success:
+            print("❌ Company Google Drive not configured")
+            return False
+        
+        print(f"✅ Company Google Drive configured")
+        print(f"   Web App URL: {gdrive_config.get('config', {}).get('web_app_url', 'Not found')}")
+        print(f"   Folder ID: {gdrive_config.get('config', {}).get('folder_id', 'Not found')}")
+        
+        # Step 3: Test ship creation with enhanced data
+        ship_data = {
+            "name": "Test Ship Integration",
+            "imo": f"IMO{int(time.time())}",
+            "flag": "Panama",
+            "ship_type": "DNV GL",
+            "gross_tonnage": 45000.0,
+            "deadweight": 68000.0,
+            "built_year": 2021,
+            "ship_owner": "Test Maritime Holdings Ltd",
+            "company": "Global Test Shipping Company"
+        }
+        
+        success, ship = self.run_test(
+            "Create Ship with Enhanced Data",
+            "POST",
+            "ships",
+            200,
+            data=ship_data
+        )
+        
+        if not success:
+            print("❌ Ship creation failed")
+            return False
+        
+        self.test_ship_id = ship.get('id')
+        print(f"✅ Ship created successfully: {ship.get('name')} (ID: {self.test_ship_id})")
+        
+        # Step 4: Test Google Drive folder creation endpoint
+        folder_data = {
+            "ship_name": ship.get('name'),
+            "subfolders": [
+                "Certificates",
+                "Inspection Records", 
+                "Survey Reports",
+                "Drawings & Manuals",
+                "Other Documents"
+            ]
+        }
+        
+        success, folder_result = self.run_test(
+            "Create Ship Google Drive Folder",
+            "POST",
+            f"companies/{self.company_id}/gdrive/create-ship-folder",
+            200,
+            data=folder_data
+        )
+        
+        if not success:
+            print("❌ Google Drive folder creation failed")
+            return False
+        
+        print(f"✅ Google Drive folder created successfully")
+        print(f"   Ship Folder ID: {folder_result.get('ship_folder_id')}")
+        print(f"   Subfolders Created: {folder_result.get('subfolders_created')}")
+        print(f"   Subfolder IDs: {folder_result.get('subfolder_ids', {})}")
+        
+        # Step 5: Verify ship exists in database
+        success, ship_detail = self.run_test(
+            "Verify Ship in Database",
+            "GET",
+            f"ships/{self.test_ship_id}",
+            200
+        )
+        
+        if success:
+            print(f"✅ Ship verified in database: {ship_detail.get('name')}")
+            print(f"   Ship Owner: {ship_detail.get('ship_owner')}")
+            print(f"   Company: {ship_detail.get('company')}")
+        
+        return success
+    
+    def test_google_drive_integration_details(self):
+        """Test detailed Google Drive integration functionality"""
+        print(f"\n📁 Testing Google Drive Integration Details")
+        
+        if not self.company_id:
+            print("❌ No company ID available for testing")
+            return False
+        
+        # Test 1: Company Google Drive Status
+        success, status = self.run_test(
+            "Get Company Google Drive Status",
+            "GET",
+            f"companies/{self.company_id}/gdrive/status",
+            200
+        )
+        
+        if success:
+            print(f"✅ Google Drive Status: {status.get('status')}")
+            print(f"   Message: {status.get('message', 'No message')}")
+        
+        # Test 2: Test Connection
+        success, test_result = self.run_test(
+            "Test Company Google Drive Connection",
+            "POST",
+            f"companies/{self.company_id}/gdrive/configure-proxy",
+            200,
+            data={"action": "test_connection"}
+        )
+        
+        if success:
+            print(f"✅ Google Drive connection test successful")
+            print(f"   Result: {test_result.get('message', 'No message')}")
+        
+        # Test 3: Create folder with different subfolder combinations
+        test_folder_data = {
+            "ship_name": "Test Folder Structure Ship",
+            "subfolders": [
+                "Certificates",
+                "Test Reports", 
+                "Survey Reports",
+                "Drawings & Manuals",
+                "Other Documents"
+            ]
+        }
+        
+        success, folder_test = self.run_test(
+            "Test Folder Structure Creation",
+            "POST",
+            f"companies/{self.company_id}/gdrive/create-ship-folder",
+            200,
+            data=test_folder_data
+        )
+        
+        if success:
+            print(f"✅ Test folder structure created")
+            print(f"   Subfolders: {list(folder_test.get('subfolder_ids', {}).keys())}")
+        
+        return success
+    
+    def test_error_handling_scenarios(self):
+        """Test error handling in ship creation and Google Drive integration"""
+        print(f"\n⚠️ Testing Error Handling Scenarios")
+        
+        # Test 1: Ship creation without required fields
+        invalid_ship_data = {
+            "name": "",  # Empty name should fail
+            "flag": "Panama"
+        }
+        
+        success, error_response = self.run_test(
+            "Create Ship with Invalid Data",
+            "POST",
+            "ships",
+            422,  # Expect validation error
+            data=invalid_ship_data
+        )
+        
+        if success:
+            print(f"✅ Validation error handled correctly")
+        
+        # Test 2: Google Drive folder creation without ship name
+        if self.company_id:
+            invalid_folder_data = {
+                "ship_name": "",  # Empty ship name
+                "subfolders": ["Certificates"]
+            }
+            
+            success, error_response = self.run_test(
+                "Create Folder with Invalid Data",
+                "POST",
+                f"companies/{self.company_id}/gdrive/create-ship-folder",
+                400,  # Expect bad request
+                data=invalid_folder_data
+            )
+            
+            if success:
+                print(f"✅ Google Drive validation error handled correctly")
+        
+        # Test 3: Access Google Drive for non-existent company
+        fake_company_id = "non-existent-company-id"
+        success, error_response = self.run_test(
+            "Access Non-existent Company Google Drive",
+            "GET",
+            f"companies/{fake_company_id}/gdrive/config",
+            404,  # Expect not found
+        )
+        
+        if success:
+            print(f"✅ Non-existent company error handled correctly")
+        
+        return True
+
 def main():
     """Main test execution"""
     print("🚢 Ship Management System API Testing")
