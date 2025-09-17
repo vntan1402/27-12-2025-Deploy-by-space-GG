@@ -6511,6 +6511,55 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     setPendingShipData(null);
   };
 
+  // Google Drive Ship Folder Creation
+  const createShipGoogleDriveFolder = async (shipName, companyId) => {
+    try {
+      console.log(`Creating Google Drive folder structure for ship: ${shipName}`);
+      
+      // Company subfolder structure based on homepage sidebar
+      const subfolders = [
+        'Certificates',
+        'Inspection Records', 
+        'Survey Reports',
+        'Drawings & Manuals',
+        'Other Documents'
+      ];
+      
+      // Call backend to create ship folder structure on Company Google Drive
+      const response = await axios.post(`${API}/companies/${companyId}/gdrive/create-ship-folder`, {
+        ship_name: shipName,
+        subfolders: subfolders
+      }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        console.log(`✅ Ship folder created successfully:`, response.data);
+        toast.success(
+          language === 'vi' 
+            ? `📁 Đã tạo thư mục "${shipName}" trên Google Drive với ${subfolders.length} thư mục con`
+            : `📁 Created "${shipName}" folder on Google Drive with ${subfolders.length} subfolders`
+        );
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Failed to create ship folder');
+      }
+      
+    } catch (error) {
+      console.error('Error creating ship Google Drive folder:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
+      
+      // Show warning but don't fail ship creation
+      toast.warning(
+        language === 'vi'
+          ? `⚠️ Ship đã tạo thành công nhưng không thể tạo thư mục Google Drive: ${errorMessage}`
+          : `⚠️ Ship created successfully but failed to create Google Drive folder: ${errorMessage}`
+      );
+      
+      return null;
+    }
+  };
+
   // handleMultiFileUpload function will be rebuilt from scratch
 
   const handleSubmitDocument = async () => {
