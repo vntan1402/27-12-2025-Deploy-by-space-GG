@@ -152,15 +152,16 @@ class ShipManagementAPITester:
         """Test ship management endpoints"""
         print(f"\n🚢 Testing Ship Management")
         
-        # Create a test ship
+        # Create a test ship with required fields
         ship_data = {
             "name": f"Test Ship {int(time.time())}",
-            "imo_number": f"IMO{int(time.time())}",
-            "class_society": "DNV GL",
+            "imo": f"IMO{int(time.time())}",
+            "ship_type": "DNV GL",  # Changed from class_society to ship_type
             "flag": "Panama",
             "gross_tonnage": 50000.0,
             "deadweight": 75000.0,
-            "built_year": 2020
+            "built_year": 2020,
+            "company": "Test Company"  # Added required company field
         }
         
         success, ship = self.run_test(
