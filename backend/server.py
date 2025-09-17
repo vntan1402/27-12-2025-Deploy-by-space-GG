@@ -1907,7 +1907,7 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
             user_message = UserMessage(text=analysis_prompt, file_contents=[file_obj])
             
             # Get AI response
-            response = chat.send_message(user_message)
+            response = await chat.send_message(user_message)
             
             logger.info(f"AI Response type: {type(response)}")
             logger.info(f"AI Response content (first 200 chars): {str(response)[:200]}")
