@@ -2016,20 +2016,40 @@ Please analyze the above document content and return the information in JSON for
         return classify_by_filename(filename)
 
 def extract_text_from_pdf(file_content: bytes) -> str:
-    """Extract text from PDF content"""
+    """Extract text from PDF content with enhanced error handling"""
     try:
         import PyPDF2
         import io
+        from datetime import datetime
         
-        # Create a PDF reader from bytes
+        # Create a PDF reader from bytes with enhanced error handling
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
         
-        # Extract text from all pages
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text() + "\n"
+        # Check if PDF has pages
+        if not pdf_reader.pages:
+            logger.warning("PDF has no pages")
+            return ""
         
-        return text.strip()
+        # Extract text from all pages with individual page error handling
+        text = ""
+        for page_num, page in enumerate(pdf_reader.pages):
+            try:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+            except Exception as page_error:
+                logger.warning(f"Failed to extract text from page {page_num + 1}: {page_error}")
+                continue
+        
+        # Clean and validate extracted text
+        text = text.strip()
+        if not text:
+            logger.warning("No readable text content extracted from PDF")
+            return ""
+        
+        # Log successful extraction for debugging
+        logger.info(f"Successfully extracted {len(text)} characters from PDF")
+        return text
     
     except Exception as e:
         logger.error(f"PDF text extraction failed: {e}")
