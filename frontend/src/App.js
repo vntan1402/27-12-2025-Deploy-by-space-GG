@@ -3175,9 +3175,9 @@ const AccountControlPage = () => {
                       {language === 'vi' ? 'Trạng thái cấu hình' : 'Configuration Status'}
                     </h4>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      gdriveStatus?.configured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      (gdriveStatus?.status === 'connected' || gdriveCurrentConfig?.configured) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {gdriveStatus?.configured ? 
+                      {(gdriveStatus?.status === 'connected' || gdriveCurrentConfig?.configured) ? 
                         (language === 'vi' ? 'Đã cấu hình' : 'Configured') : 
                         (language === 'vi' ? 'Chưa cấu hình' : 'Not configured')}
                     </span>
