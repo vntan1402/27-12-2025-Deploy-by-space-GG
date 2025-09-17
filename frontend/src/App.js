@@ -616,7 +616,7 @@ const AppContent = () => {
           const response = await axios.post(`${API}/gdrive/oauth/callback`, {
             authorization_code: code,
             state: state,
-            folder_id: systemGdriveConfig.folder_id
+            folder_id: gdriveConfig.folder_id
           });
 
           if (response.data.success) {
