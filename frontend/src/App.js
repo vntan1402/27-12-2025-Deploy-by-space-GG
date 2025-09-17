@@ -669,7 +669,7 @@ const AppContent = () => {
 
 // HomePage Component (Main Dashboard)
 const HomePage = () => {
-  const { user, logout, language, toggleLanguage } = useAuth();
+  const { user, token, logout, language, toggleLanguage } = useAuth();
   const [ships, setShips] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('documents');
   const [hoveredCategory, setHoveredCategory] = useState(null);
