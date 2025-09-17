@@ -438,25 +438,87 @@ Flag State: Liberia
         self.log_test("Different Certificate Types", all_successful, f"Tested {len(test_certificates)} certificate types")
         return all_successful
 
-    def test_ai_prompt_analysis(self):
-        """Test if we can inspect the AI prompt being used"""
-        print(f"\n🔍 Analyzing AI Prompt Configuration")
+    def test_google_provider_integration(self):
+        """Test Google/Gemini provider integration directly"""
+        print(f"\n🔍 Testing Google Provider Integration")
         
-        # Check if there's an AI config endpoint
-        success, response = self.run_api_request(
-            "GET",
-            "ai-config",
-            200
-        )
-        
-        if success:
-            print(f"   AI Configuration:")
-            print(json.dumps(response, indent=2, default=str))
-            self.log_test("AI Configuration Check", True, "AI config retrieved")
-        else:
-            self.log_test("AI Configuration Check", False, f"Could not retrieve AI config: {response}")
-        
-        return success
+        try:
+            # Test if we can import and use the Emergent LLM integration
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            emergent_key = os.environ.get('EMERGENT_LLM_KEY')
+            if not emergent_key:
+                self.log_issue("GOOGLE_PROVIDER", "No Emergent LLM key available for testing", None)
+                self.log_test("Google Provider Test", False, "No API key")
+                return False
+            
+            # Test with simple certificate analysis
+            chat = LlmChat(
+                provider="google",
+                model="gemini-2.0-flash-exp",
+                api_key=emergent_key
+            )
+            
+            test_certificate_text = """
+SAFETY MANAGEMENT CERTIFICATE
+
+Ship Name: MV TEST VESSEL
+Certificate Number: SMC-TEST-001
+Issue Date: 15 January 2024
+Valid Until: 15 January 2025
+Issued By: Panama Maritime Documentation Services
+"""
+            
+            test_message = UserMessage(
+                content=f"Extract certificate information from this maritime certificate text and return in JSON format: {test_certificate_text}"
+            )
+            
+            print(f"   Testing Google/Gemini API call...")
+            response = chat.send_message(test_message)
+            
+            if response and hasattr(response, 'content'):
+                print(f"✅ Google provider working")
+                print(f"   Response preview: {str(response.content)[:300]}...")
+                
+                # Try to parse JSON response
+                try:
+                    import re
+                    # Extract JSON from response
+                    json_match = re.search(r'\{.*\}', str(response.content), re.DOTALL)
+                    if json_match:
+                        json_str = json_match.group()
+                        parsed_response = json.loads(json_str)
+                        print(f"   Parsed JSON response:")
+                        print(json.dumps(parsed_response, indent=2))
+                        
+                        # Check if expected fields are present
+                        expected_fields = ['cert_name', 'cert_no', 'issue_date', 'valid_date', 'issued_by']
+                        found_fields = [field for field in expected_fields if field in parsed_response]
+                        
+                        if found_fields:
+                            print(f"   ✅ Found expected fields: {found_fields}")
+                            self.log_test("Google Provider Test", True, f"Fields found: {found_fields}")
+                        else:
+                            self.log_issue("GOOGLE_PROVIDER", "Expected certificate fields not found in response", parsed_response)
+                            self.log_test("Google Provider Test", False, "Expected fields missing")
+                    else:
+                        self.log_issue("GOOGLE_PROVIDER", "No JSON found in Google provider response", str(response.content))
+                        self.log_test("Google Provider Test", False, "No JSON in response")
+                        
+                except Exception as parse_error:
+                    self.log_issue("GOOGLE_PROVIDER", "Failed to parse Google provider response", str(parse_error))
+                    self.log_test("Google Provider Test", False, f"Parse error: {parse_error}")
+                
+                return True
+            else:
+                self.log_issue("GOOGLE_PROVIDER", "Google provider returned empty response", str(response))
+                self.log_test("Google Provider Test", False, "Empty response")
+                return False
+                
+        except Exception as e:
+            self.log_issue("GOOGLE_PROVIDER", "Google provider integration failed", str(e))
+            self.log_test("Google Provider Test", False, f"Exception: {str(e)}")
+            return False
 
     def debug_backend_logs(self):
         """Check backend logs for AI analysis errors"""
