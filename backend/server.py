@@ -1864,11 +1864,18 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
             system_message="You are a maritime document analysis expert. Analyze documents and extract certificate information in JSON format."
         )
         
-        # Create file content for LLM
-        file_obj = FileContentWithMimeType(
-            content=file_content,
-            mime_type=content_type
-        )
+        # Create temporary file for LLM analysis
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Create file content for LLM
+            file_obj = FileContentWithMimeType(
+                mime_type=content_type,
+                file_path=temp_file_path
+            )
         
         # Create user message with file
         user_message = UserMessage(content=analysis_prompt, files=[file_obj])
