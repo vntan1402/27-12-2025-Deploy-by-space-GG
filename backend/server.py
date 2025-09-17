@@ -1585,17 +1585,32 @@ def classify_by_filename(filename: str) -> dict:
     else:
         category = "other_documents"
     
-    return {
-        "category": category,
-        "ship_name": "Unknown_Ship",
-        "confidence": "low",
-        "cert_name": None,
-        "cert_type": None,
-        "cert_no": None,
-        "issue_date": None,
-        "valid_date": None,
-        "issued_by": None
-    }
+    # Return enhanced structure for certificates
+    if category == "certificates":
+        return {
+            "category": category,
+            "cert_name": f"Certificate from {filename}",
+            "cert_type": "Unknown Certificate Type",
+            "cert_no": f"FILENAME_BASED_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            "issue_date": None,
+            "valid_date": None,
+            "issued_by": "Filename-based classification",
+            "ship_name": "Unknown Ship",
+            "confidence": 0.1,
+            "extraction_error": "Classified by filename only - AI analysis failed"
+        }
+    else:
+        return {
+            "category": category,
+            "ship_name": "Unknown_Ship",
+            "confidence": "low",
+            "cert_name": None,
+            "cert_type": None,
+            "cert_no": None,
+            "issue_date": None,
+            "valid_date": None,
+            "issued_by": None
+        }
 
 async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> dict:
     """Create folder structure: Ship Name -> 5 category subfolders"""
