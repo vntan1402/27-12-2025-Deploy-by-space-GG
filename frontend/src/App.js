@@ -693,6 +693,16 @@ const HomePage = () => {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // Context Menu for Certificate List
+  const [contextMenu, setContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    certificate: null
+  });
+  const [showEditCertModal, setShowEditCertModal] = useState(false);
+  const [editingCertificate, setEditingCertificate] = useState(null);
+  
   // Multi-file upload enhancement states
   const [duplicateModal, setDuplicateModal] = useState({
     show: false,
