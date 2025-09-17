@@ -1469,7 +1469,8 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
         # Handle Emergent LLM Key
         if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
             api_key = EMERGENT_LLM_KEY
-            provider = "emergent"  # Force emergent provider when using Emergent key
+            provider = "google"  # Use Google/Gemini provider for file analysis with Emergent key
+            model = "gemini-2.0-flash-exp"  # Use Gemini model for file analysis
             
         if not api_key:
             logger.error("No API key found in AI configuration")
