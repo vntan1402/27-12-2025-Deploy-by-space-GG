@@ -123,7 +123,7 @@ class BackendTester:
     def test_company_google_drive_status(self, company_id):
         """Test company Google Drive status"""
         try:
-            response = requests.get(
+            response = requests.post(
                 f"{API_BASE}/companies/{company_id}/gdrive/status",
                 headers=self.get_headers()
             )
