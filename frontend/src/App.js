@@ -2048,7 +2048,8 @@ const AccountControlPage = () => {
   const [companyGdriveTestLoading, setCompanyGdriveTestLoading] = useState(false);
   const [aiConfig, setAiConfig] = useState({
     provider: 'openai',
-    model: 'gpt-4o'
+    model: 'gpt-4o',
+    api_key: ''
   });
   const [companies, setCompanies] = useState([]);
   const [ships, setShips] = useState([]);
