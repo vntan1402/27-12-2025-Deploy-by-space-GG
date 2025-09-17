@@ -5088,7 +5088,8 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
           </button>
           <button
             onClick={() => {
-              if (!config.api_key || config.api_key.trim() === '') {
+              // Validate based on selected option
+              if (config.use_emergent_key === false && (!config.api_key || config.api_key.trim() === '')) {
                 alert(language === 'vi' ? 'Vui lòng nhập API key' : 'Please enter API key');
                 return;
               }
