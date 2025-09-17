@@ -2107,8 +2107,12 @@ async def get_gdrive_status(current_user: UserResponse = Depends(get_current_use
                 return {"status": "error", "message": "Apps Script URL not configured"}
             
             try:
-                # Test connection to Apps Script
-                response = requests.post(script_url, json={"action": "test_connection"}, timeout=10)
+                # Test connection to Apps Script - include folder_id parameter
+                folder_id = config.get("folder_id")
+                payload = {"action": "test_connection"}
+                if folder_id:
+                    payload["folder_id"] = folder_id
+                response = requests.post(script_url, json=payload, timeout=10)
                 if response.status_code == 200:
                     result = response.json()
                     if result.get("success"):
