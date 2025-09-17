@@ -1,17 +1,28 @@
+#!/usr/bin/env python3
+"""
+System Google Drive Configuration Testing
+Testing the fixed System Google Drive configuration with user's exact credentials
+after applying critical bug fixes.
+"""
+
 import requests
-import sys
 import json
-from datetime import datetime, timezone
-import time
+import sys
+from datetime import datetime
 
 class GoogleDriveConfigTester:
-    def __init__(self, base_url="https://shipwise-13.preview.emergentagent.com"):
-        self.base_url = base_url
-        self.api_url = f"{base_url}/api"
+    def __init__(self):
+        self.base_url = "https://shipwise-13.preview.emergentagent.com"
+        self.api_url = f"{self.base_url}/api"
         self.token = None
         self.tests_run = 0
         self.tests_passed = 0
-        self.admin_user_id = None
+        
+        # User's exact configuration from review request
+        self.user_config = {
+            "web_app_url": "https://script.google.com/macros/s/AKfycbwIfwqaegvfi0IEZPdArCvphZNVPcbS_2eIq_aAop08Kc_9TzDngAs-KCDVb-t2xNc/exec",
+            "folder_id": "1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB"
+        }
 
     def run_test(self, name, method, endpoint, expected_status, data=None):
         """Run a single API test"""
