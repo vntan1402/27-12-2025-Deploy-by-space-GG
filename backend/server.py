@@ -1957,70 +1957,90 @@ async def analyze_with_anthropic(file_content: bytes, filename: str, content_typ
     return classify_by_filename(filename)
 
 async def analyze_with_google(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
-    """Analyze document using Google/Gemini via Emergent LLM"""
+    """Analyze document using Google/Gemini via Emergent LLM with text extraction"""
     try:
-        # Use Emergent LLM with Gemini model for file analysis
+        # Extract text from PDF first
+        extracted_text = extract_text_from_pdf(file_content)
+        
+        if not extracted_text or len(extracted_text.strip()) < 10:
+            logger.warning(f"Could not extract meaningful text from {filename}")
+            return classify_by_filename(filename)
+        
+        # Use Emergent LLM with text-only analysis
         chat = LlmChat(
             api_key=api_key,
             session_id=f"cert_analysis_{uuid.uuid4().hex[:8]}",
             system_message="You are a maritime document analysis expert. Analyze documents and extract certificate information in JSON format."
         )
         
-        # Create temporary file for LLM analysis
-        import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-            temp_file.write(file_content)
-            temp_file_path = temp_file.name
+        # Create text-based analysis prompt
+        text_analysis_prompt = f"""
+{analysis_prompt}
+
+DOCUMENT CONTENT TO ANALYZE:
+{extracted_text}
+
+Please analyze the above document content and return the information in JSON format as specified.
+"""
+        
+        # Create user message with text only
+        user_message = UserMessage(text=text_analysis_prompt)
+        
+        # Get AI response
+        response = await chat.send_message(user_message)
+        
+        logger.info(f"Gemini AI Response type: {type(response)}")
+        logger.info(f"Gemini AI Response content (first 200 chars): {str(response)[:200]}")
+        
+        # Parse JSON response
+        response_text = str(response)
+        
+        # Clean up response (remove markdown code blocks if present)
+        if "```json" in response_text:
+            start = response_text.find("```json") + 7
+            end = response_text.rfind("```")
+            response_text = response_text[start:end].strip()
+        elif "```" in response_text:
+            start = response_text.find("```") + 3
+            end = response_text.rfind("```")
+            response_text = response_text[start:end].strip()
         
         try:
-            # Create file content for LLM
-            file_obj = FileContentWithMimeType(
-                mime_type=content_type,
-                file_path=temp_file_path
-            )
-            
-            # Create user message with file
-            user_message = UserMessage(text=analysis_prompt, file_contents=[file_obj])
-            
-            # Get AI response
-            response = await chat.send_message(user_message)
-            
-            logger.info(f"Gemini AI Response type: {type(response)}")
-            logger.info(f"Gemini AI Response content (first 200 chars): {str(response)[:200]}")
-            
-            # Parse JSON response
-            response_text = str(response)
-            
-            # Clean up response (remove markdown code blocks if present)
-            if "```json" in response_text:
-                start = response_text.find("```json") + 7
-                end = response_text.rfind("```")
-                response_text = response_text[start:end].strip()
-            elif "```" in response_text:
-                start = response_text.find("```") + 3
-                end = response_text.rfind("```")
-                response_text = response_text[start:end].strip()
-            
-            try:
-                parsed_response = json.loads(response_text)
-                logger.info(f"Successfully parsed Gemini response: {parsed_response.get('category', 'Unknown')}")
-                return parsed_response
-            except json.JSONDecodeError as e:
-                logger.error(f"Gemini JSON parsing failed: {e}")
-                logger.error(f"Raw Gemini response: {response_text}")
-                return classify_by_filename(filename)
-        
-        finally:
-            # Clean up temporary file
-            import os
-            try:
-                os.unlink(temp_file_path)
-            except:
-                pass
+            parsed_response = json.loads(response_text)
+            logger.info(f"Successfully parsed Gemini response: {parsed_response.get('category', 'Unknown')}")
+            return parsed_response
+        except json.JSONDecodeError as e:
+            logger.error(f"Gemini JSON parsing failed: {e}")
+            logger.error(f"Raw Gemini response: {response_text}")
+            return classify_by_filename(filename)
     
     except Exception as e:
         logger.error(f"Gemini analysis failed: {e}")
         return classify_by_filename(filename)
+
+def extract_text_from_pdf(file_content: bytes) -> str:
+    """Extract text from PDF content"""
+    try:
+        import PyPDF2
+        import io
+        
+        # Create a PDF reader from bytes
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+        
+        # Extract text from all pages
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+        
+        return text.strip()
+    
+    except Exception as e:
+        logger.error(f"PDF text extraction failed: {e}")
+        # Fallback: try to decode as text if it's a simple text file
+        try:
+            return file_content.decode('utf-8', errors='ignore')
+        except:
+            return ""
 
 async def track_ai_usage(current_user, operation_type: str, ai_config: dict):
     """Track AI usage for analytics"""
