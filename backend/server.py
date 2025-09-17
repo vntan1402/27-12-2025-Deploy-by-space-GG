@@ -284,10 +284,12 @@ class AIConfig(BaseModel):
     provider: str
     model: str
     api_key: str
+    use_emergent_key: Optional[bool] = True  # Default to using Emergent key
 
 class AIConfigResponse(BaseModel):
     provider: str
     model: str
+    use_emergent_key: Optional[bool] = True
     # Don't expose API key in response
 
 # Add CORS middleware
