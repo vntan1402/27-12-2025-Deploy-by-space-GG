@@ -2018,7 +2018,7 @@ const AccountControlPage = () => {
   });
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [gdriveConfig, setGdriveConfig] = useState({
+  const [systemGdriveConfig, setSystemGdriveConfig] = useState({
     auth_method: 'apps_script', // 'apps_script', 'oauth', or 'service_account' 
     // Apps Script fields
     web_app_url: '',
