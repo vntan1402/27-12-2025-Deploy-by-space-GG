@@ -1235,7 +1235,7 @@ async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
     except Exception as e:
         logger.error(f"Error fetching AI config: {e}")
         # Return default on error
-        return AIConfigResponse(provider="openai", model="gpt-4")
+        return AIConfigResponse(provider="openai", model="gpt-4", use_emergent_key=True)
 
 @api_router.post("/ai-config")
 async def update_ai_config(
