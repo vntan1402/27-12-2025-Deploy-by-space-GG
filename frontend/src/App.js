@@ -703,23 +703,7 @@ const HomePage = () => {
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
   
-  // Multi-file upload enhancement states
-  const [duplicateModal, setDuplicateModal] = useState({
-    show: false,
-    duplicates: [],
-    currentFile: null,
-    analysisResult: null,
-    uploadResult: null,
-    fileIndex: null
-  });
-  const [mismatchModal, setMismatchModal] = useState({
-    show: false,
-    mismatchInfo: null,
-    currentFile: null,
-    analysisResult: null,
-    uploadResult: null,
-    fileIndex: null
-  });
+  // Multi-file upload will be rebuilt from scratch
   const navigate = useNavigate();
   
   const t = translations[language];
