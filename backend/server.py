@@ -1963,8 +1963,7 @@ async def analyze_with_google(file_content: bytes, filename: str, content_type: 
         chat = LlmChat(
             api_key=api_key,
             session_id=f"cert_analysis_{uuid.uuid4().hex[:8]}",
-            system_message="You are a maritime document analysis expert. Analyze documents and extract certificate information in JSON format.",
-            model="gemini-2.0-flash-exp"  # Use Gemini model for file analysis
+            system_message="You are a maritime document analysis expert. Analyze documents and extract certificate information in JSON format."
         )
         
         # Create temporary file for LLM analysis
