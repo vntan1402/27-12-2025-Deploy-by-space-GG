@@ -1583,9 +1583,10 @@ const HomePage = () => {
                                   key={cert.id} 
                                   className={`hover:bg-gray-50 cursor-pointer transition-colors ${cert.google_drive_file_id ? 'hover:bg-blue-50' : ''}`}
                                   onDoubleClick={() => handleCertificateDoubleClick(cert)}
+                                  onContextMenu={(e) => handleCertificateRightClick(e, cert)}
                                   title={cert.google_drive_file_id 
-                                    ? (language === 'vi' ? 'Nhấn đúp để mở file chứng chỉ' : 'Double-click to open certificate file')
-                                    : (language === 'vi' ? 'Chưa có file đính kèm' : 'No file attached')
+                                    ? (language === 'vi' ? 'Nhấn đúp để mở file | Chuột phải để Edit/Delete' : 'Double-click to open file | Right-click for Edit/Delete')
+                                    : (language === 'vi' ? 'Chưa có file đính kèm | Chuột phải để Edit/Delete' : 'No file attached | Right-click for Edit/Delete')
                                   }
                                 >
                                   <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
