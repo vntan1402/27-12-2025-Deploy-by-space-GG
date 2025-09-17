@@ -95,6 +95,43 @@ class AIAnalysisDebugTester:
         except Exception as e:
             return False, {"error": str(e)}
 
+    def create_test_maritime_certificate_pdf(self):
+        """Create a test maritime certificate PDF with clear certificate information"""
+        certificate_content = """
+PANAMA MARITIME DOCUMENTATION SERVICES
+
+SAFETY MANAGEMENT CERTIFICATE
+
+This is to certify that the Safety Management System of the ship named below has been audited and found to comply with the requirements of the International Safety Management (ISM) Code.
+
+Ship Name: MV PACIFIC STAR
+IMO Number: 9876543210
+Certificate Number: SMC-PM-2024-001
+Certificate Type: Full Term
+Issue Date: 15 January 2024
+Valid Until: 15 January 2025
+Last Endorsement: 15 July 2024
+Next Survey: 15 July 2025
+
+Issued By: Panama Maritime Documentation Services
+Classification Society: DNV GL
+Flag State: Panama
+Gross Tonnage: 25,000
+Deadweight: 35,000 MT
+Built Year: 2018
+Ship Owner: Pacific Maritime Holdings Ltd
+Managing Company: Global Shipping Inc
+
+This certificate is issued under the authority of the Government of Panama.
+
+Authorized Officer: Captain John Smith
+Date: 15 January 2024
+Place: Panama City, Panama
+"""
+        
+        # Create a simple text-based PDF content
+        return certificate_content.encode('utf-8')
+
     def test_authentication(self):
         """Test admin authentication"""
         print(f"\n🔐 Testing Authentication")
