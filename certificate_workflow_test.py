@@ -165,8 +165,8 @@ class CertificateWorkflowTester:
         return config_success and status_success
 
     def create_test_pdf(self):
-        """Create a simple test PDF for certificate upload"""
-        # Create a minimal PDF structure for testing
+        """Create a realistic test PDF for certificate upload"""
+        # Create a more comprehensive PDF structure with certificate-like content
         pdf_content = b"""%PDF-1.4
 1 0 obj
 <<
@@ -194,23 +194,50 @@ endobj
 
 4 0 obj
 <<
-/Length 150
+/Length 800
 >>
 stream
 BT
-/F1 12 Tf
-100 700 Td
+/F1 16 Tf
+200 750 Td
 (INTERNATIONAL SAFETY MANAGEMENT CERTIFICATE) Tj
+0 -30 Td
+/F1 12 Tf
+(Certificate of Compliance) Tj
+0 -40 Td
+(This is to certify that the Safety Management System of) Tj
 0 -20 Td
-(Ship Name: MV TEST VESSEL) Tj
+(Ship Name: MV SUNSHINE STAR) Tj
 0 -20 Td
-(Certificate No: ISM-2024-001) Tj
+(IMO Number: 9876543) Tj
+0 -20 Td
+(Flag: Panama) Tj
+0 -20 Td
+(Gross Tonnage: 25000) Tj
+0 -20 Td
+(Ship Type: Bulk Carrier) Tj
+0 -40 Td
+(has been audited and found to comply with the requirements of) Tj
+0 -20 Td
+(the International Safety Management Code) Tj
+0 -40 Td
+(Certificate Number: ISM-2024-001) Tj
 0 -20 Td
 (Issue Date: 01 January 2024) Tj
 0 -20 Td
 (Valid Until: 01 January 2027) Tj
-0 -20 Td
+0 -40 Td
 (Issued by: Panama Maritime Authority) Tj
+0 -20 Td
+(Classification Society: DNV GL) Tj
+0 -40 Td
+(This certificate is issued under the authority of the) Tj
+0 -20 Td
+(Government of Panama) Tj
+0 -40 Td
+(Date: 01 January 2024) Tj
+0 -20 Td
+(Place: Panama City) Tj
 ET
 endstream
 endobj
@@ -222,14 +249,14 @@ xref
 0000000058 00000 n 
 0000000115 00000 n 
 0000000206 00000 n 
-0000000400 00000 n 
+0000001050 00000 n 
 trailer
 <<
 /Size 5
 /Root 1 0 R
 >>
 startxref
-450
+1100
 %%EOF"""
         return pdf_content
 
