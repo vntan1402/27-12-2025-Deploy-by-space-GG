@@ -5223,22 +5223,24 @@ const CompanyFormModal = ({
             </h3>
             
             {/* Current Configuration Status */}
-            {companyGdriveCurrentConfig && companyGdriveCurrentConfig.configured && (
+            {companyGdriveCurrentConfig && companyGdriveCurrentConfig.config && 
+             companyGdriveCurrentConfig.config.web_app_url && companyGdriveCurrentConfig.config.folder_id && (
               <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <h4 className="font-medium text-green-800 mb-2">
                   {language === 'vi' ? 'Cấu hình hiện tại:' : 'Current Configuration:'}
                 </h4>
                 <div className="text-sm text-green-700 space-y-1">
                   <div><strong>{language === 'vi' ? 'Phương thức:' : 'Auth Method:'}</strong> {
-                    companyGdriveCurrentConfig.auth_method === 'apps_script' 
+                    companyGdriveCurrentConfig.config.auth_method === 'apps_script' 
                       ? 'Apps Script' 
-                      : companyGdriveCurrentConfig.auth_method === 'oauth' 
+                      : companyGdriveCurrentConfig.config.auth_method === 'oauth' 
                         ? 'OAuth 2.0' 
                         : 'Service Account'
                   }</div>
-                  <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {companyGdriveCurrentConfig.folder_id}</div>
-                  {companyGdriveCurrentConfig.service_account_email && (
-                    <div><strong>{language === 'vi' ? 'Account Email:' : 'Account Email:'}</strong> {companyGdriveCurrentConfig.service_account_email}</div>
+                  <div><strong>{language === 'vi' ? 'Folder ID:' : 'Folder ID:'}</strong> {companyGdriveCurrentConfig.config.folder_id}</div>
+                  <div><strong>{language === 'vi' ? 'Web App URL:' : 'Web App URL:'}</strong> {companyGdriveCurrentConfig.config.web_app_url}</div>
+                  {companyGdriveCurrentConfig.config.service_account_email && (
+                    <div><strong>{language === 'vi' ? 'Account Email:' : 'Account Email:'}</strong> {companyGdriveCurrentConfig.config.service_account_email}</div>
                   )}
                   {companyGdriveCurrentConfig.last_sync && (
                     <div><strong>{language === 'vi' ? 'Đồng bộ cuối:' : 'Last Sync:'}</strong> {new Date(companyGdriveCurrentConfig.last_sync).toLocaleString()}</div>
