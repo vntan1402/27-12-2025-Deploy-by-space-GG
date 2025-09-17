@@ -1646,7 +1646,7 @@ async def create_folders_via_apps_script(gdrive_config: dict, ship_name: str) ->
             return {
                 "success": True,
                 "ship_folder_id": result.get("ship_folder_id"),
-                "subfolders": result.get("subfolders", {})
+                "subfolders": result.get("subfolder_ids", {})  # Changed from 'subfolders' to 'subfolder_ids' to match Apps Script response
             }
         else:
             logger.error(f"Apps Script folder creation failed: {result.get('error')}")
