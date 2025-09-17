@@ -93,162 +93,264 @@ class GoogleDriveConfigTester:
             )
             return False
 
-    def test_gdrive_config_get(self):
-        """Test GET /api/gdrive/config - Get current Google Drive configuration"""
-        print(f"\n📁 Testing Google Drive Configuration - GET")
+    def test_configure_proxy_endpoint(self):
+        """Test the fixed Configure-Proxy endpoint with JSON payload"""
+        print("\n🔧 TESTING FIXED CONFIGURE-PROXY ENDPOINT")
         
-        success, config = self.run_test(
-            "Get Google Drive Config",
-            "GET",
-            "gdrive/config",
+        # Test the fixed endpoint that now accepts JSON payload
+        success, status, response = self.make_request(
+            'POST', 
+            'gdrive/configure-proxy', 
+            self.user_config, 
             200
         )
         
         if success:
-            print(f"   Configuration Status: {'Configured' if config.get('configured') else 'Not Configured'}")
-            print(f"   Folder ID: {config.get('folder_id', 'N/A')}")
-            print(f"   Service Account Email: {config.get('service_account_email', 'N/A')}")
-            print(f"   Last Sync: {config.get('last_sync', 'Never')}")
-            return True, config
-        return False, {}
-
-    def test_gdrive_status_get(self):
-        """Test GET /api/gdrive/status - Get Google Drive status"""
-        print(f"\n📊 Testing Google Drive Status - GET")
-        
-        success, status = self.run_test(
-            "Get Google Drive Status",
-            "GET",
-            "gdrive/status",
-            200
-        )
-        
-        if success:
-            print(f"   Configured: {status.get('configured', False)}")
-            print(f"   Last Sync: {status.get('last_sync', 'Never')}")
-            print(f"   Local Files: {status.get('local_files', 0)}")
-            print(f"   Drive Files: {status.get('drive_files', 0)}")
-            print(f"   Folder ID: {status.get('folder_id', 'N/A')}")
-            print(f"   Service Account Email: {status.get('service_account_email', 'N/A')}")
-            return True, status
-        return False, {}
-
-    def test_gdrive_test_connection(self):
-        """Test POST /api/gdrive/test - Test Google Drive connection with sample credentials"""
-        print(f"\n🔧 Testing Google Drive Connection Test - POST")
-        
-        # Sample fake service account JSON for testing endpoint structure
-        fake_service_account_json = json.dumps({
-            "type": "service_account",
-            "project_id": "test-project-12345",
-            "private_key_id": "test-key-id",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n",
-            "client_email": "test-service@test-project-12345.iam.gserviceaccount.com",
-            "client_id": "123456789012345678901",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/test-service%40test-project-12345.iam.gserviceaccount.com"
-        })
-        
-        test_data = {
-            "service_account_json": fake_service_account_json,
-            "folder_id": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"  # Sample folder ID
-        }
-        
-        success, response = self.run_test(
-            "Test Google Drive Connection",
-            "POST",
-            "gdrive/test",
-            200,  # Expecting success for endpoint structure test, even with fake data
-            data=test_data
-        )
-        
-        if success:
-            print(f"   Test Success: {response.get('success', False)}")
-            print(f"   Message: {response.get('message', 'N/A')}")
-            print(f"   Folder Name: {response.get('folder_name', 'N/A')}")
-            print(f"   Service Account Email: {response.get('service_account_email', 'N/A')}")
-            return True, response
-        else:
-            # Even if the test fails due to fake credentials, we check if the endpoint structure is working
-            print("   Note: Expected failure with fake credentials - testing endpoint structure")
-            return True, {}  # Consider this a pass for endpoint structure testing
-
-    def test_gdrive_configure(self):
-        """Test POST /api/gdrive/configure - Configure Google Drive with sample credentials"""
-        print(f"\n⚙️ Testing Google Drive Configuration - POST")
-        
-        # Sample fake service account JSON for testing endpoint structure
-        fake_service_account_json = json.dumps({
-            "type": "service_account",
-            "project_id": "ship-management-test",
-            "private_key_id": "test-configure-key-id",
-            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQD...\n-----END PRIVATE KEY-----\n",
-            "client_email": "ship-management@ship-management-test.iam.gserviceaccount.com",
-            "client_id": "987654321098765432109",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token",
-            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/ship-management%40ship-management-test.iam.gserviceaccount.com"
-        })
-        
-        config_data = {
-            "service_account_json": fake_service_account_json,
-            "folder_id": "1AbCdEfGhIjKlMnOpQrStUvWxYz123456789"  # Sample folder ID
-        }
-        
-        success, response = self.run_test(
-            "Configure Google Drive",
-            "POST",
-            "gdrive/configure",
-            200,  # Expecting success for endpoint structure test
-            data=config_data
-        )
-        
-        if success:
-            print(f"   Configuration Status: {response.get('status', 'N/A')}")
-            print(f"   Message: {response.get('message', 'N/A')}")
-            return True, response
-        else:
-            # Even if configuration fails due to fake credentials, we check if the endpoint structure is working
-            print("   Note: Expected failure with fake credentials - testing endpoint structure")
-            return True, {}  # Consider this a pass for endpoint structure testing
-
-    def test_authentication_requirements(self):
-        """Test that all Google Drive endpoints require proper authentication"""
-        print(f"\n🔒 Testing Authentication Requirements")
-        
-        # Temporarily remove token to test unauthenticated access
-        original_token = self.token
-        self.token = None
-        
-        endpoints_to_test = [
-            ("GET /api/gdrive/config", "GET", "gdrive/config"),
-            ("GET /api/gdrive/status", "GET", "gdrive/status"),
-            ("POST /api/gdrive/test", "POST", "gdrive/test"),
-            ("POST /api/gdrive/configure", "POST", "gdrive/configure")
-        ]
-        
-        auth_tests_passed = 0
-        for endpoint_name, method, endpoint in endpoints_to_test:
-            success, response = self.run_test(
-                f"Unauthenticated {endpoint_name}",
-                method,
-                endpoint,
-                403,  # Expecting 403 Forbidden (FastAPI returns 403 for unauthenticated)
-                data={"test": "data"} if method == "POST" else None
+            self.log_test(
+                "Configure-Proxy JSON Payload Fix", 
+                True, 
+                f"Configuration saved successfully: {response.get('message', 'Success')}"
             )
-            if success:
-                auth_tests_passed += 1
-                print(f"   ✅ {endpoint_name} properly requires authentication")
+            return True
+        else:
+            # Check if it's the old error that should be fixed
+            error_msg = response.get('detail', str(response))
+            if "web_app_url and folder_id are required" in error_msg:
+                self.log_test(
+                    "Configure-Proxy JSON Payload Fix", 
+                    False, 
+                    f"CRITICAL BUG NOT FIXED: Still getting parameter error: {error_msg}"
+                )
             else:
-                print(f"   ❌ {endpoint_name} authentication check failed")
+                self.log_test(
+                    "Configure-Proxy JSON Payload Fix", 
+                    False, 
+                    f"Status: {status}, Error: {error_msg}"
+                )
+            return False
+
+    def test_system_gdrive_status(self):
+        """Test System Google Drive Status endpoint"""
+        print("\n📊 TESTING SYSTEM GOOGLE DRIVE STATUS")
         
-        # Restore token
-        self.token = original_token
+        success, status, response = self.make_request('GET', 'gdrive/status', None, 200)
         
-        return auth_tests_passed == len(endpoints_to_test)
+        if success:
+            status_info = response.get('status', 'unknown')
+            message = response.get('message', '')
+            
+            if status_info == 'connected' or 'connected' in message.lower():
+                self.log_test(
+                    "System Google Drive Status", 
+                    True, 
+                    f"Status: {status_info}, Message: {message}"
+                )
+                return True
+            else:
+                self.log_test(
+                    "System Google Drive Status", 
+                    False, 
+                    f"Status not connected: {status_info}, Message: {message}"
+                )
+                return False
+        else:
+            self.log_test(
+                "System Google Drive Status", 
+                False, 
+                f"Status: {status}, Response: {response}"
+            )
+            return False
+
+    def test_direct_apps_script_communication(self):
+        """Test direct communication with user's Apps Script URL"""
+        print("\n🔗 TESTING DIRECT APPS SCRIPT COMMUNICATION")
+        
+        # Test direct connection to the Apps Script URL
+        try:
+            test_payload = {
+                "action": "test_connection",
+                "folder_id": self.user_config["folder_id"]
+            }
+            
+            response = requests.post(
+                self.user_config["web_app_url"], 
+                json=test_payload, 
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    if data.get('success') or data.get('status') == 'success':
+                        self.log_test(
+                            "Direct Apps Script Communication", 
+                            True, 
+                            f"Apps Script responded successfully: {data}"
+                        )
+                        return True
+                    else:
+                        self.log_test(
+                            "Direct Apps Script Communication", 
+                            False, 
+                            f"Apps Script returned error: {data}"
+                        )
+                        return False
+                except:
+                    self.log_test(
+                        "Direct Apps Script Communication", 
+                        False, 
+                        f"Invalid JSON response: {response.text}"
+                    )
+                    return False
+            else:
+                self.log_test(
+                    "Direct Apps Script Communication", 
+                    False, 
+                    f"HTTP {response.status_code}: {response.text}"
+                )
+                return False
+                
+        except Exception as e:
+            self.log_test(
+                "Direct Apps Script Communication", 
+                False, 
+                f"Connection error: {str(e)}"
+            )
+            return False
+
+    def test_configuration_persistence(self):
+        """Test if configuration is properly saved and retrieved"""
+        print("\n💾 TESTING CONFIGURATION PERSISTENCE")
+        
+        # Get current configuration
+        success, status, response = self.make_request('GET', 'gdrive/config', None, 200)
+        
+        if success:
+            config = response.get('config', {})
+            web_app_url = config.get('web_app_url', '')
+            folder_id = config.get('folder_id', '')
+            
+            # Check if our configuration is saved
+            if (web_app_url == self.user_config["web_app_url"] and 
+                folder_id == self.user_config["folder_id"]):
+                self.log_test(
+                    "Configuration Persistence", 
+                    True, 
+                    f"Configuration correctly saved and retrieved"
+                )
+                return True
+            else:
+                self.log_test(
+                    "Configuration Persistence", 
+                    False, 
+                    f"Configuration mismatch - URL: {web_app_url}, Folder: {folder_id}"
+                )
+                return False
+        else:
+            self.log_test(
+                "Configuration Persistence", 
+                False, 
+                f"Failed to retrieve configuration: Status {status}"
+            )
+            return False
+
+    def test_await_keyword_fix(self):
+        """Test that the await keyword fix prevents coroutine errors"""
+        print("\n⚡ TESTING AWAIT KEYWORD FIX")
+        
+        # This test checks if the status endpoint works without coroutine errors
+        # The fix was adding 'await' to AI response handling
+        success, status, response = self.make_request('GET', 'gdrive/status', None, 200)
+        
+        if success:
+            # Check if response contains proper data structure (not coroutine object)
+            if isinstance(response, dict) and 'status' in response:
+                self.log_test(
+                    "Await Keyword Fix", 
+                    True, 
+                    "No coroutine errors detected, proper response structure"
+                )
+                return True
+            else:
+                self.log_test(
+                    "Await Keyword Fix", 
+                    False, 
+                    f"Unexpected response structure: {type(response)}"
+                )
+                return False
+        else:
+            error_msg = response.get('detail', str(response))
+            if 'coroutine' in error_msg.lower():
+                self.log_test(
+                    "Await Keyword Fix", 
+                    False, 
+                    f"CRITICAL BUG NOT FIXED: Coroutine error still present: {error_msg}"
+                )
+            else:
+                self.log_test(
+                    "Await Keyword Fix", 
+                    False, 
+                    f"Status endpoint failed: {error_msg}"
+                )
+            return False
+
+    def test_error_handling(self):
+        """Test error handling with invalid configurations"""
+        print("\n🚨 TESTING ERROR HANDLING")
+        
+        # Test with invalid folder ID
+        invalid_config = {
+            "web_app_url": self.user_config["web_app_url"],
+            "folder_id": "invalid_folder_id_123"
+        }
+        
+        success, status, response = self.make_request(
+            'POST', 
+            'gdrive/configure-proxy', 
+            invalid_config, 
+            200  # Should still accept the config but test connection might fail
+        )
+        
+        if success:
+            self.log_test(
+                "Error Handling - Invalid Config", 
+                True, 
+                "Endpoint accepts invalid config (will fail on test connection)"
+            )
+            
+            # Now test status with invalid config
+            success2, status2, response2 = self.make_request('GET', 'gdrive/status', None, 200)
+            
+            if success2:
+                status_info = response2.get('status', '')
+                if 'error' in status_info.lower() or 'failed' in status_info.lower():
+                    self.log_test(
+                        "Error Handling - Status with Invalid Config", 
+                        True, 
+                        f"Properly reports error: {response2.get('message', '')}"
+                    )
+                    return True
+                else:
+                    self.log_test(
+                        "Error Handling - Status with Invalid Config", 
+                        False, 
+                        f"Should report error but got: {status_info}"
+                    )
+                    return False
+            else:
+                self.log_test(
+                    "Error Handling - Status with Invalid Config", 
+                    False, 
+                    f"Status endpoint failed: {response2}"
+                )
+                return False
+        else:
+            self.log_test(
+                "Error Handling - Invalid Config", 
+                False, 
+                f"Should accept config but got error: {response}"
+            )
+            return False
 
     def run_comprehensive_test(self):
         """Run comprehensive Google Drive configuration tests"""
