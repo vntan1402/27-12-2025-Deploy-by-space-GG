@@ -6668,14 +6668,26 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       }
       
       // Show final summary
-      const results = fileUploads.filter(file => file.status === 'completed').length;
+      setIsMultiFileProcessing(false);
+      const completedFiles = fileUploads.filter(file => file.status === 'completed').length;
       const certificateCount = fileUploads.filter(file => file.certificate_created).length;
+      const gdriveUploads = fileUploads.filter(file => file.google_drive_uploaded).length;
       
-      toast.success(
-        language === 'vi' 
-          ? `Hoàn thành xử lý ${results}/${files.length} file. Tạo được ${certificateCount} certificate record.`
-          : `Completed processing ${results}/${files.length} files. Created ${certificateCount} certificate records.`
-      );
+      // Create detailed summary
+      let summaryMessage = '';
+      if (language === 'vi') {
+        summaryMessage = `🎉 Hoàn thành xử lý ${completedFiles}/${files.length} file!\n`;
+        summaryMessage += `📋 Tạo được ${certificateCount} certificate record\n`;
+        summaryMessage += `☁️ Upload ${gdriveUploads} file lên Google Drive`;
+      } else {
+        summaryMessage = `🎉 Completed processing ${completedFiles}/${files.length} files!\n`;
+        summaryMessage += `📋 Created ${certificateCount} certificate records\n`;
+        summaryMessage += `☁️ Uploaded ${gdriveUploads} files to Google Drive`;
+      }
+      
+      toast.success(summaryMessage, {
+        duration: 8000 // Show longer for detailed summary
+      });
       
     } catch (error) {
       console.error('Multi-file upload error:', error);
