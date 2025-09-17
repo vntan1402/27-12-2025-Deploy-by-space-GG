@@ -527,22 +527,80 @@ Issued By: Panama Maritime Documentation Services
         try:
             # Try to read supervisor logs
             import subprocess
-            result = subprocess.run(
-                ['tail', '-n', '50', '/var/log/supervisor/backend.err.log'],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
             
-            if result.returncode == 0:
-                print(f"   Recent Backend Error Logs:")
-                print(result.stdout)
-                self.log_test("Backend Log Check", True, "Logs retrieved")
-            else:
-                self.log_test("Backend Log Check", False, "Could not read error logs")
+            # Check both error and output logs
+            log_files = [
+                '/var/log/supervisor/backend.err.log',
+                '/var/log/supervisor/backend.out.log'
+            ]
+            
+            for log_file in log_files:
+                try:
+                    result = subprocess.run(
+                        ['tail', '-n', '30', log_file],
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    
+                    if result.returncode == 0 and result.stdout.strip():
+                        print(f"   Recent logs from {log_file}:")
+                        print(result.stdout)
+                        
+                        # Look for AI-related errors
+                        if 'AI' in result.stdout or 'analysis' in result.stdout.lower() or 'emergent' in result.stdout.lower():
+                            print(f"   🔍 Found AI-related log entries")
+                            
+                except Exception as e:
+                    print(f"   Could not read {log_file}: {str(e)}")
+            
+            self.log_test("Backend Log Check", True, "Logs checked")
                 
         except Exception as e:
             self.log_test("Backend Log Check", False, f"Error reading logs: {str(e)}")
+
+    def check_error_messages(self):
+        """Check for specific error messages in AI analysis"""
+        print(f"\n🚨 Checking for Error Messages")
+        
+        # Test with an invalid file to see error handling
+        try:
+            invalid_content = b"This is not a PDF file"
+            files = {
+                'files': ('invalid.pdf', io.BytesIO(invalid_content), 'application/pdf')
+            }
+            
+            success, response = self.run_api_request(
+                "POST",
+                "certificates/upload-multi-files",
+                200,  # Should still return 200 but with error in results
+                files=files,
+                timeout=60
+            )
+            
+            if success:
+                results = response.get('results', [])
+                if results:
+                    result = results[0]
+                    status = result.get('status')
+                    message = result.get('message', '')
+                    
+                    print(f"   Invalid file handling:")
+                    print(f"     Status: {status}")
+                    print(f"     Message: {message}")
+                    
+                    if status == 'error':
+                        print(f"   ✅ Error handling working correctly")
+                        self.log_test("Error Message Handling", True, "Invalid files properly rejected")
+                    else:
+                        self.log_issue("ERROR_HANDLING", "Invalid file not properly rejected", result)
+                        self.log_test("Error Message Handling", False, "Invalid file accepted")
+                        
+            return True
+            
+        except Exception as e:
+            self.log_test("Error Message Check", False, f"Error: {str(e)}")
+            return False
 
     def run_comprehensive_test(self):
         """Run comprehensive AI analysis debugging"""
