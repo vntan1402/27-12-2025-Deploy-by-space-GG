@@ -1645,7 +1645,8 @@ async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> d
 async def create_folders_via_apps_script(gdrive_config: dict, ship_name: str) -> dict:
     """Create folders using Google Apps Script"""
     try:
-        script_url = gdrive_config.get("apps_script_url")
+        # Handle both system config (apps_script_url) and company config (web_app_url)
+        script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
         if not script_url:
             raise Exception("Apps Script URL not configured")
         
@@ -1698,7 +1699,8 @@ async def upload_file_to_category_folder(gdrive_config: dict, file_content: byte
 async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str) -> dict:
     """Upload file using Google Apps Script"""
     try:
-        script_url = gdrive_config.get("apps_script_url")
+        # Handle both system config (apps_script_url) and company config (web_app_url)
+        script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
         if not script_url:
             raise Exception("Apps Script URL not configured")
         
@@ -2116,7 +2118,8 @@ async def get_gdrive_file_view_url(
         auth_method = gdrive_config.get("auth_method", "apps_script")
         
         if auth_method == "apps_script":
-            script_url = gdrive_config.get("apps_script_url")
+            # Handle both system config (apps_script_url) and company config (web_app_url)
+        script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
             if not script_url:
                 raise HTTPException(status_code=500, detail="Apps Script URL not configured")
             
