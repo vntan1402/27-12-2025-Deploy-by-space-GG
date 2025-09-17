@@ -1740,10 +1740,7 @@ async def upload_file_to_gdrive_with_analysis(file_content: bytes, filename: str
         ship_name = analysis_result.get("ship_name", "Unknown_Ship")
         category = analysis_result.get("category", "other_documents")
         
-        # Create folder structure if needed
-        folder_result = await create_ship_folder_structure(gdrive_config, ship_name)
-        
-        # Upload file to appropriate category folder
+        # Upload file to appropriate category folder (folder creation is handled inside upload function)
         upload_result = await upload_file_to_category_folder(
             gdrive_config, file_content, filename, ship_name, category
         )
