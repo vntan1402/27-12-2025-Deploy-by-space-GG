@@ -2210,6 +2210,178 @@ async def configure_google_drive_proxy(
             "message": f"Configuration failed: {str(e)}",
             "error": str(e)
         }
+# Company-specific Google Drive endpoints
+@api_router.get("/companies/{company_id}/gdrive/config")
+async def get_company_gdrive_config(
+    company_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get Google Drive configuration for specific company"""
+    try:
+        # Check if company exists
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get company-specific Google Drive config
+        config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+        
+        if config:
+            return {
+                "success": True,
+                "config": {
+                    "web_app_url": config.get("web_app_url", ""),
+                    "folder_id": config.get("folder_id", ""),
+                    "auth_method": config.get("auth_method", "apps_script"),
+                    "service_account_email": config.get("service_account_email", ""),
+                    "project_id": config.get("project_id", "")
+                },
+                "company_name": company.get("name_en", company.get("name", "Unknown"))
+            }
+        else:
+            # Return empty config for new setup
+            return {
+                "success": True,
+                "config": {
+                    "web_app_url": "",
+                    "folder_id": "",
+                    "auth_method": "apps_script",
+                    "service_account_email": "",
+                    "project_id": ""
+                },
+                "company_name": company.get("name_en", company.get("name", "Unknown"))
+            }
+            
+    except Exception as e:
+        logger.error(f"Error fetching company Google Drive config: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch configuration")
+
+@api_router.get("/companies/{company_id}/gdrive/status")
+async def get_company_gdrive_status(
+    company_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get Google Drive connection status for specific company"""
+    try:
+        # Check if company exists
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get company-specific Google Drive config
+        config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+        
+        if not config or not config.get("web_app_url"):
+            return {
+                "success": True,
+                "status": "not_configured",
+                "message": "Google Drive not configured for this company",
+                "last_tested": None,
+                "test_result": "pending"
+            }
+        
+        return {
+            "success": True,
+            "status": "configured" if config.get("web_app_url") else "not_configured",
+            "message": "Google Drive configured" if config.get("web_app_url") else "Not configured",
+            "last_tested": config.get("last_tested"),
+            "test_result": config.get("test_result", "unknown"),
+            "folder_id": config.get("folder_id"),
+            "auth_method": config.get("auth_method", "apps_script")
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching company Google Drive status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch status")
+
+@api_router.post("/companies/{company_id}/gdrive/configure")
+async def configure_company_gdrive(
+    company_id: str,
+    config_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Configure Google Drive for specific company"""
+    try:
+        # Check if company exists
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        web_app_url = config_data.get("web_app_url")
+        folder_id = config_data.get("folder_id")
+        
+        if not web_app_url or not folder_id:
+            raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
+        
+        # Test the configuration first
+        test_payload = {
+            "action": "test_connection",
+            "folder_id": folder_id
+        }
+        
+        try:
+            response = requests.post(web_app_url, json=test_payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success"):
+                    # Save configuration to database
+                    config_update = {
+                        "company_id": company_id,
+                        "web_app_url": web_app_url,
+                        "folder_id": folder_id,
+                        "auth_method": config_data.get("auth_method", "apps_script"),
+                        "service_account_email": config_data.get("service_account_email", ""),
+                        "project_id": config_data.get("project_id", ""),
+                        "last_tested": datetime.now(timezone.utc).isoformat(),
+                        "test_result": "success",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    await mongo_db.update(
+                        "company_gdrive_config",
+                        {"company_id": company_id},
+                        config_update,
+                        upsert=True
+                    )
+                    
+                    return {
+                        "success": True,
+                        "message": "Google Drive configured successfully!",
+                        "folder_name": result.get("folder_name", "Unknown"),
+                        "test_result": "PASSED",
+                        "configuration_saved": True
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": f"Apps Script test failed: {result.get('message', 'Unknown error')}",
+                        "error": result.get("error", "Test failed")
+                    }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Apps Script request failed with status {response.status_code}",
+                    "error": f"HTTP {response.status_code}"
+                }
+                
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "Apps Script request timed out",
+                "error": "Request timeout"
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                "success": False,
+                "message": f"Apps Script request failed: {str(e)}",
+                "error": str(e)
+            }
+        
+    except Exception as e:
+        logger.error(f"Error configuring company Google Drive: {e}")
+        raise HTTPException(status_code=500, detail=f"Configuration failed: {str(e)}")
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
 async def get_usage_stats(
