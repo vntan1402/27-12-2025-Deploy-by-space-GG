@@ -340,69 +340,103 @@ Place: Panama City, Panama
             self.log_issue("AI_ENDPOINT", "Exception during AI analysis", str(e))
             return False, {"error": str(e)}
 
-    def test_multi_file_upload(self, pdf_path):
-        """Test the multi-file upload endpoint"""
-        print(f"\n📁 Testing Multi-File Upload with AI Analysis")
+    def test_different_certificate_types(self):
+        """Test AI analysis with different types of maritime certificates"""
+        print(f"\n📋 Testing Different Certificate Types")
         
-        try:
-            with open(pdf_path, 'rb') as pdf_file:
-                files = {'files': ('BROTHER_36_EIAPP.pdf', pdf_file, 'application/pdf')}
-                data = {
-                    'ship_id': 'test-ship-id',  # We'll use a test ship ID
-                    'category': 'certificates'
-                }
+        # Test different certificate types
+        test_certificates = [
+            {
+                "name": "IAPP Certificate",
+                "content": """
+INTERNATIONAL AIR POLLUTION PREVENTION CERTIFICATE
+
+This is to certify that the ship named below has been surveyed in accordance with Annex VI of MARPOL 73/78.
+
+Ship Name: MV OCEAN BREEZE
+Certificate Number: IAPP-2024-002
+Certificate Type: Full Term
+Issue Date: 20 February 2024
+Valid Until: 20 February 2029
+Issued By: DNV GL
+Flag: Marshall Islands
+                """
+            },
+            {
+                "name": "Load Line Certificate", 
+                "content": """
+INTERNATIONAL LOAD LINE CERTIFICATE
+
+Ship Name: MV CARGO MASTER
+Certificate No: LLC-2024-003
+Issue Date: 10 March 2024
+Valid Date: 10 March 2029
+Issued By: Lloyd's Register
+Classification Society: Lloyd's Register
+Flag State: Liberia
+                """
+            }
+        ]
+        
+        all_successful = True
+        
+        for cert_test in test_certificates:
+            print(f"\n   Testing {cert_test['name']}...")
+            
+            # Create PDF content
+            pdf_content = cert_test['content'].encode('utf-8')
+            
+            files = {
+                'files': (f"{cert_test['name'].replace(' ', '_')}.pdf", io.BytesIO(pdf_content), 'application/pdf')
+            }
+            
+            success, response = self.run_api_request(
+                "POST",
+                "certificates/upload-multi-files",
+                200,
+                files=files,
+                timeout=120
+            )
+            
+            if success and response.get('results'):
+                result = response['results'][0]
+                analysis = result.get('analysis', {})
                 
-                success, response = self.run_api_request(
-                    "POST",
-                    "upload-files",
-                    200,
-                    data=data,
-                    files=files,
-                    timeout=120
-                )
+                # Check specific fields
+                cert_name = analysis.get('cert_name', 'N/A')
+                cert_no = analysis.get('cert_no', 'N/A')
+                issue_date = analysis.get('issue_date', 'N/A')
+                valid_date = analysis.get('valid_date', 'N/A')
+                issued_by = analysis.get('issued_by', 'N/A')
                 
-                if success:
-                    print(f"   Multi-file upload response:")
-                    print(json.dumps(response, indent=2, default=str))
-                    
-                    # Check if AI analysis was performed
-                    uploaded_files = response.get('uploaded_files', [])
-                    ai_analysis_found = False
-                    ship_name_from_multi = None
-                    
-                    for file_info in uploaded_files:
-                        if 'ai_analysis' in file_info:
-                            ai_analysis_found = True
-                            ai_data = file_info['ai_analysis']
-                            ship_name_from_multi = ai_data.get('ship_name', 'NOT_FOUND')
-                            break
-                    
-                    self.log_test(
-                        "Multi-File Upload - API Call", 
-                        True, 
-                        f"Upload completed, AI analysis found: {ai_analysis_found}"
+                print(f"     Cert Name: {cert_name}")
+                print(f"     Cert No: {cert_no}")
+                print(f"     Issue Date: {issue_date}")
+                print(f"     Valid Date: {valid_date}")
+                print(f"     Issued By: {issued_by}")
+                
+                # Check for extraction success
+                na_fields = []
+                for field, value in [('cert_name', cert_name), ('cert_no', cert_no), 
+                                   ('issue_date', issue_date), ('valid_date', valid_date), ('issued_by', issued_by)]:
+                    if value == 'N/A' or value is None or str(value).strip() == '':
+                        na_fields.append(field)
+                
+                if na_fields:
+                    self.log_issue(
+                        "FIELD_EXTRACTION",
+                        f"{cert_test['name']} - Fields returning N/A: {', '.join(na_fields)}",
+                        analysis
                     )
-                    
-                    if ai_analysis_found:
-                        ship_name_correct = ship_name_from_multi == self.expected_ship_name
-                        self.log_test(
-                            "Multi-File Ship Name Extraction", 
-                            ship_name_correct, 
-                            f"Expected: '{self.expected_ship_name}', Got: '{ship_name_from_multi}'"
-                        )
-                    
-                    return success, response
+                    all_successful = False
                 else:
-                    self.log_test(
-                        "Multi-File Upload - API Call", 
-                        False, 
-                        f"API Error: {response}"
-                    )
-                    return False, response
-                    
-        except Exception as e:
-            self.log_test("Multi-File Upload", False, f"Error: {str(e)}")
-            return False, {"error": str(e)}
+                    print(f"   ✅ {cert_test['name']} fields extracted successfully")
+            else:
+                self.log_issue("CERTIFICATE_TEST", f"Failed to process {cert_test['name']}", response)
+                all_successful = False
+        
+        self.log_test("Different Certificate Types", all_successful, f"Tested {len(test_certificates)} certificate types")
+        return all_successful
 
     def test_ai_prompt_analysis(self):
         """Test if we can inspect the AI prompt being used"""
