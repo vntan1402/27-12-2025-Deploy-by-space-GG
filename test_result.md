@@ -544,6 +544,21 @@
           agent: "testing"
           comment: "✅ MISSING ENDPOINTS NOW IMPLEMENTED AND WORKING - Comprehensive testing completed with all missing Google Drive sync endpoints now accessible: (1) POST /api/gdrive/sync-to-drive-proxy endpoint now exists and accessible (was 404 Not Found, now returns 500 due to configuration issues which is expected), (2) POST /api/gdrive/sync-to-drive legacy endpoint now exists and accessible (was 404 Not Found, now returns 500 due to configuration issues which is expected), (3) Both endpoints are properly implemented in server.py at lines 2016 and 2107, (4) Endpoints are no longer returning 404 Not Found - they are accessible and functional, (5) Current 500 errors are due to Google Drive configuration field name mismatch (web_app_url vs apps_script_url) which is a minor configuration issue, not missing implementation. CONCLUSION: All missing Google Drive sync endpoints have been successfully implemented and are now accessible. The endpoints exist, are properly routed, and return appropriate responses."
 
+  - task: "Company Update Functionality Issue Investigation"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🚨 CRITICAL ISSUE IDENTIFIED - Company update functionality completely broken due to missing backend endpoint. Investigation revealed: (1) ✅ Authentication with admin/admin123 successful, (2) ✅ AMCSC company found with expected ID cfe73cb0-cc88-4659-92a7-57cb413a5573, (3) ✅ Google Drive configuration working correctly for AMCSC company, (4) ❌ ALL company update attempts return 404 Not Found, (5) ❌ PUT /api/companies/{company_id} endpoint completely missing from backend server.py, (6) ❌ CompanyUpdate Pydantic model missing, (7) Backend logs confirm all PUT requests to /api/companies/{company_id} return 404. ROOT CAUSE: The issue is NOT related to Google Drive configuration - it's a missing backend endpoint that affects ALL companies regardless of Google Drive status. The 'Failed to update company!' error occurs because the frontend correctly calls PUT /api/companies/{company_id} but this endpoint doesn't exist in the backend."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPANY UPDATE FUNCTIONALITY COMPLETELY FIXED - Implemented missing backend endpoint and verified full functionality: (1) ✅ Added CompanyUpdate Pydantic model with all required fields (name_vn, name_en, address_vn, address_en, tax_id, gmail, zalo, system_expiry, legacy fields), (2) ✅ Implemented PUT /api/companies/{company_id} endpoint with proper validation, error handling, and backward compatibility, (3) ✅ AMCSC company updates working perfectly - tested single field, multiple fields, and system_expiry updates, (4) ✅ Non-Google Drive companies also update successfully, (5) ✅ All update scenarios return 200 status with proper response data, (6) ✅ Backend restart successful and endpoint accessible. ISSUE COMPLETELY RESOLVED: Company updates now work for all companies regardless of Google Drive configuration. The root cause was missing backend implementation, not Google Drive conflicts. Users can now successfully update company details without 'Failed to update company!' errors."
+
   - task: "Missing Enhanced User Filtering Backend Endpoint"
     implemented: true
     working: true
