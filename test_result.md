@@ -199,6 +199,21 @@
           agent: "testing"
           comment: "✅ ENHANCED USER FILTERING AND SORTING API FULLY TESTED AND WORKING - Comprehensive testing completed with all filtering and sorting functionality verified: (1) GET /api/users/filtered endpoint working correctly: ✅ Basic endpoint returns 8 users, ✅ Company filtering returns 5 users for 'AMCSC', ✅ Department filtering returns 2 users for 'operations', ✅ Sorting by full_name (ASC) working correctly, ✅ Sorting by company (DESC) working correctly, ✅ Sorting by created_at working correctly, ✅ Combined filter and sort returns 5 users for company 'AMCSC' sorted by role. (2) Role-based access control verified: ✅ Manager users correctly see only same company users (5 users from AMCSC), ✅ Super Admin sees all users (8 users) with no filtering restrictions. (3) All valid sort fields tested: full_name, company, department, role, ship, created_at with both ASC and DESC ordering. (4) Filter parameters tested: company, department, ship with proper query parameter handling. All Enhanced User Filtering and Sorting API functionality is production-ready and working correctly."
 
+  - task: "System Google Drive Configuration Debug and Fix"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🔍 SYSTEM GOOGLE DRIVE CONFIGURATION ISSUE IDENTIFIED - User reports 'script error' when testing System Google Drive connection with specific URL (https://script.google.com/macros/s/AKfycbwIfwqaegvfi0IEZPdArCvphZNVPcbS_2eIq_aAop08Kc_9TzDngAs-KCDVb-t2xNc/exec) and Folder ID (1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB). Initial testing revealed: (1) ✅ Direct Apps Script communication working perfectly - returns proper JSON with success status, (2) ✅ Backend endpoints accessible and functional, (3) ❌ Backend status endpoint showing 'Apps Script error: None' despite Apps Script working correctly, (4) ✅ Configuration can be saved successfully. ROOT CAUSE IDENTIFIED: Backend GET /api/gdrive/status endpoint was calling Apps Script with only {'action': 'test_connection'} but missing the required 'folder_id' parameter that the Apps Script expects."
+        - working: true
+          agent: "testing"
+          comment: "🎉 SYSTEM GOOGLE DRIVE CONFIGURATION COMPLETELY FIXED - Critical backend bug resolved with 100% success rate (5/5 tests passed). ROOT CAUSE AND FIX: Backend /api/gdrive/status endpoint was missing 'folder_id' parameter when calling Apps Script test_connection action. SOLUTION IMPLEMENTED: Modified server.py line 2111 to include folder_id parameter from configuration when calling Apps Script: payload = {'action': 'test_connection', 'folder_id': folder_id}. COMPREHENSIVE VERIFICATION: (1) ✅ Authentication with admin/admin123 working perfectly, (2) ✅ Direct Apps Script verification confirms user's URL working correctly with proper JSON responses, (3) ✅ GET /api/gdrive/config returns current configuration successfully, (4) ✅ POST /api/gdrive/config saves user's configuration successfully, (5) ✅ GET /api/gdrive/status now returns 'connected' status with message 'Google Drive connected via Apps Script' instead of previous 'Apps Script error: None'. TESTING RESULTS: User's specific configuration (Apps Script URL: https://script.google.com/macros/s/AKfycbwIfwqaegvfi0IEZPdArCvphZNVPcbS_2eIq_aAop08Kc_9TzDngAs-KCDVb-t2xNc/exec, Folder ID: 1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB) now working perfectly. The 'script error' issue is completely resolved. System Google Drive configuration is fully functional and production-ready."
+
   - task: "Self-Edit Permissions for Crew Role"
     implemented: true
     working: true
