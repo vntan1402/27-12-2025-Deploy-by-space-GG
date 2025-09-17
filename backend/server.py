@@ -2502,43 +2502,89 @@ async def get_company_gdrive_config(
         logger.error(f"Error fetching company Google Drive config: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch configuration")
 
-@api_router.get("/companies/{company_id}/gdrive/status")
-async def get_company_gdrive_status(
+@api_router.post("/companies/{company_id}/gdrive/status")
+async def get_company_google_drive_status(
     company_id: str,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(get_current_user)
 ):
-    """Get Google Drive connection status for specific company"""
+    """Get company-specific Google Drive configuration status"""
     try:
-        # Check if company exists
-        company = await mongo_db.find_one("companies", {"id": company_id})
-        if not company:
-            raise HTTPException(status_code=404, detail="Company not found")
-        
-        # Get company-specific Google Drive config
         config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
         
-        if not config or not config.get("web_app_url"):
-            return {
-                "success": True,
-                "status": "not_configured",
-                "message": "Google Drive not configured for this company",
-                "last_tested": None,
-                "test_result": "pending"
-            }
+        if not config:
+            return {"status": "not_configured", "configured": False}
         
         return {
-            "success": True,
-            "status": "configured" if config.get("web_app_url") else "not_configured",
-            "message": "Google Drive configured" if config.get("web_app_url") else "Not configured",
-            "last_tested": config.get("last_tested"),
-            "test_result": config.get("test_result", "unknown"),
-            "folder_id": config.get("folder_id"),
+            "status": "connected" if config.get("web_app_url") else "not_configured",
+            "configured": bool(config.get("web_app_url")),
             "auth_method": config.get("auth_method", "apps_script")
         }
-        
     except Exception as e:
-        logger.error(f"Error fetching company Google Drive status: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch status")
+        logger.error(f"Error checking company Google Drive status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check Google Drive status: {str(e)}")
+
+@api_router.post("/companies/{company_id}/gdrive/create-ship-folder")
+async def create_ship_google_drive_folder(
+    company_id: str,
+    folder_data: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Create ship folder structure on company Google Drive"""
+    try:
+        ship_name = folder_data.get("ship_name")
+        subfolders = folder_data.get("subfolders", [])
+        
+        if not ship_name:
+            raise HTTPException(status_code=400, detail="ship_name is required")
+        
+        # Get company Google Drive configuration
+        config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+        
+        if not config:
+            raise HTTPException(status_code=404, detail="Company Google Drive not configured")
+        
+        script_url = config.get("web_app_url")
+        folder_id = config.get("folder_id")
+        
+        if not script_url or not folder_id:
+            raise HTTPException(status_code=400, detail="Invalid Google Drive configuration")
+        
+        # Create main ship folder first
+        logger.info(f"Creating ship folder: {ship_name} in company folder: {folder_id}")
+        
+        folder_payload = {
+            "action": "create_folder_structure",
+            "parent_folder_id": folder_id,
+            "ship_name": ship_name,
+            "subfolders": subfolders
+        }
+        
+        # Call Google Apps Script to create folder structure
+        response = requests.post(script_url, json=folder_payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        if result.get("success"):
+            logger.info(f"✅ Ship folder created successfully: {ship_name}")
+            return {
+                "success": True,
+                "message": f"Ship folder '{ship_name}' created successfully",
+                "ship_folder_id": result.get("ship_folder_id"),
+                "subfolder_ids": result.get("subfolder_ids", {}),
+                "subfolders_created": len(subfolders)
+            }
+        else:
+            error_msg = result.get("message", "Unknown error")
+            logger.error(f"❌ Failed to create ship folder: {error_msg}")
+            raise HTTPException(status_code=500, detail=f"Google Apps Script error: {error_msg}")
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error creating ship folder: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to communicate with Google Drive: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error creating ship Google Drive folder: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create ship folder: {str(e)}")
 
 @api_router.post("/companies/{company_id}/gdrive/configure")
 async def configure_company_gdrive(
