@@ -599,7 +599,7 @@ const App = () => {
 // App Content Component (inside AuthProvider)
 const AppContent = () => {
   const { language } = useAuth();
-  const [systemGdriveConfig, setSystemGdriveConfig] = useState({
+  const [gdriveConfig, setGdriveConfig] = useState({
     folder_id: ''
   });
 
