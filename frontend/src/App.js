@@ -6409,8 +6409,21 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       console.log('Ship payload:', shipPayload); // Debug log
       
       const response = await axios.post(`${API}/ships`, shipPayload);
+      
+      // Get user's company ID for Google Drive folder creation
+      const userCompanyId = user?.company || user?.company_id;
+      
+      // Show initial success message
+      toast.success(language === 'vi' ? '🚢 Tàu đã được thêm thành công!' : '🚢 Ship added successfully!');
+      
+      // Create Google Drive folder structure for the new ship
+      if (userCompanyId && shipPayload.name) {
+        await createShipGoogleDriveFolder(shipPayload.name, userCompanyId);
+      } else {
+        console.warn('Cannot create Google Drive folder: missing company ID or ship name');
+      }
+      
       onSuccess('ship');
-      toast.success(language === 'vi' ? 'Tàu đã được thêm thành công!' : 'Ship added successfully!');
     } catch (error) {
       console.error('Ship creation error:', error);
       const errorMessage = error.response?.data?.detail || error.message;
