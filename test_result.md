@@ -708,9 +708,10 @@
 
 ## test_plan:
   current_focus:
-    - "Company-specific Google Drive endpoint mismatch resolution"
-    - "User-provided Google Apps Script URL testing"
-  stuck_tasks: []
+    - "Ship Form Enhancement with PDF Analysis and Required Fields"
+    - "Google Apps Script Integration for Certificate Upload"
+  stuck_tasks:
+    - "Ship Form Enhancement with PDF Analysis and Required Fields"
   test_all: false
   test_priority: "high_first"
 
