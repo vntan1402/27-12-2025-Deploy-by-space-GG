@@ -6524,34 +6524,57 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     setPendingShipData(null);
   };
 
-  // Dynamic Subfolder Structure Extraction
+  // Dynamic Subfolder Structure Extraction from Homepage Sidebar
   const getDocumentSubfolderStructure = () => {
-    // Extract subfolder structure from homepage sidebar subMenuItems.documents
-    const subMenuItems = {
-      documents: [
-        { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
-        { key: 'inspection_records', name: language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records' },
-        { key: 'survey_reports', name: language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports' },
-        { key: 'drawings_manuals', name: language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals' },
-        { key: 'other_documents', name: language === 'vi' ? 'Tài liệu khác' : 'Other Documents' }
-      ]
-    };
-    
-    // Always use English names for Google Drive folder consistency
-    const englishSubfolders = subMenuItems.documents.map(item => {
-      // Map to English names regardless of current language
-      const englishNames = {
-        'certificates': 'Certificates',
-        'inspection_records': 'Inspection Records',
-        'survey_reports': 'Survey Reports', 
-        'drawings_manuals': 'Drawings & Manuals',
-        'other_documents': 'Other Documents'
+    try {
+      // Reference the actual subMenuItems.documents from homepage sidebar (line 999-1006)
+      const currentSubMenuItems = {
+        documents: [
+          { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
+          { key: 'inspection_records', name: language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records' },
+          { key: 'survey_reports', name: language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports' },
+          { key: 'drawings_manuals', name: language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals' },
+          { key: 'other_documents', name: language === 'vi' ? 'Hồ sơ khác' : 'Other Documents' },
+        ]
       };
-      return englishNames[item.key] || item.name;
-    });
-    
-    console.log('📁 Dynamic subfolder structure extracted from homepage sidebar:', englishSubfolders);
-    return englishSubfolders;
+      
+      // Always use English names for Google Drive folder consistency across languages
+      const englishSubfolders = currentSubMenuItems.documents.map(item => {
+        // Extract English name by temporarily switching language context or using key mapping
+        const englishNames = {
+          'certificates': 'Certificates',
+          'inspection_records': 'Inspection Records',
+          'survey_reports': 'Survey Reports', 
+          'drawings_manuals': 'Drawings & Manuals',
+          'other_documents': 'Other Documents'
+        };
+        return englishNames[item.key] || item.name.replace(/Giấy chứng nhận|Hồ sơ đăng kiểm|Báo cáo kiểm tra|Bản vẽ - Sổ tay|Hồ sơ khác/, (match) => {
+          const translations = {
+            'Giấy chứng nhận': 'Certificates',
+            'Hồ sơ đăng kiểm': 'Inspection Records',  
+            'Báo cáo kiểm tra': 'Survey Reports',
+            'Bản vẽ - Sổ tay': 'Drawings & Manuals',
+            'Hồ sơ khác': 'Other Documents'
+          };
+          return translations[match] || match;
+        });
+      });
+      
+      console.log('📁 Dynamic subfolder structure extracted from homepage sidebar:');
+      console.log(`   Source: subMenuItems.documents (${currentSubMenuItems.documents.length} items)`);
+      console.log(`   English folders: ${englishSubfolders.join(', ')}`);
+      
+      return englishSubfolders;
+      
+    } catch (error) {
+      console.error('Error extracting subfolder structure from homepage sidebar:', error);
+      
+      // Fallback to default structure if extraction fails
+      const fallbackSubfolders = ['Certificates', 'Inspection Records', 'Survey Reports', 'Drawings & Manuals', 'Other Documents'];
+      console.warn('⚠️ Using fallback subfolder structure:', fallbackSubfolders);
+      
+      return fallbackSubfolders;
+    }
   };
 
   // Google Drive Ship Folder Creation with Dynamic Structure
