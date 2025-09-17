@@ -1,20 +1,30 @@
+#!/usr/bin/env python3
+"""
+Backend Testing for Enhanced Dynamic Subfolder Structure Extraction
+Testing the enhanced Add New Ship workflow with automatic subfolder structure extraction
+from homepage sidebar for Google Drive folder creation.
+"""
+
 import requests
-import sys
 import json
-from datetime import datetime, timezone
+import os
+import sys
+from datetime import datetime
 import time
 
-class ShipManagementAPITester:
-    def __init__(self, base_url="https://shipwise-13.preview.emergentagent.com"):
-        self.base_url = base_url
-        self.api_url = f"{base_url}/api"
+# Configuration
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://shipwise-13.preview.emergentagent.com')
+API_BASE = f"{BACKEND_URL}/api"
+
+# Test credentials
+TEST_USERNAME = "admin"
+TEST_PASSWORD = "admin123"
+
+class BackendTester:
+    def __init__(self):
         self.token = None
-        self.tests_run = 0
-        self.tests_passed = 0
-        self.admin_user_id = None
-        self.current_user = None
-        self.test_ship_id = None
-        self.company_id = None
+        self.user_info = None
+        self.test_results = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, files=None):
         """Run a single API test"""
