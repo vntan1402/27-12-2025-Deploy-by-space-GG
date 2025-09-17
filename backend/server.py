@@ -1899,13 +1899,21 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
             end = response_text.rfind("```")
             response_text = response_text[start:end].strip()
         
-        try:
-            parsed_response = json.loads(response_text)
-            return parsed_response
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON parsing failed: {e}")
-            logger.error(f"Raw response: {response_text}")
-            return classify_by_filename(filename)
+            try:
+                parsed_response = json.loads(response_text)
+                return parsed_response
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON parsing failed: {e}")
+                logger.error(f"Raw response: {response_text}")
+                return classify_by_filename(filename)
+        
+        finally:
+            # Clean up temporary file
+            import os
+            try:
+                os.unlink(temp_file_path)
+            except:
+                pass
     
     except Exception as e:
         logger.error(f"Emergent LLM analysis failed: {e}")
