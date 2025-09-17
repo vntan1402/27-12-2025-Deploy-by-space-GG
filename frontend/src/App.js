@@ -6585,7 +6585,13 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
       // Dynamically get subfolder structure from homepage sidebar
       const subfolders = getDocumentSubfolderStructure();
       
+      // Validate extracted structure
+      if (!subfolders || subfolders.length === 0) {
+        throw new Error('No subfolder structure found in homepage sidebar');
+      }
+      
       console.log(`📋 Using ${subfolders.length} subfolders from homepage sidebar:`, subfolders);
+      console.log(`🔄 Structure sync: Homepage Sidebar → Google Drive Folders`);
       
       // Call backend to create ship folder structure on Company Google Drive
       const response = await axios.post(`${API}/companies/${companyId}/gdrive/create-ship-folder`, {
