@@ -353,62 +353,72 @@ class GoogleDriveConfigTester:
             return False
 
     def run_comprehensive_test(self):
-        """Run comprehensive Google Drive configuration tests"""
-        print("🚢 Google Drive Configuration API Testing")
+        """Run all tests in sequence"""
+        print("🎯 SYSTEM GOOGLE DRIVE CONFIGURATION TESTING")
+        print("=" * 60)
+        print(f"Testing with user's exact credentials:")
+        print(f"  Apps Script URL: {self.user_config['web_app_url']}")
+        print(f"  Folder ID: {self.user_config['folder_id']}")
         print("=" * 60)
         
-        # Test authentication first
-        if not self.test_login():
-            print("❌ Authentication failed, stopping tests")
+        # Step 1: Authentication
+        if not self.test_authentication():
+            print("\n❌ CRITICAL: Authentication failed, cannot proceed")
             return False
         
-        # Run all Google Drive tests
-        test_results = []
+        # Step 2: Test the fixed configure-proxy endpoint
+        configure_success = self.test_configure_proxy_endpoint()
         
-        # Test authentication requirements
-        test_results.append(("Authentication Requirements", self.test_authentication_requirements()))
+        # Step 3: Test system status
+        status_success = self.test_system_gdrive_status()
         
-        # Test GET endpoints
-        test_results.append(("GET /api/gdrive/config", self.test_gdrive_config_get()[0]))
-        test_results.append(("GET /api/gdrive/status", self.test_gdrive_status_get()[0]))
+        # Step 4: Test direct Apps Script communication
+        direct_comm_success = self.test_direct_apps_script_communication()
         
-        # Test POST endpoints with fake data
-        test_results.append(("POST /api/gdrive/test", self.test_gdrive_test_connection()[0]))
-        test_results.append(("POST /api/gdrive/configure", self.test_gdrive_configure()[0]))
+        # Step 5: Test configuration persistence
+        persistence_success = self.test_configuration_persistence()
         
-        # Print final results
+        # Step 6: Test await keyword fix
+        await_fix_success = self.test_await_keyword_fix()
+        
+        # Step 7: Test error handling
+        error_handling_success = self.test_error_handling()
+        
+        # Final results
         print("\n" + "=" * 60)
-        print("📊 GOOGLE DRIVE CONFIG TEST RESULTS SUMMARY")
+        print("📊 COMPREHENSIVE TEST RESULTS")
         print("=" * 60)
         
-        passed_tests = 0
-        total_tests = len(test_results)
+        all_tests = [
+            ("Authentication", True),  # Already passed to get here
+            ("Configure-Proxy JSON Fix", configure_success),
+            ("System Google Drive Status", status_success),
+            ("Direct Apps Script Communication", direct_comm_success),
+            ("Configuration Persistence", persistence_success),
+            ("Await Keyword Fix", await_fix_success),
+            ("Error Handling", error_handling_success)
+        ]
         
-        for test_name, result in test_results:
-            status = "✅ PASSED" if result else "❌ FAILED"
+        passed_count = sum(1 for _, success in all_tests if success)
+        total_count = len(all_tests)
+        
+        for test_name, success in all_tests:
+            status = "✅ PASSED" if success else "❌ FAILED"
             print(f"{test_name:35} {status}")
-            if result:
-                passed_tests += 1
         
-        print(f"\nOverall API Tests: {self.tests_passed}/{self.tests_run}")
-        print(f"Feature Tests: {passed_tests}/{total_tests}")
+        print(f"\nOverall Results: {self.tests_passed}/{self.tests_run} individual tests passed")
+        print(f"Feature Tests: {passed_count}/{total_count} test categories passed")
         
-        success = passed_tests == total_tests
-        if success:
-            print("🎉 All Google Drive configuration tests passed!")
-            print("\n📋 TEST SUMMARY:")
-            print("✅ GET /api/gdrive/config - Returns current Google Drive configuration")
-            print("✅ GET /api/gdrive/status - Returns Google Drive status information")
-            print("✅ POST /api/gdrive/test - Tests Google Drive connection (endpoint structure verified)")
-            print("✅ POST /api/gdrive/configure - Configures Google Drive (endpoint structure verified)")
-            print("✅ Authentication properly enforced on all endpoints")
-            print("\n🔐 Authentication: admin/admin123 credentials working correctly")
-            print("🏗️ Endpoint Structure: All endpoints responding with proper structure")
-            print("🛡️ Security: Admin-level permissions properly enforced")
+        if passed_count == total_count:
+            print("\n🎉 ALL CRITICAL BUG FIXES VERIFIED SUCCESSFULLY!")
+            print("✅ Parameter mismatch fix: WORKING")
+            print("✅ Await keyword fix: WORKING")
+            print("✅ User's Apps Script integration: WORKING")
+            return True
         else:
-            print("⚠️ Some tests failed - check logs above")
-        
-        return success
+            print(f"\n⚠️ {total_count - passed_count} test categories failed")
+            print("❌ Some critical fixes may not be working properly")
+            return False
 
 def main():
     """Main test execution"""
