@@ -1800,10 +1800,14 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         
         await mongo_db.create("certificates", cert_data)
         
-        cert_dict = dict(cert_data)
-        logger.info(f"Certificate created successfully: {cert_dict.get('cert_name')} for ship {ship.get('name')} with notes: {bool(notes)}")
+        logger.info(f"Certificate created successfully: {cert_data.get('cert_name')} for ship {ship.get('name')} with notes: {bool(notes)}")
         
-        return cert_dict
+        return {
+            "success": True,
+            "id": cert_data.get('id'),
+            "cert_name": cert_data.get('cert_name'),
+            "ship_name": ship.get('name')
+        }
         
     except Exception as e:
         logger.error(f"Certificate creation from analysis with notes failed: {e}")
