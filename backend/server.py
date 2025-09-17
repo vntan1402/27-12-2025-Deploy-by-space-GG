@@ -1678,7 +1678,14 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         if not script_url:
             raise Exception("Apps Script URL not configured")
         
-        # Map category to folder name
+        # First, ensure ship folder structure exists
+        folder_result = await create_folders_via_apps_script(gdrive_config, ship_name)
+        if not folder_result.get("success"):
+            logger.error(f"Failed to create/get ship folder structure: {folder_result.get('error')}")
+            return {"success": False, "error": f"Folder creation failed: {folder_result.get('error')}"}
+        
+        # Get the appropriate subfolder ID based on category
+        subfolders = folder_result.get("subfolders", {})
         category_mapping = {
             "certificates": "Certificates",
             "test_reports": "Test Reports", 
@@ -1688,6 +1695,13 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         }
         
         folder_name = category_mapping.get(category, "Other Documents")
+        target_folder_id = subfolders.get(folder_name)
+        
+        if not target_folder_id:
+            # Fallback to ship folder if subfolder not found
+            target_folder_id = folder_result.get("ship_folder_id")
+            if not target_folder_id:
+                return {"success": False, "error": f"Could not determine target folder for category: {category}"}
         
         # Encode file content to base64
         import base64
@@ -1695,9 +1709,8 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         
         payload = {
             "action": "upload_file",
-            "ship_name": ship_name,
-            "folder_name": folder_name,
-            "filename": filename,
+            "folder_id": target_folder_id,
+            "file_name": filename,  # Changed from 'filename' to 'file_name'
             "file_content": file_base64
         }
         
