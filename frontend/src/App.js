@@ -6284,8 +6284,7 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     category: 'certificates',
     sensitivity_level: 'internal'
   });
-  const [multiFileUploads, setMultiFileUploads] = useState([]);
-  const [isMultiFileProcessing, setIsMultiFileProcessing] = useState(false);
+  // Multi-file upload states will be rebuilt from scratch
   const [aiConfig, setAiConfig] = useState(null);
   const [showShipConfirmModal, setShowShipConfirmModal] = useState(false);
   const [pendingShipData, setPendingShipData] = useState(null);
