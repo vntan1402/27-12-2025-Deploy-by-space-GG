@@ -930,7 +930,7 @@ const HomePage = () => {
   };
 
   // Close context menu when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = () => {
       if (contextMenu.show) {
         handleCloseContextMenu();
