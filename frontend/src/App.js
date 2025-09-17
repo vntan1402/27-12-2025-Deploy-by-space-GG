@@ -599,7 +599,7 @@ const App = () => {
 // App Content Component (inside AuthProvider)
 const AppContent = () => {
   const { language } = useAuth();
-  const [systemGdriveConfig, setGdriveConfig] = useState({
+  const [systemGdriveConfig, setSystemGdriveConfig] = useState({
     folder_id: ''
   });
 
@@ -2453,11 +2453,11 @@ const AccountControlPage = () => {
         setShowGoogleDrive(false);
         // Reset config based on auth method
         if (authMethod === 'apps_script') {
-          setGdriveConfig(prev => ({ ...prev, web_app_url: '', folder_id: '' }));
+          setSystemGdriveConfig(prev => ({ ...prev, web_app_url: '', folder_id: '' }));
         } else if (authMethod === 'oauth') {
-          setGdriveConfig(prev => ({ ...prev, client_id: '', client_secret: '', folder_id: '' }));
+          setSystemGdriveConfig(prev => ({ ...prev, client_id: '', client_secret: '', folder_id: '' }));
         } else {
-          setGdriveConfig(prev => ({ ...prev, service_account_json: '', folder_id: '' }));
+          setSystemGdriveConfig(prev => ({ ...prev, service_account_json: '', folder_id: '' }));
         }
         fetchGoogleDriveStatus();
         fetchGoogleDriveConfig();
@@ -3519,7 +3519,7 @@ const AccountControlPage = () => {
         {showGoogleDrive && (
           <GoogleDriveModal
             config={systemGdriveConfig}
-            setConfig={setGdriveConfig}
+            setConfig={setSystemGdriveConfig}
             currentConfig={gdriveCurrentConfig}
             onClose={() => setShowGoogleDrive(false)}
             onSave={handleGoogleDriveConfig}
