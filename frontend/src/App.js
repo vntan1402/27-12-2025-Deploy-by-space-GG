@@ -3300,12 +3300,6 @@ const AccountControlPage = () => {
                 >
                   {language === 'vi' ? 'Cấu hình AI' : 'Configure AI'}
                 </button>
-                <button
-                  onClick={() => setShowPdfAnalysis(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-all"
-                >
-                  {language === 'vi' ? 'Phân tích PDF' : 'PDF Analysis'}
-                </button>
               </div>
             </div>
           )}
