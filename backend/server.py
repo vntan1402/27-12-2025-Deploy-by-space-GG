@@ -2533,9 +2533,16 @@ async def create_ship_google_drive_folder(
     try:
         ship_name = folder_data.get("ship_name")
         subfolders = folder_data.get("subfolders", [])
+        source = folder_data.get("source", "unknown")
+        total_subfolders = folder_data.get("total_subfolders", len(subfolders))
         
         if not ship_name:
             raise HTTPException(status_code=400, detail="ship_name is required")
+        
+        logger.info(f"📁 Creating ship folder structure:")
+        logger.info(f"   Ship: {ship_name}")
+        logger.info(f"   Source: {source}")
+        logger.info(f"   Subfolders ({total_subfolders}): {subfolders}")
         
         # Get company Google Drive configuration
         config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
