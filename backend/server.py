@@ -1624,9 +1624,15 @@ async def create_folders_via_apps_script(gdrive_config: dict, ship_name: str) ->
         script_url = gdrive_config.get("apps_script_url")
         if not script_url:
             raise Exception("Apps Script URL not configured")
+        
+        # Get parent folder ID from config
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
             
         payload = {
             "action": "create_folder_structure",
+            "parent_folder_id": parent_folder_id,
             "ship_name": ship_name
         }
         
