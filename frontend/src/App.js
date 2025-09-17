@@ -6524,24 +6524,52 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     setPendingShipData(null);
   };
 
-  // Google Drive Ship Folder Creation
+  // Dynamic Subfolder Structure Extraction
+  const getDocumentSubfolderStructure = () => {
+    // Extract subfolder structure from homepage sidebar subMenuItems.documents
+    const subMenuItems = {
+      documents: [
+        { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
+        { key: 'inspection_records', name: language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records' },
+        { key: 'survey_reports', name: language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports' },
+        { key: 'drawings_manuals', name: language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals' },
+        { key: 'other_documents', name: language === 'vi' ? 'Tài liệu khác' : 'Other Documents' }
+      ]
+    };
+    
+    // Always use English names for Google Drive folder consistency
+    const englishSubfolders = subMenuItems.documents.map(item => {
+      // Map to English names regardless of current language
+      const englishNames = {
+        'certificates': 'Certificates',
+        'inspection_records': 'Inspection Records',
+        'survey_reports': 'Survey Reports', 
+        'drawings_manuals': 'Drawings & Manuals',
+        'other_documents': 'Other Documents'
+      };
+      return englishNames[item.key] || item.name;
+    });
+    
+    console.log('📁 Dynamic subfolder structure extracted from homepage sidebar:', englishSubfolders);
+    return englishSubfolders;
+  };
+
+  // Google Drive Ship Folder Creation with Dynamic Structure
   const createShipGoogleDriveFolder = async (shipName, companyId) => {
     try {
       console.log(`Creating Google Drive folder structure for ship: ${shipName}`);
       
-      // Company subfolder structure based on homepage sidebar
-      const subfolders = [
-        'Certificates',
-        'Inspection Records', 
-        'Survey Reports',
-        'Drawings & Manuals',
-        'Other Documents'
-      ];
+      // Dynamically get subfolder structure from homepage sidebar
+      const subfolders = getDocumentSubfolderStructure();
+      
+      console.log(`📋 Using ${subfolders.length} subfolders from homepage sidebar:`, subfolders);
       
       // Call backend to create ship folder structure on Company Google Drive
       const response = await axios.post(`${API}/companies/${companyId}/gdrive/create-ship-folder`, {
         ship_name: shipName,
-        subfolders: subfolders
+        subfolders: subfolders,
+        source: 'homepage_sidebar', // Indicate source for logging
+        total_subfolders: subfolders.length
       }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -6550,8 +6578,8 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
         console.log(`✅ Ship folder created successfully:`, response.data);
         toast.success(
           language === 'vi' 
-            ? `📁 Đã tạo thư mục "${shipName}" trên Google Drive với ${subfolders.length} thư mục con`
-            : `📁 Created "${shipName}" folder on Google Drive with ${subfolders.length} subfolders`
+            ? `📁 Đã tạo thư mục "${shipName}" trên Google Drive với ${subfolders.length} thư mục con được sync từ homepage sidebar`
+            : `📁 Created "${shipName}" folder on Google Drive with ${subfolders.length} subfolders synced from homepage sidebar`
         );
         return response.data;
       } else {
