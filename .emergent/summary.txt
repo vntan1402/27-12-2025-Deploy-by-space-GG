@@ -1,0 +1,69 @@
+<analysis>
+The AI engineer's work on the Ship Management System focused on resolving critical issues after initial development. Key achievements include successfully integrating a real Google Apps Script URL into the backend database, implementing several missing backend API endpoints (for certificates, users, and Google Drive sync), and fixing multiple frontend runtime errors in  related to , , and  being undefined across different components (, ). A significant effort was made to correct the  Pydantic model and associated backend logic to support company creation, resolving 422/500 validation errors. The persistent challenge has been the Google Apps Script deployment, where the provided URLs consistently redirect to HTML instead of JSON, indicating incorrect user-side deployment, though the backend integration points for GDrive were progressively added (system-wide and company-specific). The immediate task involves correcting a frontend endpoint mismatch for company-specific Google Drive configuration.
+</analysis>
+
+<product_requirements>
+The Ship Management System manages ship data with a 5-tier permission system, AI support, bilingualism, JWT auth, and Google Drive integration. Initial requests included: renaming/creating sections in Edit Company modal for GDrive configuration; uploading certificate data to Google Drive organized by date, with AI classification into five categories, creating ship-specific folders and subfolders, and moving files; auto-creating certificate records from AI analysis (Name, Type, Number, Dates, Ship Name, Issued by) and extracting Ship Survey Status data; validating AI-extracted ship names and prompting for new ship additions; enhancing multi-file upload UI with drag-and-drop, progress tracking, and AI model display; refining certificate list with abbreviations (Cert. Name, Issued By), ,  (Valid/Expired), filters, refresh button, and double-click to open GDrive files; layout adjustments (sidebar width, full screen, gap reduction, UI elements); and advanced multi-file upload logic including duplicate file checks (overwrite/cancel) and ship name mismatch resolution (save to AI-found ship/current ship with note), with a new Notes column displaying  on existence and full note on hover.
+</product_requirements>
+
+<key_technical_concepts>
+-   **Full-stack**: FastAPI (Python backend), React (JavaScript frontend).
+-   **Database**: MongoDB for data persistence, UUIDs for IDs.
+-   **Authentication**: JWT, Role-Based Access Control.
+-   **Cloud Integration**: Google Drive API (via Google Apps Script proxy) for file storage.
+-   **AI Integration**: Emergent LLM (OpenAI GPT-4 configured) for PDF analysis, classification, and data extraction.
+-   **Frontend**: React Context, State Management, Axios, Tailwind CSS, multi-file upload, modals, tooltips.
+-   **Concurrency**: Asynchronous processing for file uploads and AI analysis.
+-   **Deployment**: Kubernetes container environment, Supervisor for process management.
+</key_technical_concepts>
+
+<code_architecture>
+The application uses a React frontend, a FastAPI backend, and MongoDB for data storage.
+
+
+
+-   ****:
+    -   **Importance**: Central API hub, handling all backend logic.
+    -   **Changes Made**:
+        -   **Missing Endpoints**: Added , , , , , and .
+        -   **Models**:  updated to include , , , , , , , making  optional.  in  changed to  to resolve database type mismatch issues.  was imported from .
+        -   **Google Drive**: Logic for  updated in the database to store the provided Apps Script URL.
+        -   **Bug Fixes**: Addressed Pydantic validation errors (422/500) during company creation and fetching due to model changes. Fixed a lint error related to the  dependency.
+
+-   ****:
+    -   **Importance**: Main React component managing UI and interaction.
+    -   **Changes Made**:
+        -   ** Component**: Added state declarations for , , and functions , ,  to resolve is not defined runtime errors when navigating to System Settings. These were previously only defined in .
+        -   ** Component**: Added state declarations for , , and their respective ,  functions to resolve similar is not defined errors during record addition.
+
+-   ****:
+    -   **Importance**: Provided as the source for the user to deploy their Google Apps Script for Drive integration.
+    -   **Changes Made**: No direct edits during this trajectory.
+
+-   ****:
+    -   **Importance**: Provides detailed instructions for users to deploy the new Google Apps Script.
+    -   **Changes Made**: No direct edits during this trajectory. However, the AI engineer provided expanded, step-by-step instructions based on its content, guiding the user through correct deployment.
+
+-   ****:
+    -   **Importance**: A temporary file created by the AI engineer to provide a confirmed working version of the Apps Script code for the user to deploy, to avoid issues with older or incorrect versions.
+    -   **Changes Made**: Created during the trajectory (Chat 215).
+</code_architecture>
+
+<pending_tasks>
+-   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (deferred by user).
+-   Further processing for files classified other than Certificate (e.g., Test Reports, Survey Reports, Drawings & Manuals, Other Documents).
+-   User needs to configure a *real* Google Apps Script URL for Google Drive file uploads to function correctly, specifically for *company-specific* configurations, as the provided URLs still result in redirects (HTML response).
+-   Resolve the frontend endpoint mismatch for company-specific Google Drive configuration ( vs ).
+</pending_tasks>
+
+<current_work>
+Immediately before this summary request, the AI engineer was addressing a user report that they could  (still not configure Google Drive for AMCSC using the provided URL).
+
+Investigation confirmed that the company-specific Google Drive configuration was failing. The frontend was attempting to fetch () and check status () using backend endpoints that did not exist. These endpoints were successfully implemented in .
+
+However, after adding these, a new issue surfaced: when attempting to Test Connection for a company's Google Drive configuration, the frontend was making a call to , but the backend endpoint intended for this configuration was named . This naming mismatch is currently causing a 404 error, preventing the company-specific Google Drive configuration from being tested or saved correctly. The AI engineer was in the process of rectifying this specific endpoint mismatch. The underlying Google Apps Script deployment issue (URLs redirecting to HTML) remains, despite detailed instructions provided to the user for correct deployment.
+</current_work>
+
+<optional_next_step>
+The next step is to fix the backend endpoint mismatch for company-specific Google Drive configuration, ensuring the frontend's call to  maps to the correct backend logic.
+</optional_next_step>

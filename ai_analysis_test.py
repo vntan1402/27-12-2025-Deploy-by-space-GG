@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 class AIAnalysisTester:
-    def __init__(self, base_url="https://ship-manager-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://shipwise-13.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
