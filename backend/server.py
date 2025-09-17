@@ -520,22 +520,15 @@ def enhance_certificate_response(cert_dict: dict) -> dict:
         return cert_dict
 
 def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
-    """Calculate similarity percentage between two certificates - returns 100% only for exact matches"""
+    """Calculate similarity percentage between two certificates - checks only Certificate No and Cert Name"""
     try:
-        # Define fields that must match EXACTLY for duplicate detection
-        comparison_fields = [
-            'cert_name',
-            'cert_type', 
-            'cert_no',
-            'issue_date',
-            'valid_date',
-            'issued_by'
-        ]
+        # Define the TWO key fields that must match for duplicate detection
+        key_fields = ['cert_no', 'cert_name']
         
-        fields_checked = 0
         fields_matched = 0
+        fields_checked = 0
         
-        for field in comparison_fields:
+        for field in key_fields:
             val1 = cert1.get(field)
             val2 = cert2.get(field)
             
@@ -545,33 +538,19 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
                 
             fields_checked += 1
             
-            # Compare values based on type - must be EXACT match
-            if field in ['issue_date', 'valid_date']:
-                # Date comparison - exact match only
-                try:
-                    if isinstance(val1, str):
-                        val1 = datetime.fromisoformat(val1.replace('Z', '+00:00'))
-                    if isinstance(val2, str):
-                        val2 = datetime.fromisoformat(val2.replace('Z', '+00:00'))
-                    
-                    if val1 == val2:
-                        fields_matched += 1
-                except:
-                    pass
-            else:
-                # String comparison - must be exactly identical (case insensitive)
-                if str(val1).lower().strip() == str(val2).lower().strip():
-                    fields_matched += 1
+            # String comparison - must be exactly identical (case insensitive)
+            if str(val1).lower().strip() == str(val2).lower().strip():
+                fields_matched += 1
         
-        # Return 100% only if ALL available fields match exactly
-        if fields_checked == 0:
+        # Need both Certificate No and Cert Name to be checked
+        if fields_checked < 2:
             return 0.0
         
-        # Calculate percentage - only 100% if all fields match
-        similarity_percentage = (fields_matched / fields_checked) * 100
-        
-        # Return 100% only for perfect matches, otherwise return actual percentage
-        return similarity_percentage if similarity_percentage == 100.0 else 0.0
+        # Return 100% only if BOTH cert_no and cert_name match exactly
+        if fields_matched == 2:
+            return 100.0
+        else:
+            return 0.0
         
     except Exception as e:
         logger.error(f"Error calculating certificate similarity: {e}")
