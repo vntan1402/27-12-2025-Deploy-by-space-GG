@@ -303,12 +303,15 @@ in accordance with the Convention.
                         # Check certificate record creation
                         certificate = result.get('certificate', {})
                         self.log(f"Certificate Record Creation:")
-                        if certificate and certificate.get('success', False):
+                        if certificate and isinstance(certificate, dict) and certificate.get('success', False):
                             self.log(f"  Success: True")
                             self.log(f"  Certificate ID: {certificate.get('id', 'Not provided')}")
                         else:
                             self.log(f"  Success: False")
-                            self.log(f"  Error: {certificate.get('error', 'Unknown error')}")
+                            if isinstance(certificate, dict):
+                                self.log(f"  Error: {certificate.get('error', 'Unknown error')}")
+                            else:
+                                self.log(f"  Error: Certificate data is {type(certificate)}: {certificate}")
                         
                         # Analyze the issues
                         self.analyze_upload_issues(analysis, upload, certificate)
