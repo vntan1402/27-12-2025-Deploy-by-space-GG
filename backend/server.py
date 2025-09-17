@@ -2119,7 +2119,7 @@ async def get_gdrive_file_view_url(
         
         if auth_method == "apps_script":
             # Handle both system config (apps_script_url) and company config (web_app_url)
-        script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
+            script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
             if not script_url:
                 raise HTTPException(status_code=500, detail="Apps Script URL not configured")
             
