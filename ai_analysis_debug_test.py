@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-AI Analysis Debug Test for Ship Name Extraction Issue
-Testing the specific EIAPP certificate for BROTHER 36 ship name extraction
+AI Analysis Debug Test for Certificate Information Extraction Issue
+Testing why certificate information extraction returns all "N/A" values
+Focus: Debug AI analysis issue where certificate fields show N/A instead of extracted values
 """
 
 import requests
@@ -9,8 +10,10 @@ import sys
 import json
 import os
 import tempfile
+import io
 from datetime import datetime, timezone
 import time
+import PyPDF2
 
 class AIAnalysisDebugTester:
     def __init__(self, base_url="https://shipwise-13.preview.emergentagent.com"):
@@ -20,10 +23,10 @@ class AIAnalysisDebugTester:
         self.tests_run = 0
         self.tests_passed = 0
         self.admin_user_id = None
+        self.issues_found = []
         
-        # Test PDF URL from the review request
-        self.test_pdf_url = "https://customer-assets.emergentagent.com/job_vessel-docs-1/artifacts/xs4c3jhi_BROTHER%2036%20-EIAPP-PM242757.pdf"
-        self.expected_ship_name = "BROTHER 36"
+        # Test PDF file mentioned in review request
+        self.test_pdf_filename = "PM252494430.pdf"
 
     def log_test(self, name, success, details=""):
         """Log test result"""
