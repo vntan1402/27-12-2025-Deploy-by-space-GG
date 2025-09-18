@@ -1053,7 +1053,17 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         ship_dict["id"] = str(uuid.uuid4())
         ship_dict["created_at"] = datetime.now(timezone.utc)
         
+        # Create ship in database first
         await mongo_db.create("ships", ship_dict)
+        
+        # After successful ship creation, create Google Drive folder structure
+        try:
+            await create_google_drive_folder_for_new_ship(ship_dict, current_user)
+            logger.info(f"Successfully created Google Drive folder structure for ship: {ship_dict.get('name', 'Unknown')}")
+        except Exception as gdrive_error:
+            logger.warning(f"Ship created but Google Drive folder creation failed: {gdrive_error}")
+            # Don't fail the ship creation if Google Drive fails - just log the warning
+        
         return ShipResponse(**ship_dict)
         
     except Exception as e:
