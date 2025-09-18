@@ -1801,7 +1801,7 @@ def get_fallback_ship_analysis(filename: str) -> dict:
         "fallback_reason": "AI analysis failed or no API key available"
     }
 
-async def analyze_with_google_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
+async def analyze_with_google_ship(file_content: bytes, prompt: str, api_key: str, model: str, filename: str = "unknown") -> dict:
     """Analyze ship document using Google AI"""
     try:
         import google.generativeai as genai
