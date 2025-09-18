@@ -6524,56 +6524,88 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     setPendingShipData(null);
   };
 
-  // Dynamic Subfolder Structure Extraction from Homepage Sidebar
-  const getDocumentSubfolderStructure = () => {
+  // Complete Ship Folder Structure Extraction from Homepage Sidebar
+  const getCompleteShipFolderStructure = () => {
     try {
-      // Reference the actual subMenuItems.documents from homepage sidebar (line 999-1006)
+      // Extract complete structure from homepage sidebar (line 990-1032)
+      const currentCategories = [
+        { key: 'documents', name: 'Document Portfolio', icon: '📁' },
+        { key: 'crew', name: 'Crew Records', icon: '👥' },
+        { key: 'ism', name: 'ISM Records', icon: '📋' },
+        { key: 'isps', name: 'ISPS Records', icon: '🛡️' },
+        { key: 'mlc', name: 'MLC Records', icon: '⚖️' },
+        { key: 'supplies', name: 'Supplies', icon: '📦' },
+      ];
+      
       const currentSubMenuItems = {
         documents: [
-          { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
-          { key: 'inspection_records', name: language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records' },
-          { key: 'survey_reports', name: language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports' },
-          { key: 'drawings_manuals', name: language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals' },
-          { key: 'other_documents', name: language === 'vi' ? 'Hồ sơ khác' : 'Other Documents' },
-        ]
+          { key: 'certificates', name: 'Certificates' },
+          { key: 'inspection_records', name: 'Inspection Records' },
+          { key: 'survey_reports', name: 'Survey Reports' },
+          { key: 'drawings_manuals', name: 'Drawings & Manuals' },
+          { key: 'other_documents', name: 'Other Documents' },
+        ],
+        crew: [
+          { key: 'crew_list', name: 'Crew List' },
+          { key: 'crew_certificates', name: 'Crew Certificates' },
+          { key: 'medical_records', name: 'Medical Records' },
+        ],
+        ism: [
+          { key: 'ism_certificate', name: 'ISM Certificate' },
+          { key: 'safety_procedures', name: 'Safety Procedures' },
+          { key: 'audit_reports', name: 'Audit Reports' },
+        ],
+        isps: [
+          { key: 'isps_certificate', name: 'ISPS Certificate' },
+          { key: 'security_plan', name: 'Security Plan' },
+          { key: 'security_assessments', name: 'Security Assessments' },
+        ],
+        mlc: [
+          { key: 'mlc_certificate', name: 'MLC Certificate' },
+          { key: 'labor_conditions', name: 'Labor Conditions' },
+          { key: 'accommodation_reports', name: 'Accommodation Reports' },
+        ],
+        supplies: [
+          { key: 'inventory', name: 'Inventory' },
+          { key: 'purchase_orders', name: 'Purchase Orders' },
+          { key: 'spare_parts', name: 'Spare Parts' },
+        ],
       };
       
-      // Always use English names for Google Drive folder consistency across languages
-      const englishSubfolders = currentSubMenuItems.documents.map(item => {
-        // Extract English name by temporarily switching language context or using key mapping
-        const englishNames = {
-          'certificates': 'Certificates',
-          'inspection_records': 'Inspection Records',
-          'survey_reports': 'Survey Reports', 
-          'drawings_manuals': 'Drawings & Manuals',
-          'other_documents': 'Other Documents'
-        };
-        return englishNames[item.key] || item.name.replace(/Giấy chứng nhận|Hồ sơ đăng kiểm|Báo cáo kiểm tra|Bản vẽ - Sổ tay|Hồ sơ khác/, (match) => {
-          const translations = {
-            'Giấy chứng nhận': 'Certificates',
-            'Hồ sơ đăng kiểm': 'Inspection Records',  
-            'Báo cáo kiểm tra': 'Survey Reports',
-            'Bản vẽ - Sổ tay': 'Drawings & Manuals',
-            'Hồ sơ khác': 'Other Documents'
-          };
-          return translations[match] || match;
-        });
+      // Build complete folder structure
+      const folderStructure = {};
+      
+      currentCategories.forEach(category => {
+        const categoryName = category.name; // Use English names for consistency
+        const subfolders = currentSubMenuItems[category.key]?.map(item => item.name) || [];
+        
+        folderStructure[categoryName] = subfolders;
       });
       
-      console.log('📁 Dynamic subfolder structure extracted from homepage sidebar:');
-      console.log(`   Source: subMenuItems.documents (${currentSubMenuItems.documents.length} items)`);
-      console.log(`   English folders: ${englishSubfolders.join(', ')}`);
+      console.log('📁 Complete ship folder structure extracted from homepage sidebar:');
+      console.log(`   Categories: ${Object.keys(folderStructure).length}`);
+      console.log(`   Total subfolders: ${Object.values(folderStructure).flat().length}`);
+      Object.entries(folderStructure).forEach(([category, subfolders]) => {
+        console.log(`   ${category}: [${subfolders.join(', ')}]`);
+      });
       
-      return englishSubfolders;
+      return folderStructure;
       
     } catch (error) {
-      console.error('Error extracting subfolder structure from homepage sidebar:', error);
+      console.error('Error extracting complete folder structure from homepage sidebar:', error);
       
-      // Fallback to default structure if extraction fails
-      const fallbackSubfolders = ['Certificates', 'Inspection Records', 'Survey Reports', 'Drawings & Manuals', 'Other Documents'];
-      console.warn('⚠️ Using fallback subfolder structure:', fallbackSubfolders);
+      // Fallback to minimal structure if extraction fails
+      const fallbackStructure = {
+        'Document Portfolio': ['Certificates', 'Inspection Records', 'Survey Reports', 'Drawings & Manuals', 'Other Documents'],
+        'Crew Records': ['Crew List', 'Crew Certificates', 'Medical Records'],
+        'ISM Records': ['ISM Certificate', 'Safety Procedures', 'Audit Reports'],
+        'ISPS Records': ['ISPS Certificate', 'Security Plan', 'Security Assessments'],
+        'MLC Records': ['MLC Certificate', 'Labor Conditions', 'Accommodation Reports'],
+        'Supplies': ['Inventory', 'Purchase Orders', 'Spare Parts']
+      };
       
-      return fallbackSubfolders;
+      console.warn('⚠️ Using fallback complete folder structure:', fallbackStructure);
+      return fallbackStructure;
     }
   };
 
