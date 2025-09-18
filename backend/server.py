@@ -2515,6 +2515,55 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
         logger.error(f"Error creating Google Drive folder for new ship: {e}")
         return {"success": False, "error": str(e)}
 
+async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: str, company_id: str) -> dict:
+    """Create dynamic ship folder structure using company-specific configuration"""
+    try:
+        # Validate ship_name
+        if not ship_name or not isinstance(ship_name, str) or ship_name.strip() == "":
+            ship_name = "Unknown_Ship"
+        else:
+            ship_name = ship_name.strip()
+        
+        # Get the web app URL from the config
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        # Get parent folder ID from config
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        # Create payload for dynamic folder structure creation
+        payload = {
+            "action": "create_complete_ship_structure",
+            "parent_folder_id": parent_folder_id,
+            "ship_name": ship_name,
+            "company_id": company_id
+        }
+        
+        logger.info(f"Creating dynamic ship folder structure for {ship_name} (company: {company_id})")
+        
+        response = requests.post(script_url, json=payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        if result.get("success"):
+            logger.info(f"Successfully created dynamic folder structure for {ship_name}")
+            return {
+                "success": True,
+                "ship_folder_id": result.get("ship_folder_id"),
+                "subfolders": result.get("subfolder_ids", {})
+            }
+        else:
+            logger.error(f"Dynamic folder creation failed: {result.get('error')}")
+            return {"success": False, "error": result.get("error", "Unknown error")}
+            
+    except Exception as e:
+        logger.error(f"Dynamic folder creation failed: {e}")
+        return {"success": False, "error": str(e)}
+
 async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> dict:
     """Create folder structure: Ship Name -> 5 category subfolders"""
     try:
