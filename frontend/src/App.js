@@ -6554,11 +6554,11 @@ const AddRecordModal = ({
         const extractedData = response.data.analysis;
         console.log('PDF analysis result:', extractedData);
         
-        // Convert numeric values to string for form inputs
+        // Convert extracted data to match frontend form field names
         const processedData = {
-          name: extractedData.ship_name || '',
+          name: extractedData.ship_name || '', // ship_name -> name
           imo_number: extractedData.imo_number || '',
-          class_society: extractedData.class_society || '',
+          class_society: extractedData.ship_type || extractedData.class_society || '', // ship_type or class_society
           flag: extractedData.flag || '',
           gross_tonnage: extractedData.gross_tonnage ? String(extractedData.gross_tonnage) : '',
           deadweight: extractedData.deadweight ? String(extractedData.deadweight) : '',
