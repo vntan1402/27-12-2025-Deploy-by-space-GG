@@ -1061,8 +1061,8 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         
         # Handle specific duplicate IMO error
         if "duplicate key error" in str(e).lower() and "imo" in str(e).lower():
-            # Extract IMO from the ship data if available
-            imo_value = ship_data.imo_number if hasattr(ship_data, 'imo_number') else ship_dict.get('imo', 'Unknown')
+            # Extract IMO from the ship data - check both imo and imo_number fields
+            imo_value = ship_dict.get('imo') or ship_dict.get('imo_number', 'Unknown')
             raise HTTPException(
                 status_code=400, 
                 detail=f"Ship with IMO number '{imo_value}' already exists. Each ship must have a unique IMO number."
