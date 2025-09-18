@@ -1574,7 +1574,7 @@ async def multi_cert_upload_for_ship(
                 
                 # Upload to Google Drive
                 upload_result = await upload_file_to_gdrive_with_analysis(
-                    file_content, file.filename, analysis_result, gdrive_config_doc, current_user, ship_id
+                    file_content, file.filename, analysis_result, gdrive_config_doc, current_user
                 )
                 
                 # Create certificate record
