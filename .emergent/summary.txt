@@ -1,19 +1,43 @@
 <analysis>
-The AI engineer's work on the Ship Management System focused on resolving critical issues after initial development. Key achievements include successfully integrating a real Google Apps Script URL into the backend database, implementing several missing backend API endpoints (for certificates, users, and Google Drive sync), and fixing multiple frontend runtime errors in  related to , , and  being undefined across different components (, ). A significant effort was made to correct the  Pydantic model and associated backend logic to support company creation, resolving 422/500 validation errors. The persistent challenge has been the Google Apps Script deployment, where the provided URLs consistently redirect to HTML instead of JSON, indicating incorrect user-side deployment, though the backend integration points for GDrive were progressively added (system-wide and company-specific). The immediate task involves correcting a frontend endpoint mismatch for company-specific Google Drive configuration.
+The previous AI engineer's trajectory showcases an iterative, problem-solving approach to evolve a Ship Management System. Initial work focused on fixing critical Google Drive integration issues, backend API endpoint discrepancies (for certificates, users, GDrive sync), and numerous frontend runtime errors. A significant challenge involved debugging Google Apps Script deployments, which frequently redirected to HTML, necessitating detailed user guidance and several backend/frontend corrections to handle URLs and data payloads.
+
+Key milestones include successful implementation of company-specific and system-wide Google Drive configurations, robust AI configuration with Emergent LLM key integration, and a comprehensive certificate upload workflow. This involved fixing AI classification, MongoDB serialization, and ensuring correct usage of company-specific Google Drive. Duplicate detection logic was refined, and UI/UX enhancements like Edit/Delete context menus and clearer user feedback were added. The  workflow was extended to dynamically mirror the sidebar's hierarchical folder structure in Google Drive. The work concluded with the removal of the old multi-file upload code and the initiation of a new, detailed Multi Cert Upload feature, currently in its early stages of state implementation.
 </analysis>
 
 <product_requirements>
-The Ship Management System manages ship data with a 5-tier permission system, AI support, bilingualism, JWT auth, and Google Drive integration. Initial requests included: renaming/creating sections in Edit Company modal for GDrive configuration; uploading certificate data to Google Drive organized by date, with AI classification into five categories, creating ship-specific folders and subfolders, and moving files; auto-creating certificate records from AI analysis (Name, Type, Number, Dates, Ship Name, Issued by) and extracting Ship Survey Status data; validating AI-extracted ship names and prompting for new ship additions; enhancing multi-file upload UI with drag-and-drop, progress tracking, and AI model display; refining certificate list with abbreviations (Cert. Name, Issued By), ,  (Valid/Expired), filters, refresh button, and double-click to open GDrive files; layout adjustments (sidebar width, full screen, gap reduction, UI elements); and advanced multi-file upload logic including duplicate file checks (overwrite/cancel) and ship name mismatch resolution (save to AI-found ship/current ship with note), with a new Notes column displaying  on existence and full note on hover.
+The Ship Management System aims to manage ship data with a 5-tier permission system, AI support, bilingualism, JWT authentication, and Google Drive integration. The initial set of requirements encompassed:
+1.  **Google Drive Integration**:
+    *   Renaming/creating sections in Edit Company modal for GDrive configuration.
+    *   Uploading certificate data to Google Drive, organized by date, with AI classification into five categories, creating ship-specific folders and subfolders.
+    *   Implementing system-wide and company-specific Google Drive configuration (Web App URL, Folder ID).
+2.  **AI-Powered Certificate Processing**:
+    *   Auto-creating certificate records from AI analysis (Name, Type, Number, Dates, Ship Name, Issued by).
+    *   Extracting Ship Survey Status data.
+    *   Validating AI-extracted ship names and prompting for new ship additions.
+    *   AI model display and usage via Emergent LLM key.
+3.  **Frontend Enhancements**:
+    *   Multi-file upload UI with drag-and-drop, progress tracking, and AI model display. (This was later removed to be rebuilt).
+    *   Refining certificate list with abbreviations (Cert. Name, Issued By), ,  (Valid/Expired), filters, refresh button, and double-click to open GDrive files.
+    *   Layout adjustments (sidebar width, full screen, gap reduction, UI elements).
+    *   Advanced multi-file upload logic including duplicate file checks (overwrite/cancel) and ship name mismatch resolution (save to AI-found ship/current ship with note), with a new Notes column displaying  on existence and full note on hover. (Duplicate detection criteria was refined to only  and ).
+    *   Edit and Delete options for certificate list items (role-based: Company Officer+).
+4.  **Ship Management**:
+    *   Enhanced Add New Ship workflow: dynamic button text, auto-creation of Google Drive folders for new ships mirroring homepage sidebar's full hierarchical structure.
+5.  **System Administration**:
+    *   System Google Drive for settings/database backups (requiring a specialized Apps Script).
+    *   AI Configuration UI/save functionality (adding API key field, emergent provider support, z-index fix).
+    *   Removal of PDF Analysis button from AI Configuration.
+
+All issues reported by the user were addressed, leading to an updated and more robust application.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack**: FastAPI (Python backend), React (JavaScript frontend).
--   **Database**: MongoDB for data persistence, UUIDs for IDs.
+-   **Database**: MongoDB for data persistence (using UUIDs, not ObjectIDs).
 -   **Authentication**: JWT, Role-Based Access Control.
--   **Cloud Integration**: Google Drive API (via Google Apps Script proxy) for file storage.
--   **AI Integration**: Emergent LLM (OpenAI GPT-4 configured) for PDF analysis, classification, and data extraction.
--   **Frontend**: React Context, State Management, Axios, Tailwind CSS, multi-file upload, modals, tooltips.
--   **Concurrency**: Asynchronous processing for file uploads and AI analysis.
+-   **Cloud Integration**: Google Drive API (via Google Apps Script proxy) for file storage and system backups.
+-   **AI Integration**: Emergent LLM (OpenAI GPT-4o, Google Gemini configured) for PDF analysis, classification, and data extraction.
+-   **Frontend**: React Context, State Management (useState, useEffect), Axios, Tailwind CSS, modals, toasts.
 -   **Deployment**: Kubernetes container environment, Supervisor for process management.
 </key_technical_concepts>
 
@@ -25,45 +49,52 @@ The application uses a React frontend, a FastAPI backend, and MongoDB for data s
 -   ****:
     -   **Importance**: Central API hub, handling all backend logic.
     -   **Changes Made**:
-        -   **Missing Endpoints**: Added , , , , , and .
-        -   **Models**:  updated to include , , , , , , , making  optional.  in  changed to  to resolve database type mismatch issues.  was imported from .
-        -   **Google Drive**: Logic for  updated in the database to store the provided Apps Script URL.
-        -   **Bug Fixes**: Addressed Pydantic validation errors (422/500) during company creation and fetching due to model changes. Fixed a lint error related to the  dependency.
+        -   **Missing Endpoints**: Added , , , , , , and .
+        -   **Models**:  updated;  model added.
+        -   **Google Drive**: Logic for  updated to store Apps Script URL;  added. Fixed  to send  in payload. Fixed  to accept JSON payload.
+        -   **AI Integration**: Integrated  and . Updated  and AI Config endpoints to support . Switched AI provider to Google/Gemini for file attachments. Enhanced PDF preprocessing for robust text extraction and meaningful fallbacks.
+        -   **Duplicate Detection**: Changed  to only check for 100% exact match on  and .
+        -   **Bug Fixes**: Addressed Pydantic validation errors (422/500) during company creation/fetching, fixed lint error for . Fixed  keyword for . Fixed  to return string URL instead of boolean.
 
 -   ****:
     -   **Importance**: Main React component managing UI and interaction.
     -   **Changes Made**:
-        -   ** Component**: Added state declarations for , , and functions , ,  to resolve is not defined runtime errors when navigating to System Settings. These were previously only defined in .
-        -   ** Component**: Added state declarations for , , and their respective ,  functions to resolve similar is not defined errors during record addition.
+        -   ** / **: Added state declarations for , , and functions , ,  for System Settings page. Fixed  state variable naming conflict in . Forced  default to  in  for System GDrive config. Fixed frontend logic to display Configured status for System GDrive. Removed PDF Analysis button from AI Config.
+        -   ****: Added state declarations for , , and their ,  functions. Enhanced data extraction and display for AI analysis results. Improved ship selection workflow with clearer warnings and disabled upload. Added success toasts and refresh button for certificates. Added API Key field to AI Configuration modal,  provider option, and validation. Added duplicate modal rendering to . Removed all old multi-file upload code and replaced with a placeholder for Multi-file Upload. Updated Add New Ship button text dynamically. Implemented  to dynamically create a multi-level folder structure from homepage sidebar data.
+        -   ****: Added Edit/Delete context menu for Certificate List with role-based access control (Company Officer+).
+        -   **General Fixes**: Fixed  error by using  directly.
 
 -   ****:
-    -   **Importance**: Provided as the source for the user to deploy their Google Apps Script for Drive integration.
+    -   **Importance**: Provided working Apps Script code for user deployment (Company Google Drive).
     -   **Changes Made**: No direct edits during this trajectory.
 
 -   ****:
-    -   **Importance**: Provides detailed instructions for users to deploy the new Google Apps Script.
-    -   **Changes Made**: No direct edits during this trajectory. However, the AI engineer provided expanded, step-by-step instructions based on its content, guiding the user through correct deployment.
-
--   ****:
-    -   **Importance**: A temporary file created by the AI engineer to provide a confirmed working version of the Apps Script code for the user to deploy, to avoid issues with older or incorrect versions.
-    -   **Changes Made**: Created during the trajectory (Chat 215).
+    -   **Importance**: A new file created by the AI engineer to provide a specialized Google Apps Script for system administration and backup functions (System Google Drive).
+    -   **Changes Made**: Created to support , , , ,  actions.
 </code_architecture>
 
 <pending_tasks>
 -   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (deferred by user).
 -   Further processing for files classified other than Certificate (e.g., Test Reports, Survey Reports, Drawings & Manuals, Other Documents).
--   User needs to configure a *real* Google Apps Script URL for Google Drive file uploads to function correctly, specifically for *company-specific* configurations, as the provided URLs still result in redirects (HTML response).
--   Resolve the frontend endpoint mismatch for company-specific Google Drive configuration ( vs ).
+-   Complete the implementation of the new Multi Cert Upload workflow, including UI, AI analysis, Google Drive uploads, and record creation as specified in the latest user request.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing a user report that they could  (still not configure Google Drive for AMCSC using the provided URL).
+Immediately before this summary request, the AI engineer was tasked with implementing a new Multi Cert Upload feature within the Add New Record Upload button, and a guide for file format (PDF, max 50MB).
+2.  **Multi-file Upload**: The Cert Upload button should open a window allowing selection of multiple files. Each file should have a status bar showing its upload progress.
+3.  **AI Analysis Workflow**:
+    *   After upload, each file is sent for AI analysis.
+    *   **Marine Certificate Check**: The AI must first determine if the file is a Marine Certificate (issued by classification societies, flag states, insurance, etc.).
+    *   **Information Extraction**: If it is a Marine Certificate, extract information matching fields in the Certificate List.
+    *   **Google Drive Storage**: Save the file to the Certificates subfolder within the Ship-specific Google Drive folder (created during Add New Ship).
+    *   **Record Creation**: Create a new record in the Certificate List with the extracted information.
+    *   **Non-Marine Certificates**: If a file is not a Marine Certificate, it should be skipped from further processing (analysis, GDrive save, record creation) but the workflow should continue with the next file.
+4.  **Summary Report**: After all files are processed, display a summary report including the number of files uploaded and analyzed, which files were added to the Certificate List, and a list of non-Marine Certificates for user review.
+5.  **Duplicate Detection**: If a duplicate is detected (based on matching Certificate No and Cert Name), a modal should appear for the user to choose an action (e.g., overwrite, keep both, cancel) before proceeding.
 
-Investigation confirmed that the company-specific Google Drive configuration was failing. The frontend was attempting to fetch () and check status () using backend endpoints that did not exist. These endpoints were successfully implemented in .
-
-However, after adding these, a new issue surfaced: when attempting to Test Connection for a company's Google Drive configuration, the frontend was making a call to , but the backend endpoint intended for this configuration was named . This naming mismatch is currently causing a 404 error, preventing the company-specific Google Drive configuration from being tested or saved correctly. The AI engineer was in the process of rectifying this specific endpoint mismatch. The underlying Google Apps Script deployment issue (URLs redirecting to HTML) remains, despite detailed instructions provided to the user for correct deployment.
+The AI engineer has begun this task by replacing the old multi-file upload placeholder in  with the new Multi Cert Upload UI and has started adding the necessary React states for this new feature.
 </current_work>
 
 <optional_next_step>
-The next step is to fix the backend endpoint mismatch for company-specific Google Drive configuration, ensuring the frontend's call to  maps to the correct backend logic.
+Continue implementing the necessary React states for the Multi Cert Upload feature in .
 </optional_next_step>

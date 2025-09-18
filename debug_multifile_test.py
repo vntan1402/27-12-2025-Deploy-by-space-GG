@@ -9,7 +9,7 @@ import tempfile
 import os
 
 def test_multifile_debug():
-    base_url = "https://shipwise-13.preview.emergentagent.com"
+    base_url = "https://shipmanage.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login as admin

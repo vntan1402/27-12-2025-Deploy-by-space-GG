@@ -13,7 +13,7 @@ def main():
     print("🎯 FINAL GOOGLE APPS SCRIPT INTEGRATION TEST")
     print("=" * 60)
     
-    base_url = "https://shipwise-13.preview.emergentagent.com"
+    base_url = "https://shipmanage.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     apps_script_url = "https://script.google.com/macros/s/AKfycbzgEVRtLEGylJem_1826xgwdf_XYzQfv7IYiPlvZggq-6Yw4fKW3NZ-QG3yE-T-OlnF/exec"
     amcsc_company_id = "cfe73cb0-cc88-4659-92a7-57cb413a5573"
