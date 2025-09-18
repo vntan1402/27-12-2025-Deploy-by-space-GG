@@ -1448,6 +1448,192 @@ async def upload_multi_files(
         logger.error(f"Multi-file upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+@api_router.post("/certificates/multi-upload")
+async def multi_cert_upload_for_ship(
+    ship_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Upload multiple certificate files for a specific ship with AI analysis and Google Drive integration"""
+    try:
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        results = []
+        summary = {
+            "total_files": len(files),
+            "marine_certificates": 0,
+            "non_marine_files": 0,
+            "successfully_created": 0,
+            "errors": 0,
+            "certificates_created": [],
+            "non_marine_files_list": [],
+            "error_files": []
+        }
+        
+        # Get AI configuration
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=500, detail="AI configuration not found. Please configure AI settings first.")
+        
+        ai_config = {
+            "provider": ai_config_doc.get("provider", "openai"),
+            "model": ai_config_doc.get("model", "gpt-4"),
+            "api_key": ai_config_doc.get("api_key"),
+            "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+        }
+        
+        # Get user's company for Google Drive configuration
+        user_company_id = current_user.company if hasattr(current_user, 'company') and current_user.company else None
+        
+        # Get company-specific Google Drive configuration first, fallback to system
+        gdrive_config_doc = None
+        if user_company_id:
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+            logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
+        
+        # Fallback to system Google Drive config if no company config
+        if not gdrive_config_doc:
+            gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+            logger.info(f"Using system Google Drive config: {'Found' if gdrive_config_doc else 'Not found'}")
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=500, detail="Google Drive not configured. Please configure Google Drive (system or company-specific) first.")
+        
+        for file in files:
+            try:
+                # Read file content
+                file_content = await file.read()
+                
+                # Check file size (50MB limit as per requirements)
+                if len(file_content) > 50 * 1024 * 1024:
+                    summary["errors"] += 1
+                    summary["error_files"].append({
+                        "filename": file.filename,
+                        "error": "File size exceeds 50MB limit"
+                    })
+                    results.append({
+                        "filename": file.filename,
+                        "status": "error",
+                        "message": "File size exceeds 50MB limit"
+                    })
+                    continue
+                
+                # Analyze document with AI
+                analysis_result = await analyze_document_with_ai(
+                    file_content, file.filename, file.content_type, ai_config
+                )
+                
+                logger.info(f"AI Analysis results for {file.filename}:")
+                logger.info(f"  Category: {analysis_result.get('category')}")
+                logger.info(f"  Is Marine Certificate: {analysis_result.get('category') == 'certificates'}")
+                
+                # Check if it's a Marine Certificate
+                is_marine_certificate = analysis_result.get("category") == "certificates"
+                
+                if not is_marine_certificate:
+                    # Skip processing for non-marine certificates
+                    summary["non_marine_files"] += 1
+                    summary["non_marine_files_list"].append({
+                        "filename": file.filename,
+                        "category": analysis_result.get("category", "unknown"),
+                        "reason": "Not classified as a marine certificate"
+                    })
+                    results.append({
+                        "filename": file.filename,
+                        "status": "skipped",
+                        "message": "Not a marine certificate",
+                        "analysis": analysis_result,
+                        "is_marine": False
+                    })
+                    continue
+                
+                summary["marine_certificates"] += 1
+                
+                # Check for duplicates based on cert_no and cert_name
+                duplicates = await check_certificate_duplicates(analysis_result, ship_id)
+                
+                if duplicates:
+                    # For now, we'll skip duplicates - later we can implement user choice
+                    summary["errors"] += 1
+                    summary["error_files"].append({
+                        "filename": file.filename,
+                        "error": f"Duplicate certificate found: {duplicates[0].get('cert_name', 'Unknown')}"
+                    })
+                    results.append({
+                        "filename": file.filename,
+                        "status": "duplicate",
+                        "message": "Duplicate certificate detected",
+                        "analysis": analysis_result,
+                        "duplicates": duplicates,
+                        "is_marine": True
+                    })
+                    continue
+                
+                # Upload to Google Drive
+                upload_result = await upload_file_to_gdrive_with_analysis(
+                    file_content, file.filename, analysis_result, gdrive_config_doc, current_user, ship_id
+                )
+                
+                # Create certificate record
+                cert_result = await create_certificate_from_analysis_with_notes(
+                    analysis_result, upload_result, current_user, ship_id, None
+                )
+                
+                if cert_result.get("success", True):
+                    summary["successfully_created"] += 1
+                    summary["certificates_created"].append({
+                        "filename": file.filename,
+                        "cert_name": analysis_result.get("cert_name", "Unknown Certificate"),
+                        "cert_no": analysis_result.get("cert_no", "N/A"),
+                        "certificate_id": cert_result.get("id")
+                    })
+                
+                # Update ship survey status if relevant information exists
+                await update_ship_survey_status(analysis_result, current_user)
+                
+                # Track usage
+                await track_ai_usage(current_user, "document_analysis", ai_config)
+                
+                results.append({
+                    "filename": file.filename,
+                    "status": "success",
+                    "analysis": analysis_result,
+                    "upload": upload_result,
+                    "certificate": cert_result,
+                    "is_marine": True
+                })
+                
+            except Exception as file_error:
+                logger.error(f"Error processing file {file.filename}: {file_error}")
+                summary["errors"] += 1
+                summary["error_files"].append({
+                    "filename": file.filename,
+                    "error": str(file_error)
+                })
+                results.append({
+                    "filename": file.filename,
+                    "status": "error",
+                    "message": str(file_error)
+                })
+        
+        return {
+            "results": results,
+            "summary": summary,
+            "ship": {
+                "id": ship_id,
+                "name": ship.get("name", "Unknown Ship")
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Multi-cert upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
     try:
