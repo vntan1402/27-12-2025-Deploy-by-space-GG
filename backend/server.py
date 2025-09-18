@@ -1757,48 +1757,27 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
             logger.error("No API key found in AI configuration")
             return get_fallback_ship_analysis(filename)
         
-        # Create ship analysis prompt
+        # Get dynamic ship form fields for extraction
+        ship_form_fields = await get_ship_form_fields_for_extraction()
+        
+        # Create dynamic ship analysis prompt based on actual form fields
         ship_analysis_prompt = f"""
-Analyze this ship-related document ({filename}) and extract the following ship information:
+Analyze this ship-related document ({filename}) and extract information for the following ship form fields:
 
-1. SHIP IDENTIFICATION:
-   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
-   - imo_number: IMO number (7-digit number, usually prefixed with "IMO")
-
-2. SHIP CLASSIFICATION & REGISTRATION:
-   - class_society: Classification society (DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, etc.)
-   - flag: Flag state/country of registration
-   
-3. SHIP SPECIFICATIONS:
-   - gross_tonnage: Gross tonnage (GT) - numerical value
-   - deadweight: Deadweight tonnage (DWT) - numerical value  
-   - built_year: Year built/constructed - 4-digit year
-
-4. OWNERSHIP & MANAGEMENT:
-   - ship_owner: Ship owner company name
-   - company: Management company name
+{ship_form_fields['prompt_section']}
 
 EXTRACTION RULES:
 - Extract exact values as they appear in the document
-- For numerical values (gross_tonnage, deadweight, built_year), return numbers only
+- For numerical values, return numbers only (not strings)
 - If information is not found, return null for that field
 - Look for ship information in certificates, surveys, inspection reports, or technical documents
 - Pay attention to letterheads, signatures, and official stamps for company information
+- Match extracted data to the closest appropriate form field
 
-RESPONSE FORMAT: Return a JSON object with all fields, using null for missing information.
+RESPONSE FORMAT: Return a JSON object with these exact field names:
+{ship_form_fields['json_example']}
 
-Example response:
-{{
-  "ship_name": "MV OCEAN PIONEER",
-  "imo_number": "1234567",
-  "class_society": "DNV GL",
-  "flag": "Panama",
-  "gross_tonnage": 25000,
-  "deadweight": 40000,
-  "built_year": 2015,
-  "ship_owner": "Ocean Shipping Ltd",
-  "company": "Maritime Management Inc"
-}}
+Please extract only the fields listed above from the document.
 """
         
         # Use emergentintegrations for proper Emergent LLM key handling
