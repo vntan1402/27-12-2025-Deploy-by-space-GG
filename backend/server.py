@@ -1059,14 +1059,15 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
     except Exception as e:
         logger.error(f"Error creating ship: {e}")
         
-        # Handle specific duplicate IMO error - check both original exception and our re-raised message
+        # Handle specific duplicate (IMO, Company) combination error
         error_str = str(e).lower()
-        if ("duplicate key error" in error_str and "imo" in error_str) or "document with this key already exists" in error_str:
-            # Extract IMO from the ship data - check both imo and imo_number fields
+        if ("duplicate key error" in error_str and "imo" in error_str and "company" in error_str) or "document with this key already exists" in error_str:
+            # Extract IMO from the ship data
             imo_value = ship_dict.get('imo') or ship_dict.get('imo_number', 'Unknown')
+            company_id = ship_dict.get('company', 'Unknown')
             raise HTTPException(
                 status_code=400, 
-                detail=f"Ship with IMO number '{imo_value}' already exists. Each ship must have a unique IMO number."
+                detail=f"Ship with IMO number '{imo_value}' already exists in your company. Each company can only have one ship with the same IMO number."
             )
         
         raise HTTPException(status_code=500, detail="Failed to create ship")
