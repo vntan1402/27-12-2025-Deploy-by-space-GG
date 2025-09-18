@@ -1638,6 +1638,312 @@ async def multi_cert_upload_for_ship(
         logger.error(f"Multi-cert upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+@api_router.post("/analyze-ship-certificate")
+async def analyze_ship_certificate(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Analyze ship certificate PDF and extract ship information for auto-fill"""
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('application/pdf'):
+            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Check file size (5MB limit for ship certificate analysis)
+        if len(file_content) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File size exceeds 5MB limit")
+        
+        # Get AI configuration
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=500, detail="AI configuration not found. Please configure AI settings first.")
+        
+        ai_config = {
+            "provider": ai_config_doc.get("provider", "openai"),
+            "model": ai_config_doc.get("model", "gpt-4"),
+            "api_key": ai_config_doc.get("api_key"),
+            "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+        }
+        
+        # Analyze document with AI specifically for ship information
+        analysis_result = await analyze_ship_document_with_ai(
+            file_content, file.filename, file.content_type, ai_config
+        )
+        
+        # Track usage
+        await track_ai_usage(current_user, "ship_certificate_analysis", ai_config)
+        
+        return {
+            "success": True,
+            "analysis": analysis_result,
+            "message": "Ship certificate analyzed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ship certificate analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+async def analyze_ship_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
+    """Analyze ship document using AI to extract ship-specific information"""
+    try:
+        # Use system AI configuration
+        provider = ai_config.get("provider", "openai").lower()
+        model = ai_config.get("model", "gpt-4")
+        api_key = ai_config.get("api_key")
+        use_emergent_key = ai_config.get("use_emergent_key", True)
+        
+        # Handle Emergent LLM Key
+        if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
+            api_key = EMERGENT_LLM_KEY
+            provider = "google"  # Use Google/Gemini provider for file analysis with Emergent key
+            model = "gemini-2.0-flash-exp"  # Use Gemini model for file analysis
+            
+        if not api_key:
+            logger.error("No API key found in AI configuration")
+            return get_fallback_ship_analysis(filename)
+        
+        # Create ship analysis prompt
+        ship_analysis_prompt = f"""
+Analyze this ship-related document ({filename}) and extract the following ship information:
+
+1. SHIP IDENTIFICATION:
+   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+   - imo_number: IMO number (7-digit number, usually prefixed with "IMO")
+
+2. SHIP CLASSIFICATION & REGISTRATION:
+   - class_society: Classification society (DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, etc.)
+   - flag: Flag state/country of registration
+   
+3. SHIP SPECIFICATIONS:
+   - gross_tonnage: Gross tonnage (GT) - numerical value
+   - deadweight: Deadweight tonnage (DWT) - numerical value  
+   - built_year: Year built/constructed - 4-digit year
+
+4. OWNERSHIP & MANAGEMENT:
+   - ship_owner: Ship owner company name
+   - company: Management company name
+
+EXTRACTION RULES:
+- Extract exact values as they appear in the document
+- For numerical values (gross_tonnage, deadweight, built_year), return numbers only
+- If information is not found, return null for that field
+- Look for ship information in certificates, surveys, inspection reports, or technical documents
+- Pay attention to letterheads, signatures, and official stamps for company information
+
+RESPONSE FORMAT: Return a JSON object with all fields, using null for missing information.
+
+Example response:
+{{
+  "ship_name": "MV OCEAN PIONEER",
+  "imo_number": "1234567",
+  "class_society": "DNV GL",
+  "flag": "Panama",
+  "gross_tonnage": 25000,
+  "deadweight": 40000,
+  "built_year": 2015,
+  "ship_owner": "Ocean Shipping Ltd",
+  "company": "Maritime Management Inc"
+}}
+"""
+        
+        if provider == "google":
+            # Use Google AI for ship analysis
+            result = await analyze_with_google_ship(file_content, ship_analysis_prompt, api_key, model)
+        elif provider == "openai":
+            # Use OpenAI for ship analysis
+            result = await analyze_with_openai_ship(file_content, ship_analysis_prompt, api_key, model)
+        elif provider == "anthropic":
+            # Use Anthropic for ship analysis
+            result = await analyze_with_anthropic_ship(file_content, ship_analysis_prompt, api_key, model)
+        else:
+            logger.warning(f"Unsupported AI provider: {provider}, using fallback")
+            result = get_fallback_ship_analysis(filename)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Ship AI analysis failed: {e}")
+        return get_fallback_ship_analysis(filename)
+
+def get_fallback_ship_analysis(filename: str) -> dict:
+    """Provide fallback ship analysis when AI analysis fails"""
+    return {
+        "ship_name": None,
+        "imo_number": None,
+        "class_society": None,
+        "flag": None,
+        "gross_tonnage": None,
+        "deadweight": None,
+        "built_year": None,
+        "ship_owner": None,
+        "company": None,
+        "fallback_reason": "AI analysis failed or no API key available"
+    }
+
+async def analyze_with_google_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
+    """Analyze ship document using Google AI"""
+    try:
+        import google.generativeai as genai
+        
+        genai.configure(api_key=api_key)
+        model_instance = genai.GenerativeModel(model)
+        
+        # Create file upload for Gemini
+        import tempfile
+        import os
+        
+        # Create temporary file for Gemini processing
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Upload file to Gemini
+            uploaded_file = genai.upload_file(temp_file_path)
+            
+            # Analyze with Gemini
+            response = model_instance.generate_content([prompt, uploaded_file])
+            
+            # Clean up uploaded file
+            genai.delete_file(uploaded_file.name)
+            
+            # Parse response
+            analysis_text = response.text
+            
+            # Try to extract JSON from response
+            import json
+            import re
+            
+            # Look for JSON in the response
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
+            if json_match:
+                try:
+                    analysis_result = json.loads(json_match.group())
+                    return analysis_result
+                except json.JSONDecodeError:
+                    pass
+            
+            # If no valid JSON found, return fallback
+            return get_fallback_ship_analysis("unknown")
+            
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+        
+    except Exception as e:
+        logger.error(f"Google AI ship analysis failed: {e}")
+        return get_fallback_ship_analysis("unknown")
+
+async def analyze_with_openai_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
+    """Analyze ship document using OpenAI (text extraction + analysis)"""
+    try:
+        # Extract text from PDF first
+        import PyPDF2
+        import io
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+        text_content = ""
+        
+        for page in pdf_reader.pages:
+            text_content += page.extract_text() + "\n"
+        
+        if not text_content.strip():
+            return get_fallback_ship_analysis("unknown")
+        
+        # Use OpenAI to analyze extracted text
+        import openai
+        
+        client = openai.OpenAI(api_key=api_key)
+        
+        full_prompt = f"{prompt}\n\nDocument text content:\n{text_content[:4000]}"  # Limit text to avoid token limits
+        
+        response = client.chat.completions.create(
+            model=model if model in ["gpt-4", "gpt-4o", "gpt-3.5-turbo"] else "gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a maritime document analysis expert. Extract ship information accurately from the provided document text."},
+                {"role": "user", "content": full_prompt}
+            ],
+            temperature=0.1
+        )
+        
+        analysis_text = response.choices[0].message.content
+        
+        # Try to extract JSON from response
+        import json
+        import re
+        
+        json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
+        if json_match:
+            try:
+                analysis_result = json.loads(json_match.group())
+                return analysis_result
+            except json.JSONDecodeError:
+                pass
+        
+        return get_fallback_ship_analysis("unknown")
+        
+    except Exception as e:
+        logger.error(f"OpenAI ship analysis failed: {e}")
+        return get_fallback_ship_analysis("unknown")
+
+async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
+    """Analyze ship document using Anthropic (text extraction + analysis)"""
+    try:
+        # Extract text from PDF first
+        import PyPDF2
+        import io
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+        text_content = ""
+        
+        for page in pdf_reader.pages:
+            text_content += page.extract_text() + "\n"
+        
+        if not text_content.strip():
+            return get_fallback_ship_analysis("unknown")
+        
+        # Use Anthropic to analyze extracted text
+        import anthropic
+        
+        client = anthropic.Anthropic(api_key=api_key)
+        
+        full_prompt = f"{prompt}\n\nDocument text content:\n{text_content[:4000]}"
+        
+        response = client.messages.create(
+            model=model if model.startswith("claude") else "claude-3-sonnet-20240229",
+            max_tokens=1000,
+            temperature=0.1,
+            messages=[
+                {"role": "user", "content": full_prompt}
+            ]
+        )
+        
+        analysis_text = response.content[0].text
+        
+        # Try to extract JSON from response
+        import json
+        import re
+        
+        json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
+        if json_match:
+            try:
+                analysis_result = json.loads(json_match.group())
+                return analysis_result
+            except json.JSONDecodeError:
+                pass
+        
+        return get_fallback_ship_analysis("unknown")
+        
+    except Exception as e:
+        logger.error(f"Anthropic ship analysis failed: {e}")
+        return get_fallback_ship_analysis("unknown")
+
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
     try:
