@@ -670,6 +670,33 @@ IMPORTANT CLARIFICATIONS:
 - CLASS_SOCIETY: This is the organization/authority that ISSUED the certificate (the one whose letterhead, signature, or stamp appears on the document)
 - COMPANY: This is the operating/management company of the vessel (different from the certificate issuer). Only extract if explicitly mentioned as operating company.
 - Do not confuse the certificate issuer with the operating company
+
+REQUIRED FORMATS:
+- CLASS_SOCIETY must be abbreviated (e.g., PMDS, LR, DNV GL, ABS, BV, RINA, CCS, NK)
+- SHIP_TYPE must be short standard names (e.g., General Cargo, Bulk Carrier, Oil Tanker, Chemical Tanker, Container Ship, Gas Carrier, Passenger Ship, RoRo Cargo, Other Cargo)
+
+COMMON CLASS_SOCIETY ABBREVIATIONS:
+- Panama Maritime Documentation Services → PMDS
+- Lloyd's Register → LR
+- DNV GL → DNV GL
+- American Bureau of Shipping → ABS
+- Bureau Veritas → BV
+- RINA → RINA
+- China Classification Society → CCS
+- Nippon Kaiji Kyokai → NK
+- Russian Maritime Register of Shipping → RS
+- Korean Register → KR
+
+COMMON SHIP_TYPE STANDARDS:
+- General Cargo (for general cargo ships)
+- Bulk Carrier (for dry bulk carriers)
+- Oil Tanker (for crude oil tankers)
+- Chemical Tanker (for chemical tankers)
+- Container Ship (for container vessels)
+- Gas Carrier (for LPG/LNG carriers)
+- Passenger Ship (for passenger vessels)
+- RoRo Cargo (for roll-on/roll-off cargo)
+- Other Cargo (for other cargo types)
 """
         
         # Create JSON example
