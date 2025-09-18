@@ -188,7 +188,6 @@
 
 ## test_plan:
   current_focus:
-    - "Multi Cert Upload API Endpoint"
     - "Multi Cert Upload Frontend Implementation"
   stuck_tasks: []
   test_all: false
