@@ -1697,12 +1697,11 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
         api_key = ai_config.get("api_key")
         use_emergent_key = ai_config.get("use_emergent_key", True)
         
-        # Handle Emergent LLM Key - Use Gemini for file analysis
+        # Handle Emergent LLM Key - Keep original provider from System Settings
         if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
             api_key = EMERGENT_LLM_KEY
-            # For PDF analysis with Emergent key, use Gemini provider as per integration playbook
-            provider = "gemini"
-            model = "gemini-2.0-flash"
+            # Use the provider and model from AI config instead of forcing Gemini
+            logger.info(f"Using Emergent LLM key with configured provider: {provider}, model: {model}")
             
         if not api_key:
             logger.error("No API key found in AI configuration")
