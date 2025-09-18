@@ -2108,37 +2108,80 @@ async def analyze_with_openai_ship(file_content: bytes, prompt: str, api_key: st
         if not text_content.strip():
             return get_fallback_ship_analysis(filename)
         
-        # Use OpenAI to analyze extracted text
-        import openai
-        
-        client = openai.OpenAI(api_key=api_key)
-        
-        full_prompt = f"{prompt}\n\nDocument text content:\n{text_content[:4000]}"  # Limit text to avoid token limits
-        
-        response = client.chat.completions.create(
-            model=model if model in ["gpt-4", "gpt-4o", "gpt-3.5-turbo"] else "gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a maritime document analysis expert. Extract ship information accurately from the provided document text."},
-                {"role": "user", "content": full_prompt}
-            ],
-            temperature=0.1
-        )
-        
-        analysis_text = response.choices[0].message.content
-        
-        # Try to extract JSON from response
-        import json
-        import re
-        
-        json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
-        if json_match:
+        # Check if using Emergent LLM key
+        if api_key == EMERGENT_LLM_KEY:
+            # Use emergentintegrations for Emergent key (text-only analysis)
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
             try:
-                analysis_result = json.loads(json_match.group())
-                return analysis_result
-            except json.JSONDecodeError:
-                pass
-        
-        return get_fallback_ship_analysis(filename)
+                # Initialize chat with emergentintegrations
+                chat = LlmChat(
+                    api_key=api_key,
+                    session_id=f"ship_analysis_{filename}",
+                    system_message="You are a maritime document analysis expert. Extract ship information accurately from the provided document text."
+                ).with_model("openai", model)
+                
+                # Create full prompt with extracted text
+                full_prompt = f"{prompt}\n\nDocument text content:\n{text_content[:8000]}"  # Limit text to avoid token limits
+                
+                # Create message
+                user_message = UserMessage(text=full_prompt)
+                
+                # Analyze with OpenAI via emergentintegrations
+                response = await chat.send_message(user_message)
+                
+                # Parse response
+                analysis_text = response if isinstance(response, str) else str(response)
+                
+                # Try to extract JSON from response
+                import json
+                import re
+                
+                json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
+                if json_match:
+                    try:
+                        analysis_result = json.loads(json_match.group())
+                        return analysis_result
+                    except json.JSONDecodeError:
+                        pass
+                
+                return get_fallback_ship_analysis(filename)
+                
+            except Exception as e:
+                logger.error(f"Emergent OpenAI integration failed: {e}")
+                return get_fallback_ship_analysis(filename)
+        else:
+            # Use direct OpenAI integration for custom API keys
+            import openai
+            
+            client = openai.OpenAI(api_key=api_key)
+            
+            full_prompt = f"{prompt}\n\nDocument text content:\n{text_content[:4000]}"  # Limit text to avoid token limits
+            
+            response = client.chat.completions.create(
+                model=model if model in ["gpt-4", "gpt-4o", "gpt-3.5-turbo"] else "gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a maritime document analysis expert. Extract ship information accurately from the provided document text."},
+                    {"role": "user", "content": full_prompt}
+                ],
+                temperature=0.1
+            )
+            
+            analysis_text = response.choices[0].message.content
+            
+            # Try to extract JSON from response
+            import json
+            import re
+            
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
+            if json_match:
+                try:
+                    analysis_result = json.loads(json_match.group())
+                    return analysis_result
+                except json.JSONDecodeError:
+                    pass
+            
+            return get_fallback_ship_analysis(filename)
         
     except Exception as e:
         logger.error(f"OpenAI ship analysis failed: {e}")
