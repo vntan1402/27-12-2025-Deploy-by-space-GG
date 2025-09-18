@@ -1968,7 +1968,7 @@ const HomePage = () => {
           selectedShip={selectedShip}
           availableCompanies={availableCompanies}
           ships={ships}
-          aiConfig={aiConfig}
+          parentAiConfig={aiConfig}
           isMultiCertProcessing={isMultiCertProcessing}
           multiCertUploads={multiCertUploads}
           handleMultiCertUpload={handleMultiCertUpload}
