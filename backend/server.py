@@ -1754,13 +1754,13 @@ Example response:
         
         if provider == "google":
             # Use Google AI for ship analysis
-            result = await analyze_with_google_ship(file_content, ship_analysis_prompt, api_key, model)
+            result = await analyze_with_google_ship(file_content, ship_analysis_prompt, api_key, model, filename)
         elif provider == "openai":
             # Use OpenAI for ship analysis
-            result = await analyze_with_openai_ship(file_content, ship_analysis_prompt, api_key, model)
+            result = await analyze_with_openai_ship(file_content, ship_analysis_prompt, api_key, model, filename)
         elif provider == "anthropic":
             # Use Anthropic for ship analysis
-            result = await analyze_with_anthropic_ship(file_content, ship_analysis_prompt, api_key, model)
+            result = await analyze_with_anthropic_ship(file_content, ship_analysis_prompt, api_key, model, filename)
         else:
             logger.warning(f"Unsupported AI provider: {provider}, using fallback")
             result = get_fallback_ship_analysis(filename)
