@@ -2010,19 +2010,19 @@ def get_fallback_ship_analysis(filename: str) -> dict:
         }
     
     # Specific fallback for PM252494416.pdf with real extracted ship data
-    if "PM252494416" in filename:
-        return {
-            "ship_name": "SUNSHINE STAR",
-            "imo_number": "9405136",
-            "flag": "BELIZE",
-            "gross_tonnage": 2988,
-            "deadweight": 5274.3,
-            "built_year": 2005,
-            "company": "Panama Maritime Documentation Services Inc",
-            "class_society": None,
-            "ship_owner": None,
-            "fallback_reason": "Real ship data extracted from PM252494416.pdf"
-        }
+    # if "PM252494416" in filename:
+    #     return {
+    #         "ship_name": "SUNSHINE STAR",
+    #         "imo_number": "9405136",
+    #         "flag": "BELIZE",
+    #         "gross_tonnage": 2988,
+    #         "deadweight": 5274.3,
+    #         "built_year": 2005,
+    #         "company": "Panama Maritime Documentation Services Inc",
+    #         "class_society": None,
+    #         "ship_owner": None,
+    #         "fallback_reason": "Real ship data extracted from PM252494416.pdf"
+    #     }
     
     return {
         "ship_name": None,
