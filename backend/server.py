@@ -1845,7 +1845,7 @@ async def analyze_with_google_ship(file_content: bytes, prompt: str, api_key: st
                     pass
             
             # If no valid JSON found, return fallback
-            return get_fallback_ship_analysis("unknown")
+            return get_fallback_ship_analysis(filename)
             
         finally:
             # Clean up temporary file
