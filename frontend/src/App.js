@@ -6448,7 +6448,7 @@ const AddRecordModal = ({
   selectedShip, 
   availableCompanies, 
   ships, 
-  aiConfig,
+  parentAiConfig,
   isMultiCertProcessing,
   multiCertUploads,
   handleMultiCertUpload,
