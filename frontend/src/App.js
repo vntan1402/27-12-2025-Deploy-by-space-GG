@@ -977,14 +977,14 @@ const HomePage = () => {
     setMultiCertUploads(initialUploads);
     
     try {
-      // Process files using existing backend endpoint
+      // Process files using new ship-specific endpoint
       const formData = new FormData();
       fileArray.forEach(file => {
         formData.append('files', file);
       });
       
-      // Use existing multi-file upload endpoint
-      const response = await axios.post(`${API}/certificates/upload-multi-files`, formData, {
+      // Use new multi-cert upload endpoint for specific ship
+      const response = await axios.post(`${API}/certificates/multi-upload?ship_id=${selectedShip.id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
@@ -1001,21 +1001,12 @@ const HomePage = () => {
       });
       
       const results = response.data.results || [];
+      const summary = response.data.summary || {};
       
       // Process results and update states
-      let marineCount = 0;
-      let nonMarineCount = 0;
-      let successCount = 0;
-      let errorCount = 0;
-      let certificatesCreated = [];
-      let nonMarineFiles = [];
-      let errorFiles = [];
-      
       const updatedUploads = initialUploads.map((upload, index) => {
         const result = results[index];
         if (!result) {
-          errorCount++;
-          errorFiles.push(upload.filename);
           return {
             ...upload,
             status: 'error',
@@ -1025,8 +1016,6 @@ const HomePage = () => {
         }
         
         if (result.status === 'error') {
-          errorCount++;
-          errorFiles.push(upload.filename);
           return {
             ...upload,
             status: 'error',
@@ -1035,25 +1024,26 @@ const HomePage = () => {
           };
         }
         
-        // Check if it's a marine certificate
-        const isMarine = result.analysis?.category === 'certificates';
-        if (isMarine) {
-          marineCount++;
-          if (result.certificate && !result.certificate.error) {
-            successCount++;
-            certificatesCreated.push({
-              filename: upload.filename,
-              cert_name: result.analysis?.cert_name || 'Unknown Certificate',
-              cert_no: result.analysis?.cert_no || 'N/A'
-            });
-          }
-        } else {
-          nonMarineCount++;
-          nonMarineFiles.push({
-            filename: upload.filename,
-            category: result.analysis?.category || 'unknown',
-            reason: 'Not classified as a marine certificate'
-          });
+        if (result.status === 'skipped') {
+          return {
+            ...upload,
+            status: 'skipped',
+            progress: 100,
+            analysis: result.analysis,
+            isMarine: false,
+            error: result.message
+          };
+        }
+        
+        if (result.status === 'duplicate') {
+          return {
+            ...upload,
+            status: 'duplicate',
+            progress: 100,
+            analysis: result.analysis,
+            isMarine: true,
+            error: result.message
+          };
         }
         
         return {
@@ -1063,41 +1053,49 @@ const HomePage = () => {
           analysis: result.analysis,
           upload: result.upload,
           certificate: result.certificate,
-          isMarine
+          isMarine: result.is_marine
         };
       });
       
       setMultiCertUploads(updatedUploads);
       
-      // Generate summary
+      // Set summary from backend response
       setUploadSummary({
-        totalFiles: fileArray.length,
-        marineCount,
-        nonMarineCount,
-        successCount,
-        errorCount,
-        certificatesCreated,
-        nonMarineFiles,
-        errorFiles
+        totalFiles: summary.total_files || fileArray.length,
+        marineCount: summary.marine_certificates || 0,
+        nonMarineCount: summary.non_marine_files || 0,
+        successCount: summary.successfully_created || 0,
+        errorCount: summary.errors || 0,
+        certificatesCreated: summary.certificates_created || [],
+        nonMarineFiles: summary.non_marine_files_list || [],
+        errorFiles: summary.error_files || []
       });
       
       // Show summary toast
-      if (successCount > 0) {
+      if (summary.successfully_created > 0) {
         toast.success(
           language === 'vi' 
-            ? `✅ Đã xử lý thành công ${successCount}/${fileArray.length} files và tạo ${successCount} certificates`
-            : `✅ Successfully processed ${successCount}/${fileArray.length} files and created ${successCount} certificates`
+            ? `✅ Đã tạo thành công ${summary.successfully_created} certificates từ ${summary.total_files} files`
+            : `✅ Successfully created ${summary.successfully_created} certificates from ${summary.total_files} files`
         );
         
         // Refresh certificate list
         await fetchCertificates(selectedShip.id);
       }
       
-      if (errorCount > 0) {
+      if (summary.non_marine_files > 0) {
+        toast.info(
+          language === 'vi'
+            ? `ℹ️ ${summary.non_marine_files} files không phải marine certificates và đã được bỏ qua`
+            : `ℹ️ ${summary.non_marine_files} files were not marine certificates and were skipped`
+        );
+      }
+      
+      if (summary.errors > 0) {
         toast.warning(
           language === 'vi'
-            ? `⚠️ ${errorCount} files gặp lỗi trong quá trình xử lý`
-            : `⚠️ ${errorCount} files encountered errors during processing`
+            ? `⚠️ ${summary.errors} files gặp lỗi trong quá trình xử lý`
+            : `⚠️ ${summary.errors} files encountered errors during processing`
         );
       }
       
