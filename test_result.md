@@ -168,6 +168,18 @@
           comment: "🎉 MULTI CERT UPLOAD API ENDPOINT COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - All 11 test categories passed with 100% success rate. REVIEW REQUEST REQUIREMENTS FULLY SATISFIED: (1) ✅ Authentication Test: Login as admin/admin123 successful with SUPER_ADMIN role permissions verified, (2) ✅ GET /api/ships Endpoint: Successfully retrieved 11 ships for testing, using SUNSHINE STAR ship, (3) ✅ AI Configuration Test: Provider: openai, Model: gpt-4o, Use Emergent Key: True - properly configured with Emergent LLM key, (4) ✅ Google Drive Integration Test: Company Google Drive configured with working Apps Script URL and Folder ID, (5) ✅ Multi Cert Upload Basic Test: Endpoint successfully processed 2 files with proper response structure containing results and summary, (6) ✅ File Size Limits Test: 50MB limit correctly enforced - large files properly rejected, (7) ✅ Response Format Test: All required fields present (results, summary with total_files, marine_certificates, non_marine_files, successfully_created, errors, certificates_created, non_marine_files_list, error_files), (8) ✅ Error Handling Test: Invalid ship_id returns 404, no files returns 422 - proper error responses, (9) ✅ Comprehensive Workflow Test: Mixed file types processed correctly - 2 marine certificates and 1 non-marine file handled appropriately, (10) ✅ Duplicate Detection Test: System successfully detected duplicate certificates with same cert_no and cert_name. TECHNICAL VERIFICATION: analyze_document_with_ai function working correctly, Google Drive uploads successful with company configuration, certificate records created properly, marine vs non-marine classification working, file size validation enforced, comprehensive summary reporting functional. CONCLUSION: The Multi Cert Upload API endpoint (/api/certificates/multi-upload) is fully functional and production-ready, meeting all requirements specified in the review request."
 
 ## frontend:
+  - task: "Add New Ship Duplicate IMO Error Handling"
+    implemented: true
+    working: "NA"
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "testing"
+          comment: "Starting comprehensive testing of improved Add New Ship functionality with better error handling for duplicate IMO numbers. Review request requires testing: 1) Login as admin/admin123, 2) Navigate to home dashboard, 3) Click 'Thêm' (Add New) button, 4) Switch to Ship tab, 5) Try creating ship with existing IMO '9405136' (SUNSHINE STAR), 6) Verify clear error message appears, 7) Test successful creation with unique IMO, 8) Test edge cases. Backend has duplicate IMO detection with specific error message: 'Ship with IMO number '{imo_value}' already exists. Each ship must have a unique IMO number.'"
+
   - task: "Certificate Analysis Frontend Integration"
     implemented: true
     working: true
