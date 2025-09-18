@@ -1870,7 +1870,7 @@ async def analyze_with_openai_ship(file_content: bytes, prompt: str, api_key: st
             text_content += page.extract_text() + "\n"
         
         if not text_content.strip():
-            return get_fallback_ship_analysis("unknown")
+            return get_fallback_ship_analysis(filename)
         
         # Use OpenAI to analyze extracted text
         import openai
@@ -1902,11 +1902,11 @@ async def analyze_with_openai_ship(file_content: bytes, prompt: str, api_key: st
             except json.JSONDecodeError:
                 pass
         
-        return get_fallback_ship_analysis("unknown")
+        return get_fallback_ship_analysis(filename)
         
     except Exception as e:
         logger.error(f"OpenAI ship analysis failed: {e}")
-        return get_fallback_ship_analysis("unknown")
+        return get_fallback_ship_analysis(filename)
 
 async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
     """Analyze ship document using Anthropic (text extraction + analysis)"""
