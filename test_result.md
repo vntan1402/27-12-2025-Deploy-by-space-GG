@@ -149,7 +149,51 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Debug why AI analysis still returns N/A values despite implementing enhanced PDF processing and fallback logic. User reports AI still not extracting information from PDF uploads. Screenshot shows: File: PM252494420.pdf being processed, All fields still show N/A (Cert Name, Cert No, Issue Date, Valid Date), Duplicate detection working (shows 100% similarity), Backend was restarted after implementing enhanced PDF processing. Issue: Despite implementing fallback logic that should return structured certificate data instead of N/A values, the system still returns N/A for all fields. Testing Required: 1) Verify Backend Changes Applied: Check if the enhanced PDF processing code is actually running, Verify the classify_by_filename and analyze_with_google functions have the new logic, Test if backend restart properly applied the changes, 2) Test Certificate Upload Pipeline: Login as admin/admin123, Test POST /api/certificates/upload-multi-files with a test PDF, Monitor exactly what happens in the AI analysis pipeline, Check if the enhanced error handling is being triggered, 3) Debug AI Analysis Flow: Test the analyze_document_with_ai function, Check if it's reaching the Google analysis or falling back to filename classification, Verify if the enhanced fallback data structure is being returned, 4) Check Response Format: Test what the backend actually returns for certificate analysis, Verify if the response contains the enhanced certificate structure, Check if frontend is receiving and displaying the fallback data correctly, 5) Test Different Scenarios: Test with a known good maritime certificate PDF, Test with a corrupted/empty PDF, Test with different file types, Verify if enhanced error handling works for each scenario. Expected Results: Identify why N/A values are still being returned despite implementing fallback logic, Find if the issue is in PDF processing, AI analysis, or response formatting, Verify if backend changes are actually active in the running system, Determine if this is a code deployment issue or logic issue. Key Focus: Debug why the enhanced PDF processing and fallback logic implemented earlier is not working, and AI analysis still returns N/A values instead of meaningful certificate data."
+"Complete the implementation of the new 'Multi Cert Upload' feature within the 'Add New Record > Certificate' section. This new workflow has several detailed requirements: 1) UI Elements: Display the AI model in use (from AI System Config), a 'Cert Upload' button, and a guide for file format (PDF, max 50MB). 2) Multi-file Upload: The 'Cert Upload' button should open a window allowing selection of multiple files. Each file should have a status bar showing its upload progress. 3) AI Analysis Workflow: After upload, each file is sent for AI analysis. Marine Certificate Check: The AI must first determine if the file is a Marine Certificate (issued by classification societies, flag states, insurance, etc.). Information Extraction: If it is a Marine Certificate, extract information matching fields in the Certificate List. Google Drive Storage: Save the file to the 'Certificates' subfolder within the Ship-specific Google Drive folder. Record Creation: Create a new record in the Certificate List with the extracted information. Non-Marine Certificates: If a file is not a Marine Certificate, it should be skipped from further processing but the workflow should continue with the next file. 4) Summary Report: After all files are processed, display a summary report including the number of files uploaded and analyzed, which files were added to the Certificate List, and a list of non-Marine Certificates for user review. 5) Duplicate Detection: If a duplicate is detected (based on matching Certificate No and Cert Name), a modal should appear for the user to choose an action (e.g., overwrite, keep both, cancel) before proceeding."
+
+## backend:
+  - task: "Multi Cert Upload API Endpoint"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Created new /api/certificates/multi-upload endpoint specifically for ship-based multi-certificate upload. Features: 1) Ship-specific upload (takes ship_id parameter), 2) Marine certificate validation via AI analysis, 3) Duplicate detection for cert_no and cert_name, 4) Google Drive integration with company/system config, 5) Summary report with detailed statistics, 6) 50MB file size limit as per requirements, 7) Proper error handling for each processing stage. Backend logic: AI analyzes each file to determine if it's a marine certificate, skips non-marine files, checks for duplicates, uploads to Google Drive, creates certificate records, and returns comprehensive summary."
+
+## frontend:
+  - task: "Multi Cert Upload Frontend Implementation"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Completed Multi Cert Upload frontend implementation: 1) handleMultiCertUpload function with file processing workflow, 2) Progress tracking for each file with status updates, 3) Integration with new /api/certificates/multi-upload endpoint, 4) Real-time UI updates for upload progress, AI analysis, and results, 5) Summary display with marine/non-marine file counts, 6) Error handling and user feedback with toast notifications, 7) Certificate list refresh after successful uploads. UI shows: file upload progress, AI analysis status, marine certificate detection, duplicate handling, and comprehensive summary report."
+
+## metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+## test_plan:
+  current_focus:
+    - "Multi Cert Upload API Endpoint"
+    - "Multi Cert Upload Frontend Implementation"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+## agent_communication:
+   - agent: "main"
+     message: "✅ MULTI CERT UPLOAD FEATURE IMPLEMENTATION COMPLETED - Successfully implemented both backend and frontend components for the new Multi Cert Upload feature: BACKEND: Created new /api/certificates/multi-upload endpoint with ship-specific processing, marine certificate validation, duplicate detection, Google Drive integration, and comprehensive summary reporting. FRONTEND: Implemented handleMultiCertUpload function with progress tracking, real-time status updates, and complete UI workflow. Ready for comprehensive testing of the full multi-certificate upload workflow including AI analysis, Google Drive uploads, and certificate record creation."
 
 ## backend:
   - task: "PDF Analysis API with Emergent LLM Integration"
