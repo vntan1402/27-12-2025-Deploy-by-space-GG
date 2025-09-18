@@ -60,7 +60,8 @@ class MongoDatabase:
             await self.database.companies.create_index([("name_en", 1), ("name_vn", 1)])
             
             # Ships collection indexes
-            await self.database.ships.create_index("imo", unique=True, sparse=True)
+            # Create compound unique index on (imo, company) to allow same IMO for different companies
+            await self.database.ships.create_index([("imo", 1), ("company", 1)], unique=True, sparse=True)
             await self.database.ships.create_index("name")
             
             # Certificates collection indexes
