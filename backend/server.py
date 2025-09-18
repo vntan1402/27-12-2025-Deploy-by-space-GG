@@ -649,7 +649,7 @@ async def get_ship_form_fields_for_extraction() -> dict:
             "imo_number": "IMO number (7-digit number, usually prefixed with 'IMO')",
             "flag": "Flag state/country of registration",
             "class_society": "Organization that issued this certificate - return ABBREVIATED NAME ONLY (e.g., PMDS for Panama Maritime Documentation Services, LR for Lloyd's Register, DNV GL for DNV GL, ABS for American Bureau of Shipping, BV for Bureau Veritas, RINA for RINA, CCS for China Classification Society, NK for Nippon Kaiji Kyokai, etc.). Look for letterheads, signatures, stamps, or 'Issued by' sections.",
-            "ship_type": "Type of vessel - return SHORT STANDARD NAME ONLY (e.g., General Cargo, Bulk Carrier, Oil Tanker, Chemical Tanker, Container Ship, Gas Carrier, Passenger Ship, RoRo Cargo, Other Cargo, etc.). Do not return long descriptions.",
+            "ship_type": "Type of vessel - extract EXACTLY as written in the document, then convert to short standard name. ONLY use specific type if explicitly mentioned (e.g., only use 'Bulk Carrier' if document contains exact words 'Bulk Carrier'). For general cargo ships without specific type, use 'General Cargo'. Common types: General Cargo, Bulk Carrier, Oil Tanker, Chemical Tanker, Container Ship, Gas Carrier, Passenger Ship, RoRo Cargo, Other Cargo.",
             "gross_tonnage": "Gross tonnage (GT) - numerical value only",
             "deadweight": "Deadweight tonnage (DWT) - numerical value only",
             "built_year": "Year built/constructed - 4-digit year as number",
