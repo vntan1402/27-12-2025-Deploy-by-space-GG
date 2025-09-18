@@ -1908,7 +1908,7 @@ async def analyze_with_openai_ship(file_content: bytes, prompt: str, api_key: st
         logger.error(f"OpenAI ship analysis failed: {e}")
         return get_fallback_ship_analysis(filename)
 
-async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
+async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key: str, model: str, filename: str = "unknown") -> dict:
     """Analyze ship document using Anthropic (text extraction + analysis)"""
     try:
         # Extract text from PDF first
