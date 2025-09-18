@@ -191,8 +191,8 @@
 
 ## test_plan:
   current_focus:
-    - "Multi Cert Upload API Endpoint"
-    - "Multi Cert Upload Frontend Implementation"
+    - "Certificate Analysis Frontend Integration"
+    - "PDF Analysis API with Emergent LLM Integration"
   stuck_tasks:
     []
   test_all: false
