@@ -1854,7 +1854,7 @@ async def analyze_with_google_ship(file_content: bytes, prompt: str, api_key: st
         
     except Exception as e:
         logger.error(f"Google AI ship analysis failed: {e}")
-        return get_fallback_ship_analysis("unknown")
+        return get_fallback_ship_analysis(filename)
 
 async def analyze_with_openai_ship(file_content: bytes, prompt: str, api_key: str, model: str) -> dict:
     """Analyze ship document using OpenAI (text extraction + analysis)"""
