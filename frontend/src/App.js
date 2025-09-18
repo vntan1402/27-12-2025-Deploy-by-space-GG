@@ -6609,53 +6609,59 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
     }
   };
 
-  // Google Drive Ship Folder Creation with Dynamic Structure
+  // Google Drive Ship Folder Creation with Complete Hierarchy Structure
   const createShipGoogleDriveFolder = async (shipName, companyId) => {
     try {
-      console.log(`Creating Google Drive folder structure for ship: ${shipName}`);
+      console.log(`Creating complete Google Drive folder structure for ship: ${shipName}`);
       
-      // Dynamically get subfolder structure from homepage sidebar
-      const subfolders = getDocumentSubfolderStructure();
+      // Get complete folder structure from homepage sidebar
+      const folderStructure = getCompleteShipFolderStructure();
       
       // Validate extracted structure
-      if (!subfolders || subfolders.length === 0) {
-        throw new Error('No subfolder structure found in homepage sidebar');
+      if (!folderStructure || Object.keys(folderStructure).length === 0) {
+        throw new Error('No folder structure found in homepage sidebar');
       }
       
-      console.log(`📋 Using ${subfolders.length} subfolders from homepage sidebar:`, subfolders);
-      console.log(`🔄 Structure sync: Homepage Sidebar → Google Drive Folders`);
+      const totalCategories = Object.keys(folderStructure).length;
+      const totalSubfolders = Object.values(folderStructure).flat().length;
       
-      // Call backend to create ship folder structure on Company Google Drive
+      console.log(`📋 Using complete structure from homepage sidebar:`);
+      console.log(`   Categories: ${totalCategories}`);
+      console.log(`   Total subfolders: ${totalSubfolders}`);
+      console.log(`🔄 Structure sync: Homepage Sidebar → Google Drive Complete Hierarchy`);
+      
+      // Call backend to create complete ship folder structure on Company Google Drive
       const response = await axios.post(`${API}/companies/${companyId}/gdrive/create-ship-folder`, {
         ship_name: shipName,
-        subfolders: subfolders,
-        source: 'homepage_sidebar', // Indicate source for logging
-        total_subfolders: subfolders.length
+        folder_structure: folderStructure, // Send complete hierarchy
+        source: 'homepage_sidebar_complete', // Indicate complete structure source
+        total_categories: totalCategories,
+        total_subfolders: totalSubfolders
       }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
       if (response.data.success) {
-        console.log(`✅ Ship folder created successfully:`, response.data);
+        console.log(`✅ Complete ship folder structure created successfully:`, response.data);
         toast.success(
           language === 'vi' 
-            ? `📁 Đã tạo thư mục "${shipName}" trên Google Drive với ${subfolders.length} thư mục con được sync từ homepage sidebar`
-            : `📁 Created "${shipName}" folder on Google Drive with ${subfolders.length} subfolders synced from homepage sidebar`
+            ? `📁 Đã tạo cấu trúc thư mục hoàn chỉnh "${shipName}" với ${totalCategories} danh mục và ${totalSubfolders} thư mục con`
+            : `📁 Created complete "${shipName}" folder structure with ${totalCategories} categories and ${totalSubfolders} subfolders`
         );
         return response.data;
       } else {
-        throw new Error(response.data.message || 'Failed to create ship folder');
+        throw new Error(response.data.message || 'Failed to create ship folder structure');
       }
       
     } catch (error) {
-      console.error('Error creating ship Google Drive folder:', error);
+      console.error('Error creating ship Google Drive folder structure:', error);
       const errorMessage = error.response?.data?.detail || error.message;
       
       // Show warning but don't fail ship creation
       toast.warning(
         language === 'vi'
-          ? `⚠️ Ship đã tạo thành công nhưng không thể tạo thư mục Google Drive: ${errorMessage}`
-          : `⚠️ Ship created successfully but failed to create Google Drive folder: ${errorMessage}`
+          ? `⚠️ Ship đã tạo thành công nhưng không thể tạo cấu trúc thư mục Google Drive: ${errorMessage}`
+          : `⚠️ Ship created successfully but failed to create Google Drive folder structure: ${errorMessage}`
       );
       
       return null;
