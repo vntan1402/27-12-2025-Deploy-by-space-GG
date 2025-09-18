@@ -2627,14 +2627,12 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         if not script_url:
             raise Exception("Apps Script URL not configured")
         
-        # First, ensure ship folder structure exists
-        folder_result = await create_folders_via_apps_script(gdrive_config, ship_name)
-        if not folder_result.get("success"):
-            logger.error(f"Failed to create/get ship folder structure: {folder_result.get('error')}")
-            return {"success": False, "error": f"Folder creation failed: {folder_result.get('error')}"}
+        # Get parent folder ID from config
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
         
-        # Get the appropriate subfolder ID based on category
-        subfolders = folder_result.get("subfolders", {})
+        # Category mapping for folder names
         category_mapping = {
             "certificates": "Certificates",
             "test_reports": "Test Reports", 
@@ -2644,22 +2642,17 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         }
         
         folder_name = category_mapping.get(category, "Other Documents")
-        target_folder_id = subfolders.get(folder_name)
-        
-        if not target_folder_id:
-            # Fallback to ship folder if subfolder not found
-            target_folder_id = folder_result.get("ship_folder_id")
-            if not target_folder_id:
-                return {"success": False, "error": f"Could not determine target folder for category: {category}"}
         
         # Encode file content to base64
         import base64
         file_base64 = base64.b64encode(file_content).decode('utf-8')
         
         payload = {
-            "action": "upload_file",
-            "folder_id": target_folder_id,
-            "file_name": filename,  # Changed from 'filename' to 'file_name'
+            "action": "upload_file_with_folder_creation",
+            "parent_folder_id": parent_folder_id,
+            "ship_name": ship_name,
+            "category_folder": folder_name,
+            "file_name": filename,
             "file_content": file_base64
         }
         
