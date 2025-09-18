@@ -1697,12 +1697,12 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
         api_key = ai_config.get("api_key")
         use_emergent_key = ai_config.get("use_emergent_key", True)
         
-        # Handle Emergent LLM Key
+        # Handle Emergent LLM Key - Use Gemini for file analysis
         if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
             api_key = EMERGENT_LLM_KEY
-            # Keep the original provider from AI config instead of forcing Google
-            # provider = "google"  # Use Google/Gemini provider for file analysis with Emergent key
-            # model = "gemini-2.0-flash-exp"  # Use Gemini model for file analysis
+            # For PDF analysis with Emergent key, use Gemini provider as per integration playbook
+            provider = "gemini"
+            model = "gemini-2.0-flash"
             
         if not api_key:
             logger.error("No API key found in AI configuration")
@@ -1752,7 +1752,10 @@ Example response:
 }}
 """
         
-        if provider == "google":
+        # Use emergentintegrations for proper Emergent LLM key handling
+        if use_emergent_key and provider == "gemini":
+            result = await analyze_with_emergent_gemini(file_content, ship_analysis_prompt, api_key, model, filename)
+        elif provider == "google":
             # Use Google AI for ship analysis
             result = await analyze_with_google_ship(file_content, ship_analysis_prompt, api_key, model, filename)
         elif provider == "openai":
@@ -1769,6 +1772,67 @@ Example response:
         
     except Exception as e:
         logger.error(f"Ship AI analysis failed: {e}")
+        return get_fallback_ship_analysis(filename)
+
+async def analyze_with_emergent_gemini(file_content: bytes, prompt: str, api_key: str, model: str, filename: str) -> dict:
+    """Analyze ship document using Emergent LLM key with Gemini provider"""
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+        import tempfile
+        import os
+        import json
+        import re
+        
+        # Create temporary file for Gemini processing
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Initialize chat with emergemtintegrations
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=f"ship_analysis_{filename}",
+                system_message="You are a maritime document analysis expert. Extract ship information accurately from the provided PDF document."
+            ).with_model("gemini", model)
+            
+            # Create file content for analysis
+            pdf_file = FileContentWithMimeType(
+                file_path=temp_file_path,
+                mime_type="application/pdf"
+            )
+            
+            # Create message with PDF attachment
+            user_message = UserMessage(
+                text=prompt,
+                file_contents=[pdf_file]
+            )
+            
+            # Analyze with Gemini
+            response = await chat.send_message(user_message)
+            
+            # Parse response
+            analysis_text = response if isinstance(response, str) else str(response)
+            
+            # Try to extract JSON from response
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', analysis_text)
+            if json_match:
+                try:
+                    analysis_result = json.loads(json_match.group())
+                    return analysis_result
+                except json.JSONDecodeError:
+                    pass
+            
+            # If no valid JSON found, return fallback
+            return get_fallback_ship_analysis(filename)
+            
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+        
+    except Exception as e:
+        logger.error(f"Emergent Gemini ship analysis failed: {e}")
         return get_fallback_ship_analysis(filename)
 
 def get_fallback_ship_analysis(filename: str) -> dict:
