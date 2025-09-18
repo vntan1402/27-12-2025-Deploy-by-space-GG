@@ -1780,9 +1780,13 @@ RESPONSE FORMAT: Return a JSON object with these exact field names:
 Please extract only the fields listed above from the document.
 """
         
-        # Use emergentintegrations for proper Emergent LLM key handling
-        if use_emergent_key and provider == "gemini":
+        # Use configured AI provider with Emergent LLM key or direct AI integration
+        if use_emergent_key and provider in ["gemini", "google"]:
             result = await analyze_with_emergent_gemini(file_content, ship_analysis_prompt, api_key, model, filename)
+        elif use_emergent_key and provider == "openai":
+            result = await analyze_with_emergent_openai(file_content, ship_analysis_prompt, api_key, model, filename)
+        elif use_emergent_key and provider == "anthropic":
+            result = await analyze_with_emergent_anthropic(file_content, ship_analysis_prompt, api_key, model, filename)
         elif provider == "google":
             # Use Google AI for ship analysis
             result = await analyze_with_google_ship(file_content, ship_analysis_prompt, api_key, model, filename)
