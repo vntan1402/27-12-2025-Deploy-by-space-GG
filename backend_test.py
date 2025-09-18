@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Backend Testing for Enhanced Dynamic Subfolder Structure Extraction
-Testing the enhanced Add New Ship workflow with automatic subfolder structure extraction
-from homepage sidebar for Google Drive folder creation.
+Backend Testing for Multi Cert Upload API Endpoint
+Comprehensive testing of the newly implemented Multi Cert Upload API endpoint (/api/certificates/multi-upload)
+with authentication, AI configuration, Google Drive integration, duplicate detection, and error handling tests.
 """
 
 import requests
@@ -11,6 +11,8 @@ import os
 import sys
 from datetime import datetime
 import time
+import io
+from pathlib import Path
 
 # Configuration
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://shipmanage.preview.emergentagent.com')
