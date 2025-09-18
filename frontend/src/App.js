@@ -703,7 +703,17 @@ const HomePage = () => {
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
   
-  // Multi-file upload will be rebuilt from scratch
+  // Multi Cert Upload States
+  const [multiCertUploads, setMultiCertUploads] = useState([]);
+  const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
+  const [uploadSummary, setUploadSummary] = useState(null);
+  const [duplicateModal, setDuplicateModal] = useState({
+    show: false,
+    currentFile: '',
+    duplicates: [],
+    fileIndex: -1,
+    resolution: null
+  });
   const navigate = useNavigate();
   
   const t = translations[language];
