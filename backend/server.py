@@ -2465,6 +2465,46 @@ def classify_by_filename(filename: str) -> dict:
             "issued_by": None
         }
 
+async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user) -> dict:
+    """Create Google Drive folder structure for a newly created ship"""
+    try:
+        ship_name = ship_dict.get('name', 'Unknown Ship')
+        user_company_id = current_user.company if hasattr(current_user, 'company') and current_user.company else None
+        
+        if not user_company_id:
+            logger.warning(f"No company ID found for user {current_user.username}, skipping Google Drive folder creation")
+            return {"success": False, "error": "No company ID found"}
+        
+        # Get company-specific Google Drive configuration first, fallback to system
+        gdrive_config_doc = None
+        if user_company_id:
+            # Try company-specific Google Drive config first
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+            logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
+        
+        # Fallback to system Google Drive config if no company config
+        if not gdrive_config_doc:
+            gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+            logger.info(f"Using system Google Drive config: {'Found' if gdrive_config_doc else 'Not found'}")
+        
+        if not gdrive_config_doc:
+            logger.warning("No Google Drive configuration found, skipping folder creation")
+            return {"success": False, "error": "No Google Drive configuration found"}
+        
+        # Create ship folder structure
+        result = await create_ship_folder_structure(gdrive_config_doc, ship_name)
+        
+        if result.get("success"):
+            logger.info(f"Successfully created Google Drive folder structure for ship: {ship_name}")
+            return result
+        else:
+            logger.error(f"Failed to create Google Drive folder structure: {result.get('error')}")
+            return result
+            
+    except Exception as e:
+        logger.error(f"Error creating Google Drive folder for new ship: {e}")
+        return {"success": False, "error": str(e)}
+
 async def create_ship_folder_structure(gdrive_config: dict, ship_name: str) -> dict:
     """Create folder structure: Ship Name -> 5 category subfolders"""
     try:
