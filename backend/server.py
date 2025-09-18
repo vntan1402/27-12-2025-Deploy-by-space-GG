@@ -2476,7 +2476,7 @@ def classify_by_filename(filename: str) -> dict:
         }
 
 async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user) -> dict:
-    """Create Google Drive folder structure for a newly created ship"""
+    """Create Google Drive folder structure for a newly created ship using dynamic structure"""
     try:
         ship_name = ship_dict.get('name', 'Unknown Ship')
         user_company_id = current_user.company if hasattr(current_user, 'company') and current_user.company else None
@@ -2501,8 +2501,8 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
             logger.warning("No Google Drive configuration found, skipping folder creation")
             return {"success": False, "error": "No Google Drive configuration found"}
         
-        # Create ship folder structure
-        result = await create_ship_folder_structure(gdrive_config_doc, ship_name)
+        # Create ship folder structure using dynamic structure (same as frontend)
+        result = await create_dynamic_ship_folder_structure(gdrive_config_doc, ship_name, user_company_id)
         
         if result.get("success"):
             logger.info(f"Successfully created Google Drive folder structure for ship: {ship_name}")
