@@ -1922,7 +1922,7 @@ async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key:
             text_content += page.extract_text() + "\n"
         
         if not text_content.strip():
-            return get_fallback_ship_analysis("unknown")
+            return get_fallback_ship_analysis(filename)
         
         # Use Anthropic to analyze extracted text
         import anthropic
@@ -1954,11 +1954,11 @@ async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key:
             except json.JSONDecodeError:
                 pass
         
-        return get_fallback_ship_analysis("unknown")
+        return get_fallback_ship_analysis(filename)
         
     except Exception as e:
         logger.error(f"Anthropic ship analysis failed: {e}")
-        return get_fallback_ship_analysis("unknown")
+        return get_fallback_ship_analysis(filename)
 
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
