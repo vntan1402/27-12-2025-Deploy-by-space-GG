@@ -687,16 +687,18 @@ COMMON CLASS_SOCIETY ABBREVIATIONS:
 - Russian Maritime Register of Shipping → RS
 - Korean Register → KR
 
-COMMON SHIP_TYPE STANDARDS:
-- General Cargo (for general cargo ships)
-- Bulk Carrier (for dry bulk carriers)
-- Oil Tanker (for crude oil tankers)
-- Chemical Tanker (for chemical tankers)
-- Container Ship (for container vessels)
-- Gas Carrier (for LPG/LNG carriers)
-- Passenger Ship (for passenger vessels)
-- RoRo Cargo (for roll-on/roll-off cargo)
-- Other Cargo (for other cargo types)
+COMMON SHIP_TYPE STANDARDS (only use if EXACTLY matching document text):
+- General Cargo (for general cargo ships or when specific type not mentioned)
+- Bulk Carrier (ONLY if document contains exact words "Bulk Carrier")
+- Oil Tanker (ONLY if document contains "Oil Tanker" or "Crude Oil Tanker")
+- Chemical Tanker (ONLY if document contains "Chemical Tanker")
+- Container Ship (ONLY if document contains "Container Ship" or "Container Vessel")
+- Gas Carrier (ONLY if document contains "Gas Carrier" or "LPG/LNG Carrier")
+- Passenger Ship (ONLY if document contains "Passenger Ship" or "Passenger Vessel")
+- RoRo Cargo (ONLY if document contains "RoRo" or "Roll-on/Roll-off")
+- Other Cargo (for cargo ships that don't fit above categories)
+
+IMPORTANT: If document doesn't specify exact ship type, default to "General Cargo" for cargo vessels.
 """
         
         # Create JSON example
