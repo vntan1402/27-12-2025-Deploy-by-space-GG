@@ -640,6 +640,56 @@ async def check_ship_name_mismatch(analysis_result: dict, current_ship_id: str) 
         logger.error(f"Error checking ship name mismatch: {e}")
         return {"mismatch": False}
 
+async def get_ship_form_fields_for_extraction() -> dict:
+    """Get dynamic ship form fields for AI extraction based on actual ShipBase model"""
+    try:
+        # Define the ship form fields based on the ShipBase model
+        ship_fields = {
+            "ship_name": "Full name of the vessel (look for 'Ship Name', 'Vessel Name', 'M.V.', 'S.S.', etc.)",
+            "imo_number": "IMO number (7-digit number, usually prefixed with 'IMO')",
+            "flag": "Flag state/country of registration",
+            "ship_type": "Classification society or ship type (DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, etc.)",
+            "gross_tonnage": "Gross tonnage (GT) - numerical value only",
+            "deadweight": "Deadweight tonnage (DWT) - numerical value only",
+            "built_year": "Year built/constructed - 4-digit year as number",
+            "ship_owner": "Ship owner company name",
+            "company": "Management company name"
+        }
+        
+        # Create prompt section
+        prompt_section = ""
+        field_counter = 1
+        for field_name, description in ship_fields.items():
+            prompt_section += f"{field_counter}. {field_name.upper().replace('_', ' ')}: {description}\n"
+            field_counter += 1
+        
+        # Create JSON example
+        json_example = "{\n"
+        for i, field_name in enumerate(ship_fields.keys()):
+            if field_name in ["gross_tonnage", "deadweight", "built_year"]:
+                example_value = "null"  # Show as number or null
+            else:
+                example_value = '"null"'  # Show as string or null
+            
+            comma = "," if i < len(ship_fields) - 1 else ""
+            json_example += f'  "{field_name}": {example_value}{comma}\n'
+        json_example += "}"
+        
+        return {
+            "prompt_section": prompt_section.strip(),
+            "json_example": json_example,
+            "fields": ship_fields
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting ship form fields: {e}")
+        # Fallback to basic fields
+        return {
+            "prompt_section": "1. SHIP_NAME: Full name of the vessel\n2. IMO_NUMBER: IMO number\n3. FLAG: Flag state\n4. SHIP_TYPE: Classification society",
+            "json_example": '{\n  "ship_name": "null",\n  "imo_number": "null",\n  "flag": "null",\n  "ship_type": "null"\n}',
+            "fields": {"ship_name": "Ship name", "imo_number": "IMO number", "flag": "Flag", "ship_type": "Ship type"}
+        }
+
 # Authentication functions
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
