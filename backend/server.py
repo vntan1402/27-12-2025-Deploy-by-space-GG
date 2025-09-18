@@ -1781,12 +1781,15 @@ Please extract only the fields listed above from the document.
 """
         
         # Use configured AI provider with Emergent LLM key or direct AI integration
+        # Note: emergentintegrations only supports file attachments with Gemini provider
         if use_emergent_key and provider in ["gemini", "google"]:
             result = await analyze_with_emergent_gemini(file_content, ship_analysis_prompt, api_key, model, filename)
         elif use_emergent_key and provider == "openai":
-            result = await analyze_with_emergent_openai(file_content, ship_analysis_prompt, api_key, model, filename)
+            # For OpenAI with Emergent key, use text extraction + analysis (no file attachment support)
+            result = await analyze_with_openai_ship(file_content, ship_analysis_prompt, api_key, model, filename)
         elif use_emergent_key and provider == "anthropic":
-            result = await analyze_with_emergent_anthropic(file_content, ship_analysis_prompt, api_key, model, filename)
+            # For Anthropic with Emergent key, use text extraction + analysis (no file attachment support)
+            result = await analyze_with_anthropic_ship(file_content, ship_analysis_prompt, api_key, model, filename)
         elif provider == "google":
             # Use Google AI for ship analysis
             result = await analyze_with_google_ship(file_content, ship_analysis_prompt, api_key, model, filename)
