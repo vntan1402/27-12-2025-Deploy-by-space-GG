@@ -643,25 +643,34 @@ async def check_ship_name_mismatch(analysis_result: dict, current_ship_id: str) 
 async def get_ship_form_fields_for_extraction() -> dict:
     """Get dynamic ship form fields for AI extraction based on actual ShipBase model"""
     try:
-        # Define the ship form fields based on the ShipBase model
+        # Define the ship form fields based on the ShipBase model with detailed descriptions
         ship_fields = {
             "ship_name": "Full name of the vessel (look for 'Ship Name', 'Vessel Name', 'M.V.', 'S.S.', etc.)",
             "imo_number": "IMO number (7-digit number, usually prefixed with 'IMO')",
             "flag": "Flag state/country of registration",
-            "ship_type": "Classification society or ship type (DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, etc.)",
+            "class_society": "Organization that issued this certificate - the certification body or authority that signed/issued the document (e.g., DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, Panama Maritime Documentation Services, etc.). Look for letterheads, signatures, stamps, or 'Issued by' sections.",
+            "ship_type": "Type or classification of the vessel (e.g., Cargo ship, Container ship, Tanker, Bulk carrier, etc.)",
             "gross_tonnage": "Gross tonnage (GT) - numerical value only",
             "deadweight": "Deadweight tonnage (DWT) - numerical value only",
             "built_year": "Year built/constructed - 4-digit year as number",
-            "ship_owner": "Ship owner company name",
-            "company": "Management company name"
+            "ship_owner": "Ship owner company name - the legal owner of the vessel",
+            "company": "Operating company or management company - the company that operates/manages the vessel (may be different from ship owner). If not explicitly mentioned as 'Operating Company' or 'Management Company', return null."
         }
         
-        # Create prompt section
+        # Create prompt section with clear distinctions
         prompt_section = ""
         field_counter = 1
         for field_name, description in ship_fields.items():
             prompt_section += f"{field_counter}. {field_name.upper().replace('_', ' ')}: {description}\n"
             field_counter += 1
+        
+        # Add important clarification section
+        prompt_section += """
+IMPORTANT CLARIFICATIONS:
+- CLASS_SOCIETY: This is the organization/authority that ISSUED the certificate (the one whose letterhead, signature, or stamp appears on the document)
+- COMPANY: This is the operating/management company of the vessel (different from the certificate issuer). Only extract if explicitly mentioned as operating company.
+- Do not confuse the certificate issuer with the operating company
+"""
         
         # Create JSON example
         json_example = "{\n"
@@ -685,9 +694,9 @@ async def get_ship_form_fields_for_extraction() -> dict:
         logger.error(f"Error getting ship form fields: {e}")
         # Fallback to basic fields
         return {
-            "prompt_section": "1. SHIP_NAME: Full name of the vessel\n2. IMO_NUMBER: IMO number\n3. FLAG: Flag state\n4. SHIP_TYPE: Classification society",
-            "json_example": '{\n  "ship_name": "null",\n  "imo_number": "null",\n  "flag": "null",\n  "ship_type": "null"\n}',
-            "fields": {"ship_name": "Ship name", "imo_number": "IMO number", "flag": "Flag", "ship_type": "Ship type"}
+            "prompt_section": "1. SHIP_NAME: Full name of the vessel\n2. IMO_NUMBER: IMO number\n3. FLAG: Flag state\n4. CLASS_SOCIETY: Organization that issued this certificate",
+            "json_example": '{\n  "ship_name": "null",\n  "imo_number": "null",\n  "flag": "null",\n  "class_society": "null"\n}',
+            "fields": {"ship_name": "Ship name", "imo_number": "IMO number", "flag": "Flag", "class_society": "Certificate issuer"}
         }
 
 # Authentication functions
