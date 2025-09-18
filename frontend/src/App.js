@@ -6441,9 +6441,21 @@ const AddUserModal = ({ userData, setUserData, onClose, onSubmit, language, comp
 };
 
 // Add Record Modal Component
-const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableCompanies, ships }) => {
+const AddRecordModal = ({ 
+  onClose, 
+  onSuccess, 
+  language, 
+  selectedShip, 
+  availableCompanies, 
+  ships, 
+  aiConfig,
+  isMultiCertProcessing,
+  multiCertUploads,
+  handleMultiCertUpload,
+  uploadSummary
+}) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [recordType, setRecordType] = useState(() => {
     // Default to 'certificate' if user can't create ships
     const allowedRoles = ['manager', 'admin', 'super_admin'];
