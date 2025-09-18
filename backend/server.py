@@ -2565,44 +2565,7 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
         return {"success": False, "error": str(e)}
 
 
-async def create_folders_via_apps_script(gdrive_config: dict, ship_name: str) -> dict:
-    """Create folders using Google Apps Script"""
-    try:
-        # Handle both system config (apps_script_url) and company config (web_app_url)
-        script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
-        if not script_url:
-            raise Exception("Apps Script URL not configured")
-        
-        # Get parent folder ID from config
-        parent_folder_id = gdrive_config.get("folder_id")
-        if not parent_folder_id:
-            raise Exception("Parent folder ID not configured")
-            
-        payload = {
-            "action": "create_folder_structure",
-            "parent_folder_id": parent_folder_id,
-            "ship_name": ship_name
-        }
-        
-        response = requests.post(script_url, json=payload, timeout=30)
-        response.raise_for_status()
-        
-        result = response.json()
-        
-        if result.get("success"):
-            logger.info(f"Successfully created folder structure for {ship_name}")
-            return {
-                "success": True,
-                "ship_folder_id": result.get("ship_folder_id"),
-                "subfolders": result.get("subfolder_ids", {})  # Changed from 'subfolders' to 'subfolder_ids' to match Apps Script response
-            }
-        else:
-            logger.error(f"Apps Script folder creation failed: {result.get('error')}")
-            return {"success": False, "error": result.get("error", "Unknown error")}
-            
-    except Exception as e:
-        logger.error(f"Apps Script folder creation failed: {e}")
-        return {"success": False, "error": str(e)}
+
 
 async def upload_file_to_category_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str) -> dict:
     """Upload file to specific category folder"""
