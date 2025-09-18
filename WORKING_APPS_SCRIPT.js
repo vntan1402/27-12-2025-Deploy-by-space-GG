@@ -105,12 +105,13 @@ function handleTestConnection(requestData) {
 }
 
 /**
- * Create folder structure
+ * Create complete dynamic ship folder structure
  */
-function handleCreateFolderStructure(requestData) {
+function handleCreateCompleteShipStructure(requestData) {
   try {
     const parentFolderId = requestData.parent_folder_id || requestData.folder_id;
     const shipName = requestData.ship_name || requestData.folder_path;
+    const companyId = requestData.company_id;
     
     if (!parentFolderId) {
       return createJsonResponse(false, "parent_folder_id is required");
@@ -125,35 +126,84 @@ function handleCreateFolderStructure(requestData) {
     // Create ship folder
     let shipFolder = findOrCreateFolder(parentFolder, shipName);
     
-    // Create category subfolders
-    const categories = [
-      "Certificates",
-      "Test Reports", 
-      "Survey Reports",
-      "Drawings & Manuals",
-      "Other Documents"
-    ];
+    // Dynamic folder structure from homepage sidebar
+    const folderStructure = {
+      "Document Portfolio": [
+        "Certificates",
+        "Inspection Records", 
+        "Survey Reports",
+        "Drawings & Manuals",
+        "Other Documents"
+      ],
+      "Crew Records": [
+        "Crew List",
+        "Crew Certificates",
+        "Medical Records"
+      ],
+      "ISM Records": [
+        "ISM Certificate",
+        "Safety Procedures",
+        "Audit Reports"
+      ],
+      "ISPS Records": [
+        "ISPS Certificate",
+        "Security Plan",
+        "Security Assessments"
+      ],
+      "MLC Records": [
+        "MLC Certificate",
+        "Labor Conditions",
+        "Accommodation Reports"
+      ],
+      "Supplies": [
+        "Inventory",
+        "Purchase Orders",
+        "Spare Parts"
+      ]
+    };
     
     const subfolderIds = {};
+    let totalSubfoldersCreated = 0;
     
-    for (const category of categories) {
+    // Create main categories and their subfolders
+    for (const [categoryName, subfolders] of Object.entries(folderStructure)) {
       try {
-        const subfolder = findOrCreateFolder(shipFolder, category);
-        subfolderIds[category] = subfolder.getId();
+        // Create main category folder
+        const categoryFolder = findOrCreateFolder(shipFolder, categoryName);
+        subfolderIds[categoryName] = categoryFolder.getId();
+        
+        // Create subfolders within category
+        const categorySubfolders = {};
+        for (const subfolderName of subfolders) {
+          try {
+            const subfolder = findOrCreateFolder(categoryFolder, subfolderName);
+            categorySubfolders[subfolderName] = subfolder.getId();
+            totalSubfoldersCreated++;
+          } catch (e) {
+            console.error(`Error creating subfolder ${subfolderName} in ${categoryName}:`, e);
+          }
+        }
+        
+        // Store subfolder structure
+        subfolderIds[`${categoryName}_subfolders`] = categorySubfolders;
+        
       } catch (e) {
-        console.error(`Error creating ${category}:`, e);
+        console.error(`Error creating category ${categoryName}:`, e);
       }
     }
     
-    return createJsonResponse(true, `Folder structure created: ${shipName}`, {
+    return createJsonResponse(true, `Complete folder structure created: ${shipName}`, {
       ship_folder_id: shipFolder.getId(),
       ship_folder_name: shipFolder.getName(),
       subfolder_ids: subfolderIds,
-      categories_created: Object.keys(subfolderIds).length
+      categories_created: Object.keys(folderStructure).length,
+      total_subfolders_created: totalSubfoldersCreated,
+      structure_type: "dynamic",
+      company_id: companyId
     });
     
   } catch (error) {
-    return createJsonResponse(false, `Folder creation failed: ${error.toString()}`);
+    return createJsonResponse(false, `Dynamic folder creation failed: ${error.toString()}`);
   }
 }
 
