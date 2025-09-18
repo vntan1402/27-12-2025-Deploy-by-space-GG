@@ -699,6 +699,8 @@ COMMON SHIP_TYPE STANDARDS (only use if EXACTLY matching document text):
 - Other Cargo (for cargo ships that don't fit above categories)
 
 IMPORTANT: If document doesn't specify exact ship type, default to "General Cargo" for cargo vessels.
+DO NOT INFER ship type from specifications like tonnage, deadweight, or cargo capacity.
+ONLY extract ship type if explicitly written in the document.
 """
         
         # Create JSON example
