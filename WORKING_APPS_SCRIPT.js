@@ -27,9 +27,9 @@ function handleRequest(e) {
     } else {
       // Default response - this proves the script is working
       return createJsonResponse(true, "Ship Management Apps Script is WORKING!", {
-        version: "1.0-fix",
+        version: "2.0-dynamic-only",
         timestamp: new Date().toISOString(),
-        supported_actions: ["test_connection", "create_folder_structure", "upload_file"]
+        supported_actions: ["test_connection", "create_complete_ship_structure", "upload_file_with_folder_creation"]
       });
     }
     
