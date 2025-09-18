@@ -40,16 +40,16 @@ function handleRequest(e) {
       case 'test_connection':
         return handleTestConnection(requestData);
         
-      case 'create_folder_structure':
-        return handleCreateFolderStructure(requestData);
+      case 'create_complete_ship_structure':
+        return handleCreateCompleteShipStructure(requestData);
         
-      case 'upload_file':
-        return handleUploadFile(requestData);
+      case 'upload_file_with_folder_creation':
+        return handleUploadFileWithFolderCreation(requestData);
         
       default:
         return createJsonResponse(true, "Apps Script working - no action specified", {
           received_action: action,
-          available_actions: ["test_connection", "create_folder_structure", "upload_file"]
+          available_actions: ["test_connection", "create_complete_ship_structure", "upload_file_with_folder_creation"]
         });
     }
     
