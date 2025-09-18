@@ -1572,9 +1572,13 @@ async def multi_cert_upload_for_ship(
                     })
                     continue
                 
-                # Upload to Google Drive
+                # Upload to Google Drive (with specific ship from ship_id)
+                # Override ship_name in analysis_result with actual ship name
+                analysis_result_for_upload = analysis_result.copy()
+                analysis_result_for_upload["ship_name"] = ship.get("name", "Unknown_Ship")
+                
                 upload_result = await upload_file_to_gdrive_with_analysis(
-                    file_content, file.filename, analysis_result, gdrive_config_doc, current_user
+                    file_content, file.filename, analysis_result_for_upload, gdrive_config_doc, current_user
                 )
                 
                 # Create certificate record
