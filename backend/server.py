@@ -2576,15 +2576,27 @@ async def create_ship_google_drive_folder(
         if not script_url or not folder_id:
             raise HTTPException(status_code=400, detail="Invalid Google Drive configuration")
         
-        # Create main ship folder first
-        logger.info(f"Creating ship folder: {ship_name} in company folder: {folder_id}")
+        # Create complete ship folder hierarchy
+        logger.info(f"Creating complete ship folder hierarchy: {ship_name} in company folder: {folder_id}")
         
-        folder_payload = {
-            "action": "create_folder_structure",
-            "parent_folder_id": folder_id,
-            "ship_name": ship_name,
-            "subfolders": subfolders
-        }
+        if folder_structure:
+            folder_payload = {
+                "action": "create_complete_ship_structure",
+                "parent_folder_id": folder_id,
+                "ship_name": ship_name,
+                "folder_structure": folder_structure,
+                "categories": all_categories,
+                "total_categories": len(all_categories),
+                "total_subfolders": len(all_subfolders)
+            }
+        else:
+            # Fallback to old format for backward compatibility
+            folder_payload = {
+                "action": "create_folder_structure",
+                "parent_folder_id": folder_id,
+                "ship_name": ship_name,
+                "subfolders": all_subfolders
+            }
         
         # Call Google Apps Script to create folder structure
         response = requests.post(script_url, json=folder_payload, timeout=30)
