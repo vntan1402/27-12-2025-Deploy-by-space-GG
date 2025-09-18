@@ -1968,6 +1968,11 @@ const HomePage = () => {
           selectedShip={selectedShip}
           availableCompanies={availableCompanies}
           ships={ships}
+          aiConfig={aiConfig}
+          isMultiCertProcessing={isMultiCertProcessing}
+          multiCertUploads={multiCertUploads}
+          handleMultiCertUpload={handleMultiCertUpload}
+          uploadSummary={uploadSummary}
         />
       )}
 
