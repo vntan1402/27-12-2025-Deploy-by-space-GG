@@ -6578,9 +6578,14 @@ const AddRecordModal = ({
           return updatedData;
         });
         
+        // Show success message but don't close modal immediately to allow user to see auto-filled data
         toast.success(language === 'vi' ? 'Phân tích PDF thành công! Đã tự động điền thông tin tàu.' : 'PDF analysis completed! Ship information auto-filled.');
-        setShowPdfAnalysis(false);
-        setPdfFile(null);
+        
+        // Close modal and reset file after a short delay to allow state update to be visible
+        setTimeout(() => {
+          setShowPdfAnalysis(false);
+          setPdfFile(null);
+        }, 1000); // 1 second delay to show auto-filled data
       } else {
         toast.error(language === 'vi' ? 'Phân tích PDF thất bại!' : 'PDF analysis failed!');
       }
