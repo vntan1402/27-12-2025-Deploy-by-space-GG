@@ -6552,18 +6552,31 @@ const AddRecordModal = ({
       if (response.data.success) {
         // Auto-fill ship data with extracted information (excluding company)
         const extractedData = response.data.analysis;
-        setShipData(prev => ({
-          ...prev,
-          name: extractedData.ship_name || prev.name,
-          imo_number: extractedData.imo_number || prev.imo_number,
-          class_society: extractedData.class_society || prev.class_society,
-          flag: extractedData.flag || prev.flag,
-          gross_tonnage: extractedData.gross_tonnage || prev.gross_tonnage,
-          deadweight: extractedData.deadweight || prev.deadweight,
-          built_year: extractedData.built_year || prev.built_year,
-          ship_owner: extractedData.ship_owner || prev.ship_owner
+        console.log('PDF analysis result:', extractedData);
+        
+        // Convert numeric values to string for form inputs
+        const processedData = {
+          name: extractedData.ship_name || '',
+          imo_number: extractedData.imo_number || '',
+          class_society: extractedData.class_society || '',
+          flag: extractedData.flag || '',
+          gross_tonnage: extractedData.gross_tonnage ? String(extractedData.gross_tonnage) : '',
+          deadweight: extractedData.deadweight ? String(extractedData.deadweight) : '',
+          built_year: extractedData.built_year ? String(extractedData.built_year) : '',
+          ship_owner: extractedData.ship_owner || ''
           // company field intentionally NOT updated - keeps user's company
-        }));
+        };
+        
+        console.log('Processed data for auto-fill:', processedData);
+        
+        setShipData(prev => {
+          const updatedData = {
+            ...prev,
+            ...processedData
+          };
+          console.log('Updated ship data:', updatedData);
+          return updatedData;
+        });
         
         toast.success(language === 'vi' ? 'Phân tích PDF thành công! Đã tự động điền thông tin tàu.' : 'PDF analysis completed! Ship information auto-filled.');
         setShowPdfAnalysis(false);
