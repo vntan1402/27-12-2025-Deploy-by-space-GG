@@ -2532,17 +2532,37 @@ async def create_ship_google_drive_folder(
     """Create ship folder structure on company Google Drive"""
     try:
         ship_name = folder_data.get("ship_name")
-        subfolders = folder_data.get("subfolders", [])
+        folder_structure = folder_data.get("folder_structure", {})
+        subfolders = folder_data.get("subfolders", [])  # Backward compatibility
         source = folder_data.get("source", "unknown")
+        total_categories = folder_data.get("total_categories", len(folder_structure))
         total_subfolders = folder_data.get("total_subfolders", len(subfolders))
         
         if not ship_name:
             raise HTTPException(status_code=400, detail="ship_name is required")
         
-        logger.info(f"📁 Creating ship folder structure:")
-        logger.info(f"   Ship: {ship_name}")
-        logger.info(f"   Source: {source}")
-        logger.info(f"   Subfolders ({total_subfolders}): {subfolders}")
+        # Handle both old and new structure formats
+        if folder_structure:
+            logger.info(f"📁 Creating complete ship folder structure:")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Source: {source}")
+            logger.info(f"   Categories ({total_categories}): {list(folder_structure.keys())}")
+            logger.info(f"   Total subfolders: {total_subfolders}")
+            
+            # Build flat subfolder list for Google Apps Script compatibility
+            all_categories = list(folder_structure.keys())
+            all_subfolders = []
+            for category, subfolders_list in folder_structure.items():
+                all_subfolders.extend(subfolders_list)
+            
+        else:
+            # Fallback to old format
+            logger.info(f"📁 Creating ship folder structure (legacy format):")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Source: {source}")
+            logger.info(f"   Subfolders ({total_subfolders}): {subfolders}")
+            all_categories = ["Document Portfolio"]  # Default category
+            all_subfolders = subfolders
         
         # Get company Google Drive configuration
         config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
