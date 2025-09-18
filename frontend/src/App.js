@@ -1973,6 +1973,8 @@ const HomePage = () => {
           multiCertUploads={multiCertUploads}
           handleMultiCertUpload={handleMultiCertUpload}
           uploadSummary={uploadSummary}
+          setMultiCertUploads={setMultiCertUploads}
+          setUploadSummary={setUploadSummary}
         />
       )}
 
