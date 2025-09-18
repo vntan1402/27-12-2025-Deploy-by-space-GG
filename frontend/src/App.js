@@ -944,6 +944,184 @@ const HomePage = () => {
     toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
   };
 
+  // Multi Cert Upload Functions
+  const handleMultiCertUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    if (!selectedShip) {
+      toast.error(language === 'vi' 
+        ? 'Vui lòng chọn tàu trước khi upload certificates'
+        : 'Please select a ship before uploading certificates'
+      );
+      return;
+    }
+    
+    // Initialize upload states
+    setIsMultiCertProcessing(true);
+    setUploadSummary(null);
+    
+    const fileArray = Array.from(files);
+    const initialUploads = fileArray.map((file, index) => ({
+      index,
+      filename: file.name,
+      size: file.size,
+      status: 'pending', // pending, uploading, analyzing, processing, completed, error
+      progress: 0,
+      analysis: null,
+      upload: null,
+      certificate: null,
+      error: null,
+      isMarine: null
+    }));
+    
+    setMultiCertUploads(initialUploads);
+    
+    try {
+      // Process files using existing backend endpoint
+      const formData = new FormData();
+      fileArray.forEach(file => {
+        formData.append('files', file);
+      });
+      
+      // Use existing multi-file upload endpoint
+      const response = await axios.post(`${API}/certificates/upload-multi-files`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          // Update all files' progress during upload
+          setMultiCertUploads(prev => prev.map(upload => ({
+            ...upload,
+            status: upload.status === 'pending' ? 'uploading' : upload.status,
+            progress: upload.status === 'uploading' ? progress : upload.progress
+          })));
+        }
+      });
+      
+      const results = response.data.results || [];
+      
+      // Process results and update states
+      let marineCount = 0;
+      let nonMarineCount = 0;
+      let successCount = 0;
+      let errorCount = 0;
+      let certificatesCreated = [];
+      let nonMarineFiles = [];
+      let errorFiles = [];
+      
+      const updatedUploads = initialUploads.map((upload, index) => {
+        const result = results[index];
+        if (!result) {
+          errorCount++;
+          errorFiles.push(upload.filename);
+          return {
+            ...upload,
+            status: 'error',
+            progress: 100,
+            error: 'No result returned from server'
+          };
+        }
+        
+        if (result.status === 'error') {
+          errorCount++;
+          errorFiles.push(upload.filename);
+          return {
+            ...upload,
+            status: 'error',
+            progress: 100,
+            error: result.message || 'Unknown error'
+          };
+        }
+        
+        // Check if it's a marine certificate
+        const isMarine = result.analysis?.category === 'certificates';
+        if (isMarine) {
+          marineCount++;
+          if (result.certificate && !result.certificate.error) {
+            successCount++;
+            certificatesCreated.push({
+              filename: upload.filename,
+              cert_name: result.analysis?.cert_name || 'Unknown Certificate',
+              cert_no: result.analysis?.cert_no || 'N/A'
+            });
+          }
+        } else {
+          nonMarineCount++;
+          nonMarineFiles.push({
+            filename: upload.filename,
+            category: result.analysis?.category || 'unknown',
+            reason: 'Not classified as a marine certificate'
+          });
+        }
+        
+        return {
+          ...upload,
+          status: 'completed',
+          progress: 100,
+          analysis: result.analysis,
+          upload: result.upload,
+          certificate: result.certificate,
+          isMarine
+        };
+      });
+      
+      setMultiCertUploads(updatedUploads);
+      
+      // Generate summary
+      setUploadSummary({
+        totalFiles: fileArray.length,
+        marineCount,
+        nonMarineCount,
+        successCount,
+        errorCount,
+        certificatesCreated,
+        nonMarineFiles,
+        errorFiles
+      });
+      
+      // Show summary toast
+      if (successCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `✅ Đã xử lý thành công ${successCount}/${fileArray.length} files và tạo ${successCount} certificates`
+            : `✅ Successfully processed ${successCount}/${fileArray.length} files and created ${successCount} certificates`
+        );
+        
+        // Refresh certificate list
+        await fetchCertificates(selectedShip.id);
+      }
+      
+      if (errorCount > 0) {
+        toast.warning(
+          language === 'vi'
+            ? `⚠️ ${errorCount} files gặp lỗi trong quá trình xử lý`
+            : `⚠️ ${errorCount} files encountered errors during processing`
+        );
+      }
+      
+    } catch (error) {
+      console.error('Multi-file upload error:', error);
+      
+      // Update all uploads with error status
+      setMultiCertUploads(prev => prev.map(upload => ({
+        ...upload,
+        status: 'error',
+        progress: 100,
+        error: error.response?.data?.detail || error.message || 'Upload failed'
+      })));
+      
+      toast.error(
+        language === 'vi'
+          ? `❌ Lỗi upload: ${error.response?.data?.detail || error.message}`
+          : `❌ Upload error: ${error.response?.data?.detail || error.message}`
+      );
+    } finally {
+      setIsMultiCertProcessing(false);
+    }
+  };
+
   const getFilteredCertificates = () => {
     return certificates.filter(cert => {
       const typeMatch = certificateFilters.certificateType === 'all' || 
