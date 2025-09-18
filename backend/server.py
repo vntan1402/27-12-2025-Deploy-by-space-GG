@@ -701,7 +701,8 @@ COMMON SHIP_TYPE STANDARDS (only use if EXACTLY matching document text):
 IMPORTANT: If document doesn't specify exact ship type, default to "General Cargo" for cargo vessels.
 DO NOT INFER ship type from specifications like tonnage, deadweight, or cargo capacity.
 LOOK FOR SELECTED/MARKED OPTIONS in ship type sections - not just any text that appears.
-If "Cargo ship other than any of the previous" is marked, return "General Cargo".
+If you see a list like "Bulk Carrier / Oil Tanker / Chemical Tanker / Gas Carrier / Cargo ship other than any of the previous" without clear selection marking, default to "General Cargo".
+If "Cargo ship other than any of the previous" appears in the options, return "General Cargo".
 """
         
         # Create JSON example
