@@ -191,9 +191,10 @@
 
 ## test_plan:
   current_focus:
-    - "PDF Analysis API with Emergent LLM Integration"
+    - "Multi Cert Upload API Endpoint"
+    - "Multi Cert Upload Frontend Implementation"
   stuck_tasks:
-    - "PDF Analysis API with Emergent LLM Integration"
+    []
   test_all: false
   test_priority: "high_first"
 
