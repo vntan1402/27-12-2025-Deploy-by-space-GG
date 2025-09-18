@@ -208,55 +208,64 @@ function handleCreateCompleteShipStructure(requestData) {
 }
 
 /**
- * Upload file
+ * Upload file with automatic folder creation
  */
-function handleUploadFile(requestData) {
+function handleUploadFileWithFolderCreation(requestData) {
   try {
-    const folderId = requestData.folder_id;
+    const parentFolderId = requestData.parent_folder_id;
+    const shipName = requestData.ship_name;
+    const categoryFolder = requestData.category_folder;
     const fileName = requestData.file_name;
     const fileContent = requestData.file_content; // base64
     const mimeType = requestData.mime_type || 'application/octet-stream';
     
-    if (!folderId || !fileName || !fileContent) {
-      return createJsonResponse(false, "folder_id, file_name, and file_content are required");
+    if (!parentFolderId || !shipName || !categoryFolder || !fileName || !fileContent) {
+      return createJsonResponse(false, "Missing required parameters: parent_folder_id, ship_name, category_folder, file_name, file_content");
     }
     
-    const folder = DriveApp.getFolderById(folderId);
+    // Get parent folder
+    const parentFolder = DriveApp.getFolderById(parentFolderId);
     
-    // Decode base64 and create file
+    // Create/find ship folder
+    const shipFolder = findOrCreateFolder(parentFolder, shipName);
+    
+    // Create/find category folder within ship folder
+    const targetFolder = findOrCreateFolder(shipFolder, categoryFolder);
+    
+    // Decode base64 content and create blob
     const bytes = Utilities.base64Decode(fileContent);
-    const blob = Utilities.newBlob(bytes, mimeType, fileName);
+    let blob = Utilities.newBlob(bytes, mimeType);
     
-    // Handle duplicates by adding timestamp
+    // Handle filename uniqueness
+    const existingFiles = targetFolder.getFilesByName(fileName);
     let finalFileName = fileName;
-    const existingFiles = folder.getFilesByName(fileName);
+    let counter = 1;
     
-    if (existingFiles.hasNext()) {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      const nameParts = fileName.split('.');
-      
-      if (nameParts.length > 1) {
-        const extension = nameParts.pop();
-        finalFileName = `${nameParts.join('.')}_${timestamp}.${extension}`;
-      } else {
-        finalFileName = `${fileName}_${timestamp}`;
-      }
-      
+    while (existingFiles.hasNext()) {
+      const extension = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+      const nameWithoutExt = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+      finalFileName = `${nameWithoutExt}_${counter}${extension}`;
+      counter++;
+    }
+    
+    if (finalFileName !== fileName) {
       blob.setName(finalFileName);
     }
     
-    const file = folder.createFile(blob);
+    const file = targetFolder.createFile(blob);
     
-    return createJsonResponse(true, `File uploaded: ${finalFileName}`, {
+    return createJsonResponse(true, `File uploaded with folder creation: ${finalFileName}`, {
       file_id: file.getId(),
       file_name: finalFileName,
       file_url: file.getUrl(),
       file_size: bytes.length,
-      folder_id: folderId
+      ship_folder_id: shipFolder.getId(),
+      category_folder_id: targetFolder.getId(),
+      folder_path: `${shipName}/${categoryFolder}`
     });
     
   } catch (error) {
-    return createJsonResponse(false, `File upload failed: ${error.toString()}`);
+    return createJsonResponse(false, `File upload with folder creation failed: ${error.toString()}`);
   }
 }
 
