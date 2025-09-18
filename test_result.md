@@ -206,8 +206,7 @@
 
 ## test_plan:
   current_focus:
-    - "Certificate Analysis Frontend Integration"
-    - "PDF Analysis API with Emergent LLM Integration"
+    []
   stuck_tasks:
     []
   test_all: false
