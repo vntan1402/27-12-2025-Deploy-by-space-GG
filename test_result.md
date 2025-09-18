@@ -190,8 +190,10 @@
   run_ui: true
 
 ## test_plan:
-  current_focus: []
-  stuck_tasks: []
+  current_focus:
+    - "PDF Analysis API with Emergent LLM Integration"
+  stuck_tasks:
+    - "PDF Analysis API with Emergent LLM Integration"
   test_all: false
   test_priority: "high_first"
 
