@@ -6974,16 +6974,249 @@ const AddRecordModal = ({ onClose, onSuccess, language, selectedShip, availableC
               </div>
             )}
             
-            {/* Multi-file upload section will be rebuilt from scratch */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-              <div className="text-center">
-                <h3 className="text-lg font-medium text-gray-500 mb-2">
-                  {language === 'vi' ? 'Tải lên nhiều file' : 'Multi-file Upload'}
+            {/* Multi Cert Upload */}
+            <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                  📋 {language === 'vi' ? 'Multi Cert Upload' : 'Multi Cert Upload'}
                 </h3>
-                <p className="text-gray-400 text-sm">
-                  {language === 'vi' ? 'Tính năng đang được xây dựng lại' : 'Feature is being rebuilt'}
-                </p>
+                
+                {/* AI Model Display */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <span className="text-sm text-blue-700 mr-2">
+                      {language === 'vi' ? 'Model AI đang sử dụng:' : 'AI Model in use:'}
+                    </span>
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                      </svg>
+                      {aiConfig 
+                        ? `${aiConfig.provider === 'emergent' ? 'Emergent LLM' : aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1)} - ${aiConfig.model}`
+                        : (language === 'vi' ? 'AI Model: Đang tải...' : 'AI Model: Loading...')
+                      }
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upload Instructions */}
+                <div className="bg-blue-100 rounded-lg p-3 mb-4">
+                  <h4 className="text-sm font-medium text-blue-800 mb-2">
+                    📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
+                  </h4>
+                  <ul className="text-xs text-blue-700 space-y-1">
+                    <li>• {language === 'vi' ? 'Format: Chỉ file PDF' : 'Format: PDF files only'}</li>
+                    <li>• {language === 'vi' ? 'Kích thước: Tối đa 50MB mỗi file' : 'Size: Maximum 50MB per file'}</li>
+                    <li>• {language === 'vi' ? 'AI sẽ tự động phân tích và xác định Marine Certificate' : 'AI will automatically analyze and identify Marine Certificates'}</li>
+                  </ul>
+                </div>
+
+                {/* Upload Button */}
+                <div className="text-center">
+                  <label
+                    htmlFor="multi-cert-upload"
+                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md transition-colors cursor-pointer ${
+                      selectedShip && !isMultiCertProcessing
+                        ? 'text-white bg-blue-600 hover:bg-blue-700'
+                        : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                    }`}
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    {isMultiCertProcessing 
+                      ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
+                      : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
+                    }
+                    <input
+                      id="multi-cert-upload"
+                      name="multi-cert-upload"
+                      type="file"
+                      multiple
+                      className="sr-only"
+                      onChange={(e) => selectedShip && !isMultiCertProcessing ? handleMultiCertUpload(e.target.files) : null}
+                      accept=".pdf"
+                      disabled={!selectedShip || isMultiCertProcessing}
+                    />
+                  </label>
+                  
+                  {!selectedShip && (
+                    <p className="text-sm text-orange-600 mt-2">
+                      ⚠️ {language === 'vi' 
+                        ? 'Vui lòng chọn tàu trước khi upload certificates'
+                        : 'Please select a ship before uploading certificates'
+                      }
+                    </p>
+                  )}
+                </div>
               </div>
+
+              {/* Upload Progress */}
+              {multiCertUploads && multiCertUploads.length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900 flex items-center">
+                      {language === 'vi' ? '📊 Tiến trình xử lý' : '📊 Processing Progress'}
+                      {isMultiCertProcessing && (
+                        <div className="ml-2 animate-spin">
+                          <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        </div>
+                      )}
+                    </h4>
+                    
+                    {!isMultiCertProcessing && (
+                      <button
+                        onClick={() => {
+                          setMultiCertUploads([]);
+                          setUploadSummary(null);
+                        }}
+                        className="text-xs px-3 py-1 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
+                      >
+                        🗑️ {language === 'vi' ? 'Xóa kết quả' : 'Clear Results'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* File Progress List */}
+                  {multiCertUploads.map((fileUpload, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full mr-3 ${
+                            fileUpload.status === 'completed' ? 'bg-green-500' :
+                            fileUpload.status === 'failed' ? 'bg-red-500' :
+                            fileUpload.status === 'skipped' ? 'bg-yellow-500' :
+                            fileUpload.status === 'pending_duplicate' ? 'bg-orange-500' :
+                            'bg-blue-500'
+                          }`}></div>
+                          <span className="font-medium text-gray-900">{fileUpload.name}</span>
+                          {fileUpload.size && (
+                            <span className="text-sm text-gray-500 ml-2">
+                              ({(fileUpload.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">{fileUpload.progress}%</div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            fileUpload.status === 'completed' ? 'bg-green-500' :
+                            fileUpload.status === 'failed' ? 'bg-red-500' :
+                            fileUpload.status === 'skipped' ? 'bg-yellow-500' :
+                            fileUpload.status === 'pending_duplicate' ? 'bg-orange-500' :
+                            'bg-blue-500'
+                          }`}
+                          style={{ width: `${fileUpload.progress}%` }}
+                        />
+                      </div>
+                      
+                      {/* Status */}
+                      <div className="text-sm text-gray-600 mb-2">{fileUpload.stage}</div>
+                      
+                      {/* Marine Certificate Analysis Results */}
+                      {fileUpload.status === 'completed' && fileUpload.is_marine_certificate && (
+                        <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <h5 className="text-sm font-semibold text-green-700 mb-2">
+                            ✅ {language === 'vi' ? 'Marine Certificate - Thông tin trích xuất' : 'Marine Certificate - Extracted Information'}
+                          </h5>
+                          <div className="text-sm space-y-1">
+                            {fileUpload.cert_name && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-blue-600">{language === 'vi' ? 'Tên chứng chỉ:' : 'Certificate Name:'}</span>
+                                <span className="text-blue-800 text-xs max-w-xs truncate">{fileUpload.cert_name}</span>
+                              </div>
+                            )}
+                            {fileUpload.cert_no && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-purple-600">{language === 'vi' ? 'Số chứng chỉ:' : 'Certificate No:'}</span>
+                                <span className="text-purple-800">{fileUpload.cert_no}</span>
+                              </div>
+                            )}
+                            {fileUpload.valid_date && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-red-600">{language === 'vi' ? 'Hết hạn:' : 'Valid Until:'}</span>
+                                <span className="text-red-800">{fileUpload.valid_date}</span>
+                              </div>
+                            )}
+                            {fileUpload.issued_by && (
+                              <div className="flex justify-between">
+                                <span className="font-medium text-green-600">{language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}</span>
+                                <span className="text-green-800 text-xs max-w-xs truncate">{fileUpload.issued_by}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Non-Marine Certificate */}
+                      {fileUpload.status === 'skipped' && (
+                        <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <h5 className="text-sm font-semibold text-yellow-700 mb-1">
+                            ⚠️ {language === 'vi' ? 'Không phải Marine Certificate' : 'Not a Marine Certificate'}
+                          </h5>
+                          <p className="text-xs text-yellow-600">
+                            {language === 'vi' ? 'File này đã được bỏ qua. Vui lòng kiểm tra lại.' : 'This file was skipped. Please review manually.'}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Error Display */}
+                      {fileUpload.status === 'failed' && fileUpload.error && (
+                        <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                          <h5 className="text-sm font-semibold text-red-700 mb-1">❌ {language === 'vi' ? 'Lỗi' : 'Error'}</h5>
+                          <p className="text-xs text-red-600">{fileUpload.error}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload Summary */}
+              {uploadSummary && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    📊 {language === 'vi' ? 'Báo cáo tổng hợp' : 'Summary Report'}
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{uploadSummary.total_files}</div>
+                      <div className="text-gray-600">{language === 'vi' ? 'File upload' : 'Files Uploaded'}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{uploadSummary.marine_certificates}</div>
+                      <div className="text-gray-600">{language === 'vi' ? 'Marine Cert' : 'Marine Certificates'}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{uploadSummary.records_created}</div>
+                      <div className="text-gray-600">{language === 'vi' ? 'Record tạo' : 'Records Created'}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-600">{uploadSummary.non_marine_files}</div>
+                      <div className="text-gray-600">{language === 'vi' ? 'File khác' : 'Non-Marine'}</div>
+                    </div>
+                  </div>
+                  
+                  {uploadSummary.non_marine_files > 0 && (
+                    <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <h5 className="text-sm font-medium text-yellow-800 mb-2">
+                        ⚠️ {language === 'vi' ? 'File cần kiểm tra lại:' : 'Files to Review:'}
+                      </h5>
+                      <ul className="text-xs text-yellow-700 space-y-1">
+                        {uploadSummary.non_marine_list?.map((fileName, index) => (
+                          <li key={index}>• {fileName}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* OR Divider */}
