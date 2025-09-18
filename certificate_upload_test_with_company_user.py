@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = "https://shipmanage.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipcertdrive.preview.emergentagent.com/api"
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
 TEST_USERNAME = "test_cert_user"

@@ -13,7 +13,7 @@ import tempfile
 import time
 
 # Configuration
-BACKEND_URL = "https://shipmanage.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipcertdrive.preview.emergentagent.com/api"
 TEST_USERNAME = "admin"
 TEST_PASSWORD = "admin123"
 

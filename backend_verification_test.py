@@ -12,7 +12,7 @@ import time
 
 class BackendVerificationTester:
     def __init__(self):
-        self.backend_url = "https://shipmanage.preview.emergentagent.com/api"
+        self.backend_url = "https://shipcertdrive.preview.emergentagent.com/api"
         self.token = None
         self.tests_run = 0
         self.tests_passed = 0
