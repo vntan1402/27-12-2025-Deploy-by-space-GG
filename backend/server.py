@@ -2411,31 +2411,10 @@ Analyze this maritime document ({filename}) and extract the following informatio
    - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
    
 3. CERTIFICATE INFORMATION (if category is 'certificates'):
-   - cert_name: Full certificate name (e.g., "International Air Pollution Prevention Certificate")
-   - cert_type: Certificate type (Interim, Provisional, Short term, Full Term, Initial, etc.)
-   - cert_no: Certificate number or reference number
-   - issue_date: Issue date (convert to ISO format YYYY-MM-DD)
-   - valid_date: Valid until/expiry date (convert to ISO format YYYY-MM-DD)
-   - last_endorse: Last endorsement date (ISO format YYYY-MM-DD, if available)
-   - next_survey: Next survey date (ISO format YYYY-MM-DD, if available)
-   - issued_by: Issuing authority/organization - Be very thorough in identifying this. Look for:
-     * Classification Societies: DNV GL, ABS, Lloyd's Register, Bureau Veritas, RINA, ClassNK, CCS, KR, RS, etc.
-     * Flag State Authorities: Panama Maritime Authority, Liberia Maritime Authority, Marshall Islands Maritime Authority, etc.
-     * Port State Control Authorities: Various national maritime administrations
-     * Survey Companies: Maritime survey and inspection companies
-     * Government Agencies: Coast Guard, Maritime Safety Administration, etc.
-     * Look for signatures, letterheads, company stamps, contact information
-     * Check for phrases like "Issued by", "Certified by", "Authorized by", "On behalf of"
+{cert_field_info['prompt_section']}
 
-4. SURVEY STATUS INFORMATION (if relevant):
-   IMPORTANT: Always include this section as 'survey_info' in your JSON response when analyzing certificates.
-   - certificate_type: CLASS, STATUTORY, AUDITS, Bottom Surveys
-   - survey_type: Annual, Intermediate, Renewal, Change of RO, Approval, Initial Audit
-   - issuance_date: When certificate was issued
-   - expiration_date: When certificate expires
-   - renewal_range_start: Renewal range start date
-   - renewal_range_end: Renewal range end date
-   - due_dates: Any due dates mentioned (as array)
+4. CONFIDENCE ASSESSMENT:
+   - confidence: Assign confidence level (high/medium/low) based on document quality and information clarity
 
 IMPORTANT CLASSIFICATION RULES:
 - ANY document with "Certificate" in the name AND maritime/ship information = "certificates"
@@ -2443,39 +2422,10 @@ IMPORTANT CLASSIFICATION RULES:
 - Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
 - IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
 
-CRITICAL: Pay special attention to identifying the "issued_by" organization. This is crucial information that must be extracted accurately by examining:
-- Document headers and letterheads
-- Signature blocks
-- Official stamps or seals
-- Contact information
-- Any text indicating the certifying authority
-
 Return response as JSON format. If information is not found, return null for that field.
-Mark any uncertain extractions in a 'confidence' field (high/medium/low).
-
-MANDATORY: For certificates, ALWAYS include a 'survey_info' section with the survey status information, even if you need to infer some values from the certificate dates.
 
 EXAMPLE OUTPUT:
-{{
-  "category": "certificates",
-  "ship_name": "BROTHER 36",
-  "cert_name": "International Air Pollution Prevention Certificate",
-  "cert_type": "Full Term",
-  "cert_no": "PM242838",
-  "issue_date": "2024-12-10",
-  "valid_date": "2028-03-18",
-  "issued_by": "Panama Maritime Documentation Services Inc (on behalf of Panama Maritime Authority)",
-  "confidence": "high",
-  "survey_info": {{
-    "certificate_type": "STATUTORY",
-    "survey_type": "Renewal",
-    "issuance_date": "2024-12-10",
-    "expiration_date": "2028-03-18",
-    "renewal_range_start": "2027-09-18",
-    "renewal_range_end": "2029-03-18",
-    "due_dates": ["2025-03-18", "2026-03-18", "2027-03-18"]
-  }}
-}}
+{cert_field_info['json_example']}
 """
 
         # Use different AI providers based on configuration
