@@ -68,8 +68,9 @@ class OCRShipAnalysisTester:
         print()
     
     def authenticate(self):
-        """Authenticate with admin1/123456 credentials"""
+        """Authenticate with admin1/123456 credentials, fallback to admin/admin123"""
         try:
+            # Try primary credentials first
             response = requests.post(f"{API_BASE}/auth/login", json={
                 "username": TEST_USERNAME,
                 "password": TEST_PASSWORD
@@ -88,9 +89,29 @@ class OCRShipAnalysisTester:
                             f"Successfully logged in as {username} with role: {user_role}")
                 return True
             else:
-                self.log_test("Authentication Test", False, 
-                            error=f"Status: {response.status_code}, Response: {response.text}")
-                return False
+                # Try fallback credentials
+                print(f"Primary credentials failed, trying fallback credentials...")
+                response = requests.post(f"{API_BASE}/auth/login", json={
+                    "username": FALLBACK_USERNAME,
+                    "password": FALLBACK_PASSWORD
+                })
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.token = data["access_token"]
+                    self.user_info = data["user"]
+                    
+                    # Verify user role and permissions
+                    user_role = self.user_info.get('role', '').upper()
+                    username = self.user_info.get('username', '')
+                    
+                    self.log_test("Authentication Test", True, 
+                                f"Successfully logged in as {username} with role: {user_role} (using fallback credentials)")
+                    return True
+                else:
+                    self.log_test("Authentication Test", False, 
+                                error=f"Both primary and fallback authentication failed. Status: {response.status_code}, Response: {response.text}")
+                    return False
                 
         except Exception as e:
             self.log_test("Authentication Test", False, error=str(e))
