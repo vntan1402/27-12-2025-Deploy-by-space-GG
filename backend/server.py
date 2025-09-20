@@ -2762,16 +2762,22 @@ async def upload_file_to_existing_ship_folder(gdrive_config: dict, file_content:
         if not script_url:
             raise Exception("Apps Script URL not configured")
         
-        # Use existing upload_file_with_folder_creation action
-        # This action will create folder if needed and upload file
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        # Use existing upload_file_with_folder_creation action with proper parameters
         payload = {
             "action": "upload_file_with_folder_creation",
+            "parent_folder_id": parent_folder_id,  # Add parent folder ID
             "ship_name": ship_name,
             "category": category,  # "Certificates", "Test Reports", "Survey Reports", etc.
             "filename": filename,
             "file_content": base64.b64encode(file_content).decode('utf-8'),
             "content_type": "application/pdf"
         }
+        
+        logger.info(f"Uploading {filename} to {ship_name}/{category} via Apps Script")
         
         response = requests.post(script_url, json=payload, timeout=120)
         response.raise_for_status()
@@ -2787,8 +2793,9 @@ async def upload_file_to_existing_ship_folder(gdrive_config: dict, file_content:
                 "file_url": result.get("file_url")
             }
         else:
-            logger.error(f"Upload failed: {result.get('error')}")
-            return {"success": False, "error": result.get("error", "Upload failed")}
+            error_msg = result.get("message", "Unknown error")
+            logger.error(f"Upload failed: {error_msg}")
+            return {"success": False, "error": error_msg}
             
     except Exception as e:
         logger.error(f"Error uploading to existing ship folder: {e}")
