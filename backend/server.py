@@ -2303,6 +2303,55 @@ async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key:
         logger.error(f"Anthropic ship analysis failed: {e}")
         return get_fallback_ship_analysis(filename)
 
+async def get_certificate_form_fields_for_extraction():
+    """Get certificate form fields dynamically from CertificateBase model for AI extraction"""
+    try:
+        # Get certificate fields from CertificateBase model
+        cert_fields = {
+            "cert_name": "Certificate name/title (look for main certificate title or heading)",
+            "cert_type": "Certificate type (Interim, Provisional, Short term, Full Term, etc.)",
+            "cert_no": "Certificate number/identification number",
+            "issue_date": "Issue date/Date of issue (format: YYYY-MM-DD)",
+            "valid_date": "Valid until/Expiry date (format: YYYY-MM-DD)",
+            "last_endorse": "Last endorsement date if applicable (format: YYYY-MM-DD)",
+            "next_survey": "Next survey date if applicable (format: YYYY-MM-DD)",
+            "issued_by": "Issued by organization/authority (full name of the certifying body)",
+            "category": "Document category (should be 'certificates' for marine certificates)",
+            "ship_name": "Ship/vessel name mentioned in the certificate",
+            "notes": "Any additional notes or remarks on the certificate"
+        }
+        
+        # Create prompt section for AI
+        prompt_section = "CERTIFICATE INFORMATION TO EXTRACT:\n"
+        field_counter = 1
+        for field, description in cert_fields.items():
+            prompt_section += f"{field_counter}. {field.upper()}: {description}\n"
+            field_counter += 1
+        
+        # Create JSON example
+        json_example = "{\n"
+        for i, field in enumerate(cert_fields.keys()):
+            json_example += f'  "{field}": "null"'
+            if i < len(cert_fields) - 1:
+                json_example += ","
+            json_example += "\n"
+        json_example += "}"
+        
+        return {
+            "prompt_section": prompt_section,
+            "json_example": json_example,
+            "fields": cert_fields
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting certificate form fields: {e}")
+        # Fallback to basic fields
+        return {
+            "prompt_section": "1. CERT_NAME: Certificate name\n2. CERT_NO: Certificate number\n3. ISSUE_DATE: Issue date\n4. VALID_DATE: Valid until date\n5. ISSUED_BY: Issued by organization",
+            "json_example": '{\n  "cert_name": "null",\n  "cert_no": "null",\n  "issue_date": "null",\n  "valid_date": "null",\n  "issued_by": "null"\n}',
+            "fields": {"cert_name": "Certificate name", "cert_no": "Certificate number", "issue_date": "Issue date", "valid_date": "Valid date", "issued_by": "Issued by"}
+        }
+
 async def resolve_company_id(current_user) -> str:
     """Helper function to resolve company name to UUID"""
     user_company = current_user.company if hasattr(current_user, 'company') and current_user.company else None
