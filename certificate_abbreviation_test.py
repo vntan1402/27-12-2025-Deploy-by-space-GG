@@ -401,25 +401,32 @@ class CertificateAbbreviationTester:
                                                json=mapping_data, headers=self.get_headers())
                 
                 if mapping_response.status_code == 200:
-                    # Get the certificate again to see if it uses the user-defined abbreviation
-                    cert_response = requests.get(f"{API_BASE}/certificates/{cert['id']}", 
+                    # Get all certificates to find our test certificate and see if it uses the user-defined abbreviation
+                    cert_response = requests.get(f"{API_BASE}/certificates", 
                                                headers=self.get_headers())
                     
                     if cert_response.status_code == 200:
-                        updated_cert = cert_response.json()
-                        new_abbreviation = updated_cert.get('cert_abbreviation', '')
+                        all_certs = cert_response.json()
+                        updated_cert = next((c for c in all_certs if c['id'] == cert['id']), None)
                         
-                        if new_abbreviation == 'USER_ISM':
-                            self.log_test("User-Defined Abbreviation Priority", True, 
-                                        f"User-defined abbreviation prioritized: {new_abbreviation} (was: {auto_abbreviation})")
-                            return True
+                        if updated_cert:
+                            new_abbreviation = updated_cert.get('cert_abbreviation', '')
+                            
+                            if new_abbreviation == 'USER_ISM':
+                                self.log_test("User-Defined Abbreviation Priority", True, 
+                                            f"User-defined abbreviation prioritized: {new_abbreviation} (was: {auto_abbreviation})")
+                                return True
+                            else:
+                                self.log_test("User-Defined Abbreviation Priority", False, 
+                                            error=f"Expected 'USER_ISM', got '{new_abbreviation}'")
+                                return False
                         else:
                             self.log_test("User-Defined Abbreviation Priority", False, 
-                                        error=f"Expected 'USER_ISM', got '{new_abbreviation}'")
+                                        error="Test certificate not found in certificates list")
                             return False
                     else:
                         self.log_test("User-Defined Abbreviation Priority", False, 
-                                    error=f"Failed to retrieve updated certificate: {cert_response.text}")
+                                    error=f"Failed to retrieve certificates: {cert_response.text}")
                         return False
                 else:
                     self.log_test("User-Defined Abbreviation Priority", False, 
