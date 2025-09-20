@@ -971,8 +971,9 @@
 
 ## test_plan:
   current_focus:
-    - "Enhanced Add New Ship Workflow with Google Drive Folder Creation"
-  stuck_tasks: []
+    - "Certificate Analysis Frontend Integration"
+  stuck_tasks:
+    - "Certificate Analysis Frontend Integration"
   test_all: false
   test_priority: "high_first"
 
