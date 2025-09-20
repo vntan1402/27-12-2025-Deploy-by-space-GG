@@ -1662,7 +1662,7 @@ const HomePage = () => {
                             </svg>
                             {isMultiCertProcessing 
                               ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
-                              : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
+                              : (language === 'vi' ? '📋 Thêm chứng chỉ' : '📋 Add Certificate')
                             }
                           </button>
 
