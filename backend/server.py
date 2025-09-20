@@ -2661,6 +2661,96 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         logger.error(f"Apps Script file upload failed: {e}")
         return {"success": False, "error": str(e)}
 
+async def check_ship_folder_structure_exists(gdrive_config: dict, ship_name: str) -> dict:
+    """Check if ship folder structure already exists (created from Add New Ship)"""
+    try:
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        # Check if ship folder structure exists
+        payload = {
+            "action": "check_ship_folder_exists",
+            "parent_folder_id": parent_folder_id,
+            "ship_name": ship_name
+        }
+        
+        response = requests.post(script_url, json=payload, timeout=30)
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        if result.get("success") and result.get("folder_exists"):
+            return {
+                "success": True,
+                "folder_exists": True,
+                "ship_folder_id": result.get("ship_folder_id"),
+                "subfolders": result.get("subfolder_ids", {}),
+                "available_categories": list(result.get("subfolder_ids", {}).keys())
+            }
+        else:
+            return {
+                "success": True,
+                "folder_exists": False,
+                "message": "Ship folder structure not found. Please create ship first using 'Add New Ship'."
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking ship folder structure: {e}")
+        return {"success": False, "error": str(e)}
+
+async def upload_file_to_existing_ship_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str) -> dict:
+    """Upload file to existing ship folder structure (no folder creation)"""
+    try:
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        # First check if folder structure exists
+        folder_check = await check_ship_folder_structure_exists(gdrive_config, ship_name)
+        
+        if not folder_check.get("folder_exists"):
+            return {
+                "success": False,
+                "error": "Ship folder structure not found. Please create ship first using 'Add New Ship'.",
+                "requires_ship_creation": True
+            }
+        
+        # Upload to existing folder
+        payload = {
+            "action": "upload_to_existing_folder",
+            "ship_name": ship_name,
+            "category": category,  # "Certificates", "Test Reports", "Survey Reports", etc.
+            "filename": filename,
+            "file_content": base64.b64encode(file_content).decode('utf-8'),
+            "content_type": "application/pdf"
+        }
+        
+        response = requests.post(script_url, json=payload, timeout=120)
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        if result.get("success"):
+            logger.info(f"Successfully uploaded {filename} to {ship_name}/{category}")
+            return {
+                "success": True,
+                "file_id": result.get("file_id"),
+                "folder_path": f"{ship_name}/{category}",
+                "file_url": result.get("file_url")
+            }
+        else:
+            logger.error(f"Upload failed: {result.get('error')}")
+            return {"success": False, "error": result.get("error", "Upload failed")}
+            
+    except Exception as e:
+        logger.error(f"Error uploading to existing ship folder: {e}")
+        return {"success": False, "error": str(e)}
+
 async def upload_file_to_gdrive_with_analysis(file_content: bytes, filename: str, analysis_result: dict, gdrive_config: dict, current_user) -> dict:
     """Upload file to Google Drive based on AI analysis"""
     try:
