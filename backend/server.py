@@ -331,11 +331,96 @@ app.add_middleware(
 # Initialize Google Drive Manager
 gdrive_manager = GoogleDriveManager()
 
-def generate_certificate_abbreviation(cert_name: str) -> str:
-    """Generate certificate abbreviation from certificate name"""
+async def get_user_defined_abbreviation(cert_name: str) -> Optional[str]:
+    """Get user-defined abbreviation for certificate name if it exists"""
+    try:
+        if not cert_name:
+            return None
+        
+        # Normalize certificate name for lookup (uppercase, stripped)
+        normalized_name = cert_name.upper().strip()
+        
+        # Look for existing mapping
+        mapping = await mongo_db.find_one("certificate_abbreviation_mappings", 
+                                        {"cert_name": normalized_name})
+        
+        if mapping:
+            # Increment usage count
+            await mongo_db.update("certificate_abbreviation_mappings", 
+                                {"id": mapping["id"]}, 
+                                {"usage_count": mapping.get("usage_count", 0) + 1})
+            return mapping.get("abbreviation")
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error getting user-defined abbreviation: {e}")
+        return None
+
+async def save_user_defined_abbreviation(cert_name: str, abbreviation: str, user_id: str) -> bool:
+    """Save or update user-defined certificate abbreviation mapping"""
+    try:
+        if not cert_name or not abbreviation:
+            return False
+        
+        # Validate abbreviation length (max 10 characters as per user requirement)
+        if len(abbreviation) > 10:
+            logger.warning(f"Abbreviation '{abbreviation}' exceeds 10 character limit")
+            return False
+        
+        # Normalize certificate name (uppercase, stripped)
+        normalized_name = cert_name.upper().strip()
+        normalized_abbreviation = abbreviation.strip()
+        
+        # Check if mapping already exists
+        existing_mapping = await mongo_db.find_one("certificate_abbreviation_mappings", 
+                                                 {"cert_name": normalized_name})
+        
+        current_time = datetime.now(timezone.utc)
+        
+        if existing_mapping:
+            # Update existing mapping
+            update_data = {
+                "abbreviation": normalized_abbreviation,
+                "updated_by": user_id,
+                "updated_at": current_time
+            }
+            success = await mongo_db.update("certificate_abbreviation_mappings", 
+                                          {"id": existing_mapping["id"]}, 
+                                          update_data)
+            logger.info(f"Updated abbreviation mapping: {normalized_name} -> {normalized_abbreviation}")
+            return success
+        else:
+            # Create new mapping
+            mapping_data = {
+                "id": str(uuid.uuid4()),
+                "cert_name": normalized_name,
+                "abbreviation": normalized_abbreviation,
+                "created_by": user_id,
+                "created_at": current_time,
+                "updated_by": user_id,
+                "updated_at": current_time,
+                "usage_count": 0
+            }
+            await mongo_db.create("certificate_abbreviation_mappings", mapping_data)
+            logger.info(f"Created new abbreviation mapping: {normalized_name} -> {normalized_abbreviation}")
+            return True
+            
+    except Exception as e:
+        logger.error(f"Error saving user-defined abbreviation: {e}")
+        return False
+
+async def generate_certificate_abbreviation(cert_name: str) -> str:
+    """Generate certificate abbreviation from certificate name, prioritizing user-defined mappings"""
     if not cert_name:
         return ""
     
+    # First, check for user-defined mapping
+    user_abbreviation = await get_user_defined_abbreviation(cert_name)
+    if user_abbreviation:
+        return user_abbreviation
+    
+    # Fallback to auto-generation algorithm
     # Remove common words and focus on key terms, but keep important maritime terms
     common_words = {'the', 'of', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
     
