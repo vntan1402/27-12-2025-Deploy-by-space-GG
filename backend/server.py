@@ -2376,24 +2376,25 @@ async def resolve_company_id(current_user) -> str:
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
     try:
-        # Use system AI configuration instead of hardcoded Emergent LLM
+        # Use system AI configuration instead of hardcoded values
         provider = ai_config.get("provider", "openai").lower()
         model = ai_config.get("model", "gpt-4")
         api_key = ai_config.get("api_key")
-        use_emergent_key = ai_config.get("use_emergent_key", True)  # Default to True
+        use_emergent_key = ai_config.get("use_emergent_key", True)
         
         # Handle Emergent LLM Key
         if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
             api_key = EMERGENT_LLM_KEY
-            # Keep the original provider from AI config instead of forcing Google
-            # provider = "google"  # Use Google/Gemini provider for file analysis with Emergent key
-            # model = "gemini-2.0-flash-exp"  # Use Gemini model for file analysis
+            # Use configured provider from System Settings
             
         if not api_key:
             logger.error("No API key found in AI configuration")
             return classify_by_filename(filename)
         
-        # Create AI analysis prompt
+        # Get dynamic certificate fields for extraction
+        cert_field_info = await get_certificate_form_fields_for_extraction()
+        
+        # Create AI analysis prompt with dynamic fields
         analysis_prompt = f"""
 Analyze this maritime document ({filename}) and extract the following information:
 
