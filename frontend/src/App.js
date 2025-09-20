@@ -1190,6 +1190,10 @@ const HomePage = () => {
   };
 
   const toggleSystemGoogleDriveModal = () => {
+    setShowGoogleDrive(!showGoogleDrive);
+  };
+
+  const getFilteredCertificates = () => {
     return certificates.filter(cert => {
       const typeMatch = certificateFilters.certificateType === 'all' || 
                        cert.cert_type === certificateFilters.certificateType;
