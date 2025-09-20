@@ -1892,6 +1892,20 @@ const HomePage = () => {
                             />
                           </div>
                           
+                          {/* Certificate Abbreviation Field */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên viết tắt' : 'Cert. Name (Abbreviation)'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingCertificate.cert_abbreviation || ''}
+                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_abbreviation: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder={language === 'vi' ? 'VD: CSSE, IAPP, ISM...' : 'e.g.: CSSE, IAPP, ISM...'}
+                            />
+                          </div>
+                          
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'} *
