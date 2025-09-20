@@ -1076,6 +1076,23 @@ const HomePage = () => {
       
       setMultiCertUploads(updatedUploads);
       
+      // Check if there are duplicate files requiring user choice
+      const duplicateFiles = updatedUploads.filter(upload => 
+        upload.status === 'duplicate' && upload.requires_user_choice
+      );
+      
+      if (duplicateFiles.length > 0) {
+        // Show duplicate resolution modal
+        setDuplicateResolutionModal({
+          show: true,
+          files: duplicateFiles.map(file => ({
+            ...file,
+            resolution: 'cancel' // default resolution
+          })),
+          shipId: selectedShip.id
+        });
+      }
+      
       // Set summary from backend response
       setUploadSummary({
         totalFiles: summary.total_files || fileArray.length,
@@ -1088,32 +1105,34 @@ const HomePage = () => {
         errorFiles: summary.error_files || []
       });
       
-      // Show summary toast
-      if (summary.successfully_created > 0) {
-        toast.success(
-          language === 'vi' 
-            ? `✅ Đã tạo thành công ${summary.successfully_created} certificates từ ${summary.total_files} files`
-            : `✅ Successfully created ${summary.successfully_created} certificates from ${summary.total_files} files`
-        );
+      // Show summary toast only if no duplicates requiring user choice
+      if (duplicateFiles.length === 0) {
+        if (summary.successfully_created > 0) {
+          toast.success(
+            language === 'vi' 
+              ? `✅ Đã tạo thành công ${summary.successfully_created} certificates từ ${summary.total_files} files`
+              : `✅ Successfully created ${summary.successfully_created} certificates from ${summary.total_files} files`
+          );
+          
+          // Refresh certificate list
+          await fetchCertificates(selectedShip.id);
+        }
         
-        // Refresh certificate list
-        await fetchCertificates(selectedShip.id);
-      }
-      
-      if (summary.non_marine_files > 0) {
-        toast.info(
-          language === 'vi'
-            ? `ℹ️ ${summary.non_marine_files} files không phải marine certificates và đã được bỏ qua`
-            : `ℹ️ ${summary.non_marine_files} files were not marine certificates and were skipped`
-        );
-      }
-      
-      if (summary.errors > 0) {
-        toast.warning(
-          language === 'vi'
-            ? `⚠️ ${summary.errors} files gặp lỗi trong quá trình xử lý`
-            : `⚠️ ${summary.errors} files encountered errors during processing`
-        );
+        if (summary.non_marine_files > 0) {
+          toast.info(
+            language === 'vi'
+              ? `ℹ️ ${summary.non_marine_files} files không phải marine certificates và đã được bỏ qua`
+              : `ℹ️ ${summary.non_marine_files} files were not marine certificates and were skipped`
+          );
+        }
+        
+        if (summary.errors > 0) {
+          toast.warning(
+            language === 'vi'
+              ? `⚠️ ${summary.errors} files gặp lỗi trong quá trình xử lý`
+              : `⚠️ ${summary.errors} files encountered errors during processing`
+          );
+        }
       }
       
     } catch (error) {
