@@ -943,9 +943,91 @@ const HomePage = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [contextMenu.show]);
 
-  // Multi-file upload functions will be rebuilt from scratch
+  // Multi-file upload duplicate resolution functions
   const handleDuplicateResolution = (action) => {
     toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
+  };
+
+  // Update resolution for a specific file
+  const updateFileResolution = (filename, resolution) => {
+    setDuplicateResolutionModal(prev => ({
+      ...prev,
+      files: prev.files.map(file => 
+        file.filename === filename 
+          ? { ...file, resolution }
+          : file
+      )
+    }));
+  };
+
+  // Process duplicate resolutions
+  const processDuplicateResolutions = async () => {
+    try {
+      const { files, shipId } = duplicateResolutionModal;
+      let processedCount = 0;
+      let cancelledCount = 0;
+      
+      for (const file of files) {
+        if (file.resolution === 'cancel') {
+          cancelledCount++;
+          continue;
+        }
+        
+        const resolutionData = {
+          analysis_result: file.analysis,
+          ship_id: shipId,
+          duplicate_resolution: file.resolution,
+          duplicate_target_id: file.duplicate_certificate?.id
+        };
+        
+        const response = await axios.post(`${API}/certificates/process-with-resolution`, resolutionData, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.data.status === 'success') {
+          processedCount++;
+        }
+      }
+      
+      // Close modal
+      setDuplicateResolutionModal({
+        show: false,
+        files: [],
+        shipId: null
+      });
+      
+      // Show results
+      if (processedCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `✅ Đã xử lý thành công ${processedCount} certificates`
+            : `✅ Successfully processed ${processedCount} certificates`
+        );
+        
+        // Refresh certificate list
+        if (selectedShip) {
+          await fetchCertificates(selectedShip.id);
+        }
+      }
+      
+      if (cancelledCount > 0) {
+        toast.info(
+          language === 'vi'
+            ? `ℹ️ Đã hủy ${cancelledCount} certificates`
+            : `ℹ️ Cancelled ${cancelledCount} certificates`
+        );
+      }
+      
+    } catch (error) {
+      console.error('Error processing duplicate resolutions:', error);
+      toast.error(
+        language === 'vi'
+          ? `❌ Lỗi xử lý: ${error.response?.data?.detail || error.message}`
+          : `❌ Processing error: ${error.response?.data?.detail || error.message}`
+      );
+    }
   };
 
   const handleMismatchResolution = (action) => {
