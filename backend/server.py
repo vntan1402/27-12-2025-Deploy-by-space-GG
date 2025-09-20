@@ -3074,56 +3074,69 @@ async def analyze_with_openai(file_content: bytes, filename: str, content_type: 
         
         # Use Emergent LLM integration for OpenAI with file attachment support
         from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+        import tempfile
+        import os
         
-        # Initialize LLM Chat with OpenAI via Emergent
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"cert_analysis_{filename}_{int(time.time())}",
-            system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate and extract detailed information accurately."
-        )
+        # Create temporary file for the PDF
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
         
-        # Create file content for attachment
-        file_attachment = FileContentWithMimeType(
-            content=file_content,
-            mime_type=content_type
-        )
-        
-        # Create user message with file attachment
-        user_message = UserMessage(
-            text=analysis_prompt,
-            file_content=file_attachment
-        )
-        
-        logger.info(f"Sending request to OpenAI {model} via Emergent LLM with file attachment")
-        
-        # Get AI response
-        response = await chat.send_message(user_message)
-        
-        logger.info(f"OpenAI AI Response type: {type(response)}")
-        logger.info(f"OpenAI AI Response content (first 200 chars): {str(response)[:200]}")
-        
-        # Parse JSON response
-        response_text = str(response)
-        
-        # Clean up response (remove markdown code blocks if present)
-        if "```json" in response_text:
-            start = response_text.find("```json") + 7
-            end = response_text.rfind("```")
-            response_text = response_text[start:end].strip()
-        elif "```" in response_text:
-            start = response_text.find("```") + 3
-            end = response_text.rfind("```")
-            response_text = response_text[start:end].strip()
-        
-        # Parse the JSON
         try:
-            analysis_result = json.loads(response_text)
-            logger.info(f"Successfully parsed OpenAI analysis for {filename}")
-            return analysis_result
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse OpenAI JSON response: {e}")
-            logger.error(f"Raw response: {response_text[:500]}")
-            return classify_by_filename(filename)
+            # Initialize LLM Chat with OpenAI via Emergent
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=f"cert_analysis_{filename}_{int(time.time())}",
+                system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate and extract detailed information accurately."
+            )
+            
+            # Create file content for attachment using file_path
+            file_attachment = FileContentWithMimeType(
+                file_path=temp_file_path,
+                mime_type=content_type
+            )
+            
+            # Create user message with file attachment
+            user_message = UserMessage(
+                text=analysis_prompt,
+                file_content=file_attachment
+            )
+            
+            logger.info(f"Sending request to OpenAI {model} via Emergent LLM with file attachment")
+            
+            # Get AI response
+            response = await chat.send_message(user_message)
+            
+            logger.info(f"OpenAI AI Response type: {type(response)}")
+            logger.info(f"OpenAI AI Response content (first 200 chars): {str(response)[:200]}")
+            
+            # Parse JSON response
+            response_text = str(response)
+            
+            # Clean up response (remove markdown code blocks if present)
+            if "```json" in response_text:
+                start = response_text.find("```json") + 7
+                end = response_text.rfind("```")
+                response_text = response_text[start:end].strip()
+            elif "```" in response_text:
+                start = response_text.find("```") + 3
+                end = response_text.rfind("```")
+                response_text = response_text[start:end].strip()
+            
+            # Parse the JSON
+            try:
+                analysis_result = json.loads(response_text)
+                logger.info(f"Successfully parsed OpenAI analysis for {filename}")
+                return analysis_result
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse OpenAI JSON response: {e}")
+                logger.error(f"Raw response: {response_text[:500]}")
+                return classify_by_filename(filename)
+                
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
             
     except Exception as e:
         logger.error(f"OpenAI analysis failed: {e}")
