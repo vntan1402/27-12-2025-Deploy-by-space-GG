@@ -1922,7 +1922,7 @@ async def multi_cert_upload_for_ship(
                         "is_marine": True,
                         "requires_user_choice": True,  # Flag indicating user choice is needed
                         "duplicate_certificate": duplicates[0]['certificate'],  # The existing certificate
-                        "upload_result": upload_result if 'upload_result' in locals() else None
+                        "upload_result": None
                     })
                     continue
                 
