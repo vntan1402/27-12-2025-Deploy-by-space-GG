@@ -68,6 +68,11 @@ class MongoDatabase:
             await self.database.certificates.create_index([("ship_id", 1), ("type", 1)])
             await self.database.certificates.create_index("expiry_date")
             
+            # Certificate abbreviation mappings collection indexes
+            await self.database.certificate_abbreviation_mappings.create_index("cert_name", unique=True)
+            await self.database.certificate_abbreviation_mappings.create_index("created_by")
+            await self.database.certificate_abbreviation_mappings.create_index([("usage_count", -1)])
+            
             # Usage tracking indexes
             await self.database.usage_tracking.create_index([("timestamp", -1)])
             await self.database.usage_tracking.create_index("user_id")
