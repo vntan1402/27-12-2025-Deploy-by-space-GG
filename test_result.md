@@ -154,20 +154,17 @@
 "Implement a certificate abbreviation mapping system for the Ship Management System. The system should store manually edited certificate abbreviations and prioritize user-defined entries over auto-generated ones. Requirements: 1) Create a new MongoDB collection and Pydantic model to store user-defined certificate abbreviation mappings, 2) Integrate this mapping into the backend's generate_certificate_abbreviation and enhance_certificate_response logic, prioritizing user-defined entries, 3) Ensure the frontend's 'Edit Certificate' interface interacts with this new mapping system, 4) The abbreviation mappings should be scoped per company, 5) Validation rules: length limit of 10 characters for abbreviations, 6) No separate UI needed - handle through existing edit certificate interface."
 
 ## backend:
-  - task: "Multi Cert Upload API Endpoint"
+  - task: "Certificate Abbreviation Mapping System"
     implemented: true
-    working: true
-    file: "server.py"
+    working: false
+    file: "server.py, mongodb_database.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: false
           agent: "main"
-          comment: "Created new /api/certificates/multi-upload endpoint specifically for ship-based multi-certificate upload. Features: 1) Ship-specific upload (takes ship_id parameter), 2) Marine certificate validation via AI analysis, 3) Duplicate detection for cert_no and cert_name, 4) Google Drive integration with company/system config, 5) Summary report with detailed statistics, 6) 50MB file size limit as per requirements, 7) Proper error handling for each processing stage. Backend logic: AI analyzes each file to determine if it's a marine certificate, skips non-marine files, checks for duplicates, uploads to Google Drive, creates certificate records, and returns comprehensive summary."
-        - working: true
-          agent: "testing"
-          comment: "🎉 MULTI CERT UPLOAD API ENDPOINT COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - All 11 test categories passed with 100% success rate. REVIEW REQUEST REQUIREMENTS FULLY SATISFIED: (1) ✅ Authentication Test: Login as admin/admin123 successful with SUPER_ADMIN role permissions verified, (2) ✅ GET /api/ships Endpoint: Successfully retrieved 11 ships for testing, using SUNSHINE STAR ship, (3) ✅ AI Configuration Test: Provider: openai, Model: gpt-4o, Use Emergent Key: True - properly configured with Emergent LLM key, (4) ✅ Google Drive Integration Test: Company Google Drive configured with working Apps Script URL and Folder ID, (5) ✅ Multi Cert Upload Basic Test: Endpoint successfully processed 2 files with proper response structure containing results and summary, (6) ✅ File Size Limits Test: 50MB limit correctly enforced - large files properly rejected, (7) ✅ Response Format Test: All required fields present (results, summary with total_files, marine_certificates, non_marine_files, successfully_created, errors, certificates_created, non_marine_files_list, error_files), (8) ✅ Error Handling Test: Invalid ship_id returns 404, no files returns 422 - proper error responses, (9) ✅ Comprehensive Workflow Test: Mixed file types processed correctly - 2 marine certificates and 1 non-marine file handled appropriately, (10) ✅ Duplicate Detection Test: System successfully detected duplicate certificates with same cert_no and cert_name. TECHNICAL VERIFICATION: analyze_document_with_ai function working correctly, Google Drive uploads successful with company configuration, certificate records created properly, marine vs non-marine classification working, file size validation enforced, comprehensive summary reporting functional. CONCLUSION: The Multi Cert Upload API endpoint (/api/certificates/multi-upload) is fully functional and production-ready, meeting all requirements specified in the review request."
+          comment: "Implemented complete certificate abbreviation mapping system: 1) Created new MongoDB collection 'certificate_abbreviation_mappings' with indexes, 2) Added Pydantic models for mapping operations, 3) Created async functions get_user_defined_abbreviation() and save_user_defined_abbreviation() with 10-character validation, 4) Updated generate_certificate_abbreviation() to prioritize user-defined mappings over auto-generation, 5) Modified enhance_certificate_response() to be async and check mappings, 6) Updated update_certificate endpoint to save user-defined abbreviations when cert_abbreviation is manually edited, 7) Added CRUD endpoints for mapping management, 8) Updated all calls to enhance_certificate_response() to use await. Ready for testing."
 
 ## frontend:
   - task: "Add New Ship Duplicate IMO Error Handling"
