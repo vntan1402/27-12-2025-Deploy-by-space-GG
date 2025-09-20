@@ -3015,6 +3015,56 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
         logger.error(f"Emergent LLM analysis failed: {e}")
         return classify_by_filename(filename)
 
+@api_router.post("/certificates/upload-to-folder")
+async def upload_file_to_specific_folder(
+    ship_id: str,
+    filename: str,
+    folder_category: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Upload a specific file to a chosen folder category for non-certificate files"""
+    try:
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get Google Drive configuration
+        user_company_id = await resolve_company_id(current_user)
+        gdrive_config_doc = None
+        if user_company_id:
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+        
+        if not gdrive_config_doc:
+            gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=500, detail="Google Drive not configured")
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Upload to specified folder
+        upload_result = await upload_file_to_existing_ship_folder(
+            gdrive_config_doc, file_content, filename, ship.get("name", "Unknown_Ship"), folder_category
+        )
+        
+        if upload_result.get("success"):
+            return {
+                "success": True,
+                "message": f"File uploaded successfully to {folder_category}",
+                "upload_result": upload_result
+            }
+        else:
+            raise HTTPException(status_code=500, detail=upload_result.get("error", "Upload failed"))
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading file to specific folder: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload file")
+
 async def analyze_with_openai(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
     """Analyze document using OpenAI"""
     # Implementation for OpenAI API calls
