@@ -7008,7 +7008,7 @@ const AddRecordModal = ({
 
       if (response.data.success) {
         // Auto-fill ship data with extracted information (excluding company)
-        const extractedData = response.data.analysis;
+        const extractedData = response.data.analysis || response.data;
         console.log('PDF analysis result:', extractedData);
         
         // Convert extracted data to match frontend form field names with updated mapping
