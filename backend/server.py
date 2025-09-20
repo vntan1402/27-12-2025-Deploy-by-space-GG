@@ -257,11 +257,14 @@ class CertificateCreate(CertificateBase):
 
 class CertificateUpdate(BaseModel):
     cert_name: Optional[str] = None
+    cert_abbreviation: Optional[str] = None  # Certificate abbreviation
     cert_no: Optional[str] = None
+    cert_type: Optional[str] = None  # Certificate type
     issue_date: Optional[datetime] = None
     valid_date: Optional[datetime] = None
     last_endorse: Optional[datetime] = None
     next_survey: Optional[datetime] = None
+    issued_by: Optional[str] = None  # Issued by organization
     category: Optional[str] = None
     sensitivity_level: Optional[str] = None
     notes: Optional[str] = None  # NEW: Notes field for reference certificates
