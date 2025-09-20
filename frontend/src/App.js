@@ -6589,6 +6589,10 @@ const AddRecordModal = ({
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user, token } = useAuth();
   const [recordType, setRecordType] = useState(() => {
+    // Use defaultTab if provided, otherwise use role-based logic
+    if (defaultTab) {
+      return defaultTab;
+    }
     // Default to 'certificate' if user can't create ships
     const allowedRoles = ['manager', 'admin', 'super_admin'];
     return allowedRoles.includes(user?.role) ? 'ship' : 'certificate';
