@@ -28,9 +28,6 @@ from google_drive_manager import GoogleDriveManager
 # Import the OCR processor
 from ocr_processor import ocr_processor
 
-# Import the OCR processor
-from ocr_processor import ocr_processor
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
