@@ -2770,25 +2770,16 @@ async def check_ship_folder_structure_exists(gdrive_config: dict, ship_name: str
         }
 
 async def upload_file_to_existing_ship_folder(gdrive_config: dict, file_content: bytes, filename: str, ship_name: str, category: str) -> dict:
-    """Upload file to existing ship folder structure (no folder creation)"""
+    """Upload file to existing ship folder structure using existing Apps Script action"""
     try:
         script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
         if not script_url:
             raise Exception("Apps Script URL not configured")
         
-        # First check if folder structure exists
-        folder_check = await check_ship_folder_structure_exists(gdrive_config, ship_name)
-        
-        if not folder_check.get("folder_exists"):
-            return {
-                "success": False,
-                "error": "Ship folder structure not found. Please create ship first using 'Add New Ship'.",
-                "requires_ship_creation": True
-            }
-        
-        # Upload to existing folder
+        # Use existing upload_file_with_folder_creation action
+        # This action will create folder if needed and upload file
         payload = {
-            "action": "upload_to_existing_folder",
+            "action": "upload_file_with_folder_creation",
             "ship_name": ship_name,
             "category": category,  # "Certificates", "Test Reports", "Survey Reports", etc.
             "filename": filename,
