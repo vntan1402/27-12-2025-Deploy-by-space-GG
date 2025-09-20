@@ -34,11 +34,8 @@ class OCRProcessor:
         self.initialize_vision_client()
     
     def initialize_vision_client(self):
-        """Initialize Google Vision API client with Emergent LLM key"""
+        """Initialize Google Vision API client"""
         try:
-            # Get Emergent LLM key
-            llm_key = setup_key()
-            
             # Set up Google Cloud Vision API using service account key from environment
             # Note: In production, use proper service account authentication
             # For now, we'll use the default authentication method
