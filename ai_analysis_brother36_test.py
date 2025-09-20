@@ -8,7 +8,7 @@ import requests
 import os
 
 def test_ai_analysis():
-    base_url = "https://shipcertdrive.preview.emergentagent.com"
+    base_url = "https://certmaster-ship.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first

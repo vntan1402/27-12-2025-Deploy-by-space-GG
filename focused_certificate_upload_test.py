@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 def test_certificate_upload_workflow():
     """Test the complete certificate upload workflow"""
     
-    base_url = "https://shipcertdrive.preview.emergentagent.com/api"
+    base_url = "https://certmaster-ship.preview.emergentagent.com/api"
     
     print("🚢 FOCUSED CERTIFICATE UPLOAD FUNCTIONALITY TEST")
     print("=" * 60)

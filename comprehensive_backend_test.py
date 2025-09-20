@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 class ComprehensiveBackendTester:
-    def __init__(self, base_url="https://shipcertdrive.preview.emergentagent.com"):
+    def __init__(self, base_url="https://certmaster-ship.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

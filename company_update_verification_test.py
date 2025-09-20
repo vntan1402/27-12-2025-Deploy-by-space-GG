@@ -13,7 +13,7 @@ import time
 
 def test_company_update_functionality():
     """Test the fixed company update functionality"""
-    base_url = "https://shipcertdrive.preview.emergentagent.com"
+    base_url = "https://certmaster-ship.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     print("🔐 Step 1: Authenticating...")
