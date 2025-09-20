@@ -1652,8 +1652,8 @@ const HomePage = () => {
                             }
                             onClick={() => {
                               if (selectedShip && !isMultiCertProcessing) {
+                                setAddRecordDefaultTab('certificate'); // Force certificate tab
                                 setShowAddRecord(true);
-                                // The modal will default to certificate tab for non-ship-creating users
                               }
                             }}
                             disabled={!selectedShip || isMultiCertProcessing}
