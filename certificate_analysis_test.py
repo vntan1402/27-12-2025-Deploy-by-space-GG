@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-Comprehensive Backend Testing for Certificate Analysis Feature
-Testing the /api/analyze-ship-certificate endpoint as per review request
+Certificate Upload Auto-Fill Issue Debug Test
+Testing the backend certificate analysis API directly as requested in the review.
+
+This test will:
+1. Login as admin1/123456
+2. Test the certificate analysis endpoint with the specific PDF file
+3. Log the complete API response structure
+4. Compare with expected data to identify data mapping issues
 """
 
 import requests
@@ -11,11 +17,27 @@ import sys
 from pathlib import Path
 import tempfile
 import time
+from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://ship-cert-manager-1.preview.emergentagent.com/api"
-TEST_USERNAME = "admin"
-TEST_PASSWORD = "admin123"
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://ship-cert-manager-1.preview.emergentagent.com')
+API_BASE = f"{BACKEND_URL}/api"
+
+# Test credentials as specified in review request
+TEST_USERNAME = "admin1"
+TEST_PASSWORD = "123456"
+
+# PDF file URL from review request
+PDF_URL = "https://customer-assets.emergentagent.com/job_ship-cert-manager-1/artifacts/swohyuf9_SS%20STAR%20PM252494416_ImagePDF.pdf"
+
+# Expected data from review request
+EXPECTED_DATA = {
+    "certificate_name": "Safety Management Certificate",
+    "certificate_number": "PM252494416", 
+    "issue_date": "August 22, 2025",
+    "valid_until": "January 21, 2026",
+    "issued_by": "Panama Maritime Documentation Services"
+}
 
 class CertificateAnalysisTest:
     def __init__(self):
