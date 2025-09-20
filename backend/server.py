@@ -1600,7 +1600,7 @@ async def multi_cert_upload_for_ship(
         }
         
         # Get user's company for Google Drive configuration
-        user_company_id = current_user.company if hasattr(current_user, 'company') and current_user.company else None
+        user_company_id = await resolve_company_id(current_user)
         
         # Get company-specific Google Drive configuration first, fallback to system
         gdrive_config_doc = None
