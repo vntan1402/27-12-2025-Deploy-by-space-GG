@@ -1451,7 +1451,10 @@ const HomePage = () => {
             {/* Additional Management Buttons */}
             <div className="mt-6 space-y-2">
               <button 
-                onClick={() => setShowAddRecord(true)}
+                onClick={() => {
+                  setAddRecordDefaultTab(null); // No default tab when clicked from main button
+                  setShowAddRecord(true);
+                }}
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm font-medium"
                 style={{
                   background: 'linear-gradient(135deg, #48bb78, #38a169)',
