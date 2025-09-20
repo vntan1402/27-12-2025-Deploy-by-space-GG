@@ -1698,37 +1698,15 @@ async def multi_cert_upload_for_ship(
                         gdrive_config_doc, file_content, file.filename, ship_name, "Certificates"
                     )
                     
+                    # Handle upload failure gracefully - create certificate record anyway
                     if not upload_result.get("success"):
-                        # If ship folder doesn't exist, inform user
-                        if upload_result.get("requires_ship_creation"):
-                            summary["errors"] += 1
-                            summary["error_files"].append({
-                                "filename": file.filename,
-                                "error": "Ship folder structure not found. Please create ship first using 'Add New Ship'."
-                            })
-                            results.append({
-                                "filename": file.filename,
-                                "status": "error",
-                                "message": "Ship folder structure not found. Please create ship first using 'Add New Ship'.",
-                                "analysis": analysis_result,
-                                "is_marine": True
-                            })
-                            continue
-                        else:
-                            # Other upload errors
-                            summary["errors"] += 1
-                            summary["error_files"].append({
-                                "filename": file.filename,
-                                "error": upload_result.get("error", "Google Drive upload failed")
-                            })
-                            results.append({
-                                "filename": file.filename,
-                                "status": "error",
-                                "message": upload_result.get("error", "Google Drive upload failed"),
-                                "analysis": analysis_result,
-                                "is_marine": True
-                            })
-                            continue
+                        logger.warning(f"Google Drive upload failed for {file.filename}: {upload_result.get('error')}")
+                        # Continue with certificate creation even if upload fails
+                        upload_result = {
+                            "success": False,
+                            "error": upload_result.get("error", "Google Drive upload failed"),
+                            "folder_path": f"{ship_name}/Certificates"
+                        }
                     
                     # Create certificate record
                     cert_result = await create_certificate_from_analysis_with_notes(
