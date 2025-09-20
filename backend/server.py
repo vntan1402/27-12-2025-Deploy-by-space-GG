@@ -599,11 +599,11 @@ def calculate_certificate_status(valid_date: datetime, cert_type: str = None) ->
     else:
         return "Expired"
 
-def enhance_certificate_response(cert_dict: dict) -> dict:
+async def enhance_certificate_response(cert_dict: dict) -> dict:
     """Enhance certificate response with abbreviation and status"""
     try:
-        # Generate certificate abbreviation
-        cert_dict['cert_abbreviation'] = generate_certificate_abbreviation(cert_dict.get('cert_name', ''))
+        # Generate certificate abbreviation (check user-defined mappings first)
+        cert_dict['cert_abbreviation'] = await generate_certificate_abbreviation(cert_dict.get('cert_name', ''))
         
         # Generate organization abbreviation
         issued_by = cert_dict.get('issued_by', '')
