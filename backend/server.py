@@ -1338,6 +1338,109 @@ async def delete_certificate(cert_id: str, current_user: UserResponse = Depends(
         logger.error(f"Error deleting certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete certificate")
 
+# Certificate abbreviation mapping endpoints
+@api_router.get("/certificate-abbreviation-mappings", response_model=List[CertificateAbbreviationMappingResponse])
+async def get_certificate_abbreviation_mappings(current_user: UserResponse = Depends(get_current_user)):
+    """Get all certificate abbreviation mappings"""
+    try:
+        mappings = await mongo_db.find_all("certificate_abbreviation_mappings", {})
+        return [CertificateAbbreviationMappingResponse(**mapping) for mapping in mappings]
+    except Exception as e:
+        logger.error(f"Error fetching certificate abbreviation mappings: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch certificate abbreviation mappings")
+
+@api_router.post("/certificate-abbreviation-mappings", response_model=CertificateAbbreviationMappingResponse)
+async def create_certificate_abbreviation_mapping(
+    mapping_data: CertificateAbbreviationMappingCreate, 
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new certificate abbreviation mapping"""
+    try:
+        # Validate abbreviation length (max 10 characters)
+        if len(mapping_data.abbreviation) > 10:
+            raise HTTPException(status_code=400, detail="Abbreviation cannot exceed 10 characters")
+        
+        # Save the mapping
+        success = await save_user_defined_abbreviation(
+            mapping_data.cert_name, 
+            mapping_data.abbreviation, 
+            current_user.id
+        )
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to create abbreviation mapping")
+        
+        # Return the created mapping
+        normalized_name = mapping_data.cert_name.upper().strip()
+        mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"cert_name": normalized_name})
+        if not mapping:
+            raise HTTPException(status_code=500, detail="Mapping created but not found")
+            
+        return CertificateAbbreviationMappingResponse(**mapping)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating certificate abbreviation mapping: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create certificate abbreviation mapping")
+
+@api_router.put("/certificate-abbreviation-mappings/{mapping_id}", response_model=CertificateAbbreviationMappingResponse)
+async def update_certificate_abbreviation_mapping(
+    mapping_id: str, 
+    mapping_data: CertificateAbbreviationMappingUpdate, 
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update a certificate abbreviation mapping"""
+    try:
+        # Check if mapping exists
+        existing_mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"id": mapping_id})
+        if not existing_mapping:
+            raise HTTPException(status_code=404, detail="Certificate abbreviation mapping not found")
+        
+        # Validate abbreviation length if provided
+        update_data = mapping_data.dict(exclude_unset=True)
+        if 'abbreviation' in update_data and len(update_data['abbreviation']) > 10:
+            raise HTTPException(status_code=400, detail="Abbreviation cannot exceed 10 characters")
+        
+        # Add update metadata
+        if update_data:
+            update_data.update({
+                "updated_by": current_user.id,
+                "updated_at": datetime.now(timezone.utc)
+            })
+            await mongo_db.update("certificate_abbreviation_mappings", {"id": mapping_id}, update_data)
+        
+        # Get updated mapping
+        updated_mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"id": mapping_id})
+        return CertificateAbbreviationMappingResponse(**updated_mapping)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating certificate abbreviation mapping: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update certificate abbreviation mapping")
+
+@api_router.delete("/certificate-abbreviation-mappings/{mapping_id}")
+async def delete_certificate_abbreviation_mapping(
+    mapping_id: str, 
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete a certificate abbreviation mapping"""
+    try:
+        # Check if mapping exists
+        existing_mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"id": mapping_id})
+        if not existing_mapping:
+            raise HTTPException(status_code=404, detail="Certificate abbreviation mapping not found")
+        
+        await mongo_db.delete("certificate_abbreviation_mappings", {"id": mapping_id})
+        return {"message": "Certificate abbreviation mapping deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting certificate abbreviation mapping: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete certificate abbreviation mapping")
+
 # General certificates endpoint
 @api_router.get("/certificates", response_model=List[CertificateResponse])
 async def get_all_certificates(current_user: UserResponse = Depends(get_current_user)):
