@@ -2492,7 +2492,11 @@ EXAMPLE OUTPUT:
         logger.info(f"AI Analysis configuration: provider={provider}, model={model}, use_emergent_key={use_emergent_key}")
         
         # Use different AI providers based on configuration
-        if provider == "openai":
+        # Note: Emergent LLM only supports file attachments with Gemini provider
+        if use_emergent_key and provider == "openai":
+            # For OpenAI with Emergent key, use text extraction approach (no file attachment support)
+            return await analyze_with_openai_text_extraction(file_content, filename, content_type, api_key, model, analysis_prompt)
+        elif provider == "openai":
             return await analyze_with_openai(file_content, filename, content_type, api_key, model, analysis_prompt)
         elif provider == "anthropic":
             return await analyze_with_anthropic(file_content, filename, content_type, api_key, model, analysis_prompt)
