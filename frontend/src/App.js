@@ -679,6 +679,7 @@ const HomePage = () => {
   const [companyLogo, setCompanyLogo] = useState(null);
   const [hoverTimeout, setHoverTimeout] = useState(null);
   const [showAddRecord, setShowAddRecord] = useState(false);
+  const [addRecordDefaultTab, setAddRecordDefaultTab] = useState(null);
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
   const [showShipListModal, setShowShipListModal] = useState(false);
