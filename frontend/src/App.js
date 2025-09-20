@@ -7404,6 +7404,55 @@ const AddRecordModal = ({
                         </div>
                       )}
                       
+                      {/* Requires User Choice */}
+                      {fileUpload.status === 'requires_user_choice' && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <h5 className="text-sm font-semibold text-blue-700 mb-2">
+                            📁 {language === 'vi' ? 'Chọn folder để lưu file' : 'Choose folder to save file'}
+                          </h5>
+                          <p className="text-xs text-blue-600 mb-3">
+                            {fileUpload.message}
+                          </p>
+                          
+                          {fileUpload.shipFolderExists ? (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-gray-700">
+                                {language === 'vi' ? 'Folder có sẵn:' : 'Available folders:'}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {fileUpload.availableFolders?.map((folder, idx) => (
+                                  <button
+                                    key={idx}
+                                    onClick={() => handleUploadToFolder(fileUpload.filename, folder)}
+                                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+                                  >
+                                    📂 {folder}
+                                  </button>
+                                ))}
+                                <button
+                                  onClick={() => handleSkipFile(fileUpload.filename)}
+                                  className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                                >
+                                  ⏭️ {language === 'vi' ? 'Bỏ qua' : 'Skip'}
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <p className="text-xs text-red-600 mb-2">
+                                {language === 'vi' ? 'Cần tạo ship folder trước' : 'Ship folder needs to be created first'}
+                              </p>
+                              <button
+                                onClick={() => handleSkipFile(fileUpload.filename)}
+                                className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                              >
+                                ⏭️ {language === 'vi' ? 'Bỏ qua' : 'Skip'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       {/* Error Display */}
                       {fileUpload.status === 'failed' && fileUpload.error && (
                         <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
