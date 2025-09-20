@@ -1637,18 +1637,58 @@ const HomePage = () => {
                           {language === 'vi' ? 'Danh mục Giấy chứng nhận' : 'Certificate List'}
                         </h3>
                         
-                        {/* Refresh Button */}
-                        <button
-                          onClick={handleRefreshCertificates}
-                          disabled={isRefreshing}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-all"
-                        >
-                          <span className={`${isRefreshing ? 'animate-spin' : ''}`}>🔄</span>
-                          {isRefreshing 
-                            ? (language === 'vi' ? 'Đang cập nhật...' : 'Refreshing...') 
-                            : (language === 'vi' ? 'Refresh' : 'Refresh')
-                          }
-                        </button>
+                        <div className="flex gap-3">
+                          {/* Cert Upload Button */}
+                          <label
+                            htmlFor="cert-list-upload"
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                              selectedShip && !isMultiCertProcessing
+                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                : 'bg-gray-400 cursor-not-allowed text-white'
+                            }`}
+                            title={selectedShip 
+                              ? (language === 'vi' ? 'Upload multiple certificates' : 'Upload multiple certificates')
+                              : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                            }
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            {isMultiCertProcessing 
+                              ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
+                              : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
+                            }
+                            <input
+                              id="cert-list-upload"
+                              name="cert-list-upload"
+                              type="file"
+                              multiple
+                              className="sr-only"
+                              onChange={(e) => {
+                                if (selectedShip && !isMultiCertProcessing && e.target.files) {
+                                  handleMultiCertUpload(e.target.files);
+                                  // Reset file input to allow re-uploading same files
+                                  e.target.value = '';
+                                }
+                              }}
+                              accept=".pdf"
+                              disabled={!selectedShip || isMultiCertProcessing}
+                            />
+                          </label>
+
+                          {/* Refresh Button */}
+                          <button
+                            onClick={handleRefreshCertificates}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-all"
+                          >
+                            <span className={`${isRefreshing ? 'animate-spin' : ''}`}>🔄</span>
+                            {isRefreshing 
+                              ? (language === 'vi' ? 'Đang cập nhật...' : 'Refreshing...') 
+                              : (language === 'vi' ? 'Refresh' : 'Refresh')
+                            }
+                          </button>
+                        </div>
                       </div>
 
                       {/* Filter Controls */}
