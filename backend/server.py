@@ -1274,7 +1274,7 @@ async def create_certificate(cert_data: CertificateCreate, current_user: UserRes
         await mongo_db.create("certificates", cert_dict)
         
         # Enhance response with abbreviation and status
-        enhanced_cert = enhance_certificate_response(cert_dict)
+        enhanced_cert = await enhance_certificate_response(cert_dict)
         return CertificateResponse(**enhanced_cert)
         
     except Exception as e:
