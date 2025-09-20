@@ -12,7 +12,7 @@ from datetime import datetime
 
 class GoogleDriveConfigTester:
     def __init__(self):
-        self.base_url = "https://certmaster-ship.preview.emergentagent.com"
+        self.base_url = "https://ship-cert-manager-1.preview.emergentagent.com"
         self.api_url = f"{self.base_url}/api"
         self.token = None
         self.tests_run = 0

@@ -9,7 +9,7 @@ import tempfile
 import os
 
 def test_multifile_debug():
-    base_url = "https://certmaster-ship.preview.emergentagent.com"
+    base_url = "https://ship-cert-manager-1.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login as admin
