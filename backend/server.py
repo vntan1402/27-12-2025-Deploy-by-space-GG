@@ -2488,6 +2488,8 @@ EXAMPLE OUTPUT:
 {cert_field_info['json_example']}
 """
 
+        logger.info(f"AI Analysis configuration: provider={provider}, model={model}, use_emergent_key={use_emergent_key}")
+        
         # Use different AI providers based on configuration
         if provider == "openai":
             return await analyze_with_openai(file_content, filename, content_type, api_key, model, analysis_prompt)
@@ -2504,6 +2506,7 @@ EXAMPLE OUTPUT:
             
     except Exception as e:
         logger.error("AI document analysis failed: " + str(e))
+        logger.error(f"AI analysis error details - Provider: {provider}, Model: {model}, File: {filename}")
         return classify_by_filename(filename)
 
 def classify_by_filename(filename: str) -> dict:
