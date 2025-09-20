@@ -1254,7 +1254,10 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
     try:
         certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
         # Enhance each certificate with abbreviation and status
-        enhanced_certificates = [enhance_certificate_response(cert) for cert in certificates]
+        enhanced_certificates = []
+        for cert in certificates:
+            enhanced_cert = await enhance_certificate_response(cert)
+            enhanced_certificates.append(enhanced_cert)
         return [CertificateResponse(**cert) for cert in enhanced_certificates]
     except Exception as e:
         logger.error(f"Error fetching certificates: {e}")
