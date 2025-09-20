@@ -1906,19 +1906,17 @@ async def multi_cert_upload_for_ship(
                 duplicates = await check_certificate_duplicates(analysis_result, ship_id)
                 
                 if duplicates:
-                    # For now, we'll skip duplicates - later we can implement user choice
-                    summary["errors"] += 1
-                    summary["error_files"].append({
-                        "filename": file.filename,
-                        "error": f"Duplicate certificate found: {duplicates[0].get('cert_name', 'Unknown')}"
-                    })
+                    # Return duplicate status requiring user choice instead of skipping
                     results.append({
                         "filename": file.filename,
                         "status": "duplicate",
-                        "message": "Duplicate certificate detected",
+                        "message": f"Duplicate certificate detected: {duplicates[0]['certificate'].get('cert_name', 'Unknown')} (Certificate No: {duplicates[0]['certificate'].get('cert_no', 'N/A')})",
                         "analysis": analysis_result,
-                        "duplicates": duplicates,
-                        "is_marine": True
+                        "duplicates": duplicates,  # Include duplicate details for user choice
+                        "is_marine": True,
+                        "requires_user_choice": True,  # Flag indicating user choice is needed
+                        "duplicate_certificate": duplicates[0]['certificate'],  # The existing certificate
+                        "upload_result": upload_result if 'upload_result' in locals() else None
                     })
                     continue
                 
