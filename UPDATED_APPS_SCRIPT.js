@@ -144,42 +144,39 @@ function handleCreateCompleteShipStructure(requestData) {
     // Create ship folder
     const shipFolder = findOrCreateFolder(parentFolder, shipName);
     
-    // Define complete folder structure (matching Homepage Sidebar)
+    // Define complete folder structure (matching Homepage Sidebar EXACTLY)
     const folderStructure = {
-      "Certificates": [
-        "Safety Certificates",
-        "Survey Certificates", 
-        "Classification Certificates",
-        "Flag State Certificates",
-        "Port State Certificates"
+      "Document Portfolio": [
+        "Certificates",
+        "Inspection Records",
+        "Survey Reports", 
+        "Drawings & Manuals",
+        "Other Documents"
       ],
-      "Test Reports": [
-        "Lifesaving Equipment",
-        "Fire Fighting Equipment",
-        "Radio Equipment",
-        "Navigation Equipment",
-        "Safety Equipment"
+      "Crew Records": [
+        "Crew List",
+        "Crew Certificates",
+        "Medical Records"
       ],
-      "Survey Reports": [
-        "Annual Survey",
-        "Intermediate Survey", 
-        "Special Survey",
-        "Dry Dock Survey",
-        "Renewal Survey"
+      "ISM Records": [
+        "ISM Certificate",
+        "Safety Procedures", 
+        "Audit Reports"
       ],
-      "Drawings & Manuals": [
-        "General Arrangement",
-        "Equipment Manuals",
-        "Technical Drawings",
-        "Maintenance Manuals",
-        "Safety Plans"
+      "ISPS Records": [
+        "ISPS Certificate",
+        "Security Plan",
+        "Security Assessments"
       ],
-      "Other Documents": [
-        "Crew Documents",
-        "Commercial Documents",
-        "Insurance Documents",
-        "Port Documents",
-        "Miscellaneous"
+      "MLC Records": [
+        "MLC Certificate",
+        "Labor Conditions",
+        "Accommodation Reports"
+      ],
+      "Supplies": [
+        "Inventory",
+        "Purchase Orders",
+        "Spare Parts"
       ]
     };
     
