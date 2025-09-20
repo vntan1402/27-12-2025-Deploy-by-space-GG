@@ -230,6 +230,27 @@ class ShipSurveyStatusResponse(ShipSurveyStatusBase):
     id: str
     created_at: datetime
 
+# Certificate Abbreviation Mapping models
+class CertificateAbbreviationMapping(BaseModel):
+    id: Optional[str] = None
+    cert_name: str  # Full certificate name (normalized/uppercase)
+    abbreviation: str  # User-defined abbreviation
+    created_by: Optional[str] = None  # User who created this mapping
+    created_at: Optional[datetime] = None
+    updated_by: Optional[str] = None  # User who last updated
+    updated_at: Optional[datetime] = None
+    usage_count: int = 0  # How many times this mapping has been used
+
+class CertificateAbbreviationMappingResponse(CertificateAbbreviationMapping):
+    pass
+
+class CertificateAbbreviationMappingCreate(BaseModel):
+    cert_name: str
+    abbreviation: str
+
+class CertificateAbbreviationMappingUpdate(BaseModel):
+    abbreviation: Optional[str] = None
+
 # Certificate models
 class CertificateBase(BaseModel):
     ship_id: str
