@@ -226,7 +226,6 @@
 
 ## test_plan:
   current_focus:
-    - "Certificate Abbreviation Mapping System"
     - "Certificate Abbreviation UI Integration"
   stuck_tasks: []
   test_all: false
