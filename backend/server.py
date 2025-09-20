@@ -3067,9 +3067,67 @@ async def upload_file_to_specific_folder(
         raise HTTPException(status_code=500, detail="Failed to upload file")
 
 async def analyze_with_openai(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
-    """Analyze document using OpenAI"""
-    # Implementation for OpenAI API calls
-    return classify_by_filename(filename)
+    """Analyze document using OpenAI with Emergent LLM"""
+    try:
+        logger.info(f"Starting OpenAI analysis for {filename} using {model}")
+        
+        # Use Emergent LLM integration for OpenAI
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+        
+        # Initialize LLM Chat with OpenAI via Emergent
+        chat = LlmChat()
+        chat.configure_llm(
+            llm_provider="openai",
+            llm_model=model,
+            api_key=api_key
+        )
+        
+        # Create file content for attachment
+        file_attachment = FileContentWithMimeType(
+            content=file_content,
+            mime_type=content_type
+        )
+        
+        # Create user message with file attachment
+        user_message = UserMessage(
+            text=analysis_prompt,
+            file_content=file_attachment
+        )
+        
+        logger.info(f"Sending request to OpenAI {model} via Emergent LLM")
+        
+        # Get AI response
+        response = await chat.send_message(user_message)
+        
+        logger.info(f"OpenAI AI Response type: {type(response)}")
+        logger.info(f"OpenAI AI Response content (first 200 chars): {str(response)[:200]}")
+        
+        # Parse JSON response
+        response_text = str(response)
+        
+        # Clean up response (remove markdown code blocks if present)
+        if "```json" in response_text:
+            start = response_text.find("```json") + 7
+            end = response_text.rfind("```")
+            response_text = response_text[start:end].strip()
+        elif "```" in response_text:
+            start = response_text.find("```") + 3
+            end = response_text.rfind("```")
+            response_text = response_text[start:end].strip()
+        
+        # Parse the JSON
+        try:
+            analysis_result = json.loads(response_text)
+            logger.info(f"Successfully parsed OpenAI analysis for {filename}")
+            return analysis_result
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse OpenAI JSON response: {e}")
+            logger.error(f"Raw response: {response_text[:500]}")
+            return classify_by_filename(filename)
+            
+    except Exception as e:
+        logger.error(f"OpenAI analysis failed: {e}")
+        return classify_by_filename(filename)
 
 async def analyze_with_anthropic(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
     """Analyze document using Anthropic"""
