@@ -2303,6 +2303,27 @@ async def analyze_with_anthropic_ship(file_content: bytes, prompt: str, api_key:
         logger.error(f"Anthropic ship analysis failed: {e}")
         return get_fallback_ship_analysis(filename)
 
+async def resolve_company_id(current_user) -> str:
+    """Helper function to resolve company name to UUID"""
+    user_company = current_user.company if hasattr(current_user, 'company') and current_user.company else None
+    
+    if not user_company:
+        return None
+    
+    # Check if it's already a UUID (company ID)
+    if len(user_company) > 10 and '-' in user_company:
+        return user_company  # It's already a UUID
+    else:
+        # Find company by name to get UUID
+        company_doc = await mongo_db.find_one("companies", {"name_vn": user_company}) or await mongo_db.find_one("companies", {"name_en": user_company}) or await mongo_db.find_one("companies", {"name": user_company})
+        if company_doc:
+            user_company_id = company_doc.get("id")
+            logger.info(f"Found company UUID {user_company_id} for company name '{user_company}'")
+            return user_company_id
+        else:
+            logger.warning(f"Company '{user_company}' not found in database")
+            return None
+
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze document using configured AI to extract information and classify"""
     try:
