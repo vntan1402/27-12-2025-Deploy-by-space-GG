@@ -17,6 +17,7 @@ from enum import Enum
 import shutil
 import requests
 import re
+import base64
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 
 # Import our MongoDB database modules
