@@ -7007,9 +7007,22 @@ const AddRecordModal = ({
       });
 
       if (response.data.success) {
+        // Debug: Log the complete response structure
+        console.log('=== COMPLETE API RESPONSE ===');
+        console.log('Full response:', response);
+        console.log('Response data:', response.data);
+        console.log('Response data analysis:', response.data.analysis);
+        console.log('===============================');
+        
         // Auto-fill ship data with extracted information (excluding company)
-        const extractedData = response.data.analysis || response.data;
-        console.log('PDF analysis result:', extractedData);
+        const extractedData = response.data.analysis;
+        console.log('Extracted data:', extractedData);
+        
+        if (!extractedData) {
+          console.error('No analysis data found in response');
+          toast.error(language === 'vi' ? 'Không tìm thấy dữ liệu phân tích!' : 'No analysis data found!');
+          return;
+        }
         
         // Convert extracted data to match frontend form field names with updated mapping
         const processedData = {
@@ -7026,11 +7039,13 @@ const AddRecordModal = ({
         
         console.log('Processed data for auto-fill:', processedData);
         
+        // Force re-render by using functional update
         setShipData(prev => {
           const updatedData = {
             ...prev,
             ...processedData
           };
+          console.log('Previous ship data:', prev);
           console.log('Updated ship data:', updatedData);
           return updatedData;
         });
