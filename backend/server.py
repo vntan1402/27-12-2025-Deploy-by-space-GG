@@ -2500,29 +2500,10 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
     """Create Google Drive folder structure for a newly created ship using dynamic structure"""
     try:
         ship_name = ship_dict.get('name', 'Unknown Ship')
-        user_company = current_user.company if hasattr(current_user, 'company') and current_user.company else None
-        
-        if not user_company:
-            logger.warning(f"No company found for user {current_user.username}, skipping Google Drive folder creation")
-            return {"success": False, "error": "No company found"}
-        
-        # Get company ID from company name/ID
-        user_company_id = None
-        if user_company:
-            # Check if it's already a UUID (company ID)
-            if len(user_company) > 10 and '-' in user_company:
-                user_company_id = user_company  # It's already a UUID
-            else:
-                # Find company by name to get UUID
-                company_doc = await mongo_db.find_one("companies", {"name_vn": user_company}) or await mongo_db.find_one("companies", {"name_en": user_company}) or await mongo_db.find_one("companies", {"name": user_company})
-                if company_doc:
-                    user_company_id = company_doc.get("id")
-                    logger.info(f"Found company UUID {user_company_id} for company name '{user_company}'")
-                else:
-                    logger.warning(f"Company '{user_company}' not found in database")
+        user_company_id = await resolve_company_id(current_user)
         
         if not user_company_id:
-            logger.warning(f"Could not resolve company ID for {user_company}, skipping Google Drive folder creation")
+            logger.warning(f"Could not resolve company ID for user {current_user.username}, skipping Google Drive folder creation")
             return {"success": False, "error": "Could not resolve company ID"}
         
         # Get company-specific Google Drive configuration first, fallback to system
