@@ -1046,6 +1046,19 @@ const HomePage = () => {
           };
         }
         
+        if (result.status === 'requires_user_choice') {
+          return {
+            ...upload,
+            status: 'requires_user_choice',
+            progress: 100,
+            analysis: result.analysis,
+            isMarine: true,
+            message: result.message,
+            availableFolders: result.available_folders || [],
+            shipFolderExists: result.ship_folder_exists
+          };
+        }
+        
         return {
           ...upload,
           status: 'completed',
