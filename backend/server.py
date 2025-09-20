@@ -3079,9 +3079,7 @@ async def analyze_with_openai(file_content: bytes, filename: str, content_type: 
         chat = LlmChat(
             api_key=api_key,
             session_id=f"cert_analysis_{filename}_{int(time.time())}",
-            system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate and extract detailed information accurately.",
-            llm_provider="openai",  # Specify provider in constructor
-            llm_model=model
+            system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate and extract detailed information accurately."
         )
         
         # Create file content for attachment
