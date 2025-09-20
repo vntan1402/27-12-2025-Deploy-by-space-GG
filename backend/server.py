@@ -3096,10 +3096,10 @@ async def analyze_with_openai(file_content: bytes, filename: str, content_type: 
                 mime_type=content_type
             )
             
-            # Create user message with file attachment
+            # Create user message with file attachment - use file_contents as list
             user_message = UserMessage(
                 text=analysis_prompt,
-                file_content=file_attachment
+                file_contents=[file_attachment]  # Note: file_contents as list, not file_content
             )
             
             logger.info(f"Sending request to OpenAI {model} via Emergent LLM with file attachment")
