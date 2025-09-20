@@ -2044,6 +2044,8 @@ const HomePage = () => {
           uploadSummary={uploadSummary}
           setMultiCertUploads={setMultiCertUploads}
           setUploadSummary={setUploadSummary}
+          handleUploadToFolder={handleUploadToFolder}
+          handleSkipFile={handleSkipFile}
         />
       )}
 
