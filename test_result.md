@@ -194,13 +194,16 @@
     implemented: true
     working: false
     file: "App.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: false
           agent: "main"
-          comment: "Implemented duplicate certificate resolution modal for multi-file upload: 1) Added duplicateResolutionModal state to track files requiring user choice, 2) Modified handleMultiCertUpload to detect duplicate files and show modal instead of generic error, 3) Created comprehensive modal UI with table format showing each duplicate file with resolution options (Cancel, Overwrite, Keep Both) as radio buttons, 4) Implemented updateFileResolution function to update individual file choices, 5) Created processDuplicateResolutions function to send resolution data to backend /api/certificates/process-with-resolution endpoint, 6) Added proper error handling and success feedback with toast notifications. The modal displays duplicate certificate details and allows different resolution per file as requested. Ready for testing."
+          comment: "Implemented duplicate certificate resolution modal for multi-file upload: 1) Added duplicateResolutionModal state to track files requiring user choice, 2) Modified handleMultiCertUpload to detect duplicate files and show modal instead of generic error, 3) Created comprehensive modal UI with table format showing each duplicate file with resolution options (Cancel, Overwrite, Keep Both) as radio buttons, 4) Implemented updateFileResolution function to update individual file choices, 5) Created processDuplicateResolutions function to send resolution data to backend /api/certificates/process-with-resolution endpoint, 6) Added proper error handling and success feedback with toast notifications. The modal displays duplicate"
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL CERTIFICATE UPLOAD AUTO-FILL FUNCTIONALITY BROKEN - Comprehensive testing of 'Add Certificate' functionality with admin1 user and SUNSHINE STAR ship completed with mixed results. ✅ WORKING COMPONENTS: (1) Authentication with admin1/123456 successful ✓, (2) Ship navigation to SUNSHINE STAR working ✓, (3) Certificate modal access working ✓, (4) PDF upload functionality operational ✓ (2.79MB file uploaded successfully), (5) AI processing working ✓ (shows 100% completion, 1 marine certificate processed), (6) Certificate creation working ✓ (shows 1/1 certificates in list). ❌ CRITICAL FAILURES: (1) AUTO-FILL FUNCTIONALITY COMPLETELY NON-FUNCTIONAL - Despite successful PDF upload and AI processing, ALL form fields remain empty (Certificate Name, Certificate Number, Issue Date, Valid Date fields show no data), (2) 'Failed to create certificate: Invalid time value' error appears, preventing proper certificate creation, (3) Expected auto-fill data (Certificate Name: Safety Management Certificate, Certificate Number: PM252494416, Issue Date: August 22, 2025, Valid Until: January 21, 2026, Issued By: Panama Maritime Documentation Services) is NOT populated in form fields. ROOT CAUSE: Frontend form field mapping/population logic fails after successful AI analysis. USER IMPACT: Feature appears broken - users see upload success but form remains empty, making the advertised auto-fill functionality non-functional. PRIORITY: HIGH - Core advertised feature completely broken from user perspective despite backend processing working." certificate details and allows different resolution per file as requested. Ready for testing."
 
   - task: "Certificate Analysis Frontend Integration"
     implemented: true
