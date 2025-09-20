@@ -13,7 +13,7 @@ function doGet(e) {
 
 function handleRequest(e) {
   try {
-    let requestData = {};
+    var requestData = {};
     
     if (e && e.postData && e.postData.contents) {
       try {
