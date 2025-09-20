@@ -2760,66 +2760,6 @@ const AccountControlPage = () => {
     }
   };
 
-  // Handle upload file to specific folder (for non-certificate files)
-  const handleUploadToFolder = async (filename, folderCategory) => {
-    if (!selectedShip?.id) {
-      toast.error('No ship selected');
-      return;
-    }
-    
-    try {
-      // Find the original file from multiCertUploads
-      const fileUpload = multiCertUploads.find(upload => upload.filename === filename);
-      if (!fileUpload) {
-        toast.error('File not found');
-        return;
-      }
-      
-      // Find the original file from the files array (we need to store this)
-      toast.info(
-        language === 'vi' 
-          ? `Đang upload ${filename} vào folder ${folderCategory}...`
-          : `Uploading ${filename} to ${folderCategory} folder...`
-      );
-      
-      // For now, just mark as completed since we don't have the original file reference
-      // This would need to be implemented with proper file storage
-      setMultiCertUploads(prev => prev.map(upload => 
-        upload.filename === filename 
-          ? { ...upload, status: 'completed', message: `Uploaded to ${folderCategory}` }
-          : upload
-      ));
-      
-      toast.success(
-        language === 'vi'
-          ? `✅ Đã upload ${filename} vào folder ${folderCategory}`
-          : `✅ Successfully uploaded ${filename} to ${folderCategory} folder`
-      );
-    } catch (error) {
-      console.error('Upload to folder error:', error);
-      toast.error('Upload failed');
-    }
-  };
-  
-  // Handle skip file (for non-certificate files)
-  const handleSkipFile = (filename) => {
-    setMultiCertUploads(prev => prev.map(upload => 
-      upload.filename === filename 
-        ? { ...upload, status: 'skipped', message: 'Skipped by user' }
-        : upload
-    ));
-    
-    toast.info(
-      language === 'vi'
-        ? `File ${filename} đã được bỏ qua`
-        : `File ${filename} has been skipped`
-    );
-  };
-
-  const toggleSystemGoogleDriveModal = () => {
-    setShowGoogleDrive(!showGoogleDrive);
-  };
-
   const handleAIConfigUpdate = async () => {
     try {
       await axios.post(`${API}/ai-config`, aiConfig);
