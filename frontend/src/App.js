@@ -2068,9 +2068,13 @@ const HomePage = () => {
       {/* Add Record Modal */}
       {showAddRecord && (
         <AddRecordModal
-          onClose={() => setShowAddRecord(false)}
+          onClose={() => {
+            setShowAddRecord(false);
+            setAddRecordDefaultTab(null); // Reset default tab
+          }}
           onSuccess={(type) => {
             setShowAddRecord(false);
+            setAddRecordDefaultTab(null); // Reset default tab
             if (type === 'ship') {
               fetchShips();
             } else if (type === 'certificate' && selectedShip) {
@@ -2091,6 +2095,7 @@ const HomePage = () => {
           setUploadSummary={setUploadSummary}
           handleUploadToFolder={handleUploadToFolder}
           handleSkipFile={handleSkipFile}
+          defaultTab={addRecordDefaultTab}
         />
       )}
 
