@@ -19,7 +19,7 @@ from PIL import Image, ImageEnhance, ImageFilter
 
 # Google Vision API
 from google.cloud import vision
-from emergentintegrations import setup_key
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
