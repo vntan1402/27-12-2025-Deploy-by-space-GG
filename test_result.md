@@ -153,7 +153,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Implement a certificate abbreviation mapping system for the Ship Management System. The system should store manually edited certificate abbreviations and prioritize user-defined entries over auto-generated ones. Requirements: 1) Create a new MongoDB collection and Pydantic model to store user-defined certificate abbreviation mappings, 2) Integrate this mapping into the backend's generate_certificate_abbreviation and enhance_certificate_response logic, prioritizing user-defined entries, 3) Ensure the frontend's 'Edit Certificate' interface interacts with this new mapping system, 4) The abbreviation mappings should be scoped per company, 5) Validation rules: length limit of 10 characters for abbreviations, 6) No separate UI needed - handle through existing edit certificate interface."
+"Update the frontend (`App.js`) to display a modal or UI element that allows the user to choose a resolution (`cancel`, `overwrite`, `keep_both`) when duplicate certificates are detected during multi-file upload. Implement the frontend logic to send the user's chosen `duplicate_resolution` to the backend's `process-with-resolution` endpoint. The UI should be in table format, each row shows 1 certificate needing processing, with resolution options displayed as checkboxes, allowing different resolutions per duplicate file."
 
 ## backend:
   - task: "Certificate Abbreviation Mapping System"
