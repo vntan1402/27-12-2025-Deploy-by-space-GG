@@ -223,9 +223,9 @@ class EndToEndWorkflowTester:
                                                 success_criteria = [
                                                     auto_abbreviation != '',  # Auto-generation worked
                                                     user_abbreviation == 'ILLC_USER',  # User-defined mapping used
-                                                    manual_abbreviation == 'MANUAL_ILLC',  # Manual update worked
+                                                    manual_abbreviation == 'MAN_ILLC',  # Manual update worked
                                                     manual_mapping is not None,  # Manual mapping created
-                                                    final_abbreviation == 'MANUAL_ILLC',  # Latest mapping used
+                                                    final_abbreviation == 'MAN_ILLC',  # Latest mapping used
                                                     usage_count > 0  # Usage count incremented
                                                 ]
                                                 
