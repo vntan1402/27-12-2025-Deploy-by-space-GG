@@ -715,6 +715,13 @@ const HomePage = () => {
     fileIndex: -1,
     resolution: null
   });
+  
+  // Duplicate resolution modal for multi-cert upload
+  const [duplicateResolutionModal, setDuplicateResolutionModal] = useState({
+    show: false,
+    files: [],
+    shipId: null
+  });
   const navigate = useNavigate();
   
   const t = translations[language];
