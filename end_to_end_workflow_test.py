@@ -154,7 +154,7 @@ class EndToEndWorkflowTester:
                         
                         # Step 4: Update first certificate manually to trigger mapping save
                         update_data = {
-                            "cert_abbreviation": "MANUAL_ILLC"
+                            "cert_abbreviation": "MAN_ILLC"
                         }
                         
                         update_response = requests.put(f"{API_BASE}/certificates/{cert_1['id']}", 
