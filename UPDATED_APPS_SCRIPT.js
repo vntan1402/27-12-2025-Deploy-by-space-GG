@@ -223,18 +223,15 @@ function handleUploadFileWithFolderCreation(requestData) {
   try {
     // Extract parameters (compatible with backend Multi Cert Upload)
     const shipName = requestData.ship_name;
-    const category = requestData.category; // "Certificates", "Test Reports", etc.
+    const category = requestData.category; // "Certificates", "Survey Reports", etc.
     const filename = requestData.filename;
     const fileContent = requestData.file_content; // base64
     const contentType = requestData.content_type || 'application/pdf';
+    const parentFolderId = requestData.parent_folder_id;
     
     if (!shipName || !category || !filename || !fileContent) {
       return createJsonResponse(false, "Missing required parameters: ship_name, category, filename, file_content");
     }
-    
-    // For this function, we assume parent folder ID is available from Google Drive config
-    // In practice, this should be passed or retrieved from configuration
-    const parentFolderId = requestData.parent_folder_id || getDefaultParentFolderId();
     
     if (!parentFolderId) {
       return createJsonResponse(false, "Parent folder ID not available. Please configure Google Drive settings.");
@@ -249,10 +246,31 @@ function handleUploadFileWithFolderCreation(requestData) {
       return createJsonResponse(false, `Ship folder '${shipName}' not found. Please create ship first using 'Add New Ship'.`);
     }
     
-    // Find category folder within ship folder
-    const categoryFolder = findFolderByName(shipFolder, category);
+    // Map category to correct parent folder based on Homepage Sidebar structure
+    let parentCategoryFolder;
+    let targetCategory = category;
+    
+    // Categories that belong under "Document Portfolio"
+    const documentPortfolioCategories = [
+      "Certificates", "Inspection Records", "Survey Reports", 
+      "Drawings & Manuals", "Other Documents"
+    ];
+    
+    if (documentPortfolioCategories.includes(category)) {
+      // Find Document Portfolio folder
+      parentCategoryFolder = findFolderByName(shipFolder, "Document Portfolio");
+      if (!parentCategoryFolder) {
+        return createJsonResponse(false, `Document Portfolio folder not found in ship '${shipName}'. Please ensure ship folder structure is created properly.`);
+      }
+    } else {
+      // For other categories (Crew Records, ISM Records, etc.), they're direct under ship folder
+      parentCategoryFolder = shipFolder;
+    }
+    
+    // Find target category folder within the parent category folder
+    const categoryFolder = findFolderByName(parentCategoryFolder, targetCategory);
     if (!categoryFolder) {
-      return createJsonResponse(false, `Category folder '${category}' not found in ship '${shipName}'. Please check folder structure.`);
+      return createJsonResponse(false, `Category folder '${targetCategory}' not found in the expected location. Please check folder structure.`);
     }
     
     // Decode base64 file content
@@ -267,11 +285,16 @@ function handleUploadFileWithFolderCreation(requestData) {
     const blob = Utilities.newBlob(binaryData, contentType, filename);
     const uploadedFile = categoryFolder.createFile(blob);
     
+    // Return the correct folder path based on structure
+    const folderPath = documentPortfolioCategories.includes(category) 
+      ? `${shipName}/Document Portfolio/${category}`
+      : `${shipName}/${category}`;
+    
     return createJsonResponse(true, `File uploaded successfully: ${filename}`, {
       file_id: uploadedFile.getId(),
       file_name: uploadedFile.getName(),
       file_url: uploadedFile.getUrl(),
-      folder_path: `${shipName}/${category}`,
+      folder_path: folderPath,
       upload_timestamp: new Date().toISOString()
     });
     
