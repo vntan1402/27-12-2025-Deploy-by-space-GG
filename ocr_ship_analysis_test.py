@@ -22,6 +22,10 @@ API_BASE = f"{BACKEND_URL}/api"
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 
+# Fallback credentials if admin1 doesn't exist
+FALLBACK_USERNAME = "admin"
+FALLBACK_PASSWORD = "admin123"
+
 # PDF file from review request
 PDF_URL = "https://customer-assets.emergentagent.com/job_ship-cert-manager-1/artifacts/swohyuf9_SS%20STAR%20PM252494416_ImagePDF.pdf"
 
