@@ -173,7 +173,7 @@ class EndToEndWorkflowTester:
                             
                             if mappings_response.status_code == 200:
                                 mappings = mappings_response.json()
-                                manual_mapping = next((m for m in mappings if m['abbreviation'] == 'MANUAL_ILLC'), None)
+                                manual_mapping = next((m for m in mappings if m['abbreviation'] == 'MAN_ILLC'), None)
                                 
                                 if manual_mapping:
                                     workflow_steps.append(f"Step 5: Manual abbreviation mapping created: '{manual_mapping['cert_name']}' -> '{manual_mapping['abbreviation']}'")
