@@ -2816,6 +2816,10 @@ const AccountControlPage = () => {
     }
   };
 
+  const toggleSystemGoogleDriveModal = () => {
+    setShowGoogleDrive(!showGoogleDrive);
+  };
+
   const handleAIConfigUpdate = async () => {
     try {
       await axios.post(`${API}/ai-config`, aiConfig);
