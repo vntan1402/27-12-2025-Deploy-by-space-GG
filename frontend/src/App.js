@@ -2558,6 +2558,14 @@ const AccountControlPage = () => {
     uploadResult: null,
     status: 'all'
   });
+  
+  // Duplicate resolution modal for multi-cert upload (AccountControlPage)
+  const [duplicateResolutionModal, setDuplicateResolutionModal] = useState({
+    show: false,
+    files: [],
+    shipId: null
+  });
+  
   // Ship mismatch modal state for AccountControlPage
   const [mismatchModal, setMismatchModal] = useState({
     show: false,
