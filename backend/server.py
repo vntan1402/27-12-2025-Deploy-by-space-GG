@@ -1687,43 +1687,102 @@ async def multi_cert_upload_for_ship(
                     })
                     continue
                 
-                # Upload to Google Drive (with specific ship from ship_id)
-                # Override ship_name in analysis_result with actual ship name
-                analysis_result_for_upload = analysis_result.copy()
-                analysis_result_for_upload["ship_name"] = ship.get("name", "Unknown_Ship")
+                # Get ship name for folder operations
+                ship_name = ship.get("name", "Unknown_Ship")
                 
-                upload_result = await upload_file_to_gdrive_with_analysis(
-                    file_content, file.filename, analysis_result_for_upload, gdrive_config_doc, current_user
-                )
-                
-                # Create certificate record
-                cert_result = await create_certificate_from_analysis_with_notes(
-                    analysis_result, upload_result, current_user, ship_id, None
-                )
-                
-                if cert_result.get("success", True):
-                    summary["successfully_created"] += 1
-                    summary["certificates_created"].append({
+                # Check if it's a certificate category for direct upload
+                if analysis_result.get("category") == "certificates":
+                    # Upload directly to Certificates folder
+                    upload_result = await upload_file_to_existing_ship_folder(
+                        gdrive_config_doc, file_content, file.filename, ship_name, "Certificates"
+                    )
+                    
+                    if not upload_result.get("success"):
+                        # If ship folder doesn't exist, inform user
+                        if upload_result.get("requires_ship_creation"):
+                            summary["errors"] += 1
+                            summary["error_files"].append({
+                                "filename": file.filename,
+                                "error": "Ship folder structure not found. Please create ship first using 'Add New Ship'."
+                            })
+                            results.append({
+                                "filename": file.filename,
+                                "status": "error",
+                                "message": "Ship folder structure not found. Please create ship first using 'Add New Ship'.",
+                                "analysis": analysis_result,
+                                "is_marine": True
+                            })
+                            continue
+                        else:
+                            # Other upload errors
+                            summary["errors"] += 1
+                            summary["error_files"].append({
+                                "filename": file.filename,
+                                "error": upload_result.get("error", "Google Drive upload failed")
+                            })
+                            results.append({
+                                "filename": file.filename,
+                                "status": "error",
+                                "message": upload_result.get("error", "Google Drive upload failed"),
+                                "analysis": analysis_result,
+                                "is_marine": True
+                            })
+                            continue
+                    
+                    # Create certificate record
+                    cert_result = await create_certificate_from_analysis_with_notes(
+                        analysis_result, upload_result, current_user, ship_id, None
+                    )
+                    
+                    if cert_result.get("success", True):
+                        summary["successfully_created"] += 1
+                        summary["certificates_created"].append({
+                            "filename": file.filename,
+                            "cert_name": analysis_result.get("cert_name", "Unknown Certificate"),
+                            "cert_no": analysis_result.get("cert_no", "N/A"),
+                            "certificate_id": cert_result.get("id")
+                        })
+                    
+                    results.append({
                         "filename": file.filename,
-                        "cert_name": analysis_result.get("cert_name", "Unknown Certificate"),
-                        "cert_no": analysis_result.get("cert_no", "N/A"),
-                        "certificate_id": cert_result.get("id")
+                        "status": "success",
+                        "analysis": analysis_result,
+                        "upload": upload_result,
+                        "certificate": cert_result,
+                        "is_marine": True
                     })
+                    
+                else:
+                    # Non-certificate files - provide user choice options
+                    folder_check = await check_ship_folder_structure_exists(gdrive_config_doc, ship_name)
+                    
+                    if folder_check.get("folder_exists"):
+                        available_categories = folder_check.get("available_categories", [])
+                        
+                        results.append({
+                            "filename": file.filename,
+                            "status": "requires_user_choice",
+                            "message": f"File classified as '{analysis_result.get('category')}', not a certificate. Choose folder or skip upload.",
+                            "analysis": analysis_result,
+                            "is_marine": True,
+                            "available_folders": available_categories,
+                            "ship_folder_exists": True
+                        })
+                    else:
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": "Ship folder structure not found. Please create ship first using 'Add New Ship'.",
+                            "analysis": analysis_result,
+                            "is_marine": True,
+                            "ship_folder_exists": False
+                        })
                 
                 # Update ship survey status if relevant information exists
                 await update_ship_survey_status(analysis_result, current_user)
                 
                 # Track usage
                 await track_ai_usage(current_user, "document_analysis", ai_config)
-                
-                results.append({
-                    "filename": file.filename,
-                    "status": "success",
-                    "analysis": analysis_result,
-                    "upload": upload_result,
-                    "certificate": cert_result,
-                    "is_marine": True
-                })
                 
             except Exception as file_error:
                 logger.error(f"Error processing file {file.filename}: {file_error}")
