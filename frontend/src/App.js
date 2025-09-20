@@ -6531,7 +6531,9 @@ const AddRecordModal = ({
   handleMultiCertUpload,
   uploadSummary,
   setMultiCertUploads,
-  setUploadSummary
+  setUploadSummary,
+  handleUploadToFolder,
+  handleSkipFile
 }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user, token } = useAuth();
