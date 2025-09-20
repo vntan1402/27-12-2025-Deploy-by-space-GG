@@ -4340,6 +4340,136 @@ const AccountControlPage = () => {
           </div>
         </div>
       )}
+
+      {/* Duplicate Resolution Modal for Multi-Cert Upload */}
+      {duplicateResolutionModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-orange-600 mb-2">
+                ⚠️ {language === 'vi' ? 'Xử lý Certificate trùng lặp' : 'Resolve Duplicate Certificates'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'vi' 
+                  ? 'Một số certificates được phát hiện trùng lặp. Vui lòng chọn cách xử lý cho từng file:'
+                  : 'Some certificates were detected as duplicates. Please choose how to handle each file:'}
+              </p>
+            </div>
+
+            {/* Duplicate Files Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                      {language === 'vi' ? 'File' : 'File'}
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-left font-semibold">
+                      {language === 'vi' ? 'Certificate trùng lặp' : 'Duplicate Certificate'}
+                    </th>
+                    <th className="border border-gray-300 px-4 py-2 text-center font-semibold">
+                      {language === 'vi' ? 'Phương án xử lý' : 'Resolution'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {duplicateResolutionModal.files.map((file, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="border border-gray-300 px-4 py-2">
+                        <div>
+                          <p className="font-medium text-gray-800">{file.filename}</p>
+                          <p className="text-sm text-gray-600">
+                            {file.analysis?.cert_name} - {file.analysis?.cert_no}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <div>
+                          <p className="font-medium text-red-600">
+                            {file.duplicate_certificate?.cert_name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {language === 'vi' ? 'Số' : 'No'}: {file.duplicate_certificate?.cert_no}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {language === 'vi' ? 'Ngày cấp' : 'Issue'}: {file.duplicate_certificate?.issue_date ? formatDate(file.duplicate_certificate.issue_date) : 'N/A'}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <div className="space-y-2">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`resolution-${index}`}
+                              value="cancel"
+                              checked={file.resolution === 'cancel'}
+                              onChange={() => updateFileResolution(file.filename, 'cancel')}
+                              className="mr-2"
+                            />
+                            <span className="text-sm">
+                              {language === 'vi' ? '❌ Hủy bỏ' : '❌ Cancel'}
+                            </span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`resolution-${index}`}
+                              value="overwrite"
+                              checked={file.resolution === 'overwrite'}
+                              onChange={() => updateFileResolution(file.filename, 'overwrite')}
+                              className="mr-2"
+                            />
+                            <span className="text-sm">
+                              {language === 'vi' ? '🔄 Ghi đè' : '🔄 Overwrite'}
+                            </span>
+                          </label>
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name={`resolution-${index}`}
+                              value="keep_both"
+                              checked={file.resolution === 'keep_both'}
+                              onChange={() => updateFileResolution(file.filename, 'keep_both')}
+                              className="mr-2"
+                            />
+                            <span className="text-sm">
+                              {language === 'vi' ? '📋 Giữ cả hai' : '📋 Keep Both'}
+                            </span>
+                          </label>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={() => {
+                  setDuplicateResolutionModal({
+                    show: false,
+                    files: [],
+                    shipId: null
+                  });
+                }}
+                className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+              >
+                {language === 'vi' ? 'Đóng' : 'Close'}
+              </button>
+              
+              <button
+                onClick={processDuplicateResolutions}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+              >
+                {language === 'vi' ? 'Xử lý tất cả' : 'Process All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </div>
   );
