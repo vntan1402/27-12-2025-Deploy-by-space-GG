@@ -3072,17 +3072,15 @@ async def analyze_with_openai(file_content: bytes, filename: str, content_type: 
     try:
         logger.info(f"Starting OpenAI analysis for {filename} using {model}")
         
-        # Use Emergent LLM integration for OpenAI
+        # Use Emergent LLM integration for OpenAI with file attachment support
         from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
         
-        # Initialize LLM Chat with OpenAI via Emergent - using proper initialization
+        # Initialize LLM Chat with OpenAI via Emergent
         chat = LlmChat(
             api_key=api_key,
             session_id=f"cert_analysis_{filename}_{int(time.time())}",
-            system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate and extract detailed information accurately."
-        )
-        chat.configure_llm(
-            llm_provider="openai",
+            system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate and extract detailed information accurately.",
+            llm_provider="openai",  # Specify provider in constructor
             llm_model=model
         )
         
@@ -3098,7 +3096,7 @@ async def analyze_with_openai(file_content: bytes, filename: str, content_type: 
             file_content=file_attachment
         )
         
-        logger.info(f"Sending request to OpenAI {model} via Emergent LLM")
+        logger.info(f"Sending request to OpenAI {model} via Emergent LLM with file attachment")
         
         # Get AI response
         response = await chat.send_message(user_message)
