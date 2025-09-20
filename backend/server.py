@@ -2076,6 +2076,45 @@ async def analyze_ship_certificate(
         logger.error(f"Ship certificate analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
+def map_certificate_to_ship_data(maritime_analysis: dict) -> dict:
+    """Map maritime certificate analysis data to ship form fields"""
+    try:
+        # Extract ship data from maritime certificate analysis
+        ship_data = {
+            "ship_name": maritime_analysis.get("vessel_name") or maritime_analysis.get("ship_name"),
+            "imo_number": maritime_analysis.get("imo_number"),
+            "flag": maritime_analysis.get("flag_state") or maritime_analysis.get("flag"),
+            "class_society": maritime_analysis.get("issuing_authority") or maritime_analysis.get("issued_by"),
+            "ship_type": maritime_analysis.get("vessel_type") or maritime_analysis.get("ship_type"),
+            "gross_tonnage": maritime_analysis.get("gross_tonnage"),
+            "deadweight": maritime_analysis.get("deadweight_tonnage") or maritime_analysis.get("deadweight"),
+            "built_year": maritime_analysis.get("year_built") or maritime_analysis.get("built_year"),
+            "ship_owner": maritime_analysis.get("owner") or maritime_analysis.get("ship_owner"),
+            "company": maritime_analysis.get("operator") or maritime_analysis.get("management_company")
+        }
+        
+        # Clean up and validate the data
+        cleaned_data = {}
+        for key, value in ship_data.items():
+            if value and str(value).strip() and str(value).upper() not in ['NULL', 'UNKNOWN', 'N/A', '']:
+                if key in ['gross_tonnage', 'deadweight', 'built_year']:
+                    # Try to convert to number
+                    try:
+                        if key == 'built_year':
+                            cleaned_data[key] = int(float(str(value)))
+                        else:
+                            cleaned_data[key] = float(str(value))
+                    except (ValueError, TypeError):
+                        pass  # Skip invalid numbers
+                else:
+                    cleaned_data[key] = str(value).strip()
+        
+        return cleaned_data
+        
+    except Exception as e:
+        logger.error(f"Error mapping certificate to ship data: {e}")
+        return {}
+
 async def analyze_ship_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze ship document using AI to extract ship-specific information"""
     try:
