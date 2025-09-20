@@ -2063,9 +2063,7 @@ async def analyze_ship_certificate(
         
         return {
             "success": True,
-            "data": {
-                "analysis": analysis_result
-            },
+            "analysis": analysis_result,
             "message": "Ship certificate analyzed successfully"
         }
         
