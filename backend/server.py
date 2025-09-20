@@ -3142,6 +3142,80 @@ async def analyze_with_openai(file_content: bytes, filename: str, content_type: 
         logger.error(f"OpenAI analysis failed: {e}")
         return classify_by_filename(filename)
 
+async def analyze_with_openai_text_extraction(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
+    """Analyze document using OpenAI with text extraction approach (no file attachment support)"""
+    try:
+        logger.info(f"Starting OpenAI text extraction analysis for {filename} using {model}")
+        
+        # Extract text from PDF first
+        import PyPDF2
+        import io
+        
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
+        text_content = ""
+        
+        for page in pdf_reader.pages:
+            try:
+                text_content += page.extract_text() + "\n"
+            except Exception as e:
+                logger.warning(f"Failed to extract text from page: {e}")
+                continue
+        
+        if not text_content.strip():
+            logger.warning(f"No text extracted from {filename}")
+            return classify_by_filename(filename)
+        
+        # Use Emergent LLM integration for OpenAI with text-only approach
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        # Initialize LLM Chat with OpenAI via Emergent
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"cert_analysis_text_{filename}_{int(time.time())}",
+            system_message="You are an expert maritime document analyst. Analyze the provided maritime certificate text and extract detailed information accurately."
+        )
+        
+        # Create combined prompt with extracted text
+        combined_prompt = f"{analysis_prompt}\n\nDocument text content:\n{text_content[:8000]}"  # Limit text to avoid token limits
+        
+        # Create user message with text only
+        user_message = UserMessage(text=combined_prompt)
+        
+        logger.info(f"Sending text-only request to OpenAI {model} via Emergent LLM")
+        
+        # Get AI response
+        response = await chat.send_message(user_message)
+        
+        logger.info(f"OpenAI Text Extraction Response type: {type(response)}")
+        logger.info(f"OpenAI Text Extraction Response content (first 200 chars): {str(response)[:200]}")
+        
+        # Parse JSON response
+        response_text = str(response)
+        
+        # Clean up response (remove markdown code blocks if present)
+        if "```json" in response_text:
+            start = response_text.find("```json") + 7
+            end = response_text.rfind("```")
+            response_text = response_text[start:end].strip()
+        elif "```" in response_text:
+            start = response_text.find("```") + 3
+            end = response_text.rfind("```")
+            response_text = response_text[start:end].strip()
+        
+        # Parse the JSON
+        try:
+            analysis_result = json.loads(response_text)
+            logger.info(f"Successfully parsed OpenAI text extraction analysis for {filename}")
+            return analysis_result
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse OpenAI text extraction JSON response: {e}")
+            logger.error(f"Raw response: {response_text[:500]}")
+            return classify_by_filename(filename)
+            
+    except Exception as e:
+        logger.error(f"OpenAI text extraction analysis failed: {e}")
+        return classify_by_filename(filename)
+
 async def analyze_with_anthropic(file_content: bytes, filename: str, content_type: str, api_key: str, model: str, analysis_prompt: str) -> dict:
     """Analyze document using Anthropic"""
     # Implementation for Anthropic API calls
