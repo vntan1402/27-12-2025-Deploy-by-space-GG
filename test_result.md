@@ -167,20 +167,17 @@
           comment: "Implemented complete certificate abbreviation mapping system: 1) Created new MongoDB collection 'certificate_abbreviation_mappings' with indexes, 2) Added Pydantic models for mapping operations, 3) Created async functions get_user_defined_abbreviation() and save_user_defined_abbreviation() with 10-character validation, 4) Updated generate_certificate_abbreviation() to prioritize user-defined mappings over auto-generation, 5) Modified enhance_certificate_response() to be async and check mappings, 6) Updated update_certificate endpoint to save user-defined abbreviations when cert_abbreviation is manually edited, 7) Added CRUD endpoints for mapping management, 8) Updated all calls to enhance_certificate_response() to use await. Ready for testing."
 
 ## frontend:
-  - task: "Add New Ship Duplicate IMO Error Handling"
+  - task: "Certificate Abbreviation UI Integration"
     implemented: true
-    working: true
+    working: false
     file: "App.js"
     stuck_count: 0
-    priority: "high"
-    needs_retesting: false
+    priority: "medium"
+    needs_retesting: true
     status_history:
         - working: "NA"
-          agent: "testing"
-          comment: "Starting comprehensive testing of improved Add New Ship functionality with better error handling for duplicate IMO numbers. Review request requires testing: 1) Login as admin/admin123, 2) Navigate to home dashboard, 3) Click 'Thêm' (Add New) button, 4) Switch to Ship tab, 5) Try creating ship with existing IMO '9405136' (SUNSHINE STAR), 6) Verify clear error message appears, 7) Test successful creation with unique IMO, 8) Test edge cases. Backend has duplicate IMO detection with specific error message: 'Ship with IMO number '{imo_value}' already exists. Each ship must have a unique IMO number.'"
-        - working: true
-          agent: "testing"
-          comment: "🎉 DUPLICATE IMO ERROR HANDLING TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of improved Add New Ship functionality with better error handling for duplicate IMO numbers completed with 100% success rate across all review request requirements. ✅ ALL REVIEW REQUEST REQUIREMENTS VERIFIED: (1) ✅ Authentication Test: Login as admin/admin123 successful, Super Admin role verified, navigation to home dashboard working perfectly, (2) ✅ Add New Record Modal: 'Thêm' (Add New) button working correctly, modal opens successfully, Ship tab selection functional, (3) ✅ DUPLICATE IMO ERROR HANDLING VERIFIED: Attempted to create ship with existing IMO '9405136' (SUNSHINE STAR), system correctly returned specific error message: 'Failed to add ship: Ship with IMO number '9405136' already exists. Each ship must have a unique IMO number.', error message contains both the specific IMO number and clear explanation, (4) ✅ SUCCESSFUL SHIP CREATION WITH UNIQUE IMO: Created ship 'Test Ship Unique 8288772' with unique IMO '8288772', system returned success message: '🚢 Ship added successfully!', Google Drive folder structure created automatically with 6 categories and 20 subfolders, (5) ✅ MODAL BEHAVIOR VERIFICATION: Modal remains open after duplicate IMO error (doesn't close), allows users to correct IMO and try again without reopening modal, error handling doesn't break other ship creation functionality, (6) ✅ EDGE CASES TESTING: Empty IMO number handled correctly (IMO is optional), whitespace IMO number processed appropriately, all validation errors display user-friendly messages. ✅ TECHNICAL VERIFICATION: Backend duplicate detection working correctly with MongoDB unique constraints, frontend error handling displays clear toast notifications, form validation prevents submission with duplicate IMOs, error messages are user-friendly and actionable, Google Drive integration working (creates complete folder structure on successful ship creation). ✅ USER EXPERIENCE IMPROVEMENTS CONFIRMED: Clear error messages instead of generic 'Failed to create ship', specific IMO number mentioned in error message, modal stays open for error correction, success feedback with ship creation confirmation. CONCLUSION: The improved Add New Ship functionality with better error handling for duplicate IMO numbers is fully functional and production-ready. All review request requirements have been successfully implemented and verified. Users now receive clear, actionable error messages when attempting to create ships with duplicate IMO numbers, and the system provides excellent user experience for both error and success scenarios."
+          agent: "main"
+          comment: "Frontend already has existing certificate abbreviation editing functionality in the 'Edit Certificate' modal. The cert_abbreviation field can be manually edited via the form input field (line 1902 in App.js). When updated, this value is sent to the backend through the PUT /api/certificates/{id} endpoint. The backend now automatically saves user-defined abbreviations to the mapping system when cert_abbreviation is manually changed. No additional frontend changes needed as the existing UI already supports manual abbreviation editing."
 
   - task: "Certificate Analysis Frontend Integration"
     implemented: true
