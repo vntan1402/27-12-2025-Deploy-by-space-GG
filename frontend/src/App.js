@@ -1043,7 +1043,10 @@ const HomePage = () => {
             progress: 100,
             analysis: result.analysis,
             isMarine: true,
-            error: result.message
+            error: result.message,
+            duplicates: result.duplicates || [],
+            duplicate_certificate: result.duplicate_certificate,
+            requires_user_choice: result.requires_user_choice || false
           };
         }
         
