@@ -1297,7 +1297,7 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         
         # Get updated certificate
         updated_cert = await mongo_db.find_one("certificates", {"id": cert_id})
-        enhanced_cert = enhance_certificate_response(updated_cert)
+        enhanced_cert = await enhance_certificate_response(updated_cert)
         return CertificateResponse(**enhanced_cert)
         
     except HTTPException:
