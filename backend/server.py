@@ -2215,37 +2215,11 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
         ocr_confidence = 0.0
         
         if content_type == "application/pdf":
-            logger.info(f"🔍 Processing PDF with OCR capabilities: {filename}")
+            logger.info(f"🔍 Processing PDF: {filename}")
             
-            # Use OCR processor for better text extraction from image-based PDFs
-            ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
-            
-            if ocr_result["success"]:
-                text_content = ocr_result["text_content"]
-                ocr_confidence = ocr_result["confidence_score"]
-                processing_method = ocr_result["processing_method"]
-                
-                logger.info(f"✅ OCR processing successful for {filename}")
-                logger.info(f"📊 Method: {processing_method}, Confidence: {ocr_confidence:.2f}")
-                logger.info(f"📝 Extracted {len(text_content)} characters")
-                
-                # If we have good text content, proceed with analysis
-                if len(text_content.strip()) > 50:
-                    # Analyze the extracted text for maritime certificate information
-                    maritime_analysis = await ocr_processor.analyze_maritime_certificate_text(text_content)
-                    
-                    # If this looks like a maritime certificate, use certificate-specific analysis
-                    if maritime_analysis["confidence"] > 0.3:
-                        logger.info(f"📋 Detected maritime certificate: {maritime_analysis['certificate_type']}")
-                        
-                        # Map maritime certificate data to ship form fields
-                        ship_data = map_certificate_to_ship_data(maritime_analysis)
-                        if ship_data:
-                            return ship_data
-                
-            else:
-                logger.warning(f"⚠️ OCR processing failed for {filename}: {ocr_result.get('error', 'Unknown error')}")
-                # Fall back to original text extraction if available
+            # Fallback to basic PDF text extraction if OCR processor not available
+            if ocr_processor is None:
+                logger.warning("⚠️ OCR processor not available, using basic PDF text extraction")
                 try:
                     from PyPDF2 import PdfReader
                     import io
@@ -2257,7 +2231,7 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
                     text_content = text_content.strip()
                     
                     if len(text_content) > 50:
-                        logger.info(f"📄 Fallback text extraction successful: {len(text_content)} characters")
+                        logger.info(f"📄 Basic PDF text extraction successful: {len(text_content)} characters")
                     else:
                         logger.warning(f"⚠️ No readable text content extracted from {filename}")
                         return get_fallback_ship_analysis(filename)
@@ -2265,6 +2239,55 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
                 except Exception as pdf_error:
                     logger.error(f"❌ PDF text extraction failed: {str(pdf_error)}")
                     return get_fallback_ship_analysis(filename)
+            else:
+                # Use OCR processor for better text extraction from image-based PDFs
+                ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
+                
+                if ocr_result["success"]:
+                    text_content = ocr_result["text_content"]
+                    ocr_confidence = ocr_result["confidence_score"]
+                    processing_method = ocr_result["processing_method"]
+                    
+                    logger.info(f"✅ OCR processing successful for {filename}")
+                    logger.info(f"📊 Method: {processing_method}, Confidence: {ocr_confidence:.2f}")
+                    logger.info(f"📝 Extracted {len(text_content)} characters")
+                    
+                    # If we have good text content, proceed with analysis
+                    if len(text_content.strip()) > 50:
+                        # Analyze the extracted text for maritime certificate information
+                        maritime_analysis = await ocr_processor.analyze_maritime_certificate_text(text_content)
+                        
+                        # If this looks like a maritime certificate, use certificate-specific analysis
+                        if maritime_analysis["confidence"] > 0.3:
+                            logger.info(f"📋 Detected maritime certificate: {maritime_analysis['certificate_type']}")
+                            
+                            # Map maritime certificate data to ship form fields
+                            ship_data = map_certificate_to_ship_data(maritime_analysis)
+                            if ship_data:
+                                return ship_data
+                    
+                else:
+                    logger.warning(f"⚠️ OCR processing failed for {filename}: {ocr_result.get('error', 'Unknown error')}")
+                    # Fall back to original text extraction if available
+                    try:
+                        from PyPDF2 import PdfReader
+                        import io
+                        
+                        pdf_reader = PdfReader(io.BytesIO(file_content))
+                        text_content = ""
+                        for page in pdf_reader.pages:
+                            text_content += page.extract_text() + "\n"
+                        text_content = text_content.strip()
+                        
+                        if len(text_content) > 50:
+                            logger.info(f"📄 Fallback text extraction successful: {len(text_content)} characters")
+                        else:
+                            logger.warning(f"⚠️ No readable text content extracted from {filename}")
+                            return get_fallback_ship_analysis(filename)
+                            
+                    except Exception as pdf_error:
+                        logger.error(f"❌ PDF text extraction failed: {str(pdf_error)}")
+                        return get_fallback_ship_analysis(filename)
         
         # Get dynamic ship form fields for extraction
         ship_form_fields = await get_ship_form_fields_for_extraction()
