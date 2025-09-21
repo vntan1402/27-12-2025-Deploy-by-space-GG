@@ -55,6 +55,15 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Import the enhanced OCR processor
+try:
+    from ocr_processor import EnhancedOCRProcessor
+    ocr_processor = EnhancedOCRProcessor()
+    logger.info("✅ Enhanced OCR processor initialized successfully")
+except Exception as e:
+    logger.error(f"❌ Failed to initialize OCR processor: {e}")
+    ocr_processor = None
+
 # Pydantic Models (keep existing models)
 class UserRole(str, Enum):
     VIEWER = "viewer"
