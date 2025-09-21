@@ -124,10 +124,9 @@ class PDFOCRTester:
                 result = response.json()
                 
                 # Check if the response contains expected structure
-                if 'success' in result and 'data' in result:
+                if 'success' in result and 'analysis' in result:
                     success = result.get('success', False)
-                    data = result.get('data', {})
-                    analysis = data.get('analysis', {})
+                    analysis = result.get('analysis', {})
                     
                     if success:
                         self.log_test("PDF File Acceptance Test", True, 
