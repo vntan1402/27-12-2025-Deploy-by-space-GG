@@ -1990,118 +1990,98 @@ const HomePage = () => {
                         <table className="w-full border-collapse border border-gray-300 text-sm">
                           <thead>
                             <tr className="bg-gray-50">
-                              <th className="border border-gray-300 px-4 py-2 text-left relative group min-w-[60px]">
+                              <th className="border border-gray-300 px-4 py-2 text-left min-w-[60px]">
                                 No.
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
                                 onClick={() => handleCertificateSort('cert_abbreviation')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Tên viết tắt' : 'Cert. Name'}</span>
                                   {getSortIcon('cert_abbreviation')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
                                 onClick={() => handleCertificateSort('cert_type')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Loại' : 'Type'}</span>
                                   {getSortIcon('cert_type')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
                                 onClick={() => handleCertificateSort('cert_no')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}</span>
                                   {getSortIcon('cert_no')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
                                 onClick={() => handleCertificateSort('issued_by')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
                                   {getSortIcon('issued_by')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
                                 onClick={() => handleCertificateSort('issue_date')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</span>
                                   {getSortIcon('issue_date')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
                                 onClick={() => handleCertificateSort('valid_date')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</span>
                                   {getSortIcon('valid_date')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
                                 onClick={() => handleCertificateSort('last_endorse')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}</span>
                                   {getSortIcon('last_endorse')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
                                 onClick={() => handleCertificateSort('next_survey')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</span>
                                   {getSortIcon('next_survey')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[80px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[80px]"
                                 onClick={() => handleCertificateSort('status')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Trạng thái' : 'Status'}</span>
                                   {getSortIcon('status')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 relative group min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
                                 onClick={() => handleCertificateSort('notes')}
-                                style={{ resize: 'horizontal', overflow: 'hidden' }}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Ghi chú' : 'Notes'}</span>
                                   {getSortIcon('notes')}
                                 </div>
-                                <div className="absolute right-0 top-0 h-full w-1 cursor-col-resize opacity-0 group-hover:opacity-100 bg-blue-400 transition-opacity"></div>
                               </th>
                             </tr>
                           </thead>
