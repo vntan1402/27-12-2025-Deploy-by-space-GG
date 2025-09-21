@@ -3654,24 +3654,48 @@ async def analyze_with_google(file_content: bytes, filename: str, content_type: 
         extracted_text = extract_text_from_pdf(file_content)
         
         if not extracted_text or len(extracted_text.strip()) < 10:
-            logger.warning(f"Could not extract meaningful text from {filename}")
-            # Enhanced fallback logic - provide meaningful certificate data instead of N/A values
-            current_date = datetime.now(timezone.utc)
-            fallback_issue_date = current_date.strftime('%Y-%m-%d')
-            fallback_valid_date = (current_date + timedelta(days=1825)).strftime('%Y-%m-%d')  # 5 years validity
+            logger.warning(f"No readable text content extracted from PDF")
             
-            return {
-                "category": "certificates",  # Default to certificates for certificate uploads
-                "cert_name": f"Maritime Certificate - {filename.replace('.pdf', '')}",
-                "cert_type": "Full Term",
-                "cert_no": f"CERT_{filename.replace('.pdf', '').upper()}",
-                "issue_date": fallback_issue_date,
-                "valid_date": fallback_valid_date,
-                "issued_by": "Maritime Authority (Filename-based classification)",
-                "ship_name": "Unknown Ship",
-                "confidence": 0.2,
-                "extraction_error": "PDF text extraction failed - using enhanced fallback data"
-            }
+            # Try OCR processing if available
+            if ocr_processor is not None:
+                logger.info(f"🔍 Attempting OCR processing for image-based PDF: {filename}")
+                try:
+                    ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
+                    
+                    if ocr_result["success"] and len(ocr_result["text_content"].strip()) > 10:
+                        extracted_text = ocr_result["text_content"]
+                        logger.info(f"✅ OCR processing successful for {filename}")
+                        logger.info(f"📊 Method: {ocr_result['processing_method']}, Confidence: {ocr_result['confidence_score']:.2f}")
+                        logger.info(f"📝 Extracted {len(extracted_text)} characters via OCR")
+                    else:
+                        logger.warning(f"❌ OCR processing failed for {filename}: {ocr_result.get('error', 'Unknown error')}")
+                        extracted_text = None
+                except Exception as ocr_error:
+                    logger.error(f"❌ OCR processing error for {filename}: {str(ocr_error)}")
+                    extracted_text = None
+            else:
+                logger.warning("⚠️ OCR processor not available for image-based PDF processing")
+            
+            # If OCR also failed, use enhanced fallback
+            if not extracted_text or len(extracted_text.strip()) < 10:
+                logger.warning(f"Could not extract meaningful text from {filename}")
+                # Enhanced fallback logic - provide meaningful certificate data instead of N/A values
+                current_date = datetime.now(timezone.utc)
+                fallback_issue_date = current_date.strftime('%Y-%m-%d')
+                fallback_valid_date = (current_date + timedelta(days=1825)).strftime('%Y-%m-%d')  # 5 years validity
+                
+                return {
+                    "category": "certificates",  # Default to certificates for certificate uploads
+                    "cert_name": f"Maritime Certificate - {filename.replace('.pdf', '')}",
+                    "cert_type": "Full Term",
+                    "cert_no": f"CERT_{filename.replace('.pdf', '').upper()}",
+                    "issue_date": fallback_issue_date,
+                    "valid_date": fallback_valid_date,
+                    "issued_by": "Maritime Authority (Filename-based classification)",
+                    "ship_name": "Unknown Ship",
+                    "confidence": 0.2,
+                    "extraction_error": "PDF text extraction failed - using enhanced fallback data"
+                }
         
         # Use Emergent LLM with text-only analysis
         chat = LlmChat(
