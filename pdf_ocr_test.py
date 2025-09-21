@@ -404,6 +404,7 @@ startxref
         print("🧪 PDF-ONLY RESTRICTION WITH ENHANCED OCR TESTING")
         print("=" * 80)
         print(f"Backend URL: {BACKEND_URL}")
+        print(f"Internal URL: {INTERNAL_URL}")
         print(f"API Base: {API_BASE}")
         print(f"Test PDF URL: {TEST_PDF_URL}")
         print()
