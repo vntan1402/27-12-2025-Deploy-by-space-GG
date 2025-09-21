@@ -710,15 +710,11 @@ const HomePage = () => {
 
   const getSortIcon = (column) => {
     if (certificateSort.column !== column) {
-      return (
-        <span className="ml-1 text-gray-400 text-xs">
-          <span className="inline-block">↕</span>
-        </span>
-      ); // Both arrows when not sorted
+      return null; // No icon when not sorted
     }
     return (
-      <span className="ml-1 text-blue-600 text-xs font-bold">
-        {certificateSort.direction === 'asc' ? '↑' : '↓'}
+      <span className="ml-1 text-blue-600 text-sm font-bold">
+        {certificateSort.direction === 'asc' ? '▲' : '▼'}
       </span>
     );
   };
