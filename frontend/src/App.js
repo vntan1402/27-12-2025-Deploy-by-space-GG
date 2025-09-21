@@ -6977,7 +6977,7 @@ const AddRecordModal = ({
       const response = await axios.post(`${API}/certificates/multi-upload?ship_id=${selectedShip.id}`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': multipart/form-data
+          'Content-Type': 'multipart/form-data'
         }
       });
       
