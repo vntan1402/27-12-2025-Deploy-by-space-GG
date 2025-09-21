@@ -2031,31 +2031,22 @@ async def analyze_ship_certificate(
     file: UploadFile = File(...),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Analyze ship certificate document (PDF or image) using AI with enhanced OCR support"""
+    """Analyze ship certificate PDF using AI with enhanced OCR support"""
     try:
+        # Validate file type - Only accept PDF files
+        if file.content_type != "application/pdf":
+            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        
         # Validate file size (10MB limit for better performance)
         if file.size and file.size > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB")
-        
-        # Accept both PDF and image files for enhanced processing
-        allowed_content_types = [
-            'application/pdf',
-            'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
-            'image/tiff', 'image/bmp'
-        ]
-        
-        if file.content_type not in allowed_content_types:
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Unsupported file type: {file.content_type}. Supported: PDF, JPEG, PNG, WebP, TIFF, BMP"
-            )
         
         # Read file content
         file_content = await file.read()
         if not file_content:
             raise HTTPException(status_code=400, detail="Empty file received")
         
-        logger.info(f"📄 Processing {file.content_type} file: {file.filename} ({len(file_content)} bytes)")
+        logger.info(f"📄 Processing PDF file: {file.filename} ({len(file_content)} bytes)")
         
         # Get AI configuration with fallback
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
@@ -2074,25 +2065,12 @@ async def analyze_ship_certificate(
             "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
         }
         
-        # Process file based on type with enhanced error handling
+        # Process PDF with enhanced OCR support
         try:
-            if file.content_type == 'application/pdf':
-                # Process PDF directly with enhanced OCR
-                analysis_result = await analyze_ship_document_with_ai(file_content, file.filename, file.content_type, ai_config)
-            else:
-                # Process image file - convert to PDF first, then use OCR
-                logger.info(f"🖼️ Converting image to PDF for enhanced OCR processing")
-                try:
-                    # Convert image to PDF format for consistent processing
-                    pdf_content = await convert_image_to_pdf(file_content, file.filename)
-                    analysis_result = await analyze_ship_document_with_ai(pdf_content, file.filename, 'application/pdf', ai_config)
-                except Exception as convert_error:
-                    logger.error(f"❌ Image conversion failed: {str(convert_error)}")
-                    # Fallback: process image directly with OCR
-                    analysis_result = await process_image_directly_with_ocr(file_content, file.filename, ai_config)
+            analysis_result = await analyze_ship_document_with_ai(file_content, file.filename, file.content_type, ai_config)
                     
         except Exception as processing_error:
-            logger.error(f"❌ Document processing failed: {str(processing_error)}")
+            logger.error(f"❌ PDF processing failed: {str(processing_error)}")
             # Return fallback data with error information
             fallback_result = get_fallback_ship_analysis(file.filename)
             fallback_result["error"] = f"Processing failed: {str(processing_error)}"
