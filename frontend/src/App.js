@@ -7934,7 +7934,28 @@ const AddRecordModal = ({
                       type="file"
                       multiple
                       className="sr-only"
-                      onChange={(e) => selectedShip && !isMultiCertProcessing ? handleMultiCertUpload(e.target.files) : null}
+                      onChange={(e) => {
+                        if (selectedShip && !isMultiCertProcessing) {
+                          // Create auto-fill callback for AddRecordModal context
+                          const autoFillCallback = (data, fieldCount) => {
+                            console.log('🔄 Auto-filling certificate form with data:', data);
+                            setCertificateData(prev => ({
+                              ...prev,
+                              ...data
+                            }));
+                            
+                            // Show auto-fill success message
+                            toast.success(
+                              language === 'vi' 
+                                ? `✅ Đã auto-fill ${fieldCount} trường thông tin certificate!`
+                                : `✅ Auto-filled ${fieldCount} certificate fields!`
+                            );
+                          };
+                          
+                          // Call handleMultiCertUpload with auto-fill callback
+                          handleMultiCertUpload(e.target.files, autoFillCallback);
+                        }
+                      }}
                       accept=".pdf"
                       disabled={!selectedShip || isMultiCertProcessing}
                     />
