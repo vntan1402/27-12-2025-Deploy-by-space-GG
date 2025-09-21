@@ -194,8 +194,7 @@ class PDFOCRTester:
                             error="No analysis result provided")
                 return False
             
-            data = analysis_result.get('data', {})
-            analysis = data.get('analysis', {})
+            analysis = analysis_result.get('analysis', {})
             
             # Expected ship data from the review request
             expected_data = {
