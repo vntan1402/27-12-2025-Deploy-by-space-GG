@@ -183,7 +183,7 @@ class PNGImageSupportTester:
                 
                 # Check for enhanced OCR processing indicators
                 processing_method = result.get('processing_method', '')
-                analysis_data = result.get('data', {}).get('analysis', {})
+                analysis_data = result.get('analysis', {})
                 
                 # Verify enhanced features
                 enhanced_features = []
