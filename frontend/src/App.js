@@ -7024,13 +7024,21 @@ const AddRecordModal = ({
           return;
         }
         
-        // Check if we have meaningful extracted data
-        const extractedFieldsCount = Object.keys(analysisData || {}).filter(key => 
-          analysisData[key] && String(analysisData[key]).trim() && 
-          !['confidence', 'processing_notes', 'error'].includes(key)
-        ).length;
+        // Check if we have meaningful extracted data - RELAXED VALIDATION
+        const analysisData = response.data.analysis || {};
+        const validFields = Object.keys(analysisData).filter(key => {
+          const value = analysisData[key];
+          return value && 
+                 String(value).trim() && 
+                 String(value).toLowerCase() !== 'null' &&
+                 String(value).toLowerCase() !== 'undefined' &&
+                 !['confidence', 'processing_notes', 'error', 'processing_method', 'engine_used'].includes(key);
+        });
         
-        if (extractedFieldsCount === 0) {
+        console.log('📊 Valid extracted fields:', validFields);
+        console.log('📊 Analysis data:', analysisData);
+        
+        if (validFields.length === 0) {
           toast.warning(language === 'vi' 
             ? '⚠️ Không thể trích xuất thông tin từ PDF. Vui lòng nhập thủ công.'
             : '⚠️ Could not extract information from PDF. Please enter manually.'
@@ -7038,7 +7046,7 @@ const AddRecordModal = ({
           return;
         }
         
-        // Auto-fill ship data with extracted information
+        // Auto-fill ship data with extracted information - FORCE UPDATE
         console.log('📋 Processing extracted data for auto-fill');
         
         // Convert extracted data to match frontend form field names
@@ -7060,6 +7068,8 @@ const AddRecordModal = ({
           processedData[key] && processedData[key].trim()
         ).length;
         
+        console.log('🔢 Number of fields to fill:', filledFields);
+        
         if (filledFields === 0) {
           toast.warning(language === 'vi' 
             ? '⚠️ PDF được phân tích nhưng không tìm thấy thông tin tàu phù hợp'
@@ -7068,17 +7078,25 @@ const AddRecordModal = ({
           return;
         }
         
-        // Update form with extracted data
+        // FORCE UPDATE: Use functional update and force re-render
+        console.log('🔄 FORCING form data update...');
         setShipData(prev => {
           const updatedData = {
             ...prev,
             ...processedData
           };
-          console.log('🔄 Updating ship form data:', updatedData);
+          console.log('📤 Previous data:', prev);
+          console.log('📥 Updated data:', updatedData);
+          
+          // Force a timeout to ensure state update
+          setTimeout(() => {
+            console.log('⏰ Checking if form updated after timeout...');
+          }, 100);
+          
           return updatedData;
         });
         
-        // Show success message with details
+        // Show success message IMMEDIATELY
         toast.success(language === 'vi' 
           ? `✅ Phân tích PDF thành công! Đã điền ${filledFields} trường thông tin tàu.`
           : `✅ PDF analysis completed! Auto-filled ${filledFields} ship information fields.`
@@ -7089,10 +7107,11 @@ const AddRecordModal = ({
           console.log('📋 Processing notes:', analysisData.processing_notes);
         }
         
-        // Close modal after short delay to show auto-filled data
+        // Close modal after longer delay to show auto-filled data
         setTimeout(() => {
+          console.log('🚪 Closing PDF analysis modal...');
           setShowPdfAnalysis(false);
-        }, 1500);
+        }, 2000);
         
       } else {
         // Handle API failure
