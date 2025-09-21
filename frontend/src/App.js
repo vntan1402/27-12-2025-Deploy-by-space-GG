@@ -1982,17 +1982,67 @@ const HomePage = () => {
                         <table className="w-full border-collapse border border-gray-300 text-sm">
                           <thead>
                             <tr className="bg-gray-50">
-                              <th className="border border-gray-300 px-4 py-2 text-left">No.</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Tên viết tắt' : 'Cert. Name'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Loại' : 'Type'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Trạng thái' : 'Status'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</th>
-                              <th className="border border-gray-300 px-4 py-2 text-left">{language === 'vi' ? 'Ghi chú' : 'Notes'}</th>
+                              <th className="border border-gray-300 px-4 py-2 text-left resize-x overflow-hidden min-w-[60px]">No.</th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[120px]"
+                                onClick={() => handleCertificateSort('cert_abbreviation')}
+                              >
+                                {language === 'vi' ? 'Tên viết tắt' : 'Cert. Name'} {getSortIcon('cert_abbreviation')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[100px]"
+                                onClick={() => handleCertificateSort('cert_type')}
+                              >
+                                {language === 'vi' ? 'Loại' : 'Type'} {getSortIcon('cert_type')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[120px]"
+                                onClick={() => handleCertificateSort('cert_no')}
+                              >
+                                {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'} {getSortIcon('cert_no')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[120px]"
+                                onClick={() => handleCertificateSort('issued_by')}
+                              >
+                                {language === 'vi' ? 'Cấp bởi' : 'Issued By'} {getSortIcon('issued_by')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[100px]"
+                                onClick={() => handleCertificateSort('issue_date')}
+                              >
+                                {language === 'vi' ? 'Ngày cấp' : 'Issue Date'} {getSortIcon('issue_date')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[100px]"
+                                onClick={() => handleCertificateSort('valid_date')}
+                              >
+                                {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'} {getSortIcon('valid_date')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[100px]"
+                                onClick={() => handleCertificateSort('last_endorse')}
+                              >
+                                {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'} {getSortIcon('last_endorse')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[120px]"
+                                onClick={() => handleCertificateSort('next_survey')}
+                              >
+                                {language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'} {getSortIcon('next_survey')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[80px]"
+                                onClick={() => handleCertificateSort('status')}
+                              >
+                                {language === 'vi' ? 'Trạng thái' : 'Status'} {getSortIcon('status')}
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 resize-x overflow-hidden min-w-[100px]"
+                                onClick={() => handleCertificateSort('notes')}
+                              >
+                                {language === 'vi' ? 'Ghi chú' : 'Notes'} {getSortIcon('notes')}
+                              </th>
                             </tr>
                           </thead>
                           <tbody>
