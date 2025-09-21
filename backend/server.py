@@ -2109,77 +2109,7 @@ async def analyze_ship_certificate(
         logger.error(f"❌ Ship certificate analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-async def convert_image_to_pdf(image_content: bytes, filename: str) -> bytes:
-    """Convert image to PDF format for OCR processing"""
-    try:
-        from PIL import Image
-        import io
-        
-        # Load and process image
-        image = Image.open(io.BytesIO(image_content))
-        
-        # Convert to RGB if necessary (required for PDF)
-        if image.mode in ('RGBA', 'LA', 'P'):
-            # Create white background for transparent images
-            background = Image.new('RGB', image.size, (255, 255, 255))
-            if image.mode == 'P':
-                image = image.convert('RGBA')
-            background.paste(image, mask=image.split()[-1] if image.mode in ('RGBA', 'LA') else None)
-            image = background
-        elif image.mode != 'RGB':
-            image = image.convert('RGB')
-        
-        # Optimize image size for better OCR while maintaining quality
-        max_size = (2048, 2048)  # Reasonable size for OCR
-        if image.size[0] > max_size[0] or image.size[1] > max_size[1]:
-            image.thumbnail(max_size, Image.Resampling.LANCZOS)
-        
-        # Save as PDF
-        pdf_buffer = io.BytesIO()
-        image.save(pdf_buffer, format='PDF', quality=95, optimize=True)
-        pdf_content = pdf_buffer.getvalue()
-        
-        logger.info(f"✅ Successfully converted {filename} to PDF ({len(pdf_content)} bytes)")
-        return pdf_content
-        
-    except Exception as e:
-        logger.error(f"❌ Image to PDF conversion failed for {filename}: {str(e)}")
-        raise Exception(f"Failed to convert image to PDF: {str(e)}")
 
-async def process_image_directly_with_ocr(image_content: bytes, filename: str, ai_config: dict) -> dict:
-    """Process image directly with OCR when PDF conversion fails"""
-    try:
-        logger.info(f"🖼️ Processing image directly with OCR: {filename}")
-        
-        # Use enhanced OCR processor to extract text from image
-        ocr_result = await ocr_processor.extract_text_with_tesseract(image_content)
-        
-        if ocr_result["success"] and len(ocr_result["text"].strip()) > 10:
-            logger.info(f"✅ OCR text extraction successful: {len(ocr_result['text'])} characters")
-            
-            # Analyze extracted text for maritime certificate information
-            maritime_analysis = await ocr_processor.analyze_maritime_certificate_text(ocr_result["text"])
-            
-            # Map certificate data to ship data format
-            ship_data = map_certificate_to_ship_data(maritime_analysis)
-            
-            if ship_data and len(ship_data) >= 2:
-                logger.info(f"✅ Successfully mapped OCR data to ship fields")
-                ship_data["processing_method"] = "direct_image_ocr"
-                ship_data["engine_used"] = "tesseract"
-                ship_data["confidence"] = ocr_result["confidence"]
-                return ship_data
-        
-        logger.warning(f"⚠️ Direct image OCR processing insufficient: {ocr_result.get('error', 'Low confidence')}")
-        fallback_result = get_fallback_ship_analysis(filename)
-        fallback_result["error"] = "OCR text extraction failed or produced insufficient results"
-        return fallback_result
-        
-    except Exception as e:
-        logger.error(f"❌ Direct image OCR processing failed: {str(e)}")
-        fallback_result = get_fallback_ship_analysis(filename)
-        fallback_result["error"] = f"Direct OCR processing error: {str(e)}"
-        return fallback_result
 
 def map_certificate_to_ship_data(maritime_analysis: dict) -> Optional[dict]:
     """Enhanced mapping of maritime certificate data to ship form fields"""
