@@ -25,7 +25,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithM
 from mongodb_database import mongo_db
 from google_drive_manager import GoogleDriveManager
 
-# Import the OCR processor
+# Import the enhanced OCR processor
 from ocr_processor import ocr_processor
 
 ROOT_DIR = Path(__file__).parent
