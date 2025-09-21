@@ -992,9 +992,9 @@
 
 ## test_plan:
   current_focus:
-    - "Certificate Analysis Frontend Integration"
+    - "Enhanced OCR-enabled Add New Ship Functionality"
   stuck_tasks:
-    - "Certificate Analysis Frontend Integration"
+    - 
   test_all: false
   test_priority: "high_first"
 
