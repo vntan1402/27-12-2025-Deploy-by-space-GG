@@ -2115,6 +2115,51 @@ def map_certificate_to_ship_data(maritime_analysis: dict) -> dict:
         logger.error(f"Error mapping certificate to ship data: {e}")
         return {}
 
+def map_certificate_to_ship_data(maritime_analysis: dict) -> Optional[dict]:
+    """Map maritime certificate data to ship form fields"""
+    try:
+        ship_data = {}
+        
+        # Map certificate fields to ship fields
+        if maritime_analysis.get("ship_name"):
+            ship_data["ship_name"] = maritime_analysis["ship_name"]
+        
+        if maritime_analysis.get("imo_number"):
+            ship_data["imo_number"] = maritime_analysis["imo_number"]
+        
+        if maritime_analysis.get("certificate_type"):
+            # Try to infer some ship data from certificate type
+            cert_type = maritime_analysis["certificate_type"].lower()
+            if "safety management" in cert_type:
+                ship_data["class_society"] = maritime_analysis.get("issued_by", "")
+        
+        # Only return if we have meaningful ship data
+        if len([v for v in ship_data.values() if v and str(v).strip()]) >= 2:
+            logger.info(f"📋 Mapped certificate data to ship fields: {ship_data}")
+            return ship_data
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"❌ Certificate to ship data mapping failed: {str(e)}")
+        return None
+
+def get_fallback_ship_analysis(filename: str) -> dict:
+    """Generate fallback ship analysis when OCR/AI fails"""
+    return {
+        "ship_name": "",
+        "imo_number": "",
+        "flag": "",
+        "class_society": "",
+        "gross_tonnage": "",
+        "deadweight": "",
+        "built_year": "",
+        "ship_owner": "",
+        "confidence": 0.0,
+        "processing_notes": [f"OCR/AI analysis failed for {filename}. Manual input required."],
+        "error": "Auto-fill failed - please enter ship information manually"
+    }
+
 async def analyze_ship_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze ship document using AI to extract ship-specific information with OCR support"""
     try:
