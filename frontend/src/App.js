@@ -1035,7 +1035,7 @@ const HomePage = () => {
   };
 
   // Multi Cert Upload Functions
-  const handleMultiCertUpload = async (files) => {
+  const handleMultiCertUpload = async (files, autoFillCallback = null) => {
     if (!files || files.length === 0) return;
     
     if (!selectedShip) {
