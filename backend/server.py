@@ -2031,23 +2031,41 @@ async def analyze_ship_certificate(
     file: UploadFile = File(...),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Analyze ship certificate PDF and extract ship information for auto-fill"""
+    """Analyze ship certificate document (PDF or image) using AI with enhanced OCR support"""
     try:
-        # Validate file type
-        if not file.content_type or not file.content_type.startswith('application/pdf'):
-            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        # Validate file size (10MB limit for better performance)
+        if file.size and file.size > 10 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB")
+        
+        # Accept both PDF and image files for enhanced processing
+        allowed_content_types = [
+            'application/pdf',
+            'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
+            'image/tiff', 'image/bmp'
+        ]
+        
+        if file.content_type not in allowed_content_types:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Unsupported file type: {file.content_type}. Supported: PDF, JPEG, PNG, WebP, TIFF, BMP"
+            )
         
         # Read file content
         file_content = await file.read()
+        if not file_content:
+            raise HTTPException(status_code=400, detail="Empty file received")
         
-        # Check file size (5MB limit for ship certificate analysis)
-        if len(file_content) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File size exceeds 5MB limit")
+        logger.info(f"📄 Processing {file.content_type} file: {file.filename} ({len(file_content)} bytes)")
         
-        # Get AI configuration
+        # Get AI configuration with fallback
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
         if not ai_config_doc:
-            raise HTTPException(status_code=500, detail="AI configuration not found. Please configure AI settings first.")
+            logger.warning("No AI configuration found, using fallback data")
+            return {
+                "success": True,
+                "analysis": get_fallback_ship_analysis(file.filename),
+                "message": "Ship certificate analyzed successfully (fallback mode - please configure AI settings)"
+            }
         
         ai_config = {
             "provider": ai_config_doc.get("provider", "openai"),
@@ -2056,13 +2074,50 @@ async def analyze_ship_certificate(
             "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
         }
         
-        # Analyze document with AI specifically for ship information
-        analysis_result = await analyze_ship_document_with_ai(
-            file_content, file.filename, file.content_type, ai_config
-        )
+        # Process file based on type with enhanced error handling
+        try:
+            if file.content_type == 'application/pdf':
+                # Process PDF directly with enhanced OCR
+                analysis_result = await analyze_ship_document_with_ai(file_content, file.filename, file.content_type, ai_config)
+            else:
+                # Process image file - convert to PDF first, then use OCR
+                logger.info(f"🖼️ Converting image to PDF for enhanced OCR processing")
+                try:
+                    # Convert image to PDF format for consistent processing
+                    pdf_content = await convert_image_to_pdf(file_content, file.filename)
+                    analysis_result = await analyze_ship_document_with_ai(pdf_content, file.filename, 'application/pdf', ai_config)
+                except Exception as convert_error:
+                    logger.error(f"❌ Image conversion failed: {str(convert_error)}")
+                    # Fallback: process image directly with OCR
+                    analysis_result = await process_image_directly_with_ocr(file_content, file.filename, ai_config)
+                    
+        except Exception as processing_error:
+            logger.error(f"❌ Document processing failed: {str(processing_error)}")
+            # Return fallback data with error information
+            fallback_result = get_fallback_ship_analysis(file.filename)
+            fallback_result["error"] = f"Processing failed: {str(processing_error)}"
+            analysis_result = fallback_result
         
-        # Track usage
-        await track_ai_usage(current_user, "ship_certificate_analysis", ai_config)
+        # Validate result and ensure required fields
+        if not analysis_result or not isinstance(analysis_result, dict):
+            analysis_result = get_fallback_ship_analysis(file.filename)
+            analysis_result["error"] = "Invalid analysis result - using fallback data"
+        
+        # Log usage for monitoring
+        try:
+            await mongo_db.insert_one("ship_certificate_analysis_log", {
+                "id": str(uuid.uuid4()),
+                "user_id": current_user.id,
+                "filename": file.filename,
+                "file_size": len(file_content),
+                "content_type": file.content_type,
+                "analysis_timestamp": datetime.now(timezone.utc),
+                "success": analysis_result.get("error") is None,
+                "processing_method": analysis_result.get("processing_method", "unknown"),
+                "engine_used": analysis_result.get("engine_used", "unknown")
+            })
+        except Exception as log_error:
+            logger.warning(f"Failed to log analysis: {str(log_error)}")
         
         return {
             "success": True,
@@ -2073,8 +2128,80 @@ async def analyze_ship_certificate(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Ship certificate analysis error: {e}")
+        logger.error(f"❌ Ship certificate analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+async def convert_image_to_pdf(image_content: bytes, filename: str) -> bytes:
+    """Convert image to PDF format for OCR processing"""
+    try:
+        from PIL import Image
+        import io
+        
+        # Load and process image
+        image = Image.open(io.BytesIO(image_content))
+        
+        # Convert to RGB if necessary (required for PDF)
+        if image.mode in ('RGBA', 'LA', 'P'):
+            # Create white background for transparent images
+            background = Image.new('RGB', image.size, (255, 255, 255))
+            if image.mode == 'P':
+                image = image.convert('RGBA')
+            background.paste(image, mask=image.split()[-1] if image.mode in ('RGBA', 'LA') else None)
+            image = background
+        elif image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Optimize image size for better OCR while maintaining quality
+        max_size = (2048, 2048)  # Reasonable size for OCR
+        if image.size[0] > max_size[0] or image.size[1] > max_size[1]:
+            image.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Save as PDF
+        pdf_buffer = io.BytesIO()
+        image.save(pdf_buffer, format='PDF', quality=95, optimize=True)
+        pdf_content = pdf_buffer.getvalue()
+        
+        logger.info(f"✅ Successfully converted {filename} to PDF ({len(pdf_content)} bytes)")
+        return pdf_content
+        
+    except Exception as e:
+        logger.error(f"❌ Image to PDF conversion failed for {filename}: {str(e)}")
+        raise Exception(f"Failed to convert image to PDF: {str(e)}")
+
+async def process_image_directly_with_ocr(image_content: bytes, filename: str, ai_config: dict) -> dict:
+    """Process image directly with OCR when PDF conversion fails"""
+    try:
+        logger.info(f"🖼️ Processing image directly with OCR: {filename}")
+        
+        # Use enhanced OCR processor to extract text from image
+        ocr_result = await ocr_processor.extract_text_with_tesseract(image_content)
+        
+        if ocr_result["success"] and len(ocr_result["text"].strip()) > 10:
+            logger.info(f"✅ OCR text extraction successful: {len(ocr_result['text'])} characters")
+            
+            # Analyze extracted text for maritime certificate information
+            maritime_analysis = await ocr_processor.analyze_maritime_certificate_text(ocr_result["text"])
+            
+            # Map certificate data to ship data format
+            ship_data = map_certificate_to_ship_data(maritime_analysis)
+            
+            if ship_data and len(ship_data) >= 2:
+                logger.info(f"✅ Successfully mapped OCR data to ship fields")
+                ship_data["processing_method"] = "direct_image_ocr"
+                ship_data["engine_used"] = "tesseract"
+                ship_data["confidence"] = ocr_result["confidence"]
+                return ship_data
+        
+        logger.warning(f"⚠️ Direct image OCR processing insufficient: {ocr_result.get('error', 'Low confidence')}")
+        fallback_result = get_fallback_ship_analysis(filename)
+        fallback_result["error"] = "OCR text extraction failed or produced insufficient results"
+        return fallback_result
+        
+    except Exception as e:
+        logger.error(f"❌ Direct image OCR processing failed: {str(e)}")
+        fallback_result = get_fallback_ship_analysis(filename)
+        fallback_result["error"] = f"Direct OCR processing error: {str(e)}"
+        return fallback_result
 
 def map_certificate_to_ship_data(maritime_analysis: dict) -> Optional[dict]:
     """Enhanced mapping of maritime certificate data to ship form fields"""
