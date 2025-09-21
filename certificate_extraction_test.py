@@ -158,270 +158,215 @@ class CertificateExtractionTester:
         
         if response.status_code == 200:
             config = response.json()
-            print(f"✅ AI Configuration:")
-            print(f"   Provider: {config.get('provider')}")
-            print(f"   Model: {config.get('model')}")
-            print(f"   Use Emergent Key: {config.get('use_emergent_key')}")
+            self.log_result("AI Configuration", True, 
+                          f"Provider: {config.get('provider')}, Model: {config.get('model')}, Use Emergent Key: {config.get('use_emergent_key')}")
             return config
         else:
-            print(f"❌ Failed to get AI config: {response.status_code}")
+            self.log_result("AI Configuration", False, error=f"Status: {response.status_code}")
             return None
 
-    def create_realistic_maritime_certificate(self):
-        """Create a realistic maritime certificate similar to PM252494430.pdf"""
-        certificate_content = """
-PANAMA MARITIME DOCUMENTATION SERVICES
-REPUBLIC OF PANAMA
-
-SAFETY MANAGEMENT CERTIFICATE
-
-Certificate No: PM252494430
-Ship Name: MV OCEAN NAVIGATOR
-IMO Number: 9123456789
-Call Sign: 3EAB7
-Flag: Panama
-Gross Tonnage: 28,500
-Deadweight: 42,000 MT
-Built: 2019
-
-This is to certify that the Safety Management System of the ship named above has been audited and found to comply with the requirements of the International Safety Management (ISM) Code as adopted by the International Maritime Organization by Resolution A.741(18).
-
-Certificate Type: Full Term
-Issue Date: 15 March 2024
-Valid Until: 15 March 2025
-Last Annual Verification: 15 September 2024
-Next Annual Verification: 15 September 2025
-
-Issued By: Panama Maritime Documentation Services
-On behalf of: Republic of Panama Maritime Authority
-Classification Society: American Bureau of Shipping (ABS)
-Ship Owner: Maritime Holdings International Ltd
-Managing Company: Global Ship Management Inc
-
-Place of Issue: Panama City, Panama
-Date of Issue: 15 March 2024
-
-Authorized Officer: Captain Roberto Martinez
-Maritime Safety Inspector
-Panama Maritime Authority
-
-This certificate is issued under the provisions of the International Safety Management Code.
-"""
-        return certificate_content.encode('utf-8')
-
-    def test_certificate_upload(self):
-        """Test certificate upload and AI analysis"""
-        print("\n📄 Testing Certificate Upload with AI Analysis...")
+    def test_certificate_upload_and_extraction(self):
+        """Test certificate upload with the specific PDF file and verify OCR extraction"""
+        print("📤 Testing Certificate Upload & Extraction...")
         
-        # Create realistic certificate content
-        cert_content = self.create_realistic_maritime_certificate()
+        if not self.test_ship_id or not self.pdf_content:
+            self.log_result("Certificate Upload & Extraction", False, 
+                          error="Missing test ship ID or PDF content")
+            return None
         
-        # Prepare file upload
-        files = {
-            'files': ('PM252494430.pdf', io.BytesIO(cert_content), 'application/pdf')
-        }
-        
-        headers = {'Authorization': f'Bearer {self.token}'}
-        
-        print("   Uploading PM252494430.pdf...")
-        response = requests.post(
-            f"{self.api_url}/certificates/upload-multi-files",
-            files=files,
-            headers=headers,
-            timeout=120
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Upload successful")
+        try:
+            # Prepare the PDF file for upload
+            files = [
+                ('files', ('SUNSHINE_01_ImagePDF.pdf', io.BytesIO(self.pdf_content), 'application/pdf'))
+            ]
             
-            results = data.get('results', [])
-            if results:
-                result = results[0]
-                print(f"   File: {result.get('filename')}")
-                print(f"   Status: {result.get('status')}")
+            headers = {'Authorization': f'Bearer {self.token}'}
+            response = requests.post(
+                f"{self.api_url}/certificates/multi-upload",
+                params={'ship_id': self.test_ship_id},
+                files=files,
+                headers=headers,
+                timeout=120
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
                 
-                analysis = result.get('analysis', {})
-                if analysis:
-                    print(f"\n   🔍 AI Analysis Results:")
+                # Verify response structure
+                if 'results' in result and len(result['results']) > 0:
+                    file_result = result['results'][0]
                     
-                    # Check the key fields that were reported as N/A
-                    cert_name = analysis.get('cert_name', 'N/A')
-                    cert_no = analysis.get('cert_no', 'N/A')
-                    issue_date = analysis.get('issue_date', 'N/A')
-                    valid_date = analysis.get('valid_date', 'N/A')
-                    issued_by = analysis.get('issued_by', 'N/A')
-                    ship_name = analysis.get('ship_name', 'N/A')
-                    
-                    print(f"     Ship Name: {ship_name}")
-                    print(f"     Cert Name: {cert_name}")
-                    print(f"     Cert No: {cert_no}")
-                    print(f"     Issue Date: {issue_date}")
-                    print(f"     Valid Date: {valid_date}")
-                    print(f"     Issued By: {issued_by}")
-                    
-                    # Check for the N/A issue
-                    na_fields = []
-                    key_fields = {
-                        'cert_name': cert_name,
-                        'cert_no': cert_no,
-                        'issue_date': issue_date,
-                        'valid_date': valid_date,
-                        'issued_by': issued_by
-                    }
-                    
-                    for field, value in key_fields.items():
-                        if value == 'N/A' or value is None or str(value).strip() == '':
-                            na_fields.append(field)
-                    
-                    if na_fields:
-                        print(f"\n   ❌ ISSUE CONFIRMED: Fields returning N/A: {', '.join(na_fields)}")
-                        print(f"   🔍 This matches the user's reported issue!")
+                    # Check if the file was processed successfully
+                    if file_result.get('status') == 'success':
+                        analysis = file_result.get('analysis', {})
                         
-                        # Show expected vs actual
-                        expected = {
-                            'cert_name': 'Safety Management Certificate',
-                            'cert_no': 'PM252494430',
-                            'issue_date': '2024-03-15',
-                            'valid_date': '2025-03-15',
-                            'issued_by': 'Panama Maritime Documentation Services'
+                        # Extract the certificate data from analysis
+                        extracted_data = {
+                            "certificate_name": analysis.get('cert_name', ''),
+                            "certificate_number": analysis.get('cert_no', ''),
+                            "issue_date": analysis.get('issue_date', ''),
+                            "issued_by": analysis.get('issued_by', ''),
+                            "ship_name": analysis.get('ship_name', ''),
+                            "imo_number": analysis.get('imo_number', '')
                         }
                         
-                        print(f"\n   📋 Expected vs Actual:")
-                        for field in na_fields:
-                            print(f"     {field}: Expected '{expected.get(field, 'Unknown')}', Got '{key_fields[field]}'")
-                            
+                        self.log_result("Certificate Upload & Extraction", True, 
+                                      f"PDF uploaded and processed successfully. Extracted data: {json.dumps(extracted_data, indent=2)}")
+                        
+                        return extracted_data
                     else:
-                        print(f"\n   ✅ All certificate fields extracted successfully!")
-                        print(f"   🎉 The N/A issue appears to be resolved!")
-                    
-                    # Show full analysis for debugging
-                    print(f"\n   📊 Full Analysis Response:")
-                    print(json.dumps(analysis, indent=4, default=str))
-                    
-                    return len(na_fields) == 0, analysis
-                    
+                        error_msg = file_result.get('message', 'Unknown error')
+                        self.log_result("Certificate Upload & Extraction", False, 
+                                      error=f"File processing failed: {error_msg}")
+                        return None
                 else:
-                    print(f"   ❌ No analysis data in response")
-                    return False, None
+                    self.log_result("Certificate Upload & Extraction", False, 
+                                  error="No results in response or empty results")
+                    return None
             else:
-                print(f"   ❌ No results in response")
-                return False, None
-        else:
-            print(f"❌ Upload failed: {response.status_code}")
-            try:
-                error_data = response.json()
-                print(f"   Error: {error_data}")
-            except:
-                print(f"   Error: {response.text}")
-            return False, None
-
-    def test_duplicate_detection(self):
-        """Test if duplicate detection is working (user reported this works)"""
-        print("\n🔍 Testing Duplicate Detection...")
-        
-        # Upload the same certificate again to test duplicate detection
-        cert_content = self.create_realistic_maritime_certificate()
-        
-        files = {
-            'files': ('PM252494430_duplicate.pdf', io.BytesIO(cert_content), 'application/pdf')
-        }
-        
-        headers = {'Authorization': f'Bearer {self.token}'}
-        
-        print("   Uploading duplicate certificate...")
-        response = requests.post(
-            f"{self.api_url}/certificates/upload-multi-files",
-            files=files,
-            headers=headers,
-            timeout=120
-        )
-        
-        if response.status_code == 200:
-            data = response.json()
-            results = data.get('results', [])
-            
-            if results:
-                result = results[0]
-                print(f"   Status: {result.get('status')}")
+                self.log_result("Certificate Upload & Extraction", False, 
+                              error=f"Status: {response.status_code}, Response: {response.text}")
+                return None
                 
-                # Check if duplicate detection triggered
-                analysis = result.get('analysis', {})
-                if analysis:
-                    print(f"   ✅ Duplicate detection appears to be working")
-                    print(f"   (User reported this feature works correctly)")
-                    return True
-                    
-        print(f"   ⚠️ Could not test duplicate detection properly")
-        return False
+        except Exception as e:
+            self.log_result("Certificate Upload & Extraction", False, error=str(e))
+            return None
 
-    def run_comprehensive_test(self):
-        """Run comprehensive certificate extraction test"""
-        print("🔍 CERTIFICATE INFORMATION EXTRACTION DEBUG TEST")
-        print("=" * 60)
-        print("Focus: Debug AI analysis issue where certificate information")
-        print("       extraction returns all 'N/A' values for PM252494430.pdf")
-        print("=" * 60)
-        
-        # Step 1: Login
-        if not self.login():
-            print("❌ Authentication failed, stopping tests")
+    def verify_extracted_data(self, extracted_data):
+        """Verify that the extracted data matches expected values and is not filename-based"""
+        if not extracted_data:
+            self.log_result("Data Verification", False, error="No extracted data to verify")
             return False
         
-        # Step 2: Check AI configuration
+        try:
+            # Check if we got the expected correct data
+            correct_matches = 0
+            total_expected = len(EXPECTED_DATA)
+            
+            verification_details = []
+            
+            for field, expected_value in EXPECTED_DATA.items():
+                extracted_value = extracted_data.get(field, '')
+                
+                # For dates, be flexible with format matching
+                if 'date' in field.lower():
+                    # Check if the date contains key components
+                    if 'December' in expected_value and 'December' in str(extracted_value):
+                        correct_matches += 1
+                        verification_details.append(f"✅ {field}: Contains expected date components")
+                    elif '2024' in expected_value and '2024' in str(extracted_value):
+                        correct_matches += 1
+                        verification_details.append(f"✅ {field}: Contains expected year")
+                    else:
+                        verification_details.append(f"❌ {field}: Expected '{expected_value}', got '{extracted_value}'")
+                else:
+                    # For other fields, check for key components
+                    if expected_value.lower() in str(extracted_value).lower() or str(extracted_value).lower() in expected_value.lower():
+                        correct_matches += 1
+                        verification_details.append(f"✅ {field}: Matches expected value")
+                    else:
+                        verification_details.append(f"❌ {field}: Expected '{expected_value}', got '{extracted_value}'")
+            
+            # Check that we're NOT getting the old incorrect filename-based data
+            filename_based_detected = False
+            for field, incorrect_value in INCORRECT_DATA.items():
+                extracted_value = extracted_data.get(field, '')
+                if incorrect_value.lower() in str(extracted_value).lower():
+                    filename_based_detected = True
+                    verification_details.append(f"⚠️ {field}: Contains filename-based data: '{extracted_value}'")
+            
+            # Determine success
+            success_threshold = total_expected * 0.6  # At least 60% of expected data should match
+            is_successful = correct_matches >= success_threshold and not filename_based_detected
+            
+            details = f"Correct matches: {correct_matches}/{total_expected}. " + "; ".join(verification_details)
+            
+            if is_successful:
+                self.log_result("Data Verification", True, details)
+            else:
+                error_msg = f"Insufficient correct matches ({correct_matches}/{total_expected})"
+                if filename_based_detected:
+                    error_msg += " and filename-based data detected"
+                self.log_result("Data Verification", False, error=error_msg, details=details)
+            
+            return is_successful
+            
+        except Exception as e:
+            self.log_result("Data Verification", False, error=str(e))
+            return False
+
+    def run_certificate_extraction_test(self):
+        """Run the complete certificate extraction test"""
+        print("🔍 CERTIFICATE EXTRACTION TEST - SPECIFIC PDF FILE")
+        print("=" * 80)
+        print(f"Backend URL: {self.base_url}")
+        print(f"Test PDF URL: {TEST_PDF_URL}")
+        print(f"Expected Certificate: {EXPECTED_DATA['certificate_name']}")
+        print(f"Expected Certificate Number: {EXPECTED_DATA['certificate_number']}")
+        print()
+        
+        # Step 1: Authentication
+        if not self.login():
+            print("❌ Authentication failed. Cannot proceed with tests.")
+            return False
+        
+        # Step 2: Download the specific PDF file
+        if not self.download_test_pdf():
+            print("❌ PDF download failed. Cannot proceed with extraction test.")
+            return False
+        
+        # Step 3: Get a test ship
+        if not self.get_test_ship():
+            print("❌ Ship selection failed. Cannot proceed without test ship.")
+            return False
+        
+        # Step 4: Test AI configuration
         ai_config = self.test_ai_config()
         if not ai_config:
-            print("❌ AI configuration check failed")
+            print("❌ AI configuration test failed. AI analysis may not work.")
+            # Continue to see what happens
+        
+        # Step 5: Test certificate upload and extraction
+        extracted_data = self.test_certificate_upload_and_extraction()
+        if not extracted_data:
+            print("❌ Certificate extraction failed.")
             return False
         
-        # Step 3: Test certificate upload and analysis
-        extraction_success, analysis_data = self.test_certificate_upload()
-        
-        # Step 4: Test duplicate detection (user reported this works)
-        duplicate_success = self.test_duplicate_detection()
+        # Step 6: Verify the extracted data
+        if not self.verify_extracted_data(extracted_data):
+            print("❌ Data verification failed. Extracted data does not match expected values.")
+            return False
         
         # Summary
-        print("\n" + "=" * 60)
-        print("📊 TEST RESULTS SUMMARY")
-        print("=" * 60)
+        print("=" * 80)
+        print("📊 CERTIFICATE EXTRACTION TEST SUMMARY")
+        print("=" * 80)
         
-        if extraction_success:
-            print("✅ CERTIFICATE INFORMATION EXTRACTION: WORKING")
-            print("   All certificate fields are being extracted correctly")
-            print("   The N/A issue may be resolved or context-specific")
+        print(f"Total Tests: {self.tests_run}")
+        print(f"Passed: {self.tests_passed}")
+        print(f"Failed: {self.tests_run - self.tests_passed}")
+        print(f"Success Rate: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        
+        if self.tests_passed == self.tests_run:
+            print("\n🎉 CERTIFICATE EXTRACTION TEST PASSED!")
+            print("✅ OCR processor is working correctly")
+            print("✅ Real certificate data is being extracted from PDF content")
+            print("✅ No filename-based fake data detected")
+            return True
         else:
-            print("❌ CERTIFICATE INFORMATION EXTRACTION: FAILING")
-            print("   Certificate fields are returning N/A values")
-            print("   This confirms the user's reported issue")
-        
-        if duplicate_success:
-            print("✅ DUPLICATE DETECTION: WORKING")
-            print("   Matches user's report that duplicate detection works")
-        
-        # Recommendations
-        print(f"\n🔧 RECOMMENDATIONS:")
-        if not extraction_success:
-            print("1. Check AI prompt formatting for certificate extraction")
-            print("2. Verify PDF text extraction is working correctly")
-            print("3. Test with the actual PM252494430.pdf file")
-            print("4. Check if specific certificate formats cause issues")
-            print("5. Verify Google/Gemini model configuration")
-        else:
-            print("1. The AI analysis appears to be working correctly")
-            print("2. The issue may be specific to certain PDF formats")
-            print("3. Test with the actual user's PM252494430.pdf file")
-            print("4. Check if the issue occurs with specific certificate types")
-        
-        return extraction_success
+            print(f"\n❌ {self.tests_run - self.tests_passed} tests failed.")
+            print("⚠️ OCR processor may not be working correctly")
+            print("⚠️ System may still be generating filename-based data")
+            return False
 
 def main():
     """Main test execution"""
     tester = CertificateExtractionTester()
-    success = tester.run_comprehensive_test()
+    success = tester.run_certificate_extraction_test()
     
     if success:
         print("\n🎉 Certificate extraction test completed successfully!")
-        print("The AI analysis appears to be working correctly.")
+        print("The OCR processor and AI analysis are working correctly.")
         return 0
     else:
         print("\n⚠️ Certificate extraction issues found - investigation needed")
