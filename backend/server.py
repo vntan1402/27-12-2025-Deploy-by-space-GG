@@ -2139,6 +2139,22 @@ def map_certificate_to_ship_data(maritime_analysis: dict) -> Optional[dict]:
         logger.error(f"❌ Certificate to ship data mapping failed: {str(e)}")
         return None
 
+def get_fallback_ship_analysis(filename: str) -> dict:
+    """Generate fallback ship analysis when OCR/AI fails"""
+    return {
+        "ship_name": "",
+        "imo_number": "",
+        "flag": "",
+        "class_society": "",
+        "gross_tonnage": "",
+        "deadweight": "",
+        "built_year": "",
+        "ship_owner": "",
+        "confidence": 0.0,
+        "processing_notes": [f"OCR/AI analysis failed for {filename}. Manual input required."],
+        "error": "Auto-fill failed - please enter ship information manually"
+    }
+
 async def analyze_ship_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze ship document using AI to extract ship-specific information with OCR support"""
     try:
