@@ -1,7 +1,19 @@
 #!/usr/bin/env python3
 """
-Certificate Information Extraction Test
-Focus on the specific issue: PM252494430.pdf returns all N/A values
+Certificate Extraction Test - Specific PDF File Testing
+Testing certificate extraction with the SPECIFIC PDF file user provided to verify OCR processor is working correctly.
+This test focuses on verifying that the system extracts CORRECT data from PDF content using enhanced OCR processor
+instead of generating fake filename-based data.
+
+REVIEW REQUEST VERIFICATION:
+- Test POST /api/certificates/multi-upload with ship selection and the EXACT PDF file
+- Verify CORRECT data extraction:
+  * Certificate Name: "International Tonnage Certificate (1969)"
+  * Certificate Number: "PM242868" 
+  * Issue Date: "December 12, 2024"
+  * Issued By: "Government of Belize, issued by Panama Maritime Documentation Services Inc."
+  * Ship Name: "SUNSHINE 01"
+  * IMO Number: "9415313"
 """
 
 import requests
@@ -12,6 +24,26 @@ import io
 from datetime import datetime
 import time
 
+# Test configuration
+TEST_PDF_URL = "https://customer-assets.emergentagent.com/job_ship-cert-manager-1/artifacts/s6nh3s3p_SUNSHINE_01_ImagePDF.pdf"
+
+# Expected correct extraction data from review request
+EXPECTED_DATA = {
+    "certificate_name": "International Tonnage Certificate (1969)",
+    "certificate_number": "PM242868",
+    "issue_date": "December 12, 2024",
+    "issued_by": "Government of Belize, issued by Panama Maritime Documentation Services Inc.",
+    "ship_name": "SUNSHINE 01",
+    "imo_number": "9415313"
+}
+
+# Data that should NOT be extracted (old filename-based data)
+INCORRECT_DATA = {
+    "certificate_name": "Maritime Certificate - SUNSHINE_01_ImagePDF",
+    "certificate_number": "CERT_SUNSHINE_01_IMAGEPDF",
+    "issued_by": "Maritime Authority (Filename-based classification)"
+}
+
 class CertificateExtractionTester:
     def __init__(self, base_url="https://ship-cert-manager-1.preview.emergentagent.com"):
         self.base_url = base_url
@@ -19,6 +51,22 @@ class CertificateExtractionTester:
         self.token = None
         self.tests_run = 0
         self.tests_passed = 0
+        self.test_ship_id = None
+        self.pdf_content = None
+
+    def log_result(self, test_name, success, details="", error=""):
+        """Log test results"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+        
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} {test_name}")
+        if details:
+            print(f"    Details: {details}")
+        if error:
+            print(f"    Error: {error}")
+        print()
 
     def login(self):
         """Login as admin"""
@@ -34,17 +82,76 @@ class CertificateExtractionTester:
             data = response.json()
             self.token = data['access_token']
             user = data.get('user', {})
-            print(f"✅ Login successful")
-            print(f"   User: {user.get('full_name')} ({user.get('role')})")
-            print(f"   Company: {user.get('company', 'Not assigned')}")
+            self.log_result("Authentication", True, 
+                          f"User: {user.get('full_name')} ({user.get('role')}), Company: {user.get('company', 'Not assigned')}")
             return True
         else:
-            print(f"❌ Login failed: {response.status_code} - {response.text}")
+            self.log_result("Authentication", False, error=f"{response.status_code} - {response.text}")
+            return False
+
+    def download_test_pdf(self):
+        """Download the specific PDF file from the provided URL"""
+        print(f"📥 Downloading test PDF from: {TEST_PDF_URL}")
+        try:
+            response = requests.get(TEST_PDF_URL, timeout=60)
+            
+            if response.status_code == 200:
+                self.pdf_content = response.content
+                file_size = len(self.pdf_content)
+                self.log_result("PDF Download", True, 
+                              f"Downloaded PDF file successfully. Size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
+                return True
+            else:
+                self.log_result("PDF Download", False, error=f"Failed to download PDF. Status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_result("PDF Download", False, error=str(e))
+            return False
+
+    def get_test_ship(self):
+        """Get a ship for testing - look for SUNSHINE 01 or use first available"""
+        print("🚢 Getting test ship...")
+        try:
+            headers = {'Authorization': f'Bearer {self.token}'}
+            response = requests.get(f"{self.api_url}/ships", headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                ships = response.json()
+                if ships and len(ships) > 0:
+                    # Look for SUNSHINE 01 first (matches the PDF)
+                    sunshine_ship = None
+                    for ship in ships:
+                        if "SUNSHINE" in ship.get('name', '').upper():
+                            sunshine_ship = ship
+                            break
+                    
+                    if sunshine_ship:
+                        self.test_ship_id = sunshine_ship['id']
+                        ship_name = sunshine_ship['name']
+                        self.log_result("Ship Selection", True, 
+                                      f"Found matching ship: {ship_name} (ID: {self.test_ship_id})")
+                    else:
+                        # Use first available ship
+                        self.test_ship_id = ships[0]['id']
+                        ship_name = ships[0]['name']
+                        self.log_result("Ship Selection", True, 
+                                      f"Using first available ship: {ship_name} (ID: {self.test_ship_id})")
+                    return True
+                else:
+                    self.log_result("Ship Selection", False, error="No ships found in database")
+                    return False
+            else:
+                self.log_result("Ship Selection", False, error=f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_result("Ship Selection", False, error=str(e))
             return False
 
     def test_ai_config(self):
         """Test current AI configuration"""
-        print("\n🤖 Checking AI Configuration...")
+        print("🤖 Checking AI Configuration...")
         
         headers = {'Authorization': f'Bearer {self.token}'}
         response = requests.get(f"{self.api_url}/ai-config", headers=headers, timeout=30)
