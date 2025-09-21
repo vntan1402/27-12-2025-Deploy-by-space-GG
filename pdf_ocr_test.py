@@ -138,7 +138,7 @@ class PDFOCRTester:
                         return None
                 else:
                     self.log_test("PDF File Acceptance Test", False, 
-                                error="Response missing expected structure (success/data fields)")
+                                error="Response missing expected structure (success/analysis fields)")
                     return None
             else:
                 self.log_test("PDF File Acceptance Test", False, 
