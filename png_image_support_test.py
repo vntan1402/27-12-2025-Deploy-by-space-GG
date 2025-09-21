@@ -300,7 +300,7 @@ class PNGImageSupportTester:
                 result = response.json()
                 
                 # Validate response structure
-                required_fields = ['success', 'data']
+                required_fields = ['success', 'analysis']
                 missing_fields = [field for field in required_fields if field not in result]
                 
                 if missing_fields:
@@ -308,11 +308,9 @@ class PNGImageSupportTester:
                                 error=f"Missing required fields: {missing_fields}")
                     return False
                 
-                # Check data structure
-                data = result.get('data', {})
-                if 'analysis' in data:
-                    analysis = data['analysis']
-                    
+                # Check analysis structure
+                analysis = result.get('analysis', {})
+                if analysis:
                     # Check for ship data fields
                     ship_fields = ['ship_name', 'imo_number', 'flag', 'class_society']
                     present_fields = [field for field in ship_fields if field in analysis]
