@@ -1203,6 +1203,46 @@ const HomePage = () => {
               : `✅ Successfully created ${summary.successfully_created} certificates from ${summary.total_files} files`
           );
           
+          // Auto-fill functionality for single file upload in AddRecordModal
+          if (autoFillCallback && fileArray.length === 1 && updatedUploads.length > 0) {
+            const uploadResult = updatedUploads[0];
+            if (uploadResult.status === 'completed' && uploadResult.analysis) {
+              console.log('🎯 Single file upload successful, triggering auto-fill:', uploadResult.analysis);
+              
+              // Prepare auto-fill data from analysis
+              const analysisData = uploadResult.analysis;
+              const autoFillData = {
+                cert_name: analysisData.cert_name || analysisData.certificate_name || '',
+                cert_no: analysisData.cert_no || analysisData.certificate_number || '',
+                issue_date: analysisData.issue_date || '',
+                valid_date: analysisData.valid_date || analysisData.expiry_date || '',
+                issued_by: analysisData.issued_by || '',
+                ship_id: selectedShip.id,
+                category: 'certificates',
+                sensitivity_level: 'internal'
+              };
+              
+              // Filter out empty values and count filled fields
+              const filledFields = Object.keys(autoFillData).filter(key => 
+                autoFillData[key] && String(autoFillData[key]).trim()
+              ).length;
+              
+              if (filledFields > 0) {
+                console.log('📋 Calling auto-fill callback with', filledFields, 'fields');
+                
+                // Call the auto-fill callback
+                autoFillCallback(autoFillData, filledFields);
+                
+                // Show enhanced success message for auto-fill
+                toast.success(
+                  language === 'vi' 
+                    ? `✅ Certificate tạo thành công và đã auto-fill ${filledFields} trường thông tin!`
+                    : `✅ Certificate created successfully and auto-filled ${filledFields} fields!`
+                );
+              }
+            }
+          }
+          
           // Refresh certificate list
           await fetchCertificates(selectedShip.id);
         }
