@@ -1433,13 +1433,20 @@ const HomePage = () => {
   };
 
   const getFilteredCertificates = () => {
-    return certificates.filter(cert => {
+    const filtered = certificates.filter(cert => {
       const typeMatch = certificateFilters.certificateType === 'all' || 
                        cert.cert_type === certificateFilters.certificateType;
+      
+      // Use new status logic for filtering
+      const certStatus = getCertificateStatus(cert);
       const statusMatch = certificateFilters.status === 'all' || 
-                         cert.status === certificateFilters.status;
+                         certStatus === certificateFilters.status;
+      
       return typeMatch && statusMatch;
     });
+    
+    // Apply sorting
+    return sortCertificates(filtered);
   };
 
   const getUniqueValues = (field) => {
