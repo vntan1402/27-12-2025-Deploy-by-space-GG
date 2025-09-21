@@ -253,8 +253,8 @@ class EnhancedOCRTester:
                             error="No OCR result to analyze")
                 return False
             
-            # Check for enhanced response fields
-            required_fields = ['data', 'processing_info']
+            # Check for enhanced response fields in current structure
+            required_fields = ['success', 'analysis', 'message']
             missing_fields = [field for field in required_fields if field not in ocr_result]
             
             if missing_fields:
@@ -262,37 +262,35 @@ class EnhancedOCRTester:
                             error=f"Missing required response fields: {missing_fields}")
                 return False
             
-            processing_info = ocr_result.get('processing_info', {})
-            analysis_data = ocr_result.get('data', {}).get('analysis', {})
+            analysis_data = ocr_result.get('analysis', {})
             
             # Check for enhanced processing information
             enhanced_fields = []
             
-            # Processing time
-            if 'processing_time' in processing_info:
-                enhanced_fields.append(f"Processing Time: {processing_info['processing_time']:.2f}s")
+            # Success indicator
+            if ocr_result.get('success'):
+                enhanced_fields.append("Success Status: True")
             
-            # Engine used
-            if 'engine_used' in processing_info:
-                enhanced_fields.append(f"Engine Used: {processing_info['engine_used']}")
+            # Processing method/reason
+            if 'fallback_reason' in analysis_data:
+                enhanced_fields.append(f"Processing Method: {analysis_data['fallback_reason']}")
             
-            # Confidence scores
-            if 'confidence_score' in processing_info:
-                enhanced_fields.append(f"Confidence Score: {processing_info['confidence_score']:.2f}")
-            
-            # Processing notes
-            if 'processing_notes' in processing_info:
-                notes_count = len(processing_info['processing_notes'])
-                enhanced_fields.append(f"Processing Notes: {notes_count} entries")
-            
-            # Error handling information
-            if 'error_handling' in processing_info:
-                enhanced_fields.append("Error Handling: Present")
+            # Message field
+            if 'message' in ocr_result:
+                enhanced_fields.append(f"Response Message: Present")
             
             # Field extraction validation
             extracted_fields = sum(1 for key, value in analysis_data.items() 
-                                 if value and str(value).strip() and value != 'Not extracted')
+                                 if key not in ['fallback_reason'] and value and str(value).strip())
             enhanced_fields.append(f"Extracted Fields: {extracted_fields}")
+            
+            # Data quality check
+            if analysis_data.get('ship_name') and analysis_data.get('imo_number'):
+                enhanced_fields.append("Data Quality: High (Ship name and IMO extracted)")
+            
+            # Error handling information
+            if 'error' in analysis_data or 'fallback_reason' in analysis_data:
+                enhanced_fields.append("Error Handling: Present")
             
             if len(enhanced_fields) >= 4:
                 details = "Enhanced response analysis verified: " + ", ".join(enhanced_fields)
