@@ -2293,7 +2293,7 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
         
         # Handle Emergent LLM Key - Keep original provider from System Settings
         if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
-            api_key = EMERGENT_LLM_KEY
+            api_key = "sk-emergent-eEe35Fb1b449940199"  # Use actual Emergent LLM key
             # Use the provider and model from AI config instead of forcing Gemini
             logger.info(f"Using Emergent LLM key with configured provider: {provider}, model: {model}")
             
