@@ -2095,22 +2095,22 @@ const HomePage = () => {
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                   <td className="border border-gray-300 px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                      cert.status === 'Valid' ? 'bg-green-100 text-green-800' :
-                                      cert.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                                      getCertificateStatus(cert) === 'Valid' ? 'bg-green-100 text-green-800' :
+                                      getCertificateStatus(cert) === 'Expired' ? 'bg-red-100 text-red-800' :
                                       'bg-gray-100 text-gray-800'
                                     }`}>
-                                      {cert.status === 'Valid' 
+                                      {getCertificateStatus(cert) === 'Valid' 
                                         ? (language === 'vi' ? 'Còn hiệu lực' : 'Valid')
-                                        : cert.status === 'Expired' 
+                                        : getCertificateStatus(cert) === 'Expired' 
                                         ? (language === 'vi' ? 'Hết hiệu lực' : 'Expired')
                                         : (language === 'vi' ? 'Không rõ' : 'Unknown')
                                       }
                                     </span>
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                   <td className="border border-gray-300 px-4 py-2 text-center" title={cert.notes}>
                                     {cert.has_notes ? (
                                       <span className="text-orange-600 font-bold cursor-help text-lg">*</span>
