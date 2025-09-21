@@ -7008,58 +7008,101 @@ const AddRecordModal = ({
 
       if (response.data.success) {
         // Debug: Log the complete response structure
-        console.log('=== COMPLETE API RESPONSE ===');
+        console.log('=== PDF ANALYSIS RESPONSE ===');
         console.log('Full response:', response);
         console.log('Response data:', response.data);
-        console.log('Response data analysis:', response.data.analysis);
-        console.log('===============================');
+        console.log('Analysis data:', response.data.analysis);
+        console.log('============================');
         
-        // Auto-fill ship data with extracted information (excluding company)
-        const extractedData = response.data.analysis;
-        console.log('Extracted data:', extractedData);
-        
-        if (!extractedData) {
-          console.error('No analysis data found in response');
-          toast.error(language === 'vi' ? 'Không tìm thấy dữ liệu phân tích!' : 'No analysis data found!');
+        // Check if analysis contains error information
+        const analysisData = response.data.analysis;
+        if (analysisData?.error) {
+          toast.error(language === 'vi' 
+            ? `❌ Phân tích thất bại: ${analysisData.error}`
+            : `❌ Analysis failed: ${analysisData.error}`
+          );
           return;
         }
         
-        // Convert extracted data to match frontend form field names with updated mapping
+        // Check if we have meaningful extracted data
+        const extractedFieldsCount = Object.keys(analysisData || {}).filter(key => 
+          analysisData[key] && String(analysisData[key]).trim() && 
+          !['confidence', 'processing_notes', 'error'].includes(key)
+        ).length;
+        
+        if (extractedFieldsCount === 0) {
+          toast.warning(language === 'vi' 
+            ? '⚠️ Không thể trích xuất thông tin từ PDF. Vui lòng nhập thủ công.'
+            : '⚠️ Could not extract information from PDF. Please enter manually.'
+          );
+          return;
+        }
+        
+        // Auto-fill ship data with extracted information
+        console.log('📋 Processing extracted data for auto-fill');
+        
+        // Convert extracted data to match frontend form field names
         const processedData = {
-          name: extractedData.ship_name || '', // ship_name -> name
-          imo_number: extractedData.imo_number || '',
-          class_society: extractedData.class_society || extractedData.ship_type || '', // class_society first, then ship_type as fallback
-          flag: extractedData.flag || '',
-          gross_tonnage: extractedData.gross_tonnage ? String(extractedData.gross_tonnage) : '',
-          deadweight: extractedData.deadweight ? String(extractedData.deadweight) : '',
-          built_year: extractedData.built_year ? String(extractedData.built_year) : '',
-          ship_owner: extractedData.ship_owner || ''
-          // company field intentionally NOT updated - keeps user's company
+          name: analysisData.ship_name || '', 
+          imo_number: analysisData.imo_number || '',
+          class_society: analysisData.class_society || '', 
+          flag: analysisData.flag || '',
+          gross_tonnage: analysisData.gross_tonnage ? String(analysisData.gross_tonnage) : '',
+          deadweight: analysisData.deadweight ? String(analysisData.deadweight) : '',
+          built_year: analysisData.built_year ? String(analysisData.built_year) : '',
+          ship_owner: analysisData.ship_owner || ''
         };
         
-        console.log('Processed data for auto-fill:', processedData);
+        console.log('📝 Processed data for form:', processedData);
         
-        // Force re-render by using functional update
+        // Count how many fields we're actually filling
+        const filledFields = Object.keys(processedData).filter(key => 
+          processedData[key] && processedData[key].trim()
+        ).length;
+        
+        if (filledFields === 0) {
+          toast.warning(language === 'vi' 
+            ? '⚠️ PDF được phân tích nhưng không tìm thấy thông tin tàu phù hợp'
+            : '⚠️ PDF analyzed but no suitable ship information found'
+          );
+          return;
+        }
+        
+        // Update form with extracted data
         setShipData(prev => {
           const updatedData = {
             ...prev,
             ...processedData
           };
-          console.log('Previous ship data:', prev);
-          console.log('Updated ship data:', updatedData);
+          console.log('🔄 Updating ship form data:', updatedData);
           return updatedData;
         });
         
-        // Show success message but don't close modal immediately to allow user to see auto-filled data
-        toast.success(language === 'vi' ? 'Phân tích PDF thành công! Đã tự động điền thông tin tàu.' : 'PDF analysis completed! Ship information auto-filled.');
+        // Show success message with details
+        toast.success(language === 'vi' 
+          ? `✅ Phân tích PDF thành công! Đã điền ${filledFields} trường thông tin tàu.`
+          : `✅ PDF analysis completed! Auto-filled ${filledFields} ship information fields.`
+        );
         
-        // Close modal and reset file after a short delay to allow state update to be visible
+        // Show processing notes if available
+        if (analysisData.processing_notes && analysisData.processing_notes.length > 0) {
+          console.log('📋 Processing notes:', analysisData.processing_notes);
+        }
+        
+        // Close modal after short delay to show auto-filled data
         setTimeout(() => {
           setShowPdfAnalysis(false);
-          setPdfFile(null);
-        }, 1000); // 1 second delay to show auto-filled data
+        }, 1500);
+        
       } else {
-        toast.error(language === 'vi' ? 'Phân tích PDF thất bại!' : 'PDF analysis failed!');
+        // Handle API failure
+        const errorMessage = response.data.message || response.data.error || 'Unknown error';
+        console.error('❌ PDF analysis failed:', errorMessage);
+        
+        toast.error(language === 'vi' 
+          ? `❌ Phân tích PDF thất bại: ${errorMessage}`
+          : `❌ PDF analysis failed: ${errorMessage}`
+        );
       }
     } catch (error) {
       console.error('PDF analysis error:', error);
