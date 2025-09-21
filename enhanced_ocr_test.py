@@ -145,9 +145,9 @@ class EnhancedOCRTester:
             if response.status_code == 200:
                 result = response.json()
                 
-                # Verify response structure
-                if 'data' in result and 'analysis' in result['data']:
-                    analysis = result['data']['analysis']
+                # Verify response structure (current format: {success, analysis, message})
+                if 'success' in result and 'analysis' in result:
+                    analysis = result['analysis']
                     
                     # Extract key information
                     ship_name = analysis.get('ship_name', 'Not extracted')
@@ -158,17 +158,11 @@ class EnhancedOCRTester:
                     built_year = analysis.get('built_year', 'Not extracted')
                     deadweight = analysis.get('deadweight', 'Not extracted')
                     
-                    # Check for enhanced OCR metadata
-                    processing_metadata = result.get('processing_info', {})
-                    engine_used = processing_metadata.get('engine_used', 'Unknown')
-                    confidence_score = processing_metadata.get('confidence_score', 0.0)
-                    ocr_processing_time = processing_metadata.get('processing_time', 0.0)
-                    processing_notes = processing_metadata.get('processing_notes', [])
+                    # Check for processing metadata (may be in different locations)
+                    fallback_reason = analysis.get('fallback_reason', '')
                     
                     details = (
                         f"Processing Time: {processing_time:.2f}s, "
-                        f"OCR Engine: {engine_used}, "
-                        f"Confidence: {confidence_score:.2f}, "
                         f"Ship Name: {ship_name}, "
                         f"IMO: {imo_number}, "
                         f"Flag: {flag}, "
@@ -178,11 +172,14 @@ class EnhancedOCRTester:
                         f"Deadweight: {deadweight}"
                     )
                     
+                    if fallback_reason:
+                        details += f", Processing Method: {fallback_reason}"
+                    
                     self.log_test("Enhanced OCR Endpoint Test", True, details)
                     return result
                 else:
                     self.log_test("Enhanced OCR Endpoint Test", False, 
-                                error="Response missing 'data.analysis' structure")
+                                error="Response missing 'success' or 'analysis' fields")
                     return None
             else:
                 self.log_test("Enhanced OCR Endpoint Test", False, 
