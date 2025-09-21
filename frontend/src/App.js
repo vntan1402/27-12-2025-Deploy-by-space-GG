@@ -7015,7 +7015,7 @@ const AddRecordModal = ({
         console.log('============================');
         
         // Check if analysis contains error information
-        const analysisData = response.data.analysis;
+        const analysisData = response.data.analysis || {};
         if (analysisData?.error) {
           toast.error(language === 'vi' 
             ? `❌ Phân tích thất bại: ${analysisData.error}`
@@ -7025,7 +7025,6 @@ const AddRecordModal = ({
         }
         
         // Check if we have meaningful extracted data - RELAXED VALIDATION
-        const analysisData = response.data.analysis || {};
         const validFields = Object.keys(analysisData).filter(key => {
           const value = analysisData[key];
           return value && 
