@@ -16,7 +16,9 @@ from pathlib import Path
 
 # Configuration
 BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://ship-cert-manager-1.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
+# Use internal URL for testing since external might have routing issues
+INTERNAL_URL = "http://127.0.0.1:8001"
+API_BASE = f"{INTERNAL_URL}/api"
 
 # Test credentials from review request
 TEST_USERNAME = "admin1"
