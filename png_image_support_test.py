@@ -366,12 +366,14 @@ class PNGImageSupportTester:
                 if 'processing_method' in result:
                     enhanced_logging.append("Processing method tracking")
                 
-                if 'data' in result and 'analysis' in result['data']:
-                    analysis = result['data']['analysis']
+                if 'analysis' in result:
+                    analysis = result['analysis']
                     if 'confidence_score' in analysis:
                         enhanced_logging.append("Confidence scoring")
                     if 'processing_time' in analysis:
                         enhanced_logging.append("Processing time tracking")
+                    if 'fallback_reason' in analysis:
+                        enhanced_logging.append("Fallback reason tracking")
                 
                 if enhanced_logging:
                     self.log_test("Enhanced Logging Test", True, 
