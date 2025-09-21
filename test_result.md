@@ -1008,7 +1008,7 @@
 
 ## test_plan:
   current_focus:
-    - "Enhanced OCR-enabled Add New Ship Functionality"
+    - "Certificate Auto-Fill Integration with Enhanced Multi-Cert Upload Callback"
   stuck_tasks:
     - 
   test_all: false
