@@ -320,27 +320,27 @@ class EnhancedOCRProcessor:
         
         # Use ThreadPoolExecutor for CPU-bound OCR tasks
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            # Submit all OCR tasks
-            future_to_index = {
-                loop.run_in_executor(executor, self.extract_text_from_image_multi_engine, image_bytes, i): i
+            # Submit all OCR tasks and await them directly
+            tasks = [
+                loop.run_in_executor(executor, self.extract_text_from_image_multi_engine, image_bytes, i)
                 for i, image_bytes in enumerate(images)
-            }
+            ]
             
-            # Collect results maintaining order
-            results = [None] * len(images)
-            for future in concurrent.futures.as_completed(future_to_index):
-                index = future_to_index[future]
+            # Await all tasks and collect results
+            results = []
+            for i, task in enumerate(tasks):
                 try:
-                    results[index] = await future
+                    result = await task
+                    results.append(result)
                 except Exception as e:
-                    logger.error(f"❌ Page {index + 1} processing failed: {str(e)}")
-                    results[index] = {
+                    logger.error(f"❌ Page {i + 1} processing failed: {str(e)}")
+                    results.append({
                         "success": False,
                         "text": "",
                         "confidence": 0.0,
                         "error": str(e),
                         "engine": "none"
-                    }
+                    })
             
             return results
     
