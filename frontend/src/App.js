@@ -700,6 +700,91 @@ const HomePage = () => {
     direction: 'asc' // 'asc' or 'desc'
   });
   
+  // Certificate table sorting functions
+  const handleCertificateSort = (column) => {
+    setCertificateSort(prev => ({
+      column: column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getSortIcon = (column) => {
+    if (certificateSort.column !== column) {
+      return '⇅'; // Both arrows when not sorted
+    }
+    return certificateSort.direction === 'asc' ? '▲' : '▼';
+  };
+
+  const getCertificateStatus = (certificate) => {
+    // Rule 4: Certificates without Valid Date always have Valid status
+    if (!certificate.valid_date) {
+      return 'Valid';
+    }
+    
+    const validDate = new Date(certificate.valid_date);
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Reset time for date-only comparison
+    
+    return validDate >= currentDate ? 'Valid' : 'Expired';
+  };
+
+  const sortCertificates = (certificates) => {
+    if (!certificateSort.column) return certificates;
+    
+    return [...certificates].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (certificateSort.column) {
+        case 'cert_abbreviation':
+          aValue = (a.cert_abbreviation || '').toLowerCase();
+          bValue = (b.cert_abbreviation || '').toLowerCase();
+          break;
+        case 'cert_type':
+          aValue = (a.cert_type || '').toLowerCase();
+          bValue = (b.cert_type || '').toLowerCase();
+          break;
+        case 'cert_no':
+          aValue = (a.cert_no || '').toLowerCase();
+          bValue = (b.cert_no || '').toLowerCase();
+          break;
+        case 'issued_by':
+          aValue = (a.issued_by || '').toLowerCase();
+          bValue = (b.issued_by || '').toLowerCase();
+          break;
+        case 'issue_date':
+          aValue = a.issue_date ? new Date(a.issue_date) : new Date(0);
+          bValue = b.issue_date ? new Date(b.issue_date) : new Date(0);
+          break;
+        case 'valid_date':
+          aValue = a.valid_date ? new Date(a.valid_date) : new Date(0);
+          bValue = b.valid_date ? new Date(b.valid_date) : new Date(0);
+          break;
+        case 'status':
+          aValue = getCertificateStatus(a);
+          bValue = getCertificateStatus(b);
+          break;
+        case 'last_endorse':
+          aValue = a.last_endorse ? new Date(a.last_endorse) : new Date(0);
+          bValue = b.last_endorse ? new Date(b.last_endorse) : new Date(0);
+          break;
+        case 'next_survey':
+          aValue = a.next_survey ? new Date(a.next_survey) : new Date(0);
+          bValue = b.next_survey ? new Date(b.next_survey) : new Date(0);
+          break;
+        case 'notes':
+          aValue = (a.notes || '').toLowerCase();
+          bValue = (b.notes || '').toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return certificateSort.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return certificateSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
   // Context Menu for Certificate List
   const [contextMenu, setContextMenu] = useState({
     show: false,
