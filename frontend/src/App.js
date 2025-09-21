@@ -6913,6 +6913,11 @@ const AddRecordModal = ({
 }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user, token } = useAuth();
+  
+  // Certificate file upload states for AddRecordModal
+  const [certificateFile, setCertificateFile] = useState(null);
+  const [isCertificateAnalyzing, setIsCertificateAnalyzing] = useState(false);
+  
   const [recordType, setRecordType] = useState(() => {
     // Use defaultTab if provided, otherwise use role-based logic
     if (defaultTab) {
