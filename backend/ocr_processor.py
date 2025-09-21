@@ -57,13 +57,14 @@ class EnhancedOCRProcessor:
                 logger.warning(f"⚠️ Google Vision API initialization failed: {str(e)}")
                 self.vision_client = None
         
-        # Test Tesseract OCR availability
+        # Test Tesseract OCR availability - make it optional
         try:
             tesseract_version = pytesseract.get_tesseract_version()
             logger.info(f"✅ Tesseract OCR initialized successfully - Version: {tesseract_version}")
         except Exception as e:
-            logger.error(f"❌ Tesseract OCR initialization failed: {str(e)}")
-            raise Exception("No OCR engines available")
+            logger.warning(f"⚠️ Tesseract OCR initialization failed: {str(e)}")
+            logger.warning("⚠️ OCR functionality will be limited without Tesseract")
+            # Don't raise exception - make OCR optional
     
     async def process_pdf_with_ocr(self, pdf_content: bytes, filename: str) -> Dict[str, Any]:
         """
