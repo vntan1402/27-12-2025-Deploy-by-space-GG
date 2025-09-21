@@ -370,7 +370,7 @@ startxref
             if response.status_code in [200, 400, 422]:
                 if response.status_code == 200:
                     result = response.json()
-                    fallback_reason = result.get('data', {}).get('fallback_reason', '')
+                    fallback_reason = result.get('analysis', {}).get('fallback_reason', '')
                     
                     if fallback_reason:
                         self.log_test("Error Handling - Corrupted PDF Test", True, 
