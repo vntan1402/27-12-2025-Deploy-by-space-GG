@@ -2076,44 +2076,68 @@ async def analyze_ship_certificate(
         logger.error(f"Ship certificate analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
-def map_certificate_to_ship_data(maritime_analysis: dict) -> dict:
-    """Map maritime certificate analysis data to ship form fields"""
+def map_certificate_to_ship_data(maritime_analysis: dict) -> Optional[dict]:
+    """Enhanced mapping of maritime certificate data to ship form fields"""
     try:
-        # Extract ship data from maritime certificate analysis
-        ship_data = {
-            "ship_name": maritime_analysis.get("vessel_name") or maritime_analysis.get("ship_name"),
-            "imo_number": maritime_analysis.get("imo_number"),
-            "flag": maritime_analysis.get("flag_state") or maritime_analysis.get("flag"),
-            "class_society": maritime_analysis.get("issuing_authority") or maritime_analysis.get("issued_by"),
-            "ship_type": maritime_analysis.get("vessel_type") or maritime_analysis.get("ship_type"),
-            "gross_tonnage": maritime_analysis.get("gross_tonnage"),
-            "deadweight": maritime_analysis.get("deadweight_tonnage") or maritime_analysis.get("deadweight"),
-            "built_year": maritime_analysis.get("year_built") or maritime_analysis.get("built_year"),
-            "ship_owner": maritime_analysis.get("owner") or maritime_analysis.get("ship_owner"),
-            "company": maritime_analysis.get("operator") or maritime_analysis.get("management_company")
-        }
+        ship_data = {}
         
-        # Clean up and validate the data
+        # Map certificate fields to ship fields with multiple fallback options
+        if maritime_analysis.get("vessel_name") or maritime_analysis.get("ship_name"):
+            ship_data["ship_name"] = maritime_analysis.get("vessel_name") or maritime_analysis.get("ship_name")
+        
+        if maritime_analysis.get("imo_number"):
+            ship_data["imo_number"] = maritime_analysis["imo_number"]
+        
+        if maritime_analysis.get("flag_state") or maritime_analysis.get("flag"):
+            ship_data["flag"] = maritime_analysis.get("flag_state") or maritime_analysis.get("flag")
+        
+        # Map issuing authority to class society
+        if maritime_analysis.get("issuing_authority") or maritime_analysis.get("issued_by"):
+            ship_data["class_society"] = maritime_analysis.get("issuing_authority") or maritime_analysis.get("issued_by")
+        
+        # Map tonnage data
+        if maritime_analysis.get("gross_tonnage"):
+            try:
+                ship_data["gross_tonnage"] = str(int(float(maritime_analysis["gross_tonnage"])))
+            except (ValueError, TypeError):
+                pass
+        
+        if maritime_analysis.get("deadweight_tonnage") or maritime_analysis.get("deadweight"):
+            try:
+                deadweight = maritime_analysis.get("deadweight_tonnage") or maritime_analysis.get("deadweight")
+                ship_data["deadweight"] = str(float(deadweight))
+            except (ValueError, TypeError):
+                pass
+        
+        # Map build year
+        if maritime_analysis.get("year_built") or maritime_analysis.get("built_year"):
+            try:
+                year = maritime_analysis.get("year_built") or maritime_analysis.get("built_year")
+                ship_data["built_year"] = str(int(float(year)))
+            except (ValueError, TypeError):
+                pass
+        
+        # Map owner/operator
+        if maritime_analysis.get("owner") or maritime_analysis.get("ship_owner"):
+            ship_data["ship_owner"] = maritime_analysis.get("owner") or maritime_analysis.get("ship_owner")
+        
+        # Clean up data and validate
         cleaned_data = {}
         for key, value in ship_data.items():
-            if value and str(value).strip() and str(value).upper() not in ['NULL', 'UNKNOWN', 'N/A', '']:
-                if key in ['gross_tonnage', 'deadweight', 'built_year']:
-                    # Try to convert to number
-                    try:
-                        if key == 'built_year':
-                            cleaned_data[key] = int(float(str(value)))
-                        else:
-                            cleaned_data[key] = float(str(value))
-                    except (ValueError, TypeError):
-                        pass  # Skip invalid numbers
-                else:
-                    cleaned_data[key] = str(value).strip()
+            if value and str(value).strip() and str(value).upper() not in ['NULL', 'UNKNOWN', 'N/A', '', 'NONE']:
+                cleaned_data[key] = str(value).strip()
         
-        return cleaned_data
+        # Only return if we have meaningful ship data (at least 2 fields)
+        if len(cleaned_data) >= 2:
+            logger.info(f"📋 Successfully mapped certificate data to {len(cleaned_data)} ship fields")
+            return cleaned_data
+        else:
+            logger.warning(f"⚠️ Insufficient ship data extracted from certificate ({len(cleaned_data)} fields)")
+            return None
         
     except Exception as e:
-        logger.error(f"Error mapping certificate to ship data: {e}")
-        return {}
+        logger.error(f"❌ Certificate to ship data mapping failed: {str(e)}")
+        return None
 
 def map_certificate_to_ship_data(maritime_analysis: dict) -> Optional[dict]:
     """Map maritime certificate data to ship form fields"""
