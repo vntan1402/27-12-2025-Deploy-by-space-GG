@@ -175,6 +175,9 @@ class AIAnalysisPipelineTester:
             if response.status_code == 200:
                 result = response.json()
                 
+                # Debug: Print the full response to understand what we're getting
+                print(f"DEBUG: Full API response: {json.dumps(result, indent=2)}")
+                
                 # Check for the critical error we're trying to avoid
                 fallback_reason = result.get('fallback_reason', '')
                 if "AI analysis failed or no API key available" in fallback_reason:
