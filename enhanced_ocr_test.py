@@ -313,13 +313,17 @@ class EnhancedOCRTester:
                             error="No OCR result to verify")
                 return False
             
-            analysis = ocr_result.get('data', {}).get('analysis', {})
+            analysis = ocr_result.get('analysis', {})
             
             # Expected results from review request
             expected_results = {
                 'ship_name': 'SUNSHINE STAR',
                 'imo_number': '9405136',
-                # Additional expected fields can be verified
+                'flag': 'BELIZE',
+                'class_society': 'PMDS',
+                'gross_tonnage': 2988,
+                'built_year': 2005,
+                'deadweight': 5274.3
             }
             
             # Verify expected results
@@ -330,32 +334,45 @@ class EnhancedOCRTester:
                 actual_value = analysis.get(field, '')
                 
                 if actual_value and str(actual_value).strip():
-                    if str(expected_value).upper() in str(actual_value).upper():
-                        verified_results.append(f"✅ {field}: {actual_value} (matches expected)")
+                    # Handle different data types
+                    if isinstance(expected_value, str):
+                        if str(expected_value).upper() in str(actual_value).upper():
+                            verified_results.append(f"✅ {field}: {actual_value} (matches expected)")
+                        else:
+                            accuracy_issues.append(f"⚠️ {field}: Expected '{expected_value}', got '{actual_value}'")
                     else:
-                        accuracy_issues.append(f"⚠️ {field}: Expected '{expected_value}', got '{actual_value}'")
+                        # Numeric comparison with tolerance
+                        try:
+                            actual_num = float(actual_value)
+                            expected_num = float(expected_value)
+                            if abs(actual_num - expected_num) < 0.1:
+                                verified_results.append(f"✅ {field}: {actual_value} (matches expected)")
+                            else:
+                                accuracy_issues.append(f"⚠️ {field}: Expected '{expected_value}', got '{actual_value}'")
+                        except:
+                            if str(expected_value) == str(actual_value):
+                                verified_results.append(f"✅ {field}: {actual_value} (matches expected)")
+                            else:
+                                accuracy_issues.append(f"⚠️ {field}: Expected '{expected_value}', got '{actual_value}'")
                 else:
                     accuracy_issues.append(f"❌ {field}: Not extracted (expected '{expected_value}')")
             
-            # Check processing metrics
-            processing_info = ocr_result.get('processing_info', {})
-            if processing_info.get('confidence_score', 0) > 0.5:
-                verified_results.append(f"✅ Confidence Score: {processing_info['confidence_score']:.2f}")
-            
-            if processing_info.get('processing_time', 0) > 0:
-                verified_results.append(f"✅ Processing Time: {processing_info['processing_time']:.2f}s")
+            # Check processing method
+            fallback_reason = analysis.get('fallback_reason', '')
+            if 'OCR' in fallback_reason or 'enhanced' in fallback_reason.lower():
+                verified_results.append(f"✅ Enhanced OCR Processing: {fallback_reason}")
             
             # Determine success
-            if len(verified_results) >= 2 and len(accuracy_issues) <= 2:
+            if len(verified_results) >= 4 and len(accuracy_issues) <= 3:
                 details = f"Enhanced results verified: {', '.join(verified_results)}"
                 if accuracy_issues:
-                    details += f" | Minor issues: {', '.join(accuracy_issues)}"
+                    details += f" | Minor issues: {', '.join(accuracy_issues[:2])}"
                 self.log_test("Expected Enhanced Results Test", True, details)
                 return True
             else:
                 error_msg = f"Results verification failed. Verified: {len(verified_results)}, Issues: {len(accuracy_issues)}"
                 if accuracy_issues:
-                    error_msg += f" | Issues: {'; '.join(accuracy_issues)}"
+                    error_msg += f" | Issues: {'; '.join(accuracy_issues[:3])}"
                 self.log_test("Expected Enhanced Results Test", False, error=error_msg)
                 return False
                 
