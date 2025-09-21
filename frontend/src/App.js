@@ -8137,6 +8137,45 @@ const AddRecordModal = ({
               </div>
             </div>
             
+            {/* PDF Upload and Analysis Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">
+                📄 {language === 'vi' ? 'Upload & Phân tích Certificate PDF' : 'Upload & Analyze Certificate PDF'}
+              </h4>
+              <div className="space-y-3">
+                <div>
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        handleCertificateFileUpload(file);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isCertificateAnalyzing}
+                  />
+                </div>
+                {isCertificateAnalyzing && (
+                  <div className="flex items-center space-x-2 text-blue-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-sm">
+                      {language === 'vi' ? 'Đang phân tích certificate...' : 'Analyzing certificate...'}
+                    </span>
+                  </div>
+                )}
+                {certificateFile && (
+                  <p className="text-xs text-blue-700">
+                    ✅ {language === 'vi' ? 'File đã upload:' : 'File uploaded:'} {certificateFile.name}
+                  </p>
+                )}
+                <div className="text-xs text-blue-600">
+                  <p>{language === 'vi' ? '💡 AI sẽ tự động điền thông tin certificate sau khi phân tích PDF' : '💡 AI will auto-fill certificate information after analyzing PDF'}</p>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -8148,7 +8187,7 @@ const AddRecordModal = ({
                   value={certificateData.cert_name}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, cert_name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Nhập tên chứng chỉ' : 'Enter certificate name'}
+                  placeholder={language === 'vi' ? 'VD: Safety Management Certificate' : 'e.g. Safety Management Certificate'}
                 />
               </div>
               <div>
