@@ -687,12 +687,18 @@ const HomePage = () => {
   const [editingShipData, setEditingShipData] = useState(null);
   const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
   
-  // Certificate List filters
+  // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
     certificateType: 'all',
     status: 'all'
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Certificate table sorting state
+  const [certificateSort, setCertificateSort] = useState({
+    column: null,
+    direction: 'asc' // 'asc' or 'desc'
+  });
   
   // Context Menu for Certificate List
   const [contextMenu, setContextMenu] = useState({
