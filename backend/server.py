@@ -2390,22 +2390,6 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
             # Non-PDF files - not supported for ship certificate analysis
             logger.error(f"❌ Unsupported file type for ship analysis: {content_type}")
             return get_fallback_ship_analysis(filename)
-                        
-                        pdf_reader = PdfReader(io.BytesIO(file_content))
-                        text_content = ""
-                        for page in pdf_reader.pages:
-                            text_content += page.extract_text() + "\n"
-                        text_content = text_content.strip()
-                        
-                        if len(text_content) > 50:
-                            logger.info(f"📄 Fallback text extraction successful: {len(text_content)} characters")
-                        else:
-                            logger.warning(f"⚠️ No readable text content extracted from {filename}")
-                            return get_fallback_ship_analysis(filename)
-                            
-                    except Exception as pdf_error:
-                        logger.error(f"❌ PDF text extraction failed: {str(pdf_error)}")
-                        return get_fallback_ship_analysis(filename)
         
         # Get dynamic ship form fields for extraction
         ship_form_fields = await get_ship_form_fields_for_extraction()
