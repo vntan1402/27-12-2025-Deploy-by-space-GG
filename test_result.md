@@ -293,6 +293,7 @@
 ## test_plan:
   current_focus:
     - "AI Analysis OCR Processing - RESOLVED"
+    - "AI Analysis with SUNSHINE 01 PDF - RESOLVED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
