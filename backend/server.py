@@ -2196,6 +2196,87 @@ def get_fallback_ship_analysis(filename: str) -> dict:
         "error": "Auto-fill failed - please enter ship information manually"
     }
 
+async def analyze_pdf_type(file_content: bytes, filename: str) -> tuple[str, dict]:
+    """
+    Analyze PDF to determine if it's text-based or image-based
+    Returns: (pdf_type, extraction_result)
+    - pdf_type: "text_based" | "image_based" | "mixed"
+    - extraction_result: dict with text_content and metadata
+    """
+    try:
+        from PyPDF2 import PdfReader
+        import io
+        
+        logger.info(f"🔍 Analyzing PDF type for: {filename}")
+        
+        # First attempt: Try text extraction
+        pdf_reader = PdfReader(io.BytesIO(file_content))
+        extracted_text = ""
+        total_pages = len(pdf_reader.pages)
+        pages_with_text = 0
+        
+        for page_num, page in enumerate(pdf_reader.pages):
+            try:
+                page_text = page.extract_text().strip()
+                extracted_text += page_text + "\n"
+                
+                # Count pages with meaningful text (more than just whitespace/symbols)
+                meaningful_text = ''.join(c for c in page_text if c.isalnum() or c.isspace())
+                if len(meaningful_text.strip()) > 20:  # At least 20 meaningful characters
+                    pages_with_text += 1
+                    
+            except Exception as page_error:
+                logger.warning(f"Error extracting text from page {page_num}: {page_error}")
+                continue
+        
+        extracted_text = extracted_text.strip()
+        text_density = len(extracted_text) / max(total_pages, 1)  # Characters per page
+        text_coverage = pages_with_text / max(total_pages, 1)  # Ratio of pages with text
+        
+        logger.info(f"📊 PDF Analysis - Total pages: {total_pages}, Pages with text: {pages_with_text}")
+        logger.info(f"📊 Text density: {text_density:.1f} chars/page, Coverage: {text_coverage:.2%}")
+        logger.info(f"📊 Total extracted text: {len(extracted_text)} characters")
+        
+        # Classification logic
+        if len(extracted_text) > 100 and text_density > 50 and text_coverage > 0.6:
+            # High text density and good coverage = Text-based PDF
+            pdf_type = "text_based"
+            logger.info(f"✅ Classification: TEXT-BASED PDF (density: {text_density:.1f}, coverage: {text_coverage:.2%})")
+            
+        elif len(extracted_text) > 50 and text_coverage > 0.3:
+            # Some text but lower density = Mixed PDF (has both text and images)
+            pdf_type = "mixed" 
+            logger.info(f"📄 Classification: MIXED PDF (density: {text_density:.1f}, coverage: {text_coverage:.2%})")
+            # For mixed PDFs, we'll treat as text-based if we have enough meaningful content
+            if len(extracted_text) > 200:
+                pdf_type = "text_based"
+                logger.info(f"📄 Mixed PDF upgraded to TEXT-BASED due to sufficient content")
+                
+        else:
+            # Little to no text = Image-based PDF (scanned document)
+            pdf_type = "image_based"
+            logger.info(f"🖼️ Classification: IMAGE-BASED PDF (density: {text_density:.1f}, coverage: {text_coverage:.2%})")
+        
+        extraction_result = {
+            "text_content": extracted_text,
+            "total_pages": total_pages,
+            "pages_with_text": pages_with_text,
+            "text_density": text_density,
+            "text_coverage": text_coverage,
+            "classification_confidence": min(0.95, max(0.6, text_coverage + (text_density / 1000)))
+        }
+        
+        return pdf_type, extraction_result
+        
+    except Exception as e:
+        logger.error(f"❌ PDF type analysis failed: {e}")
+        # If analysis fails, default to image-based for safety (more thorough processing)
+        return "image_based", {
+            "text_content": "",
+            "error": f"PDF type analysis failed: {str(e)}",
+            "classification_confidence": 0.0
+        }
+
 async def analyze_ship_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
     """Analyze ship document using AI to extract ship-specific information with OCR support"""
     try:
