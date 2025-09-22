@@ -4237,19 +4237,31 @@ async def get_gdrive_file_view_url(
 ):
     """Get Google Drive file view URL for opening in new window"""
     try:
-        # Get Google Drive configuration
-        gdrive_config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        # Get user's company for Google Drive configuration
+        user_company_id = await resolve_company_id(current_user)
+        
+        # Get company-specific Google Drive configuration first, fallback to system
+        gdrive_config = None
+        if user_company_id:
+            # Try company-specific Google Drive config first
+            gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+            logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config else 'Not found'}")
+        
+        # Fallback to system Google Drive config if no company config
+        if not gdrive_config:
+            gdrive_config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+            logger.info(f"Using system Google Drive config: {'Found' if gdrive_config else 'Not found'}")
+        
         if not gdrive_config:
             raise HTTPException(status_code=500, detail="Google Drive not configured")
         
+        # Determine auth method and script URL
         auth_method = gdrive_config.get("auth_method", "apps_script")
         
-        if auth_method == "apps_script":
-            # Handle both system config (apps_script_url) and company config (web_app_url)
-            script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
-            if not script_url:
-                raise HTTPException(status_code=500, detail="Apps Script URL not configured")
-            
+        # Handle both system config (apps_script_url) and company config (web_app_url)
+        script_url = gdrive_config.get("apps_script_url") or gdrive_config.get("web_app_url")
+        
+        if auth_method == "apps_script" and script_url:
             try:
                 # Get file view URL from Apps Script
                 payload = {
@@ -4257,10 +4269,12 @@ async def get_gdrive_file_view_url(
                     "file_id": file_id
                 }
                 
+                logger.info(f"Requesting file view URL from Apps Script: {script_url[:50]}...")
                 response = requests.post(script_url, json=payload, timeout=30)
                 response.raise_for_status()
                 
                 result = response.json()
+                logger.info(f"Apps Script response: {result}")
                 
                 if result.get("success"):
                     view_url = result.get("view_url")
