@@ -60,6 +60,8 @@ async def create_admin_user():
                 'role': 'admin',
                 'full_name': 'Admin User 1',
                 'email': 'admin1@system.com',
+                'department': 'operations',
+                'zalo': 'admin1_zalo',
                 'is_active': True,
                 'created_at': datetime.now(timezone.utc)
             }
