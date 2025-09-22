@@ -35,6 +35,8 @@ async def create_admin_user():
             'role': 'super_admin',
             'full_name': 'System Administrator',
             'email': 'admin@system.com',
+            'department': 'technical',
+            'zalo': 'admin_zalo',
             'is_active': True,
             'created_at': datetime.now(timezone.utc)
         }
