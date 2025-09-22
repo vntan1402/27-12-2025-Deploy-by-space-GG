@@ -8140,7 +8140,7 @@ const AddRecordModal = ({
                           handleMultiCertUpload(e.target.files, autoFillCallback);
                         }
                       }}
-                      accept=".pdf"
+                      accept=".pdf,.jpg,.jpeg,.png"
                       disabled={!selectedShip || isMultiCertProcessing}
                     />
                   </label>
