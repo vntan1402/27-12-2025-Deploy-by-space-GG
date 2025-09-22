@@ -8089,7 +8089,7 @@ const AddRecordModal = ({
                     📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
                   </h4>
                   <ul className="text-xs text-blue-700 space-y-1">
-                    <li>• {language === 'vi' ? 'Format: Chỉ file PDF' : 'Format: PDF files only'}</li>
+                    <li>• {language === 'vi' ? 'Format: PDF, JPG, PNG' : 'Format: PDF, JPG, PNG files'}</li>
                     <li>• {language === 'vi' ? 'Kích thước: Tối đa 50MB mỗi file' : 'Size: Maximum 50MB per file'}</li>
                     <li>• {language === 'vi' ? 'AI sẽ tự động phân tích và xác định Marine Certificate' : 'AI will automatically analyze and identify Marine Certificates'}</li>
                   </ul>
