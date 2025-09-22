@@ -3512,9 +3512,23 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
             system_message="You are a maritime document analysis expert. Analyze documents and extract certificate information in JSON format."
         )
         
-        # Create temporary file for LLM analysis
+        # Create temporary file for LLM analysis with appropriate extension
         import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+        
+        # Determine file extension based on content type
+        file_extension = '.pdf'  # default
+        if content_type == 'image/jpeg' or content_type == 'image/jpg':
+            file_extension = '.jpg'
+        elif content_type == 'image/png':
+            file_extension = '.png'
+        elif content_type == 'application/pdf':
+            file_extension = '.pdf'
+        else:
+            # Fallback to filename extension
+            if '.' in filename:
+                file_extension = '.' + filename.split('.')[-1].lower()
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as temp_file:
             temp_file.write(file_content)
             temp_file_path = temp_file.name
         
