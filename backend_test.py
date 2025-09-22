@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """
-Backend Testing for Multi Cert Upload API Endpoint
-Comprehensive testing of the newly implemented Multi Cert Upload API endpoint (/api/certificates/multi-upload)
-with authentication, AI configuration, Google Drive integration, duplicate detection, and error handling tests.
+Backend Testing for NEW IMPROVED AI Analysis Workflow with Smart PDF Type Detection
+Testing the enhanced /api/analyze-ship-certificate endpoint with:
+1. Smart PDF type detection (text-based vs image-based vs mixed)
+2. Optimal processing method selection
+3. Enhanced metadata in response
+4. Processing method verification
 """
 
 import requests
