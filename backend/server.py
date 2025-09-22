@@ -3010,7 +3010,7 @@ async def resolve_company_id(current_user) -> str:
             return None
 
 async def analyze_document_with_ai(file_content: bytes, filename: str, content_type: str, ai_config: dict) -> dict:
-    """Analyze document using configured AI to extract information and classify"""
+    """Analyze document using configured AI with smart file type detection and optimal processing method"""
     try:
         # Use system AI configuration instead of hardcoded values
         provider = ai_config.get("provider", "openai").lower()
@@ -3025,6 +3025,119 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
             
         if not api_key:
             logger.error("No API key found in AI configuration")
+            return classify_by_filename(filename)
+        
+        # SMART DOCUMENT PROCESSING - Apply same logic as Add Ship from Certificate
+        text_content = ""
+        ocr_confidence = 0.0
+        processing_method = "unknown"
+        pdf_type = "unknown"
+        
+        if content_type == "application/pdf":
+            logger.info(f"🔍 Processing PDF with smart analysis: {filename}")
+            
+            # Step 1: Analyze PDF type (text-based vs image-based vs mixed)
+            pdf_type, text_extraction_result = await analyze_pdf_type(file_content, filename)
+            
+            if pdf_type == "text_based":
+                # Step 2A: Text-based PDF - use direct text extraction (faster)
+                logger.info(f"📄 Detected TEXT-BASED PDF - using direct text extraction")
+                text_content = text_extraction_result["text_content"]
+                processing_method = "direct_text_extraction"
+                ocr_confidence = 1.0  # High confidence for text-based PDFs
+                
+                logger.info(f"✅ Direct text extraction successful: {len(text_content)} characters")
+                
+            elif pdf_type == "image_based":
+                # Step 2B: Image-based PDF - use OCR processing (more thorough)
+                logger.info(f"🖼️ Detected IMAGE-BASED PDF - using OCR processing")
+                
+                if ocr_processor is None:
+                    logger.warning("⚠️ OCR processor not available for image-based PDF")
+                    text_content = text_extraction_result.get("text_content", "")
+                    processing_method = "text_extraction_fallback"
+                    ocr_confidence = 0.3
+                else:
+                    # Use OCR processor for image-based PDFs
+                    ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
+                    
+                    if ocr_result["success"]:
+                        text_content = ocr_result["text_content"]
+                        ocr_confidence = ocr_result["confidence_score"]
+                        processing_method = ocr_result["processing_method"]
+                        
+                        logger.info(f"✅ OCR processing successful for {filename}")
+                        logger.info(f"📊 Method: {processing_method}, Confidence: {ocr_confidence:.2f}")
+                        logger.info(f"📝 Extracted {len(text_content)} characters")
+                    else:
+                        logger.warning(f"⚠️ OCR processing failed, using fallback text extraction")
+                        text_content = text_extraction_result.get("text_content", "")
+                        processing_method = "text_extraction_fallback"
+                        ocr_confidence = 0.3
+            
+            else:  # pdf_type == "mixed" or unknown
+                # Step 2C: Mixed or unknown PDF - use hybrid approach
+                logger.info(f"📋 Detected MIXED/UNKNOWN PDF - using hybrid approach")
+                text_content = text_extraction_result["text_content"]
+                processing_method = "hybrid_extraction"
+                ocr_confidence = text_extraction_result.get("classification_confidence", 0.7)
+                
+                # If text extraction doesn't give enough content, supplement with OCR
+                if len(text_content) < 100 and ocr_processor is not None:
+                    logger.info(f"🔄 Text extraction insufficient, supplementing with OCR")
+                    try:
+                        ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
+                        if ocr_result["success"] and len(ocr_result["text_content"]) > len(text_content):
+                            text_content = ocr_result["text_content"]
+                            processing_method = "hybrid_ocr_enhanced"
+                            ocr_confidence = max(ocr_confidence, ocr_result["confidence_score"])
+                            logger.info(f"✅ OCR enhancement successful")
+                    except Exception as ocr_error:
+                        logger.warning(f"⚠️ OCR enhancement failed: {ocr_error}")
+            
+            # Validate extracted content
+            if len(text_content.strip()) < 50:
+                logger.warning(f"⚠️ Insufficient text content extracted from PDF {filename}")
+                return classify_by_filename(filename)
+        
+        elif content_type in ["image/jpeg", "image/jpg", "image/png"]:
+            # Step 3: Handle image files (JPG, PNG) - use OCR processing
+            logger.info(f"🖼️ Processing image file with OCR: {filename} (type: {content_type})")
+            pdf_type = "image_file"
+            
+            if ocr_processor is None:
+                logger.warning("⚠️ OCR processor not available for image file processing")
+                return classify_by_filename(filename)
+            
+            # Use OCR processor for image files
+            try:
+                ocr_result = await ocr_processor.process_image_with_ocr(file_content, filename, content_type)
+                
+                if ocr_result["success"]:
+                    text_content = ocr_result["text_content"]
+                    ocr_confidence = ocr_result["confidence_score"]
+                    processing_method = "image_ocr_processing"
+                    
+                    logger.info(f"✅ Image OCR processing successful for {filename}")
+                    logger.info(f"📊 Method: {processing_method}, Confidence: {ocr_confidence:.2f}")
+                    logger.info(f"📝 Extracted {len(text_content)} characters from image")
+                    
+                    # Validate extracted content
+                    if len(text_content.strip()) < 30:
+                        logger.warning(f"⚠️ Insufficient text content extracted from image {filename}")
+                        return classify_by_filename(filename)
+                        
+                else:
+                    logger.warning(f"⚠️ Image OCR processing failed for {filename}: {ocr_result.get('error', 'Unknown error')}")
+                    return classify_by_filename(filename)
+                    
+            except Exception as ocr_error:
+                logger.error(f"❌ Image OCR processing error for {filename}: {str(ocr_error)}")
+                return classify_by_filename(filename)
+        
+        else:
+            # Unsupported file types
+            logger.error(f"❌ Unsupported file type for document analysis: {content_type}")
             return classify_by_filename(filename)
         
         # Get dynamic certificate fields for extraction
