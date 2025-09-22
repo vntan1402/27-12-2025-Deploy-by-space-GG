@@ -1879,6 +1879,26 @@ async def multi_cert_upload_for_ship(
                     })
                     continue
                 
+                # Check file type - support PDF, JPG, PNG
+                supported_types = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
+                if file.content_type not in supported_types:
+                    # Also check by file extension as backup
+                    file_ext = file.filename.lower().split('.')[-1] if '.' in file.filename else ''
+                    supported_extensions = ['pdf', 'jpg', 'jpeg', 'png']
+                    
+                    if file_ext not in supported_extensions:
+                        summary["errors"] += 1
+                        summary["error_files"].append({
+                            "filename": file.filename,
+                            "error": f"Unsupported file type. Supported: PDF, JPG, PNG. Got: {file.content_type}"
+                        })
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": f"Unsupported file type. Please upload PDF, JPG, or PNG files only."
+                        })
+                        continue
+                
                 # Analyze document with AI
                 analysis_result = await analyze_document_with_ai(
                     file_content, file.filename, file.content_type, ai_config
