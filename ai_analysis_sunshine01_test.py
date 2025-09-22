@@ -123,7 +123,10 @@ class AIAnalysisTester:
                 
                 # Check if the response has the expected structure
                 if 'success' in data and data['success']:
-                    analysis_data = data.get('data', {}).get('analysis', {})
+                    # Handle both response formats: data.analysis or direct analysis
+                    analysis_data = data.get('analysis', {})
+                    if not analysis_data:
+                        analysis_data = data.get('data', {}).get('analysis', {})
                     
                     # Verify extracted data against expected values
                     self.verify_extracted_data(analysis_data)
