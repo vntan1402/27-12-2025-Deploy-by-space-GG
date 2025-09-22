@@ -2215,37 +2215,35 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
             logger.error("No API key found in AI configuration")
             return get_fallback_ship_analysis(filename)
         
-        # Enhanced OCR processing for PDFs (especially image-based/scanned PDFs)
+        # Smart PDF processing - detect PDF type and choose optimal method
         text_content = ""
         ocr_confidence = 0.0
+        processing_method = "unknown"
         
         if content_type == "application/pdf":
             logger.info(f"🔍 Processing PDF: {filename}")
             
-            # Fallback to basic PDF text extraction if OCR processor not available
-            if ocr_processor is None:
-                logger.warning("⚠️ OCR processor not available, using basic PDF text extraction")
-                try:
-                    from PyPDF2 import PdfReader
-                    import io
-                    
-                    pdf_reader = PdfReader(io.BytesIO(file_content))
-                    text_content = ""
-                    for page in pdf_reader.pages:
-                        text_content += page.extract_text() + "\n"
-                    text_content = text_content.strip()
-                    
-                    if len(text_content) > 50:
-                        logger.info(f"📄 Basic PDF text extraction successful: {len(text_content)} characters")
-                    else:
-                        logger.warning(f"⚠️ No readable text content extracted from {filename}")
-                        return get_fallback_ship_analysis(filename)
-                        
-                except Exception as pdf_error:
-                    logger.error(f"❌ PDF text extraction failed: {str(pdf_error)}")
+            # Step 1: Analyze PDF type (text-based vs image-based)
+            pdf_type, text_extraction_result = await analyze_pdf_type(file_content, filename)
+            
+            if pdf_type == "text_based":
+                # Step 2A: Text-based PDF - use direct text extraction (faster)
+                logger.info(f"📄 Detected TEXT-BASED PDF - using direct text extraction")
+                text_content = text_extraction_result["text_content"]
+                processing_method = "direct_text_extraction"
+                ocr_confidence = 1.0  # High confidence for text-based PDFs
+                
+                logger.info(f"✅ Direct text extraction successful: {len(text_content)} characters")
+                
+            elif pdf_type == "image_based":
+                # Step 2B: Image-based PDF - use OCR processing (more thorough)
+                logger.info(f"🖼️ Detected IMAGE-BASED PDF - using OCR processing")
+                
+                if ocr_processor is None:
+                    logger.warning("⚠️ OCR processor not available for image-based PDF")
                     return get_fallback_ship_analysis(filename)
-            else:
-                # Use OCR processor for better text extraction from image-based PDFs
+                
+                # Use OCR processor for image-based PDFs
                 ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
                 
                 if ocr_result["success"]:
