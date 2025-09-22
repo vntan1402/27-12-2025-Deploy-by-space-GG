@@ -2440,6 +2440,14 @@ Please extract only the fields listed above from the document.
             logger.warning(f"Unsupported AI provider: {provider}, using fallback")
             result = get_fallback_ship_analysis(filename)
         
+        # Add processing metadata to result
+        if isinstance(result, dict):
+            result["processing_method"] = processing_method
+            result["ocr_confidence"] = ocr_confidence
+            result["pdf_type"] = pdf_type if 'pdf_type' in locals() else "unknown"
+            result["processing_notes"] = result.get("processing_notes", [])
+            result["processing_notes"].append(f"Processed as {processing_method} with confidence {ocr_confidence:.2f}")
+        
         return result
         
     except Exception as e:
