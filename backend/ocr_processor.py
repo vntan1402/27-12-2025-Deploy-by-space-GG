@@ -780,6 +780,116 @@ class EnhancedOCRProcessor:
             info['imo_number'] = imo_match.group(1)
         
         return info
+    
+    async def process_image_with_ocr(self, image_content: bytes, filename: str, content_type: str) -> Dict[str, Any]:
+        """
+        Process image files (JPG, PNG) with OCR for text extraction
+        """
+        start_time = time.time()
+        result = {
+            "success": False,
+            "text_content": "",
+            "confidence_score": 0.0,
+            "processing_method": "image_ocr",
+            "engine_used": "unknown",
+            "processing_time": 0.0,
+            "error": None
+        }
+        
+        try:
+            logger.info(f"🖼️ Starting image OCR processing for {filename} ({content_type})")
+            
+            # Load image from bytes
+            try:
+                image = Image.open(io.BytesIO(image_content))
+                logger.info(f"📊 Image loaded: {image.size} pixels, mode: {image.mode}")
+                
+                # Convert to RGB if necessary
+                if image.mode not in ['RGB', 'L']:
+                    image = image.convert('RGB')
+                    logger.info("🔄 Converted image to RGB mode")
+                    
+            except Exception as img_error:
+                result["error"] = f"Failed to load image: {str(img_error)}"
+                return result
+            
+            # Preprocess image for better OCR results
+            try:
+                processed_image = self.preprocess_image_for_ocr_advanced(image)
+                logger.info("✅ Image preprocessing completed")
+            except Exception as preprocess_error:
+                logger.warning(f"⚠️ Image preprocessing failed, using original: {preprocess_error}")
+                processed_image = image
+            
+            # Convert processed image to bytes for OCR engines
+            img_byte_arr = io.BytesIO()
+            processed_image.save(img_byte_arr, format='PNG')
+            processed_image_bytes = img_byte_arr.getvalue()
+            
+            # Try Google Vision API first (higher accuracy)
+            google_result = None
+            if self.vision_client:
+                try:
+                    logger.info("🔍 Attempting Google Vision API OCR")
+                    google_result = await self.process_with_google_vision(processed_image_bytes)
+                    
+                    if google_result["success"] and len(google_result["text_content"].strip()) > 10:
+                        result.update(google_result)
+                        result["engine_used"] = "google_vision"
+                        result["processing_method"] = "image_google_vision_ocr"
+                        logger.info(f"✅ Google Vision API successful: {len(result['text_content'])} characters")
+                    else:
+                        logger.info("⚠️ Google Vision API results insufficient, trying Tesseract")
+                        
+                except Exception as gv_error:
+                    logger.warning(f"⚠️ Google Vision API failed: {gv_error}")
+            
+            # Fallback to Tesseract OCR if Google Vision failed or unavailable
+            if not result["success"] or len(result["text_content"].strip()) < 10:
+                try:
+                    logger.info("🔍 Attempting Tesseract OCR")
+                    
+                    # Use Tesseract OCR
+                    tesseract_text = pytesseract.image_to_string(
+                        processed_image, 
+                        config=self.tesseract_config
+                    ).strip()
+                    
+                    if len(tesseract_text) > 10:
+                        result["success"] = True
+                        result["text_content"] = tesseract_text
+                        result["confidence_score"] = 0.75  # Default confidence for Tesseract
+                        result["engine_used"] = "tesseract"
+                        result["processing_method"] = "image_tesseract_ocr"
+                        logger.info(f"✅ Tesseract OCR successful: {len(tesseract_text)} characters")
+                    else:
+                        result["error"] = "No meaningful text extracted by any OCR engine"
+                        logger.warning("⚠️ Tesseract OCR also failed to extract meaningful text")
+                        
+                except Exception as tesseract_error:
+                    result["error"] = f"Tesseract OCR failed: {str(tesseract_error)}"
+                    logger.error(f"❌ Tesseract OCR error: {tesseract_error}")
+            
+            # Final processing time
+            result["processing_time"] = time.time() - start_time
+            
+            # Log results
+            if result["success"]:
+                logger.info(f"🎯 Image OCR completed successfully")
+                logger.info(f"📊 Engine: {result['engine_used']}, "
+                          f"Confidence: {result['confidence_score']:.2f}, "
+                          f"Text length: {len(result['text_content'])} chars, "
+                          f"Time: {result['processing_time']:.2f}s")
+            else:
+                logger.error(f"❌ Image OCR failed: {result.get('error', 'Unknown error')}")
+            
+            return result
+            
+        except Exception as e:
+            result["error"] = f"Image OCR processing error: {str(e)}"
+            result["processing_time"] = time.time() - start_time
+            logger.error(f"❌ Critical error in image OCR processing: {e}")
+            return result
 
 # Initialize enhanced OCR processor
 ocr_processor = EnhancedOCRProcessor()
