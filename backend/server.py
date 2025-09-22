@@ -2352,10 +2352,44 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
                     
                 else:
                     logger.warning(f"⚠️ OCR processing failed for {filename}: {ocr_result.get('error', 'Unknown error')}")
-                    # Fall back to original text extraction if available
+                    # Fall back to basic text extraction for image-based PDF
+                    text_content = text_extraction_result.get("text_content", "")
+                    processing_method = "text_extraction_fallback"
+                    ocr_confidence = 0.3
+                    
+                    if len(text_content) < 50:
+                        logger.error(f"❌ Both OCR and text extraction failed for image-based PDF")
+                        return get_fallback_ship_analysis(filename)
+            
+            else:  # pdf_type == "mixed" or unknown
+                # Step 2C: Mixed or unknown PDF - try text extraction first, OCR if needed
+                logger.info(f"📋 Detected MIXED/UNKNOWN PDF - using hybrid approach")
+                text_content = text_extraction_result["text_content"]
+                processing_method = "hybrid_extraction"
+                ocr_confidence = text_extraction_result.get("classification_confidence", 0.7)
+                
+                # If text extraction doesn't give enough content, supplement with OCR
+                if len(text_content) < 100 and ocr_processor is not None:
+                    logger.info(f"🔄 Text extraction insufficient, supplementing with OCR")
                     try:
-                        from PyPDF2 import PdfReader
-                        import io
+                        ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
+                        if ocr_result["success"] and len(ocr_result["text_content"]) > len(text_content):
+                            text_content = ocr_result["text_content"]
+                            processing_method = "hybrid_ocr_enhanced"
+                            ocr_confidence = max(ocr_confidence, ocr_result["confidence_score"])
+                            logger.info(f"✅ OCR enhancement successful")
+                    except Exception as ocr_error:
+                        logger.warning(f"⚠️ OCR enhancement failed: {ocr_error}")
+            
+            # Validate extracted content regardless of method
+            if len(text_content.strip()) < 50:
+                logger.warning(f"⚠️ Insufficient text content extracted from {filename}")
+                return get_fallback_ship_analysis(filename)
+        
+        else:
+            # Non-PDF files - not supported for ship certificate analysis
+            logger.error(f"❌ Unsupported file type for ship analysis: {content_type}")
+            return get_fallback_ship_analysis(filename)
                         
                         pdf_reader = PdfReader(io.BytesIO(file_content))
                         text_content = ""
