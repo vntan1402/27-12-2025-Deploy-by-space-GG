@@ -9,7 +9,7 @@ import json
 import time
 
 class OAuthSyncTester:
-    def __init__(self, base_url="https://ship-cert-manager-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://continue-session.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
@@ -158,7 +158,7 @@ class OAuthSyncTester:
         oauth_config = {
             "client_id": "test-client-id-for-persistence",
             "client_secret": "test-client-secret",
-            "redirect_uri": "https://ship-cert-manager-1.preview.emergentagent.com/oauth/callback",
+            "redirect_uri": "https://continue-session.preview.emergentagent.com/oauth/callback",
             "folder_id": "1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB"
         }
         

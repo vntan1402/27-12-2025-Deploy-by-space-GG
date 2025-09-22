@@ -10,7 +10,7 @@ import threading
 import time
 
 # Configuration
-BACKEND_URL = 'https://ship-cert-manager-1.preview.emergentagent.com'
+BACKEND_URL = 'https://continue-session.preview.emergentagent.com'
 API_BASE = f'{BACKEND_URL}/api'
 
 def test_ocr_endpoint():

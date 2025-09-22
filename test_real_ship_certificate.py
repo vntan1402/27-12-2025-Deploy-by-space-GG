@@ -13,13 +13,13 @@ def test_with_real_ship():
     """Test certificate upload with existing ship name"""
     
     # Login
-    login_response = requests.post('https://ship-cert-manager-1.preview.emergentagent.com/api/auth/login', 
+    login_response = requests.post('https://continue-session.preview.emergentagent.com/api/auth/login', 
                                   json={'username': 'admin', 'password': 'admin123'})
     token = login_response.json()['access_token']
     headers = {'Authorization': f'Bearer {token}'}
     
     # Get existing ships
-    ships_response = requests.get('https://ship-cert-manager-1.preview.emergentagent.com/api/ships', headers=headers)
+    ships_response = requests.get('https://continue-session.preview.emergentagent.com/api/ships', headers=headers)
     ships = ships_response.json()
     
     if not ships:
@@ -72,7 +72,7 @@ in accordance with the Convention.
     print(f"Uploading certificate for {ship_name}...")
     
     upload_response = requests.post(
-        'https://ship-cert-manager-1.preview.emergentagent.com/api/certificates/upload-multi-files',
+        'https://continue-session.preview.emergentagent.com/api/certificates/upload-multi-files',
         files=files,
         headers={'Authorization': f'Bearer {token}'},
         timeout=120

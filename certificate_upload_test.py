@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = "https://ship-cert-manager-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://continue-session.preview.emergentagent.com/api"
 TEST_USERNAME = "admin"
 TEST_PASSWORD = "admin123"
 

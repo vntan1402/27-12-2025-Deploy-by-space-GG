@@ -20,7 +20,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://ship-cert-manager-1.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://continue-session.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 # Test credentials as specified in review request

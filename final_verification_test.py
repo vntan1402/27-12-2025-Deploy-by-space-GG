@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 
 class FinalVerificationTester:
-    def __init__(self, base_url="https://ship-cert-manager-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://continue-session.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None

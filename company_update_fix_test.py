@@ -11,7 +11,7 @@ import sys
 
 def test_company_update_endpoint():
     """Test if company update endpoint exists"""
-    base_url = "https://ship-cert-manager-1.preview.emergentagent.com"
+    base_url = "https://continue-session.preview.emergentagent.com"
     api_url = f"{base_url}/api"
     
     # Login first

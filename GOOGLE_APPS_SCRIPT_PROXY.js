@@ -6,7 +6,7 @@
 // Configuration
 const FOLDER_ID = '1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB'; // Replace with your folder ID
 const ALLOWED_ORIGINS = [
-  'https://ship-cert-manager-1.preview.emergentagent.com',
+  'https://continue-session.preview.emergentagent.com',
   'http://localhost:3000'
 ];
 
