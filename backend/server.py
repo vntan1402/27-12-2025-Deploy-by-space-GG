@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
@@ -7,14 +7,13 @@ import os
 import logging
 import json
 from pathlib import Path
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict, Any, Union
 import uuid
 from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 from enum import Enum
-import shutil
 import requests
 import re
 import base64
@@ -2250,7 +2249,7 @@ async def analyze_pdf_type(file_content: bytes, filename: str) -> tuple[str, dic
             # For mixed PDFs, we'll treat as text-based if we have enough meaningful content
             if len(extracted_text) > 200:
                 pdf_type = "text_based"
-                logger.info(f"📄 Mixed PDF upgraded to TEXT-BASED due to sufficient content")
+                logger.info("📄 Mixed PDF upgraded to TEXT-BASED due to sufficient content")
                 
         else:
             # Little to no text = Image-based PDF (scanned document)
@@ -2309,7 +2308,7 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
             
             if pdf_type == "text_based":
                 # Step 2A: Text-based PDF - use direct text extraction (faster)
-                logger.info(f"📄 Detected TEXT-BASED PDF - using direct text extraction")
+                logger.info("📄 Detected TEXT-BASED PDF - using direct text extraction")
                 text_content = text_extraction_result["text_content"]
                 processing_method = "direct_text_extraction"
                 ocr_confidence = 1.0  # High confidence for text-based PDFs
@@ -2318,7 +2317,7 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
                 
             elif pdf_type == "image_based":
                 # Step 2B: Image-based PDF - use OCR processing (more thorough)
-                logger.info(f"🖼️ Detected IMAGE-BASED PDF - using OCR processing")
+                logger.info("🖼️ Detected IMAGE-BASED PDF - using OCR processing")
                 
                 if ocr_processor is None:
                     logger.warning("⚠️ OCR processor not available for image-based PDF")
@@ -2358,26 +2357,26 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
                     ocr_confidence = 0.3
                     
                     if len(text_content) < 50:
-                        logger.error(f"❌ Both OCR and text extraction failed for image-based PDF")
+                        logger.error("❌ Both OCR and text extraction failed for image-based PDF")
                         return get_fallback_ship_analysis(filename)
             
             else:  # pdf_type == "mixed" or unknown
                 # Step 2C: Mixed or unknown PDF - try text extraction first, OCR if needed
-                logger.info(f"📋 Detected MIXED/UNKNOWN PDF - using hybrid approach")
+                logger.info("📋 Detected MIXED/UNKNOWN PDF - using hybrid approach")
                 text_content = text_extraction_result["text_content"]
                 processing_method = "hybrid_extraction"
                 ocr_confidence = text_extraction_result.get("classification_confidence", 0.7)
                 
                 # If text extraction doesn't give enough content, supplement with OCR
                 if len(text_content) < 100 and ocr_processor is not None:
-                    logger.info(f"🔄 Text extraction insufficient, supplementing with OCR")
+                    logger.info("🔄 Text extraction insufficient, supplementing with OCR")
                     try:
                         ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
                         if ocr_result["success"] and len(ocr_result["text_content"]) > len(text_content):
                             text_content = ocr_result["text_content"]
                             processing_method = "hybrid_ocr_enhanced"
                             ocr_confidence = max(ocr_confidence, ocr_result["confidence_score"])
-                            logger.info(f"✅ OCR enhancement successful")
+                            logger.info("✅ OCR enhancement successful")
                     except Exception as ocr_error:
                         logger.warning(f"⚠️ OCR enhancement failed: {ocr_error}")
             
@@ -3759,7 +3758,7 @@ async def analyze_with_google(file_content: bytes, filename: str, content_type: 
         extracted_text = extract_text_from_pdf(file_content)
         
         if not extracted_text or len(extracted_text.strip()) < 10:
-            logger.warning(f"No readable text content extracted from PDF")
+            logger.warning("No readable text content extracted from PDF")
             
             # Try OCR processing if available
             if ocr_processor is not None:
@@ -3859,7 +3858,6 @@ def extract_text_from_pdf(file_content: bytes) -> str:
     try:
         import PyPDF2
         import io
-        from datetime import datetime
         
         # Create a PDF reader from bytes with enhanced error handling
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))
@@ -4344,7 +4342,7 @@ async def create_ship_google_drive_folder(
         
         # Handle both old and new structure formats
         if folder_structure:
-            logger.info(f"📁 Creating complete ship folder structure:")
+            logger.info("📁 Creating complete ship folder structure:")
             logger.info(f"   Ship: {ship_name}")
             logger.info(f"   Source: {source}")
             logger.info(f"   Categories ({total_categories}): {list(folder_structure.keys())}")
@@ -4358,7 +4356,7 @@ async def create_ship_google_drive_folder(
             
         else:
             # Fallback to old format
-            logger.info(f"📁 Creating ship folder structure (legacy format):")
+            logger.info("📁 Creating ship folder structure (legacy format):")
             logger.info(f"   Ship: {ship_name}")
             logger.info(f"   Source: {source}")
             logger.info(f"   Subfolders ({total_subfolders}): {subfolders}")
