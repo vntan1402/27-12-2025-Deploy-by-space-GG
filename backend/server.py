@@ -2406,8 +2406,43 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
                 logger.warning(f"⚠️ Insufficient text content extracted from {filename}")
                 return get_fallback_ship_analysis(filename)
         
+        elif content_type in ["image/jpeg", "image/jpg", "image/png"]:
+            # Step 3: Handle image files (JPG, PNG) - use OCR processing
+            logger.info(f"🖼️ Processing image file: {filename} (type: {content_type})")
+            pdf_type = "image_file"
+            
+            if ocr_processor is None:
+                logger.warning("⚠️ OCR processor not available for image file processing")
+                return get_fallback_ship_analysis(filename)
+            
+            # Use OCR processor for image files
+            try:
+                ocr_result = await ocr_processor.process_image_with_ocr(file_content, filename, content_type)
+                
+                if ocr_result["success"]:
+                    text_content = ocr_result["text_content"]
+                    ocr_confidence = ocr_result["confidence_score"]
+                    processing_method = "image_ocr_processing"
+                    
+                    logger.info(f"✅ Image OCR processing successful for {filename}")
+                    logger.info(f"📊 Method: {processing_method}, Confidence: {ocr_confidence:.2f}")
+                    logger.info(f"📝 Extracted {len(text_content)} characters from image")
+                    
+                    # Validate extracted content
+                    if len(text_content.strip()) < 30:
+                        logger.warning(f"⚠️ Insufficient text content extracted from image {filename}")
+                        return get_fallback_ship_analysis(filename)
+                        
+                else:
+                    logger.warning(f"⚠️ Image OCR processing failed for {filename}: {ocr_result.get('error', 'Unknown error')}")
+                    return get_fallback_ship_analysis(filename)
+                    
+            except Exception as ocr_error:
+                logger.error(f"❌ Image OCR processing error for {filename}: {str(ocr_error)}")
+                return get_fallback_ship_analysis(filename)
+        
         else:
-            # Non-PDF files - not supported for ship certificate analysis
+            # Unsupported file types
             logger.error(f"❌ Unsupported file type for ship analysis: {content_type}")
             return get_fallback_ship_analysis(filename)
         
