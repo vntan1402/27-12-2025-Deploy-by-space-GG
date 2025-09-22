@@ -3178,24 +3178,49 @@ EXAMPLE OUTPUT:
 """
 
         logger.info(f"AI Analysis configuration: provider={provider}, model={model}, use_emergent_key={use_emergent_key}")
+        logger.info(f"📊 Smart processing: type={pdf_type}, method={processing_method}, confidence={ocr_confidence:.2f}")
         
-        # Use different AI providers based on configuration
-        # Note: Emergent LLM only supports file attachments with Gemini provider
-        if use_emergent_key and provider == "openai":
+        # Create enhanced analysis prompt with extracted text content
+        text_analysis_prompt = f"""
+{analysis_prompt}
+
+DOCUMENT TEXT CONTENT:
+{text_content[:4000]}  # Limit to first 4000 characters for token efficiency
+"""
+        
+        # Use different AI providers based on configuration with smart processing results
+        result = None
+        if use_emergent_key and provider == "google":
+            # For Emergent LLM with Gemini (supports file attachments)
+            result = await analyze_with_emergent_gemini(file_content, text_analysis_prompt, api_key, model, filename)
+        elif use_emergent_key and provider == "openai":
             # For OpenAI with Emergent key, use text extraction approach (no file attachment support)
-            return await analyze_with_openai_text_extraction(file_content, filename, content_type, api_key, model, analysis_prompt)
+            result = await analyze_with_openai_text_extraction_enhanced(text_content, filename, api_key, model, text_analysis_prompt)
         elif provider == "openai":
-            return await analyze_with_openai(file_content, filename, content_type, api_key, model, analysis_prompt)
+            result = await analyze_with_openai_text_enhanced(text_content, filename, api_key, model, text_analysis_prompt)
         elif provider == "anthropic":
-            return await analyze_with_anthropic(file_content, filename, content_type, api_key, model, analysis_prompt)
+            result = await analyze_with_anthropic_text_enhanced(text_content, filename, api_key, model, text_analysis_prompt)
         elif provider == "google":
-            return await analyze_with_google(file_content, filename, content_type, api_key, model, analysis_prompt)
+            result = await analyze_with_google_text_enhanced(text_content, filename, api_key, model, text_analysis_prompt)
         elif provider == "emergent" or not provider:
             # Fallback to Emergent LLM if provider is emergent or not specified
-            return await analyze_with_emergent_llm(file_content, filename, content_type, api_key, analysis_prompt)
+            result = await analyze_with_emergent_llm_text_enhanced(text_content, filename, api_key, text_analysis_prompt)
         else:
             logger.error("Unsupported AI provider: " + provider)
-            return classify_by_filename(filename)
+            result = classify_by_filename(filename)
+        
+        # Add processing metadata to result
+        if isinstance(result, dict):
+            result["processing_method"] = processing_method
+            result["ocr_confidence"] = ocr_confidence
+            result["pdf_type"] = pdf_type
+            result["text_length"] = len(text_content)
+            result["processing_notes"] = result.get("processing_notes", [])
+            result["processing_notes"].append(f"Processed as {processing_method} with confidence {ocr_confidence:.2f}")
+            
+            logger.info(f"🎯 Document analysis completed: {result.get('category', 'unknown')} category")
+        
+        return result
             
     except Exception as e:
         logger.error("AI document analysis failed: " + str(e))
