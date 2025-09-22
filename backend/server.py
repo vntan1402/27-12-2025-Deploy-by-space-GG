@@ -2315,10 +2315,11 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
             logger.error("No API key found in AI configuration")
             return get_fallback_ship_analysis(filename)
         
-        # Smart PDF processing - detect PDF type and choose optimal method
+        # Smart document processing - handle PDF, JPG, PNG files
         text_content = ""
         ocr_confidence = 0.0
         processing_method = "unknown"
+        pdf_type = "unknown"
         
         if content_type == "application/pdf":
             logger.info(f"🔍 Processing PDF: {filename}")
