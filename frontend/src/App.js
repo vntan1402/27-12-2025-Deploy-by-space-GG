@@ -734,50 +734,66 @@ const HomePage = () => {
 
   // Column resize functionality
   useEffect(() => {
+    let activeColumn = null;
+    let startX = 0;
+    let startWidth = 0;
+    
     const handleMouseMove = (e) => {
-      if (!e.target.dataset.resizing) return;
+      if (!activeColumn) return;
       
-      const th = e.target.closest('th');
-      if (!th) return;
-      
-      const rect = th.getBoundingClientRect();
-      const newWidth = e.clientX - rect.left;
+      const newWidth = startWidth + (e.clientX - startX);
       
       if (newWidth > 50) { // Minimum width
-        th.style.width = newWidth + 'px';
+        activeColumn.style.width = newWidth + 'px';
       }
     };
     
     const handleMouseUp = () => {
-      document.querySelectorAll('[data-resizing]').forEach(el => {
-        delete el.dataset.resizing;
-      });
+      if (activeColumn) {
+        activeColumn.removeAttribute('data-resizing');
+        activeColumn = null;
+      }
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
     
     const initResizeHandlers = () => {
       document.querySelectorAll('.resize-handle').forEach(th => {
-        const resizer = th.querySelector('.resize-handle::after') || th;
+        // Remove existing listeners
+        th.removeEventListener('mousedown', th._resizeHandler);
         
-        th.addEventListener('mousedown', (e) => {
+        th._resizeHandler = (e) => {
           const rect = th.getBoundingClientRect();
-          const isNearRightEdge = e.clientX > rect.right - 10;
+          const isNearRightEdge = e.clientX > rect.right - 8;
           
           if (isNearRightEdge) {
             e.preventDefault();
-            th.dataset.resizing = 'true';
+            e.stopPropagation();
+            
+            activeColumn = th;
+            startX = e.clientX;
+            startWidth = parseInt(window.getComputedStyle(th).width, 10);
+            
+            th.setAttribute('data-resizing', 'true');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
           }
-        });
+        };
+        
+        th.addEventListener('mousedown', th._resizeHandler);
       });
     };
     
-    // Initialize after component mounts
-    setTimeout(initResizeHandlers, 100);
+    // Initialize after DOM is ready
+    const timer = setTimeout(initResizeHandlers, 200);
     
     return () => {
+      clearTimeout(timer);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
