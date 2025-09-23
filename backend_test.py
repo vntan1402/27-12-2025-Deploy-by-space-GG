@@ -713,7 +713,7 @@ class BackendTester:
                 
                 # Test status endpoint
                 status_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/status"
-                status_response = self.session.get(status_endpoint)
+                status_response = self.session.post(status_endpoint)  # Use POST instead of GET
                 
                 self.log(f"   Status endpoint status: {status_response.status_code}")
                 
