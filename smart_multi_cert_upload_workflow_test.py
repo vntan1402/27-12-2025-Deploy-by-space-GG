@@ -69,11 +69,13 @@ class SmartMultiCertUploadTester:
     def authenticate(self):
         """STEP 1: Authenticate with admin1/123456 credentials"""
         try:
+            print(f"🔗 Connecting to: {API_BASE}/auth/login")
             response = requests.post(f"{API_BASE}/auth/login", json={
                 "username": TEST_USERNAME,
                 "password": TEST_PASSWORD
-            })
+            }, timeout=30)
             
+            print(f"📡 Response status: {response.status_code}")
             if response.status_code == 200:
                 data = response.json()
                 self.token = data["access_token"]
