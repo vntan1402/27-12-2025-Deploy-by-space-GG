@@ -540,10 +540,11 @@ input:focus, textarea:focus, select:focus {
   cursor: default; /* Default cursor for main area */
 }
 
+/* Resize zone at right edge */
 .resize-handle::after {
   content: '';
   position: absolute;
-  right: 0;
+  right: -4px;
   top: 0;
   bottom: 0;
   width: 8px;
@@ -554,7 +555,16 @@ input:focus, textarea:focus, select:focus {
 }
 
 .resize-handle:hover::after {
-  background-color: rgba(59, 130, 246, 0.2);
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Active resizing state */
+.resize-handle[data-resizing="true"] {
+  user-select: none;
+}
+
+.resize-handle[data-resizing="true"]::after {
+  background-color: rgba(59, 130, 246, 0.5);
 }
 
 /* Enhanced table styles for resizable columns */
