@@ -1,6 +1,7 @@
+
 /**
- * Ship Management System - Working Google Apps Script
- * Deploy this as Web App with "Execute as: Me" and "Anyone" access
+ * Ship Management System - Clean Apps Script v3.1
+ * Multi Cert Upload with Correct Folder Structure
  */
 
 function doPost(e) {
@@ -13,29 +14,31 @@ function doGet(e) {
 
 function handleRequest(e) {
   try {
-    // Parse request data
-    let requestData = {};
+    var requestData = {};
     
     if (e && e.postData && e.postData.contents) {
       try {
         requestData = JSON.parse(e.postData.contents);
       } catch (parseError) {
-        return createJsonResponse(false, `Invalid JSON: ${parseError.toString()}`);
+        return createJsonResponse(false, "Invalid JSON: " + parseError.toString());
       }
     } else if (e && e.parameter) {
       requestData = e.parameter;
     } else {
-      // Default response - this proves the script is working
-      return createJsonResponse(true, "Ship Management Apps Script is WORKING!", {
-        version: "2.0-dynamic-only",
+      return createJsonResponse(true, "Ship Management Apps Script v3.1 is WORKING!", {
+        version: "3.1-correct-folder-structure",
         timestamp: new Date().toISOString(),
-        supported_actions: ["test_connection", "create_complete_ship_structure", "upload_file_with_folder_creation"]
+        supported_actions: [
+          "test_connection", 
+          "create_complete_ship_structure", 
+          "upload_file_with_folder_creation",
+          "check_ship_folder_exists"
+        ]
       });
     }
     
-    const action = requestData.action || "default";
+    var action = requestData.action || "default";
     
-    // Handle different actions
     switch (action) {
       case 'test_connection':
         return handleTestConnection(requestData);
@@ -46,30 +49,37 @@ function handleRequest(e) {
       case 'upload_file_with_folder_creation':
         return handleUploadFileWithFolderCreation(requestData);
         
+      case 'check_ship_folder_exists':
+        return handleCheckShipFolderExists(requestData);
+        
       default:
         return createJsonResponse(true, "Apps Script working - no action specified", {
           received_action: action,
-          available_actions: ["test_connection", "create_complete_ship_structure", "upload_file_with_folder_creation"]
+          available_actions: [
+            "test_connection", 
+            "create_complete_ship_structure", 
+            "upload_file_with_folder_creation",
+            "check_ship_folder_exists"
+          ]
         });
     }
     
   } catch (error) {
-    return createJsonResponse(false, `Error: ${error.toString()}`);
+    return createJsonResponse(false, "Error: " + error.toString());
   }
 }
 
-/**
- * Create JSON response
- */
-function createJsonResponse(success, message, data = null) {
-  const response = {
+function createJsonResponse(success, message, data) {
+  var response = {
     success: success,
     message: message,
     timestamp: new Date().toISOString()
   };
   
   if (data) {
-    Object.assign(response, data);
+    for (var key in data) {
+      response[key] = data[key];
+    }
   }
   
   return ContentService
@@ -77,61 +87,47 @@ function createJsonResponse(success, message, data = null) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * Test Google Drive connection
- */
 function handleTestConnection(requestData) {
   try {
-    const folderId = requestData.folder_id;
+    var folderId = requestData.folder_id;
     
     if (!folderId) {
-      return createJsonResponse(false, "folder_id is required for test_connection");
+      return createJsonResponse(false, "Missing folder_id parameter");
     }
     
-    // Test access to the folder
-    const folder = DriveApp.getFolderById(folderId);
-    const folderName = folder.getName();
+    var folder = DriveApp.getFolderById(folderId);
+    var folderName = folder.getName();
     
-    return createJsonResponse(true, "Google Drive connection successful!", {
+    return createJsonResponse(true, "Connection successful", {
       folder_name: folderName,
       folder_id: folderId,
-      drive_access: true,
       test_result: "PASSED"
     });
     
   } catch (error) {
-    return createJsonResponse(false, `Connection test failed: ${error.toString()}`);
+    return createJsonResponse(false, "Connection test failed: " + error.toString());
   }
 }
 
-/**
- * Create complete dynamic ship folder structure
- */
 function handleCreateCompleteShipStructure(requestData) {
   try {
-    const parentFolderId = requestData.parent_folder_id || requestData.folder_id;
-    const shipName = requestData.ship_name || requestData.folder_path;
-    const companyId = requestData.company_id;
+    var parentFolderId = requestData.parent_folder_id;
+    var shipName = requestData.ship_name;
+    var companyId = requestData.company_id;
     
-    if (!parentFolderId) {
-      return createJsonResponse(false, "parent_folder_id is required");
+    if (!parentFolderId || !shipName) {
+      return createJsonResponse(false, "Missing required parameters: parent_folder_id, ship_name");
     }
     
-    if (!shipName) {
-      return createJsonResponse(false, "ship_name is required");
-    }
+    var parentFolder = DriveApp.getFolderById(parentFolderId);
+    var shipFolder = findOrCreateFolder(parentFolder, shipName);
     
-    const parentFolder = DriveApp.getFolderById(parentFolderId);
-    
-    // Create ship folder
-    let shipFolder = findOrCreateFolder(parentFolder, shipName);
-    
-    // Dynamic folder structure from homepage sidebar
-    const folderStructure = {
+    // CORRECT folder structure matching Homepage Sidebar
+    var folderStructure = {
       "Document Portfolio": [
         "Certificates",
-        "Inspection Records", 
-        "Survey Reports",
+        "Inspection Records",
+        "Survey Reports", 
         "Drawings & Manuals",
         "Other Documents"
       ],
@@ -142,7 +138,7 @@ function handleCreateCompleteShipStructure(requestData) {
       ],
       "ISM Records": [
         "ISM Certificate",
-        "Safety Procedures",
+        "Safety Procedures", 
         "Audit Reports"
       ],
       "ISPS Records": [
@@ -162,122 +158,161 @@ function handleCreateCompleteShipStructure(requestData) {
       ]
     };
     
-    const subfolderIds = {};
-    let totalSubfoldersCreated = 0;
+    var subfolderIds = {};
+    var totalSubfoldersCreated = 0;
     
-    // Create main categories and their subfolders
-    for (const [categoryName, subfolders] of Object.entries(folderStructure)) {
-      try {
-        // Create main category folder
-        const categoryFolder = findOrCreateFolder(shipFolder, categoryName);
-        subfolderIds[categoryName] = categoryFolder.getId();
-        
-        // Create subfolders within category
-        const categorySubfolders = {};
-        for (const subfolderName of subfolders) {
-          try {
-            const subfolder = findOrCreateFolder(categoryFolder, subfolderName);
-            categorySubfolders[subfolderName] = subfolder.getId();
-            totalSubfoldersCreated++;
-          } catch (e) {
-            console.error(`Error creating subfolder ${subfolderName} in ${categoryName}:`, e);
-          }
-        }
-        
-        // Store subfolder structure
-        subfolderIds[`${categoryName}_subfolders`] = categorySubfolders;
-        
-      } catch (e) {
-        console.error(`Error creating category ${categoryName}:`, e);
+    for (var mainCategory in folderStructure) {
+      var mainFolder = findOrCreateFolder(shipFolder, mainCategory);
+      subfolderIds[mainCategory] = mainFolder.getId();
+      
+      var subCategories = folderStructure[mainCategory];
+      var subcategoryIds = {};
+      
+      for (var i = 0; i < subCategories.length; i++) {
+        var subCategory = subCategories[i];
+        var subFolder = findOrCreateFolder(mainFolder, subCategory);
+        subcategoryIds[subCategory] = subFolder.getId();
+        totalSubfoldersCreated++;
       }
+      
+      subfolderIds[mainCategory + "_subcategories"] = subcategoryIds;
     }
     
-    return createJsonResponse(true, `Complete folder structure created: ${shipName}`, {
+    return createJsonResponse(true, "Complete folder structure created: " + shipName, {
       ship_folder_id: shipFolder.getId(),
       ship_folder_name: shipFolder.getName(),
       subfolder_ids: subfolderIds,
       categories_created: Object.keys(folderStructure).length,
       total_subfolders_created: totalSubfoldersCreated,
-      structure_type: "dynamic",
+      structure_type: "homepage_sidebar_compliant",
       company_id: companyId
     });
     
   } catch (error) {
-    return createJsonResponse(false, `Dynamic folder creation failed: ${error.toString()}`);
+    return createJsonResponse(false, "Folder creation failed: " + error.toString());
   }
 }
 
-/**
- * Upload file with automatic folder creation
- */
 function handleUploadFileWithFolderCreation(requestData) {
   try {
-    const parentFolderId = requestData.parent_folder_id;
-    const shipName = requestData.ship_name;
-    const categoryFolder = requestData.category_folder;
-    const fileName = requestData.file_name;
-    const fileContent = requestData.file_content; // base64
-    const mimeType = requestData.mime_type || 'application/octet-stream';
+    var shipName = requestData.ship_name;
+    var category = requestData.category;
+    var filename = requestData.filename;
+    var fileContent = requestData.file_content;
+    var contentType = requestData.content_type || 'application/pdf';
+    var parentFolderId = requestData.parent_folder_id;
     
-    if (!parentFolderId || !shipName || !categoryFolder || !fileName || !fileContent) {
-      return createJsonResponse(false, "Missing required parameters: parent_folder_id, ship_name, category_folder, file_name, file_content");
+    if (!shipName || !category || !filename || !fileContent) {
+      return createJsonResponse(false, "Missing required parameters: ship_name, category, filename, file_content");
     }
     
-    // Get parent folder
-    const parentFolder = DriveApp.getFolderById(parentFolderId);
-    
-    // Create/find ship folder
-    const shipFolder = findOrCreateFolder(parentFolder, shipName);
-    
-    // Create/find category folder within ship folder
-    const targetFolder = findOrCreateFolder(shipFolder, categoryFolder);
-    
-    // Decode base64 content and create blob
-    const bytes = Utilities.base64Decode(fileContent);
-    let blob = Utilities.newBlob(bytes, mimeType);
-    
-    // Handle filename uniqueness
-    const existingFiles = targetFolder.getFilesByName(fileName);
-    let finalFileName = fileName;
-    let counter = 1;
-    
-    while (existingFiles.hasNext()) {
-      const extension = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
-      const nameWithoutExt = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
-      finalFileName = `${nameWithoutExt}_${counter}${extension}`;
-      counter++;
+    if (!parentFolderId) {
+      return createJsonResponse(false, "Parent folder ID not available");
     }
     
-    if (finalFileName !== fileName) {
-      blob.setName(finalFileName);
+    var parentFolder = DriveApp.getFolderById(parentFolderId);
+    var shipFolder = findFolderByName(parentFolder, shipName);
+    
+    if (!shipFolder) {
+      return createJsonResponse(false, "Ship folder '" + shipName + "' not found. Please create ship first.");
     }
     
-    const file = targetFolder.createFile(blob);
+    // Categories under Document Portfolio
+    var documentPortfolioCategories = [
+      "Certificates", "Inspection Records", "Survey Reports", 
+      "Drawings & Manuals", "Other Documents"
+    ];
     
-    return createJsonResponse(true, `File uploaded with folder creation: ${finalFileName}`, {
-      file_id: file.getId(),
-      file_name: finalFileName,
-      file_url: file.getUrl(),
-      file_size: bytes.length,
-      ship_folder_id: shipFolder.getId(),
-      category_folder_id: targetFolder.getId(),
-      folder_path: `${shipName}/${categoryFolder}`
+    var parentCategoryFolder;
+    var folderPath;
+    
+    if (documentPortfolioCategories.indexOf(category) !== -1) {
+      // Find Document Portfolio folder
+      parentCategoryFolder = findFolderByName(shipFolder, "Document Portfolio");
+      if (!parentCategoryFolder) {
+        return createJsonResponse(false, "Document Portfolio folder not found in ship '" + shipName + "'");
+      }
+      folderPath = shipName + "/Document Portfolio/" + category;
+    } else {
+      // Direct under ship folder
+      parentCategoryFolder = shipFolder;
+      folderPath = shipName + "/" + category;
+    }
+    
+    // Find target category folder
+    var categoryFolder = findFolderByName(parentCategoryFolder, category);
+    if (!categoryFolder) {
+      return createJsonResponse(false, "Category folder '" + category + "' not found");
+    }
+    
+    // Decode and upload
+    var binaryData = Utilities.base64Decode(fileContent);
+    var blob = Utilities.newBlob(binaryData, contentType, filename);
+    var uploadedFile = categoryFolder.createFile(blob);
+    
+    return createJsonResponse(true, "File uploaded successfully: " + filename, {
+      file_id: uploadedFile.getId(),
+      file_name: uploadedFile.getName(),
+      file_url: uploadedFile.getUrl(),
+      folder_path: folderPath,
+      upload_timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    return createJsonResponse(false, `File upload with folder creation failed: ${error.toString()}`);
+    return createJsonResponse(false, "File upload failed: " + error.toString());
   }
 }
 
-/**
- * Helper: Find or create folder
- */
-function findOrCreateFolder(parentFolder, folderName) {
-  const existingFolders = parentFolder.getFoldersByName(folderName);
-  
-  if (existingFolders.hasNext()) {
-    return existingFolders.next();
-  } else {
-    return parentFolder.createFolder(folderName);
+function handleCheckShipFolderExists(requestData) {
+  try {
+    var parentFolderId = requestData.parent_folder_id;
+    var shipName = requestData.ship_name;
+    
+    if (!parentFolderId || !shipName) {
+      return createJsonResponse(false, "Missing required parameters");
+    }
+    
+    var parentFolder = DriveApp.getFolderById(parentFolderId);
+    var shipFolder = findFolderByName(parentFolder, shipName);
+    
+    if (!shipFolder) {
+      return createJsonResponse(true, "Ship folder not found", {
+        folder_exists: false,
+        ship_name: shipName
+      });
+    }
+    
+    var categories = [];
+    var subfolders = shipFolder.getFolders();
+    while (subfolders.hasNext()) {
+      var subfolder = subfolders.next();
+      categories.push(subfolder.getName());
+    }
+    
+    return createJsonResponse(true, "Ship folder structure found", {
+      folder_exists: true,
+      ship_folder_id: shipFolder.getId(),
+      ship_name: shipName,
+      available_categories: categories,
+      subfolder_count: categories.length
+    });
+    
+  } catch (error) {
+    return createJsonResponse(false, "Folder check failed: " + error.toString());
   }
 }
+
+function findOrCreateFolder(parentFolder, folderName) {
+  var existingFolder = findFolderByName(parentFolder, folderName);
+  if (existingFolder) {
+    return existingFolder;
+  }
+  return parentFolder.createFolder(folderName);
+}
+
+function findFolderByName(parentFolder, folderName) {
+  var folders = parentFolder.getFoldersByName(folderName);
+  return folders.hasNext() ? folders.next() : null;
+}
+
+
