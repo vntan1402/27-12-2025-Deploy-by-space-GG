@@ -243,11 +243,19 @@ class SmartMultiCertUploadTester:
         try:
             # Check for processing results
             results = self.upload_results.get('results', [])
+            summary = self.upload_results.get('summary', {})
+            
+            print(f"📊 Results count: {len(results)}")
+            print(f"📊 Summary: {summary}")
+            
             if not results:
                 self.log_test("STEP 4A: Processing Results", False,
                             error="No processing results in response")
+                # Try to get data from summary or other sources
+                result = {}
             else:
                 result = results[0] if results else {}
+                print(f"📊 First result keys: {list(result.keys())}")
                 
                 # 4A: File Type Analysis
                 pdf_type = result.get('pdf_type')
