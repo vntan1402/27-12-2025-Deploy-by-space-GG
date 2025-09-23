@@ -2669,6 +2669,7 @@ const HomePage = () => {
                           language={language}
                           API={API}
                           token={token}
+                          availableCompanies={availableCompanies}
                           onMoveComplete={() => {
                             setShowMoveModal(false);
                             setSelectedCertificates(new Set());
