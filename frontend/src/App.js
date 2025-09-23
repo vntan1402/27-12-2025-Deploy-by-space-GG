@@ -1990,8 +1990,9 @@ const HomePage = () => {
                                 No.
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
                                 onClick={() => handleCertificateSort('cert_abbreviation')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Tên viết tắt' : 'Cert. Name'}</span>
@@ -1999,8 +2000,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px] resize-handle"
                                 onClick={() => handleCertificateSort('cert_type')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Loại' : 'Type'}</span>
@@ -2008,8 +2010,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
                                 onClick={() => handleCertificateSort('cert_no')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}</span>
@@ -2017,8 +2020,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
                                 onClick={() => handleCertificateSort('issued_by')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
@@ -2026,8 +2030,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px] resize-handle"
                                 onClick={() => handleCertificateSort('issue_date')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Ngày cấp' : 'Issue Date'}</span>
@@ -2035,8 +2040,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px] resize-handle"
                                 onClick={() => handleCertificateSort('valid_date')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</span>
@@ -2044,8 +2050,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px] resize-handle"
                                 onClick={() => handleCertificateSort('last_endorse')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}</span>
