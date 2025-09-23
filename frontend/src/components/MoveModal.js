@@ -11,7 +11,8 @@ const MoveModal = ({
   language, 
   API, 
   token,
-  onMoveComplete 
+  onMoveComplete,
+  availableCompanies = []
 }) => {
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,17 @@ const MoveModal = ({
     ? Array.from(selectedCertificates)
     : (contextMenuCertificate ? [contextMenuCertificate.id] : []);
 
+  // Get company ID from company name
+  const getCompanyId = () => {
+    if (!selectedShip?.company || !availableCompanies.length) return null;
+    const company = availableCompanies.find(c => 
+      c.name_en === selectedShip.company || 
+      c.name_vn === selectedShip.company ||
+      c.name === selectedShip.company
+    );
+    return company?.id;
+  };
+
   // Fetch folder structure when modal opens
   useEffect(() => {
     if (isOpen && selectedShip) {
@@ -33,8 +45,16 @@ const MoveModal = ({
   const fetchFolders = async () => {
     setLoading(true);
     try {
+      const companyId = getCompanyId();
+      if (!companyId) {
+        console.error('Company ID not found for ship company:', selectedShip.company);
+        toast.error(language === 'vi' ? 'Không tìm thấy thông tin công ty' : 'Company information not found');
+        setLoading(false);
+        return;
+      }
+
       const response = await axios.get(
-        `${API}/companies/${selectedShip.company_id}/gdrive/folders?ship_name=${encodeURIComponent(selectedShip.name)}`,
+        `${API}/companies/${companyId}/gdrive/folders?ship_name=${encodeURIComponent(selectedShip.name)}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
