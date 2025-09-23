@@ -180,7 +180,8 @@ class SunshinePDFDebugTester:
                 'files': ('SUNSHINE_01_ImagePDF_New.pdf', pdf_content, 'application/pdf')
             }
             
-            data = {
+            # Ship ID as query parameter
+            params = {
                 'ship_id': SHIP_ID
             }
             
@@ -192,7 +193,7 @@ class SunshinePDFDebugTester:
             response = requests.post(
                 f"{API_BASE}/certificates/multi-upload",
                 files=files,
-                data=data,
+                params=params,
                 headers=self.get_headers()
             )
             processing_time = time.time() - start_time
