@@ -779,23 +779,390 @@ class BackendTester:
             self.log(f"❌ Company Google Drive configuration test error: {str(e)}", "ERROR")
             return False
 
+    def test_certificate_move_functionality(self):
+        """Test the certificate move functionality as requested in review"""
+        self.log("🔍 Starting Certificate Move Functionality Debug Test")
+        self.log("=" * 60)
+        
+        # Step 1: Authentication
+        if not self.authenticate():
+            self.log("❌ Test failed at authentication step", "ERROR")
+            return False
+        
+        # Step 2: Check available companies and find AMCSC
+        if not self.check_available_companies():
+            self.log("❌ Test failed at company check step", "ERROR")
+            return False
+        
+        # Step 3: Find SUNSHINE 01 ship and get certificate details
+        certificate_details_result = self.test_get_certificate_details()
+        
+        # Step 4: Test move file API endpoint
+        move_api_result = self.test_move_file_api()
+        
+        # Step 5: Test Google Apps Script integration for move_file action
+        apps_script_move_result = self.test_apps_script_move_integration()
+        
+        # Step 6: Check backend logs and error analysis
+        error_analysis_result = self.test_error_analysis()
+        
+        # Step 7: Summary
+        self.log("=" * 60)
+        self.log("📋 CERTIFICATE MOVE FUNCTIONALITY DEBUG TEST SUMMARY")
+        self.log("=" * 60)
+        
+        self.log(f"✅ Authentication: SUCCESS")
+        self.log(f"✅ Company Check: SUCCESS")
+        self.log(f"{'✅' if certificate_details_result else '❌'} Certificate Details: {'SUCCESS' if certificate_details_result else 'FAILED'}")
+        self.log(f"{'✅' if move_api_result else '❌'} Move File API: {'SUCCESS' if move_api_result else 'FAILED'}")
+        self.log(f"{'✅' if apps_script_move_result else '❌'} Apps Script Move Integration: {'SUCCESS' if apps_script_move_result else 'FAILED'}")
+        self.log(f"{'✅' if error_analysis_result else '❌'} Error Analysis: {'SUCCESS' if error_analysis_result else 'FAILED'}")
+        
+        overall_success = all([certificate_details_result, move_api_result, apps_script_move_result, error_analysis_result])
+        
+        if overall_success:
+            self.log("🎉 CERTIFICATE MOVE FUNCTIONALITY: FULLY WORKING")
+        else:
+            self.log("❌ CERTIFICATE MOVE FUNCTIONALITY: ISSUES DETECTED - ROOT CAUSE IDENTIFIED")
+        
+        return overall_success
+    
+    def test_get_certificate_details(self):
+        """Find SUNSHINE 01 ship and get certificate details with gdrive_file_id"""
+        try:
+            self.log("🚢 Finding SUNSHINE 01 ship and certificate details...")
+            
+            # First, get all ships to find SUNSHINE 01
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            
+            if ships_response.status_code != 200:
+                self.log(f"❌ Failed to get ships: {ships_response.status_code}", "ERROR")
+                return False
+            
+            ships = ships_response.json()
+            sunshine_ship = None
+            
+            for ship in ships:
+                ship_name = ship.get('name', '').upper()
+                if 'SUNSHINE' in ship_name and ('01' in ship_name or '1' in ship_name):
+                    sunshine_ship = ship
+                    break
+            
+            if not sunshine_ship:
+                self.log("❌ SUNSHINE 01 ship not found", "ERROR")
+                self.log("   Available ships:")
+                for ship in ships[:5]:  # Show first 5 ships
+                    self.log(f"      - {ship.get('name', 'N/A')} (ID: {ship.get('id', 'N/A')})")
+                return False
+            
+            ship_id = sunshine_ship.get('id')
+            ship_name = sunshine_ship.get('name')
+            self.log(f"✅ Found ship: {ship_name} (ID: {ship_id})")
+            
+            # Store ship details for later use
+            self.sunshine_ship_id = ship_id
+            self.sunshine_ship_name = ship_name
+            
+            # Get certificates for this ship
+            certificates_response = self.session.get(f"{BACKEND_URL}/ships/{ship_id}/certificates")
+            
+            if certificates_response.status_code != 200:
+                self.log(f"❌ Failed to get certificates: {certificates_response.status_code}", "ERROR")
+                return False
+            
+            certificates = certificates_response.json()
+            self.log(f"   Found {len(certificates)} certificates for {ship_name}")
+            
+            # Look for certificates with gdrive_file_id
+            certificates_with_gdrive = []
+            certificates_without_gdrive = []
+            
+            for cert in certificates:
+                cert_name = cert.get('cert_name', 'N/A')
+                cert_id = cert.get('id', 'N/A')
+                gdrive_file_id = cert.get('gdrive_file_id') or cert.get('google_drive_file_id')
+                
+                if gdrive_file_id:
+                    certificates_with_gdrive.append({
+                        'id': cert_id,
+                        'name': cert_name,
+                        'gdrive_file_id': gdrive_file_id
+                    })
+                else:
+                    certificates_without_gdrive.append({
+                        'id': cert_id,
+                        'name': cert_name
+                    })
+            
+            self.log(f"   Certificates with Google Drive file ID: {len(certificates_with_gdrive)}")
+            self.log(f"   Certificates without Google Drive file ID: {len(certificates_without_gdrive)}")
+            
+            if certificates_with_gdrive:
+                self.log("   📋 Certificates with Google Drive file ID:")
+                for cert in certificates_with_gdrive[:3]:  # Show first 3
+                    self.log(f"      - {cert['name']} (File ID: {cert['gdrive_file_id']})")
+                
+                # Store the first certificate with gdrive_file_id for testing
+                self.test_certificate = certificates_with_gdrive[0]
+                self.log(f"   ✅ Selected certificate for move test: {self.test_certificate['name']}")
+                return True
+            else:
+                self.log("   ❌ No certificates found with Google Drive file ID")
+                if certificates_without_gdrive:
+                    self.log("   📋 Certificates without Google Drive file ID:")
+                    for cert in certificates_without_gdrive[:3]:  # Show first 3
+                        self.log(f"      - {cert['name']}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Certificate details test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_move_file_api(self):
+        """Test POST /api/companies/{company_id}/gdrive/move-file endpoint"""
+        try:
+            self.log("📁 Testing Move File API endpoint...")
+            
+            if not hasattr(self, 'test_certificate'):
+                self.log("❌ No test certificate available", "ERROR")
+                return False
+            
+            # Test the move file endpoint
+            endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/move-file"
+            
+            # Use the certificate's gdrive_file_id and a sample target folder ID
+            test_payload = {
+                "file_id": self.test_certificate['gdrive_file_id'],
+                "target_folder_id": "1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG",  # Sample folder ID
+                "certificate_id": self.test_certificate['id']
+            }
+            
+            self.log(f"   Endpoint: {endpoint}")
+            self.log(f"   Company ID: {AMCSC_COMPANY_ID}")
+            self.log(f"   File ID: {test_payload['file_id']}")
+            self.log(f"   Target Folder ID: {test_payload['target_folder_id']}")
+            self.log(f"   Certificate: {self.test_certificate['name']}")
+            
+            response = self.session.post(endpoint, json=test_payload)
+            
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.log("✅ Move file API endpoint responded successfully")
+                    
+                    # Analyze response
+                    self.log("   📋 Response Analysis:")
+                    self.log(f"      Success: {data.get('success', False)}")
+                    self.log(f"      Message: {data.get('message', 'N/A')}")
+                    
+                    if data.get('success'):
+                        self.log("   ✅ File move operation successful")
+                        return True
+                    else:
+                        error_msg = data.get('message', 'Unknown error')
+                        self.log(f"   ❌ File move operation failed: {error_msg}")
+                        
+                        # Store error for analysis
+                        self.move_api_error = error_msg
+                        return False
+                        
+                except json.JSONDecodeError:
+                    self.log("❌ Invalid JSON response", "ERROR")
+                    self.log(f"   Raw response: {response.text[:500]}...", "ERROR")
+                    return False
+            elif response.status_code == 404:
+                self.log("❌ Move file endpoint not found (404)", "ERROR")
+                self.log("   This endpoint may not be implemented yet", "ERROR")
+                return False
+            elif response.status_code == 405:
+                self.log("❌ Method not allowed (405)", "ERROR")
+                self.log("   POST method may not be supported for this endpoint", "ERROR")
+                return False
+            else:
+                self.log(f"❌ Move file API failed: {response.status_code}", "ERROR")
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', response.text)
+                    self.log(f"   Error details: {error_detail}", "ERROR")
+                    self.move_api_error = error_detail
+                except:
+                    self.log(f"   Error response: {response.text}", "ERROR")
+                    self.move_api_error = response.text
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Move file API test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_apps_script_move_integration(self):
+        """Test Google Apps Script integration for move_file action"""
+        try:
+            self.log("🔗 Testing Google Apps Script Move Integration...")
+            
+            if not hasattr(self, 'test_certificate'):
+                self.log("❌ No test certificate available", "ERROR")
+                return False
+            
+            # Get company Google Drive configuration
+            config_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/config"
+            config_response = self.session.get(config_endpoint)
+            
+            self.log(f"   Company Google Drive config status: {config_response.status_code}")
+            
+            if config_response.status_code == 200:
+                config_data = config_response.json()
+                config = config_data.get('config', {})
+                
+                web_app_url = config.get('web_app_url') or config.get('apps_script_url')
+                folder_id = config.get('folder_id')
+                
+                self.log(f"   Web App URL: {'Configured' if web_app_url else 'Not configured'}")
+                self.log(f"   Folder ID: {'Configured' if folder_id else 'Not configured'}")
+                
+                if web_app_url:
+                    # Test direct Apps Script call for move_file action
+                    self.log("   🔗 Testing direct Apps Script move_file call...")
+                    
+                    test_payload = {
+                        "action": "move_file",
+                        "file_id": self.test_certificate['gdrive_file_id'],
+                        "target_folder_id": "1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG"  # Sample folder ID
+                    }
+                    
+                    self.log(f"   Apps Script URL: {web_app_url}")
+                    self.log(f"   Payload: {test_payload}")
+                    
+                    try:
+                        import requests
+                        apps_response = requests.post(web_app_url, json=test_payload, timeout=30)
+                        self.log(f"   Apps Script response status: {apps_response.status_code}")
+                        
+                        if apps_response.status_code == 200:
+                            try:
+                                apps_data = apps_response.json()
+                                self.log(f"   Apps Script success: {apps_data.get('success', False)}")
+                                self.log(f"   Apps Script message: {apps_data.get('message', 'N/A')}")
+                                
+                                # Check if move_file action is supported
+                                if apps_data.get('success'):
+                                    self.log("   ✅ move_file action working correctly")
+                                    return True
+                                else:
+                                    error_msg = apps_data.get('message', 'Unknown error')
+                                    if 'move_file' in error_msg.lower() or 'action' in error_msg.lower():
+                                        self.log("   ❌ move_file action not supported by Apps Script")
+                                        self.log(f"   Error: {error_msg}")
+                                        self.apps_script_move_error = error_msg
+                                        return False
+                                    else:
+                                        self.log(f"   ❌ Apps Script error: {error_msg}")
+                                        self.apps_script_move_error = error_msg
+                                        return False
+                                        
+                            except json.JSONDecodeError:
+                                self.log("   ❌ Invalid JSON response from Apps Script")
+                                self.log(f"   Raw response: {apps_response.text[:200]}...")
+                                return False
+                        else:
+                            self.log(f"   ❌ Apps Script call failed: {apps_response.status_code}")
+                            self.log(f"   Response: {apps_response.text[:200]}...")
+                            return False
+                            
+                    except requests.exceptions.Timeout:
+                        self.log("   ❌ Apps Script call timed out (30s)")
+                        return False
+                    except requests.exceptions.ConnectionError:
+                        self.log("   ❌ Apps Script connection error")
+                        return False
+                    except Exception as apps_error:
+                        self.log(f"   ❌ Apps Script call error: {str(apps_error)}")
+                        return False
+                else:
+                    self.log("   ❌ Google Drive Web App URL not configured")
+                    return False
+            else:
+                self.log(f"   ❌ Company Google Drive config not available: {config_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Apps Script move integration test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_error_analysis(self):
+        """Analyze errors and check backend logs"""
+        try:
+            self.log("🔍 Performing Error Analysis...")
+            
+            # Check if we have any errors to analyze
+            errors_found = []
+            
+            if hasattr(self, 'move_api_error'):
+                errors_found.append(f"Move API Error: {self.move_api_error}")
+            
+            if hasattr(self, 'apps_script_move_error'):
+                errors_found.append(f"Apps Script Error: {self.apps_script_move_error}")
+            
+            if errors_found:
+                self.log("   📋 Errors Found:")
+                for i, error in enumerate(errors_found, 1):
+                    self.log(f"      {i}. {error}")
+                
+                # Analyze common issues
+                self.log("   🔍 Error Analysis:")
+                
+                for error in errors_found:
+                    if 'move_file' in error.lower() and 'action' in error.lower():
+                        self.log("      ❌ ISSUE: Apps Script does not have move_file action implemented")
+                        self.log("      💡 SOLUTION: Add move_file action to Google Apps Script")
+                    
+                    elif 'file_id' in error.lower() or 'not found' in error.lower():
+                        self.log("      ❌ ISSUE: Invalid file ID or file not accessible")
+                        self.log("      💡 SOLUTION: Verify file ID exists and has proper permissions")
+                    
+                    elif 'folder_id' in error.lower():
+                        self.log("      ❌ ISSUE: Invalid target folder ID")
+                        self.log("      💡 SOLUTION: Verify target folder ID exists and is accessible")
+                    
+                    elif 'permission' in error.lower() or 'access' in error.lower():
+                        self.log("      ❌ ISSUE: Google Drive permissions problem")
+                        self.log("      💡 SOLUTION: Check Google Drive API permissions and service account access")
+                    
+                    elif 'timeout' in error.lower():
+                        self.log("      ❌ ISSUE: Request timeout")
+                        self.log("      💡 SOLUTION: Increase timeout or check network connectivity")
+                    
+                    elif '404' in error or 'not found' in error.lower():
+                        self.log("      ❌ ISSUE: Endpoint not implemented")
+                        self.log("      💡 SOLUTION: Implement the move-file endpoint in backend")
+                
+                return False  # Errors found
+            else:
+                self.log("   ✅ No errors to analyze - all operations successful")
+                return True
+                
+        except Exception as e:
+            self.log(f"❌ Error analysis test error: {str(e)}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
-    print("🔬 Ship Management System - Move Folders Loading Issue Debug Test")
+    print("🔬 Ship Management System - Certificate Move Functionality Debug Test")
     print("=" * 60)
     
     tester = BackendTester()
-    success = tester.test_move_folders_loading_issue()
+    success = tester.test_certificate_move_functionality()
     
     # Cleanup test resources
     tester.cleanup_test_resources()
     
     print("=" * 60)
     if success:
-        print("🎉 Move folders loading test completed successfully!")
+        print("🎉 Certificate move functionality test completed successfully!")
         sys.exit(0)
     else:
-        print("❌ Move folders loading test completed with failures - ROOT CAUSE IDENTIFIED!")
+        print("❌ Certificate move functionality test completed with failures - ROOT CAUSE IDENTIFIED!")
         sys.exit(1)
 
 if __name__ == "__main__":
