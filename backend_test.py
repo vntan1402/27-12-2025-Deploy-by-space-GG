@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Certificate Move Functionality Testing - Debug "Error moving certificates" issue
+Focus: Move File Functionality Debugging - Detailed Apps Script and Backend Testing
 """
 
 import requests
