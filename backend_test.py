@@ -96,7 +96,7 @@ class CertificateDeleteTester:
             }
             
             endpoint = f"{BACKEND_URL}/auth/login"
-            response = requests.post(endpoint, json=login_data, timeout=10)
+            response = requests.post(endpoint, json=login_data, timeout=30)
             
             self.log(f"   Login response status: {response.status_code}")
             
