@@ -732,6 +732,37 @@ const HomePage = () => {
     return validDate >= currentDate ? 'Valid' : 'Expired';
   };
 
+  // Certificate selection functions
+  const handleSelectCertificate = (certificateId) => {
+    const newSelected = new Set(selectedCertificates);
+    if (newSelected.has(certificateId)) {
+      newSelected.delete(certificateId);
+    } else {
+      newSelected.add(certificateId);
+    }
+    setSelectedCertificates(newSelected);
+  };
+
+  const handleSelectAllCertificates = (checked) => {
+    if (checked) {
+      const allVisibleIds = new Set(getFilteredCertificates().map(cert => cert.id));
+      setSelectedCertificates(allVisibleIds);
+    } else {
+      setSelectedCertificates(new Set());
+    }
+  };
+
+  const isAllSelected = () => {
+    const visibleCerts = getFilteredCertificates();
+    return visibleCerts.length > 0 && visibleCerts.every(cert => selectedCertificates.has(cert.id));
+  };
+
+  const isIndeterminate = () => {
+    const visibleCerts = getFilteredCertificates();
+    const selectedVisible = visibleCerts.filter(cert => selectedCertificates.has(cert.id));
+    return selectedVisible.length > 0 && selectedVisible.length < visibleCerts.length;
+  };
+
   // Column resize functionality
   useEffect(() => {
     let activeColumn = null;
