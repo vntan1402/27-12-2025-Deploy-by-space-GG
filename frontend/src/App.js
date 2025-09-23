@@ -3506,11 +3506,22 @@ const AccountControlPage = () => {
   };
 
   const fetchShips = async () => {
+    if (!token) {
+      console.log('No token available for ships fetch');
+      return;
+    }
+    
     try {
-      const response = await axios.get(`${API}/ships`);
+      const response = await axios.get(`${API}/ships`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setShips(response.data);
+      console.log('Ships fetched successfully:', response.data.length, 'ships');
     } catch (error) {
       console.error('Failed to fetch ships:', error);
+      if (error.response?.status === 401) {
+        console.log('Unauthorized - token may be invalid');
+      }
     }
   };
 
