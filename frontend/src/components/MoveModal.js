@@ -1,0 +1,218 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
+
+const MoveModal = ({ 
+  isOpen, 
+  onClose, 
+  selectedCertificates, 
+  contextMenuCertificate, 
+  selectedShip, 
+  language, 
+  API, 
+  token,
+  onMoveComplete 
+}) => {
+  const [folders, setFolders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [moving, setMoving] = useState(false);
+
+  // Get certificates to move
+  const certificatesToMove = selectedCertificates.size > 0 
+    ? Array.from(selectedCertificates)
+    : (contextMenuCertificate ? [contextMenuCertificate.id] : []);
+
+  // Fetch folder structure when modal opens
+  useEffect(() => {
+    if (isOpen && selectedShip) {
+      fetchFolders();
+    }
+  }, [isOpen, selectedShip]);
+
+  const fetchFolders = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${API}/companies/${selectedShip.company_id}/gdrive/folders?ship_name=${encodeURIComponent(selectedShip.name)}`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        setFolders(response.data.folders);
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tải thư mục' : 'Failed to load folders');
+      }
+    } catch (error) {
+      console.error('Error fetching folders:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi tải thư mục' : 'Error loading folders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMove = async () => {
+    if (!selectedFolder || certificatesToMove.length === 0) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn thư mục đích' : 'Please select a destination folder');
+      return;
+    }
+
+    setMoving(true);
+    try {
+      const movePromises = certificatesToMove.map(async (certId) => {
+        // First, get the certificate details to find its Google Drive file ID
+        const certResponse = await axios.get(`${API}/certificates/${certId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const certificate = certResponse.data;
+        if (!certificate.gdrive_file_id) {
+          throw new Error(`Certificate ${certificate.certificate_name} has no Google Drive file ID`);
+        }
+
+        // Move the file using the Google Drive API
+        return axios.post(
+          `${API}/companies/${selectedShip.company_id}/gdrive/move-file`,
+          {
+            file_id: certificate.gdrive_file_id,
+            target_folder_id: selectedFolder.folder_id
+          },
+          {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }
+        );
+      });
+
+      await Promise.all(movePromises);
+      
+      toast.success(
+        language === 'vi' 
+          ? `Đã di chuyển ${certificatesToMove.length} chứng chỉ thành công!`
+          : `Successfully moved ${certificatesToMove.length} certificate(s)!`
+      );
+      
+      onMoveComplete();
+    } catch (error) {
+      console.error('Error moving certificates:', error);
+      toast.error(
+        language === 'vi' 
+          ? 'Lỗi khi di chuyển chứng chỉ' 
+          : 'Error moving certificates'
+      );
+    } finally {
+      setMoving(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="space-y-4">
+      {/* Folder Selection */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          {language === 'vi' ? 'Chọn thư mục đích:' : 'Select destination folder:'}
+        </label>
+        
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-2 text-gray-600">
+              {language === 'vi' ? 'Đang tải thư mục...' : 'Loading folders...'}
+            </span>
+          </div>
+        ) : folders.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-2">📁</div>
+            <p>{language === 'vi' ? 'Không tìm thấy thư mục nào' : 'No folders found'}</p>
+            <button 
+              onClick={fetchFolders}
+              className="mt-2 text-blue-600 hover:text-blue-800 text-sm"
+            >
+              {language === 'vi' ? 'Thử lại' : 'Retry'}
+            </button>
+          </div>
+        ) : (
+          <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
+            {folders.map((folder, index) => (
+              <div
+                key={index}
+                onClick={() => setSelectedFolder(folder)}
+                className={`p-3 border-b border-gray-200 cursor-pointer transition-colors ${
+                  selectedFolder?.folder_id === folder.folder_id
+                    ? 'bg-blue-50 border-blue-200'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 mr-3">
+                    <div className={`w-4 h-4 rounded-full border-2 ${
+                      selectedFolder?.folder_id === folder.folder_id
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'border-gray-300'
+                    }`}>
+                      {selectedFolder?.folder_id === folder.folder_id && (
+                        <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <svg className="w-4 h-4 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                      </svg>
+                      <span className="font-medium text-gray-900">{folder.folder_name}</span>
+                    </div>
+                    {folder.folder_path && (
+                      <p className="text-xs text-gray-500 mt-1">{folder.folder_path}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Selected certificates info */}
+      {certificatesToMove.length > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h4 className="font-medium text-gray-900 mb-2">
+            {language === 'vi' ? 'Chứng chỉ được chọn:' : 'Selected certificates:'}
+          </h4>
+          <p className="text-sm text-gray-600">
+            {certificatesToMove.length} {language === 'vi' ? 'chứng chỉ' : 'certificate(s)'}
+          </p>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <button
+          onClick={onClose}
+          disabled={moving}
+          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
+        >
+          {language === 'vi' ? 'Hủy' : 'Cancel'}
+        </button>
+        <button
+          onClick={handleMove}
+          disabled={!selectedFolder || certificatesToMove.length === 0 || moving}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
+        >
+          {moving && (
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+          )}
+          {moving 
+            ? (language === 'vi' ? 'Đang di chuyển...' : 'Moving...') 
+            : (language === 'vi' ? 'Di chuyển' : 'Move')
+          }
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default MoveModal;
