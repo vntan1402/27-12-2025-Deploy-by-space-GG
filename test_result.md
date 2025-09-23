@@ -339,7 +339,7 @@
 
 ## test_plan:
   current_focus:
-    - "OCR Processor Fixes Verification - COMPLETED"
+    - "Move File Functionality Debugging - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
