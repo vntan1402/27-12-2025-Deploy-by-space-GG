@@ -7624,8 +7624,8 @@ const AddRecordModal = ({
       const currentSubMenuItems = {
         documents: [
           { key: 'certificates', name: 'Certificates' },
-          { key: 'inspection_records', name: 'Inspection Records' },
-          { key: 'survey_reports', name: 'Survey Reports' },
+          { key: 'inspection_records', name: 'Class Survey Report' },
+          { key: 'survey_reports', name: 'Test Report' },
           { key: 'drawings_manuals', name: 'Drawings & Manuals' },
           { key: 'other_documents', name: 'Other Documents' },
         ],
