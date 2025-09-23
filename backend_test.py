@@ -117,8 +117,20 @@ class CertificateMoveTester:
                     self.log(f"      Full Name: {self.user_info.get('full_name')}")
                     self.log(f"      Company: {self.user_info.get('company', 'N/A')}")
                     
-                    # Store company ID for later use
-                    self.company_id = self.user_info.get('company')
+                    # Get the actual company ID by looking up the company name
+                    company_name = self.user_info.get('company')
+                    if company_name:
+                        # Get companies to find the ID
+                        companies_response = self.session.get(f"{BACKEND_URL}/companies", timeout=10)
+                        if companies_response.status_code == 200:
+                            companies = companies_response.json()
+                            for company in companies:
+                                if (company.get('name_en', '').upper() == company_name.upper() or 
+                                    company.get('name', '').upper() == company_name.upper()):
+                                    self.company_id = company.get('id')
+                                    self.log(f"      Company ID resolved: {self.company_id}")
+                                    break
+                    
                     return True
                 else:
                     self.log("   ❌ Authentication failed - missing token or user data")
