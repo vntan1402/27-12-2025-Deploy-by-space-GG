@@ -11,10 +11,7 @@ Initial user requests focused on:
 3.  **Multi-File Upload UI Enhancement**: Move Certificate File upload to a prominent drag-and-drop area, allowing multiple files, and displaying detailed progress (Uploading, Analyzing, Updating DB, Complete).
 4.  **Advanced AI Analysis**: Utilize an AI model (OpenAI GPT-4) to analyze each uploaded certificate file for:
     *   **Classification**: Into 5 categories (Certificates, Test Reports, Survey Reports, Drawings & Manuals, Other Documents).
-    *   **Folder Creation**: Create a ship-specific folder, and if not present, create 5 subfolders for categories.
-    *   **File Movement**: Move processed files into their respective category subfolders.
     *   **Auto-Record Creation (for Certificates)**: Automatically populate certificate records from AI analysis (Name, Type, Number, Dates, Ship Name, Issued by).
-    *   **Ship Survey Status**: Extract additional information for a separate Ship Survey Status database.
     *   **Error Handling**: Create records with available data if AI fails to find all info.
 5.  **Ship Name Validation**: If an AI-extracted ship name is not in the existing Ship List, prompt the user to either cancel or auto-add the new ship before proceeding.
 6.  **UI Refinement**: Remove the old single-file Certificate File section.
