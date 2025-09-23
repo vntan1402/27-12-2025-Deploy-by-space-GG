@@ -1177,7 +1177,7 @@ const HomePage = () => {
       }
     }
     
-    handleCloseContextMenu();
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
   };
 
   // Close context menu when clicking outside
