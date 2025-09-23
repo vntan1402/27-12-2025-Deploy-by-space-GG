@@ -2087,16 +2087,6 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
-                                onClick={() => handleCertificateSort('issued_by')}
-                                style={{overflow: 'hidden'}}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
-                                  {getSortIcon('issued_by')}
-                                </div>
-                              </th>
-                              <th 
                                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px] resize-handle"
                                 onClick={() => handleCertificateSort('issue_date')}
                                 style={{overflow: 'hidden'}}
@@ -2134,6 +2124,16 @@ const HomePage = () => {
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</span>
                                   {getSortIcon('next_survey')}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
+                                onClick={() => handleCertificateSort('issued_by')}
+                                style={{overflow: 'hidden'}}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
+                                  {getSortIcon('issued_by')}
                                 </div>
                               </th>
                               <th 
