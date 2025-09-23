@@ -46,7 +46,10 @@ class BackendTester:
                 "remember_me": False
             }
             
-            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data)
+            # Set timeout and connection settings
+            self.session.timeout = 10
+            
+            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data, timeout=10)
             
             if response.status_code == 200:
                 data = response.json()
@@ -64,6 +67,41 @@ class BackendTester:
                 return True
             else:
                 self.log(f"❌ Authentication failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except requests.exceptions.ConnectionError as e:
+            self.log(f"❌ Connection error: {str(e)}", "ERROR")
+            self.log("   Trying alternative connection method...", "INFO")
+            
+            # Try with a fresh session
+            try:
+                import subprocess
+                result = subprocess.run([
+                    'curl', '-X', 'POST', f'{BACKEND_URL}/auth/login',
+                    '-H', 'Content-Type: application/json',
+                    '-d', json.dumps(login_data),
+                    '--connect-timeout', '5'
+                ], capture_output=True, text=True, timeout=10)
+                
+                if result.returncode == 0:
+                    data = json.loads(result.stdout)
+                    self.auth_token = data.get("access_token")
+                    self.user_info = data.get("user")
+                    
+                    # Set authorization header for future requests
+                    self.session.headers.update({
+                        "Authorization": f"Bearer {self.auth_token}"
+                    })
+                    
+                    self.log(f"✅ Authentication successful (via curl)")
+                    self.log(f"   User: {self.user_info.get('username')} ({self.user_info.get('role')})")
+                    return True
+                else:
+                    self.log(f"❌ Curl authentication failed: {result.stderr}", "ERROR")
+                    return False
+                    
+            except Exception as curl_error:
+                self.log(f"❌ Curl authentication error: {str(curl_error)}", "ERROR")
                 return False
                 
         except Exception as e:
