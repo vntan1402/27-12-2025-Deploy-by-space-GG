@@ -312,46 +312,45 @@ const MoveModal = ({
             </button>
           </div>
         ) : (
-          <div className="max-h-60 overflow-y-auto border border-gray-300 rounded-lg">
-            {folders.map((folder, index) => (
-              <div
-                key={index}
-                onClick={() => setSelectedFolder(folder)}
-                className={`p-3 border-b border-gray-200 cursor-pointer transition-colors ${
-                  selectedFolder?.folder_id === folder.folder_id
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 mr-3">
-                    <div className={`w-4 h-4 rounded-full border-2 ${
-                      selectedFolder?.folder_id === folder.folder_id
-                        ? 'bg-blue-600 border-blue-600'
-                        : 'border-gray-300'
-                    }`}>
-                      {selectedFolder?.folder_id === folder.folder_id && (
-                        <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center">
-                      <svg className="w-4 h-4 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
-                      </svg>
-                      <span className="font-medium text-gray-900">{folder.folder_name}</span>
-                    </div>
-                    {folder.folder_path && (
-                      <p className="text-xs text-gray-500 mt-1">{folder.folder_path}</p>
-                    )}
-                  </div>
+          <div className="max-h-80 overflow-y-auto border border-gray-300 rounded-lg p-2">
+            <div className="folder-tree">
+              {buildFolderTree().length > 0 ? (
+                renderFolderTree(buildFolderTree())
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <div className="text-2xl mb-2">📁</div>
+                  <p className="text-sm">
+                    {language === 'vi' 
+                      ? 'Không có cấu trúc thư mục' 
+                      : 'No folder structure available'
+                    }
+                  </p>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {/* Selected folder info */}
+      {selectedFolder && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+          <h4 className="font-medium text-blue-900 mb-2 flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+            </svg>
+            {language === 'vi' ? 'Thư mục đích:' : 'Destination folder:'}
+          </h4>
+          <p className="text-sm text-blue-700 font-medium">
+            {selectedFolder.folder_name}
+          </p>
+          {selectedFolder.folder_path && (
+            <p className="text-xs text-blue-600 mt-1">
+              📍 {selectedFolder.folder_path}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Selected certificates info */}
       {certificatesToMove.length > 0 && (
