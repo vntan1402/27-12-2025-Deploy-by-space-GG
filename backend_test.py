@@ -13,8 +13,8 @@ import tempfile
 import subprocess
 import time
 
-# Configuration - Use internal URL for testing
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use production URL from frontend .env
+BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
 
 # Test credentials to verify
 TEST_CREDENTIALS = [
