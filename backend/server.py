@@ -3482,12 +3482,16 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
         if not parent_folder_id:
             raise Exception("Parent folder ID not configured")
         
+        # Get backend API URL for dynamic structure fetching
+        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://shipment-ai-1.preview.emergentagent.com')
+        
         # Create payload for dynamic folder structure creation
         payload = {
             "action": "create_complete_ship_structure",
             "parent_folder_id": parent_folder_id,
             "ship_name": ship_name,
-            "company_id": company_id
+            "company_id": company_id,
+            "backend_api_url": backend_api_url
         }
         
         logger.info(f"Creating dynamic ship folder structure for {ship_name} (company: {company_id})")
