@@ -178,21 +178,17 @@ class SmartMultiCertUploadTester:
                 'files': ('SUNSHINE_01_TN_ImagePDF.pdf', pdf_content, 'application/pdf')
             }
             
-            # Prepare form data with ship_id
+            # Get ship_id for query parameter
             ship_id = self.ship_info.get('id', SUNSHINE_SHIP_ID)
-            data = {
-                'ship_id': ship_id
-            }
             
             print(f"📤 Uploading PDF file: {TEST_PDF_FILE} ({len(pdf_content):,} bytes)")
             print(f"🚢 Target ship: {self.ship_info.get('name', 'Unknown')} (ID: {ship_id})")
             
-            # Make the API request
+            # Make the API request with ship_id as query parameter
             start_time = time.time()
             response = requests.post(
-                f"{API_BASE}/certificates/multi-upload",
+                f"{API_BASE}/certificates/multi-upload?ship_id={ship_id}",
                 files=files,
-                data=data,
                 headers=self.get_headers()
             )
             processing_time = time.time() - start_time
