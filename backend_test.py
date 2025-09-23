@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: OCR functionality testing with image-based PDF files
+Focus: Move functionality backend endpoints testing
 """
 
 import requests
@@ -12,13 +12,17 @@ from datetime import datetime
 import tempfile
 import subprocess
 
-# Configuration
-BACKEND_URL = "http://0.0.0.0:8001/api"
+# Configuration - Use the external URL from frontend .env
+BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
 TEST_PDF_URL = "https://customer-assets.emergentagent.com/job_shipment-ai-1/artifacts/1mu8wxqn_SS%20STAR%20PM252494416_ImagePDF.pdf"
 
 # Test credentials
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
+
+# AMCSC Company ID from test_result.md
+AMCSC_COMPANY_ID = "cfe73cb0-cc88-4659-92a7-57cb413a5573"
+TEST_SHIP_NAME = "SUNSHINE STAR"
 
 class BackendTester:
     def __init__(self):
