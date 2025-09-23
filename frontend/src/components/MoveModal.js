@@ -94,7 +94,7 @@ const MoveModal = ({
         });
         
         const certificate = certResponse.data;
-        if (!certificate.gdrive_file_id) {
+        if (!certificate.google_drive_file_id) {
           throw new Error(`Certificate ${certificate.certificate_name} has no Google Drive file ID`);
         }
 
@@ -102,7 +102,7 @@ const MoveModal = ({
         return axios.post(
           `${API}/companies/${companyId}/gdrive/move-file`,
           {
-            file_id: certificate.gdrive_file_id,
+            file_id: certificate.google_drive_file_id,
             target_folder_id: selectedFolder.folder_id
           },
           {
