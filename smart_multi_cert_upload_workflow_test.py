@@ -257,8 +257,15 @@ class SmartMultiCertUploadTester:
                 result = results[0] if results else {}
                 print(f"📊 First result keys: {list(result.keys())}")
                 
+                # Get analysis data from the correct location
+                analysis = result.get('analysis', {})
+                upload_result = result.get('upload_result', {})
+                
+                print(f"📊 Analysis keys: {list(analysis.keys()) if analysis else 'None'}")
+                print(f"📊 Upload result keys: {list(upload_result.keys()) if upload_result else 'None'}")
+                
                 # 4A: File Type Analysis
-                pdf_type = result.get('pdf_type')
+                pdf_type = analysis.get('pdf_type')
                 if pdf_type:
                     expected_type = 'image_based'  # Expected for scanned certificate
                     type_correct = pdf_type == expected_type
@@ -271,10 +278,10 @@ class SmartMultiCertUploadTester:
                         success_count += 1
                 else:
                     self.log_test("STEP 4A: File Type Analysis", False,
-                                error="No pdf_type in results")
+                                error="No pdf_type in analysis")
                 
                 # 4B: Method Selection
-                processing_method = result.get('processing_method')
+                processing_method = analysis.get('processing_method')
                 if processing_method:
                     expected_methods = ['enhanced_ocr', 'multi_engine_ocr', 'ocr_processing']
                     method_valid = any(method in processing_method for method in expected_methods)
@@ -285,10 +292,10 @@ class SmartMultiCertUploadTester:
                         success_count += 1
                 else:
                     self.log_test("STEP 4B: Method Selection", False,
-                                error="No processing_method in results")
+                                error="No processing_method in analysis")
                 
                 # 4C: OCR Processing
-                ocr_confidence = result.get('ocr_confidence')
+                ocr_confidence = analysis.get('ocr_confidence')
                 if ocr_confidence is not None:
                     confidence_good = float(ocr_confidence) > 0.5
                     self.log_test("STEP 4C: OCR Processing", confidence_good,
@@ -297,11 +304,11 @@ class SmartMultiCertUploadTester:
                         success_count += 1
                 else:
                     self.log_test("STEP 4C: OCR Processing", False,
-                                error="No ocr_confidence in results")
+                                error="No ocr_confidence in analysis")
                 
                 # 4D: AI Analysis (certificate data extraction)
-                cert_name = result.get('cert_name')
-                cert_number = result.get('cert_no')
+                cert_name = analysis.get('cert_name')
+                cert_number = analysis.get('cert_no')
                 if cert_name and cert_name != 'Maritime Certificate - filename':
                     self.log_test("STEP 4D: AI Analysis", True,
                                 f"Certificate extracted: {cert_name} (No: {cert_number})")
@@ -311,7 +318,7 @@ class SmartMultiCertUploadTester:
                                 error=f"No real certificate data extracted: {cert_name}")
                 
                 # 4E: Enhanced Results (processing metadata)
-                processing_notes = result.get('processing_notes', [])
+                processing_notes = analysis.get('processing_notes', [])
                 if processing_notes:
                     self.log_test("STEP 4E: Enhanced Results", True,
                                 f"Processing metadata: {len(processing_notes)} notes")
@@ -321,7 +328,7 @@ class SmartMultiCertUploadTester:
                                 error="No processing metadata found")
                 
                 # 4F: Google Drive Upload Status
-                google_drive_file_id = result.get('google_drive_file_id')
+                google_drive_file_id = upload_result.get('google_drive_file_id') or analysis.get('google_drive_file_id')
                 if google_drive_file_id:
                     self.log_test("STEP 4F: Google Drive Upload", True,
                                 f"File uploaded to Google Drive: {google_drive_file_id}")
