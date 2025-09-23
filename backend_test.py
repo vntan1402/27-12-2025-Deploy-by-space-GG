@@ -14,7 +14,7 @@ import subprocess
 import time
 
 # Configuration - Use internal URL for testing
-BACKEND_URL = "http://localhost:8010/api"
+BACKEND_URL = "http://localhost:8001/api"
 
 # Test credentials to verify
 TEST_CREDENTIALS = [
