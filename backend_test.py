@@ -557,18 +557,18 @@ class BackendTester:
 
 def main():
     """Main test execution"""
-    print("🔬 Ship Management System - OCR Functionality Test")
+    print("🔬 Ship Management System - Move Functionality Test")
     print("=" * 60)
     
     tester = BackendTester()
-    success = tester.run_comprehensive_test()
+    success = tester.test_move_functionality()
     
     print("=" * 60)
     if success:
-        print("🎉 Test completed successfully!")
+        print("🎉 Move functionality test completed successfully!")
         sys.exit(0)
     else:
-        print("❌ Test completed with failures!")
+        print("❌ Move functionality test completed with failures!")
         sys.exit(1)
 
 if __name__ == "__main__":
