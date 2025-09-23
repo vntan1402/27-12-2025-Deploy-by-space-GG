@@ -2227,7 +2227,18 @@ const HomePage = () => {
                                     : (language === 'vi' ? 'Chưa có file đính kèm | Chuột phải để Edit/Delete' : 'No file attached | Right-click for Edit/Delete')
                                   }
                                 >
-                                  <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                                  <td className="border border-gray-300 px-4 py-2 text-center w-20">
+                                    <div className="flex items-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedCertificates.has(cert.id)}
+                                        onChange={() => handleSelectCertificate(cert.id)}
+                                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                      <span className="font-bold">{index + 1}</span>
+                                    </div>
+                                  </td>
                                   <td 
                                     className="border border-gray-300 px-4 py-2 font-mono font-bold text-blue-600"
                                     title={cert.cert_name}
