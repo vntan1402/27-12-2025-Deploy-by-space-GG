@@ -1337,8 +1337,70 @@ async def delete_certificate(cert_id: str, current_user: UserResponse = Depends(
         if not existing_cert:
             raise HTTPException(status_code=404, detail="Certificate not found")
         
+        # Get company ID for Google Drive operations
+        ship_id = existing_cert.get("ship_id")
+        company_id = None
+        
+        if ship_id:
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if ship:
+                company_id = ship.get("company_id")
+        
+        # Delete from Google Drive if file ID exists
+        gdrive_file_id = existing_cert.get("gdrive_file_id")
+        if gdrive_file_id and company_id:
+            try:
+                logger.info(f"🗑️ Attempting to delete file {gdrive_file_id} from Google Drive")
+                
+                # Get company Google Drive configuration
+                gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+                
+                if gdrive_config_doc:
+                    apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+                    
+                    if apps_script_url:
+                        # Call Apps Script to delete file
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": gdrive_file_id,
+                            "permanent_delete": False  # Move to trash by default
+                        }
+                        
+                        import aiohttp
+                        async with aiohttp.ClientSession() as session:
+                            async with session.post(
+                                apps_script_url,
+                                json=payload,
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ File {gdrive_file_id} deleted from Google Drive successfully")
+                                    else:
+                                        logger.warning(f"⚠️ Google Drive file deletion warning: {result.get('message')}")
+                                else:
+                                    logger.warning(f"⚠️ Failed to delete file from Google Drive: HTTP {response.status}")
+                    else:
+                        logger.warning("⚠️ No Apps Script URL configured for Google Drive deletion")
+                else:
+                    logger.warning("⚠️ No Google Drive configuration found for company")
+                    
+            except Exception as gdrive_error:
+                logger.warning(f"⚠️ Google Drive deletion failed (continuing with certificate deletion): {str(gdrive_error)}")
+                # Continue with certificate deletion even if Google Drive deletion fails
+        
+        # Delete certificate from database
         await mongo_db.delete("certificates", {"id": cert_id})
-        return {"message": "Certificate deleted successfully"}
+        
+        # Log the deletion
+        logger.info(f"✅ Certificate {cert_id} deleted successfully (file ID: {gdrive_file_id})")
+        
+        return {
+            "message": "Certificate deleted successfully",
+            "certificate_id": cert_id,
+            "gdrive_file_deleted": bool(gdrive_file_id and company_id)
+        }
         
     except HTTPException:
         raise
