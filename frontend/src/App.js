@@ -6429,7 +6429,7 @@ const EditUserModal = ({ userData, setUserData, onClose, onSubmit, language, com
 
   const categoryNames = {
     certificates: language === 'vi' ? 'Chứng chỉ' : 'Certificates',
-    inspection_records: language === 'vi' ? 'Báo cáo khảo sát hạng' : 'Class Survey Report',
+    inspection_records: language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report',
     survey_reports: language === 'vi' ? 'Báo cáo thử nghiệm' : 'Test Report',
     drawings_manuals: language === 'vi' ? 'Bản vẽ & Hướng dẫn' : 'Drawings & Manuals',
     other_documents: language === 'vi' ? 'Tài liệu khác' : 'Other Documents'
