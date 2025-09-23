@@ -1085,12 +1085,65 @@ const HomePage = () => {
       return; // Don't show context menu for unauthorized users
     }
     
+    // If certificate is not selected, select it first
+    if (!selectedCertificates.has(certificate.id)) {
+      setSelectedCertificates(new Set([certificate.id]));
+    }
+    
     setContextMenu({
       show: true,
       x: e.clientX,
       y: e.clientY,
       certificate: certificate
     });
+  };
+
+  // Context menu actions
+  const handleOpenCertificate = async (certificate) => {
+    try {
+      const response = await fetch(`${API}/gdrive/file/${certificate.google_drive_file_id}/view`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      if (data.success && data.view_url) {
+        window.open(data.view_url, '_blank');
+      } else {
+        toast.error(language === 'vi' ? 'Không thể mở file' : 'Cannot open file');
+      }
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Lỗi khi mở file' : 'Error opening file');
+    }
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+  };
+
+  const handleCopyLink = async (certificate) => {
+    try {
+      const response = await fetch(`${API}/gdrive/file/${certificate.google_drive_file_id}/view`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      
+      if (data.success && data.view_url) {
+        await navigator.clipboard.writeText(data.view_url);
+        toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
+      } else {
+        toast.error(language === 'vi' ? 'Không thể lấy link' : 'Cannot get link');
+      }
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Lỗi khi copy link' : 'Error copying link');
+    }
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+  };
+
+  const handleMoveCertificate = () => {
+    setShowMoveModal(true);
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+  };
+
+  const handleDeleteCertificateFromContext = () => {
+    setShowDeleteConfirmation(true);
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
   };
 
   const handleCloseContextMenu = () => {
