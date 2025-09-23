@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Move functionality backend endpoints testing
+Focus: Enhanced Certificate Delete Functionality with Google Drive Integration
 """
 
 import requests
