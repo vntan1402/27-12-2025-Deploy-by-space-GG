@@ -308,24 +308,35 @@ class BackendTester:
                     # Analyze configuration
                     self.log("   📋 Configuration Analysis:")
                     config = config_data.get('config', {})
-                    self.log(f"      Web App URL: {config.get('web_app_url', 'N/A')}")
-                    self.log(f"      Folder ID: {config.get('folder_id', 'N/A')}")
-                    self.log(f"      Auth Method: {config.get('auth_method', 'N/A')}")
+                    web_app_url = config.get('web_app_url', 'N/A')
+                    folder_id = config.get('folder_id', 'N/A')
+                    auth_method = config.get('auth_method', 'N/A')
                     
-                    # Test status endpoint
+                    self.log(f"      Web App URL: {web_app_url}")
+                    self.log(f"      Folder ID: {folder_id}")
+                    self.log(f"      Auth Method: {auth_method}")
+                    
+                    # Test status endpoint (POST method)
                     status_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/status"
-                    status_response = self.session.get(status_endpoint)
+                    status_response = self.session.post(status_endpoint)
                     
                     self.log(f"   Status response status: {status_response.status_code}")
                     
                     if status_response.status_code == 200:
                         status_data = status_response.json()
                         self.log(f"      Status: {status_data.get('status', 'N/A')}")
-                        self.log(f"      Message: {status_data.get('message', 'N/A')}")
+                        self.log(f"      Configured: {status_data.get('configured', 'N/A')}")
                         
-                        return status_data.get('status') == 'configured'
+                        # Test direct Apps Script connectivity if we have the URL
+                        if web_app_url != 'N/A' and web_app_url.startswith('https://'):
+                            apps_script_result = self.test_apps_script_connectivity(web_app_url, folder_id)
+                            return apps_script_result
+                        else:
+                            self.log("   ⚠️  No valid Apps Script URL found", "WARN")
+                            return status_data.get('status') == 'connected'
                     else:
                         self.log(f"   ❌ Status endpoint failed: {status_response.status_code}", "ERROR")
+                        self.log(f"   Error response: {status_response.text}", "ERROR")
                         return False
                     
                 except json.JSONDecodeError:
@@ -338,6 +349,71 @@ class BackendTester:
                 
         except Exception as e:
             self.log(f"❌ Google Drive integration test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_apps_script_connectivity(self, web_app_url, folder_id):
+        """Test direct connectivity to Google Apps Script"""
+        try:
+            self.log("   🔗 Testing direct Apps Script connectivity...")
+            
+            # Test get_folder_structure action
+            test_payload = {
+                "action": "get_folder_structure",
+                "parent_folder_id": folder_id,
+                "ship_name": TEST_SHIP_NAME
+            }
+            
+            self.log(f"      Testing get_folder_structure action...")
+            self.log(f"      Payload: {test_payload}")
+            
+            response = requests.post(web_app_url, json=test_payload, timeout=30)
+            
+            self.log(f"      Apps Script response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.log(f"      Apps Script success: {data.get('success', False)}")
+                    
+                    if data.get('success'):
+                        folders = data.get('folders', [])
+                        self.log(f"      Folders returned: {len(folders)}")
+                        
+                        # Test move_file action
+                        move_payload = {
+                            "action": "move_file",
+                            "file_id": "test_file_id",
+                            "target_folder_id": folder_id
+                        }
+                        
+                        self.log(f"      Testing move_file action...")
+                        move_response = requests.post(web_app_url, json=move_payload, timeout=30)
+                        
+                        self.log(f"      Move action response status: {move_response.status_code}")
+                        
+                        if move_response.status_code == 200:
+                            move_data = move_response.json()
+                            self.log(f"      Move action success: {move_data.get('success', False)}")
+                            
+                            # Even if move fails (expected with test data), if we get a proper response, it's working
+                            return True
+                        else:
+                            self.log(f"      Move action failed: {move_response.text}", "WARN")
+                            return True  # Folder structure worked, so Apps Script is accessible
+                    else:
+                        self.log(f"      Apps Script error: {data.get('message', 'Unknown error')}", "WARN")
+                        return False
+                        
+                except json.JSONDecodeError:
+                    self.log("      ❌ Invalid JSON response from Apps Script", "ERROR")
+                    return False
+            else:
+                self.log(f"      ❌ Apps Script request failed: {response.status_code}", "ERROR")
+                self.log(f"      Response: {response.text[:200]}...", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"      ❌ Apps Script connectivity test error: {str(e)}", "ERROR")
             return False
     
     def test_error_handling(self):
