@@ -4922,9 +4922,11 @@ async def get_company_gdrive_folders(
         # Get ship if ship_name provided
         ship = None
         if ship_name:
+            # Get company name from company_id to match with ship's company field
+            company_name = company.get("name_en") or company.get("name_vn") or company.get("name", "")
             ship = await mongo_db.find_one("ships", {
                 "name": ship_name, 
-                "company_id": company_id
+                "company": company_name
             })
             if not ship:
                 raise HTTPException(status_code=404, detail="Ship not found")
