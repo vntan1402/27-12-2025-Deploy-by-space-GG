@@ -333,6 +333,20 @@ class EnhancedOCRProcessor:
             
             return results
     
+    async def process_with_google_vision(self, image_bytes: bytes) -> Dict[str, Any]:
+        """Process image with Google Vision API - async wrapper"""
+        loop = asyncio.get_event_loop()
+        
+        # Run Google Vision API in thread pool since it's not async
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            result = await loop.run_in_executor(
+                executor, 
+                self.extract_text_with_vision_api, 
+                image_bytes
+            )
+        
+        return result
+    
     def extract_text_from_image_multi_engine(self, image_bytes: bytes, page_num: int) -> Dict[str, Any]:
         """Extract text using multiple OCR engines with fallback"""
         result = {
