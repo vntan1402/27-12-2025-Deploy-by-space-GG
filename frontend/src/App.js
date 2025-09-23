@@ -8533,8 +8533,8 @@ const AddRecordModal = ({
               >
                 <option value="other_documents">{language === 'vi' ? 'Hồ sơ khác' : 'Other Documents'}</option>
                 <option value="drawings_manuals">{language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals'}</option>
-                <option value="inspection_records">{language === 'vi' ? 'Hồ sơ đăng kiểm' : 'Inspection Records'}</option>
-                <option value="survey_reports">{language === 'vi' ? 'Báo cáo kiểm tra' : 'Survey Reports'}</option>
+                <option value="inspection_records">{language === 'vi' ? 'Báo cáo khảo sát hạng' : 'Class Survey Report'}</option>
+                <option value="survey_reports">{language === 'vi' ? 'Báo cáo thử nghiệm' : 'Test Report'}</option>
               </select>
             </div>
 
