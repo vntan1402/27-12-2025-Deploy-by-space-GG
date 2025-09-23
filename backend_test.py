@@ -13,7 +13,7 @@ import tempfile
 import subprocess
 
 # Configuration
-BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
+BACKEND_URL = "http://localhost:8001/api"
 TEST_PDF_URL = "https://customer-assets.emergentagent.com/job_shipment-ai-1/artifacts/1mu8wxqn_SS%20STAR%20PM252494416_ImagePDF.pdf"
 
 # Test credentials
