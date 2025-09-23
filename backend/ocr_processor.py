@@ -212,19 +212,15 @@ class EnhancedOCRProcessor:
     async def convert_pdf_to_images_optimized(self, pdf_content: bytes) -> List[bytes]:
         """Optimized PDF to images conversion with better performance"""
         try:
-            # Create temporary file for PDF processing
-            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf:
-                temp_pdf.write(pdf_content)
-                temp_pdf_path = temp_pdf.name
-            
-            # Convert PDF pages to images with optimized settings
+            # Convert PDF pages to images directly from bytes (more reliable)
             logger.info(f"📄 Converting PDF to images at {self.dpi} DPI")
             
             # Use moderate DPI for balance of quality and performance
             convert_dpi = min(self.dpi, 250)  # Cap at 250 DPI for performance
             
-            images = pdf2image.convert_from_path(
-                temp_pdf_path,
+            # Use convert_from_bytes instead of convert_from_path for better reliability
+            images = pdf2image.convert_from_bytes(
+                pdf_content,
                 dpi=convert_dpi,
                 output_folder=None,
                 first_page=None,
@@ -251,18 +247,10 @@ class EnhancedOCRProcessor:
                     logger.error(f"❌ Failed to process page {i+1}: {str(e)}")
                     continue
             
-            # Clean up temporary file
-            os.unlink(temp_pdf_path)
-            
             return processed_images
             
         except Exception as e:
             logger.error(f"❌ PDF to image conversion failed: {str(e)}")
-            if 'temp_pdf_path' in locals():
-                try:
-                    os.unlink(temp_pdf_path)
-                except:
-                    pass
             raise e
     
     def preprocess_image_for_ocr_advanced(self, image: Image.Image) -> Image.Image:
