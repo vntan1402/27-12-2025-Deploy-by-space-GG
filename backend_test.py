@@ -326,8 +326,7 @@ class BackendTester:
             
             if ocr_result:
                 # Analyze success
-                analysis = ocr_result.get('data', {}).get('analysis', {}) if isinstance(ocr_result, dict) else {}
-                extracted_fields = sum(1 for v in analysis.values() if v and v != 'null' and str(v).strip())
+                extracted_fields = getattr(self, 'extracted_fields_count', 0)
                 self.log(f"📊 Data Extraction: {extracted_fields}/8 fields extracted")
                 
                 if extracted_fields >= 4:
