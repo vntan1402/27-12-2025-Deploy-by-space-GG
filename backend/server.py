@@ -4928,7 +4928,7 @@ async def move_gdrive_file(
             raise HTTPException(status_code=404, detail="Company not found")
         
         # Get company Google Drive configuration
-        gdrive_config_doc = await mongo_db.find_one("google_drive_config", {"company_id": company_id})
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
         if not gdrive_config_doc:
             raise HTTPException(status_code=404, detail="Company Google Drive not configured")
         
