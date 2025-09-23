@@ -189,6 +189,18 @@
 "Update the frontend (`App.js`) to display a modal or UI element that allows the user to choose a resolution (`cancel`, `overwrite`, `keep_both`) when duplicate certificates are detected during multi-file upload. Implement the frontend logic to send the user's chosen `duplicate_resolution` to the backend's `process-with-resolution` endpoint. The UI should be in table format, each row shows 1 certificate needing processing, with resolution options displayed as checkboxes, allowing different resolutions per duplicate file."
 
 ## backend:
+  - task: "Move Functionality Backend Endpoints"
+    implemented: true
+    working: false
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL BACKEND BUG IDENTIFIED - MOVE FUNCTIONALITY PARTIALLY BROKEN DUE TO COLLECTION NAME INCONSISTENCY: Comprehensive testing of the newly implemented Move functionality backend endpoints completed with mixed results (4/6 tests passed). ✅ WORKING COMPONENTS: (1) ✅ Authentication with admin1/123456 successful, (2) ✅ AMCSC company found (ID: 78fdb82e-bc68-4618-b277-3f69e8840f1e), (3) ✅ Google Drive configuration exists and accessible via GET /api/companies/{company_id}/gdrive/config, (4) ✅ Apps Script connectivity verified - direct testing of get_folder_structure and move_file actions working correctly, (5) ✅ Error handling working properly - invalid company IDs, missing parameters, and non-existent ships properly rejected, (6) ✅ Company Google Drive status endpoint working (POST method). ❌ CRITICAL BACKEND BUG: Collection name inconsistency prevents Move functionality from working: (1) ❌ GET /api/companies/{company_id}/gdrive/folders endpoint fails with 404 'Company Google Drive not configured', (2) ❌ POST /api/companies/{company_id}/gdrive/move-file endpoint fails with same error, (3) 🔍 ROOT CAUSE: Move functionality endpoints (lines 4846, 4931) look for configuration in 'google_drive_config' collection, but configuration is actually stored in 'company_gdrive_config' collection (used by config endpoints). This is a backend implementation inconsistency. ✅ APPS SCRIPT INTEGRATION VERIFIED: Direct testing confirms Google Apps Script (https://script.google.com/macros/s/AKfycbxE6Jyo9yo8dLml3ludxK_kAseUUIHTOPG2E9zYJBz8b8f6eVopTrqUQ974kB_3YlE/exec) supports both get_folder_structure and move_file actions correctly. TECHNICAL DETAILS: Configuration exists (Web App URL, Folder ID: 1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG, Auth Method: apps_script), status shows 'connected', but Move endpoints cannot access it due to wrong collection name. PRIORITY: HIGH - Simple fix required: change 'google_drive_config' to 'company_gdrive_config' in lines 4846 and 4931 of server.py to make Move functionality operational."
+
   - task: "Certificate Abbreviation Mapping System"
     implemented: true
     working: true
