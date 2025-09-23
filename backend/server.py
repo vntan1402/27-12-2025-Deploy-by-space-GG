@@ -1344,10 +1344,22 @@ async def delete_certificate(cert_id: str, current_user: UserResponse = Depends(
         if ship_id:
             ship = await mongo_db.find_one("ships", {"id": ship_id})
             if ship:
-                company_id = ship.get("company_id")
+                # Ships have 'company' field with company name, need to lookup company ID
+                company_name = ship.get("company")
+                if company_name:
+                    # Find company by name to get ID
+                    company = await mongo_db.find_one("companies", {"name": company_name})
+                    if not company:
+                        # Try alternative name fields
+                        company = await mongo_db.find_one("companies", {"name_en": company_name})
+                    if not company:
+                        company = await mongo_db.find_one("companies", {"name_vn": company_name})
+                    if company:
+                        company_id = company.get("id")
         
         # Delete from Google Drive if file ID exists
-        gdrive_file_id = existing_cert.get("gdrive_file_id")
+        # Check both possible field names for Google Drive file ID
+        gdrive_file_id = existing_cert.get("google_drive_file_id") or existing_cert.get("gdrive_file_id")
         if gdrive_file_id and company_id:
             try:
                 logger.info(f"🗑️ Attempting to delete file {gdrive_file_id} from Google Drive")
