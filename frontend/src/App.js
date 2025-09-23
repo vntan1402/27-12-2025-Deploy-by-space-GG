@@ -7680,7 +7680,7 @@ const AddRecordModal = ({
       
       // Fallback to minimal structure if extraction fails
       const fallbackStructure = {
-        'Document Portfolio': ['Certificates', 'Inspection Records', 'Survey Reports', 'Drawings & Manuals', 'Other Documents'],
+        'Document Portfolio': ['Certificates', 'Class Survey Report', 'Test Report', 'Drawings & Manuals', 'Other Documents'],
         'Crew Records': ['Crew List', 'Crew Certificates', 'Medical Records'],
         'ISM Records': ['ISM Certificate', 'Safety Procedures', 'Audit Reports'],
         'ISPS Records': ['ISPS Certificate', 'Security Plan', 'Security Assessments'],
