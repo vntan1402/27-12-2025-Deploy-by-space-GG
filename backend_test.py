@@ -22,7 +22,7 @@ TEST_PASSWORD = "123456"
 
 # AMCSC Company ID from test_result.md
 AMCSC_COMPANY_ID = "cfe73cb0-cc88-4659-92a7-57cb413a5573"
-TEST_SHIP_NAME = "SUNSHINE STAR"
+TEST_SHIP_NAME = "SUNSHINE 01"
 
 class BackendTester:
     def __init__(self):
