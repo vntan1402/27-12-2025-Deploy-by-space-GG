@@ -1983,7 +1983,7 @@ const HomePage = () => {
                       </div>
                       
                       <div className="overflow-x-auto">
-                        <table className="w-full border-collapse border border-gray-300 text-sm">
+                        <table className="w-full border-collapse border border-gray-300 text-sm resizable-table">
                           <thead>
                             <tr className="bg-gray-50">
                               <th className="border border-gray-300 px-4 py-2 text-left min-w-[60px]">
