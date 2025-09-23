@@ -248,7 +248,7 @@ const translations = {
     accountManagement: "Quản lý tài khoản",
     documentManagement: "Quản lý tài liệu",
     certificates: "Giấy chứng nhận",
-    inspectionRecords: "Báo cáo khảo sát hạng",
+    inspectionRecords: "Hồ sơ Đăng kiểm",
     surveyReports: "Báo cáo thử nghiệm", 
     drawingsManuals: "Bản vẽ - Sổ tay",
     otherDocuments: "Hồ sơ khác",
