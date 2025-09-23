@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Login Functionality Testing and Authentication System Debugging
+Focus: Certificate Delete with Google Drive File Removal Testing
 """
 
 import requests
@@ -11,6 +11,7 @@ import sys
 from datetime import datetime
 import tempfile
 import subprocess
+import time
 
 # Configuration - Use production URL from frontend .env
 BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
