@@ -1,100 +1,103 @@
 <analysis>
-The previous AI engineer's trajectory showcases an iterative, problem-solving approach to evolve a Ship Management System. Initial work focused on fixing critical Google Drive integration issues, backend API endpoint discrepancies (for certificates, users, GDrive sync), and numerous frontend runtime errors. A significant challenge involved debugging Google Apps Script deployments, which frequently redirected to HTML, necessitating detailed user guidance and several backend/frontend corrections to handle URLs and data payloads.
-
-Key milestones include successful implementation of company-specific and system-wide Google Drive configurations, robust AI configuration with Emergent LLM key integration, and a comprehensive certificate upload workflow. This involved fixing AI classification, MongoDB serialization, and ensuring correct usage of company-specific Google Drive. Duplicate detection logic was refined, and UI/UX enhancements like Edit/Delete context menus and clearer user feedback were added. The  workflow was extended to dynamically mirror the sidebar's hierarchical folder structure in Google Drive. The work concluded with the removal of the old multi-file upload code and the initiation of a new, detailed Multi Cert Upload feature, currently in its early stages of state implementation.
+The previous AI engineer meticulously progressed through various stages of application development and stabilization. Initially, the focus was on setting up the environment, resolving dependency conflicts (Python and system-level OCR tools), and correcting critical configuration issues like the  for external access and MongoDB connection. Significant effort was dedicated to debugging and fixing core functionalities, including user login, AI-powered document analysis (especially for PDFs and images), and Google Drive integration, often caused by missing runtime dependencies or incorrect configuration logic. The engineer then moved to implementing complex UI/UX enhancements for the Certificate List table, such as column reordering, resizing, sorting, and adding interactive checkbox selection with a context menu. Throughout the trajectory, the AI engineer demonstrated strong debugging capabilities, systematically identifying root causes (e.g., missing OCR libraries causing AI fallback, incorrect Google Drive config for file viewing) and implementing targeted fixes. The codebase also underwent a substantial cleanup of unused files, streamlining the project.
 </analysis>
 
 <product_requirements>
-The Ship Management System aims to manage ship data with a 5-tier permission system, AI support, bilingualism, JWT authentication, and Google Drive integration. The initial set of requirements encompassed:
-1.  **Google Drive Integration**:
-    *   Renaming/creating sections in Edit Company modal for GDrive configuration.
-    *   Uploading certificate data to Google Drive, organized by date, with AI classification into five categories, creating ship-specific folders and subfolders.
-    *   Implementing system-wide and company-specific Google Drive configuration (Web App URL, Folder ID).
-2.  **AI-Powered Certificate Processing**:
-    *   Auto-creating certificate records from AI analysis (Name, Type, Number, Dates, Ship Name, Issued by).
-    *   Extracting Ship Survey Status data.
-    *   Validating AI-extracted ship names and prompting for new ship additions.
-    *   AI model display and usage via Emergent LLM key.
-3.  **Frontend Enhancements**:
-    *   Multi-file upload UI with drag-and-drop, progress tracking, and AI model display. (This was later removed to be rebuilt).
-    *   Refining certificate list with abbreviations (Cert. Name, Issued By), ,  (Valid/Expired), filters, refresh button, and double-click to open GDrive files.
-    *   Layout adjustments (sidebar width, full screen, gap reduction, UI elements).
-    *   Advanced multi-file upload logic including duplicate file checks (overwrite/cancel) and ship name mismatch resolution (save to AI-found ship/current ship with note), with a new Notes column displaying  on existence and full note on hover. (Duplicate detection criteria was refined to only  and ).
-    *   Edit and Delete options for certificate list items (role-based: Company Officer+).
-4.  **Ship Management**:
-    *   Enhanced Add New Ship workflow: dynamic button text, auto-creation of Google Drive folders for new ships mirroring homepage sidebar's full hierarchical structure.
-5.  **System Administration**:
-    *   System Google Drive for settings/database backups (requiring a specialized Apps Script).
-    *   AI Configuration UI/save functionality (adding API key field, emergent provider support, z-index fix).
-    *   Removal of PDF Analysis button from AI Configuration.
-
-All issues reported by the user were addressed, leading to an updated and more robust application.
+The user manages a Ship Management System - With AI Support, a full-stack application (React, FastAPI, MongoDB) designed for maritime document management. Key requirements revolve around enhancing document processing, user experience, and overall system stability.
+1.  **System Stabilization**: Resolve initial setup issues, ensure Preview URL access, and fix login functionality (missing admin user, Pydantic validation errors).
+2.  **AI Analysis Improvement**: Enhance the Add New Ship and Multi Cert Upload workflows by implementing smart PDF type detection (text-based vs. image-based) to optimize processing (direct text extraction vs. OCR) and fix AI analysis fallbacks due to missing OCR dependencies (poppler-utils, tesseract-ocr). Support JPG/PNG uploads.
+3.  **Google Drive Integration**: Ensure robust file viewing and management within Google Drive, resolving configuration mismatches between upload and view operations.
+4.  **Certificate List UI/UX**:
+    *   Reorder columns: Status between Next Survey and Notes; Issued by between Next Survey and Status.
+    *   Enable column resizing (without visible icons, only cursor on hover).
+    *   Implement column sorting (triangle icon for selected column).
+    *   Rename Inspection Records to Hồ sơ Đăng kiểm (Class Survey Report) and Survey Reports to Báo cáo kiểm tra (Test Report) in Vietnamese.
+    *   Certificates without a Valid Date should always display Valid status.
+    *   Add checkbox selection for certificates (individual and select-all) with a right-click context menu (Open, Copy Link, Move, Delete).
+    *   Implement delete confirmation for certificates.
+5.  **Codebase Cleanup**: Remove unused files (old Apps Scripts, test files, documentation).
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-stack**: FastAPI (Python backend), React (JavaScript frontend).
--   **Database**: MongoDB for data persistence (using UUIDs, not ObjectIDs).
--   **Authentication**: JWT, Role-Based Access Control.
--   **Cloud Integration**: Google Drive API (via Google Apps Script proxy) for file storage and system backups.
--   **AI Integration**: Emergent LLM (OpenAI GPT-4o, Google Gemini configured) for PDF analysis, classification, and data extraction.
--   **Frontend**: React Context, State Management (useState, useEffect), Axios, Tailwind CSS, modals, toasts.
--   **Deployment**: Kubernetes container environment, Supervisor for process management.
+-   **FastAPI**: Backend framework.
+-   **React**: Frontend framework.
+-   **MongoDB**: Database.
+-   **OCR (Tesseract, Google Vision API)**: Optical Character Recognition for image-based documents.
+-   **LLM Integration (Gemini)**: AI analysis for document data extraction.
+-   **Google Drive API (via Apps Script)**: Document storage and management.
+-   **Tailwind CSS**: Frontend styling.
+-   **Supervisor**: Process control for services.
+-   **Pydantic**: Data validation for API models.
+-   **Poppler-utils, Tesseract-ocr**: System-level OCR dependencies.
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a React frontend, a FastAPI backend, and MongoDB for data storage.
+The application follows a standard full-stack architecture with a React frontend, FastAPI backend, and MongoDB for data persistence.
 
 
 
--   ****:
-    -   **Importance**: Central API hub, handling all backend logic.
-    -   **Changes Made**:
-        -   **Missing Endpoints**: Added , , , , , , and .
-        -   **Models**:  updated;  model added.
-        -   **Google Drive**: Logic for  updated to store Apps Script URL;  added. Fixed  to send  in payload. Fixed  to accept JSON payload.
-        -   **AI Integration**: Integrated  and . Updated  and AI Config endpoints to support . Switched AI provider to Google/Gemini for file attachments. Enhanced PDF preprocessing for robust text extraction and meaningful fallbacks.
-        -   **Duplicate Detection**: Changed  to only check for 100% exact match on  and .
-        -   **Bug Fixes**: Addressed Pydantic validation errors (422/500) during company creation/fetching, fixed lint error for . Fixed  keyword for . Fixed  to return string URL instead of boolean.
+**Key Files and Changes:**
 
 -   ****:
-    -   **Importance**: Main React component managing UI and interaction.
-    -   **Changes Made**:
-        -   ** / **: Added state declarations for , , and functions , ,  for System Settings page. Fixed  state variable naming conflict in . Forced  default to  in  for System GDrive config. Fixed frontend logic to display Configured status for System GDrive. Removed PDF Analysis button from AI Config.
-        -   ****: Added state declarations for , , and their ,  functions. Enhanced data extraction and display for AI analysis results. Improved ship selection workflow with clearer warnings and disabled upload. Added success toasts and refresh button for certificates. Added API Key field to AI Configuration modal,  provider option, and validation. Added duplicate modal rendering to . Removed all old multi-file upload code and replaced with a placeholder for Multi-file Upload. Updated Add New Ship button text dynamically. Implemented  to dynamically create a multi-level folder structure from homepage sidebar data.
-        -   ****: Added Edit/Delete context menu for Certificate List with role-based access control (Company Officer+).
-        -   **General Fixes**: Fixed  error by using  directly.
-
+    -   **Importance**: Core backend logic, API endpoints for authentication, ship management, certificate upload, AI analysis, Google Drive integration.
+    -   **Changes**:
+        -   Added logic for environment variable usage ().
+        -   Updated user creation, fixing Pydantic validation for  and .
+        -   Implemented  for smart PDF classification.
+        -   Modified  and  to use smart PDF/image processing.
+        -   Updated  endpoint to support JPG/PNG and use smart processing.
+        -   Fixed  to correctly use AI-extracted certificate names.
+        -   Corrected Google Drive file viewing endpoint to prioritize .
+        -   Added helper functions like .
 -   ****:
-    -   **Importance**: Provided working Apps Script code for user deployment (Company Google Drive).
-    -   **Changes Made**: No direct edits during this trajectory.
-
+    -   **Importance**: Centralizes OCR functionalities.
+    -   **Changes**:
+        -   Added  method to handle image files directly.
 -   ****:
-    -   **Importance**: A new file created by the AI engineer to provide a specialized Google Apps Script for system administration and backup functions (System Google Drive).
-    -   **Changes Made**: Created to support , , , ,  actions.
+    -   **Importance**: Main React component managing application state, rendering UI, handling user interactions, and making API calls.
+    -   **Changes**:
+        -   Updated  for preview.
+        -   Modified  attributes for file inputs to include JPG/PNG.
+        -   Updated upload guidelines and translation constants for menu items.
+        -   Implemented UI logic for Certificate List: column reordering (Status, Issued By), sorting, resizing (JavaScript event handlers, CSS classes), checkbox selection, and context menu actions (Open, Copy Link, Edit, Delete).
+        -   Added state variables for selected certificates and modal visibility.
+-   ****:
+    -   **Importance**: Contains custom CSS for styling elements not covered by Tailwind, particularly for UI components like tables.
+    -   **Changes**:
+        -   Added styles for column resizing functionality (e.g., , ).
+-   ****:
+    -   **Importance**: Utility script for populating the database with an initial admin user.
+    -   **Changes**:
+        -   Updated to include  and  fields for  user.
+        -   Added logic to delete existing users before creation to prevent duplicates during debugging.
+-   ****:
+    -   **Importance**: Lists all Python dependencies for the backend.
+    -   **Changes**:
+        -   Added , , , .
+-   **System Dependencies**:
+    -   ****: Required for PDF to image conversion (for OCR).
+    -   ****: Required for text extraction from images by Tesseract.
 </code_architecture>
 
 <pending_tasks>
--   Implement full AI features for document analysis/processing and smart search/recommendations on the frontend (deferred by user).
--   Further processing for files classified other than Certificate (e.g., Test Reports, Survey Reports, Drawings & Manuals, Other Documents).
--   Complete the implementation of the new Multi Cert Upload workflow, including UI, AI analysis, Google Drive uploads, and record creation as specified in the latest user request.
+-   Implement the Move functionality within the Certificate List context menu. This requires creating a Folder Structure Modal for the user to select a destination folder and then moving the file on Google Drive.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was tasked with implementing a new Multi Cert Upload feature within the Add New Record Upload button, and a guide for file format (PDF, max 50MB).
-2.  **Multi-file Upload**: The Cert Upload button should open a window allowing selection of multiple files. Each file should have a status bar showing its upload progress.
-3.  **AI Analysis Workflow**:
-    *   After upload, each file is sent for AI analysis.
-    *   **Marine Certificate Check**: The AI must first determine if the file is a Marine Certificate (issued by classification societies, flag states, insurance, etc.).
-    *   **Information Extraction**: If it is a Marine Certificate, extract information matching fields in the Certificate List.
-    *   **Google Drive Storage**: Save the file to the Certificates subfolder within the Ship-specific Google Drive folder (created during Add New Ship).
-    *   **Record Creation**: Create a new record in the Certificate List with the extracted information.
-    *   **Non-Marine Certificates**: If a file is not a Marine Certificate, it should be skipped from further processing (analysis, GDrive save, record creation) but the workflow should continue with the next file.
-4.  **Summary Report**: After all files are processed, display a summary report including the number of files uploaded and analyzed, which files were added to the Certificate List, and a list of non-Marine Certificates for user review.
-5.  **Duplicate Detection**: If a duplicate is detected (based on matching Certificate No and Cert Name), a modal should appear for the user to choose an action (e.g., overwrite, keep both, cancel) before proceeding.
+Immediately before this summary request, the AI engineer was working on enhancing the Certificate List table in the frontend. The last completed task involved adding interactive selection capabilities to the table:
+1.  **Checkboxes**: Small checkboxes were added next to the No. column for each certificate.
+2.  **Select/Deselect All**: A master checkbox in the table header allows users to select or deselect all currently displayed certificates.
+3.  **Context Menu**: A right-click context menu was implemented for selected certificates, offering several options:
+    *   Open: To view the certificate file.
+    *   Copy Link: To copy the Google Drive link to the clipboard.
+    *   Move: To move the certificate to a different folder.
+    *   Edit: To edit certificate details.
+    *   Delete: To remove the certificate from the system.
+4.  **Delete Confirmation**: A confirmation modal is displayed when the Delete option is chosen, asking the user to confirm the deletion, especially for multiple certificates.
 
-The AI engineer has begun this task by replacing the old multi-file upload placeholder in  with the new Multi Cert Upload UI and has started adding the necessary React states for this new feature.
+The core UI and state management for these features have been implemented in , including  state, , , , , , and the associated modals (). The Move functionality's UI () is prepared but its core logic (displaying folder structure and executing the move) is not yet implemented.
 </current_work>
 
 <optional_next_step>
-Continue implementing the necessary React states for the Multi Cert Upload feature in .
+Implement the Move functionality for selected certificates by developing a Folder Structure Modal.
 </optional_next_step>
