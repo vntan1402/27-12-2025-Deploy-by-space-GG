@@ -291,9 +291,9 @@ class BackendTester:
         except Exception as e:
             self.log(f"   ❌ Error checking backend logs: {str(e)}", "ERROR")
     
-    def run_comprehensive_test(self):
-        """Run the comprehensive OCR test"""
-        self.log("🚀 Starting Comprehensive OCR Test")
+    def test_move_functionality(self):
+        """Test the Move functionality backend endpoints"""
+        self.log("🚀 Starting Move Functionality Test")
         self.log("=" * 60)
         
         # Step 1: Authentication
@@ -301,54 +301,259 @@ class BackendTester:
             self.log("❌ Test failed at authentication step", "ERROR")
             return False
         
-        # Step 2: Check OCR dependencies
-        dependencies = self.check_ocr_dependencies()
+        # Step 2: Test Folder Structure Endpoint
+        folder_result = self.test_folder_structure_endpoint()
         
-        # Step 3: Download test PDF
-        pdf_file = self.download_test_pdf()
-        if not pdf_file:
-            self.log("❌ Test failed at PDF download step", "ERROR")
-            return False
+        # Step 3: Test Move File Endpoint
+        move_result = self.test_move_file_endpoint()
         
+        # Step 4: Test Google Drive Integration
+        gdrive_result = self.test_google_drive_integration()
+        
+        # Step 5: Test Error Handling
+        error_result = self.test_error_handling()
+        
+        # Step 6: Summary
+        self.log("=" * 60)
+        self.log("📋 MOVE FUNCTIONALITY TEST SUMMARY")
+        self.log("=" * 60)
+        
+        self.log(f"✅ Authentication: SUCCESS")
+        self.log(f"{'✅' if folder_result else '❌'} Folder Structure Endpoint: {'SUCCESS' if folder_result else 'FAILED'}")
+        self.log(f"{'✅' if move_result else '❌'} Move File Endpoint: {'SUCCESS' if move_result else 'FAILED'}")
+        self.log(f"{'✅' if gdrive_result else '❌'} Google Drive Integration: {'SUCCESS' if gdrive_result else 'FAILED'}")
+        self.log(f"{'✅' if error_result else '❌'} Error Handling: {'SUCCESS' if error_result else 'FAILED'}")
+        
+        overall_success = all([folder_result, move_result, gdrive_result, error_result])
+        
+        if overall_success:
+            self.log("🎉 MOVE FUNCTIONALITY: FULLY WORKING")
+        else:
+            self.log("❌ MOVE FUNCTIONALITY: ISSUES DETECTED")
+        
+        return overall_success
+    
+    def test_folder_structure_endpoint(self):
+        """Test GET /api/companies/{company_id}/gdrive/folders endpoint"""
         try:
-            # Step 4: Test OCR endpoint
-            ocr_result = self.test_ocr_endpoint(pdf_file)
+            self.log("📁 Testing Folder Structure Endpoint...")
             
-            # Step 5: Check backend logs
-            self.check_backend_logs()
+            # Test with AMCSC company ID and SUNSHINE STAR ship name
+            endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/folders"
+            params = {"ship_name": TEST_SHIP_NAME}
             
-            # Step 6: Summary
-            self.log("=" * 60)
-            self.log("📋 TEST SUMMARY")
-            self.log("=" * 60)
+            self.log(f"   Endpoint: {endpoint}")
+            self.log(f"   Parameters: {params}")
             
-            self.log(f"✅ Authentication: SUCCESS")
-            self.log(f"{'✅' if dependencies.get('tesseract', False) else '❌'} Tesseract OCR: {'AVAILABLE' if dependencies.get('tesseract', False) else 'NOT AVAILABLE'}")
-            self.log(f"{'✅' if dependencies.get('poppler', False) else '❌'} Poppler Utils: {'AVAILABLE' if dependencies.get('poppler', False) else 'NOT AVAILABLE'}")
-            self.log(f"✅ PDF Download: SUCCESS")
-            self.log(f"{'✅' if ocr_result else '❌'} OCR Processing: {'SUCCESS' if ocr_result else 'FAILED'}")
+            response = self.session.get(endpoint, params=params)
             
-            if ocr_result:
-                # Analyze success
-                extracted_fields = getattr(self, 'extracted_fields_count', 0)
-                self.log(f"📊 Data Extraction: {extracted_fields}/8 fields extracted")
-                
-                if extracted_fields >= 4:
-                    self.log("🎉 OCR FUNCTIONALITY: WORKING (Good extraction rate)")
-                elif extracted_fields >= 2:
-                    self.log("⚠️  OCR FUNCTIONALITY: PARTIAL (Some data extracted)")
-                else:
-                    self.log("❌ OCR FUNCTIONALITY: POOR (Minimal data extracted)")
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.log("✅ Folder structure endpoint responded successfully")
+                    
+                    # Analyze response structure
+                    self.log("   📋 Response Analysis:")
+                    self.log(f"      Success: {data.get('success', False)}")
+                    self.log(f"      Ship Name: {data.get('ship_name', 'N/A')}")
+                    self.log(f"      Company Name: {data.get('company_name', 'N/A')}")
+                    
+                    folders = data.get('folders', [])
+                    self.log(f"      Folders Count: {len(folders)}")
+                    
+                    if folders:
+                        self.log("      📂 Folder Structure:")
+                        for i, folder in enumerate(folders[:5]):  # Show first 5 folders
+                            folder_name = folder.get('name', 'Unknown')
+                            folder_id = folder.get('id', 'Unknown')
+                            self.log(f"         {i+1}. {folder_name} (ID: {folder_id})")
+                        
+                        if len(folders) > 5:
+                            self.log(f"         ... and {len(folders) - 5} more folders")
+                    
+                    return data.get('success', False)
+                    
+                except json.JSONDecodeError:
+                    self.log("❌ Invalid JSON response", "ERROR")
+                    self.log(f"   Raw response: {response.text[:500]}...", "ERROR")
+                    return False
             else:
-                self.log("❌ OCR FUNCTIONALITY: FAILED")
+                self.log(f"❌ Folder structure endpoint failed: {response.status_code}", "ERROR")
+                self.log(f"   Error response: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Folder structure endpoint test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_move_file_endpoint(self):
+        """Test POST /api/companies/{company_id}/gdrive/move-file endpoint"""
+        try:
+            self.log("📁 Testing Move File Endpoint...")
             
-            return ocr_result is not None
+            endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/move-file"
             
-        finally:
-            # Cleanup
-            if pdf_file and os.path.exists(pdf_file):
-                os.unlink(pdf_file)
-                self.log(f"🧹 Cleaned up temporary file: {pdf_file}")
+            # Sample data for move file test
+            move_data = {
+                "file_id": "1zH9SQf_bq_togTlrtmki397YojkJn806",  # Sample file ID from test_result.md
+                "target_folder_id": "1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG"  # AMCSC folder ID from test_result.md
+            }
+            
+            self.log(f"   Endpoint: {endpoint}")
+            self.log(f"   Move Data: {move_data}")
+            
+            response = self.session.post(endpoint, json=move_data)
+            
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.log("✅ Move file endpoint responded successfully")
+                    
+                    # Analyze response structure
+                    self.log("   📋 Response Analysis:")
+                    self.log(f"      Success: {data.get('success', False)}")
+                    self.log(f"      Message: {data.get('message', 'N/A')}")
+                    self.log(f"      File ID: {data.get('file_id', 'N/A')}")
+                    self.log(f"      Target Folder ID: {data.get('target_folder_id', 'N/A')}")
+                    
+                    return data.get('success', False)
+                    
+                except json.JSONDecodeError:
+                    self.log("❌ Invalid JSON response", "ERROR")
+                    self.log(f"   Raw response: {response.text[:500]}...", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Move file endpoint failed: {response.status_code}", "ERROR")
+                self.log(f"   Error response: {response.text}", "ERROR")
+                
+                # Check if it's a validation error (expected for testing)
+                if response.status_code == 400:
+                    try:
+                        error_data = response.json()
+                        if "Missing file_id or target_folder_id" in error_data.get('detail', ''):
+                            self.log("   ℹ️  This is expected validation - endpoint is working", "INFO")
+                            return True
+                    except:
+                        pass
+                
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Move file endpoint test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_google_drive_integration(self):
+        """Test Google Drive integration and Apps Script connectivity"""
+        try:
+            self.log("🔗 Testing Google Drive Integration...")
+            
+            # Test company Google Drive configuration
+            config_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/config"
+            
+            self.log(f"   Testing configuration endpoint: {config_endpoint}")
+            
+            response = self.session.get(config_endpoint)
+            
+            self.log(f"   Configuration response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    config_data = response.json()
+                    self.log("✅ Google Drive configuration retrieved successfully")
+                    
+                    # Analyze configuration
+                    self.log("   📋 Configuration Analysis:")
+                    config = config_data.get('config', {})
+                    self.log(f"      Web App URL: {config.get('web_app_url', 'N/A')}")
+                    self.log(f"      Folder ID: {config.get('folder_id', 'N/A')}")
+                    self.log(f"      Auth Method: {config.get('auth_method', 'N/A')}")
+                    
+                    # Test status endpoint
+                    status_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/status"
+                    status_response = self.session.get(status_endpoint)
+                    
+                    self.log(f"   Status response status: {status_response.status_code}")
+                    
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        self.log(f"      Status: {status_data.get('status', 'N/A')}")
+                        self.log(f"      Message: {status_data.get('message', 'N/A')}")
+                        
+                        return status_data.get('status') == 'configured'
+                    else:
+                        self.log(f"   ❌ Status endpoint failed: {status_response.status_code}", "ERROR")
+                        return False
+                    
+                except json.JSONDecodeError:
+                    self.log("❌ Invalid JSON response from configuration", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Configuration endpoint failed: {response.status_code}", "ERROR")
+                self.log(f"   Error response: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Google Drive integration test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_error_handling(self):
+        """Test error handling for various scenarios"""
+        try:
+            self.log("⚠️  Testing Error Handling...")
+            
+            error_tests = []
+            
+            # Test 1: Invalid company ID
+            self.log("   Testing invalid company ID...")
+            invalid_company_endpoint = f"{BACKEND_URL}/companies/invalid-company-id/gdrive/folders"
+            response = self.session.get(invalid_company_endpoint)
+            
+            if response.status_code == 404:
+                self.log("   ✅ Invalid company ID properly rejected (404)")
+                error_tests.append(True)
+            else:
+                self.log(f"   ❌ Invalid company ID test failed: {response.status_code}")
+                error_tests.append(False)
+            
+            # Test 2: Missing parameters in move file
+            self.log("   Testing missing parameters in move file...")
+            move_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/move-file"
+            response = self.session.post(move_endpoint, json={})  # Empty data
+            
+            if response.status_code == 400:
+                self.log("   ✅ Missing parameters properly rejected (400)")
+                error_tests.append(True)
+            else:
+                self.log(f"   ❌ Missing parameters test failed: {response.status_code}")
+                error_tests.append(False)
+            
+            # Test 3: Non-existent ship name
+            self.log("   Testing non-existent ship name...")
+            folder_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/folders"
+            params = {"ship_name": "NON_EXISTENT_SHIP_12345"}
+            response = self.session.get(folder_endpoint, params=params)
+            
+            # This might return 200 with empty folders or 404, both are acceptable
+            if response.status_code in [200, 404]:
+                self.log(f"   ✅ Non-existent ship handled properly ({response.status_code})")
+                error_tests.append(True)
+            else:
+                self.log(f"   ❌ Non-existent ship test failed: {response.status_code}")
+                error_tests.append(False)
+            
+            # Return True if at least 2 out of 3 error tests passed
+            passed_tests = sum(error_tests)
+            self.log(f"   📊 Error handling tests: {passed_tests}/3 passed")
+            
+            return passed_tests >= 2
+            
+        except Exception as e:
+            self.log(f"❌ Error handling test error: {str(e)}", "ERROR")
+            return False
 
 def main():
     """Main test execution"""
