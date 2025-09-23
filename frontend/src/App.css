@@ -17,6 +17,40 @@ body {
   color: #334155;
 }
 
+/* Move Modal Tree Structure Styles */
+.folder-tree {
+  user-select: none;
+}
+
+.folder-tree-node {
+  margin-bottom: 2px;
+}
+
+.folder-tree-node .folder-children {
+  margin-top: 2px;
+}
+
+.folder-tree-node:hover .folder-name {
+  color: #1e40af;
+}
+
+/* Tree indentation lines (optional visual enhancement) */
+.folder-tree-node::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #e5e7eb;
+  z-index: -1;
+}
+
+/* Smooth transitions for expand/collapse */
+.folder-tree-node button svg {
+  transition: transform 0.2s ease-in-out;
+}
+
 .App {
   min-height: 100vh;
 }
