@@ -2200,16 +2200,16 @@ const HomePage = () => {
                                     </span>
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{cert.cert_no}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                   <td className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" title={cert.issued_by}>
                                     {cert.issued_by_abbreviation || (cert.issued_by ? 
                                       (cert.issued_by.length > 8 ? `${cert.issued_by.substring(0, 8)}...` : cert.issued_by)
                                       : '-'
                                     )}
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                   <td className="border border-gray-300 px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                       getCertificateStatus(cert) === 'Valid' ? 'bg-green-100 text-green-800' :
