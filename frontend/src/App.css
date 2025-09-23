@@ -529,6 +529,51 @@ input:focus, textarea:focus, select:focus {
   color: #dc2626;
 }
 
+/* Table Column Resize Functionality */
+.resize-handle {
+  position: relative;
+  user-select: none;
+}
+
+.resize-handle:hover {
+  cursor: col-resize;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover::after {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Enhanced table styles for resizable columns */
+.resizable-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.resizable-table th {
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resizable-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Mobile Responsive Enhancements */
 @media (max-width: 768px) {
   .container {
@@ -548,5 +593,14 @@ input:focus, textarea:focus, select:focus {
   .data-table th,
   .data-table td {
     padding: 12px 8px;
+  }
+  
+  /* Disable resize on mobile */
+  .resize-handle {
+    resize: none !important;
+  }
+  
+  .resize-handle::after {
+    display: none;
   }
 }
