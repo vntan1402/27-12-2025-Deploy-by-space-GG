@@ -47,7 +47,8 @@ def test_direct_ocr_processing():
         print("🔄 Starting OCR processing...")
         start_time = time.time()
         
-        result = ocr_processor.process_pdf(pdf_content, "SUNSHINE_01_ImagePDF_New.pdf")
+        import asyncio
+        result = asyncio.run(ocr_processor.process_pdf_with_ocr(pdf_content, "SUNSHINE_01_ImagePDF_New.pdf"))
         
         processing_time = time.time() - start_time
         print(f"⏱️ Processing completed in {processing_time:.2f} seconds")
