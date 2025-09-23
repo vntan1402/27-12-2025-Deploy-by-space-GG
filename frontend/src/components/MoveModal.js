@@ -2,6 +2,81 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
+// Tree node component for folder structure
+const FolderTreeNode = ({ 
+  folder, 
+  children = [], 
+  level = 0, 
+  isSelected, 
+  onSelect, 
+  isExpanded, 
+  onToggleExpand,
+  hasChildren 
+}) => {
+  return (
+    <div className="folder-tree-node">
+      <div
+        className={`flex items-center p-2 cursor-pointer transition-colors rounded-md ${
+          isSelected 
+            ? 'bg-blue-50 border border-blue-200 text-blue-800' 
+            : 'hover:bg-gray-50'
+        }`}
+        style={{ paddingLeft: `${level * 20 + 12}px` }}
+        onClick={() => onSelect(folder)}
+      >
+        {/* Expand/Collapse Icon */}
+        {hasChildren && (
+          <button
+            className="flex-shrink-0 mr-2 p-1 hover:bg-gray-200 rounded"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleExpand(folder.folder_id);
+            }}
+          >
+            <svg 
+              className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+              fill="currentColor" 
+              viewBox="0 0 20 20"
+            >
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </button>
+        )}
+        
+        {/* Radio Button */}
+        <div className="flex-shrink-0 mr-3">
+          <div className={`w-4 h-4 rounded-full border-2 ${
+            isSelected
+              ? 'bg-blue-600 border-blue-600'
+              : 'border-gray-300'
+          }`}>
+            {isSelected && (
+              <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+            )}
+          </div>
+        </div>
+
+        {/* Folder Icon */}
+        <svg className="w-4 h-4 text-yellow-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+        </svg>
+
+        {/* Folder Name */}
+        <span className={`font-medium flex-1 ${isSelected ? 'text-blue-800' : 'text-gray-900'}`}>
+          {folder.folder_name}
+        </span>
+      </div>
+
+      {/* Children */}
+      {hasChildren && isExpanded && children.length > 0 && (
+        <div className="folder-children">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const MoveModal = ({ 
   isOpen, 
   onClose, 
@@ -18,6 +93,7 @@ const MoveModal = ({
   const [loading, setLoading] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [moving, setMoving] = useState(false);
+  const [expandedFolders, setExpandedFolders] = useState(new Set());
 
   // Get certificates to move
   const certificatesToMove = selectedCertificates.size > 0 
@@ -41,6 +117,16 @@ const MoveModal = ({
       fetchFolders();
     }
   }, [isOpen, selectedShip]);
+
+  // Auto-expand main categories when folders load
+  useEffect(() => {
+    if (folders.length > 0) {
+      const mainCategories = folders
+        .filter(f => f.level === 1)
+        .map(f => f.folder_id);
+      setExpandedFolders(new Set(mainCategories));
+    }
+  }, [folders]);
 
   const fetchFolders = async () => {
     setLoading(true);
@@ -71,6 +157,71 @@ const MoveModal = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleFolderExpand = (folderId) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folderId)) {
+      newExpanded.delete(folderId);
+    } else {
+      newExpanded.add(folderId);
+    }
+    setExpandedFolders(newExpanded);
+  };
+
+  // Build tree structure from flat folder list
+  const buildFolderTree = () => {
+    // Group folders by level and parent
+    const folderMap = new Map();
+    const rootFolders = [];
+    
+    folders.forEach(folder => {
+      folderMap.set(folder.folder_id, { ...folder, children: [] });
+    });
+
+    folders.forEach(folder => {
+      if (folder.level === 0) {
+        // Root ship folder
+        rootFolders.push(folderMap.get(folder.folder_id));
+      } else if (folder.level === 1) {
+        // Main categories under ship
+        const shipFolder = folders.find(f => f.level === 0);
+        if (shipFolder && folderMap.has(shipFolder.folder_id)) {
+          folderMap.get(shipFolder.folder_id).children.push(folderMap.get(folder.folder_id));
+        }
+      } else if (folder.level === 2) {
+        // Subcategories
+        const parentFolder = folders.find(f => f.folder_id === folder.parent_id);
+        if (parentFolder && folderMap.has(parentFolder.folder_id)) {
+          folderMap.get(parentFolder.folder_id).children.push(folderMap.get(folder.folder_id));
+        }
+      }
+    });
+
+    return rootFolders;
+  };
+
+  // Render tree recursively
+  const renderFolderTree = (folderNodes, level = 0) => {
+    return folderNodes.map(folder => {
+      const hasChildren = folder.children && folder.children.length > 0;
+      const isExpanded = expandedFolders.has(folder.folder_id);
+      const isSelected = selectedFolder?.folder_id === folder.folder_id;
+
+      return (
+        <FolderTreeNode
+          key={folder.folder_id}
+          folder={folder}
+          level={level}
+          isSelected={isSelected}
+          onSelect={setSelectedFolder}
+          hasChildren={hasChildren}
+          isExpanded={isExpanded}
+          onToggleExpand={toggleFolderExpand}
+          children={hasChildren ? renderFolderTree(folder.children, level + 1) : []}
+        />
+      );
+    });
   };
 
   const handleMove = async () => {
