@@ -2087,8 +2087,21 @@ const HomePage = () => {
                         <table className="w-full border-collapse border border-gray-300 text-sm resizable-table">
                           <thead>
                             <tr className="bg-gray-50">
-                              <th className="border border-gray-300 px-4 py-2 text-left min-w-[60px]">
-                                No.
+                              <th className="border border-gray-300 px-4 py-2 text-left font-medium bg-gray-50 w-20">
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={isAllSelected()}
+                                    ref={headerCheckboxRef => {
+                                      if (headerCheckboxRef) {
+                                        headerCheckboxRef.indeterminate = isIndeterminate();
+                                      }
+                                    }}
+                                    onChange={(e) => handleSelectAllCertificates(e.target.checked)}
+                                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                  />
+                                  <span>{language === 'vi' ? 'STT' : 'No.'}</span>
+                                </div>
                               </th>
                               <th 
                                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
