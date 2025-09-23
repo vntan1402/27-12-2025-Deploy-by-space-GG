@@ -5127,6 +5127,67 @@ async def delete_gdrive_file(
         logger.error(f"❌ Error deleting file from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete file: {str(e)}")
 
+@api_router.get("/sidebar-structure")
+async def get_sidebar_structure():
+    """Get current homepage sidebar structure for Google Apps Script"""
+    try:
+        # Define the current sidebar structure that matches the frontend
+        sidebar_structure = {
+            "Document Portfolio": [
+                "Certificates",
+                "Inspection Records", 
+                "Survey Reports",
+                "Drawings & Manuals",
+                "Other Documents"
+            ],
+            "Crew Records": [
+                "Crew List",
+                "Crew Certificates", 
+                "Medical Records"
+            ],
+            "ISM Records": [
+                "ISM Certificate",
+                "Safety Procedures",
+                "Audit Reports"
+            ],
+            "ISPS Records": [
+                "ISPS Certificate", 
+                "Security Plan",
+                "Security Assessments"
+            ],
+            "MLC Records": [
+                "MLC Certificate",
+                "Labor Conditions",
+                "Accommodation Reports" 
+            ],
+            "Supplies": [
+                "Inventory",
+                "Purchase Orders",
+                "Spare Parts"
+            ]
+        }
+        
+        # Calculate statistics
+        total_categories = len(sidebar_structure)
+        total_subcategories = sum(len(subcats) for subcats in sidebar_structure.values())
+        
+        return {
+            "success": True,
+            "message": "Sidebar structure retrieved successfully",
+            "structure": sidebar_structure,
+            "metadata": {
+                "total_categories": total_categories,
+                "total_subcategories": total_subcategories,
+                "structure_version": "v3.3",
+                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "source": "homepage_sidebar_current"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting sidebar structure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get sidebar structure: {str(e)}")
+
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
 async def get_usage_stats(
