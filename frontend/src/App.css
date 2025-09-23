@@ -533,10 +533,11 @@ input:focus, textarea:focus, select:focus {
 .resize-handle {
   position: relative;
   user-select: none;
+  resize: none !important; /* Hide the default resize icon */
 }
 
 .resize-handle:hover {
-  cursor: col-resize;
+  cursor: default; /* Default cursor for main area */
 }
 
 .resize-handle::after {
@@ -545,14 +546,15 @@ input:focus, textarea:focus, select:focus {
   right: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 8px;
   background: transparent;
   cursor: col-resize;
   transition: background-color 0.2s ease;
+  z-index: 10;
 }
 
 .resize-handle:hover::after {
-  background-color: rgba(59, 130, 246, 0.3);
+  background-color: rgba(59, 130, 246, 0.2);
 }
 
 /* Enhanced table styles for resizable columns */
