@@ -4828,6 +4828,158 @@ async def configure_company_gdrive_proxy(
 ):
     """Company-specific Google Drive configuration proxy (frontend compatibility)"""
     return await configure_company_gdrive(company_id, config_data, current_user)
+
+@api_router.get("/companies/{company_id}/gdrive/folders")
+async def get_company_gdrive_folders(
+    company_id: str,
+    ship_name: str = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get Google Drive folder structure for a company's ship"""
+    try:
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("google_drive_config", {"company_id": company_id})
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Company Google Drive not configured")
+        
+        # Get ship if ship_name provided
+        ship = None
+        if ship_name:
+            ship = await mongo_db.find_one("ships", {
+                "name": ship_name, 
+                "company_id": company_id
+            })
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get Apps Script configuration
+        apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        parent_folder_id = gdrive_config_doc.get("folder_id")
+        
+        if not apps_script_url or not parent_folder_id:
+            raise HTTPException(status_code=400, detail="Incomplete Google Drive configuration")
+        
+        # Call Apps Script to get folder structure
+        payload = {
+            "action": "get_folder_structure",
+            "parent_folder_id": parent_folder_id,
+            "ship_name": ship_name or ""
+        }
+        
+        logger.info(f"📁 Getting folder structure for company {company_id}, ship: {ship_name}")
+        
+        # Make request to Apps Script
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                apps_script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status != 200:
+                    logger.error(f"Apps Script request failed: {response.status}")
+                    raise HTTPException(status_code=500, detail="Failed to get folder structure")
+                
+                result = await response.json()
+                
+                if not result.get("success"):
+                    logger.error(f"Apps Script returned error: {result.get('message', 'Unknown error')}")
+                    raise HTTPException(status_code=500, detail=f"Apps Script error: {result.get('message', 'Unknown error')}")
+                
+                folders = result.get("folders", [])
+                logger.info(f"✅ Retrieved {len(folders)} folders from Google Drive")
+                
+                return {
+                    "success": True,
+                    "folders": folders,
+                    "ship_name": ship_name,
+                    "company_name": company.get("name_en", "Unknown Company")
+                }
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting Google Drive folder structure: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get folder structure: {str(e)}")
+
+@api_router.post("/companies/{company_id}/gdrive/move-file")
+async def move_gdrive_file(
+    company_id: str,
+    move_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Move file to different Google Drive folder"""
+    try:
+        # Validate request data
+        file_id = move_data.get("file_id")
+        target_folder_id = move_data.get("target_folder_id")
+        
+        if not file_id or not target_folder_id:
+            raise HTTPException(status_code=400, detail="Missing file_id or target_folder_id")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("google_drive_config", {"company_id": company_id})
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Company Google Drive not configured")
+        
+        # Get Apps Script configuration
+        apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        
+        if not apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Call Apps Script to move file
+        payload = {
+            "action": "move_file",
+            "file_id": file_id,
+            "target_folder_id": target_folder_id
+        }
+        
+        logger.info(f"📁 Moving file {file_id} to folder {target_folder_id} for company {company_id}")
+        
+        # Make request to Apps Script
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                apps_script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status != 200:
+                    logger.error(f"Apps Script request failed: {response.status}")
+                    raise HTTPException(status_code=500, detail="Failed to move file")
+                
+                result = await response.json()
+                
+                if not result.get("success"):
+                    logger.error(f"Apps Script returned error: {result.get('message', 'Unknown error')}")
+                    raise HTTPException(status_code=500, detail=f"Move failed: {result.get('message', 'Unknown error')}")
+                
+                logger.info(f"✅ File {file_id} moved successfully")
+                
+                return {
+                    "success": True,
+                    "message": "File moved successfully",
+                    "file_id": file_id,
+                    "target_folder_id": target_folder_id
+                }
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error moving file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to move file: {str(e)}")
+
 # Usage statistics endpoint
 @api_router.get("/usage-stats")
 async def get_usage_stats(
