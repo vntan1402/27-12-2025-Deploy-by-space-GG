@@ -4750,23 +4750,29 @@ async def create_ship_google_drive_folder(
         # Create complete ship folder hierarchy
         logger.info(f"Creating complete ship folder hierarchy: {ship_name} in company folder: {folder_id}")
         
+        # Get backend API URL for dynamic structure fetching
+        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://shipment-ai-1.preview.emergentagent.com')
+        
         if folder_structure:
             folder_payload = {
                 "action": "create_complete_ship_structure",
                 "parent_folder_id": folder_id,
                 "ship_name": ship_name,
+                "company_id": company_id,
+                "backend_api_url": backend_api_url,
                 "folder_structure": folder_structure,
                 "categories": all_categories,
                 "total_categories": len(all_categories),
                 "total_subfolders": len(all_subfolders)
             }
         else:
-            # Fallback to old format for backward compatibility
+            # Use dynamic structure fetching
             folder_payload = {
-                "action": "create_folder_structure",
+                "action": "create_complete_ship_structure",
                 "parent_folder_id": folder_id,
                 "ship_name": ship_name,
-                "subfolders": all_subfolders
+                "company_id": company_id,
+                "backend_api_url": backend_api_url
             }
         
         # Call Google Apps Script to create folder structure
