@@ -2424,6 +2424,82 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Delete Confirmation Modal */}
+                  {showDeleteConfirmation && (
+                    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <div className="mt-3 text-center">
+                          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                            <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-lg leading-6 font-medium text-gray-900 mt-2">
+                            {language === 'vi' ? 'Xác nhận xóa' : 'Confirm Delete'}
+                          </h3>
+                          <div className="mt-2 px-7 py-3">
+                            <p className="text-sm text-gray-500">
+                              {selectedCertificates.size > 1 
+                                ? (language === 'vi' 
+                                    ? `Bạn có chắc chắn muốn xóa ${selectedCertificates.size} chứng chỉ đã chọn?`
+                                    : `Are you sure you want to delete ${selectedCertificates.size} selected certificates?`)
+                                : (language === 'vi' 
+                                    ? 'Bạn có chắc chắn muốn xóa chứng chỉ này?'
+                                    : 'Are you sure you want to delete this certificate?')
+                              }
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              {language === 'vi' ? 'Hành động này không thể hoàn tác.' : 'This action cannot be undone.'}
+                            </p>
+                          </div>
+                          <div className="flex justify-center space-x-4 mt-4">
+                            <button
+                              onClick={() => setShowDeleteConfirmation(false)}
+                              className="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                            >
+                              {language === 'vi' ? 'Hủy' : 'Cancel'}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  if (selectedCertificates.size > 1) {
+                                    // Delete multiple certificates
+                                    for (const certId of selectedCertificates) {
+                                      await fetch(`${API}/certificates/${certId}`, {
+                                        method: 'DELETE',
+                                        headers: { 'Authorization': `Bearer ${token}` }
+                                      });
+                                    }
+                                    toast.success(language === 'vi' 
+                                      ? `Đã xóa ${selectedCertificates.size} chứng chỉ`
+                                      : `Deleted ${selectedCertificates.size} certificates`);
+                                  } else {
+                                    // Delete single certificate
+                                    const certId = contextMenu.certificate?.id || Array.from(selectedCertificates)[0];
+                                    await fetch(`${API}/certificates/${certId}`, {
+                                      method: 'DELETE',
+                                      headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    toast.success(language === 'vi' ? 'Đã xóa chứng chỉ' : 'Certificate deleted');
+                                  }
+                                  
+                                  setSelectedCertificates(new Set());
+                                  setShowDeleteConfirmation(false);
+                                  fetchCertificates();
+                                } catch (error) {
+                                  toast.error(language === 'vi' ? 'Lỗi khi xóa' : 'Error deleting');
+                                }
+                              }}
+                              className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >
+                              {language === 'vi' ? 'Xóa' : 'Delete'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Edit Certificate Modal */}
                   {showEditCertModal && editingCertificate && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
