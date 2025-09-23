@@ -190,9 +190,14 @@ class BackendTester:
             success = response_data.get('success', False)
             self.log(f"   Success: {success}")
             
-            # Check for analysis data
+            # Check for analysis data - handle both response formats
+            analysis = None
             if 'data' in response_data and 'analysis' in response_data['data']:
                 analysis = response_data['data']['analysis']
+            elif 'analysis' in response_data:
+                analysis = response_data['analysis']
+            
+            if analysis:
                 self.log("   📋 Extracted Ship Information:")
                 
                 ship_fields = [
@@ -203,13 +208,19 @@ class BackendTester:
                 extracted_count = 0
                 for field in ship_fields:
                     value = analysis.get(field)
-                    if value and value != 'null' and str(value).strip():
+                    if value and value != 'null' and str(value).strip() and value != 'null':
                         self.log(f"      ✅ {field.replace('_', ' ').title()}: {value}")
                         extracted_count += 1
                     else:
                         self.log(f"      ❌ {field.replace('_', ' ').title()}: Not extracted")
                 
                 self.log(f"   📈 Extraction Success Rate: {extracted_count}/{len(ship_fields)} ({extracted_count/len(ship_fields)*100:.1f}%)")
+                
+                # Store extracted count for summary
+                self.extracted_fields_count = extracted_count
+            else:
+                self.log("   ❌ No analysis data found in response")
+                self.extracted_fields_count = 0
                 
             # Check for processing details
             if 'processing_method' in response_data:
@@ -221,9 +232,15 @@ class BackendTester:
             if 'ocr_text_length' in response_data:
                 self.log(f"   📝 OCR Text Length: {response_data['ocr_text_length']} characters")
             
-            # Check for fallback reasons
-            if 'fallback_reason' in response_data:
-                self.log(f"   ⚠️  Fallback Reason: {response_data['fallback_reason']}", "WARN")
+            # Check for fallback reasons in analysis or main response
+            fallback_reason = None
+            if analysis and 'fallback_reason' in analysis:
+                fallback_reason = analysis['fallback_reason']
+            elif 'fallback_reason' in response_data:
+                fallback_reason = response_data['fallback_reason']
+                
+            if fallback_reason:
+                self.log(f"   ⚠️  Fallback Reason: {fallback_reason}", "WARN")
             
             # Display full response for debugging
             self.log("   🔍 Full Response Structure:")
@@ -231,6 +248,7 @@ class BackendTester:
             
         else:
             self.log(f"   ❌ Unexpected response format: {type(response_data)}", "ERROR")
+            self.extracted_fields_count = 0
     
     def check_backend_logs(self):
         """Check backend logs for OCR-related information"""
