@@ -1508,7 +1508,7 @@ const HomePage = () => {
   const subMenuItems = {
     documents: [
       { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
-      { key: 'inspection_records', name: language === 'vi' ? 'Báo cáo khảo sát hạng' : 'Class Survey Report' },
+      { key: 'inspection_records', name: language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report' },
       { key: 'survey_reports', name: language === 'vi' ? 'Báo cáo thử nghiệm' : 'Test Report' },
       { key: 'drawings_manuals', name: language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals' },
       { key: 'other_documents', name: language === 'vi' ? 'Hồ sơ khác' : 'Other Documents' },
