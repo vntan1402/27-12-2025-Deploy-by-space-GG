@@ -788,18 +788,21 @@ class BackendTester:
 
 def main():
     """Main test execution"""
-    print("🔬 Ship Management System - Move Functionality Test")
+    print("🔬 Ship Management System - Dynamic Sidebar Structure Integration Test")
     print("=" * 60)
     
     tester = BackendTester()
-    success = tester.test_move_functionality()
+    success = tester.test_dynamic_sidebar_structure_integration()
+    
+    # Cleanup test resources
+    tester.cleanup_test_resources()
     
     print("=" * 60)
     if success:
-        print("🎉 Move functionality test completed successfully!")
+        print("🎉 Dynamic sidebar structure integration test completed successfully!")
         sys.exit(0)
     else:
-        print("❌ Move functionality test completed with failures!")
+        print("❌ Dynamic sidebar structure integration test completed with failures!")
         sys.exit(1)
 
 if __name__ == "__main__":
