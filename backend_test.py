@@ -222,6 +222,14 @@ class BackendTester:
             else:
                 self.log(f"❌ Folder structure endpoint failed: {response.status_code}", "ERROR")
                 self.log(f"   Error response: {response.text}", "ERROR")
+                
+                # Check if it's the configuration issue
+                if response.status_code == 404 and "not configured" in response.text.lower():
+                    self.log("   🔍 BACKEND BUG DETECTED: Collection name inconsistency", "WARN")
+                    self.log("      The folder structure endpoint looks for 'google_drive_config' collection", "WARN")
+                    self.log("      But configuration is stored in 'company_gdrive_config' collection", "WARN")
+                    self.log("      This is a backend implementation bug that needs to be fixed", "WARN")
+                
                 return False
                 
         except Exception as e:
