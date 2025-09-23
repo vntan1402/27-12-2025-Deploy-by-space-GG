@@ -12,8 +12,8 @@ from datetime import datetime
 import tempfile
 import subprocess
 
-# Configuration - Use the external URL from frontend .env
-BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
+# Configuration - Use the local URL since external URL has 502 issues
+BACKEND_URL = "http://localhost:8001/api"
 TEST_PDF_URL = "https://customer-assets.emergentagent.com/job_shipment-ai-1/artifacts/1mu8wxqn_SS%20STAR%20PM252494416_ImagePDF.pdf"
 
 # Test credentials
