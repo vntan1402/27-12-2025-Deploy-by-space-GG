@@ -79,6 +79,12 @@ const MoveModal = ({
       return;
     }
 
+    const companyId = getCompanyId();
+    if (!companyId) {
+      toast.error(language === 'vi' ? 'Không tìm thấy thông tin công ty' : 'Company information not found');
+      return;
+    }
+
     setMoving(true);
     try {
       const movePromises = certificatesToMove.map(async (certId) => {
@@ -94,7 +100,7 @@ const MoveModal = ({
 
         // Move the file using the Google Drive API
         return axios.post(
-          `${API}/companies/${selectedShip.company_id}/gdrive/move-file`,
+          `${API}/companies/${companyId}/gdrive/move-file`,
           {
             file_id: certificate.gdrive_file_id,
             target_folder_id: selectedFolder.folder_id
