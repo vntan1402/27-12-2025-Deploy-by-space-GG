@@ -82,6 +82,12 @@ class BackendTester:
             self.log("❌ Test failed at authentication step", "ERROR")
             return False
         
+        # Step 1.5: Check available companies
+        companies_result = self.check_available_companies()
+        if not companies_result:
+            self.log("❌ Test failed - no companies available", "ERROR")
+            return False
+        
         # Step 2: Test Folder Structure Endpoint
         folder_result = self.test_folder_structure_endpoint()
         
@@ -100,6 +106,7 @@ class BackendTester:
         self.log("=" * 60)
         
         self.log(f"✅ Authentication: SUCCESS")
+        self.log(f"✅ Company Check: SUCCESS")
         self.log(f"{'✅' if folder_result else '❌'} Folder Structure Endpoint: {'SUCCESS' if folder_result else 'FAILED'}")
         self.log(f"{'✅' if move_result else '❌'} Move File Endpoint: {'SUCCESS' if move_result else 'FAILED'}")
         self.log(f"{'✅' if gdrive_result else '❌'} Google Drive Integration: {'SUCCESS' if gdrive_result else 'FAILED'}")
@@ -113,6 +120,58 @@ class BackendTester:
             self.log("❌ MOVE FUNCTIONALITY: ISSUES DETECTED")
         
         return overall_success
+    
+    def check_available_companies(self):
+        """Check what companies are available and find AMCSC"""
+        try:
+            self.log("🏢 Checking available companies...")
+            
+            endpoint = f"{BACKEND_URL}/companies"
+            response = self.session.get(endpoint)
+            
+            self.log(f"   Companies endpoint status: {response.status_code}")
+            
+            if response.status_code == 200:
+                companies = response.json()
+                self.log(f"   Found {len(companies)} companies:")
+                
+                amcsc_found = False
+                global AMCSC_COMPANY_ID
+                
+                for company in companies:
+                    company_id = company.get('id', 'N/A')
+                    company_name_en = company.get('name_en', 'N/A')
+                    company_name_vn = company.get('name_vn', 'N/A')
+                    company_name = company.get('name', 'N/A')
+                    
+                    self.log(f"      - ID: {company_id}")
+                    self.log(f"        Name (EN): {company_name_en}")
+                    self.log(f"        Name (VN): {company_name_vn}")
+                    self.log(f"        Name: {company_name}")
+                    
+                    # Check if this is AMCSC
+                    if ('AMCSC' in str(company_name_en).upper() or 
+                        'AMCSC' in str(company_name_vn).upper() or 
+                        'AMCSC' in str(company_name).upper() or
+                        company_id == AMCSC_COMPANY_ID):
+                        self.log(f"      ✅ AMCSC company found!")
+                        AMCSC_COMPANY_ID = company_id
+                        amcsc_found = True
+                
+                if not amcsc_found:
+                    self.log("   ⚠️  AMCSC company not found, using first available company")
+                    if companies:
+                        AMCSC_COMPANY_ID = companies[0].get('id')
+                        self.log(f"   Using company ID: {AMCSC_COMPANY_ID}")
+                
+                return True
+            else:
+                self.log(f"❌ Companies endpoint failed: {response.status_code}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Company check error: {str(e)}", "ERROR")
+            return False
     
     def test_folder_structure_endpoint(self):
         """Test GET /api/companies/{company_id}/gdrive/folders endpoint"""
