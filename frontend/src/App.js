@@ -249,7 +249,7 @@ const translations = {
     documentManagement: "Quản lý tài liệu",
     certificates: "Giấy chứng nhận",
     inspectionRecords: "Hồ sơ Đăng kiểm",
-    surveyReports: "Báo cáo thử nghiệm", 
+    surveyReports: "Báo cáo kiểm tra", 
     drawingsManuals: "Bản vẽ - Sổ tay",
     otherDocuments: "Hồ sơ khác",
     addNew: "Thêm",
