@@ -2053,8 +2053,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
                                 onClick={() => handleCertificateSort('next_survey')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}</span>
@@ -2062,8 +2063,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[80px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[80px] resize-handle"
                                 onClick={() => handleCertificateSort('status')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Trạng thái' : 'Status'}</span>
@@ -2071,8 +2073,9 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px]"
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[100px] resize-handle"
                                 onClick={() => handleCertificateSort('notes')}
+                                style={{resize: 'horizontal', overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
                                   <span>{language === 'vi' ? 'Ghi chú' : 'Notes'}</span>
