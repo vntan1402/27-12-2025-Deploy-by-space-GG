@@ -571,6 +571,8 @@ input:focus, textarea:focus, select:focus {
 .resizable-table {
   table-layout: fixed;
   width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .resizable-table th {
@@ -578,12 +580,22 @@ input:focus, textarea:focus, select:focus {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 50px;
 }
 
 .resizable-table td {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Improved resize cursor behavior */
+.resizable-table th:hover {
+  cursor: default;
+}
+
+.resizable-table th:hover::after {
+  cursor: col-resize;
 }
 
 /* Mobile Responsive Enhancements */
