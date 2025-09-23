@@ -480,23 +480,322 @@ class BackendTester:
             self.log(f"❌ Company check error: {str(e)}", "ERROR")
             return False
 
+    def test_move_folders_loading_issue(self):
+        """Test the specific 'Error loading folders' issue in Move functionality"""
+        self.log("🔍 Starting Move Folders Loading Issue Debug Test")
+        self.log("=" * 60)
+        
+        # Step 1: Authentication
+        if not self.authenticate():
+            self.log("❌ Test failed at authentication step", "ERROR")
+            return False
+        
+        # Step 2: Check available companies and find AMCSC
+        if not self.check_available_companies():
+            self.log("❌ Test failed at company check step", "ERROR")
+            return False
+        
+        # Step 3: Test the specific folder structure endpoint
+        folder_structure_result = self.test_folder_structure_endpoint()
+        
+        # Step 4: Test Google Apps Script integration
+        apps_script_result = self.test_google_apps_script_integration()
+        
+        # Step 5: Test company Google Drive configuration
+        gdrive_config_result = self.test_company_gdrive_configuration()
+        
+        # Step 6: Summary
+        self.log("=" * 60)
+        self.log("📋 MOVE FOLDERS LOADING ISSUE DEBUG TEST SUMMARY")
+        self.log("=" * 60)
+        
+        self.log(f"✅ Authentication: SUCCESS")
+        self.log(f"✅ Company Check: SUCCESS")
+        self.log(f"{'✅' if folder_structure_result else '❌'} Folder Structure Endpoint: {'SUCCESS' if folder_structure_result else 'FAILED'}")
+        self.log(f"{'✅' if apps_script_result else '❌'} Google Apps Script Integration: {'SUCCESS' if apps_script_result else 'FAILED'}")
+        self.log(f"{'✅' if gdrive_config_result else '❌'} Company Google Drive Configuration: {'SUCCESS' if gdrive_config_result else 'FAILED'}")
+        
+        overall_success = all([folder_structure_result, apps_script_result, gdrive_config_result])
+        
+        if overall_success:
+            self.log("🎉 MOVE FOLDERS LOADING: FULLY WORKING")
+        else:
+            self.log("❌ MOVE FOLDERS LOADING: ISSUES DETECTED - ROOT CAUSE IDENTIFIED")
+        
+        return overall_success
+    
+    def test_folder_structure_endpoint(self):
+        """Test GET /api/companies/{company_id}/gdrive/folders?ship_name=SUNSHINE STAR"""
+        try:
+            self.log("📁 Testing Folder Structure Endpoint...")
+            
+            endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/folders"
+            params = {"ship_name": TEST_SHIP_NAME}
+            
+            self.log(f"   Endpoint: {endpoint}")
+            self.log(f"   Parameters: {params}")
+            self.log(f"   Company ID: {AMCSC_COMPANY_ID}")
+            self.log(f"   Ship Name: {TEST_SHIP_NAME}")
+            
+            response = self.session.get(endpoint, params=params)
+            
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    data = response.json()
+                    self.log("✅ Folder structure endpoint responded successfully")
+                    
+                    # Analyze response structure
+                    self.log("   📋 Response Analysis:")
+                    self.log(f"      Success: {data.get('success', False)}")
+                    self.log(f"      Message: {data.get('message', 'N/A')}")
+                    
+                    folders = data.get('folders', [])
+                    self.log(f"      Folders count: {len(folders)}")
+                    
+                    if folders:
+                        self.log("   📁 Folder Structure:")
+                        for i, folder in enumerate(folders[:5]):  # Show first 5 folders
+                            folder_id = folder.get('folder_id', 'N/A')
+                            folder_name = folder.get('folder_name', 'N/A')
+                            self.log(f"      {i+1}. {folder_name} (ID: {folder_id})")
+                        
+                        if len(folders) > 5:
+                            self.log(f"      ... and {len(folders) - 5} more folders")
+                    
+                    # Check if response format matches what MoveModal expects
+                    expected_fields = ['success', 'folders']
+                    format_valid = all(field in data for field in expected_fields)
+                    
+                    if format_valid and data.get('success'):
+                        self.log("   ✅ Response format matches MoveModal expectations")
+                        return True
+                    else:
+                        self.log("   ❌ Response format or success status issue")
+                        self.log(f"   Expected fields present: {format_valid}")
+                        self.log(f"   Success status: {data.get('success', False)}")
+                        return False
+                    
+                except json.JSONDecodeError:
+                    self.log("❌ Invalid JSON response", "ERROR")
+                    self.log(f"   Raw response: {response.text[:500]}...", "ERROR")
+                    return False
+            elif response.status_code == 404:
+                self.log("❌ Folder structure endpoint not found (404)", "ERROR")
+                self.log("   This endpoint may not be implemented yet", "ERROR")
+                return False
+            elif response.status_code == 405:
+                self.log("❌ Method not allowed (405)", "ERROR")
+                self.log("   GET method may not be supported for this endpoint", "ERROR")
+                return False
+            else:
+                self.log(f"❌ Folder structure endpoint failed: {response.status_code}", "ERROR")
+                self.log(f"   Error response: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Folder structure endpoint test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_google_apps_script_integration(self):
+        """Test Google Apps Script integration for get_folder_structure action"""
+        try:
+            self.log("🔗 Testing Google Apps Script Integration...")
+            
+            # First get the company Google Drive configuration
+            config_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/config"
+            config_response = self.session.get(config_endpoint)
+            
+            self.log(f"   Company Google Drive config status: {config_response.status_code}")
+            
+            if config_response.status_code == 200:
+                config_data = config_response.json()
+                config = config_data.get('config', {})
+                
+                web_app_url = config.get('web_app_url') or config.get('apps_script_url')
+                folder_id = config.get('folder_id')
+                
+                self.log(f"   Web App URL: {'Configured' if web_app_url else 'Not configured'}")
+                self.log(f"   Folder ID: {'Configured' if folder_id else 'Not configured'}")
+                
+                if web_app_url and folder_id:
+                    # Test direct Apps Script call for get_folder_structure
+                    self.log("   🔗 Testing direct Apps Script get_folder_structure call...")
+                    
+                    test_payload = {
+                        "action": "get_folder_structure",
+                        "parent_folder_id": folder_id,
+                        "ship_name": TEST_SHIP_NAME
+                    }
+                    
+                    self.log(f"   Apps Script URL: {web_app_url}")
+                    self.log(f"   Payload: {test_payload}")
+                    
+                    try:
+                        import requests
+                        apps_response = requests.post(web_app_url, json=test_payload, timeout=30)
+                        self.log(f"   Apps Script response status: {apps_response.status_code}")
+                        
+                        if apps_response.status_code == 200:
+                            try:
+                                apps_data = apps_response.json()
+                                self.log(f"   Apps Script success: {apps_data.get('success', False)}")
+                                self.log(f"   Apps Script message: {apps_data.get('message', 'N/A')}")
+                                
+                                # Check if get_folder_structure action is supported
+                                if apps_data.get('success'):
+                                    folders = apps_data.get('folders', [])
+                                    self.log(f"   Folders returned: {len(folders)}")
+                                    
+                                    if folders:
+                                        self.log("   ✅ get_folder_structure action working correctly")
+                                        return True
+                                    else:
+                                        self.log("   ⚠️  get_folder_structure returned no folders")
+                                        return False
+                                else:
+                                    error_msg = apps_data.get('message', 'Unknown error')
+                                    if 'get_folder_structure' in error_msg.lower() or 'action' in error_msg.lower():
+                                        self.log("   ❌ get_folder_structure action not supported by Apps Script")
+                                        self.log(f"   Error: {error_msg}")
+                                        return False
+                                    else:
+                                        self.log(f"   ❌ Apps Script error: {error_msg}")
+                                        return False
+                                        
+                            except json.JSONDecodeError:
+                                self.log("   ❌ Invalid JSON response from Apps Script")
+                                self.log(f"   Raw response: {apps_response.text[:200]}...")
+                                return False
+                        else:
+                            self.log(f"   ❌ Apps Script call failed: {apps_response.status_code}")
+                            self.log(f"   Response: {apps_response.text[:200]}...")
+                            return False
+                            
+                    except requests.exceptions.Timeout:
+                        self.log("   ❌ Apps Script call timed out (30s)")
+                        return False
+                    except requests.exceptions.ConnectionError:
+                        self.log("   ❌ Apps Script connection error")
+                        return False
+                    except Exception as apps_error:
+                        self.log(f"   ❌ Apps Script call error: {str(apps_error)}")
+                        return False
+                else:
+                    self.log("   ❌ Google Drive not fully configured")
+                    self.log(f"   Web App URL: {'✅' if web_app_url else '❌'}")
+                    self.log(f"   Folder ID: {'✅' if folder_id else '❌'}")
+                    return False
+            else:
+                self.log(f"   ❌ Company Google Drive config not available: {config_response.status_code}")
+                self.log(f"   Response: {config_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Google Apps Script integration test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_company_gdrive_configuration(self):
+        """Test company Google Drive configuration and permissions"""
+        try:
+            self.log("⚙️  Testing Company Google Drive Configuration...")
+            
+            # Test configuration endpoint
+            config_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/config"
+            config_response = self.session.get(config_endpoint)
+            
+            self.log(f"   Config endpoint status: {config_response.status_code}")
+            
+            if config_response.status_code == 200:
+                config_data = config_response.json()
+                self.log("   ✅ Configuration endpoint accessible")
+                
+                # Test status endpoint
+                status_endpoint = f"{BACKEND_URL}/companies/{AMCSC_COMPANY_ID}/gdrive/status"
+                status_response = self.session.get(status_endpoint)
+                
+                self.log(f"   Status endpoint status: {status_response.status_code}")
+                
+                if status_response.status_code == 200:
+                    status_data = status_response.json()
+                    self.log("   ✅ Status endpoint accessible")
+                    
+                    status = status_data.get('status', 'unknown')
+                    message = status_data.get('message', 'N/A')
+                    
+                    self.log(f"   Google Drive status: {status}")
+                    self.log(f"   Status message: {message}")
+                    
+                    if status == 'configured' or status == 'connected':
+                        self.log("   ✅ Google Drive properly configured")
+                        
+                        # Test authentication and permissions
+                        config = config_data.get('config', {})
+                        web_app_url = config.get('web_app_url') or config.get('apps_script_url')
+                        folder_id = config.get('folder_id')
+                        
+                        if web_app_url and folder_id:
+                            # Test connection
+                            test_payload = {
+                                "action": "test_connection",
+                                "folder_id": folder_id
+                            }
+                            
+                            try:
+                                import requests
+                                test_response = requests.post(web_app_url, json=test_payload, timeout=15)
+                                
+                                if test_response.status_code == 200:
+                                    test_data = test_response.json()
+                                    if test_data.get('success'):
+                                        self.log("   ✅ Google Drive connection test successful")
+                                        self.log("   ✅ Authentication and permissions working")
+                                        return True
+                                    else:
+                                        self.log(f"   ❌ Connection test failed: {test_data.get('message', 'Unknown error')}")
+                                        return False
+                                else:
+                                    self.log(f"   ❌ Connection test HTTP error: {test_response.status_code}")
+                                    return False
+                                    
+                            except Exception as test_error:
+                                self.log(f"   ❌ Connection test error: {str(test_error)}")
+                                return False
+                        else:
+                            self.log("   ❌ Configuration incomplete")
+                            return False
+                    else:
+                        self.log(f"   ❌ Google Drive not properly configured: {status}")
+                        return False
+                else:
+                    self.log(f"   ❌ Status endpoint failed: {status_response.status_code}")
+                    return False
+            else:
+                self.log(f"   ❌ Configuration endpoint failed: {config_response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Company Google Drive configuration test error: {str(e)}", "ERROR")
+            return False
+
 def main():
     """Main test execution"""
-    print("🔬 Ship Management System - Dynamic Sidebar Structure Integration Test")
+    print("🔬 Ship Management System - Move Folders Loading Issue Debug Test")
     print("=" * 60)
     
     tester = BackendTester()
-    success = tester.test_dynamic_sidebar_structure_integration()
+    success = tester.test_move_folders_loading_issue()
     
     # Cleanup test resources
     tester.cleanup_test_resources()
     
     print("=" * 60)
     if success:
-        print("🎉 Dynamic sidebar structure integration test completed successfully!")
+        print("🎉 Move folders loading test completed successfully!")
         sys.exit(0)
     else:
-        print("❌ Dynamic sidebar structure integration test completed with failures!")
+        print("❌ Move folders loading test completed with failures - ROOT CAUSE IDENTIFIED!")
         sys.exit(1)
 
 if __name__ == "__main__":
