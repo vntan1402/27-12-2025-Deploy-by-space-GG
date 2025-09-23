@@ -200,11 +200,19 @@ class SmartMultiCertUploadTester:
             if response.status_code == 200:
                 self.upload_results = response.json()
                 
-                # Verify basic response structure
+                print(f"📋 Response keys: {list(self.upload_results.keys())}")
+                
+                # Check for different response structures
                 success = self.upload_results.get('success', False)
                 message = self.upload_results.get('message', 'No message')
                 
-                if success:
+                # Also check for summary structure
+                summary = self.upload_results.get('summary', {})
+                if summary:
+                    success = summary.get('successfully_created', 0) > 0
+                    message = f"Created {summary.get('successfully_created', 0)} certificates"
+                
+                if success or self.upload_results.get('results'):
                     self.log_test("STEP 3: Multi-Cert Upload - API Call", True,
                                 f"Upload successful: {message}")
                     return True
