@@ -732,6 +732,57 @@ const HomePage = () => {
     return validDate >= currentDate ? 'Valid' : 'Expired';
   };
 
+  // Column resize functionality
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!e.target.dataset.resizing) return;
+      
+      const th = e.target.closest('th');
+      if (!th) return;
+      
+      const rect = th.getBoundingClientRect();
+      const newWidth = e.clientX - rect.left;
+      
+      if (newWidth > 50) { // Minimum width
+        th.style.width = newWidth + 'px';
+      }
+    };
+    
+    const handleMouseUp = () => {
+      document.querySelectorAll('[data-resizing]').forEach(el => {
+        delete el.dataset.resizing;
+      });
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    const initResizeHandlers = () => {
+      document.querySelectorAll('.resize-handle').forEach(th => {
+        const resizer = th.querySelector('.resize-handle::after') || th;
+        
+        th.addEventListener('mousedown', (e) => {
+          const rect = th.getBoundingClientRect();
+          const isNearRightEdge = e.clientX > rect.right - 10;
+          
+          if (isNearRightEdge) {
+            e.preventDefault();
+            th.dataset.resizing = 'true';
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+          }
+        });
+      });
+    };
+    
+    // Initialize after component mounts
+    setTimeout(initResizeHandlers, 100);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [certificates]); // Re-initialize when certificates change
+
   const sortCertificates = (certificates) => {
     if (!certificateSort.column) return certificates;
     
