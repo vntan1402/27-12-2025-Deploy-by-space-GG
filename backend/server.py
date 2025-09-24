@@ -5357,7 +5357,7 @@ async def move_certificates(
                     update_data["google_drive_folder_path"] = target_folder_path
                 
                 if update_data:
-                    await mongo_db.update("certificates", {"id": cert_id}, {"$set": update_data})
+                    await mongo_db.update("certificates", {"id": cert_id}, update_data)
                     logger.info(f"✅ Certificate {cert_id} database updated - category: {target_category}")
                 
                 results.append({
