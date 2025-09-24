@@ -1369,6 +1369,13 @@ const HomePage = () => {
         }
       });
       
+      // Update stage to processing after upload completes
+      setMultiCertUploads(prev => prev.map(upload => ({
+        ...upload,
+        status: 'analyzing',
+        stage: language === 'vi' ? `Đang xử lý và phân tích ${upload.filename}...` : `Processing and analyzing ${upload.filename}...`
+      })));
+      
       const results = response.data.results || [];
       const summary = response.data.summary || {};
       
