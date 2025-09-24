@@ -162,23 +162,23 @@ class CertificateClassificationTester:
     def test_certificate_analysis_endpoint(self, ship_id):
         """Test the certificate analysis endpoint with PMDS certificate"""
         try:
-            self.log("🔍 Testing certificate analysis endpoint with PMDS certificate...")
+            self.log("🔍 Testing certificate classification endpoint with PMDS certificate...")
             
             cert_file_path = self.test_results.get('pmds_certificate_path')
             if not cert_file_path or not os.path.exists(cert_file_path):
                 self.log("   ❌ PMDS certificate file not available")
                 return False
             
-            # Test the analyze-ship-certificate endpoint
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+            # Test the certificates/multi-upload endpoint which does classification
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
             self.log(f"   POST {endpoint}")
             
             # Prepare multipart form data
             with open(cert_file_path, 'rb') as f:
-                files = {'file': ('pmds_certificate.pdf', f, 'application/pdf')}
+                files = {'files': ('pmds_certificate.pdf', f, 'application/pdf')}
                 data = {'ship_id': ship_id}
                 
-                self.log("   📤 Uploading PMDS certificate for analysis...")
+                self.log("   📤 Uploading PMDS certificate for classification analysis...")
                 start_time = time.time()
                 
                 response = requests.post(
@@ -196,17 +196,26 @@ class CertificateClassificationTester:
             
             if response.status_code == 200:
                 analysis_result = response.json()
-                self.log("   ✅ Certificate analysis completed successfully")
-                self.log(f"   Analysis result: {json.dumps(analysis_result, indent=6)}")
+                self.log("   ✅ Certificate classification completed successfully")
+                self.log(f"   Classification result: {json.dumps(analysis_result, indent=6)}")
                 
                 self.test_results['analysis_result'] = analysis_result
                 
-                # Verify the classification improvements
-                self.verify_classification_improvements(analysis_result)
+                # Extract the actual analysis from the first result
+                results = analysis_result.get('results', [])
+                if results:
+                    first_result = results[0]
+                    actual_analysis = first_result.get('analysis', {})
+                    self.test_results['certificate_analysis'] = actual_analysis
+                    
+                    # Verify the classification improvements
+                    self.verify_classification_improvements(first_result, actual_analysis)
+                else:
+                    self.log("   ⚠️ No results found in classification response")
                 
                 return True
             else:
-                self.log(f"   ❌ Certificate analysis failed: {response.status_code}")
+                self.log(f"   ❌ Certificate classification failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -215,7 +224,7 @@ class CertificateClassificationTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Certificate analysis error: {str(e)}", "ERROR")
+            self.log(f"❌ Certificate classification error: {str(e)}", "ERROR")
             return False
     
     def verify_classification_improvements(self, analysis_result):
