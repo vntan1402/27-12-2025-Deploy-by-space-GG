@@ -236,43 +236,74 @@ class CertificateClassificationTester:
             self.log(f"❌ Certificate classification error: {str(e)}", "ERROR")
             return False
     
-    def verify_classification_improvements(self, result_item, analysis_result):
-        """Verify the 3 main classification improvements"""
+    def verify_bwmp_classification(self, result_item, analysis_result):
+        """Verify the BWMP certificate classification according to review request"""
         try:
-            self.log("🔍 Verifying classification improvements...")
+            self.log("🔍 Verifying BWMP certificate classification...")
+            self.log("📋 Expected: Statement of Compliance (SOC) for Ballast Water Management Plan")
+            self.log("📋 Expected: PMDS (Panama Maritime Documentation Services)")
+            self.log("📋 Expected: Ship SUNSHINE 01, IMO: 9415313")
+            self.log("📋 Expected: Category 'certificates' (not rejected)")
             
             # 1. Check if certificate is classified as "certificates" category (not rejected)
             status = result_item.get('status', '')
             is_marine = result_item.get('is_marine', False)
             category = analysis_result.get('category', '').lower()
             
+            self.log(f"   Status: {status}, Is Marine: {is_marine}, Category: {category}")
+            
             if status == 'success' and is_marine and category == 'certificates':
-                self.log("   ✅ IMPROVEMENT 1: Certificate correctly classified as 'certificates' category")
+                self.log("   ✅ REQUIREMENT 1: Certificate correctly classified as 'certificates' category")
                 self.classification_improvements_tested['pmds_document_classification'] = True
                 self.classification_improvements_tested['enhanced_detection_rules'] = True
             elif status == 'skipped' and not is_marine:
-                self.log(f"   ❌ IMPROVEMENT 1: Certificate was rejected as non-marine (status: {status}, category: {category})")
+                self.log(f"   ❌ REQUIREMENT 1: Certificate was rejected as non-marine (status: {status}, category: {category})")
             else:
-                self.log(f"   ⚠️ IMPROVEMENT 1: Unclear classification result (status: {status}, is_marine: {is_marine}, category: {category})")
+                self.log(f"   ⚠️ REQUIREMENT 1: Unclear classification result (status: {status}, is_marine: {is_marine}, category: {category})")
             
             # 2. Check for PMDS detection in issued_by or other fields
             issued_by = analysis_result.get('issued_by', '').upper()
             cert_name = analysis_result.get('cert_name', '').upper()
             
-            if 'PMDS' in issued_by or 'PANAMA MARITIME DOCUMENTATION' in issued_by:
-                self.log("   ✅ IMPROVEMENT 2: PMDS organization properly detected in issued_by field")
+            self.log(f"   Issued By: '{issued_by}'")
+            self.log(f"   Certificate Name: '{cert_name}'")
+            
+            if ('PMDS' in issued_by or 'PANAMA MARITIME DOCUMENTATION' in issued_by or 
+                'PANAMA MARITIME DOCUMENTATION SERVICES' in issued_by):
+                self.log("   ✅ REQUIREMENT 2: PMDS organization properly detected")
                 self.classification_improvements_tested['pmds_document_classification'] = True
             else:
-                self.log(f"   ⚠️ IMPROVEMENT 2: PMDS not explicitly detected in issued_by: '{issued_by}'")
+                self.log(f"   ❌ REQUIREMENT 2: PMDS not detected in issued_by field")
             
-            # 3. Check for "on behalf of" detection
-            if 'ON BEHALF' in issued_by or 'BEHALF' in issued_by:
-                self.log("   ✅ IMPROVEMENT 3: 'On behalf of' detection working")
-                self.classification_improvements_tested['on_behalf_of_detection'] = True
+            # 3. Check for BWMP/SOC certificate type detection
+            if ('BALLAST WATER' in cert_name or 'BWMP' in cert_name or 
+                'STATEMENT OF COMPLIANCE' in cert_name or 'SOC' in cert_name):
+                self.log("   ✅ REQUIREMENT 3: BWMP/SOC certificate type properly identified")
+                self.classification_improvements_tested['certificate_information_extraction'] = True
             else:
-                self.log(f"   ℹ️ IMPROVEMENT 3: 'On behalf of' not detected in issued_by field")
+                self.log(f"   ⚠️ REQUIREMENT 3: BWMP/SOC not clearly identified in certificate name")
             
-            # 4. Check certificate information extraction
+            # 4. Check for ship information extraction
+            ship_name = analysis_result.get('ship_name', '').upper()
+            imo_number = analysis_result.get('imo_number', '')
+            
+            self.log(f"   Ship Name: '{ship_name}'")
+            self.log(f"   IMO Number: '{imo_number}'")
+            
+            ship_match = 'SUNSHINE 01' in ship_name or 'SUNSHINE' in ship_name
+            imo_match = '9415313' in str(imo_number) if imo_number else False
+            
+            if ship_match:
+                self.log("   ✅ REQUIREMENT 4a: Ship name (SUNSHINE 01) properly extracted")
+            else:
+                self.log(f"   ❌ REQUIREMENT 4a: Ship name not properly extracted")
+                
+            if imo_match:
+                self.log("   ✅ REQUIREMENT 4b: IMO number (9415313) properly extracted")
+            else:
+                self.log(f"   ❌ REQUIREMENT 4b: IMO number not properly extracted")
+            
+            # 5. Check certificate information extraction completeness
             extracted_fields = {
                 'cert_name': analysis_result.get('cert_name'),
                 'cert_no': analysis_result.get('cert_no'),
@@ -293,21 +324,21 @@ class CertificateClassificationTester:
                 else:
                     self.log(f"      ❌ {field}: Not extracted")
             
-            if extracted_count >= 3:  # At least 3 fields extracted
-                self.log("   ✅ IMPROVEMENT 4: Certificate information extraction working well")
+            if extracted_count >= 4:  # At least 4 fields extracted for BWMP
+                self.log("   ✅ REQUIREMENT 5: Certificate information extraction working well")
                 self.classification_improvements_tested['certificate_information_extraction'] = True
             else:
-                self.log("   ❌ IMPROVEMENT 4: Certificate information extraction needs improvement")
+                self.log("   ❌ REQUIREMENT 5: Certificate information extraction needs improvement")
             
-            # 5. Check enhanced detection rules (successful classification as marine certificate)
+            # 6. Check enhanced detection rules (successful classification as marine certificate)
             if status == 'success' and is_marine:
-                self.log("   ✅ IMPROVEMENT 5: Enhanced detection rules prevent misclassification")
+                self.log("   ✅ REQUIREMENT 6: Enhanced detection rules prevent misclassification")
                 self.classification_improvements_tested['enhanced_detection_rules'] = True
             else:
-                self.log("   ❌ IMPROVEMENT 5: Certificate may have been misclassified or rejected")
+                self.log("   ❌ REQUIREMENT 6: Certificate may have been misclassified or rejected")
                 
         except Exception as e:
-            self.log(f"❌ Classification verification error: {str(e)}", "ERROR")
+            self.log(f"❌ BWMP classification verification error: {str(e)}", "ERROR")
     
     def test_conditional_certificate_type(self):
         """Test if 'Conditional' certificate type is available"""
