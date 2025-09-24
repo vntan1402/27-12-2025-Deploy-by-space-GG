@@ -25,8 +25,8 @@ class PMDSCertificateClassificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # PMDS Certificate URL from review request
-        self.pmds_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/m1vpd5z1_SUNSHINE%2001%20-%20CICA-%20PM251277.pdf"
+        # PMDS Certificate URL from review request - MLC Certificate
+        self.pmds_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/5lvr7rxs_SUNSHINE%2001%20-%20MLC-%20PM251278.pdf"
         
         self.pmds_classification_tests = {
             'authentication_successful': False,
