@@ -896,7 +896,6 @@ const HomePage = () => {
     certificate: null
   });
   const [selectedCertificates, setSelectedCertificates] = useState(new Set());
-  const [showMoveModal, setShowMoveModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
