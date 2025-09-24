@@ -411,9 +411,12 @@ class CertificateClassificationTester:
     
     def run_comprehensive_certificate_classification_test(self):
         """Main test function for certificate classification improvements"""
-        self.log("🎯 STARTING CERTIFICATE CLASSIFICATION TESTING SESSION")
-        self.log("🔍 Focus: Test improved Marine Certificate classification with PMDS certificate")
-        self.log("📋 Review Request: Verify 3 classification improvements")
+        self.log("🎯 STARTING BWMP CERTIFICATE CLASSIFICATION TESTING SESSION")
+        self.log("🔍 Focus: Test Marine Certificate classification with BWMP certificate")
+        self.log("📋 Review Request: Verify BWMP/SOC classification and PMDS detection")
+        self.log("📄 Expected: Statement of Compliance (SOC) for Ballast Water Management Plan")
+        self.log("🏢 Expected: Panama Maritime Documentation Services (PMDS)")
+        self.log("🚢 Expected: Ship SUNSHINE 01, IMO: 9415313")
         self.log("=" * 100)
         
         # Step 1: Authenticate
