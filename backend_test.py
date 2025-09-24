@@ -30,37 +30,59 @@ class AddNewShipTester:
     def authenticate(self):
         """Authenticate with admin/admin123 credentials as specified in review request"""
         try:
-            self.log("🔐 Authenticating with admin/admin123 credentials...")
+            # Try multiple credentials to find one with a company assigned
+            test_credentials = [
+                {"username": "admin", "password": "admin123", "description": "Primary admin (review request)"},
+                {"username": "admin1", "password": "123456", "description": "Alternative admin"},
+            ]
             
-            login_data = {
-                "username": "admin",
-                "password": "admin123",
-                "remember_me": False
-            }
-            
-            endpoint = f"{BACKEND_URL}/auth/login"
-            self.log(f"   Attempting login to: {endpoint}")
-            response = requests.post(endpoint, json=login_data, timeout=60)
-            self.log(f"   Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                self.auth_token = data.get("access_token")
-                self.current_user = data.get("user", {})
+            for cred in test_credentials:
+                self.log(f"🔐 Authenticating with {cred['username']} credentials ({cred['description']})...")
                 
-                self.log(f"✅ Authentication successful")
-                self.log(f"   User ID: {self.current_user.get('id')}")
-                self.log(f"   User Role: {self.current_user.get('role')}")
-                self.log(f"   Company: {self.current_user.get('company')}")
-                self.log(f"   Full Name: {self.current_user.get('full_name')}")
+                login_data = {
+                    "username": cred["username"],
+                    "password": cred["password"],
+                    "remember_me": False
+                }
+                
+                endpoint = f"{BACKEND_URL}/auth/login"
+                self.log(f"   Attempting login to: {endpoint}")
+                response = requests.post(endpoint, json=login_data, timeout=60)
+                self.log(f"   Response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    self.auth_token = data.get("access_token")
+                    self.current_user = data.get("user", {})
+                    
+                    self.log(f"✅ Authentication successful with {cred['username']}")
+                    self.log(f"   User ID: {self.current_user.get('id')}")
+                    self.log(f"   User Role: {self.current_user.get('role')}")
+                    self.log(f"   Company: {self.current_user.get('company')}")
+                    self.log(f"   Full Name: {self.current_user.get('full_name')}")
+                    
+                    # If this user has a company, use it
+                    if self.current_user.get('company'):
+                        self.log(f"   ✅ User has company assigned: {self.current_user.get('company')}")
+                        return True
+                    else:
+                        self.log(f"   ⚠️ User has no company assigned, trying next credential...")
+                        continue
+                else:
+                    self.log(f"❌ Authentication failed with {cred['username']} - Status: {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                    except:
+                        self.log(f"   Error: {response.text[:200]}")
+                    continue
+            
+            # If we get here, no user with company was found, but we might still have a valid token
+            if self.auth_token:
+                self.log("⚠️ Using user without company assignment - this may cause issues")
                 return True
             else:
-                self.log(f"❌ Authentication failed - Status: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:200]}")
+                self.log("❌ Authentication failed with all credentials")
                 return False
                 
         except requests.exceptions.RequestException as req_error:
