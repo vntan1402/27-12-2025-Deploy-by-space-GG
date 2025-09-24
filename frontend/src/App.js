@@ -1168,11 +1168,6 @@ const HomePage = () => {
     setContextMenu({ show: false, x: 0, y: 0, certificate: null });
   };
 
-  const handleMoveCertificate = () => {
-    setShowMoveModal(true);
-    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
-  };
-
   const handleDeleteCertificateFromContext = () => {
     setShowDeleteConfirmation(true);
     setContextMenu({ show: false, x: 0, y: 0, certificate: null });
