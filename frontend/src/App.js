@@ -1389,6 +1389,7 @@ const HomePage = () => {
             ...upload,
             status: 'error',
             progress: 100,
+            stage: language === 'vi' ? 'Lỗi xử lý' : 'Processing error',
             error: result.message || 'Unknown error'
           };
         }
@@ -1398,6 +1399,7 @@ const HomePage = () => {
             ...upload,
             status: 'skipped',
             progress: 100,
+            stage: language === 'vi' ? 'Bỏ qua - không phải marine certificate' : 'Skipped - not a marine certificate',
             analysis: result.analysis,
             isMarine: false,
             error: result.message
