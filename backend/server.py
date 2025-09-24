@@ -433,8 +433,24 @@ async def generate_certificate_abbreviation(cert_name: str) -> str:
     # Remove common words and focus on key terms, but keep important maritime terms
     common_words = {'the', 'of', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
     
+    # Remove common maritime phrases first before word processing
+    cert_name_cleaned = cert_name.upper()
+    
+    # Remove "Statement of Compliance" and variations
+    phrases_to_remove = [
+        'STATEMENT OF COMPLIANCE',
+        'STATEMENT OF COMPIANCE',  # Handle typo version
+        'SOC',  # Common abbreviation that might appear in full text
+    ]
+    
+    for phrase in phrases_to_remove:
+        cert_name_cleaned = cert_name_cleaned.replace(phrase, '')
+    
+    # Clean up extra spaces
+    cert_name_cleaned = ' '.join(cert_name_cleaned.split())
+    
     # Clean the name and split into words
-    words = re.findall(r'\b[A-Za-z]+\b', cert_name.upper())
+    words = re.findall(r'\b[A-Za-z]+\b', cert_name_cleaned)
     
     # Filter out common words but keep all significant maritime terms
     significant_words = []
