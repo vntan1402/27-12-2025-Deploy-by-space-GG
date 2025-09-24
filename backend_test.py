@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-URGENT FOCUS: Investigate and fix recurring login issues
-Review Request: Comprehensive authentication testing and diagnosis
+FOCUS: Certificate Abbreviation Mapping Permission Testing
+Review Request: Test updated permission for certificate abbreviation mapping
 """
 
 import requests
@@ -13,8 +13,8 @@ from datetime import datetime
 import time
 import traceback
 
-# Configuration - Use local URL for testing (external URL has routing issues)
-BACKEND_URL = "http://127.0.0.1:8001/api"
+# Configuration - Use external URL for testing
+BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
 class CertificateClassificationTester:
     def __init__(self):
