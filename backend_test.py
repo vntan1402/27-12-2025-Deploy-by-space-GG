@@ -527,9 +527,9 @@ def main():
             print(f"   ❌ {improvement.replace('_', ' ').title()}")
     
     # Print analysis results
-    if tester.test_results.get('analysis_result'):
+    if tester.test_results.get('certificate_analysis'):
         print(f"\n🔍 CERTIFICATE ANALYSIS: ✅ SUCCESS")
-        analysis = tester.test_results['analysis_result']
+        analysis = tester.test_results['certificate_analysis']
         print(f"   Category: {analysis.get('category', 'Not classified')}")
         print(f"   Certificate Name: {analysis.get('cert_name', 'Not extracted')}")
         print(f"   Certificate Number: {analysis.get('cert_no', 'Not extracted')}")
