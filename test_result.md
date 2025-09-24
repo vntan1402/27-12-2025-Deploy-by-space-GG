@@ -220,7 +220,7 @@
 #====================================================================================================
 
 ## user_problem_statement: 
-"Update the frontend (`App.js`) to display a modal or UI element that allows the user to choose a resolution (`cancel`, `overwrite`, `keep_both`) when duplicate certificates are detected during multi-file upload. Implement the frontend logic to send the user's chosen `duplicate_resolution` to the backend's `process-with-resolution` endpoint. The UI should be in table format, each row shows 1 certificate needing processing, with resolution options displayed as checkboxes, allowing different resolutions per duplicate file."
+"Test BWMP certificate classification with simpler approach: Test if the BWMP certificate is properly classified as a Marine Certificate. File: https://customer-assets.emergentagent.com/job_shipai-system/artifacts/ykrefz2y_SUNSHINE%2001%20-%20BWMP-%20PM242792.pdf. Simple Test Steps: 1) Login with admin1/123456, 2) Use POST /api/certificates/multi-upload with the BWMP file and ship_id for SUNSHINE 01, 3) Check the response to see: Is the certificate classified as category 'certificates'? Is it marked as is_marine: true or false? What information is extracted (cert_name, cert_no, issued_by)? Does PMDS detection work? Expected Results: Category: 'certificates', is_marine: true, cert_name: related to BWMP/SOC, cert_no: PM242792, issued_by: should contain 'Panama Maritime Documentation Services'. Focus: Just check if the current classification system works correctly for this BWMP document without making any code changes."
 
 ## backend:
   - task: "Ships Visibility Issue - getUserCompanyShips Filter"
