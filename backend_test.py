@@ -299,8 +299,9 @@ class AddNewShipTester:
         try:
             self.log("🚢 Step 3: Testing Ship Creation...")
             
-            # Sample data as specified in review request
-            ship_data = {
+            # Test 1: Ship creation with company that has Google Drive config (current scenario)
+            self.log("   🧪 Test 3a: Ship creation with company that HAS Google Drive config...")
+            ship_data_with_config = {
                 "name": "Test Ship Debug",
                 "imo": "TEST123",
                 "company": self.current_user.get('company'),
@@ -312,49 +313,81 @@ class AddNewShipTester:
                 "ship_owner": "Test Owner"
             }
             
-            self.log(f"   Creating ship with data: {json.dumps(ship_data, indent=2)}")
+            self.log(f"      Creating ship with data: {json.dumps(ship_data_with_config, indent=2)}")
             
             endpoint = f"{BACKEND_URL}/ships"
-            self.log(f"   POST to: {endpoint}")
-            
-            response = requests.post(endpoint, json=ship_data, headers=self.get_headers(), timeout=60)
-            self.log(f"   POST /api/ships - Status: {response.status_code}")
+            response = requests.post(endpoint, json=ship_data_with_config, headers=self.get_headers(), timeout=60)
+            self.log(f"      POST /api/ships - Status: {response.status_code}")
             
             if response.status_code == 200:
                 ship_response = response.json()
-                self.log("   ✅ Ship creation successful")
-                self.log(f"      Ship ID: {ship_response.get('id')}")
-                self.log(f"      Ship Name: {ship_response.get('name')}")
-                self.log(f"      Created At: {ship_response.get('created_at')}")
-                
+                self.log("      ✅ Ship creation successful with configured company")
+                self.log(f"         Ship ID: {ship_response.get('id')}")
                 self.test_results['created_ship'] = ship_response
-                return True
             else:
-                self.log(f"   ❌ Ship creation failed - Status: {response.status_code}")
+                self.log(f"      ❌ Ship creation failed - Status: {response.status_code}")
                 try:
                     error_data = response.json()
                     error_detail = error_data.get('detail', 'Unknown error')
-                    self.log(f"      Error: {error_detail}")
+                    self.log(f"         Error: {error_detail}")
                     
-                    # Check if this is the "Company Google Drive not configured" error
                     if "Company Google Drive not configured" in str(error_detail):
-                        self.log("   🎯 FOUND THE TARGET ERROR: 'Company Google Drive not configured'")
+                        self.log("      🎯 FOUND TARGET ERROR in configured company test: 'Company Google Drive not configured'")
                         self.test_results['target_error_found'] = True
-                    
                 except:
                     error_detail = response.text[:500]
-                    self.log(f"      Error: {error_detail}")
+                    self.log(f"         Error: {error_detail}")
+            
+            # Test 2: Ship creation with a company that doesn't exist (to trigger the error)
+            self.log("   🧪 Test 3b: Ship creation with company that does NOT have Google Drive config...")
+            ship_data_no_config = {
+                "name": "Test Ship No Config",
+                "imo": "NOCONFIG123",
+                "company": "NonExistentCompany",  # This should trigger the error
+                "flag": "Panama",
+                "ship_type": "General Cargo",
+                "gross_tonnage": 3000,
+                "deadweight": 5000,
+                "built_year": 2019,
+                "ship_owner": "Test Owner 2"
+            }
+            
+            self.log(f"      Creating ship with non-existent company: {json.dumps(ship_data_no_config, indent=2)}")
+            
+            response2 = requests.post(endpoint, json=ship_data_no_config, headers=self.get_headers(), timeout=60)
+            self.log(f"      POST /api/ships - Status: {response2.status_code}")
+            
+            if response2.status_code == 200:
+                ship_response2 = response2.json()
+                self.log("      ⚠️ Ship creation successful even with non-existent company")
+                self.log(f"         Ship ID: {ship_response2.get('id')}")
+            else:
+                self.log(f"      ❌ Ship creation failed with non-existent company - Status: {response2.status_code}")
+                try:
+                    error_data2 = response2.json()
+                    error_detail2 = error_data2.get('detail', 'Unknown error')
+                    self.log(f"         Error: {error_detail2}")
                     
-                    # Check raw response for the error
-                    if "Company Google Drive not configured" in error_detail:
-                        self.log("   🎯 FOUND THE TARGET ERROR: 'Company Google Drive not configured'")
+                    if "Company Google Drive not configured" in str(error_detail2):
+                        self.log("      🎯 FOUND TARGET ERROR with non-existent company: 'Company Google Drive not configured'")
                         self.test_results['target_error_found'] = True
+                        self.test_results['target_error_scenario'] = 'non_existent_company'
+                except:
+                    error_detail2 = response2.text[:500]
+                    self.log(f"         Error: {error_detail2}")
+                    
+                    if "Company Google Drive not configured" in error_detail2:
+                        self.log("      🎯 FOUND TARGET ERROR with non-existent company: 'Company Google Drive not configured'")
+                        self.test_results['target_error_found'] = True
+                        self.test_results['target_error_scenario'] = 'non_existent_company'
                 
-                self.test_results['ship_creation_error'] = {
-                    'status_code': response.status_code,
-                    'error': error_detail
+                self.test_results['ship_creation_error_no_config'] = {
+                    'status_code': response2.status_code,
+                    'error': error_detail2
                 }
-                return False
+            
+            # Return True if at least one test succeeded
+            return response.status_code == 200 or response2.status_code == 200
                 
         except Exception as e:
             self.log(f"❌ Ship creation testing error: {str(e)}", "ERROR")
