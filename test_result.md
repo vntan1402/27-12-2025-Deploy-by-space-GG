@@ -388,7 +388,7 @@
 
 ## test_plan:
   current_focus:
-    - "Move File Functionality Debugging - COMPLETED"
+    - "BWMP Certificate Classification Testing - COMPLETED"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
