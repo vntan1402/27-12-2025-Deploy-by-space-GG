@@ -3523,11 +3523,14 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
         }
         
         logger.info(f"Creating dynamic ship folder structure for {ship_name} (company: {company_id})")
+        logger.info(f"Apps Script URL: {script_url}")
+        logger.info(f"Payload: {payload}")
         
         response = requests.post(script_url, json=payload, timeout=30)
         response.raise_for_status()
         
         result = response.json()
+        logger.info(f"Apps Script response: {result}")
         
         if result.get("success"):
             logger.info(f"Successfully created dynamic folder structure for {ship_name}")
@@ -3537,11 +3540,19 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
                 "subfolders": result.get("subfolder_ids", {})
             }
         else:
-            logger.error(f"Dynamic folder creation failed: {result.get('error')}")
-            return {"success": False, "error": result.get("error", "Unknown error")}
+            error_msg = result.get("error", "Unknown error")
+            logger.error(f"Dynamic folder creation failed: {error_msg}")
+            logger.error(f"Full Apps Script response: {result}")
+            return {"success": False, "error": error_msg}
             
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error during dynamic folder creation: {e}")
+        logger.error(f"Request URL: {script_url}")
+        logger.error(f"Request payload: {payload}")
+        return {"success": False, "error": f"Request error: {str(e)}"}
     except Exception as e:
-        logger.error(f"Dynamic folder creation failed: {e}")
+        logger.error(f"Unexpected error during dynamic folder creation: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
         return {"success": False, "error": str(e)}
 
 
