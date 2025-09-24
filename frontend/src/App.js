@@ -1328,9 +1328,11 @@ const HomePage = () => {
     const initialUploads = fileArray.map((file, index) => ({
       index,
       filename: file.name,
+      name: file.name, // Add name field for display
       size: file.size,
       status: 'pending', // pending, uploading, analyzing, processing, completed, error
       progress: 0,
+      stage: language === 'vi' ? 'Đang chờ xử lý...' : 'Waiting to process...', // Add stage field
       analysis: null,
       upload: null,
       certificate: null,
