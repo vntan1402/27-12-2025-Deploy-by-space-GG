@@ -137,11 +137,21 @@ class CertificateClassificationTester:
                 ships = response.json()
                 self.log(f"   ✅ Found {len(ships)} ships")
                 
-                # Look for SUNSHINE ships specifically
+                # Look for SUNSHINE 01 specifically (as mentioned in review request)
+                sunshine_01_ships = [ship for ship in ships if 'SUNSHINE 01' in ship.get('name', '').upper() or ship.get('name', '').upper() == 'SUNSHINE 01']
+                if sunshine_01_ships:
+                    selected_ship = sunshine_01_ships[0]
+                    self.log(f"   ✅ Selected SUNSHINE 01 ship: {selected_ship.get('name')} (ID: {selected_ship.get('id')})")
+                    self.log(f"   IMO: {selected_ship.get('imo', 'Not specified')}")
+                    self.test_results['selected_ship'] = selected_ship
+                    return selected_ship
+                
+                # Look for any SUNSHINE ships
                 sunshine_ships = [ship for ship in ships if 'SUNSHINE' in ship.get('name', '').upper()]
                 if sunshine_ships:
                     selected_ship = sunshine_ships[0]
                     self.log(f"   ✅ Selected SUNSHINE ship: {selected_ship.get('name')} (ID: {selected_ship.get('id')})")
+                    self.log(f"   IMO: {selected_ship.get('imo', 'Not specified')}")
                     self.test_results['selected_ship'] = selected_ship
                     return selected_ship
                 elif ships:
