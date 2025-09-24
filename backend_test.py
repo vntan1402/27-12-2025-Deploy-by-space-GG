@@ -91,10 +91,10 @@ class CertificateClassificationTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def download_pmds_certificate(self):
-        """Download the PMDS certificate for testing"""
+    def download_bwmp_certificate(self):
+        """Download the BWMP certificate for testing"""
         try:
-            self.log("📥 Downloading PMDS certificate for testing...")
+            self.log("📥 Downloading BWMP certificate for testing...")
             self.log(f"   URL: {self.pmds_certificate_url}")
             
             response = requests.get(self.pmds_certificate_url, timeout=30)
@@ -102,17 +102,17 @@ class CertificateClassificationTester:
             
             if response.status_code == 200:
                 # Save the file temporarily
-                temp_file_path = "/tmp/pmds_certificate.pdf"
+                temp_file_path = "/tmp/bwmp_certificate.pdf"
                 with open(temp_file_path, 'wb') as f:
                     f.write(response.content)
                 
                 file_size = len(response.content)
-                self.log(f"   ✅ Certificate downloaded successfully")
+                self.log(f"   ✅ BWMP certificate downloaded successfully")
                 self.log(f"   File size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
                 self.log(f"   Saved to: {temp_file_path}")
                 
-                self.test_results['pmds_certificate_path'] = temp_file_path
-                self.test_results['pmds_certificate_size'] = file_size
+                self.test_results['bwmp_certificate_path'] = temp_file_path
+                self.test_results['bwmp_certificate_size'] = file_size
                 return True
             else:
                 self.log(f"   ❌ Failed to download certificate: {response.status_code}")
