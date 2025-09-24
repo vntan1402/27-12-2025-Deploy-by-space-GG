@@ -2652,7 +2652,9 @@ async def analyze_with_emergent_gemini(file_content: bytes, prompt: str, api_key
             if json_match:
                 try:
                     analysis_result = json.loads(json_match.group())
-                    return analysis_result
+                    # Normalize the response structure to handle nested format
+                    normalized_result = normalize_ai_analysis_response(analysis_result)
+                    return normalized_result
                 except json.JSONDecodeError:
                     pass
             
