@@ -1329,6 +1329,22 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         logger.error(f"Error updating certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to update certificate")
 
+@api_router.get("/certificates/{cert_id}")
+async def get_certificate(cert_id: str, current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    try:
+        # Find certificate by ID
+        certificate = await mongo_db.find_one("certificates", {"id": cert_id})
+        if not certificate:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        return certificate
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting certificate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get certificate")
+
 @api_router.delete("/certificates/{cert_id}")
 async def delete_certificate(cert_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
