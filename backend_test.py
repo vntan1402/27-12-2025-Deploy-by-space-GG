@@ -448,12 +448,13 @@ class PMDSCertificateClassificationTester:
             return False
     
     def run_comprehensive_pmds_classification_test(self):
-        """Main test function for PMDS certificate classification investigation"""
-        self.log("🎯 STARTING PMDS CERTIFICATE CLASSIFICATION INVESTIGATION")
-        self.log("🔍 Focus: Investigate Marine Certificate classification issues with PMDS certificates")
-        self.log("📋 Review Request: Test PMDS certificate classification with existing certificates")
+        """Main test function for PMDS MLC certificate classification with new uploaded file"""
+        self.log("🎯 STARTING PMDS MLC CERTIFICATE CLASSIFICATION TESTING")
+        self.log("🔍 Focus: Test PMDS MLC certificate classification with new uploaded file")
+        self.log("📋 Review Request: Test MLC Certificate Classification with specific PDF URL")
         self.log("🏢 Expected: Panama Maritime Documentation Services detection")
-        self.log("🚢 Expected: Ship SUNSHINE 01 information extraction")
+        self.log("🚢 Expected: Ship SUNSHINE 01 MLC certificate analysis")
+        self.log("📄 File: SUNSHINE 01 - MLC- PM251278.pdf")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -463,6 +464,8 @@ class PMDSCertificateClassificationTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
+        self.pmds_classification_tests['authentication_successful'] = True
+        
         # Step 2: Get available ships
         self.log("\n🚢 STEP 2: GET AVAILABLE SHIPS")
         self.log("=" * 50)
@@ -471,35 +474,39 @@ class PMDSCertificateClassificationTester:
             self.log("❌ No ships available - cannot proceed with certificate testing")
             return False
         
-        # Step 3: Get existing PMDS certificates
-        self.log("\n📋 STEP 3: GET EXISTING PMDS CERTIFICATES")
+        # Step 3: Download PMDS MLC certificate
+        self.log("\n📥 STEP 3: DOWNLOAD PMDS MLC CERTIFICATE")
         self.log("=" * 50)
-        pmds_certificates = self.get_existing_pmds_certificates(ship.get('id'))
-        if not pmds_certificates:
-            self.log("❌ No PMDS certificates found - cannot analyze classification")
+        pdf_file_path = self.download_pmds_certificate()
+        if not pdf_file_path:
+            self.log("❌ Failed to download PMDS certificate - cannot proceed with analysis")
             return False
         
-        # Step 4: Analyze PMDS certificate classification
-        self.log("\n🔍 STEP 4: ANALYZE PMDS CERTIFICATE CLASSIFICATION")
+        # Step 4: Test certificate analysis with actual PMDS PDF
+        self.log("\n🔍 STEP 4: ANALYZE PMDS MLC CERTIFICATE")
         self.log("=" * 50)
-        self.analyze_pmds_certificate_classification(pmds_certificates)
+        analysis_result = self.test_certificate_analysis_with_pmds_pdf(ship.get('id'), pdf_file_path)
         
-        # Step 5: Test analyze-ship-certificate endpoint
-        self.log("\n🔍 STEP 5: TEST ANALYZE-SHIP-CERTIFICATE ENDPOINT")
+        # Step 5: Capture backend logs
+        self.log("\n📊 STEP 5: CAPTURE BACKEND LOGS")
         self.log("=" * 50)
-        endpoint_success = self.test_analyze_ship_certificate_endpoint(ship.get('id'))
+        self.capture_backend_logs()
         
-        # Step 6: Monitor backend logs
-        self.log("\n📊 STEP 6: BACKEND LOG ANALYSIS")
-        self.log("=" * 50)
-        self.monitor_backend_logs()
-        
-        # Step 7: Final analysis
-        self.log("\n📊 STEP 7: FINAL ANALYSIS")
+        # Step 6: Final analysis
+        self.log("\n📊 STEP 6: FINAL ANALYSIS")
         self.log("=" * 50)
         self.provide_final_analysis()
         
-        return len(pmds_certificates) > 0
+        # Clean up temporary file
+        try:
+            import os
+            if pdf_file_path and os.path.exists(pdf_file_path):
+                os.unlink(pdf_file_path)
+                self.log("   🗑️ Temporary PDF file cleaned up")
+        except Exception as e:
+            self.log(f"   ⚠️ Failed to clean up temporary file: {e}")
+        
+        return analysis_result is not None
     
     def provide_final_analysis(self):
         """Provide final analysis of the PMDS certificate classification testing"""
