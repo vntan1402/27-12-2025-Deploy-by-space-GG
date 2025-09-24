@@ -1494,7 +1494,7 @@ async def create_certificate_abbreviation_mapping(
 async def update_certificate_abbreviation_mapping(
     mapping_id: str, 
     mapping_data: CertificateAbbreviationMappingUpdate, 
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Update a certificate abbreviation mapping"""
     try:
