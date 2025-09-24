@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Move File Functionality Debugging - Detailed Apps Script and Backend Testing
+Focus: Ships Visibility Issue Debugging - User Company vs Ship Company Data Matching
 """
 
 import requests
