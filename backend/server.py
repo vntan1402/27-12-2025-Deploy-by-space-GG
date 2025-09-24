@@ -3360,6 +3360,13 @@ IMPORTANT CLASSIFICATION RULES:
 - IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
 - Crew Accommodation Certificates, Cargo Ship Safety Certificates = "certificates"
 
+ENHANCED DETECTION RULES:
+- If document contains "Panama Maritime Documentation Services" OR "PMDS" → classify as "certificates"
+- If document contains "Certificate of Inspection" + ship/vessel information → "certificates"
+- If document contains "on behalf of" + government/country name → "certificates"
+- If document has IMO number + any certificate-related title → "certificates"
+- Documents with phrases like "certify that", "is hereby certified", "this is to certify" → likely "certificates"
+
 Return response as JSON format. If information is not found, return null for that field.
 
 EXAMPLE OUTPUT:
