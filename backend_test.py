@@ -14,8 +14,8 @@ import subprocess
 import time
 import base64
 
-# Configuration - Use production URL from frontend .env
-BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
+# Configuration - Use internal backend URL for testing
+BACKEND_URL = "http://127.0.0.1:8001/api"
 
 class CertificateDatabaseTester:
     def __init__(self):
