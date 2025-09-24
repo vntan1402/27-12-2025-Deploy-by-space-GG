@@ -1128,7 +1128,7 @@
 
 ## test_plan:
   current_focus:
-    - "Certificate Auto-Fill Integration with Enhanced Multi-Cert Upload Callback"
+    - "Enhanced Ship Creation with Google Drive Integration Improvements"
   stuck_tasks:
     - 
   test_all: false
