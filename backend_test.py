@@ -109,7 +109,10 @@ class CertificateDatabaseTester:
         # Step 6: Test Certificate Endpoints
         endpoints_result = self.test_certificate_endpoints()
         
-        # Step 7: Summary
+        # Step 7: Test Certificate Move Functionality
+        move_functionality_result = self.test_certificate_move_functionality()
+        
+        # Step 8: Summary
         self.log("=" * 80)
         self.log("📋 CERTIFICATE DATABASE SCHEMA ANALYSIS SUMMARY")
         self.log("=" * 80)
