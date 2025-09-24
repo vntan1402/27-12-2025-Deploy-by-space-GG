@@ -30,10 +30,10 @@ class AddNewShipTester:
     def authenticate(self):
         """Authenticate with admin/admin123 credentials as specified in review request"""
         try:
-            # Try multiple credentials to find one with a company assigned
+            # Try admin first (no company) to trigger the error, then admin1 (with company) for comparison
             test_credentials = [
-                {"username": "admin", "password": "admin123", "description": "Primary admin (review request)"},
-                {"username": "admin1", "password": "123456", "description": "Alternative admin"},
+                {"username": "admin", "password": "admin123", "description": "Primary admin (NO COMPANY - should trigger error)"},
+                {"username": "admin1", "password": "123456", "description": "Alternative admin (HAS COMPANY)"},
             ]
             
             for cred in test_credentials:
@@ -61,13 +61,17 @@ class AddNewShipTester:
                     self.log(f"   Company: {self.current_user.get('company')}")
                     self.log(f"   Full Name: {self.current_user.get('full_name')}")
                     
-                    # If this user has a company, use it
-                    if self.current_user.get('company'):
-                        self.log(f"   ✅ User has company assigned: {self.current_user.get('company')}")
+                    # Store both users for testing different scenarios
+                    if cred["username"] == "admin":
+                        self.test_results['admin_user'] = self.current_user
+                        self.test_results['admin_token'] = self.auth_token
+                    elif cred["username"] == "admin1":
+                        self.test_results['admin1_user'] = self.current_user
+                        self.test_results['admin1_token'] = self.auth_token
+                    
+                    # Use admin (no company) first to test the error scenario
+                    if cred["username"] == "admin":
                         return True
-                    else:
-                        self.log(f"   ⚠️ User has no company assigned, trying next credential...")
-                        continue
                 else:
                     self.log(f"❌ Authentication failed with {cred['username']} - Status: {response.status_code}")
                     try:
@@ -77,13 +81,8 @@ class AddNewShipTester:
                         self.log(f"   Error: {response.text[:200]}")
                     continue
             
-            # If we get here, no user with company was found, but we might still have a valid token
-            if self.auth_token:
-                self.log("⚠️ Using user without company assignment - this may cause issues")
-                return True
-            else:
-                self.log("❌ Authentication failed with all credentials")
-                return False
+            self.log("❌ Authentication failed with all credentials")
+            return False
                 
         except requests.exceptions.RequestException as req_error:
             self.log(f"❌ Network error during authentication: {str(req_error)}", "ERROR")
