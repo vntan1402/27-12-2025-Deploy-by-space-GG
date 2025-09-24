@@ -77,13 +77,6 @@ const AuthProvider = ({ children }) => {
   };
 
   const login = async (credentials) => {
-    // Set initial stage for each file as 'analyzing'
-    setMultiCertUploads(prev => prev.map(upload => ({
-      ...upload,
-      status: 'analyzing',
-      stage: language === 'vi' ? `Đang phân tích ${upload.filename}...` : `Analyzing ${upload.filename}...`
-    })));
-
     try {
       const response = await axios.post(`${API}/auth/login`, credentials);
       const { access_token, user, remember_me } = response.data;
