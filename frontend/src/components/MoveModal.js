@@ -235,51 +235,90 @@ const MoveModal = ({
     });
   };
 
+  // Map folder names to categories
+  const getFolderCategory = (folder) => {
+    const folderName = folder.folder_name.toLowerCase();
+    
+    // Category mapping based on folder structure
+    const categoryMap = {
+      'certificates': 'certificates',
+      'inspection records': 'inspection_records', 
+      'survey reports': 'survey_reports',
+      'test reports': 'test_reports',
+      'drawings & manuals': 'drawings_manuals',
+      'other documents': 'other_documents',
+      'crew list': 'crew_records',
+      'crew certificates': 'crew_records',
+      'medical records': 'crew_records',
+      'ism certificate': 'ism_records',
+      'safety procedures': 'ism_records',
+      'audit reports': 'ism_records',
+      'isps certificate': 'isps_records',
+      'security plan': 'isps_records',
+      'security assessments': 'isps_records',
+      'mlc certificate': 'mlc_records',
+      'labor conditions': 'mlc_records',
+      'accommodation reports': 'mlc_records',
+      'inventory': 'supplies',
+      'purchase orders': 'supplies',
+      'spare parts': 'supplies'
+    };
+
+    return categoryMap[folderName] || 'other_documents';
+  };
+
   const handleMove = async () => {
     if (!selectedFolder || certificatesToMove.length === 0) {
       toast.error(language === 'vi' ? 'Vui lòng chọn thư mục đích' : 'Please select a destination folder');
       return;
     }
 
-    const companyId = getCompanyId();
-    if (!companyId) {
-      toast.error(language === 'vi' ? 'Không tìm thấy thông tin công ty' : 'Company information not found');
-      return;
-    }
-
     setMoving(true);
     try {
-      const movePromises = certificatesToMove.map(async (certId) => {
-        // First, get the certificate details to find its Google Drive file ID
-        const certResponse = await axios.get(`${API}/certificates/${certId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const certificate = certResponse.data;
-        if (!certificate.google_drive_file_id) {
-          throw new Error(`Certificate ${certificate.certificate_name} has no Google Drive file ID`);
-        }
-
-        // Move the file using the Google Drive API
-        return axios.post(
-          `${API}/companies/${companyId}/gdrive/move-file`,
-          {
-            file_id: certificate.google_drive_file_id,
-            target_folder_id: selectedFolder.folder_id
-          },
-          {
-            headers: { 'Authorization': `Bearer ${token}` }
-          }
-        );
-      });
-
-      await Promise.all(movePromises);
+      const targetCategory = getFolderCategory(selectedFolder);
+      const targetFolderPath = selectedFolder.folder_path;
       
-      toast.success(
-        language === 'vi' 
-          ? `Đã di chuyển ${certificatesToMove.length} chứng chỉ thành công!`
-          : `Successfully moved ${certificatesToMove.length} certificate(s)!`
+      console.log('Moving certificates:', certificatesToMove);
+      console.log('Target folder:', selectedFolder);
+      console.log('Target category:', targetCategory);
+      console.log('Target folder path:', targetFolderPath);
+
+      // Use new certificates move endpoint
+      const response = await axios.post(
+        `${API}/certificates/move`,
+        {
+          certificate_ids: certificatesToMove,
+          target_folder_id: selectedFolder.folder_id,
+          target_category: targetCategory,
+          target_folder_path: targetFolderPath
+        },
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
       );
+
+      if (response.data.success) {
+        const summary = response.data.summary;
+        toast.success(
+          language === 'vi' 
+            ? `Đã di chuyển ${summary.successful}/${summary.total} chứng chỉ thành công!`
+            : `Successfully moved ${summary.successful}/${summary.total} certificate(s)!`
+        );
+        
+        if (summary.failed > 0) {
+          toast.error(
+            language === 'vi'
+              ? `${summary.failed} chứng chỉ không thể di chuyển`
+              : `${summary.failed} certificate(s) could not be moved`
+          );
+        }
+      } else {
+        toast.error(
+          language === 'vi' 
+            ? 'Lỗi khi di chuyển chứng chỉ' 
+            : 'Error moving certificates'
+        );
+      }
       
       onMoveComplete();
     } catch (error) {
