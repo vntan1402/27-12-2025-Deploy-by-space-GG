@@ -3469,12 +3469,22 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
             logger.warning(f"Could not resolve company ID for user {current_user.username}, skipping Google Drive folder creation")
             return {"success": False, "error": "Could not resolve company ID"}
         
-        # Get company-specific Google Drive configuration first, fallback to system
+        # Get company-specific Google Drive configuration with retry logic for race conditions
         gdrive_config_doc = None
-        if user_company_id:
-            # Try company-specific Google Drive config first
-            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
-            logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count < max_retries and not gdrive_config_doc:
+            if user_company_id:
+                # Try company-specific Google Drive config first
+                gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+                logger.info(f"Company Google Drive config lookup attempt {retry_count + 1} for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
+                
+                if not gdrive_config_doc:
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        logger.info(f"Retrying company config lookup in 1 second... (attempt {retry_count + 1}/{max_retries})")
+                        await asyncio.sleep(1)  # Small delay to handle race conditions
         
         # Fallback to system Google Drive config if no company config
         if not gdrive_config_doc:
@@ -3482,8 +3492,16 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
             logger.info(f"Using system Google Drive config: {'Found' if gdrive_config_doc else 'Not found'}")
         
         if not gdrive_config_doc:
-            logger.warning("No Google Drive configuration found, skipping folder creation")
+            logger.warning("No Google Drive configuration found after retries, skipping folder creation")
             return {"success": False, "error": "No Google Drive configuration found"}
+        
+        # Validate configuration has required fields
+        web_app_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        folder_id = gdrive_config_doc.get("folder_id")
+        
+        if not web_app_url or not folder_id:
+            logger.warning(f"Incomplete Google Drive configuration - URL: {bool(web_app_url)}, Folder: {bool(folder_id)}")
+            return {"success": False, "error": "Incomplete Google Drive configuration"}
         
         # Create ship folder structure using dynamic structure (same as frontend)
         result = await create_dynamic_ship_folder_structure(gdrive_config_doc, ship_name, user_company_id)
@@ -3492,11 +3510,13 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
             logger.info(f"Successfully created Google Drive folder structure for ship: {ship_name}")
             return result
         else:
-            logger.error(f"Failed to create Google Drive folder structure: {result.get('error')}")
+            error_msg = result.get("error", "Unknown error")
+            logger.error(f"Failed to create Google Drive folder structure: {error_msg}")
             return result
             
     except Exception as e:
         logger.error(f"Error creating Google Drive folder for new ship: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
         return {"success": False, "error": str(e)}
 
 async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: str, company_id: str) -> dict:
