@@ -1086,9 +1086,11 @@ const HomePage = () => {
   };
 
   const fetchCertificates = async (shipId) => {
+    console.log('fetchCertificates called with shipId:', shipId);
     try {
       setIsRefreshing(true);
       const response = await axios.get(`${API}/ships/${shipId}/certificates`);
+      console.log('Certificates fetched successfully:', response.data.length, 'certificates');
       setCertificates(response.data);
     } catch (error) {
       console.error('Failed to fetch certificates:', error);
