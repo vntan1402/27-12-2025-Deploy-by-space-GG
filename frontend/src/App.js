@@ -1380,6 +1380,7 @@ const HomePage = () => {
             ...upload,
             status: 'error',
             progress: 100,
+            stage: language === 'vi' ? 'Lỗi server' : 'Server error',
             error: 'No result returned from server'
           };
         }
