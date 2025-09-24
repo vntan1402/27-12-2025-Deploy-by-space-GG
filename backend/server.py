@@ -3533,7 +3533,8 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
         logger.info(f"Apps Script URL: {script_url}")
         logger.info(f"Payload: {payload}")
         
-        response = requests.post(script_url, json=payload, timeout=30)
+        # Increased timeout to handle large folder structure creation
+        response = requests.post(script_url, json=payload, timeout=60)
         response.raise_for_status()
         
         result = response.json()
@@ -3552,11 +3553,15 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
             logger.error(f"Full Apps Script response: {result}")
             return {"success": False, "error": error_msg}
             
+    except requests.exceptions.Timeout as e:
+        logger.error(f"Timeout error during Google Apps Script communication: {e}")
+        logger.error(f"This may be due to complex folder structure creation taking too long")
+        return {"success": False, "error": "Google Drive folder creation timed out - please try again"}
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error during dynamic folder creation: {e}")
         logger.error(f"Request URL: {script_url}")
         logger.error(f"Request payload: {payload}")
-        return {"success": False, "error": f"Request error: {str(e)}"}
+        return {"success": False, "error": f"Communication error with Google Drive: {str(e)}"}
     except Exception as e:
         logger.error(f"Unexpected error during dynamic folder creation: {e}")
         logger.error(f"Error type: {type(e).__name__}")
