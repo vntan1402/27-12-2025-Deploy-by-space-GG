@@ -132,6 +132,11 @@ const MoveModal = ({
     setLoading(true);
     try {
       const companyId = getCompanyId();
+      console.log('MoveModal fetchFolders called');
+      console.log('selectedShip:', selectedShip);
+      console.log('availableCompanies:', availableCompanies);
+      console.log('computed companyId:', companyId);
+      
       if (!companyId) {
         console.error('Company ID not found for ship company:', selectedShip.company);
         toast.error(language === 'vi' ? 'Không tìm thấy thông tin công ty' : 'Company information not found');
@@ -139,6 +144,8 @@ const MoveModal = ({
         return;
       }
 
+      console.log('Making API call to:', `${API}/companies/${companyId}/gdrive/folders?ship_name=${encodeURIComponent(selectedShip.name)}`);
+      
       const response = await axios.get(
         `${API}/companies/${companyId}/gdrive/folders?ship_name=${encodeURIComponent(selectedShip.name)}`,
         {
@@ -146,9 +153,13 @@ const MoveModal = ({
         }
       );
 
+      console.log('API response:', response.data);
+
       if (response.data.success) {
         setFolders(response.data.folders);
+        console.log('Folders set successfully:', response.data.folders.length, 'folders');
       } else {
+        console.error('API returned success=false:', response.data);
         toast.error(language === 'vi' ? 'Không thể tải thư mục' : 'Failed to load folders');
       }
     } catch (error) {
