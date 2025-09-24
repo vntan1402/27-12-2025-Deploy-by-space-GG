@@ -522,6 +522,75 @@ class CertificateDatabaseTester:
         except Exception as e:
             self.log(f"❌ Certificate endpoints testing error: {str(e)}", "ERROR")
             return False
+    
+    def test_certificate_move_functionality(self):
+        """Test the current certificate move functionality"""
+        try:
+            self.log("🔄 Step 6: Testing Certificate Move Functionality...")
+            
+            # Get a sample certificate to test move functionality
+            sample_cert = self.test_results.get('sample_certificate')
+            if not sample_cert:
+                self.log("   ⚠️ No sample certificate available for move testing")
+                return True
+            
+            cert_id = sample_cert.get('id')
+            current_category = sample_cert.get('category', 'certificates')
+            
+            self.log(f"   🧪 Testing move functionality with certificate: {cert_id}")
+            self.log(f"      Current category: {current_category}")
+            
+            # Test 1: Check if we can update the category field
+            self.log("   🧪 Test 1: Testing category field update...")
+            
+            # Try to update to a different category
+            new_category = "test_reports" if current_category != "test_reports" else "survey_reports"
+            
+            update_data = {
+                "category": new_category
+            }
+            
+            update_endpoint = f"{BACKEND_URL}/certificates/{cert_id}"
+            response = requests.put(update_endpoint, json=update_data, headers=self.get_headers(), timeout=30)
+            
+            self.log(f"      PUT /certificates/{cert_id} - Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                updated_cert = response.json()
+                updated_category = updated_cert.get('category')
+                self.log(f"      ✅ Category update successful: '{current_category}' → '{updated_category}'")
+                
+                # Verify the update
+                if updated_category == new_category:
+                    self.log("         ✅ Category field updated correctly in database")
+                else:
+                    self.log(f"         ❌ Category field not updated correctly: expected '{new_category}', got '{updated_category}'")
+                
+                # Restore original category
+                self.log("   🔄 Restoring original category...")
+                restore_data = {"category": current_category}
+                restore_response = requests.put(update_endpoint, json=restore_data, headers=self.get_headers(), timeout=30)
+                
+                if restore_response.status_code == 200:
+                    self.log("      ✅ Original category restored")
+                else:
+                    self.log("      ⚠️ Failed to restore original category")
+                
+            else:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', 'Unknown error')
+                except:
+                    error_detail = response.text[:200]
+                
+                self.log(f"      ❌ Category update failed: {error_detail}")
+                return False
+            
+            return True
+                
+        except Exception as e:
+            self.log(f"❌ Certificate move functionality testing error: {str(e)}", "ERROR")
+            return False
 
 def main():
     """Main test execution"""
