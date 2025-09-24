@@ -13,8 +13,8 @@ from datetime import datetime
 import time
 import traceback
 
-# Configuration - Use internal URL for testing
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use external URL for testing (as per frontend .env)
+BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
 class PMDSCertificateClassificationTester:
     def __init__(self):
