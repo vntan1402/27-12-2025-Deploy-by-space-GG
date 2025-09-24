@@ -2674,47 +2674,6 @@ const HomePage = () => {
                       </div>
                     </div>
                   )}
-
-                  {/* Move Certificate Modal */}
-                  {showMoveModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="mb-6">
-                          <h3 className="text-xl font-bold text-gray-800 mb-2">
-                            {language === 'vi' ? 'Di chuyển chứng chỉ' : 'Move Certificate'}
-                          </h3>
-                          <p className="text-gray-600 text-sm">
-                            {selectedCertificates.size > 1
-                              ? (language === 'vi' 
-                                  ? `Di chuyển ${selectedCertificates.size} chứng chỉ đã chọn`
-                                  : `Move ${selectedCertificates.size} selected certificates`)
-                              : (language === 'vi' 
-                                  ? 'Chọn thư mục đích để di chuyển chứng chỉ'
-                                  : 'Select destination folder to move certificate')
-                            }
-                          </p>
-                        </div>
-
-                        <MoveModal 
-                          isOpen={showMoveModal}
-                          onClose={() => setShowMoveModal(false)}
-                          selectedCertificates={selectedCertificates}
-                          contextMenuCertificate={contextMenu.certificate}
-                          selectedShip={selectedShip}
-                          language={language}
-                          API={API}
-                          token={token}
-                          availableCompanies={availableCompanies}
-                          onMoveComplete={() => {
-                            setShowMoveModal(false);
-                            setSelectedCertificates(new Set());
-                            fetchCertificates(selectedShip.id); // Fix: add selectedShip.id
-                            toast.success(language === 'vi' ? 'Đã di chuyển chứng chỉ thành công!' : 'Certificates moved successfully!');
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
                   
                   {/* Other categories content */}
                   {selectedCategory !== 'documents' || selectedSubMenu !== 'certificates' ? (
