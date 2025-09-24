@@ -315,82 +315,63 @@ class PMDSCertificateClassificationTester:
             self.log(f"   Traceback: {traceback.format_exc()}")
             return None
     
-    def analyze_pmds_certificate_classification(self, certificates):
-        """Analyze existing PMDS certificates for classification issues"""
+    def capture_backend_logs(self):
+        """Capture backend logs for analysis"""
         try:
-            self.log("🔍 Analyzing PMDS certificate classification...")
+            self.log("📊 Capturing backend logs for analysis...")
             
-            for i, cert in enumerate(certificates[:3]):  # Analyze first 3 certificates
-                self.log(f"\n📋 ANALYZING CERTIFICATE {i+1}: {cert.get('cert_name', 'Unknown')}")
-                self.log("=" * 60)
-                
-                # Check PMDS organization detection
-                issued_by = cert.get('issued_by', '').upper()
-                if ('PMDS' in issued_by or 'PANAMA MARITIME DOCUMENTATION' in issued_by or
-                    'PANAMA MARITIME DOCUMENTATION SERVICES' in issued_by):
-                    self.log("   ✅ REQUIREMENT 1: PMDS organization properly detected")
-                    self.pmds_classification_tests['pmds_organization_detection'] = True
-                else:
-                    self.log(f"   ❌ REQUIREMENT 1: PMDS not detected in issued_by: '{issued_by}'")
-                
-                # Check marine certificate classification (if it exists in the system, it was classified as marine)
-                self.log("   ✅ REQUIREMENT 2: Certificate classified as marine (exists in system)")
-                self.pmds_classification_tests['marine_certificate_classification'] = True
-                
-                # Check for Statement of Compliance removal
-                cert_name = cert.get('cert_name', '').upper()
-                cert_abbreviation = cert.get('cert_abbreviation', '')
-                
-                if 'STATEMENT OF COMPLIANCE' in cert_name or 'SOC' in cert_name:
-                    self.log(f"   📋 Certificate contains 'Statement of Compliance': {cert_name}")
-                    if cert_abbreviation and 'SOC' not in cert_abbreviation.upper():
-                        self.log(f"   ✅ REQUIREMENT 3: Statement of Compliance removal working (abbreviation: {cert_abbreviation})")
-                        self.pmds_classification_tests['statement_of_compliance_removal'] = True
+            # Try to read backend logs from supervisor
+            try:
+                import subprocess
+                result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0 and result.stdout:
+                    self.log("   ✅ Backend logs captured successfully")
+                    self.pmds_classification_tests['backend_logs_captured'] = True
+                    
+                    # Look for specific PMDS-related log entries
+                    log_lines = result.stdout.split('\n')
+                    pmds_related_logs = []
+                    
+                    for line in log_lines:
+                        line_upper = line.upper()
+                        if any(keyword in line_upper for keyword in ['PMDS', 'PANAMA MARITIME', 'CLASSIFICATION', 'CERTIFICATE', 'OCR', 'AI']):
+                            pmds_related_logs.append(line)
+                    
+                    if pmds_related_logs:
+                        self.log(f"   📋 Found {len(pmds_related_logs)} PMDS-related log entries:")
+                        for log_line in pmds_related_logs[-10:]:  # Show last 10 relevant logs
+                            self.log(f"      {log_line}")
                     else:
-                        self.log(f"   ⚠️ REQUIREMENT 3: Statement of Compliance may not be removed (abbreviation: {cert_abbreviation})")
+                        self.log("   ℹ️ No specific PMDS-related log entries found")
+                    
+                    self.test_results['backend_logs'] = log_lines
+                    self.test_results['pmds_related_logs'] = pmds_related_logs
+                    
                 else:
-                    self.log("   ℹ️ REQUIREMENT 3: Certificate does not contain 'Statement of Compliance'")
-                
-                # Check for "on behalf of" detection
-                if 'BEHALF' in issued_by or 'ON BEHALF' in issued_by:
-                    self.log("   ✅ REQUIREMENT 4: 'On behalf of' pattern detected")
-                    self.pmds_classification_tests['on_behalf_of_detection'] = True
-                else:
-                    self.log("   ℹ️ REQUIREMENT 4: 'On behalf of' pattern not detected (may be certificate-specific)")
-                
-                # Check certificate information extraction completeness
-                extracted_fields = {
-                    'cert_name': cert.get('cert_name'),
-                    'cert_no': cert.get('cert_no'),
-                    'issue_date': cert.get('issue_date'),
-                    'valid_date': cert.get('valid_date'),
-                    'issued_by': cert.get('issued_by'),
-                    'ship_id': cert.get('ship_id')
-                }
-                
-                extracted_count = sum(1 for v in extracted_fields.values() if v and str(v).strip() and str(v).strip().lower() not in ['null', 'none', ''])
-                total_fields = len(extracted_fields)
-                
-                self.log(f"   📊 Certificate information extraction: {extracted_count}/{total_fields} fields extracted")
-                
-                for field, value in extracted_fields.items():
-                    if value and str(value).strip() and str(value).strip().lower() not in ['null', 'none', '']:
-                        self.log(f"      ✅ {field}: {str(value)[:50]}{'...' if len(str(value)) > 50 else ''}")
-                    else:
-                        self.log(f"      ❌ {field}: Not extracted")
-                
-                if extracted_count >= 4:  # At least 4 fields extracted
-                    self.log("   ✅ REQUIREMENT 5: Certificate information extraction working well")
-                    self.pmds_classification_tests['ai_prompt_classification_criteria'] = True
-                else:
-                    self.log("   ❌ REQUIREMENT 5: Certificate information extraction needs improvement")
-                
-                # Check enhanced detection rules (successful classification as marine certificate)
-                self.log("   ✅ REQUIREMENT 6: Enhanced detection rules working (certificate exists in system)")
-                self.pmds_classification_tests['enhanced_pmds_detection_rules'] = True
+                    self.log("   ⚠️ Could not read backend logs from supervisor")
+                    
+            except Exception as log_error:
+                self.log(f"   ⚠️ Backend log capture failed: {str(log_error)}")
+            
+            # Also try to capture error logs
+            try:
+                result = subprocess.run(['tail', '-n', '20', '/var/log/supervisor/backend.err.log'], 
+                                      capture_output=True, text=True, timeout=10)
+                if result.returncode == 0 and result.stdout.strip():
+                    self.log("   📋 Backend error logs:")
+                    for line in result.stdout.split('\n')[-10:]:  # Show last 10 error lines
+                        if line.strip():
+                            self.log(f"      ERROR: {line}")
+                            
+            except Exception as error_log_error:
+                self.log(f"   ⚠️ Backend error log capture failed: {str(error_log_error)}")
+            
+            return True
                 
         except Exception as e:
-            self.log(f"❌ PMDS certificate analysis error: {str(e)}", "ERROR")
+            self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
+            return False
     
     def test_analyze_ship_certificate_endpoint(self, ship_id):
         """Test the analyze-ship-certificate endpoint with a simple test"""
