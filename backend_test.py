@@ -423,10 +423,10 @@ class CertificateClassificationTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Download PMDS certificate
-        self.log("\n📥 STEP 2: DOWNLOAD PMDS CERTIFICATE")
+        # Step 2: Download BWMP certificate
+        self.log("\n📥 STEP 2: DOWNLOAD BWMP CERTIFICATE")
         self.log("=" * 50)
-        if not self.download_pmds_certificate():
+        if not self.download_bwmp_certificate():
             self.log("❌ Certificate download failed - cannot proceed with testing")
             return False
         
