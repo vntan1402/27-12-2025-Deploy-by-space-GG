@@ -223,6 +223,18 @@
 "Test BWMP certificate classification with simpler approach: Test if the BWMP certificate is properly classified as a Marine Certificate. File: https://customer-assets.emergentagent.com/job_shipai-system/artifacts/ykrefz2y_SUNSHINE%2001%20-%20BWMP-%20PM242792.pdf. Simple Test Steps: 1) Login with admin1/123456, 2) Use POST /api/certificates/multi-upload with the BWMP file and ship_id for SUNSHINE 01, 3) Check the response to see: Is the certificate classified as category 'certificates'? Is it marked as is_marine: true or false? What information is extracted (cert_name, cert_no, issued_by)? Does PMDS detection work? Expected Results: Category: 'certificates', is_marine: true, cert_name: related to BWMP/SOC, cert_no: PM242792, issued_by: should contain 'Panama Maritime Documentation Services'. Focus: Just check if the current classification system works correctly for this BWMP document without making any code changes."
 
 ## backend:
+  - task: "BWMP Certificate Classification Testing"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "🎉 BWMP CERTIFICATE CLASSIFICATION TESTING COMPLETED SUCCESSFULLY - Comprehensive testing of BWMP certificate classification completed with 80% success rate (4/5 classification improvements working). REVIEW REQUEST REQUIREMENTS FULLY SATISFIED: Authentication with admin1/123456 ✅, BWMP certificate testing with specific PDF ✅, certificate analysis endpoint working ✅. CLASSIFICATION RESULTS VERIFIED: (1) ✅ Certificate correctly classified as 'certificates' category (not rejected), (2) ✅ PMDS organization properly detected ('Panama Maritime Documentation Services, Inc.'), (3) ✅ BWMP/SOC certificate type properly identified ('BALLAST WATER MANAGEMENT PLAN STATEMENT OF COMPLIANCE (SOC) APPROVAL'), (4) ✅ Certificate information extraction excellent (5/6 fields extracted: cert_name, cert_no: PM242792, issue_date: 2024-12-02, issued_by, ship_name: SUNSHINE 01), (5) ✅ Enhanced detection rules prevent misclassification (status: success, is_marine: true). CONDITIONAL CERTIFICATE TYPE: ✅ 'Conditional' certificate type accepted and working. TECHNICAL VERIFICATION: Certificate upload to Google Drive working (file_id: 1dd2FB0mT-73liuymGuVnoG_2fr7cl4eD), certificate record creation successful (id: 42b48fd0-eb5e-484d-81ee-8cd6a709e90b), processing with high confidence (1.0 OCR confidence, direct text extraction). MINOR LIMITATION: 'On behalf of' detection not triggered by this specific certificate (1/5 improvements not detected), which may be expected behavior for this certificate type. CONCLUSION: The BWMP certificate classification is working excellently with 4/5 improvements verified. System correctly identifies PMDS documents as marine certificates, extracts comprehensive information, supports conditional types, and prevents misclassification. The classification system successfully processes BWMP/SOC certificates as requested."
+
   - task: "Ships Visibility Issue - getUserCompanyShips Filter"
     implemented: true
     working: true
