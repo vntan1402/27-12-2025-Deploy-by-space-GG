@@ -25,13 +25,20 @@ class PMDSCertificateClassificationTester:
         self.test_results = {}
         self.backend_logs = []
         
+        # PMDS Certificate URL from review request
+        self.pmds_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/m1vpd5z1_SUNSHINE%2001%20-%20CICA-%20PM251277.pdf"
+        
         self.pmds_classification_tests = {
-            'pmds_organization_detection': False,
-            'marine_certificate_classification': False,
-            'statement_of_compliance_removal': False,
-            'on_behalf_of_detection': False,
-            'enhanced_pmds_detection_rules': False,
-            'ai_prompt_classification_criteria': False
+            'authentication_successful': False,
+            'pdf_download_successful': False,
+            'certificate_analysis_endpoint_accessible': False,
+            'pdf_text_extraction_successful': False,
+            'ai_analysis_response_received': False,
+            'pmds_detection_triggered': False,
+            'category_field_correct': False,
+            'is_marine_certificate_true': False,
+            'classification_response_complete': False,
+            'backend_logs_captured': False
         }
         
     def log(self, message, level="INFO"):
