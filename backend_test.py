@@ -170,21 +170,19 @@ class CertificateClassificationTester:
                 return False
             
             # Test the certificates/multi-upload endpoint which does classification
-            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={ship_id}"
             self.log(f"   POST {endpoint}")
             
             # Prepare multipart form data
             with open(cert_file_path, 'rb') as f:
                 files = {'files': ('pmds_certificate.pdf', f, 'application/pdf')}
-                data = {'ship_id': ship_id}
                 
                 self.log("   📤 Uploading PMDS certificate for classification analysis...")
                 start_time = time.time()
                 
                 response = requests.post(
                     endpoint, 
-                    files=files, 
-                    data=data,
+                    files=files,
                     headers=self.get_headers(), 
                     timeout=120
                 )
