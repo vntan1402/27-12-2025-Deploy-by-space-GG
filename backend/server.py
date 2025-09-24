@@ -3330,9 +3330,13 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
 Analyze this maritime document ({filename}) and extract the following information:
 
 1. DOCUMENT CLASSIFICATION - Classify into one of these categories:
-   - certificates: Maritime certificates issued by Classification Society, Flag State, Port State, or Maritime Authorities. 
+   - certificates: Maritime certificates issued by Classification Society, Flag State, Port State, Maritime Authorities, or Maritime Documentation Services. 
      Examples: Safety Management Certificate, IAPP Certificate, IOPP Certificate, Load Line Certificate, 
-     Radio Survey Certificate, Safety Construction Certificate, Tonnage Certificate, etc.
+     Radio Survey Certificate, Safety Construction Certificate, Tonnage Certificate, Crew Accommodation Certificate,
+     Cargo Ship Safety Certificate, Certificate of Inspection, etc.
+     
+     IMPORTANT: Documents from Panama Maritime Documentation Services (PMDS), Maritime Documentation Centers,
+     or any organization issuing certificates "on behalf of" or "under authority of" flag states are ALWAYS "certificates"
    - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment, safety systems
    - survey_reports: Survey reports issued by Classification Society (annual, intermediate, special surveys)
    - drawings_manuals: DWG files, technical drawings, equipment manuals, ship plans
