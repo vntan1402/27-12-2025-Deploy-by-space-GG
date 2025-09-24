@@ -3127,7 +3127,7 @@ async def get_certificate_form_fields_for_extraction():
         # Get certificate fields from CertificateBase model
         cert_fields = {
             "cert_name": "Certificate name/title (look for main certificate title or heading)",
-            "cert_type": "Certificate type (Interim, Provisional, Short term, Full Term, etc.)",
+            "cert_type": "Certificate type (Interim, Provisional, Short term, Full Term, Conditional, etc.)",
             "cert_no": "Certificate number/identification number",
             "issue_date": "Issue date/Date of issue (format: YYYY-MM-DD)",
             "valid_date": "Valid until/Expiry date (format: YYYY-MM-DD)",
