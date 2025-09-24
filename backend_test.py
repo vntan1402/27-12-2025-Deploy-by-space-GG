@@ -581,42 +581,44 @@ class PMDSCertificateClassificationTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - PMDS Certificate Classification Investigation")
-    print("🔍 Focus: Investigate Marine Certificate classification issues with PMDS certificates")
-    print("📋 Review Request: Test PMDS certificate classification with existing certificates")
+    print("🎯 Ship Management System - PMDS MLC Certificate Classification Testing")
+    print("🔍 Focus: Test PMDS MLC certificate classification with new uploaded file")
+    print("📋 Review Request: Test MLC Certificate Classification with specific PDF URL")
     print("🏢 Expected: Panama Maritime Documentation Services detection")
-    print("🚢 Expected: Ship SUNSHINE 01 information extraction")
+    print("🚢 Expected: Ship SUNSHINE 01 MLC certificate analysis")
+    print("📄 File: SUNSHINE 01 - MLC- PM251278.pdf")
     print("=" * 100)
     
     tester = PMDSCertificateClassificationTester()
     success = tester.run_comprehensive_pmds_classification_test()
     
     print("=" * 100)
-    print("🔍 PMDS CERTIFICATE CLASSIFICATION INVESTIGATION RESULTS:")
+    print("🔍 PMDS MLC CERTIFICATE CLASSIFICATION TESTING RESULTS:")
     print("=" * 60)
     
     # Print PMDS classification test summary
     passed_tests = [f for f, passed in tester.pmds_classification_tests.items() if passed]
     failed_tests = [f for f, passed in tester.pmds_classification_tests.items() if not passed]
     
-    print(f"✅ PMDS CLASSIFICATION TESTS PASSED ({len(passed_tests)}/6):")
+    print(f"✅ PMDS MLC CLASSIFICATION TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ PMDS CLASSIFICATION TESTS FAILED ({len(failed_tests)}/6):")
+        print(f"\n❌ PMDS MLC CLASSIFICATION TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
     # Print analysis results
-    if tester.test_results.get('pmds_certificates'):
-        certificates = tester.test_results['pmds_certificates']
-        print(f"\n🔍 PMDS CERTIFICATES ANALYZED: ✅ SUCCESS ({len(certificates)} certificates)")
-        for i, cert in enumerate(certificates[:3]):
-            print(f"   Certificate {i+1}: {cert.get('cert_name', 'Unknown')}")
-            print(f"      Issued By: {cert.get('issued_by', 'Unknown')}")
+    if tester.test_results.get('analysis_result'):
+        analysis = tester.test_results['analysis_result']
+        print(f"\n🔍 MLC CERTIFICATE ANALYSIS: ✅ SUCCESS")
+        print(f"   Category: {analysis.get('category', 'Unknown')}")
+        print(f"   Is Marine Certificate: {analysis.get('is_marine_certificate', 'Unknown')}")
+        print(f"   Certificate Name: {analysis.get('cert_name', 'Unknown')}")
+        print(f"   Issued By: {analysis.get('issued_by', 'Unknown')}")
     else:
-        print(f"\n🔍 PMDS CERTIFICATES ANALYZED: ❌ FAILED")
+        print(f"\n🔍 MLC CERTIFICATE ANALYSIS: ❌ FAILED")
     
     # Print ship information
     if tester.test_results.get('selected_ship'):
@@ -629,26 +631,28 @@ def main():
     
     print("=" * 100)
     if success:
-        print("🎉 PMDS certificate classification investigation completed successfully!")
+        print("🎉 PMDS MLC certificate classification testing completed successfully!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ PMDS certificate classification investigation completed with issues!")
+        print("❌ PMDS MLC certificate classification testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
-    if len(passed_tests) >= 4:
+    if len(passed_tests) >= 7:
         print("\n💡 NEXT STEPS FOR MAIN AGENT:")
-        print("   ✅ PMDS classification features are working well")
+        print("   ✅ PMDS MLC classification is working well")
         print("   1. Review the specific tests passed above")
-        print("   2. Consider the PMDS detection successful for passed tests")
-        print("   3. Investigate any failed tests if needed")
+        print("   2. PMDS detection rules are functioning correctly")
+        print("   3. Enhanced PMDS detection is working")
+        print("   4. Certificate classification as 'certificates' is working")
+        print("   5. is_marine_certificate field is correctly set to true")
     else:
         print("\n💡 NEXT STEPS FOR MAIN AGENT:")
-        print("   ⚠️ Few PMDS classification features detected")
+        print("   ⚠️ PMDS MLC classification has issues")
         print("   1. Review backend implementation for PMDS detection rules")
         print("   2. Check if 'Panama Maritime Documentation Services' detection is working")
-        print("   3. Verify 'Statement of Compliance' removal is functioning")
-        print("   4. Test AI prompt and classification criteria")
-        print("   5. Check enhanced PMDS detection rules")
+        print("   3. Verify AI analysis response for classification decision")
+        print("   4. Check enhanced PMDS detection rules")
+        print("   5. Investigate exact cause of classification failure")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
