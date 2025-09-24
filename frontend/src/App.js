@@ -8580,8 +8580,10 @@ const AddRecordModal = ({
                         />
                       </div>
                       
-                      {/* Status */}
-                      <div className="text-sm text-gray-600 mb-2">{fileUpload.stage}</div>
+                      {/* Current Processing Status */}
+                      <div className="text-sm font-medium mb-2 px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                        {fileUpload.stage}
+                      </div>
                       
                       {/* Marine Certificate Analysis Results */}
                       {fileUpload.status === 'completed' && fileUpload.is_marine_certificate && (
