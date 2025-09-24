@@ -12,8 +12,8 @@ import sys
 from datetime import datetime
 import time
 
-# Configuration - Use production URL from frontend .env
-BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
+# Configuration - Use localhost for testing since external URL has issues
+BACKEND_URL = "http://localhost:8001/api"
 
 class AddNewShipTester:
     def __init__(self):
