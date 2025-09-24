@@ -2515,7 +2515,7 @@ const HomePage = () => {
                                   
                                   setSelectedCertificates(new Set());
                                   setShowDeleteConfirmation(false);
-                                  fetchCertificates();
+                                  fetchCertificates(selectedShip.id); // Fix: add selectedShip.id
                                 } catch (error) {
                                   toast.error(language === 'vi' ? 'Lỗi khi xóa' : 'Error deleting');
                                 }
