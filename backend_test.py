@@ -122,8 +122,9 @@ class CertificateDatabaseTester:
         self.log(f"{'✅' if folder_relationship_result else '❌'} Certificate-Folder Relationship: {'SUCCESS' if folder_relationship_result else 'FAILED'}")
         self.log(f"{'✅' if move_implementation_result else '❌'} Current Move Implementation: {'SUCCESS' if move_implementation_result else 'FAILED'}")
         self.log(f"{'✅' if endpoints_result else '❌'} Certificate Endpoints Testing: {'SUCCESS' if endpoints_result else 'FAILED'}")
+        self.log(f"{'✅' if move_functionality_result else '❌'} Certificate Move Functionality: {'SUCCESS' if move_functionality_result else 'FAILED'}")
         
-        overall_success = all([schema_result, categories_result, folder_relationship_result, move_implementation_result, endpoints_result])
+        overall_success = all([schema_result, categories_result, folder_relationship_result, move_implementation_result, endpoints_result, move_functionality_result])
         
         if overall_success:
             self.log("🎉 CERTIFICATE DATABASE SCHEMA ANALYSIS: COMPLETED SUCCESSFULLY")
