@@ -2441,16 +2441,6 @@ const HomePage = () => {
                           {language === 'vi' ? 'Copy Link' : 'Copy Link'}
                         </button>
                         
-                        <button
-                          onClick={handleMoveCertificate}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                        >
-                          <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                          </svg>
-                          {language === 'vi' ? 'Di chuyển' : 'Move'}
-                        </button>
-                        
                         <div className="border-t border-gray-200 my-1"></div>
                         
                         <button
