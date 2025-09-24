@@ -1100,32 +1100,6 @@ const HomePage = () => {
     }
   };
 
-  // Filter certificates by current category/submenu
-  const getFilteredCertificates = () => {
-    if (!certificates || certificates.length === 0) return [];
-    
-    // Map selectedSubMenu to database category values
-    const categoryMap = {
-      'certificates': 'certificates',
-      'inspection_records': 'inspection_records',
-      'survey_reports': 'survey_reports', 
-      'test_reports': 'test_reports',
-      'drawings_manuals': 'drawings_manuals',
-      'other_documents': 'other_documents'
-    };
-    
-    const targetCategory = categoryMap[selectedSubMenu] || 'certificates';
-    
-    // Filter certificates by category
-    const filtered = certificates.filter(cert => {
-      const certCategory = cert.category || 'certificates'; // Default to certificates if no category
-      return certCategory === targetCategory;
-    });
-    
-    console.log(`Filtering certificates: ${certificates.length} total, ${filtered.length} in category '${targetCategory}'`);
-    return filtered;
-  };
-
   const handleRefreshCertificates = async () => {
     if (selectedShip) {
       await fetchCertificates(selectedShip.id);
