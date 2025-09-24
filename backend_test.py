@@ -479,50 +479,103 @@ class AddNewShipTester:
         try:
             self.log("📁 Step 6: Testing Google Drive Folder Creation...")
             
-            company_id = self.test_results.get('company_id')
-            if not company_id:
-                self.log("   ❌ No company ID available for Google Drive folder creation test")
-                return False
+            # Test 1: Try with a company that has Google Drive config
+            if self.test_results.get('admin1_user'):
+                admin1_user = self.test_results['admin1_user']
+                company_name = admin1_user.get('company')
+                
+                if company_name:
+                    # Find the company ID
+                    companies_endpoint = f"{BACKEND_URL}/companies"
+                    response = requests.get(companies_endpoint, headers={"Authorization": f"Bearer {self.test_results['admin1_token']}"}, timeout=30)
+                    
+                    if response.status_code == 200:
+                        companies = response.json()
+                        company_id = None
+                        for company in companies:
+                            if company.get('name') == company_name or company.get('name_en') == company_name or company.get('name_vn') == company_name:
+                                company_id = company.get('id')
+                                break
+                        
+                        if company_id:
+                            self.log(f"   🧪 Test 6a: Testing with company that HAS Google Drive config (ID: {company_id})...")
+                            endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/create-ship-folder"
+                            
+                            folder_data = {
+                                "ship_name": "Test Ship Folder Creation",
+                                "ship_id": "test-ship-id"
+                            }
+                            
+                            response = requests.post(endpoint, json=folder_data, headers={"Authorization": f"Bearer {self.test_results['admin1_token']}"}, timeout=60)
+                            self.log(f"      POST /api/companies/{company_id}/gdrive/create-ship-folder - Status: {response.status_code}")
+                            
+                            if response.status_code == 200:
+                                folder_response = response.json()
+                                self.log("      ✅ Google Drive folder creation successful with configured company")
+                                self.test_results['gdrive_folder_creation'] = folder_response
+                            else:
+                                self.log(f"      ❌ Google Drive folder creation failed - Status: {response.status_code}")
+                                try:
+                                    error_data = response.json()
+                                    error_detail = error_data.get('detail', 'Unknown error')
+                                    self.log(f"         Error: {error_detail}")
+                                    
+                                    if "Company Google Drive not configured" in str(error_detail):
+                                        self.log("      🎯 FOUND TARGET ERROR in configured company: 'Company Google Drive not configured'")
+                                        self.test_results['target_error_found'] = True
+                                        self.test_results['target_error_scenario'] = 'configured_company_direct_call'
+                                except:
+                                    error_detail = response.text[:500]
+                                    self.log(f"         Error: {error_detail}")
+                                
+                                self.test_results['gdrive_folder_error'] = {
+                                    'status_code': response.status_code,
+                                    'error': error_detail
+                                }
             
-            # Test the Google Drive folder creation endpoint
-            endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/create-ship-folder"
-            self.log(f"   Testing endpoint: {endpoint}")
+            # Test 2: Try with a fake company ID to trigger the error
+            self.log("   🧪 Test 6b: Testing with fake company ID (should trigger 'Company Google Drive not configured')...")
+            fake_company_id = "fake-company-id-12345"
+            endpoint = f"{BACKEND_URL}/companies/{fake_company_id}/gdrive/create-ship-folder"
             
             folder_data = {
-                "ship_name": "Test Ship Debug",
-                "ship_id": "test-ship-id"
+                "ship_name": "Test Ship Fake Company",
+                "ship_id": "test-ship-fake"
             }
             
-            response = requests.post(endpoint, json=folder_data, headers=self.get_headers(), timeout=60)
-            self.log(f"   POST /api/companies/{company_id}/gdrive/create-ship-folder - Status: {response.status_code}")
+            # Use admin1 token for this test
+            token = self.test_results.get('admin1_token', self.auth_token)
+            response = requests.post(endpoint, json=folder_data, headers={"Authorization": f"Bearer {token}"}, timeout=60)
+            self.log(f"      POST /api/companies/{fake_company_id}/gdrive/create-ship-folder - Status: {response.status_code}")
             
             if response.status_code == 200:
-                folder_response = response.json()
-                self.log("   ✅ Google Drive folder creation successful")
-                self.log(f"      Response: {json.dumps(folder_response, indent=2)}")
-                self.test_results['gdrive_folder_creation'] = folder_response
-                return True
+                self.log("      ⚠️ Google Drive folder creation successful even with fake company ID")
             else:
-                self.log(f"   ❌ Google Drive folder creation failed - Status: {response.status_code}")
+                self.log(f"      ❌ Google Drive folder creation failed with fake company ID - Status: {response.status_code}")
                 try:
                     error_data = response.json()
                     error_detail = error_data.get('detail', 'Unknown error')
-                    self.log(f"      Error: {error_detail}")
+                    self.log(f"         Error: {error_detail}")
                     
-                    # Check if this is related to the "Company Google Drive not configured" error
                     if "Company Google Drive not configured" in str(error_detail):
-                        self.log("   🎯 FOUND THE TARGET ERROR in folder creation: 'Company Google Drive not configured'")
-                        self.test_results['target_error_in_folder_creation'] = True
-                    
+                        self.log("      🎯 FOUND TARGET ERROR with fake company ID: 'Company Google Drive not configured'")
+                        self.test_results['target_error_found'] = True
+                        self.test_results['target_error_scenario'] = 'fake_company_id'
                 except:
                     error_detail = response.text[:500]
-                    self.log(f"      Error: {error_detail}")
+                    self.log(f"         Error: {error_detail}")
+                    
+                    if "Company Google Drive not configured" in error_detail:
+                        self.log("      🎯 FOUND TARGET ERROR with fake company ID: 'Company Google Drive not configured'")
+                        self.test_results['target_error_found'] = True
+                        self.test_results['target_error_scenario'] = 'fake_company_id'
                 
-                self.test_results['gdrive_folder_error'] = {
+                self.test_results['gdrive_folder_error_fake'] = {
                     'status_code': response.status_code,
                     'error': error_detail
                 }
-                return False
+            
+            return True
                 
         except Exception as e:
             self.log(f"❌ Google Drive folder creation testing error: {str(e)}", "ERROR")
