@@ -1312,16 +1312,20 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         if 'cert_abbreviation' in update_data and update_data['cert_abbreviation']:
             cert_name = update_data.get('cert_name') or existing_cert.get('cert_name')
             if cert_name:
-                # Save the user-defined abbreviation mapping
-                abbreviation_saved = await save_user_defined_abbreviation(
-                    cert_name, 
-                    update_data['cert_abbreviation'], 
-                    current_user.id
-                )
-                if abbreviation_saved:
-                    logger.info(f"Saved user-defined abbreviation mapping: {cert_name} -> {update_data['cert_abbreviation']}")
+                # Check if user has permission to create/update abbreviation mappings
+                if current_user.role in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+                    # Save the user-defined abbreviation mapping
+                    abbreviation_saved = await save_user_defined_abbreviation(
+                        cert_name, 
+                        update_data['cert_abbreviation'], 
+                        current_user.id
+                    )
+                    if abbreviation_saved:
+                        logger.info(f"Saved user-defined abbreviation mapping: {cert_name} -> {update_data['cert_abbreviation']}")
+                    else:
+                        logger.warning(f"Failed to save abbreviation mapping for certificate: {cert_name}")
                 else:
-                    logger.warning(f"Failed to save abbreviation mapping for certificate: {cert_name}")
+                    logger.warning(f"User {current_user.username} (role: {current_user.role}) does not have permission to create abbreviation mappings")
         
         if update_data:  # Only update if there's data to update
             await mongo_db.update("certificates", {"id": cert_id}, update_data)
