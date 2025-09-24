@@ -15,7 +15,7 @@ import time
 import base64
 
 # Configuration - Use production URL from frontend .env
-BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
 class SidebarStructureTester:
     def __init__(self):

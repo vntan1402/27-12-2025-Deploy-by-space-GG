@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration - Use production URL from frontend .env
-BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
 class MoveFileFunctionalityTester:
     def __init__(self):

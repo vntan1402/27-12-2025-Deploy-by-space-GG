@@ -1,103 +1,107 @@
 <analysis>
-The previous AI engineer meticulously progressed through various stages of application development and stabilization. Initially, the focus was on setting up the environment, resolving dependency conflicts (Python and system-level OCR tools), and correcting critical configuration issues like the  for external access and MongoDB connection. Significant effort was dedicated to debugging and fixing core functionalities, including user login, AI-powered document analysis (especially for PDFs and images), and Google Drive integration, often caused by missing runtime dependencies or incorrect configuration logic. The engineer then moved to implementing complex UI/UX enhancements for the Certificate List table, such as column reordering, resizing, sorting, and adding interactive checkbox selection with a context menu. Throughout the trajectory, the AI engineer demonstrated strong debugging capabilities, systematically identifying root causes (e.g., missing OCR libraries causing AI fallback, incorrect Google Drive config for file viewing) and implementing targeted fixes. The codebase also underwent a substantial cleanup of unused files, streamlining the project.
+The previous AI engineer demonstrated a systematic approach to developing and stabilizing the Ship Management System. Initial efforts focused on critical infrastructure: resolving OCR dependencies, correcting  for external access, and debugging core functionalities like login and document analysis. Key technical decisions included smart PDF classification and integrating Google Drive via Apps Script. Subsequently, the engineer enhanced the Certificate List UI, adding interactive elements like column controls and checkbox selection with a context menu. While a Move functionality was implemented, debugged across several iterations, and then removed per user request, significant work was also completed on dynamic Google Drive folder structures, Google Drive file deletion upon certificate removal, and ensuring UI refresh after operations. The latest activity involves diagnosing a Company Google Drive not configured error during new ship creation, despite Google Drive folders being correctly provisioned.
 </analysis>
 
 <product_requirements>
-The user manages a Ship Management System - With AI Support, a full-stack application (React, FastAPI, MongoDB) designed for maritime document management. Key requirements revolve around enhancing document processing, user experience, and overall system stability.
-1.  **System Stabilization**: Resolve initial setup issues, ensure Preview URL access, and fix login functionality (missing admin user, Pydantic validation errors).
-2.  **AI Analysis Improvement**: Enhance the Add New Ship and Multi Cert Upload workflows by implementing smart PDF type detection (text-based vs. image-based) to optimize processing (direct text extraction vs. OCR) and fix AI analysis fallbacks due to missing OCR dependencies (poppler-utils, tesseract-ocr). Support JPG/PNG uploads.
-3.  **Google Drive Integration**: Ensure robust file viewing and management within Google Drive, resolving configuration mismatches between upload and view operations.
+The Ship Management System - With AI Support manages maritime documents using React, FastAPI, and MongoDB. The system aims to enhance document processing, user experience, and stability.
+1.  **System Stabilization**: Ensure Preview URL access and fix login/Pydantic validation.
+2.  **AI Analysis Improvement**: Enhance Add New Ship and Multi Cert Upload by detecting PDF types (text/image) for optimized processing (direct text/OCR), fixing OCR fallbacks, and supporting JPG/PNG uploads.
+3.  **Google Drive Integration**: Enable robust file viewing and management. A dynamic folder structure matching the Homepage sidebar should be created for new ships, with a fallback. Deleting a certificate must also delete its corresponding file on Google Drive.
 4.  **Certificate List UI/UX**:
     *   Reorder columns: Status between Next Survey and Notes; Issued by between Next Survey and Status.
-    *   Enable column resizing (without visible icons, only cursor on hover).
-    *   Implement column sorting (triangle icon for selected column).
-    *   Rename Inspection Records to Hồ sơ Đăng kiểm (Class Survey Report) and Survey Reports to Báo cáo kiểm tra (Test Report) in Vietnamese.
-    *   Certificates without a Valid Date should always display Valid status.
-    *   Add checkbox selection for certificates (individual and select-all) with a right-click context menu (Open, Copy Link, Move, Delete).
-    *   Implement delete confirmation for certificates.
-5.  **Codebase Cleanup**: Remove unused files (old Apps Scripts, test files, documentation).
+    *   Enable column resizing and sorting.
+    *   Rename Inspection Records to Hồ sơ Đăng kiểm and Survey Reports to Báo cáo kiểm tra in Vietnamese.
+    *   Certificates without Valid Date display Valid.
+    *   Add checkbox selection with a right-click context menu (Open, Copy Link, Edit, Delete).
+    *   Implement delete confirmation.
+    *   Certificate list should auto-refresh after delete/move operations.
+5.  **Codebase Cleanup**: Remove unused files. (Note: Move functionality was later removed per user request, including associated code cleanup).
 </product_requirements>
 
 <key_technical_concepts>
--   **FastAPI**: Backend framework.
--   **React**: Frontend framework.
--   **MongoDB**: Database.
--   **OCR (Tesseract, Google Vision API)**: Optical Character Recognition for image-based documents.
--   **LLM Integration (Gemini)**: AI analysis for document data extraction.
--   **Google Drive API (via Apps Script)**: Document storage and management.
--   **Tailwind CSS**: Frontend styling.
--   **Supervisor**: Process control for services.
--   **Pydantic**: Data validation for API models.
--   **Poppler-utils, Tesseract-ocr**: System-level OCR dependencies.
+-   **FastAPI**: Backend REST API.
+-   **React**: Frontend UI.
+-   **MongoDB**: Data persistence.
+-   **OCR (Tesseract, Google Vision API)**: Document text extraction.
+-   **LLM Integration (Gemini)**: AI analysis.
+-   **Google Drive API (via Apps Script)**: Document storage/management.
+-   **Tailwind CSS**: Styling.
+-   **Supervisor**: Process management.
+-   **Pydantic**: Data validation.
+-   **Poppler-utils, Tesseract-ocr**: System OCR dependencies.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture with a React frontend, FastAPI backend, and MongoDB for data persistence.
+The application uses a full-stack architecture: React frontend, FastAPI backend, MongoDB database.
 
 
-
-**Key Files and Changes:**
 
 -   ****:
-    -   **Importance**: Core backend logic, API endpoints for authentication, ship management, certificate upload, AI analysis, Google Drive integration.
+    -   **Importance**: Core backend logic.
     -   **Changes**:
-        -   Added logic for environment variable usage ().
-        -   Updated user creation, fixing Pydantic validation for  and .
-        -   Implemented  for smart PDF classification.
-        -   Modified  and  to use smart PDF/image processing.
-        -   Updated  endpoint to support JPG/PNG and use smart processing.
-        -   Fixed  to correctly use AI-extracted certificate names.
-        -   Corrected Google Drive file viewing endpoint to prioritize .
-        -   Added helper functions like .
+        -   Refined user creation/validation for , .
+        -   Implemented  and enhanced  for smart PDF/image processing.
+        -   Fixed  and Google Drive file viewing.
+        -   **Added **: Endpoint to list Google Drive folder structure (part of Move functionality, later removed).
+        -   **Added  (DELETE)**: Endpoint for Google Drive file deletion.
+        -   **Updated  (DELETE)**: Now calls  to delete the Google Drive file.
+        -   **Added **: Endpoint to expose the current frontend sidebar structure to Google Apps Script for dynamic folder creation.
+        -   **Modified **: Now passes  to Google Apps Script for dynamic structure fetching.
+        -   **Added  (GET)**: Endpoint to fetch a single certificate's details, needed for MoveModal.
+        -   **Removed  (POST)**: Entire endpoint and associated logic removed as part of Move functionality cleanup.
+        -   **Updated  content**: Synchronized the structure it returns to match the frontend's Vietnamese categories.
 -   ****:
     -   **Importance**: Centralizes OCR functionalities.
     -   **Changes**:
-        -   Added  method to handle image files directly.
+        -   Modified  to use  for better reliability.
+        -   Added  to enable Google Vision API OCR.
 -   ****:
     -   **Importance**: Main React component managing application state, rendering UI, handling user interactions, and making API calls.
     -   **Changes**:
-        -   Updated  for preview.
-        -   Modified  attributes for file inputs to include JPG/PNG.
-        -   Updated upload guidelines and translation constants for menu items.
-        -   Implemented UI logic for Certificate List: column reordering (Status, Issued By), sorting, resizing (JavaScript event handlers, CSS classes), checkbox selection, and context menu actions (Open, Copy Link, Edit, Delete).
-        -   Added state variables for selected certificates and modal visibility.
+        -   Updated  attributes for file inputs (JPG/PNG).
+        -   Implemented UI logic for Certificate List: column reordering, sorting, resizing, checkbox selection, and context menu.
+        -   Added  state and handlers.
+        -   **Implemented  integration**: Added JSX and state variables (, ). *This functionality was later removed.*
+        -   **Fixed  calls**: Ensured  is passed for both single and multi-certificate delete/move operations to trigger correct UI refresh.
+        -   **Fixed  functions**: Added  header to API calls to correctly populate the ships dropdown.
+        -   **Modified **: Updated logic to filter certificates based on  (category).
+        -   **Removed all Move-related UI/state**: Removed  option from context menu,  function,  state, and Move Modal JSX.
 -   ****:
-    -   **Importance**: Contains custom CSS for styling elements not covered by Tailwind, particularly for UI components like tables.
-    -   **Changes**:
-        -   Added styles for column resizing functionality (e.g., , ).
+    -   **Importance**: Custom CSS for UI components.
+    -   **Changes**: Added styles for column resizing and tree-view structure in  (part of Move functionality, now defunct).
 -   ****:
-    -   **Importance**: Utility script for populating the database with an initial admin user.
+    -   **Importance**: Handled displaying folder structure and initiating certificate moves.
     -   **Changes**:
-        -   Updated to include  and  fields for  user.
-        -   Added logic to delete existing users before creation to prevent duplicates during debugging.
+        -   **Created**: Implemented to show Google Drive folders (initially flat, then as a tree structure). Handled API calls for fetching folders and moving files. Used  for toasts.
+        -   **Fixed errors**: Addressed Error loading folders by correctly deriving , and Error moving certificates by using correct backend endpoint and  callback.
+        -   **Deleted**: The entire file was removed per user request.
 -   ****:
-    -   **Importance**: Lists all Python dependencies for the backend.
-    -   **Changes**:
-        -   Added , , , .
--   **System Dependencies**:
-    -   ****: Required for PDF to image conversion (for OCR).
-    -   ****: Required for text extraction from images by Tesseract.
+    -   **Importance**: Utility script.
+    -   **Changes**: Updated to include  and  fields and logic to delete existing users before creation.
+-   ****:
+    -   **Importance**: Python dependencies.
+    -   **Changes**: Added , , , .
+-   ****:
+    -   **Importance**: Google Apps Script for Google Drive integration.
+    -   **Changes**: This is the latest version. It includes , , , , , , and  actions. It was updated to dynamically fetch folder structure from the backend's  endpoint and has an updated fallback structure matching the frontend's Vietnamese categories. It also includes improved error handling for file/folder operations.
 </code_architecture>
 
 <pending_tasks>
--   Implement the Move functionality within the Certificate List context menu. This requires creating a Folder Structure Modal for the user to select a destination folder and then moving the file on Google Drive.
+-   **Debug Company Google Drive not configured error**: Investigate why  functionality reports this error, despite creating the folder structure correctly on Google Drive. The backend is reporting a 404, suggesting a configuration or lookup issue during the Apps Script interaction.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was working on enhancing the Certificate List table in the frontend. The last completed task involved adding interactive selection capabilities to the table:
-1.  **Checkboxes**: Small checkboxes were added next to the No. column for each certificate.
-2.  **Select/Deselect All**: A master checkbox in the table header allows users to select or deselect all currently displayed certificates.
-3.  **Context Menu**: A right-click context menu was implemented for selected certificates, offering several options:
-    *   Open: To view the certificate file.
-    *   Copy Link: To copy the Google Drive link to the clipboard.
-    *   Move: To move the certificate to a different folder.
-    *   Edit: To edit certificate details.
-    *   Delete: To remove the certificate from the system.
-4.  **Delete Confirmation**: A confirmation modal is displayed when the Delete option is chosen, asking the user to confirm the deletion, especially for multiple certificates.
+Immediately before this summary request, the AI engineer was debugging an issue with the Add new record created successfully but failed to create Google Drive folder structure: Failed to create ship folder: 404: Company Google Drive not configured.
 
-The core UI and state management for these features have been implemented in , including  state, , , , , , and the associated modals (). The Move functionality's UI () is prepared but its core logic (displaying folder structure and executing the move) is not yet implemented.
+The following has been confirmed:
+*   **Frontend Sidebar Structure**: The frontend's  defines the correct, updated sidebar categories (e.g., in Vietnamese).
+*   **Backend **: This endpoint has been updated in  to correctly reflect the frontend's sidebar structure (with Vietnamese names) and responds successfully.
+*   **Google Apps Script**: The  is updated to dynamically fetch the folder structure from the backend using the  provided by the backend. It also has a synchronized fallback structure.
+*   **Google Drive Creation**: The actual folder structure is being created correctly on Google Drive.
+
+The problem specifically lies in the backend's  during the  call to Google Apps Script. Despite folders being created, the backend encounters a 404: Company Google Drive not configured error, which implies a failure in accessing or validating the Google Drive configuration () or the associated Apps Script URL. The engineer has started investigating the backend ship creation logic.
 </current_work>
 
 <optional_next_step>
-Implement the Move functionality for selected certificates by developing a Folder Structure Modal.
+Investigate the backend's ship creation logic to debug why it fails to validate the Google Drive configuration despite successful folder creation.
 </optional_next_step>
