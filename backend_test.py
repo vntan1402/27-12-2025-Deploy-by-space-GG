@@ -171,13 +171,13 @@ class CertificateClassificationTester:
             return None
     
     def test_certificate_analysis_endpoint(self, ship_id):
-        """Test the certificate analysis endpoint with PMDS certificate"""
+        """Test the certificate analysis endpoint with BWMP certificate"""
         try:
-            self.log("🔍 Testing certificate classification endpoint with PMDS certificate...")
+            self.log("🔍 Testing certificate classification endpoint with BWMP certificate...")
             
-            cert_file_path = self.test_results.get('pmds_certificate_path')
+            cert_file_path = self.test_results.get('bwmp_certificate_path')
             if not cert_file_path or not os.path.exists(cert_file_path):
-                self.log("   ❌ PMDS certificate file not available")
+                self.log("   ❌ BWMP certificate file not available")
                 return False
             
             # Test the certificates/multi-upload endpoint which does classification
@@ -186,9 +186,9 @@ class CertificateClassificationTester:
             
             # Prepare multipart form data
             with open(cert_file_path, 'rb') as f:
-                files = {'files': ('pmds_certificate.pdf', f, 'application/pdf')}
+                files = {'files': ('bwmp_certificate.pdf', f, 'application/pdf')}
                 
-                self.log("   📤 Uploading PMDS certificate for classification analysis...")
+                self.log("   📤 Uploading BWMP certificate for classification analysis...")
                 start_time = time.time()
                 
                 response = requests.post(
@@ -218,7 +218,7 @@ class CertificateClassificationTester:
                     self.test_results['certificate_analysis'] = actual_analysis
                     
                     # Verify the classification improvements
-                    self.verify_classification_improvements(first_result, actual_analysis)
+                    self.verify_bwmp_classification(first_result, actual_analysis)
                 else:
                     self.log("   ⚠️ No results found in classification response")
                 
