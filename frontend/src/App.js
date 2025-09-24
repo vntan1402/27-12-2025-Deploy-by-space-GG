@@ -1649,7 +1649,25 @@ const HomePage = () => {
   };
 
   const getFilteredCertificates = () => {
-    const filtered = certificates.filter(cert => {
+    // First filter by category/submenu
+    const categoryMap = {
+      'certificates': 'certificates',
+      'inspection_records': 'inspection_records',
+      'survey_reports': 'survey_reports', 
+      'test_reports': 'test_reports',
+      'drawings_manuals': 'drawings_manuals',
+      'other_documents': 'other_documents'
+    };
+    
+    const targetCategory = categoryMap[selectedSubMenu] || 'certificates';
+    
+    const categoryFiltered = certificates.filter(cert => {
+      const certCategory = cert.category || 'certificates'; // Default to certificates if no category
+      return certCategory === targetCategory;
+    });
+    
+    // Then apply existing filters (type and status)
+    const filtered = categoryFiltered.filter(cert => {
       const typeMatch = certificateFilters.certificateType === 'all' || 
                        cert.cert_type === certificateFilters.certificateType;
       
@@ -1660,6 +1678,8 @@ const HomePage = () => {
       
       return typeMatch && statusMatch;
     });
+    
+    console.log(`Certificate filtering: ${certificates.length} total → ${categoryFiltered.length} in category '${targetCategory}' → ${filtered.length} after filters`);
     
     // Apply sorting
     return sortCertificates(filtered);
