@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Debug "Failed to create ship folder: 404: Company Google Drive not configured" error
-Review Request: Capture ALL backend logs during ship creation process and identify exact failing API call
+Focus: Test enhanced ship creation functionality with improved Google Drive integration
+Review Request: Test enhanced error handling, timeout improvements, retry logic, and better diagnostics
 """
 
 import requests
