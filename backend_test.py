@@ -61,8 +61,19 @@ class CertificateDatabaseTester:
                     self.log(f"   User Role: {user_data.get('role')}")
                     self.log(f"   Company: {user_data.get('company')}")
                     return True
+                else:
+                    self.log(f"❌ Authentication failed with {username} - Status: {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                    except:
+                        self.log(f"   Error: {response.text[:200]}")
                     
             self.log("❌ Authentication failed with all credentials")
+            return False
+            
+        except requests.exceptions.RequestException as req_error:
+            self.log(f"❌ Network error during authentication: {str(req_error)}", "ERROR")
             return False
             
         except Exception as e:
