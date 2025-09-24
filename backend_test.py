@@ -509,9 +509,9 @@ class PMDSCertificateClassificationTester:
         return analysis_result is not None
     
     def provide_final_analysis(self):
-        """Provide final analysis of the PMDS certificate classification testing"""
+        """Provide final analysis of the PMDS MLC certificate classification testing"""
         try:
-            self.log("🎯 PMDS CERTIFICATE CLASSIFICATION INVESTIGATION - TESTING RESULTS")
+            self.log("🎯 PMDS MLC CERTIFICATE CLASSIFICATION TESTING - RESULTS")
             self.log("=" * 70)
             
             # Check which PMDS classification tests passed
@@ -524,38 +524,42 @@ class PMDSCertificateClassificationTester:
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ PMDS CLASSIFICATION TESTS PASSED ({len(passed_tests)}/6):")
+            self.log(f"✅ PMDS MLC CLASSIFICATION TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ PMDS CLASSIFICATION TESTS FAILED ({len(failed_tests)}/6):")
+                self.log(f"\n❌ PMDS MLC CLASSIFICATION TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
             success_rate = len(passed_tests) / len(self.pmds_classification_tests) * 100
-            self.log(f"\n📊 PMDS CLASSIFICATION SUCCESS RATE: {success_rate:.1f}%")
+            self.log(f"\n📊 PMDS MLC CLASSIFICATION SUCCESS RATE: {success_rate:.1f}%")
             
             if success_rate >= 80:
-                self.log("🎉 EXCELLENT: Most PMDS classification features are working correctly")
+                self.log("🎉 EXCELLENT: PMDS MLC certificate classification is working correctly")
             elif success_rate >= 60:
-                self.log("✅ GOOD: Majority of PMDS classification features are working")
+                self.log("✅ GOOD: Majority of PMDS MLC classification features are working")
             elif success_rate >= 40:
-                self.log("⚠️ MODERATE: Some PMDS classification features are working")
+                self.log("⚠️ MODERATE: Some PMDS MLC classification features are working")
             else:
-                self.log("❌ POOR: Few PMDS classification features detected")
+                self.log("❌ POOR: PMDS MLC classification has significant issues")
             
-            # Analysis results for existing certificates
-            if self.test_results.get('pmds_certificates'):
-                self.log(f"\n🔍 PMDS CERTIFICATES ANALYZED:")
-                certificates = self.test_results['pmds_certificates']
+            # Analysis results
+            if self.test_results.get('analysis_result'):
+                analysis = self.test_results['analysis_result']
+                self.log(f"\n🔍 MLC CERTIFICATE ANALYSIS RESULTS:")
+                self.log(f"   Success: {analysis.get('success', 'Unknown')}")
+                self.log(f"   Category: {analysis.get('category', 'Unknown')}")
+                self.log(f"   Is Marine Certificate: {analysis.get('is_marine_certificate', 'Unknown')}")
+                self.log(f"   Certificate Name: {analysis.get('cert_name', 'Unknown')}")
+                self.log(f"   Certificate Number: {analysis.get('cert_no', 'Unknown')}")
+                self.log(f"   Issued By: {analysis.get('issued_by', 'Unknown')}")
                 
-                for i, cert in enumerate(certificates[:3]):
-                    self.log(f"   Certificate {i+1}: {cert.get('cert_name', 'Unknown')}")
-                    self.log(f"      Number: {cert.get('cert_no', 'Unknown')}")
-                    self.log(f"      Issued By: {cert.get('issued_by', 'Unknown')}")
-                    self.log(f"      Abbreviation: {cert.get('cert_abbreviation', 'Not set')}")
+                if analysis.get('extracted_text'):
+                    text_length = len(analysis['extracted_text'])
+                    self.log(f"   Extracted Text: {text_length} characters")
             
             # Ship information
             if self.test_results.get('selected_ship'):
@@ -565,12 +569,12 @@ class PMDSCertificateClassificationTester:
                 self.log(f"   Ship ID: {ship.get('id')}")
                 self.log(f"   Company: {ship.get('company')}")
             
-            # Endpoint test results
-            if self.test_results.get('endpoint_test'):
-                self.log(f"\n🔍 ANALYZE-SHIP-CERTIFICATE ENDPOINT TEST:")
-                endpoint_result = self.test_results['endpoint_test']
-                self.log(f"   Success: {endpoint_result.get('success', 'Unknown')}")
-                self.log(f"   Fallback Reason: {endpoint_result.get('fallback_reason', 'None')}")
+            # PDF file information
+            if self.test_results.get('pdf_file_size'):
+                size_mb = self.test_results['pdf_file_size'] / 1024 / 1024
+                self.log(f"\n📄 PDF FILE INFORMATION:")
+                self.log(f"   File Size: {size_mb:.2f} MB")
+                self.log(f"   Analysis Time: {self.test_results.get('analysis_time', 'Unknown'):.2f} seconds")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
