@@ -193,7 +193,7 @@ class PMDSCertificateClassificationTester:
             with open(pdf_file_path, 'rb') as pdf_file:
                 pdf_content = pdf_file.read()
             
-            files = {'file': ('SUNSHINE_01_CICA_PM251277.pdf', pdf_content, 'application/pdf')}
+            files = {'file': ('SUNSHINE_01_MLC_PM251278.pdf', pdf_content, 'application/pdf')}
             data = {'ship_id': ship_id}
             
             self.log("   📤 Uploading PMDS certificate for analysis...")
