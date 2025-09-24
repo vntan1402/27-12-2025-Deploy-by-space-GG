@@ -990,8 +990,26 @@ const HomePage = () => {
 
   // Filter ships by user's company
   const getUserCompanyShips = () => {
-    if (!user?.company) return ships;
-    return ships.filter(ship => ship.company === user.company);
+    console.log('getUserCompanyShips called');
+    console.log('User:', user);
+    console.log('User company:', user?.company);
+    console.log('Ships:', ships);
+    console.log('Ships length:', ships.length);
+    
+    if (!user?.company) {
+      console.log('No user company found, returning all ships');
+      return ships;
+    }
+    
+    const filtered = ships.filter(ship => {
+      console.log(`Comparing ship "${ship.name}" company "${ship.company}" with user company "${user.company}"`);
+      return ship.company === user.company;
+    });
+    
+    console.log('Filtered ships:', filtered);
+    console.log('Filtered ships length:', filtered.length);
+    
+    return filtered;
   };
 
   const handleEditShip = async (updatedShipData) => {
