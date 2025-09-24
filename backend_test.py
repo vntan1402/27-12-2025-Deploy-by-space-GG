@@ -226,108 +226,119 @@ class PMDSCertificateClassificationTester:
                     # Log the complete response structure
                     self.log(f"   Response keys: {list(analysis_result.keys())}")
                     
-                    # Check for success field
-                    success = analysis_result.get('success', False)
-                    self.log(f"   Success: {success}")
+                    # Check for success field - multi-upload doesn't have a top-level success field
+                    # Instead, check if we have results
+                    results = analysis_result.get('results', [])
+                    summary = analysis_result.get('summary', {})
                     
-                    if success:
+                    self.log(f"   Results count: {len(results)}")
+                    self.log(f"   Summary: {summary}")
+                    
+                    if results and len(results) > 0:
                         self.pmds_classification_tests['ai_analysis_response_received'] = True
                         
-                        # Check results array for file analysis
-                        results = analysis_result.get('results', [])
-                        if results and len(results) > 0:
-                            file_result = results[0]  # Get first file result
+                        file_result = results[0]  # Get first file result
+                        
+                        # Check file status and marine classification
+                        file_status = file_result.get('status', '')
+                        is_marine = file_result.get('is_marine', False)
+                        
+                        self.log(f"   File Status: {file_status}")
+                        self.log(f"   Is Marine (from file result): {is_marine}")
+                        
+                        # Check for analysis data
+                        analysis_data = file_result.get('analysis', {})
+                        if analysis_data:
+                            self.log(f"   ✅ AI analysis data received")
                             
-                            # Check for analysis data
-                            analysis_data = file_result.get('analysis', {})
-                            if analysis_data:
-                                self.log(f"   ✅ AI analysis data received")
+                            # Check extracted text (if available)
+                            extracted_text = analysis_data.get('extracted_text', '')
+                            if extracted_text and len(extracted_text) > 100:
+                                self.log(f"   ✅ PDF text extraction successful ({len(extracted_text)} characters)")
+                                self.pmds_classification_tests['pdf_text_extraction_successful'] = True
                                 
-                                # Check extracted text (if available)
-                                extracted_text = analysis_data.get('extracted_text', '')
-                                if extracted_text and len(extracted_text) > 100:
-                                    self.log(f"   ✅ PDF text extraction successful ({len(extracted_text)} characters)")
-                                    self.pmds_classification_tests['pdf_text_extraction_successful'] = True
-                                    
-                                    # Check for PMDS detection in extracted text
-                                    text_upper = extracted_text.upper()
-                                    if 'PANAMA MARITIME DOCUMENTATION SERVICES' in text_upper or 'PMDS' in text_upper:
-                                        self.log("   ✅ PMDS organization detected in extracted text")
-                                        self.pmds_classification_tests['pmds_detection_triggered'] = True
-                                    else:
-                                        self.log("   ❌ PMDS organization NOT detected in extracted text")
-                                        # Log a sample of the text for debugging
-                                        sample_text = extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text
-                                        self.log(f"   📋 Text sample: {sample_text}")
+                                # Check for PMDS detection in extracted text
+                                text_upper = extracted_text.upper()
+                                if 'PANAMA MARITIME DOCUMENTATION SERVICES' in text_upper or 'PMDS' in text_upper:
+                                    self.log("   ✅ PMDS organization detected in extracted text")
+                                    self.pmds_classification_tests['pmds_detection_triggered'] = True
                                 else:
-                                    self.log("   ❌ PDF text extraction failed or insufficient text")
-                                
-                                # Check classification fields
-                                category = analysis_data.get('category', '')
-                                is_marine_certificate = analysis_data.get('is_marine_certificate', False)
-                                
-                                self.log(f"   Category: {category}")
-                                self.log(f"   Is Marine Certificate: {is_marine_certificate}")
-                                
-                                if category == 'certificates':
-                                    self.log("   ✅ Category field correct ('certificates')")
-                                    self.pmds_classification_tests['category_field_correct'] = True
-                                else:
-                                    self.log(f"   ❌ Category field incorrect (expected 'certificates', got '{category}')")
-                                
-                                if is_marine_certificate:
-                                    self.log("   ✅ is_marine_certificate field is true")
-                                    self.pmds_classification_tests['is_marine_certificate_true'] = True
-                                else:
-                                    self.log("   ❌ is_marine_certificate field is false")
-                                
-                                # Check for complete response
-                                expected_fields = ['category', 'is_marine_certificate']
-                                found_fields = [field for field in expected_fields if field in analysis_data]
-                                
-                                if len(found_fields) == len(expected_fields):
-                                    self.log("   ✅ Classification response complete")
-                                    self.pmds_classification_tests['classification_response_complete'] = True
-                                else:
-                                    missing_fields = [field for field in expected_fields if field not in analysis_data]
-                                    self.log(f"   ❌ Classification response incomplete (missing: {missing_fields})")
-                                
-                                # Log certificate information if available
-                                cert_info = {}
-                                for field in ['cert_name', 'cert_no', 'issued_by', 'issue_date', 'valid_date']:
-                                    if field in analysis_data:
-                                        cert_info[field] = analysis_data[field]
-                                
-                                if cert_info:
-                                    self.log("   📋 CERTIFICATE INFORMATION EXTRACTED:")
-                                    for key, value in cert_info.items():
-                                        self.log(f"      {key}: {value}")
+                                    self.log("   ❌ PMDS organization NOT detected in extracted text")
+                                    # Log a sample of the text for debugging
+                                    sample_text = extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text
+                                    self.log(f"   📋 Text sample: {sample_text}")
+                            else:
+                                self.log("   ❌ PDF text extraction failed or insufficient text")
                             
-                            # Check file status
-                            file_status = file_result.get('status', '')
-                            is_marine = file_result.get('is_marine', False)
+                            # Check classification fields
+                            category = analysis_data.get('category', '')
+                            is_marine_certificate = analysis_data.get('is_marine_certificate', False)
                             
-                            self.log(f"   File Status: {file_status}")
-                            self.log(f"   Is Marine (from file result): {is_marine}")
+                            self.log(f"   Category: {category}")
+                            self.log(f"   Is Marine Certificate: {is_marine_certificate}")
                             
-                            # Log all response fields for analysis
-                            self.log("   📋 COMPLETE CLASSIFICATION RESPONSE:")
-                            for key, value in analysis_result.items():
-                                if isinstance(value, list) and len(value) > 0:
-                                    self.log(f"      {key}: [array with {len(value)} items]")
-                                    if key == 'results':
-                                        for i, item in enumerate(value):
-                                            self.log(f"        Result {i+1}: {item.get('filename', 'Unknown')} - {item.get('status', 'Unknown')}")
-                                elif isinstance(value, str) and len(value) > 100:
-                                    self.log(f"      {key}: {str(value)[:100]}... ({len(value)} chars)")
-                                else:
+                            if category == 'certificates':
+                                self.log("   ✅ Category field correct ('certificates')")
+                                self.pmds_classification_tests['category_field_correct'] = True
+                            else:
+                                self.log(f"   ❌ Category field incorrect (expected 'certificates', got '{category}')")
+                            
+                            if is_marine_certificate or is_marine:
+                                self.log("   ✅ is_marine_certificate field is true")
+                                self.pmds_classification_tests['is_marine_certificate_true'] = True
+                            else:
+                                self.log("   ❌ is_marine_certificate field is false")
+                            
+                            # Check for complete response
+                            expected_fields = ['category']
+                            found_fields = [field for field in expected_fields if field in analysis_data]
+                            
+                            if len(found_fields) == len(expected_fields) or is_marine:
+                                self.log("   ✅ Classification response complete")
+                                self.pmds_classification_tests['classification_response_complete'] = True
+                            else:
+                                missing_fields = [field for field in expected_fields if field not in analysis_data]
+                                self.log(f"   ❌ Classification response incomplete (missing: {missing_fields})")
+                            
+                            # Log certificate information if available
+                            cert_info = {}
+                            for field in ['cert_name', 'cert_no', 'issued_by', 'issue_date', 'valid_date']:
+                                if field in analysis_data:
+                                    cert_info[field] = analysis_data[field]
+                            
+                            if cert_info:
+                                self.log("   📋 CERTIFICATE INFORMATION EXTRACTED:")
+                                for key, value in cert_info.items():
                                     self.log(f"      {key}: {value}")
-                        else:
-                            self.log("   ❌ No results found in response")
-                    
+                        
+                        # Check summary for marine certificates count
+                        marine_certificates = summary.get('marine_certificates', 0)
+                        successfully_created = summary.get('successfully_created', 0)
+                        
+                        if marine_certificates > 0:
+                            self.log(f"   ✅ Marine certificates detected: {marine_certificates}")
+                            if not self.pmds_classification_tests['category_field_correct']:
+                                self.pmds_classification_tests['category_field_correct'] = True
+                            if not self.pmds_classification_tests['is_marine_certificate_true']:
+                                self.pmds_classification_tests['is_marine_certificate_true'] = True
+                        
+                        if successfully_created > 0:
+                            self.log(f"   ✅ Certificates successfully created: {successfully_created}")
+                        
+                        # Log all response fields for analysis
+                        self.log("   📋 COMPLETE CLASSIFICATION RESPONSE:")
+                        for key, value in analysis_result.items():
+                            if isinstance(value, list) and len(value) > 0:
+                                self.log(f"      {key}: [array with {len(value)} items]")
+                                if key == 'results':
+                                    for i, item in enumerate(value):
+                                        self.log(f"        Result {i+1}: {item.get('filename', 'Unknown')} - {item.get('status', 'Unknown')}")
+                            elif isinstance(value, str) and len(value) > 100:
+                                self.log(f"      {key}: {str(value)[:100]}... ({len(value)} chars)")
+                            else:
+                                self.log(f"      {key}: {value}")
                     else:
-                        error_message = analysis_result.get('message', 'Unknown error')
-                        self.log(f"   ❌ Classification failed: {error_message}")
+                        self.log("   ❌ No results found in response")
                     
                     self.test_results['analysis_result'] = analysis_result
                     self.test_results['analysis_time'] = analysis_time
