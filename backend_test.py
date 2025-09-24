@@ -454,9 +454,9 @@ class CertificateClassificationTester:
                 self.log("❌ POOR: Few classification improvements detected")
             
             # Analysis results
-            if self.test_results.get('analysis_result'):
+            if self.test_results.get('certificate_analysis'):
                 self.log("\n🔍 CERTIFICATE ANALYSIS RESULTS:")
-                analysis = self.test_results['analysis_result']
+                analysis = self.test_results['certificate_analysis']
                 
                 self.log(f"   Category: {analysis.get('category', 'Not classified')}")
                 self.log(f"   Certificate Name: {analysis.get('cert_name', 'Not extracted')}")
