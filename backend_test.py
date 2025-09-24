@@ -13,79 +13,126 @@ from datetime import datetime
 import time
 import subprocess
 import threading
-import queue
 
 # Configuration - Use production URL as specified in frontend/.env
 BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
-class AddNewShipTester:
+class ShipCreationDebugger:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
         self.current_user = None
         self.test_results = {}
+        self.backend_logs = []
+        self.log_capture_active = False
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] [{level}] {message}")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        formatted_message = f"[{timestamp}] [{level}] {message}"
+        print(formatted_message)
         
-    def authenticate(self):
-        """Authenticate with admin/admin123 credentials as specified in review request"""
+        # Also store in our log collection
+        self.backend_logs.append({
+            'timestamp': timestamp,
+            'level': level,
+            'message': message
+        })
+        
+    def start_backend_log_monitoring(self):
+        """Start monitoring backend logs in real-time"""
         try:
-            # Try admin first (no company) to trigger the error, then admin1 (with company) for comparison
-            test_credentials = [
-                {"username": "admin", "password": "admin123", "description": "Primary admin (NO COMPANY - should trigger error)"},
-                {"username": "admin1", "password": "123456", "description": "Alternative admin (HAS COMPANY)"},
+            self.log("🔍 Starting backend log monitoring...")
+            self.log_capture_active = True
+            
+            # Monitor backend logs using tail command
+            log_files = [
+                "/var/log/supervisor/backend.out.log",
+                "/var/log/supervisor/backend.err.log"
             ]
             
-            for cred in test_credentials:
-                self.log(f"🔐 Authenticating with {cred['username']} credentials ({cred['description']})...")
-                
-                login_data = {
-                    "username": cred["username"],
-                    "password": cred["password"],
-                    "remember_me": False
-                }
-                
-                endpoint = f"{BACKEND_URL}/auth/login"
-                self.log(f"   Attempting login to: {endpoint}")
-                response = requests.post(endpoint, json=login_data, timeout=60)
-                self.log(f"   Response status: {response.status_code}")
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    self.auth_token = data.get("access_token")
-                    self.current_user = data.get("user", {})
-                    
-                    self.log(f"✅ Authentication successful with {cred['username']}")
-                    self.log(f"   User ID: {self.current_user.get('id')}")
-                    self.log(f"   User Role: {self.current_user.get('role')}")
-                    self.log(f"   Company: {self.current_user.get('company')}")
-                    self.log(f"   Full Name: {self.current_user.get('full_name')}")
-                    
-                    # Store both users for testing different scenarios
-                    if cred["username"] == "admin":
-                        self.test_results['admin_user'] = self.current_user
-                        self.test_results['admin_token'] = self.auth_token
-                    elif cred["username"] == "admin1":
-                        self.test_results['admin1_user'] = self.current_user
-                        self.test_results['admin1_token'] = self.auth_token
-                    
-                    # Use admin (no company) first to test the error scenario
-                    if cred["username"] == "admin":
-                        return True
+            for log_file in log_files:
+                if os.path.exists(log_file):
+                    self.log(f"   📋 Monitoring log file: {log_file}")
+                    # Start background thread to monitor this log file
+                    thread = threading.Thread(target=self._monitor_log_file, args=(log_file,))
+                    thread.daemon = True
+                    thread.start()
                 else:
-                    self.log(f"❌ Authentication failed with {cred['username']} - Status: {response.status_code}")
-                    try:
-                        error_data = response.json()
-                        self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                    except:
-                        self.log(f"   Error: {response.text[:200]}")
-                    continue
+                    self.log(f"   ⚠️ Log file not found: {log_file}")
             
-            self.log("❌ Authentication failed with all credentials")
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Failed to start backend log monitoring: {str(e)}", "ERROR")
             return False
+    
+    def _monitor_log_file(self, log_file):
+        """Monitor a specific log file for new entries"""
+        try:
+            # Use tail -f to follow the log file
+            process = subprocess.Popen(['tail', '-f', log_file], 
+                                     stdout=subprocess.PIPE, 
+                                     stderr=subprocess.PIPE,
+                                     universal_newlines=True)
+            
+            while self.log_capture_active:
+                line = process.stdout.readline()
+                if line:
+                    # Filter for relevant log entries
+                    line = line.strip()
+                    if any(keyword in line.lower() for keyword in [
+                        'ship', 'google', 'drive', 'folder', 'create', 'error', 
+                        '404', 'not configured', 'company', 'gdrive', 'apps script'
+                    ]):
+                        self.log(f"📋 BACKEND LOG: {line}", "BACKEND")
+                
+                time.sleep(0.1)  # Small delay to prevent excessive CPU usage
+                
+        except Exception as e:
+            self.log(f"❌ Error monitoring log file {log_file}: {str(e)}", "ERROR")
+    
+    def stop_backend_log_monitoring(self):
+        """Stop backend log monitoring"""
+        self.log_capture_active = False
+        self.log("🔍 Stopped backend log monitoring")
+        
+    def authenticate(self):
+        """Authenticate with admin1/123456 credentials as specified in review request"""
+        try:
+            self.log("🔐 Authenticating with admin1/123456 (AMCSC company user)...")
+            
+            login_data = {
+                "username": "admin1",
+                "password": "123456",
+                "remember_me": False
+            }
+            
+            endpoint = f"{BACKEND_URL}/auth/login"
+            self.log(f"   POST {endpoint}")
+            response = requests.post(endpoint, json=login_data, timeout=60)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.auth_token = data.get("access_token")
+                self.current_user = data.get("user", {})
+                
+                self.log("✅ Authentication successful")
+                self.log(f"   User ID: {self.current_user.get('id')}")
+                self.log(f"   User Role: {self.current_user.get('role')}")
+                self.log(f"   Company: {self.current_user.get('company')}")
+                self.log(f"   Full Name: {self.current_user.get('full_name')}")
+                
+                return True
+            else:
+                self.log(f"❌ Authentication failed - Status: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
+                return False
                 
         except requests.exceptions.RequestException as req_error:
             self.log(f"❌ Network error during authentication: {str(req_error)}", "ERROR")
@@ -99,544 +146,488 @@ class AddNewShipTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_add_new_ship_functionality(self):
-        """Main test function for Add New Ship functionality"""
-        self.log("🚢 Starting Add New Ship Functionality Testing")
-        self.log("🎯 Focus: Debug 'Company Google Drive not configured' error")
-        self.log("=" * 80)
+    def debug_ship_creation_workflow(self):
+        """Main debug function for ship creation workflow"""
+        self.log("🚢 STARTING SHIP CREATION DEBUG SESSION")
+        self.log("🎯 Focus: Debug 'Failed to create ship folder: 404: Company Google Drive not configured'")
+        self.log("📋 Review Request: Capture ALL backend logs during ship creation process")
+        self.log("=" * 100)
         
-        # Step 1: Authenticate
+        # Step 1: Start backend log monitoring
+        if not self.start_backend_log_monitoring():
+            self.log("⚠️ Backend log monitoring failed to start, continuing without it...")
+        
+        # Step 2: Authenticate
         if not self.authenticate():
             return False
         
-        # Step 2: Test sidebar-structure endpoint
-        sidebar_result = self.test_sidebar_structure_endpoint()
+        # Step 3: Pre-flight checks
+        self.log("\n🔍 STEP 1: PRE-FLIGHT CHECKS")
+        self.log("=" * 50)
+        self.verify_company_configuration()
         
-        # Step 3: Check company Google Drive configuration
-        gdrive_result = self.check_company_google_drive_config()
+        # Step 4: Create ship and monitor for errors
+        self.log("\n🚢 STEP 2: SHIP CREATION WITH FULL MONITORING")
+        self.log("=" * 50)
+        self.create_ship_with_monitoring()
         
-        # Step 4: Attempt to create a new ship
-        ship_creation_result = self.test_ship_creation()
+        # Step 5: Analyze captured logs
+        self.log("\n📊 STEP 3: LOG ANALYSIS")
+        self.log("=" * 50)
+        self.analyze_captured_logs()
         
-        # Step 5: Monitor backend logs (simulate by checking responses)
-        log_monitoring_result = self.monitor_backend_responses()
+        # Step 6: Test specific Google Drive endpoints
+        self.log("\n🔧 STEP 4: GOOGLE DRIVE ENDPOINT TESTING")
+        self.log("=" * 50)
+        self.test_google_drive_endpoints()
         
-        # Step 6: Verify ship creation in database
-        ship_verification_result = self.verify_ship_in_database()
+        # Step 7: Stop log monitoring
+        self.stop_backend_log_monitoring()
         
-        # Step 7: Test Google Drive folder creation
-        gdrive_folder_result = self.test_google_drive_folder_creation()
+        # Step 8: Final analysis
+        self.log("\n🎯 STEP 5: FINAL ANALYSIS")
+        self.log("=" * 50)
+        self.provide_final_analysis()
         
-        # Step 8: Summary
-        self.log("=" * 80)
-        self.log("🚢 ADD NEW SHIP FUNCTIONALITY TESTING SUMMARY")
-        self.log("=" * 80)
-        
-        self.log(f"{'✅' if sidebar_result else '❌'} Sidebar Structure Endpoint: {'SUCCESS' if sidebar_result else 'FAILED'}")
-        self.log(f"{'✅' if gdrive_result else '❌'} Google Drive Configuration Check: {'SUCCESS' if gdrive_result else 'FAILED'}")
-        self.log(f"{'✅' if ship_creation_result else '❌'} Ship Creation Test: {'SUCCESS' if ship_creation_result else 'FAILED'}")
-        self.log(f"{'✅' if log_monitoring_result else '❌'} Backend Response Monitoring: {'SUCCESS' if log_monitoring_result else 'FAILED'}")
-        self.log(f"{'✅' if ship_verification_result else '❌'} Ship Database Verification: {'SUCCESS' if ship_verification_result else 'FAILED'}")
-        self.log(f"{'✅' if gdrive_folder_result else '❌'} Google Drive Folder Creation: {'SUCCESS' if gdrive_folder_result else 'FAILED'}")
-        
-        overall_success = all([sidebar_result, gdrive_result, ship_creation_result, log_monitoring_result, ship_verification_result, gdrive_folder_result])
-        
-        if overall_success:
-            self.log("🎉 ADD NEW SHIP FUNCTIONALITY TESTING: COMPLETED SUCCESSFULLY")
-        else:
-            self.log("❌ ADD NEW SHIP FUNCTIONALITY TESTING: ISSUES DETECTED")
-            self.log("🔍 Check detailed logs above for specific issues")
-        
-        return overall_success
+        return True
     
-    def test_sidebar_structure_endpoint(self):
-        """Test /api/sidebar-structure endpoint as mentioned in review request"""
+    def verify_company_configuration(self):
+        """Verify AMCSC company Google Drive configuration"""
         try:
-            self.log("📋 Step 1: Testing /api/sidebar-structure endpoint...")
+            self.log("🏢 Verifying AMCSC company configuration...")
             
-            endpoint = f"{BACKEND_URL}/sidebar-structure"
-            self.log(f"   Testing endpoint: {endpoint}")
-            
+            # Get all companies
+            endpoint = f"{BACKEND_URL}/companies"
+            self.log(f"   GET {endpoint}")
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            self.log(f"   GET /api/sidebar-structure - Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    self.log("   ✅ Sidebar structure endpoint accessible and returns JSON")
-                    
-                    # Store response for analysis
-                    self.test_results['sidebar_response'] = data
-                    
-                    # Basic validation
-                    if 'success' in data and data['success']:
-                        self.log("   ✅ Response indicates success")
-                    else:
-                        self.log("   ❌ Response does not indicate success")
-                        return False
-                    
-                    if 'structure' in data:
-                        structure = data['structure']
-                        self.log(f"   ✅ Structure contains {len(structure)} main categories")
-                        
-                        # Log structure for debugging
-                        for category, subcategories in structure.items():
-                            self.log(f"      {category}: {len(subcategories)} subcategories")
-                    else:
-                        self.log("   ❌ Response missing 'structure' field")
-                        return False
-                    
-                    return True
-                    
-                except json.JSONDecodeError:
-                    self.log("   ❌ Response is not valid JSON")
-                    self.log(f"   Raw response: {response.text[:500]}")
-                    return False
-                    
-            else:
-                try:
-                    error_data = response.json()
-                    error_detail = error_data.get('detail', 'Unknown error')
-                except:
-                    error_detail = response.text[:200]
-                
-                self.log(f"   ❌ Sidebar structure endpoint failed - HTTP {response.status_code}")
-                self.log(f"      Error: {error_detail}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Sidebar structure endpoint testing error: {str(e)}", "ERROR")
-            return False
-    
-    def check_company_google_drive_config(self):
-        """Check company Google Drive configuration"""
-        try:
-            self.log("🔧 Step 2: Checking Company Google Drive Configuration...")
-            
-            user_company = self.current_user.get('company')
-            if not user_company:
-                self.log("   ❌ User has no company assigned")
-                return False
-            
-            self.log(f"   User's company: {user_company}")
-            
-            # First, get all companies to find the company ID
-            companies_endpoint = f"{BACKEND_URL}/companies"
-            self.log(f"   Getting companies from: {companies_endpoint}")
-            
-            response = requests.get(companies_endpoint, headers=self.get_headers(), timeout=30)
-            self.log(f"   GET /api/companies - Status: {response.status_code}")
+            self.log(f"   Response: {response.status_code}")
             
             if response.status_code == 200:
                 companies = response.json()
                 self.log(f"   ✅ Found {len(companies)} companies")
                 
-                # Find user's company
-                user_company_obj = None
+                # Find AMCSC company
+                amcsc_company = None
                 for company in companies:
-                    # Check multiple name fields for compatibility
                     company_names = [
-                        company.get('name'),
-                        company.get('name_en'),
-                        company.get('name_vn')
+                        company.get('name', ''),
+                        company.get('name_en', ''),
+                        company.get('name_vn', '')
                     ]
-                    if user_company in company_names:
-                        user_company_obj = company
+                    if 'AMCSC' in str(company_names).upper():
+                        amcsc_company = company
                         break
                 
-                if user_company_obj:
-                    company_id = user_company_obj.get('id')
-                    self.log(f"   ✅ Found user's company: {user_company} (ID: {company_id})")
-                    self.test_results['company_id'] = company_id
+                if amcsc_company:
+                    company_id = amcsc_company.get('id')
+                    self.log(f"   ✅ Found AMCSC company (ID: {company_id})")
+                    self.test_results['amcsc_company_id'] = company_id
                     
-                    # Check company Google Drive configuration
-                    gdrive_config_endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/config"
-                    self.log(f"   Checking Google Drive config: {gdrive_config_endpoint}")
+                    # Check Google Drive configuration
+                    self.check_company_gdrive_config(company_id)
                     
-                    gdrive_response = requests.get(gdrive_config_endpoint, headers=self.get_headers(), timeout=30)
-                    self.log(f"   GET /api/companies/{company_id}/gdrive/config - Status: {gdrive_response.status_code}")
-                    
-                    if gdrive_response.status_code == 200:
-                        gdrive_data = gdrive_response.json()
-                        self.log("   ✅ Company Google Drive configuration found")
-                        self.log(f"      Config: {json.dumps(gdrive_data, indent=2)}")
-                        self.test_results['gdrive_config'] = gdrive_data
-                        
-                        # Check Google Drive status
-                        gdrive_status_endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/status"
-                        status_response = requests.get(gdrive_status_endpoint, headers=self.get_headers(), timeout=30)
-                        self.log(f"   GET /api/companies/{company_id}/gdrive/status - Status: {status_response.status_code}")
-                        
-                        if status_response.status_code == 200:
-                            status_data = status_response.json()
-                            self.log(f"   ✅ Google Drive status: {status_data.get('status')}")
-                            self.log(f"      Message: {status_data.get('message')}")
-                            self.test_results['gdrive_status'] = status_data
-                        else:
-                            self.log(f"   ⚠️ Could not get Google Drive status: {status_response.status_code}")
-                        
-                        return True
-                    else:
-                        self.log(f"   ❌ Company Google Drive configuration not found - Status: {gdrive_response.status_code}")
-                        try:
-                            error_data = gdrive_response.json()
-                            self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
-                        except:
-                            self.log(f"      Error: {gdrive_response.text[:200]}")
-                        return False
                 else:
-                    self.log(f"   ❌ Could not find company '{user_company}' in companies list")
-                    self.log(f"      Available companies: {[c.get('name', c.get('name_en', c.get('name_vn'))) for c in companies]}")
-                    return False
+                    self.log("   ❌ AMCSC company not found")
+                    self.log(f"   Available companies: {[c.get('name', c.get('name_en', 'Unknown')) for c in companies]}")
             else:
-                self.log(f"   ❌ Failed to get companies - Status: {response.status_code}")
-                return False
+                self.log(f"   ❌ Failed to get companies: {response.status_code}")
                 
         except Exception as e:
-            self.log(f"❌ Company Google Drive configuration check error: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Company verification error: {str(e)}", "ERROR")
     
-    def test_ship_creation(self):
-        """Test ship creation with sample data as specified in review request"""
+    def check_company_gdrive_config(self, company_id):
+        """Check company Google Drive configuration"""
         try:
-            self.log("🚢 Step 3: Testing Ship Creation...")
+            self.log(f"   🔧 Checking Google Drive config for company {company_id}...")
             
-            # Test 1: Ship creation with admin user (no company) - should trigger the error
-            self.log("   🧪 Test 3a: Ship creation with admin user (NO COMPANY) - should trigger error...")
-            ship_data_no_company = {
-                "name": "Test Ship No Company",
-                "imo": "NOCOMPANY123",
-                "company": "TestCompany",  # This will be ignored, user's company is used
+            # Test config endpoint
+            config_endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/config"
+            self.log(f"      GET {config_endpoint}")
+            config_response = requests.get(config_endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"      Response: {config_response.status_code}")
+            
+            if config_response.status_code == 200:
+                config_data = config_response.json()
+                self.log("      ✅ Google Drive configuration found")
+                self.log(f"      Config: {json.dumps(config_data, indent=6)}")
+                self.test_results['gdrive_config'] = config_data
+            else:
+                self.log(f"      ❌ Google Drive config not found: {config_response.status_code}")
+                try:
+                    error_data = config_response.json()
+                    self.log(f"      Error: {error_data.get('detail', 'Unknown')}")
+                except:
+                    self.log(f"      Error: {config_response.text[:200]}")
+            
+            # Test status endpoint
+            status_endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/status"
+            self.log(f"      GET {status_endpoint}")
+            status_response = requests.get(status_endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"      Response: {status_response.status_code}")
+            
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                self.log(f"      ✅ Google Drive status: {status_data.get('status')}")
+                self.log(f"      Message: {status_data.get('message', 'No message')}")
+                self.test_results['gdrive_status'] = status_data
+            else:
+                self.log(f"      ❌ Google Drive status check failed: {status_response.status_code}")
+                
+        except Exception as e:
+            self.log(f"❌ Google Drive config check error: {str(e)}", "ERROR")
+    
+    def create_ship_with_monitoring(self):
+        """Create a new ship while monitoring all backend activity"""
+        try:
+            self.log("🚢 Creating new ship with full backend monitoring...")
+            
+            # Generate unique ship data
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            ship_data = {
+                "name": f"DEBUG_SHIP_{timestamp}",
+                "imo": f"DEBUG{timestamp[-6:]}",
+                "company": "AMCSC",
                 "flag": "Panama",
                 "ship_type": "General Cargo",
-                "gross_tonnage": 3000,
-                "deadweight": 5000,
-                "built_year": 2019,
-                "ship_owner": "Test Owner No Company"
+                "gross_tonnage": 5000,
+                "deadweight": 8000,
+                "built_year": 2020,
+                "ship_owner": "Debug Test Owner"
             }
             
-            self.log(f"      Creating ship with admin user (no company): {json.dumps(ship_data_no_company, indent=2)}")
+            self.log(f"   Ship data: {json.dumps(ship_data, indent=3)}")
+            
+            # Mark the start of ship creation in logs
+            self.log("🎬 === SHIP CREATION STARTING - MONITOR ALL BACKEND ACTIVITY ===")
             
             endpoint = f"{BACKEND_URL}/ships"
-            response = requests.post(endpoint, json=ship_data_no_company, headers=self.get_headers(), timeout=60)
-            self.log(f"      POST /api/ships - Status: {response.status_code}")
+            self.log(f"   POST {endpoint}")
+            
+            # Make the request and capture timing
+            start_time = time.time()
+            response = requests.post(endpoint, json=ship_data, headers=self.get_headers(), timeout=120)
+            end_time = time.time()
+            
+            self.log(f"🎬 === SHIP CREATION COMPLETED - RESPONSE RECEIVED ===")
+            self.log(f"   Response status: {response.status_code}")
+            self.log(f"   Response time: {end_time - start_time:.2f} seconds")
             
             if response.status_code == 200:
                 ship_response = response.json()
-                self.log("      ⚠️ Ship creation successful even with no company user")
-                self.log(f"         Ship ID: {ship_response.get('id')}")
-                self.test_results['created_ship_no_company'] = ship_response
-            else:
-                self.log(f"      ❌ Ship creation failed with no company user - Status: {response.status_code}")
+                self.log("   ✅ Ship creation successful")
+                self.log(f"   Ship ID: {ship_response.get('id')}")
+                self.test_results['created_ship'] = ship_response
+                
+                # Wait a moment for any async operations to complete
+                self.log("   ⏳ Waiting 5 seconds for any async Google Drive operations...")
+                time.sleep(5)
+                
+            elif response.status_code == 400:
+                self.log("   ❌ Ship creation failed with 400 Bad Request")
                 try:
                     error_data = response.json()
                     error_detail = error_data.get('detail', 'Unknown error')
-                    self.log(f"         Error: {error_detail}")
+                    self.log(f"   Error: {error_detail}")
                     
-                    if "Company Google Drive not configured" in str(error_detail):
-                        self.log("      🎯 FOUND TARGET ERROR with no company user: 'Company Google Drive not configured'")
+                    # Check for our target error
+                    if "Failed to create ship folder" in str(error_detail) and "404" in str(error_detail):
+                        self.log("   🎯 FOUND TARGET ERROR: 'Failed to create ship folder: 404: Company Google Drive not configured'")
                         self.test_results['target_error_found'] = True
-                        self.test_results['target_error_scenario'] = 'no_company_user'
+                        self.test_results['target_error_detail'] = error_detail
+                        
+                except Exception as parse_error:
+                    error_detail = response.text[:500]
+                    self.log(f"   Error (raw): {error_detail}")
+                    
+                    if "Failed to create ship folder" in error_detail and "404" in error_detail:
+                        self.log("   🎯 FOUND TARGET ERROR: 'Failed to create ship folder: 404: Company Google Drive not configured'")
+                        self.test_results['target_error_found'] = True
+                        self.test_results['target_error_detail'] = error_detail
+                
+                self.test_results['ship_creation_error'] = {
+                    'status_code': response.status_code,
+                    'error': error_detail
+                }
+                
+            else:
+                self.log(f"   ❌ Ship creation failed with status {response.status_code}")
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', 'Unknown error')
                 except:
                     error_detail = response.text[:500]
-                    self.log(f"         Error: {error_detail}")
-                    
-                    if "Company Google Drive not configured" in error_detail:
-                        self.log("      🎯 FOUND TARGET ERROR with no company user: 'Company Google Drive not configured'")
-                        self.test_results['target_error_found'] = True
-                        self.test_results['target_error_scenario'] = 'no_company_user'
                 
-                self.test_results['ship_creation_error_no_company'] = {
+                self.log(f"   Error: {error_detail}")
+                self.test_results['ship_creation_error'] = {
                     'status_code': response.status_code,
                     'error': error_detail
                 }
             
-            # Test 2: Switch to admin1 user (with company) for comparison
-            if self.test_results.get('admin1_token'):
-                self.log("   🧪 Test 3b: Switching to admin1 user (HAS COMPANY) for comparison...")
-                self.auth_token = self.test_results['admin1_token']
-                self.current_user = self.test_results['admin1_user']
-                
-                ship_data_with_company = {
-                    "name": "Test Ship With Company",
-                    "imo": "WITHCOMPANY123",
-                    "company": "AMCSC",
-                    "flag": "Panama",
-                    "ship_type": "General Cargo",
-                    "gross_tonnage": 5000,
-                    "deadweight": 8000,
-                    "built_year": 2020,
-                    "ship_owner": "Test Owner With Company"
-                }
-                
-                self.log(f"      Creating ship with admin1 user (has company): {json.dumps(ship_data_with_company, indent=2)}")
-                
-                response2 = requests.post(endpoint, json=ship_data_with_company, headers=self.get_headers(), timeout=60)
-                self.log(f"      POST /api/ships - Status: {response2.status_code}")
-                
-                if response2.status_code == 200:
-                    ship_response2 = response2.json()
-                    self.log("      ✅ Ship creation successful with company user")
-                    self.log(f"         Ship ID: {ship_response2.get('id')}")
-                    self.test_results['created_ship_with_company'] = ship_response2
-                else:
-                    self.log(f"      ❌ Ship creation failed with company user - Status: {response2.status_code}")
-                    try:
-                        error_data2 = response2.json()
-                        error_detail2 = error_data2.get('detail', 'Unknown error')
-                        self.log(f"         Error: {error_detail2}")
-                    except:
-                        error_detail2 = response2.text[:500]
-                        self.log(f"         Error: {error_detail2}")
-                    
-                    self.test_results['ship_creation_error_with_company'] = {
-                        'status_code': response2.status_code,
-                        'error': error_detail2
-                    }
+            # Wait additional time to capture any delayed log entries
+            self.log("   ⏳ Waiting additional 3 seconds to capture delayed log entries...")
+            time.sleep(3)
             
-            # Return True if at least one test provided useful information
-            return True
+        except Exception as e:
+            self.log(f"❌ Ship creation monitoring error: {str(e)}", "ERROR")
+    
+    def analyze_captured_logs(self):
+        """Analyze all captured backend logs for error patterns"""
+        try:
+            self.log("📊 Analyzing captured backend logs...")
+            
+            # Filter backend logs
+            backend_logs = [log for log in self.backend_logs if log['level'] == 'BACKEND']
+            self.log(f"   📋 Captured {len(backend_logs)} backend log entries")
+            
+            if backend_logs:
+                self.log("   🔍 Backend log entries during ship creation:")
+                for log_entry in backend_logs:
+                    self.log(f"      [{log_entry['timestamp']}] {log_entry['message']}")
+                
+                # Look for specific error patterns
+                error_patterns = [
+                    "404",
+                    "Company Google Drive not configured",
+                    "Failed to create ship folder",
+                    "Google Drive",
+                    "Apps Script",
+                    "folder creation failed",
+                    "gdrive"
+                ]
+                
+                found_patterns = []
+                for pattern in error_patterns:
+                    for log_entry in backend_logs:
+                        if pattern.lower() in log_entry['message'].lower():
+                            found_patterns.append({
+                                'pattern': pattern,
+                                'log': log_entry
+                            })
+                
+                if found_patterns:
+                    self.log("   🎯 Found relevant error patterns in logs:")
+                    for pattern_match in found_patterns:
+                        self.log(f"      Pattern '{pattern_match['pattern']}' found in: {pattern_match['log']['message']}")
+                else:
+                    self.log("   ℹ️ No specific error patterns found in backend logs")
+            else:
+                self.log("   ⚠️ No backend logs captured - log monitoring may not be working")
                 
         except Exception as e:
-            self.log(f"❌ Ship creation testing error: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Log analysis error: {str(e)}", "ERROR")
     
-    def monitor_backend_responses(self):
-        """Monitor backend responses for error patterns"""
+    def test_google_drive_endpoints(self):
+        """Test specific Google Drive endpoints that might be failing"""
         try:
-            self.log("📊 Step 4: Monitoring Backend Responses...")
+            self.log("🔧 Testing Google Drive endpoints for race conditions and 404 errors...")
+            
+            company_id = self.test_results.get('amcsc_company_id')
+            if not company_id:
+                self.log("   ❌ No company ID available for testing")
+                return
+            
+            # Test 1: Direct folder creation endpoint
+            self.log("   🧪 Test 1: Direct Google Drive folder creation endpoint")
+            folder_endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/create-ship-folder"
+            folder_data = {
+                "ship_name": "TEST_FOLDER_CREATION",
+                "ship_id": "test-folder-id"
+            }
+            
+            self.log(f"      POST {folder_endpoint}")
+            folder_response = requests.post(folder_endpoint, json=folder_data, headers=self.get_headers(), timeout=60)
+            self.log(f"      Response: {folder_response.status_code}")
+            
+            if folder_response.status_code == 200:
+                self.log("      ✅ Direct folder creation successful")
+                folder_result = folder_response.json()
+                self.log(f"      Result: {json.dumps(folder_result, indent=6)}")
+            else:
+                self.log(f"      ❌ Direct folder creation failed: {folder_response.status_code}")
+                try:
+                    error_data = folder_response.json()
+                    error_detail = error_data.get('detail', 'Unknown')
+                    self.log(f"      Error: {error_detail}")
+                    
+                    if "404" in str(error_detail) and "Company Google Drive not configured" in str(error_detail):
+                        self.log("      🎯 FOUND TARGET ERROR in direct folder creation!")
+                        self.test_results['target_error_in_direct_call'] = True
+                        
+                except:
+                    error_detail = folder_response.text[:300]
+                    self.log(f"      Error (raw): {error_detail}")
+            
+            # Test 2: Test multiple rapid calls to check for race conditions
+            self.log("   🧪 Test 2: Multiple rapid calls to check for race conditions")
+            for i in range(3):
+                self.log(f"      Rapid call {i+1}/3...")
+                rapid_data = {
+                    "ship_name": f"RAPID_TEST_{i+1}",
+                    "ship_id": f"rapid-test-{i+1}"
+                }
+                rapid_response = requests.post(folder_endpoint, json=rapid_data, headers=self.get_headers(), timeout=30)
+                self.log(f"      Call {i+1} response: {rapid_response.status_code}")
+                
+                if rapid_response.status_code != 200:
+                    try:
+                        error_data = rapid_response.json()
+                        error_detail = error_data.get('detail', 'Unknown')
+                        if "404" in str(error_detail):
+                            self.log(f"      🎯 404 error in rapid call {i+1}: {error_detail}")
+                    except:
+                        pass
+                
+                time.sleep(0.5)  # Small delay between calls
+            
+            # Test 3: Check if there are any backend endpoints that Apps Script might be calling
+            self.log("   🧪 Test 3: Testing potential Apps Script callback endpoints")
+            potential_endpoints = [
+                f"{BACKEND_URL}/companies/{company_id}/gdrive/callback",
+                f"{BACKEND_URL}/companies/{company_id}/gdrive/folder-created",
+                f"{BACKEND_URL}/gdrive/webhook",
+                f"{BACKEND_URL}/companies/{company_id}/gdrive/verify"
+            ]
+            
+            for endpoint in potential_endpoints:
+                self.log(f"      Testing: {endpoint}")
+                test_response = requests.get(endpoint, headers=self.get_headers(), timeout=10)
+                self.log(f"      Response: {test_response.status_code}")
+                
+                if test_response.status_code == 404:
+                    self.log(f"      🎯 Found 404 endpoint: {endpoint}")
+                    self.test_results.setdefault('found_404_endpoints', []).append(endpoint)
+                
+        except Exception as e:
+            self.log(f"❌ Google Drive endpoint testing error: {str(e)}", "ERROR")
+    
+    def provide_final_analysis(self):
+        """Provide final analysis of the debugging session"""
+        try:
+            self.log("🎯 FINAL ANALYSIS - DEBUGGING RESULTS")
+            self.log("=" * 60)
             
             # Check if we found the target error
             if self.test_results.get('target_error_found'):
-                self.log("   ✅ Target error 'Company Google Drive not configured' detected")
+                self.log("✅ TARGET ERROR SUCCESSFULLY IDENTIFIED:")
+                self.log("   'Failed to create ship folder: 404: Company Google Drive not configured'")
+                self.log(f"   Error detail: {self.test_results.get('target_error_detail', 'No detail')}")
                 
-                # Analyze the error context
-                ship_error = self.test_results.get('ship_creation_error', {})
-                self.log(f"   📋 Error Analysis:")
-                self.log(f"      Status Code: {ship_error.get('status_code')}")
-                self.log(f"      Error Message: {ship_error.get('error')}")
-                
-                # Check if Google Drive config exists but still getting error
-                gdrive_config = self.test_results.get('gdrive_config')
-                if gdrive_config:
-                    self.log("   🔍 Google Drive config exists but still getting error - this indicates a backend logic issue")
+                # Analyze the context
+                if self.test_results.get('gdrive_config'):
+                    self.log("   🔍 ANALYSIS: Google Drive config EXISTS but error still occurs")
+                    self.log("   🎯 ROOT CAUSE: Backend logic issue - config exists but not being found during ship creation")
                 else:
-                    self.log("   🔍 No Google Drive config found - error is expected")
-                
-                return True
+                    self.log("   🔍 ANALYSIS: No Google Drive config found - error is expected")
+                    
             else:
-                self.log("   ℹ️ Target error not found in this test run")
-                return True
+                self.log("❌ TARGET ERROR NOT REPRODUCED in this session")
                 
-        except Exception as e:
-            self.log(f"❌ Backend response monitoring error: {str(e)}", "ERROR")
-            return False
-    
-    def verify_ship_in_database(self):
-        """Verify if ship was created in database despite error"""
-        try:
-            self.log("🗄️ Step 5: Verifying Ship in Database...")
-            
-            # Get all ships to check if our test ship was created
-            endpoint = f"{BACKEND_URL}/ships"
-            self.log(f"   Getting ships from: {endpoint}")
-            
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            self.log(f"   GET /api/ships - Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                ships = response.json()
-                self.log(f"   ✅ Retrieved {len(ships)} ships from database")
-                
-                # Look for our test ship
-                test_ship = None
-                for ship in ships:
-                    if ship.get('name') == 'Test Ship Debug' and ship.get('imo') == 'TEST123':
-                        test_ship = ship
-                        break
-                
-                if test_ship:
-                    self.log("   ✅ Test ship found in database")
-                    self.log(f"      Ship ID: {test_ship.get('id')}")
-                    self.log(f"      Ship Name: {test_ship.get('name')}")
-                    self.log(f"      IMO: {test_ship.get('imo')}")
-                    self.log(f"      Company: {test_ship.get('company')}")
-                    self.test_results['ship_in_database'] = test_ship
-                    return True
+                # Check if ship creation was successful
+                if self.test_results.get('created_ship'):
+                    self.log("   ✅ Ship creation was successful")
+                    self.log("   💡 The error may be intermittent or fixed")
                 else:
-                    self.log("   ❌ Test ship not found in database")
-                    self.log("   📋 Available ships:")
-                    for ship in ships[:5]:  # Show first 5 ships
-                        self.log(f"      - {ship.get('name')} (IMO: {ship.get('imo')})")
-                    return False
-            else:
-                self.log(f"   ❌ Failed to get ships - Status: {response.status_code}")
-                return False
+                    self.log("   ❌ Ship creation failed for other reasons")
+            
+            # Check for 404 endpoints
+            if self.test_results.get('found_404_endpoints'):
+                self.log("🔍 FOUND POTENTIAL 404 ENDPOINTS:")
+                for endpoint in self.test_results['found_404_endpoints']:
+                    self.log(f"   - {endpoint}")
+                self.log("   💡 These might be endpoints that Apps Script is trying to call")
+            
+            # Summary of findings
+            self.log("\n📋 SUMMARY OF FINDINGS:")
+            self.log("=" * 40)
+            
+            findings = []
+            if self.test_results.get('target_error_found'):
+                findings.append("✅ Target error reproduced and captured")
+            if self.test_results.get('gdrive_config'):
+                findings.append("✅ Google Drive configuration exists")
+            if self.test_results.get('gdrive_status'):
+                findings.append(f"✅ Google Drive status: {self.test_results['gdrive_status'].get('status')}")
+            if self.test_results.get('created_ship'):
+                findings.append("✅ Ship creation successful")
+            if self.test_results.get('found_404_endpoints'):
+                findings.append(f"⚠️ Found {len(self.test_results['found_404_endpoints'])} potential 404 endpoints")
+            
+            if not findings:
+                findings.append("❌ No significant findings in this debug session")
+            
+            for finding in findings:
+                self.log(f"   {finding}")
                 
         except Exception as e:
-            self.log(f"❌ Ship database verification error: {str(e)}", "ERROR")
-            return False
-    
-    def test_google_drive_folder_creation(self):
-        """Test Google Drive folder creation functionality"""
-        try:
-            self.log("📁 Step 6: Testing Google Drive Folder Creation...")
-            
-            # Test 1: Try with a company that has Google Drive config
-            if self.test_results.get('admin1_user'):
-                admin1_user = self.test_results['admin1_user']
-                company_name = admin1_user.get('company')
-                
-                if company_name:
-                    # Find the company ID
-                    companies_endpoint = f"{BACKEND_URL}/companies"
-                    response = requests.get(companies_endpoint, headers={"Authorization": f"Bearer {self.test_results['admin1_token']}"}, timeout=30)
-                    
-                    if response.status_code == 200:
-                        companies = response.json()
-                        company_id = None
-                        for company in companies:
-                            if company.get('name') == company_name or company.get('name_en') == company_name or company.get('name_vn') == company_name:
-                                company_id = company.get('id')
-                                break
-                        
-                        if company_id:
-                            self.log(f"   🧪 Test 6a: Testing with company that HAS Google Drive config (ID: {company_id})...")
-                            endpoint = f"{BACKEND_URL}/companies/{company_id}/gdrive/create-ship-folder"
-                            
-                            folder_data = {
-                                "ship_name": "Test Ship Folder Creation",
-                                "ship_id": "test-ship-id"
-                            }
-                            
-                            response = requests.post(endpoint, json=folder_data, headers={"Authorization": f"Bearer {self.test_results['admin1_token']}"}, timeout=60)
-                            self.log(f"      POST /api/companies/{company_id}/gdrive/create-ship-folder - Status: {response.status_code}")
-                            
-                            if response.status_code == 200:
-                                folder_response = response.json()
-                                self.log("      ✅ Google Drive folder creation successful with configured company")
-                                self.test_results['gdrive_folder_creation'] = folder_response
-                            else:
-                                self.log(f"      ❌ Google Drive folder creation failed - Status: {response.status_code}")
-                                try:
-                                    error_data = response.json()
-                                    error_detail = error_data.get('detail', 'Unknown error')
-                                    self.log(f"         Error: {error_detail}")
-                                    
-                                    if "Company Google Drive not configured" in str(error_detail):
-                                        self.log("      🎯 FOUND TARGET ERROR in configured company: 'Company Google Drive not configured'")
-                                        self.test_results['target_error_found'] = True
-                                        self.test_results['target_error_scenario'] = 'configured_company_direct_call'
-                                except:
-                                    error_detail = response.text[:500]
-                                    self.log(f"         Error: {error_detail}")
-                                
-                                self.test_results['gdrive_folder_error'] = {
-                                    'status_code': response.status_code,
-                                    'error': error_detail
-                                }
-            
-            # Test 2: Try with a fake company ID to trigger the error
-            self.log("   🧪 Test 6b: Testing with fake company ID (should trigger 'Company Google Drive not configured')...")
-            fake_company_id = "fake-company-id-12345"
-            endpoint = f"{BACKEND_URL}/companies/{fake_company_id}/gdrive/create-ship-folder"
-            
-            folder_data = {
-                "ship_name": "Test Ship Fake Company",
-                "ship_id": "test-ship-fake"
-            }
-            
-            # Use admin1 token for this test
-            token = self.test_results.get('admin1_token', self.auth_token)
-            response = requests.post(endpoint, json=folder_data, headers={"Authorization": f"Bearer {token}"}, timeout=60)
-            self.log(f"      POST /api/companies/{fake_company_id}/gdrive/create-ship-folder - Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                self.log("      ⚠️ Google Drive folder creation successful even with fake company ID")
-            else:
-                self.log(f"      ❌ Google Drive folder creation failed with fake company ID - Status: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    error_detail = error_data.get('detail', 'Unknown error')
-                    self.log(f"         Error: {error_detail}")
-                    
-                    if "Company Google Drive not configured" in str(error_detail):
-                        self.log("      🎯 FOUND TARGET ERROR with fake company ID: 'Company Google Drive not configured'")
-                        self.test_results['target_error_found'] = True
-                        self.test_results['target_error_scenario'] = 'fake_company_id'
-                except:
-                    error_detail = response.text[:500]
-                    self.log(f"         Error: {error_detail}")
-                    
-                    if "Company Google Drive not configured" in error_detail:
-                        self.log("      🎯 FOUND TARGET ERROR with fake company ID: 'Company Google Drive not configured'")
-                        self.test_results['target_error_found'] = True
-                        self.test_results['target_error_scenario'] = 'fake_company_id'
-                
-                self.test_results['gdrive_folder_error_fake'] = {
-                    'status_code': response.status_code,
-                    'error': error_detail
-                }
-            
-            return True
-                
-        except Exception as e:
-            self.log(f"❌ Google Drive folder creation testing error: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
 
 def main():
     """Main test execution"""
-    print("🚢 Ship Management System - Add New Ship Functionality Testing")
-    print("🎯 Focus: Debug 'Company Google Drive not configured' error")
-    print("📋 Review Request: Test ship creation workflow and Google Drive integration")
-    print("=" * 80)
+    print("🚢 Ship Management System - Ship Creation Debug Session")
+    print("🎯 Focus: Debug 'Failed to create ship folder: 404: Company Google Drive not configured'")
+    print("📋 Review Request: Capture ALL backend logs during ship creation process")
+    print("=" * 100)
     
-    tester = AddNewShipTester()
-    success = tester.test_add_new_ship_functionality()
+    debugger = ShipCreationDebugger()
+    success = debugger.debug_ship_creation_workflow()
     
-    print("=" * 80)
-    print("🔍 DETAILED FINDINGS:")
-    print("=" * 50)
+    print("=" * 100)
+    print("🔍 DEBUGGING SESSION RESULTS:")
+    print("=" * 60)
     
     # Print detailed analysis
-    if tester.test_results.get('target_error_found'):
-        print("🎯 TARGET ERROR DETECTED: 'Company Google Drive not configured'")
-        print("   This error occurred during ship creation process")
+    if debugger.test_results.get('target_error_found'):
+        print("🎯 TARGET ERROR SUCCESSFULLY REPRODUCED:")
+        print("   'Failed to create ship folder: 404: Company Google Drive not configured'")
         
-        ship_error = tester.test_results.get('ship_creation_error', {})
-        print(f"   Error Status: {ship_error.get('status_code')}")
-        print(f"   Error Message: {ship_error.get('error')}")
+        error_detail = debugger.test_results.get('target_error_detail', 'No detail available')
+        print(f"   Error Detail: {error_detail}")
+        
+        ship_error = debugger.test_results.get('ship_creation_error', {})
+        print(f"   HTTP Status: {ship_error.get('status_code')}")
+        
+    else:
+        print("❌ TARGET ERROR NOT REPRODUCED in this session")
+        if debugger.test_results.get('created_ship'):
+            print("   ✅ Ship creation was successful - error may be intermittent or fixed")
+        else:
+            print("   ❌ Ship creation failed for other reasons")
     
-    if tester.test_results.get('target_error_in_folder_creation'):
-        print("🎯 TARGET ERROR ALSO FOUND in Google Drive folder creation")
+    if debugger.test_results.get('gdrive_config'):
+        print("\n📋 Google Drive Configuration Status:")
+        gdrive_config = debugger.test_results['gdrive_config']
+        print(f"   Config exists: ✅ YES")
+        print(f"   Config details: {json.dumps(gdrive_config, indent=4)}")
+    else:
+        print("\n📋 Google Drive Configuration Status:")
+        print("   Config exists: ❌ NO")
     
-    if tester.test_results.get('gdrive_config'):
-        print("📋 Google Drive Configuration Status:")
-        gdrive_config = tester.test_results['gdrive_config']
-        print(f"   Config exists: {bool(gdrive_config)}")
-        if gdrive_config:
-            print(f"   Config details: {json.dumps(gdrive_config, indent=4)}")
-    
-    if tester.test_results.get('gdrive_status'):
-        gdrive_status = tester.test_results['gdrive_status']
-        print(f"📊 Google Drive Status: {gdrive_status.get('status')}")
+    if debugger.test_results.get('gdrive_status'):
+        gdrive_status = debugger.test_results['gdrive_status']
+        print(f"\n📊 Google Drive Status: {gdrive_status.get('status')}")
         print(f"   Message: {gdrive_status.get('message')}")
     
-    if tester.test_results.get('ship_in_database'):
-        print("✅ Ship was created in database despite error")
-    elif tester.test_results.get('created_ship'):
-        print("✅ Ship creation was successful")
-    else:
-        print("❌ Ship was not created in database")
+    if debugger.test_results.get('found_404_endpoints'):
+        print(f"\n🔍 Found {len(debugger.test_results['found_404_endpoints'])} potential 404 endpoints:")
+        for endpoint in debugger.test_results['found_404_endpoints']:
+            print(f"   - {endpoint}")
+        print("   💡 These might be endpoints that Apps Script is trying to call")
     
-    print("=" * 80)
+    print("=" * 100)
     if success:
-        print("🎉 Add New Ship functionality testing completed successfully!")
-        print("✅ All test steps executed - detailed analysis available above")
+        print("🎉 Ship creation debugging session completed successfully!")
+        print("✅ All debug steps executed - detailed analysis available above")
     else:
-        print("❌ Add New Ship functionality testing completed with issues!")
+        print("❌ Ship creation debugging session completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
-        print("💡 The 'Company Google Drive not configured' error has been identified and analyzed")
+    
+    if debugger.test_results.get('target_error_found'):
+        print("\n💡 NEXT STEPS FOR MAIN AGENT:")
+        print("   1. Review the exact error message captured above")
+        print("   2. Check backend code for Google Drive folder creation logic")
+        print("   3. Verify company ID lookup during ship creation")
+        print("   4. Check for race conditions in async Google Drive operations")
+        print("   5. Examine Apps Script callback endpoints that might be failing")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
