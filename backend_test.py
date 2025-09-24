@@ -227,18 +227,24 @@ class CertificateClassificationTester:
             self.log(f"❌ Certificate classification error: {str(e)}", "ERROR")
             return False
     
-    def verify_classification_improvements(self, analysis_result):
+    def verify_classification_improvements(self, result_item, analysis_result):
         """Verify the 3 main classification improvements"""
         try:
             self.log("🔍 Verifying classification improvements...")
             
             # 1. Check if certificate is classified as "certificates" category (not rejected)
+            status = result_item.get('status', '')
+            is_marine = result_item.get('is_marine', False)
             category = analysis_result.get('category', '').lower()
-            if category == 'certificates':
+            
+            if status == 'success' and is_marine and category == 'certificates':
                 self.log("   ✅ IMPROVEMENT 1: Certificate correctly classified as 'certificates' category")
                 self.classification_improvements_tested['pmds_document_classification'] = True
+                self.classification_improvements_tested['enhanced_detection_rules'] = True
+            elif status == 'skipped' and not is_marine:
+                self.log(f"   ❌ IMPROVEMENT 1: Certificate was rejected as non-marine (status: {status}, category: {category})")
             else:
-                self.log(f"   ❌ IMPROVEMENT 1: Certificate classified as '{category}' instead of 'certificates'")
+                self.log(f"   ⚠️ IMPROVEMENT 1: Unclear classification result (status: {status}, is_marine: {is_marine}, category: {category})")
             
             # 2. Check for PMDS detection in issued_by or other fields
             issued_by = analysis_result.get('issued_by', '').upper()
@@ -267,13 +273,13 @@ class CertificateClassificationTester:
                 'ship_name': analysis_result.get('ship_name')
             }
             
-            extracted_count = sum(1 for v in extracted_fields.values() if v and str(v).strip())
+            extracted_count = sum(1 for v in extracted_fields.values() if v and str(v).strip() and str(v).strip().lower() != 'null')
             total_fields = len(extracted_fields)
             
             self.log(f"   📊 Certificate information extraction: {extracted_count}/{total_fields} fields extracted")
             
             for field, value in extracted_fields.items():
-                if value and str(value).strip():
+                if value and str(value).strip() and str(value).strip().lower() != 'null':
                     self.log(f"      ✅ {field}: {value}")
                 else:
                     self.log(f"      ❌ {field}: Not extracted")
@@ -284,9 +290,8 @@ class CertificateClassificationTester:
             else:
                 self.log("   ❌ IMPROVEMENT 4: Certificate information extraction needs improvement")
             
-            # 5. Check enhanced detection rules (no rejection as non-marine certificate)
-            success = analysis_result.get('success', False)
-            if success and category == 'certificates':
+            # 5. Check enhanced detection rules (successful classification as marine certificate)
+            if status == 'success' and is_marine:
                 self.log("   ✅ IMPROVEMENT 5: Enhanced detection rules prevent misclassification")
                 self.classification_improvements_tested['enhanced_detection_rules'] = True
             else:
