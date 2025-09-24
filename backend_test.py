@@ -545,9 +545,12 @@ class CertificateClassificationTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Certificate Classification Testing")
-    print("🔍 Focus: Test improved Marine Certificate classification with PMDS certificate")
-    print("📋 Review Request: Verify 3 classification improvements")
+    print("🎯 Ship Management System - BWMP Certificate Classification Testing")
+    print("🔍 Focus: Test Marine Certificate classification with BWMP certificate")
+    print("📋 Review Request: Verify BWMP/SOC classification and PMDS detection")
+    print("📄 Expected: Statement of Compliance (SOC) for Ballast Water Management Plan")
+    print("🏢 Expected: Panama Maritime Documentation Services (PMDS)")
+    print("🚢 Expected: Ship SUNSHINE 01, IMO: 9415313")
     print("=" * 100)
     
     tester = CertificateClassificationTester()
