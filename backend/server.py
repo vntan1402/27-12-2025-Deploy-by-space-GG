@@ -3350,8 +3350,11 @@ Analyze this maritime document ({filename}) and extract the following informatio
 IMPORTANT CLASSIFICATION RULES:
 - ANY document with "Certificate" in the name AND maritime/ship information = "certificates"
 - Documents from Classification Societies (DNV GL, ABS, Lloyd's Register, etc.) = usually "certificates" or "survey_reports"
+- Documents from Maritime Insurance Organizations (P&I Clubs, Marine Insurance Companies) = "certificates"
+- Documents from Maritime Documentation Services (PMDS, Maritime Documentation Centers) = "certificates"
 - Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
 - IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
+- Crew Accommodation Certificates, Cargo Ship Safety Certificates = "certificates"
 
 Return response as JSON format. If information is not found, return null for that field.
 
