@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: PMDS Certificate Classification Issues Investigation
-Review Request: Investigate Marine Certificate classification issues with PMDS certificates
+FOCUS: Direct PMDS Certificate Classification with Actual Certificate File
+Review Request: Test specific PMDS certificate classification with actual certificate file
 """
 
 import requests
@@ -12,6 +12,7 @@ import sys
 from datetime import datetime
 import time
 import traceback
+import tempfile
 
 # Configuration - Use external URL for testing (as per frontend .env)
 BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
