@@ -1458,7 +1458,7 @@ async def get_certificate_abbreviation_mappings(current_user: UserResponse = Dep
 @api_router.post("/certificate-abbreviation-mappings", response_model=CertificateAbbreviationMappingResponse)
 async def create_certificate_abbreviation_mapping(
     mapping_data: CertificateAbbreviationMappingCreate, 
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Create a new certificate abbreviation mapping"""
     try:
