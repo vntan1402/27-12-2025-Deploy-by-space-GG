@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Testing "Add New Ship" functionality with Google Drive integration
-Review Request: Debug "Company Google Drive not configured" error during ship creation
+Focus: Debug "Failed to create ship folder: 404: Company Google Drive not configured" error
+Review Request: Capture ALL backend logs during ship creation process and identify exact failing API call
 """
 
 import requests
@@ -11,9 +11,12 @@ import os
 import sys
 from datetime import datetime
 import time
+import subprocess
+import threading
+import queue
 
-# Configuration - Use localhost for testing since external URL has issues
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use production URL as specified in frontend/.env
+BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
 class AddNewShipTester:
     def __init__(self):
