@@ -14,8 +14,8 @@ import time
 import subprocess
 import threading
 
-# Configuration - Use external URL since internal has connection issues
-BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
+# Configuration - Try internal URL first, fallback to external
+BACKEND_URL = "http://localhost:8001/api"
 
 class EnhancedShipCreationTester:
     def __init__(self):
