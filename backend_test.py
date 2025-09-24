@@ -12,537 +12,516 @@ from datetime import datetime
 import tempfile
 import subprocess
 import time
-import jwt
 import base64
 
 # Configuration - Use production URL from frontend .env
 BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
 
-class ShipsVisibilityTester:
+class LoginFunctionalityTester:
     def __init__(self):
         self.session = requests.Session()
-        self.auth_token = None
-        self.user_info = None
-        self.user_company = None
-        self.all_ships = []
-        self.company_ships = []
+        self.test_credentials = [
+            {"username": "admin1", "password": "123456", "description": "Primary admin account"},
+            {"username": "admin", "password": "admin123", "description": "Demo admin account"}
+        ]
+        self.test_results = {}
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"[{timestamp}] [{level}] {message}")
         
-    def test_ships_visibility_issue(self):
-        """Main test function for ships visibility debugging"""
-        self.log("🚢 Starting Ships Visibility Issue Testing - Debug getUserCompanyShips() Filter")
+    def test_login_functionality(self):
+        """Main test function for login functionality debugging"""
+        self.log("🔐 Starting Login Functionality Testing - Debug User Authentication Issues")
         self.log("=" * 80)
         
-        # Step 1: Authentication with admin1/123456
-        auth_result = self.test_authentication()
-        if not auth_result:
-            self.log("❌ Authentication failed - cannot proceed with testing")
-            return False
+        # Step 1: Test Login API Directly
+        login_api_result = self.test_login_api_directly()
         
-        # Step 2: Get User Profile Data
-        profile_result = self.get_user_profile_data()
-        if not profile_result:
-            self.log("❌ Failed to get user profile data")
-            return False
+        # Step 2: Check User Database
+        user_db_result = self.check_user_database()
         
-        # Step 3: Get All Ships Data
-        ships_result = self.get_all_ships_data()
-        if not ships_result:
-            self.log("❌ Failed to get ships data")
-            return False
+        # Step 3: Test Token Generation
+        token_result = self.test_token_generation()
         
-        # Step 4: Analyze Company Values
-        company_analysis_result = self.analyze_company_values()
+        # Step 4: Authentication System Health
+        auth_health_result = self.test_authentication_system_health()
         
-        # Step 5: Check Ship Structure
-        structure_result = self.check_ship_structure()
+        # Step 5: Detailed Response Analysis
+        response_analysis_result = self.analyze_response_details()
         
-        # Step 6: Test getUserCompanyShips Filter Logic
-        filter_result = self.test_filter_logic()
-        
-        # Step 7: Identify Root Cause
-        root_cause_result = self.identify_root_cause()
-        
-        # Step 8: Summary
+        # Step 6: Summary
         self.log("=" * 80)
-        self.log("📋 SHIPS VISIBILITY ISSUE TEST SUMMARY")
+        self.log("📋 LOGIN FUNCTIONALITY TEST SUMMARY")
         self.log("=" * 80)
         
-        self.log(f"{'✅' if auth_result else '❌'} Authentication: {'SUCCESS' if auth_result else 'FAILED'}")
-        self.log(f"{'✅' if profile_result else '❌'} User Profile Data: {'SUCCESS' if profile_result else 'FAILED'}")
-        self.log(f"{'✅' if ships_result else '❌'} Ships Data Retrieval: {'SUCCESS' if ships_result else 'FAILED'}")
-        self.log(f"{'✅' if company_analysis_result else '❌'} Company Values Analysis: {'SUCCESS' if company_analysis_result else 'FAILED'}")
-        self.log(f"{'✅' if structure_result else '❌'} Ship Structure Check: {'SUCCESS' if structure_result else 'FAILED'}")
-        self.log(f"{'✅' if filter_result else '❌'} Filter Logic Test: {'SUCCESS' if filter_result else 'FAILED'}")
-        self.log(f"{'✅' if root_cause_result else '❌'} Root Cause Identification: {'SUCCESS' if root_cause_result else 'FAILED'}")
+        self.log(f"{'✅' if login_api_result else '❌'} Login API Direct Testing: {'SUCCESS' if login_api_result else 'FAILED'}")
+        self.log(f"{'✅' if user_db_result else '❌'} User Database Check: {'SUCCESS' if user_db_result else 'FAILED'}")
+        self.log(f"{'✅' if token_result else '❌'} Token Generation Testing: {'SUCCESS' if token_result else 'FAILED'}")
+        self.log(f"{'✅' if auth_health_result else '❌'} Authentication System Health: {'SUCCESS' if auth_health_result else 'FAILED'}")
+        self.log(f"{'✅' if response_analysis_result else '❌'} Response Analysis: {'SUCCESS' if response_analysis_result else 'FAILED'}")
         
-        overall_success = all([auth_result, profile_result, ships_result, company_analysis_result, structure_result])
+        overall_success = all([login_api_result, user_db_result, token_result, auth_health_result, response_analysis_result])
         
         if overall_success:
-            self.log("🎉 SHIPS VISIBILITY ISSUE: FULLY ANALYZED")
+            self.log("🎉 LOGIN FUNCTIONALITY: FULLY TESTED AND WORKING")
         else:
-            self.log("❌ SHIPS VISIBILITY ISSUE: ANALYSIS INCOMPLETE")
-            self.log("🔍 Root cause analysis completed - check detailed logs above")
+            self.log("❌ LOGIN FUNCTIONALITY: ISSUES DETECTED")
+            self.log("🔍 Check detailed logs above for specific issues")
         
         return overall_success
     
-    def test_authentication(self):
-        """Test authentication with admin1/123456"""
+    def test_login_api_directly(self):
+        """Test POST /api/auth/login with both credential sets"""
         try:
-            self.log("🔐 Step 1: Testing Authentication with admin1/123456...")
+            self.log("🔐 Step 1: Testing Login API Directly...")
             
-            login_data = {
-                "username": "admin1",
-                "password": "123456",
+            all_login_tests_passed = True
+            
+            for cred in self.test_credentials:
+                username = cred["username"]
+                password = cred["password"]
+                description = cred["description"]
+                
+                self.log(f"   🧪 Testing {description} ({username}/{password})...")
+                
+                login_data = {
+                    "username": username,
+                    "password": password,
+                    "remember_me": False
+                }
+                
+                endpoint = f"{BACKEND_URL}/auth/login"
+                
+                try:
+                    response = requests.post(endpoint, json=login_data, timeout=30)
+                    
+                    self.log(f"      Response Status: {response.status_code}")
+                    self.log(f"      Response Headers: {dict(response.headers)}")
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        
+                        # Check response structure
+                        access_token = data.get("access_token")
+                        token_type = data.get("token_type")
+                        user_data = data.get("user")
+                        remember_me = data.get("remember_me")
+                        
+                        self.log(f"      ✅ Login successful for {username}")
+                        self.log(f"         Access Token: {'Present' if access_token else 'Missing'} ({len(access_token) if access_token else 0} chars)")
+                        self.log(f"         Token Type: {token_type}")
+                        self.log(f"         Remember Me: {remember_me}")
+                        
+                        if user_data:
+                            self.log(f"         User Data:")
+                            self.log(f"            ID: {user_data.get('id')}")
+                            self.log(f"            Username: {user_data.get('username')}")
+                            self.log(f"            Full Name: {user_data.get('full_name')}")
+                            self.log(f"            Role: {user_data.get('role')}")
+                            self.log(f"            Company: {user_data.get('company')}")
+                            self.log(f"            Department: {user_data.get('department')}")
+                            self.log(f"            Email: {user_data.get('email')}")
+                            self.log(f"            Active: {user_data.get('is_active')}")
+                        
+                        # Store successful login data for token testing
+                        self.test_results[username] = {
+                            "success": True,
+                            "token": access_token,
+                            "user": user_data,
+                            "response": data
+                        }
+                        
+                    else:
+                        try:
+                            error_data = response.json()
+                            error_detail = error_data.get('detail', 'Unknown error')
+                        except:
+                            error_detail = response.text
+                        
+                        self.log(f"      ❌ Login failed for {username}")
+                        self.log(f"         HTTP Status: {response.status_code}")
+                        self.log(f"         Error: {error_detail}")
+                        
+                        self.test_results[username] = {
+                            "success": False,
+                            "error": error_detail,
+                            "status_code": response.status_code
+                        }
+                        
+                        all_login_tests_passed = False
+                        
+                except requests.exceptions.RequestException as req_error:
+                    self.log(f"      ❌ Network error for {username}: {str(req_error)}")
+                    self.test_results[username] = {
+                        "success": False,
+                        "error": f"Network error: {str(req_error)}"
+                    }
+                    all_login_tests_passed = False
+                
+                self.log("")  # Add spacing between tests
+            
+            return all_login_tests_passed
+                
+        except Exception as e:
+            self.log(f"❌ Login API testing error: {str(e)}", "ERROR")
+            return False
+    
+    def check_user_database(self):
+        """Check user database to confirm users exist and verify passwords"""
+        try:
+            self.log("👥 Step 2: Checking User Database...")
+            
+            # We need to authenticate first to access user endpoints
+            successful_login = None
+            for username, result in self.test_results.items():
+                if result.get("success"):
+                    successful_login = result
+                    break
+            
+            if not successful_login:
+                self.log("   ⚠️ No successful login available - cannot check user database")
+                return True  # Don't fail the test if we can't authenticate
+            
+            # Set up authenticated session
+            auth_token = successful_login.get("token")
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            
+            self.log("   🔍 Fetching all users from database...")
+            
+            endpoint = f"{BACKEND_URL}/users"
+            response = requests.get(endpoint, headers=headers, timeout=30)
+            
+            self.log(f"   Users API Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                users = response.json()
+                self.log(f"   ✅ Retrieved {len(users)} users from database")
+                
+                # Check for our test users
+                test_usernames = [cred["username"] for cred in self.test_credentials]
+                
+                for username in test_usernames:
+                    user_found = None
+                    for user in users:
+                        if user.get("username") == username:
+                            user_found = user
+                            break
+                    
+                    if user_found:
+                        self.log(f"   ✅ User '{username}' found in database:")
+                        self.log(f"      ID: {user_found.get('id')}")
+                        self.log(f"      Full Name: {user_found.get('full_name')}")
+                        self.log(f"      Role: {user_found.get('role')}")
+                        self.log(f"      Company: {user_found.get('company')}")
+                        self.log(f"      Active: {user_found.get('is_active')}")
+                        self.log(f"      Created: {user_found.get('created_at')}")
+                    else:
+                        self.log(f"   ❌ User '{username}' NOT found in database")
+                        return False
+                
+                return True
+                
+            else:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', 'Unknown error')
+                except:
+                    error_detail = response.text
+                
+                self.log(f"   ❌ Users API failed - HTTP {response.status_code}")
+                self.log(f"      Error: {error_detail}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ User database check error: {str(e)}", "ERROR")
+            return False
+    
+    def test_token_generation(self):
+        """Test JWT token generation and validation"""
+        try:
+            self.log("🎫 Step 3: Testing Token Generation...")
+            
+            all_tokens_valid = True
+            
+            for username, result in self.test_results.items():
+                if not result.get("success"):
+                    continue
+                
+                token = result.get("token")
+                if not token:
+                    self.log(f"   ❌ No token found for {username}")
+                    all_tokens_valid = False
+                    continue
+                
+                self.log(f"   🔍 Analyzing token for {username}...")
+                
+                # Basic token structure check
+                token_parts = token.split('.')
+                self.log(f"      Token parts: {len(token_parts)} (should be 3 for JWT)")
+                
+                if len(token_parts) != 3:
+                    self.log(f"      ❌ Invalid JWT structure for {username}")
+                    all_tokens_valid = False
+                    continue
+                
+                try:
+                    # Decode header (without verification for inspection)
+                    header_data = token_parts[0]
+                    # Add padding if needed
+                    header_data += '=' * (4 - len(header_data) % 4)
+                    header = json.loads(base64.urlsafe_b64decode(header_data))
+                    
+                    self.log(f"      Token Header: {header}")
+                    
+                    # Decode payload (without verification for inspection)
+                    payload_data = token_parts[1]
+                    # Add padding if needed
+                    payload_data += '=' * (4 - len(payload_data) % 4)
+                    payload = json.loads(base64.urlsafe_b64decode(payload_data))
+                    
+                    self.log(f"      Token Payload:")
+                    self.log(f"         Subject (sub): {payload.get('sub')}")
+                    self.log(f"         Username: {payload.get('username')}")
+                    self.log(f"         Role: {payload.get('role')}")
+                    self.log(f"         Company: {payload.get('company')}")
+                    self.log(f"         Full Name: {payload.get('full_name')}")
+                    
+                    # Check expiration
+                    exp = payload.get('exp')
+                    if exp:
+                        exp_datetime = datetime.fromtimestamp(exp)
+                        current_datetime = datetime.now()
+                        time_until_exp = exp_datetime - current_datetime
+                        
+                        self.log(f"         Expires: {exp_datetime}")
+                        self.log(f"         Time until expiry: {time_until_exp}")
+                        
+                        if time_until_exp.total_seconds() > 0:
+                            self.log(f"         ✅ Token is valid (not expired)")
+                        else:
+                            self.log(f"         ❌ Token is expired")
+                            all_tokens_valid = False
+                    
+                    # Test token by making an authenticated request
+                    self.log(f"      🧪 Testing token validity with authenticated request...")
+                    
+                    headers = {"Authorization": f"Bearer {token}"}
+                    test_endpoint = f"{BACKEND_URL}/ships"  # Simple endpoint that requires auth
+                    
+                    test_response = requests.get(test_endpoint, headers=headers, timeout=30)
+                    
+                    if test_response.status_code == 200:
+                        self.log(f"         ✅ Token authentication successful")
+                    elif test_response.status_code == 401:
+                        self.log(f"         ❌ Token authentication failed - 401 Unauthorized")
+                        all_tokens_valid = False
+                    else:
+                        self.log(f"         ⚠️ Unexpected response: {test_response.status_code}")
+                    
+                except Exception as token_error:
+                    self.log(f"      ❌ Token analysis error for {username}: {str(token_error)}")
+                    all_tokens_valid = False
+                
+                self.log("")  # Add spacing
+            
+            return all_tokens_valid
+                
+        except Exception as e:
+            self.log(f"❌ Token generation testing error: {str(e)}", "ERROR")
+            return False
+    
+    def test_authentication_system_health(self):
+        """Test authentication system health and error handling"""
+        try:
+            self.log("🏥 Step 4: Testing Authentication System Health...")
+            
+            # Test 1: Invalid credentials
+            self.log("   🧪 Test 1: Invalid credentials...")
+            invalid_login = {
+                "username": "nonexistent_user",
+                "password": "wrong_password",
                 "remember_me": False
             }
             
             endpoint = f"{BACKEND_URL}/auth/login"
-            response = requests.post(endpoint, json=login_data, timeout=30)
+            response = requests.post(endpoint, json=invalid_login, timeout=30)
             
-            self.log(f"   Login response status: {response.status_code}")
+            if response.status_code == 401:
+                self.log("      ✅ Invalid credentials properly rejected (401)")
+            else:
+                self.log(f"      ❌ Unexpected response for invalid credentials: {response.status_code}")
+                return False
             
-            if response.status_code == 200:
-                data = response.json()
-                self.auth_token = data.get("access_token")
-                self.user_info = data.get("user")
+            # Test 2: Malformed request
+            self.log("   🧪 Test 2: Malformed request...")
+            malformed_login = {
+                "username": "admin1"
+                # Missing password field
+            }
+            
+            response = requests.post(endpoint, json=malformed_login, timeout=30)
+            
+            if response.status_code in [400, 422]:  # Bad request or validation error
+                self.log("      ✅ Malformed request properly rejected")
+            else:
+                self.log(f"      ❌ Unexpected response for malformed request: {response.status_code}")
+                return False
+            
+            # Test 3: Empty credentials
+            self.log("   🧪 Test 3: Empty credentials...")
+            empty_login = {
+                "username": "",
+                "password": "",
+                "remember_me": False
+            }
+            
+            response = requests.post(endpoint, json=empty_login, timeout=30)
+            
+            if response.status_code in [400, 401, 422]:
+                self.log("      ✅ Empty credentials properly rejected")
+            else:
+                self.log(f"      ❌ Unexpected response for empty credentials: {response.status_code}")
+                return False
+            
+            # Test 4: Check for any authentication errors in logs (if accessible)
+            self.log("   🧪 Test 4: Authentication error handling...")
+            
+            # Test with correct username but wrong password
+            wrong_password_login = {
+                "username": "admin1",
+                "password": "wrongpassword",
+                "remember_me": False
+            }
+            
+            response = requests.post(endpoint, json=wrong_password_login, timeout=30)
+            
+            if response.status_code == 401:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', '')
+                    
+                    if 'invalid' in error_detail.lower() or 'credentials' in error_detail.lower():
+                        self.log("      ✅ Proper error message for wrong password")
+                    else:
+                        self.log(f"      ⚠️ Generic error message: {error_detail}")
+                except:
+                    self.log("      ⚠️ No JSON error response")
+            else:
+                self.log(f"      ❌ Unexpected response for wrong password: {response.status_code}")
+                return False
+            
+            return True
                 
-                if self.auth_token and self.user_info:
-                    self.session.headers.update({
-                        "Authorization": f"Bearer {self.auth_token}"
-                    })
-                    
-                    self.log(f"   ✅ Authentication successful")
-                    self.log(f"      User: {self.user_info.get('username')} ({self.user_info.get('role')})")
-                    self.log(f"      Full Name: {self.user_info.get('full_name')}")
-                    self.log(f"      Company: {self.user_info.get('company', 'N/A')}")
-                    
-                    return True
+        except Exception as e:
+            self.log(f"❌ Authentication system health testing error: {str(e)}", "ERROR")
+            return False
+    
+    def analyze_response_details(self):
+        """Analyze detailed response format and required fields"""
+        try:
+            self.log("🔍 Step 5: Analyzing Response Details...")
+            
+            # Find a successful login to analyze
+            successful_result = None
+            successful_username = None
+            
+            for username, result in self.test_results.items():
+                if result.get("success"):
+                    successful_result = result
+                    successful_username = username
+                    break
+            
+            if not successful_result:
+                self.log("   ⚠️ No successful login available for response analysis")
+                return True
+            
+            self.log(f"   🔍 Analyzing successful login response for {successful_username}...")
+            
+            response_data = successful_result.get("response", {})
+            
+            # Check required fields
+            required_fields = ["access_token", "token_type", "user", "remember_me"]
+            missing_fields = []
+            
+            for field in required_fields:
+                if field not in response_data:
+                    missing_fields.append(field)
                 else:
-                    self.log("   ❌ Authentication failed - missing token or user data")
+                    value = response_data[field]
+                    self.log(f"      ✅ {field}: {type(value).__name__} - {'Present' if value else 'Empty'}")
+            
+            if missing_fields:
+                self.log(f"      ❌ Missing required fields: {missing_fields}")
+                return False
+            
+            # Analyze user object
+            user_data = response_data.get("user", {})
+            if user_data:
+                self.log("      📊 User object analysis:")
+                
+                user_required_fields = ["id", "username", "role", "full_name", "is_active"]
+                user_missing_fields = []
+                
+                for field in user_required_fields:
+                    if field not in user_data:
+                        user_missing_fields.append(field)
+                    else:
+                        value = user_data[field]
+                        self.log(f"         ✅ {field}: {repr(value)}")
+                
+                if user_missing_fields:
+                    self.log(f"         ❌ Missing user fields: {user_missing_fields}")
                     return False
-            else:
-                try:
-                    error_data = response.json()
-                    error_detail = error_data.get('detail', 'Unknown error')
-                except:
-                    error_detail = response.text
                 
-                self.log(f"   ❌ Authentication failed - HTTP {response.status_code}")
-                self.log(f"      Error: {error_detail}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Authentication error: {str(e)}", "ERROR")
-            return False
-    
-    def get_user_profile_data(self):
-        """Get current user profile data to check company assignment"""
-        try:
-            self.log("👤 Step 2: Getting User Profile Data...")
+                # Check optional fields
+                optional_fields = ["company", "department", "email", "ship"]
+                for field in optional_fields:
+                    if field in user_data:
+                        value = user_data[field]
+                        self.log(f"         📋 {field}: {repr(value)} (optional)")
             
-            # Try to get user profile from /api/user/profile or similar endpoint
-            # Since we have user info from login, let's use that and also try to get more details
+            # Verify token format
+            token = response_data.get("access_token")
+            if token:
+                self.log("      🎫 Token format analysis:")
+                self.log(f"         Length: {len(token)} characters")
+                self.log(f"         Format: {'JWT' if token.count('.') == 2 else 'Unknown'}")
+                self.log(f"         Starts with: {token[:20]}...")
             
-            self.log("   📊 User data from login response:")
-            self.log(f"      Username: {self.user_info.get('username')}")
-            self.log(f"      Role: {self.user_info.get('role')}")
-            self.log(f"      Full Name: {self.user_info.get('full_name')}")
-            self.log(f"      Company: {self.user_info.get('company')}")
-            self.log(f"      Department: {self.user_info.get('department')}")
-            self.log(f"      Ship: {self.user_info.get('ship')}")
-            self.log(f"      User ID: {self.user_info.get('id')}")
-            
-            # Store user company for comparison
-            self.user_company = self.user_info.get('company')
-            
-            if not self.user_company:
-                self.log("   ⚠️ WARNING: User has no company assigned!")
-                self.log("      This could be the root cause of ships visibility issue")
-                return True  # Continue analysis even if no company
-            
-            self.log(f"   ✅ User company identified: '{self.user_company}'")
-            self.log(f"      Company type: {type(self.user_company)}")
-            self.log(f"      Company length: {len(self.user_company) if self.user_company else 0}")
-            self.log(f"      Company repr: {repr(self.user_company)}")
-            
-            return True
-            
-        except Exception as e:
-            self.log(f"❌ User profile data error: {str(e)}", "ERROR")
-            return False
-    
-    def get_all_ships_data(self):
-        """Get all ships data and analyze company field values"""
-        try:
-            self.log("🚢 Step 3: Getting All Ships Data...")
-            
-            endpoint = f"{BACKEND_URL}/ships"
-            response = self.session.get(endpoint, timeout=30)
-            
-            self.log(f"   Ships API response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                self.all_ships = response.json()
-                self.log(f"   ✅ Retrieved {len(self.all_ships)} ships")
-                
-                # Analyze each ship's company field
-                self.log("   📊 Ships company field analysis:")
-                
-                for i, ship in enumerate(self.all_ships):
-                    ship_name = ship.get('name', 'Unknown')
-                    ship_company = ship.get('company', 'N/A')
-                    ship_id = ship.get('id', 'N/A')
-                    
-                    self.log(f"      Ship {i+1}: {ship_name}")
-                    self.log(f"         ID: {ship_id}")
-                    self.log(f"         Company: '{ship_company}'")
-                    self.log(f"         Company type: {type(ship_company)}")
-                    self.log(f"         Company length: {len(ship_company) if ship_company else 0}")
-                    self.log(f"         Company repr: {repr(ship_company)}")
-                    
-                    # Check for SUNSHINE ships specifically
-                    if "SUNSHINE" in ship_name.upper():
-                        self.log(f"         🌟 SUNSHINE SHIP FOUND!")
-                        self.log(f"         🌟 Company value: '{ship_company}'")
-                
-                # Look for unique company values
-                unique_companies = set()
-                for ship in self.all_ships:
-                    company = ship.get('company')
-                    if company:
-                        unique_companies.add(company)
-                
-                self.log(f"   📈 Unique company values found: {len(unique_companies)}")
-                for company in sorted(unique_companies):
-                    self.log(f"      - '{company}' (type: {type(company)}, len: {len(company)})")
-                
-                return True
-            else:
-                try:
-                    error_data = response.json()
-                    error_detail = error_data.get('detail', 'Unknown error')
-                except:
-                    error_detail = response.text
-                
-                self.log(f"   ❌ Ships API failed - HTTP {response.status_code}")
-                self.log(f"      Error: {error_detail}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Ships data retrieval error: {str(e)}", "ERROR")
-            return False
-    
-    def analyze_company_values(self):
-        """Compare user company with ship company values"""
-        try:
-            self.log("🔍 Step 4: Analyzing Company Values for Matching...")
-            
-            if not self.user_company:
-                self.log("   ⚠️ User has no company - cannot perform comparison")
-                return True
-            
-            if not self.all_ships:
-                self.log("   ❌ No ships data available for comparison")
-                return False
-            
-            self.log(f"   🎯 Target user company: '{self.user_company}'")
-            
-            # Find exact matches
-            exact_matches = []
-            case_insensitive_matches = []
-            trimmed_matches = []
-            no_matches = []
-            
-            for ship in self.all_ships:
-                ship_name = ship.get('name', 'Unknown')
-                ship_company = ship.get('company', '')
-                
-                if ship_company == self.user_company:
-                    exact_matches.append((ship_name, ship_company))
-                elif ship_company.lower() == self.user_company.lower():
-                    case_insensitive_matches.append((ship_name, ship_company))
-                elif ship_company.strip() == self.user_company.strip():
-                    trimmed_matches.append((ship_name, ship_company))
+            # Check token_type
+            token_type = response_data.get("token_type")
+            if token_type:
+                if token_type.lower() == "bearer":
+                    self.log(f"      ✅ Token type: {token_type} (correct)")
                 else:
-                    no_matches.append((ship_name, ship_company))
-            
-            self.log(f"   📊 Company matching analysis:")
-            self.log(f"      ✅ Exact matches: {len(exact_matches)}")
-            for ship_name, ship_company in exact_matches:
-                self.log(f"         - {ship_name}: '{ship_company}'")
-            
-            self.log(f"      🔤 Case-insensitive matches: {len(case_insensitive_matches)}")
-            for ship_name, ship_company in case_insensitive_matches:
-                self.log(f"         - {ship_name}: '{ship_company}' vs '{self.user_company}'")
-            
-            self.log(f"      ✂️ Trimmed matches: {len(trimmed_matches)}")
-            for ship_name, ship_company in trimmed_matches:
-                self.log(f"         - {ship_name}: '{ship_company}' vs '{self.user_company}'")
-            
-            self.log(f"      ❌ No matches: {len(no_matches)}")
-            for ship_name, ship_company in no_matches[:5]:  # Show first 5
-                self.log(f"         - {ship_name}: '{ship_company}' vs '{self.user_company}'")
-            
-            # Store company ships for filter testing
-            self.company_ships = exact_matches
-            
-            # Check for SUNSHINE ships specifically
-            sunshine_ships = [ship for ship in self.all_ships if "SUNSHINE" in ship.get('name', '').upper()]
-            if sunshine_ships:
-                self.log(f"   🌟 SUNSHINE ships analysis:")
-                for ship in sunshine_ships:
-                    ship_name = ship.get('name')
-                    ship_company = ship.get('company', '')
-                    match_status = "✅ MATCH" if ship_company == self.user_company else "❌ NO MATCH"
-                    self.log(f"      - {ship_name}: '{ship_company}' {match_status}")
-                    
-                    if ship_company != self.user_company:
-                        self.log(f"        🔍 Difference analysis:")
-                        self.log(f"           User: '{self.user_company}' (len: {len(self.user_company)})")
-                        self.log(f"           Ship: '{ship_company}' (len: {len(ship_company)})")
-                        self.log(f"           Equal: {ship_company == self.user_company}")
-                        self.log(f"           Case equal: {ship_company.lower() == self.user_company.lower()}")
-                        self.log(f"           Trimmed equal: {ship_company.strip() == self.user_company.strip()}")
+                    self.log(f"      ⚠️ Token type: {token_type} (expected 'bearer')")
             
             return True
-            
+                
         except Exception as e:
-            self.log(f"❌ Company values analysis error: {str(e)}", "ERROR")
-            return False
-    
-    def check_ship_structure(self):
-        """Check ship data structure and fields"""
-        try:
-            self.log("🏗️ Step 5: Checking Ship Data Structure...")
-            
-            if not self.all_ships:
-                self.log("   ❌ No ships data available")
-                return False
-            
-            # Analyze first ship structure
-            if self.all_ships:
-                sample_ship = self.all_ships[0]
-                self.log(f"   📋 Sample ship structure (Ship: {sample_ship.get('name', 'Unknown')}):")
-                
-                for key, value in sample_ship.items():
-                    self.log(f"      {key}: {repr(value)} (type: {type(value).__name__})")
-                
-                # Check for company vs company_id field
-                has_company = 'company' in sample_ship
-                has_company_id = 'company_id' in sample_ship
-                
-                self.log(f"   🔍 Company field analysis:")
-                self.log(f"      'company' field present: {'✅' if has_company else '❌'}")
-                self.log(f"      'company_id' field present: {'✅' if has_company_id else '❌'}")
-                
-                if has_company:
-                    self.log(f"      'company' value: '{sample_ship.get('company')}'")
-                if has_company_id:
-                    self.log(f"      'company_id' value: '{sample_ship.get('company_id')}'")
-                
-                # Check all ships for consistency
-                company_field_consistency = True
-                for ship in self.all_ships:
-                    if 'company' not in ship:
-                        company_field_consistency = False
-                        self.log(f"      ⚠️ Ship '{ship.get('name')}' missing 'company' field")
-                
-                self.log(f"   📊 Field consistency: {'✅ All ships have company field' if company_field_consistency else '❌ Some ships missing company field'}")
-            
-            return True
-            
-        except Exception as e:
-            self.log(f"❌ Ship structure check error: {str(e)}", "ERROR")
-            return False
-    
-    def test_filter_logic(self):
-        """Test the getUserCompanyShips() filter logic"""
-        try:
-            self.log("⚙️ Step 6: Testing getUserCompanyShips() Filter Logic...")
-            
-            if not self.user_company:
-                self.log("   ⚠️ User has no company - filter would return empty array")
-                return True
-            
-            if not self.all_ships:
-                self.log("   ❌ No ships data available for filter testing")
-                return False
-            
-            # Simulate the filter logic: ships.filter(ship => ship.company === user.company)
-            self.log(f"   🔧 Simulating: ships.filter(ship => ship.company === '{self.user_company}')")
-            
-            filtered_ships = []
-            for ship in self.all_ships:
-                ship_company = ship.get('company', '')
-                if ship_company == self.user_company:
-                    filtered_ships.append(ship)
-            
-            self.log(f"   📊 Filter results:")
-            self.log(f"      Total ships: {len(self.all_ships)}")
-            self.log(f"      Filtered ships: {len(filtered_ships)}")
-            self.log(f"      Filter success rate: {len(filtered_ships)/len(self.all_ships)*100:.1f}%")
-            
-            if filtered_ships:
-                self.log(f"   ✅ Ships that match user company:")
-                for ship in filtered_ships:
-                    self.log(f"      - {ship.get('name')}: '{ship.get('company')}'")
-            else:
-                self.log(f"   ❌ NO SHIPS MATCH USER COMPANY!")
-                self.log(f"      This explains why getUserCompanyShips() returns empty array")
-                
-                # Show what ships would match with different comparison methods
-                self.log(f"   🔍 Alternative matching methods:")
-                
-                # Case insensitive
-                case_insensitive_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '').lower() == self.user_company.lower()
-                ]
-                self.log(f"      Case-insensitive matches: {len(case_insensitive_matches)}")
-                
-                # Trimmed
-                trimmed_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '').strip() == self.user_company.strip()
-                ]
-                self.log(f"      Trimmed matches: {len(trimmed_matches)}")
-                
-                # Contains
-                contains_matches = [
-                    ship for ship in self.all_ships 
-                    if self.user_company.upper() in ship.get('company', '').upper()
-                ]
-                self.log(f"      Contains matches: {len(contains_matches)}")
-            
-            return True
-            
-        except Exception as e:
-            self.log(f"❌ Filter logic test error: {str(e)}", "ERROR")
-            return False
-    
-    def identify_root_cause(self):
-        """Identify the root cause of the ships visibility issue"""
-        try:
-            self.log("🎯 Step 7: Identifying Root Cause...")
-            
-            # Analyze all the data we've collected
-            root_causes = []
-            
-            # Check 1: User has no company
-            if not self.user_company:
-                root_causes.append("User has no company assigned - filter will always return empty")
-            
-            # Check 2: No ships match user company exactly
-            if self.user_company and self.all_ships:
-                exact_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '') == self.user_company
-                ]
-                if not exact_matches:
-                    root_causes.append(f"No ships have company field exactly matching '{self.user_company}'")
-            
-            # Check 3: Case sensitivity issues
-            if self.user_company and self.all_ships:
-                case_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '').lower() == self.user_company.lower()
-                ]
-                exact_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '') == self.user_company
-                ]
-                if case_matches and not exact_matches:
-                    root_causes.append("Case sensitivity issue - ships exist but with different case")
-            
-            # Check 4: Whitespace issues
-            if self.user_company and self.all_ships:
-                trimmed_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '').strip() == self.user_company.strip()
-                ]
-                exact_matches = [
-                    ship for ship in self.all_ships 
-                    if ship.get('company', '') == self.user_company
-                ]
-                if trimmed_matches and not exact_matches:
-                    root_causes.append("Whitespace issue - ships exist but with extra spaces")
-            
-            # Check 5: Field name issues
-            ships_missing_company = [
-                ship for ship in self.all_ships 
-                if 'company' not in ship or not ship.get('company')
-            ]
-            if ships_missing_company:
-                root_causes.append(f"{len(ships_missing_company)} ships missing or have empty 'company' field")
-            
-            # Report findings
-            self.log("   🔍 ROOT CAUSE ANALYSIS RESULTS:")
-            
-            if root_causes:
-                self.log(f"   ❌ {len(root_causes)} potential root cause(s) identified:")
-                for i, cause in enumerate(root_causes, 1):
-                    self.log(f"      {i}. {cause}")
-            else:
-                self.log("   ✅ No obvious root causes found - ships visibility should be working")
-            
-            # Provide specific recommendations
-            self.log("   💡 RECOMMENDATIONS:")
-            
-            if not self.user_company:
-                self.log("      1. Assign a company to admin1 user")
-                self.log("      2. Update user profile with correct company name")
-            
-            if self.user_company and self.all_ships:
-                # Find the most likely company match
-                all_companies = [ship.get('company', '') for ship in self.all_ships if ship.get('company')]
-                unique_companies = list(set(all_companies))
-                
-                self.log(f"      1. Available company values in ships:")
-                for company in sorted(unique_companies):
-                    self.log(f"         - '{company}'")
-                
-                self.log(f"      2. User company should match one of these exactly")
-                self.log(f"      3. Current user company: '{self.user_company}'")
-                
-                # Find closest match
-                closest_match = None
-                for company in unique_companies:
-                    if company.lower() == self.user_company.lower():
-                        closest_match = company
-                        break
-                
-                if closest_match and closest_match != self.user_company:
-                    self.log(f"      4. SUGGESTED FIX: Change user company from '{self.user_company}' to '{closest_match}'")
-            
-            return True
-            
-        except Exception as e:
-            self.log(f"❌ Root cause identification error: {str(e)}", "ERROR")
+            self.log(f"❌ Response analysis error: {str(e)}", "ERROR")
             return False
 
 def main():
     """Main test execution"""
-    print("🚢 Ship Management System - Ships Visibility Issue Testing")
-    print("🔍 Debug: getUserCompanyShips() filter returning empty array")
+    print("🔐 Ship Management System - Login Functionality Testing")
+    print("🔍 Debug: User authentication and login issues")
     print("=" * 80)
     
-    tester = ShipsVisibilityTester()
-    success = tester.test_ships_visibility_issue()
+    tester = LoginFunctionalityTester()
+    success = tester.test_login_functionality()
     
     print("=" * 80)
     if success:
-        print("🎉 Ships visibility issue analysis completed successfully!")
-        print("✅ Root cause analysis completed - check detailed logs above")
+        print("🎉 Login functionality testing completed successfully!")
+        print("✅ All authentication tests passed - login system is working correctly")
         sys.exit(0)
     else:
-        print("❌ Ships visibility issue analysis completed with issues!")
-        print("🔍 Some analysis steps failed - check detailed logs above")
-        print("💡 Focus on the failed steps to identify the exact issue")
+        print("❌ Login functionality testing completed with issues!")
+        print("🔍 Some authentication tests failed - check detailed logs above")
+        print("💡 Focus on the failed steps to identify the exact login issue")
         sys.exit(1)
 
 if __name__ == "__main__":
