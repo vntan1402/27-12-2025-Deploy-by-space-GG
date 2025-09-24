@@ -533,11 +533,12 @@ class CertificateClassificationTester:
                 self.log(f"   Company: {ship.get('company')}")
             
             # Certificate file information
-            if self.test_results.get('pmds_certificate_size'):
-                size_mb = self.test_results['pmds_certificate_size'] / 1024 / 1024
-                self.log(f"\n📄 PMDS CERTIFICATE FILE:")
+            if self.test_results.get('bwmp_certificate_size'):
+                size_mb = self.test_results['bwmp_certificate_size'] / 1024 / 1024
+                self.log(f"\n📄 BWMP CERTIFICATE FILE:")
                 self.log(f"   File Size: {size_mb:.2f} MB")
                 self.log(f"   Source: {self.pmds_certificate_url}")
+                self.log(f"   Expected: BWMP/SOC certificate from PMDS for SUNSHINE 01")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
