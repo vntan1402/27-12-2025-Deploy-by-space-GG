@@ -1178,10 +1178,17 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         
         # After successful ship creation, create Google Drive folder structure
         try:
-            await create_google_drive_folder_for_new_ship(ship_dict, current_user)
-            logger.info(f"Successfully created Google Drive folder structure for ship: {ship_dict.get('name', 'Unknown')}")
+            logger.info(f"Starting Google Drive folder creation for ship: {ship_dict.get('name')}")
+            result = await create_google_drive_folder_for_new_ship(ship_dict, current_user)
+            if result.get("success"):
+                logger.info(f"Successfully created Google Drive folder structure for ship: {ship_dict.get('name', 'Unknown')}")
+            else:
+                error_msg = result.get("error", "Unknown error")
+                logger.warning(f"Ship created but Google Drive folder creation failed: {error_msg}")
+                # Don't fail the ship creation if Google Drive fails - just log the warning
         except Exception as gdrive_error:
-            logger.warning(f"Ship created but Google Drive folder creation failed: {gdrive_error}")
+            logger.warning(f"Ship created but Google Drive folder creation failed with exception: {gdrive_error}")
+            logger.warning(f"Exception type: {type(gdrive_error).__name__}")
             # Don't fail the ship creation if Google Drive fails - just log the warning
         
         return ShipResponse(**ship_dict)
