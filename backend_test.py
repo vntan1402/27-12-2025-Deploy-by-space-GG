@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Ships Visibility Issue Debugging - User Company vs Ship Company Data Matching
+Focus: Login Functionality Debugging - Authentication System Testing
 """
 
 import requests
@@ -12,6 +12,8 @@ from datetime import datetime
 import tempfile
 import subprocess
 import time
+import jwt
+import base64
 
 # Configuration - Use production URL from frontend .env
 BACKEND_URL = "https://shipment-ai-1.preview.emergentagent.com/api"
