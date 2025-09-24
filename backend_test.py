@@ -23,7 +23,7 @@ class CertificateClassificationTester:
         self.current_user = None
         self.test_results = {}
         self.backend_logs = []
-        self.pmds_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/m1vpd5z1_SUNSHINE%2001%20-%20CICA-%20PM251277.pdf"
+        self.pmds_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/ykrefz2y_SUNSHINE%2001%20-%20BWMP-%20PM242792.pdf"
         self.classification_improvements_tested = {
             'conditional_certificate_type': False,
             'pmds_document_classification': False,
