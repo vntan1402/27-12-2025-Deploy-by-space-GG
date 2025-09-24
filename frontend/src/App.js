@@ -2702,7 +2702,7 @@ const HomePage = () => {
                           onMoveComplete={() => {
                             setShowMoveModal(false);
                             setSelectedCertificates(new Set());
-                            fetchCertificates();
+                            fetchCertificates(selectedShip.id); // Fix: add selectedShip.id
                             toast.success(language === 'vi' ? 'Đã di chuyển chứng chỉ thành công!' : 'Certificates moved successfully!');
                           }}
                         />
