@@ -5273,7 +5273,6 @@ async def get_usage_stats(
         raise HTTPException(status_code=500, detail="Failed to fetch usage statistics")
 
 # Add the router to the main app
-# Add the router to the main app
 app.include_router(api_router)
 
 # Static files
