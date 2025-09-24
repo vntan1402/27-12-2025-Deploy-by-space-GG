@@ -148,48 +148,172 @@ class PMDSCertificateClassificationTester:
             self.log(f"❌ Get ships error: {str(e)}", "ERROR")
             return None
     
-    def get_existing_pmds_certificates(self, ship_id):
-        """Get existing PMDS certificates for analysis"""
+    def download_pmds_certificate(self):
+        """Download the specific PMDS certificate file from the provided URL"""
         try:
-            self.log("📋 Getting existing PMDS certificates for analysis...")
+            self.log("📥 Downloading PMDS certificate file...")
+            self.log(f"   URL: {self.pmds_certificate_url}")
             
-            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
-            self.log(f"   GET {endpoint}")
-            
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            response = requests.get(self.pmds_certificate_url, timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                certificates = response.json()
-                self.log(f"   ✅ Found {len(certificates)} certificates")
+                # Save to temporary file
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+                temp_file.write(response.content)
+                temp_file.close()
                 
-                # Filter for PMDS certificates
-                pmds_certificates = []
-                for cert in certificates:
-                    issued_by = cert.get('issued_by', '').upper()
-                    cert_name = cert.get('cert_name', '').upper()
-                    
-                    if ('PMDS' in issued_by or 'PANAMA MARITIME DOCUMENTATION' in issued_by or
-                        'PANAMA MARITIME DOCUMENTATION SERVICES' in issued_by):
-                        pmds_certificates.append(cert)
-                        self.log(f"   ✅ Found PMDS certificate: {cert.get('cert_name', 'Unknown')}")
-                        self.log(f"      Certificate Number: {cert.get('cert_no', 'Unknown')}")
-                        self.log(f"      Issued By: {cert.get('issued_by', 'Unknown')}")
+                file_size = len(response.content)
+                self.log(f"   ✅ PDF downloaded successfully")
+                self.log(f"   File size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
+                self.log(f"   Temporary file: {temp_file.name}")
                 
-                if pmds_certificates:
-                    self.log(f"   ✅ Found {len(pmds_certificates)} PMDS certificates for analysis")
-                    self.test_results['pmds_certificates'] = pmds_certificates
-                    return pmds_certificates
-                else:
-                    self.log("   ❌ No PMDS certificates found")
-                    return []
+                self.pmds_classification_tests['pdf_download_successful'] = True
+                self.test_results['pdf_file_path'] = temp_file.name
+                self.test_results['pdf_file_size'] = file_size
+                
+                return temp_file.name
             else:
-                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
-                return []
+                self.log(f"   ❌ Failed to download PDF: HTTP {response.status_code}")
+                return None
                 
         except Exception as e:
-            self.log(f"❌ Get certificates error: {str(e)}", "ERROR")
-            return []
+            self.log(f"❌ PDF download error: {str(e)}", "ERROR")
+            return None
+    
+    def test_certificate_analysis_with_pmds_pdf(self, ship_id, pdf_file_path):
+        """Test certificate analysis endpoint with the actual PMDS PDF file"""
+        try:
+            self.log("🔍 Testing certificate analysis with PMDS PDF file...")
+            
+            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+            self.log(f"   POST {endpoint}")
+            
+            # Read the PDF file
+            with open(pdf_file_path, 'rb') as pdf_file:
+                pdf_content = pdf_file.read()
+            
+            files = {'file': ('SUNSHINE_01_CICA_PM251277.pdf', pdf_content, 'application/pdf')}
+            data = {'ship_id': ship_id}
+            
+            self.log("   📤 Uploading PMDS certificate for analysis...")
+            self.log(f"   File size: {len(pdf_content):,} bytes")
+            
+            start_time = time.time()
+            
+            response = requests.post(
+                endpoint, 
+                files=files,
+                data=data,
+                headers=self.get_headers(), 
+                timeout=120  # Extended timeout for AI processing
+            )
+            
+            end_time = time.time()
+            analysis_time = end_time - start_time
+            
+            self.log(f"   Response status: {response.status_code}")
+            self.log(f"   Analysis time: {analysis_time:.2f} seconds")
+            
+            if response.status_code == 200:
+                self.pmds_classification_tests['certificate_analysis_endpoint_accessible'] = True
+                
+                try:
+                    analysis_result = response.json()
+                    self.log("   ✅ Certificate analysis endpoint accessible")
+                    self.log("   📊 ANALYZING AI RESPONSE...")
+                    
+                    # Log the complete response structure
+                    self.log(f"   Response keys: {list(analysis_result.keys())}")
+                    
+                    # Check for success field
+                    success = analysis_result.get('success', False)
+                    self.log(f"   Success: {success}")
+                    
+                    if success:
+                        self.pmds_classification_tests['ai_analysis_response_received'] = True
+                        
+                        # Check extracted text (if available)
+                        extracted_text = analysis_result.get('extracted_text', '')
+                        if extracted_text and len(extracted_text) > 100:
+                            self.log(f"   ✅ PDF text extraction successful ({len(extracted_text)} characters)")
+                            self.pmds_classification_tests['pdf_text_extraction_successful'] = True
+                            
+                            # Check for PMDS detection in extracted text
+                            text_upper = extracted_text.upper()
+                            if 'PANAMA MARITIME DOCUMENTATION SERVICES' in text_upper or 'PMDS' in text_upper:
+                                self.log("   ✅ PMDS organization detected in extracted text")
+                                self.pmds_classification_tests['pmds_detection_triggered'] = True
+                            else:
+                                self.log("   ❌ PMDS organization NOT detected in extracted text")
+                        else:
+                            self.log("   ❌ PDF text extraction failed or insufficient text")
+                        
+                        # Check classification fields
+                        category = analysis_result.get('category', '')
+                        is_marine_certificate = analysis_result.get('is_marine_certificate', False)
+                        
+                        self.log(f"   Category: {category}")
+                        self.log(f"   Is Marine Certificate: {is_marine_certificate}")
+                        
+                        if category == 'certificates':
+                            self.log("   ✅ Category field correct ('certificates')")
+                            self.pmds_classification_tests['category_field_correct'] = True
+                        else:
+                            self.log(f"   ❌ Category field incorrect (expected 'certificates', got '{category}')")
+                        
+                        if is_marine_certificate:
+                            self.log("   ✅ is_marine_certificate field is true")
+                            self.pmds_classification_tests['is_marine_certificate_true'] = True
+                        else:
+                            self.log("   ❌ is_marine_certificate field is false")
+                        
+                        # Check for complete response
+                        expected_fields = ['success', 'category', 'is_marine_certificate']
+                        found_fields = [field for field in expected_fields if field in analysis_result]
+                        
+                        if len(found_fields) == len(expected_fields):
+                            self.log("   ✅ Classification response complete")
+                            self.pmds_classification_tests['classification_response_complete'] = True
+                        else:
+                            missing_fields = [field for field in expected_fields if field not in analysis_result]
+                            self.log(f"   ❌ Classification response incomplete (missing: {missing_fields})")
+                        
+                        # Log all response fields for analysis
+                        self.log("   📋 COMPLETE ANALYSIS RESPONSE:")
+                        for key, value in analysis_result.items():
+                            if isinstance(value, str) and len(value) > 100:
+                                self.log(f"      {key}: {str(value)[:100]}... ({len(value)} chars)")
+                            else:
+                                self.log(f"      {key}: {value}")
+                    
+                    else:
+                        fallback_reason = analysis_result.get('fallback_reason', 'Unknown')
+                        self.log(f"   ❌ AI analysis failed: {fallback_reason}")
+                    
+                    self.test_results['analysis_result'] = analysis_result
+                    self.test_results['analysis_time'] = analysis_time
+                    
+                    return analysis_result
+                    
+                except json.JSONDecodeError as e:
+                    self.log(f"   ❌ Failed to parse JSON response: {e}")
+                    self.log(f"   Raw response: {response.text[:500]}")
+                    return None
+            else:
+                self.log(f"   ❌ Certificate analysis failed: HTTP {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:500]}")
+                return None
+                
+        except Exception as e:
+            self.log(f"❌ Certificate analysis error: {str(e)}", "ERROR")
+            self.log(f"   Exception type: {type(e).__name__}")
+            self.log(f"   Traceback: {traceback.format_exc()}")
+            return None
     
     def analyze_pmds_certificate_classification(self, certificates):
         """Analyze existing PMDS certificates for classification issues"""
