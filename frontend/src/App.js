@@ -1361,7 +1361,10 @@ const HomePage = () => {
           setMultiCertUploads(prev => prev.map(upload => ({
             ...upload,
             status: upload.status === 'pending' ? 'uploading' : upload.status,
-            progress: upload.status === 'uploading' ? progress : upload.progress
+            progress: upload.status === 'uploading' ? progress : upload.progress,
+            stage: upload.status === 'pending' ? 
+              (language === 'vi' ? `Đang upload ${upload.filename}...` : `Uploading ${upload.filename}...`) : 
+              upload.stage
           })));
         }
       });
