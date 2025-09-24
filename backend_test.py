@@ -48,7 +48,9 @@ class CertificateDatabaseTester:
                 }
                 
                 endpoint = f"{BACKEND_URL}/auth/login"
-                response = requests.post(endpoint, json=login_data, timeout=30)
+                self.log(f"   Attempting login to: {endpoint}")
+                response = requests.post(endpoint, json=login_data, timeout=60)
+                self.log(f"   Response status: {response.status_code}")
                 
                 if response.status_code == 200:
                     data = response.json()
