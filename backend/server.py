@@ -3423,6 +3423,57 @@ DOCUMENT TEXT CONTENT:
         logger.error(f"AI analysis error details - Provider: {provider}, Model: {model}, File: {filename}")
         return classify_by_filename(filename)
 
+def normalize_ai_analysis_response(analysis_result: dict) -> dict:
+    """Normalize AI analysis response to handle different response formats"""
+    try:
+        # If the response is already in the expected flat format, return as-is
+        if "category" in analysis_result:
+            return analysis_result
+        
+        # Handle nested format with sections
+        normalized = {}
+        
+        # Extract category from DOCUMENT CLASSIFICATION
+        if "DOCUMENT CLASSIFICATION" in analysis_result:
+            normalized["category"] = analysis_result["DOCUMENT CLASSIFICATION"]
+        
+        # Extract ship information
+        ship_info = analysis_result.get("SHIP INFORMATION", {})
+        if isinstance(ship_info, dict):
+            normalized["ship_name"] = ship_info.get("ship_name")
+        
+        # Extract certificate information
+        cert_info = analysis_result.get("CERTIFICATE INFORMATION", {})
+        if isinstance(cert_info, dict):
+            normalized.update({
+                "cert_name": cert_info.get("CERT_NAME"),
+                "cert_type": cert_info.get("CERT_TYPE"),
+                "cert_no": cert_info.get("CERT_NO"),
+                "issue_date": cert_info.get("ISSUE_DATE"),
+                "valid_date": cert_info.get("VALID_DATE"),
+                "last_endorse": cert_info.get("LAST_ENDORSE"),
+                "next_survey": cert_info.get("NEXT_SURVEY"),
+                "issued_by": cert_info.get("ISSUED_BY"),
+                "ship_name": cert_info.get("SHIP_NAME") or normalized.get("ship_name"),
+                "notes": cert_info.get("NOTES")
+            })
+        
+        # Extract confidence assessment
+        confidence_info = analysis_result.get("CONFIDENCE ASSESSMENT", {})
+        if isinstance(confidence_info, dict):
+            normalized["confidence"] = confidence_info.get("confidence")
+        
+        # Copy any other fields that might be present
+        for key, value in analysis_result.items():
+            if key not in ["DOCUMENT CLASSIFICATION", "SHIP INFORMATION", "CERTIFICATE INFORMATION", "CONFIDENCE ASSESSMENT"]:
+                normalized[key] = value
+        
+        return normalized
+        
+    except Exception as e:
+        logger.error(f"Error normalizing AI analysis response: {e}")
+        return analysis_result
+
 def classify_by_filename(filename: str) -> dict:
     """Fallback classification based on filename"""
     filename_lower = filename.lower()
