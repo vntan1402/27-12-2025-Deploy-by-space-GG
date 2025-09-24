@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Certificate Abbreviation Mapping Permission Testing
-Review Request: Test updated permission for certificate abbreviation mapping
+FOCUS: Certificate Abbreviation Generation Algorithm Testing
+Review Request: Test the updated certificate abbreviation generation algorithm that removes "Statement of Compliance"
 """
 
 import requests
