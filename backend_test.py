@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-Focus: Test enhanced ship creation functionality with improved Google Drive integration
-Review Request: Test enhanced error handling, timeout improvements, retry logic, and better diagnostics
+Focus: Test improved Marine Certificate classification with PMDS certificate
+Review Request: Test certificate analysis endpoint with PMDS certificate and verify classification improvements
 """
 
 import requests
@@ -14,8 +14,8 @@ import time
 import subprocess
 import threading
 
-# Configuration - Try internal URL first, fallback to external
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use external URL for testing
+BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
 class EnhancedShipCreationTester:
     def __init__(self):
