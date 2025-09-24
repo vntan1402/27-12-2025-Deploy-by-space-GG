@@ -5175,8 +5175,8 @@ async def get_sidebar_structure():
         sidebar_structure = {
             "Document Portfolio": [
                 "Certificates",
-                "Inspection Records", 
-                "Survey Reports",
+                "Class Survey Report",
+                "Test Report", 
                 "Drawings & Manuals",
                 "Other Documents"
             ],
