@@ -175,16 +175,18 @@ frontend:
 
 metadata:
   created_by: "testing_agent"
-  version: "1.1"
-  test_sequence: 1
+  version: "2.0"
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Enhanced Detailed Ship Information with 3-Column Layout"
-    - "Survey & Maintenance Information Fields"
-    - "3-Column Layout Implementation"
-    - "Hidden Fields Implementation"
+    - "Ship Retrieval with Enhanced Data Structures"
+    - "Anniversary Date Calculation Endpoint"
+    - "Anniversary Date Override Endpoint"
+    - "Ship Update with Enhanced Fields"
+    - "Lloyd's Maritime Standards Compliance"
+    - "Day/Month Validation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
