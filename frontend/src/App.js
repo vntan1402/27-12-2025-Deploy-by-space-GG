@@ -1403,9 +1403,12 @@ const HomePage = () => {
       let cachedCount = 0;
       let fetchedCount = 0;
       
+      // Get current ship's cached links
+      const currentShipLinks = getCurrentShipLinks();
+      
       // First, try to use cached links
       for (const cert of certificatesToCopy) {
-        const cachedLink = certificateLinks[cert.id];
+        const cachedLink = currentShipLinks[cert.id];
         if (cachedLink && cachedLink.link) {
           copiedLinks.push(cachedLink.link);
           cachedCount++;
@@ -1421,8 +1424,23 @@ const HomePage = () => {
               // Format: "Certificate Name (Certificate Abbreviation): URL"
               const certName = cert.cert_name || 'Certificate';
               const certAbbr = cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A';
-              copiedLinks.push(`${certName} (${certAbbr}): ${data.view_url}`);
+              const formattedLink = `${certName} (${certAbbr}): ${data.view_url}`;
+              copiedLinks.push(formattedLink);
               fetchedCount++;
+              
+              // Cache this link for future use
+              if (selectedShip?.id) {
+                setCertificateLinksCache(prev => ({
+                  ...prev,
+                  [selectedShip.id]: {
+                    ...getCurrentShipLinks(),
+                    [cert.id]: {
+                      link: formattedLink,
+                      url: data.view_url
+                    }
+                  }
+                }));
+              }
             } else {
               errorCount++;
             }
