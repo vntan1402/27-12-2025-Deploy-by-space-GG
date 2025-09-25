@@ -4344,7 +4344,7 @@ async def analyze_with_google(file_content: bytes, filename: str, content_type: 
                 return {
                     "category": "certificates",  # Default to certificates for certificate uploads
                     "cert_name": f"Maritime Certificate - {filename.replace('.pdf', '')}",
-                    "cert_type": "Full Term",
+                    "cert_type": validate_certificate_type("Full Term"),
                     "cert_no": f"CERT_{filename.replace('.pdf', '').upper()}",
                     "issue_date": fallback_issue_date,
                     "valid_date": fallback_valid_date,
