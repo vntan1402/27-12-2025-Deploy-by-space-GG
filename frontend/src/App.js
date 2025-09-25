@@ -676,7 +676,7 @@ const HomePage = () => {
   const [selectedShip, setSelectedShip] = useState(null);
   const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
   const [certificates, setCertificates] = useState([]);
-  const [certificateLinks, setCertificateLinks] = useState({}); // Pre-fetched links cache
+  const [certificateLinksCache, setCertificateLinksCache] = useState({}); // Per-ship cache: {shipId: {certId: {link, url}}}
   const [linksFetching, setLinksFetching] = useState(false); // Loading state for links
   const [companyLogo, setCompanyLogo] = useState(null);
   const [hoverTimeout, setHoverTimeout] = useState(null);
