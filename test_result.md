@@ -48,6 +48,89 @@
 ##   run_ui: false
 ##
 ## test_plan:
+
+user_problem_statement: "Test enhanced Last Endorse processing for maritime certificates with AI prompt enhancement and fallback pattern matching"
+
+backend:
+  - task: "Enhanced Last Endorse Processing for Maritime Certificates"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: "CRITICAL ISSUE IDENTIFIED: Enhanced endorsement processing is implemented in code (get_enhanced_last_endorse and extract_latest_endorsement_date functions exist) but NOT WORKING due to AI analysis failures. Root causes: 1) OCR processing was failing due to missing Poppler dependency (FIXED by installing poppler-utils), 2) AI analysis still failing with 'AI analysis failed or no API key available' despite AI config showing Google Gemini model with Emergent key, 3) Tested 32 existing PMDS certificates - NONE have endorsement dates detected, 4) Pattern matching fallback not triggering properly. The enhanced endorsement processing code exists but the AI integration is broken, preventing endorsement date extraction from working."
+
+  - task: "AI Prompt Enhancement for Endorsement Detection"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: "AI prompt enhancement code exists but AI analysis consistently fails with 'AI analysis failed or no API key available'. AI config shows provider: google, model: gemini-2.0-flash, use_emergent_key: true, but analyze-ship-certificate endpoint returns fallback data instead of AI analysis results. Maritime domain knowledge prompts cannot be tested until AI integration is fixed."
+
+  - task: "Multiple Endorsement Handling"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: "extract_latest_endorsement_date function implemented with logic to find multiple endorsement dates and select the latest one, but cannot be tested because AI analysis is failing. Function includes patterns for annual survey, intermediate survey, endorsement dates, etc. but requires working AI/OCR to extract text content first."
+
+  - task: "Fallback Pattern Matching"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: "Pattern matching fallback is implemented in extract_latest_endorsement_date function with regex patterns for endorsement keywords, but not triggering because AI analysis fails before reaching fallback logic. Backend logs show no 'Found endorsement date via pattern matching' messages, indicating fallback mechanism is not being reached."
+
+  - task: "Certificate Types with Endorsement Requirements"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: "Certificate type validation and endorsement requirements logic exists, but cannot be tested effectively because AI analysis is failing. Tested SOLAS, MARPOL, IAPP, ISM, Load Line certificates but all fail at AI analysis stage before endorsement processing can occur."
+
+  - task: "OCR Processing for Image-based PDFs"
+    implemented: true
+    working: true
+    file: "/app/backend/ocr_processor.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "testing"
+        -comment: "OCR processing was initially failing due to missing Poppler dependency. FIXED by installing poppler-utils. Backend logs now show successful PDF to image conversion instead of 'Unable to get page count. Is poppler installed and in PATH?' errors. OCR processor is working but AI analysis still fails after OCR extraction."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.1"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
 ##   current_focus:
 ##     - "Duplicate Certificate Resolution Modal"
 ##   stuck_tasks:
