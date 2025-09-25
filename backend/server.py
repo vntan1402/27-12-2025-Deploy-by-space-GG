@@ -841,6 +841,169 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
         logger.error(f"Error calculating certificate similarity: {e}")
         return 0.0
 
+async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional[AnniversaryDate]:
+    """
+    Calculate Anniversary Date from Full Term Class and Statutory Certificates following Lloyd's standards.
+    
+    Lloyd's Requirements:
+    - Anniversary date derived from Class and Statutory certificates (Full Term only)
+    - Typically from expiry dates of these certificates
+    - Only day and month are significant (not year)
+    - Used for annual survey scheduling within ±3 month window
+    
+    Args:
+        ship_id: The ship ID to get certificates for
+        
+    Returns:
+        AnniversaryDate object with day/month or None if no suitable certificates found
+    """
+    try:
+        # Get all certificates for this ship
+        certificates = await mongo_db.certificates.find({"ship_id": ship_id}).to_list(length=None)
+        
+        if not certificates:
+            logger.info(f"No certificates found for ship {ship_id}")
+            return None
+            
+        # Filter for Full Term certificates only (as per Lloyd's standards)
+        full_term_certs = []
+        class_statutory_keywords = [
+            'class', 'statutory', 'safety', 'construction', 'equipment', 
+            'load line', 'tonnage', 'radio', 'cargo ship safety'
+        ]
+        
+        for cert in certificates:
+            cert_type = cert.get('cert_type', '').strip()
+            cert_name = cert.get('cert_name', '').lower()
+            
+            # Only Full Term certificates
+            if cert_type != 'Full Term':
+                continue
+                
+            # Check if it's a Class or Statutory certificate
+            is_class_statutory = any(keyword in cert_name for keyword in class_statutory_keywords)
+            
+            if is_class_statutory and cert.get('expiry_date'):
+                full_term_certs.append(cert)
+        
+        if not full_term_certs:
+            logger.info(f"No Full Term Class/Statutory certificates with expiry dates found for ship {ship_id}")
+            return None
+            
+        logger.info(f"Found {len(full_term_certs)} Full Term Class/Statutory certificates for anniversary calculation")
+        
+        # Find the most common expiry day/month combination
+        expiry_dates = []
+        for cert in full_term_certs:
+            expiry_str = cert.get('expiry_date')
+            if expiry_str:
+                try:
+                    expiry_date = parse_date_string(expiry_str)
+                    if expiry_date:
+                        expiry_dates.append((expiry_date.day, expiry_date.month, cert.get('cert_name', 'Unknown')))
+                except:
+                    continue
+        
+        if not expiry_dates:
+            logger.info(f"No valid expiry dates found in Full Term certificates for ship {ship_id}")
+            return None
+            
+        # Find most common day/month combination (maritime best practice)
+        from collections import Counter
+        day_month_combinations = [(day, month) for day, month, _ in expiry_dates]
+        most_common = Counter(day_month_combinations).most_common(1)
+        
+        if most_common:
+            day, month = most_common[0][0]
+            # Find the certificate type that provided this date
+            source_cert = next((cert_name for d, m, cert_name in expiry_dates if d == day and m == month), 'Class/Statutory Certificate')
+            
+            logger.info(f"Calculated anniversary date for ship {ship_id}: {day}/{month} from {source_cert}")
+            
+            return AnniversaryDate(
+                day=day,
+                month=month,
+                auto_calculated=True,
+                source_certificate_type=source_cert,
+                manual_override=False
+            )
+            
+    except Exception as e:
+        logger.error(f"Error calculating anniversary date from certificates for ship {ship_id}: {e}")
+        
+    return None
+
+def create_dry_dock_cycle_from_legacy(legacy_months: Optional[int], last_special_survey: Optional[datetime] = None) -> Optional[DryDockCycle]:
+    """
+    Create enhanced DryDockCycle from legacy months field following Lloyd's 5-year standards.
+    
+    Lloyd's Requirements:
+    - Maximum 60 months (5 years) between dry docking
+    - One intermediate docking inspection required within the cycle
+    - Cycle typically starts from last special survey or dry docking date
+    
+    Args:
+        legacy_months: Original months field (typically 60)
+        last_special_survey: Date of last special survey to calculate cycle from
+        
+    Returns:
+        DryDockCycle object or None
+    """
+    if not legacy_months:
+        return None
+        
+    try:
+        # Default to 60 months (5 years) if legacy value exists but is unusual
+        cycle_months = min(legacy_months, 60)  # Lloyd's maximum
+        
+        # Calculate from_date and to_date
+        if last_special_survey:
+            from_date = last_special_survey
+        else:
+            # Use current date as cycle start if no reference point
+            from_date = datetime.now(timezone.utc)
+            
+        to_date = from_date + timedelta(days=cycle_months * 30.44)  # Average month length
+        
+        return DryDockCycle(
+            from_date=from_date,
+            to_date=to_date,
+            intermediate_docking_required=True,  # Lloyd's requirement
+            last_intermediate_docking=None
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating dry dock cycle from legacy data: {e}")
+        return None
+
+def format_anniversary_date_display(anniversary_date: Optional[AnniversaryDate]) -> str:
+    """Format anniversary date for display (day/month only)"""
+    if not anniversary_date or not anniversary_date.day or not anniversary_date.month:
+        return '-'
+        
+    try:
+        # Create a date string with just day and month
+        from calendar import month_abbr
+        return f"{anniversary_date.day} {month_abbr[anniversary_date.month]}"
+    except:
+        return f"{anniversary_date.day}/{anniversary_date.month:02d}"
+
+def format_dry_dock_cycle_display(dry_dock_cycle: Optional[DryDockCycle]) -> str:
+    """Format dry dock cycle for display (From - To with intermediate docking note)"""
+    if not dry_dock_cycle or not dry_dock_cycle.from_date or not dry_dock_cycle.to_date:
+        return '-'
+        
+    try:
+        from_str = dry_dock_cycle.from_date.strftime('%b %Y')
+        to_str = dry_dock_cycle.to_date.strftime('%b %Y')
+        
+        cycle_str = f"{from_str} - {to_str}"
+        if dry_dock_cycle.intermediate_docking_required:
+            cycle_str += " (Intermediate required)"
+            
+        return cycle_str
+    except:
+        return '-'
 def calculate_string_similarity(str1: str, str2: str) -> float:
     """Calculate string similarity using simple character overlap"""
     try:
