@@ -1982,7 +1982,7 @@ const HomePage = () => {
       return certCategory === targetCategory;
     });
     
-    // Then apply existing filters (type and status)
+    // Then apply existing filters (type, status, and search)
     const filtered = categoryFiltered.filter(cert => {
       const typeMatch = certificateFilters.certificateType === 'all' || 
                        cert.cert_type === certificateFilters.certificateType;
@@ -1992,7 +1992,13 @@ const HomePage = () => {
       const statusMatch = certificateFilters.status === 'all' || 
                          certStatus === certificateFilters.status;
       
-      return typeMatch && statusMatch;
+      // Search filter for cert_name and cert_abbreviation
+      const searchTerm = certificateFilters.search.toLowerCase().trim();
+      const searchMatch = !searchTerm || 
+                         (cert.cert_name && cert.cert_name.toLowerCase().includes(searchTerm)) ||
+                         (cert.cert_abbreviation && cert.cert_abbreviation.toLowerCase().includes(searchTerm));
+      
+      return typeMatch && statusMatch && searchMatch;
     });
     
     console.log(`Certificate filtering: ${certificates.length} total → ${categoryFiltered.length} in category '${targetCategory}' → ${filtered.length} after filters`);
