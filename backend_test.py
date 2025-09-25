@@ -174,101 +174,66 @@ class AnniversaryDateDryDockTester:
             self.log(f"❌ Ship retrieval test error: {str(e)}", "ERROR")
             return False
     
-    def test_ai_prompt_enhancement(self):
-        """Test AI prompt enhancement for endorsement date detection"""
+    def test_anniversary_date_calculation(self):
+        """Test the new anniversary date calculation endpoint"""
         try:
-            self.log("🤖 Testing AI Prompt Enhancement for endorsement date detection...")
+            self.log("📅 Testing anniversary date calculation endpoint...")
             
-            # Create a test certificate content with multiple endorsement dates
-            test_certificate_content = """
-            INTERNATIONAL SAFETY MANAGEMENT CERTIFICATE
+            # Test the calculate anniversary date endpoint
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-anniversary-date"
+            self.log(f"   POST {endpoint}")
             
-            Certificate No: ISM-2024-001
-            Ship Name: TEST VESSEL
-            IMO Number: 1234567
+            response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
             
-            This certificate is issued under the provisions of the International Safety Management Code.
-            
-            ENDORSEMENT HISTORY:
-            Annual Verification Audit: 15/03/2023
-            Intermediate Verification: 20/08/2023  
-            Last Annual Survey: 12/12/2023
-            Annual Verification Audit: 18/03/2024
-            
-            This certificate is valid until: 15/03/2025
-            
-            Issued by: Panama Maritime Documentation Services, Inc.
-            Date of Issue: 15/03/2022
-            """
-            
-            # Test the analyze-ship-certificate endpoint with enhanced AI prompt
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            
-            # Create a temporary file with the test content
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
-                temp_file.write(test_certificate_content)
-                temp_file_path = temp_file.name
-            
-            try:
-                with open(temp_file_path, 'rb') as f:
-                    files = {'file': ('test_certificate.txt', f, 'text/plain')}
+            if response.status_code == 200:
+                result = response.json()
+                self.log("   ✅ Anniversary date calculation successful")
+                
+                # Check the response structure
+                anniversary_date = result.get('anniversary_date')
+                if anniversary_date:
+                    day = anniversary_date.get('day')
+                    month = anniversary_date.get('month')
+                    auto_calculated = anniversary_date.get('auto_calculated')
+                    source_cert_type = anniversary_date.get('source_certificate_type')
                     
-                    self.log(f"   POST {endpoint}")
-                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
-                    self.log(f"   Response status: {response.status_code}")
+                    self.log(f"   📊 Anniversary Date Calculation Results:")
+                    self.log(f"      Day: {day}")
+                    self.log(f"      Month: {month}")
+                    self.log(f"      Auto Calculated: {auto_calculated}")
+                    self.log(f"      Source Certificate Type: {source_cert_type}")
                     
-                    if response.status_code == 200:
-                        result = response.json()
-                        self.log("   ✅ AI analysis completed")
-                        
-                        # Check if enhanced AI prompt detected endorsement dates
-                        last_endorse = result.get('last_endorse')
-                        text_content = result.get('text_content', '')
-                        
-                        self.log(f"   📊 AI Analysis Results:")
-                        self.log(f"      Success: {result.get('success')}")
-                        self.log(f"      Last Endorse: {last_endorse}")
-                        self.log(f"      Certificate Name: {result.get('cert_name')}")
-                        self.log(f"      Certificate Number: {result.get('cert_no')}")
-                        self.log(f"      Issued By: {result.get('issued_by')}")
-                        
-                        # Check for endorsement context recognition
-                        if 'endorsement' in text_content.lower() or 'annual' in text_content.lower() or 'survey' in text_content.lower():
-                            self.log("   ✅ Endorsement context recognized in text content")
-                            self.endorsement_tests['endorsement_context_recognition_verified'] = True
-                        
-                        # Verify enhanced processing
-                        if last_endorse:
-                            self.log(f"   ✅ Enhanced AI prompt detected endorsement date: {last_endorse}")
-                            self.endorsement_tests['ai_prompt_enhancement_tested'] = True
-                            
-                            # Check if it selected the latest date (should be 18/03/2024)
-                            if '2024' in str(last_endorse):
-                                self.log("   ✅ Latest endorsement date selected correctly")
-                                self.endorsement_tests['latest_endorsement_selection_verified'] = True
+                    # Validate day/month values (1-31 for day, 1-12 for month)
+                    if day and month:
+                        if 1 <= day <= 31 and 1 <= month <= 12:
+                            self.log("   ✅ Day/month validation passed")
+                            self.anniversary_tests['validation_day_month_tested'] = True
                         else:
-                            self.log("   ⚠️ No endorsement date detected by AI")
-                        
-                        self.test_results['ai_prompt_test'] = result
-                        return True
-                    else:
-                        self.log(f"   ❌ AI analysis failed: {response.status_code}")
-                        try:
-                            error_data = response.json()
-                            self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                        except:
-                            self.log(f"   Error: {response.text[:200]}")
-                        return False
-                        
-            finally:
-                # Clean up temporary file
-                try:
-                    os.unlink(temp_file_path)
-                except:
-                    pass
+                            self.log(f"   ❌ Day/month validation failed: day={day}, month={month}")
                     
+                    # Check Lloyd's standards compliance
+                    if auto_calculated and source_cert_type:
+                        self.log("   ✅ Lloyd's standards compliance: Auto-calculated from certificates")
+                        self.anniversary_tests['lloyd_standards_compliance_verified'] = True
+                    
+                    self.anniversary_tests['anniversary_date_calculation_tested'] = True
+                else:
+                    self.log("   ⚠️ No anniversary date calculated - may be expected if no suitable certificates")
+                
+                self.test_results['anniversary_calculation'] = result
+                return True
+            else:
+                self.log(f"   ❌ Anniversary date calculation failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ AI prompt enhancement test error: {str(e)}", "ERROR")
+            self.log(f"❌ Anniversary date calculation test error: {str(e)}", "ERROR")
             return False
     
     def test_multiple_endorsement_handling(self):
