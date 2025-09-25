@@ -402,7 +402,7 @@ class AnniversaryDateDryDockTester:
             endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
             self.log(f"   PUT {endpoint}")
             
-            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=30)
+            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=10)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
