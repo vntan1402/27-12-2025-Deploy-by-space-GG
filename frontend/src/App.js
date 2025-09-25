@@ -9227,17 +9227,41 @@ const AddRecordModal = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
-                </label>
-                <input
-                  type="date"
-                  value={certificateData.last_endorse}
-                  onChange={(e) => setCertificateData(prev => ({ ...prev, last_endorse: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+              {/* Last Endorse - Only show for Full Term certificates */}
+              {certificateData.cert_type === 'Full Term' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                    <span className="text-xs text-gray-500 ml-1">
+                      ({language === 'vi' ? 'Chỉ cho chứng chỉ Full Term' : 'Full Term certificates only'})
+                    </span>
+                  </label>
+                  <input
+                    type="date"
+                    value={certificateData.last_endorse}
+                    onChange={(e) => setCertificateData(prev => ({ ...prev, last_endorse: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              )}
+              
+              {/* Placeholder div for grid alignment when Last Endorse is hidden */}
+              {certificateData.cert_type !== 'Full Term' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                    <span className="text-xs text-gray-400 ml-1">
+                      ({language === 'vi' ? 'Không áp dụng cho loại chứng chỉ này' : 'Not applicable for this certificate type'})
+                    </span>
+                  </label>
+                  <input
+                    type="date"
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-400 cursor-not-allowed"
+                    placeholder={language === 'vi' ? 'Chỉ Full Term mới có endorsement' : 'Full Term certificates only'}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}
