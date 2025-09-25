@@ -381,86 +381,77 @@ class AnniversaryDateDryDockTester:
             self.log(f"❌ Ship creation test error: {str(e)}", "ERROR")
             return False
     
-    def test_certificate_types_with_endorsements(self):
-        """Test certificate types that should have endorsement requirements"""
+    def test_ship_update_enhanced_fields(self):
+        """Test ship update with enhanced anniversary_date and dry_dock_cycle fields"""
         try:
-            self.log("📋 Testing certificate types with known endorsement requirements...")
+            self.log("🔄 Testing ship update with enhanced fields...")
             
-            test_results = []
+            # Update the SUNSHINE 01 ship with enhanced fields
+            update_data = {
+                "last_docking": "2024-02-10T00:00:00Z",
+                "last_special_survey": "2024-01-15T00:00:00Z",
+                "anniversary_date": {
+                    "day": 15,
+                    "month": 1,
+                    "auto_calculated": True,
+                    "source_certificate_type": "Full Term Class Certificate",
+                    "manual_override": False
+                },
+                "dry_dock_cycle": {
+                    "from_date": "2024-01-15T00:00:00Z",
+                    "to_date": "2029-01-15T00:00:00Z",
+                    "intermediate_docking_required": True,
+                    "last_intermediate_docking": "2024-02-10T00:00:00Z"
+                }
+            }
             
-            for cert_type in self.certificate_types_with_endorsements[:3]:  # Test first 3 types
-                self.log(f"   🔍 Testing {cert_type} certificate...")
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
+            self.log(f"   PUT {endpoint}")
+            
+            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                self.log("   ✅ Ship update with enhanced fields successful")
                 
-                # Create test content for this certificate type
-                test_content = f"""
-                {cert_type.upper()} CERTIFICATE
+                # Check enhanced fields in response
+                updated_anniversary = result.get('anniversary_date')
+                updated_dry_dock = result.get('dry_dock_cycle')
                 
-                Certificate No: {cert_type.replace(' ', '')}-2024-001
-                Ship Name: TEST VESSEL
+                self.log(f"   📊 Updated Ship Enhanced Fields:")
+                self.log(f"      Anniversary Date: {updated_anniversary}")
+                self.log(f"      Dry Dock Cycle: {updated_dry_dock}")
                 
-                Survey Information:
-                Annual survey: 20/05/2024
-                Intermediate survey: 15/11/2023
+                # Verify enhanced fields
+                if updated_anniversary and updated_dry_dock:
+                    # Check anniversary date structure
+                    if (updated_anniversary.get('day') == 15 and 
+                        updated_anniversary.get('month') == 1 and
+                        updated_anniversary.get('auto_calculated') == True):
+                        self.log("   ✅ Anniversary date enhanced fields updated correctly")
+                    
+                    # Check dry dock cycle structure with intermediate docking
+                    if (updated_dry_dock.get('intermediate_docking_required') == True and
+                        updated_dry_dock.get('last_intermediate_docking')):
+                        self.log("   ✅ Dry dock cycle with intermediate docking updated correctly")
+                        self.log("   ✅ Lloyd's intermediate docking requirements verified")
+                    
+                    self.anniversary_tests['ship_update_enhanced_fields_tested'] = True
                 
-                This certificate is valid until: 20/05/2025
-                
-                Issued by: Panama Maritime Documentation Services
-                """
-                
-                endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-                
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
-                    temp_file.write(test_content)
-                    temp_file_path = temp_file.name
-                
+                self.test_results['ship_update'] = result
+                return True
+            else:
+                self.log(f"   ❌ Ship update failed: {response.status_code}")
                 try:
-                    with open(temp_file_path, 'rb') as f:
-                        files = {'file': (f'{cert_type.lower()}_cert.txt', f, 'text/plain')}
-                        
-                        response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
-                        
-                        if response.status_code == 200:
-                            result = response.json()
-                            last_endorse = result.get('last_endorse')
-                            
-                            test_results.append({
-                                'cert_type': cert_type,
-                                'last_endorse': last_endorse,
-                                'success': bool(last_endorse)
-                            })
-                            
-                            if last_endorse:
-                                self.log(f"      ✅ {cert_type}: Endorsement date detected - {last_endorse}")
-                            else:
-                                self.log(f"      ⚠️ {cert_type}: No endorsement date detected")
-                        else:
-                            self.log(f"      ❌ {cert_type}: Analysis failed - {response.status_code}")
-                            test_results.append({
-                                'cert_type': cert_type,
-                                'last_endorse': None,
-                                'success': False
-                            })
-                            
-                finally:
-                    try:
-                        os.unlink(temp_file_path)
-                    except:
-                        pass
-            
-            # Analyze results
-            successful_tests = sum(1 for result in test_results if result['success'])
-            total_tests = len(test_results)
-            
-            self.log(f"   📊 Certificate Type Test Results: {successful_tests}/{total_tests} successful")
-            
-            if successful_tests > 0:
-                self.endorsement_tests['certificate_types_with_endorsements_tested'] = True
-            
-            self.test_results['certificate_type_tests'] = test_results
-            return successful_tests > 0
-            
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ Certificate types test error: {str(e)}", "ERROR")
+            self.log(f"❌ Ship update test error: {str(e)}", "ERROR")
             return False
     
     def verify_enhanced_processing_results(self):
