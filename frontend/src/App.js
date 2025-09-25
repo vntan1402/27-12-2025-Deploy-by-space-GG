@@ -2503,35 +2503,35 @@ const HomePage = () => {
                               </h4>
                             </div>
                             
-                            {/* Column 1 - Basic Ship Data */}
+                            {/* Column 1 - Basic Ship Information */}
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'IMO:' : 'IMO:'}</span>
                               <span className="ml-2">{selectedShip.imo || '-'}</span>
                             </div>
                             <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
-                              <span className="ml-2">{selectedShip.dwt?.toLocaleString() || '-'}</span>
+                              <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
+                              <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
                             </div>
                             <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
-                              <span className="ml-2">{selectedShip.year_built || '-'}</span>
+                              <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
+                              <span className="ml-2">{selectedShip.deadweight?.toLocaleString() || '-'}</span>
                             </div>
                             
-                            {/* Column 2 - Survey & Maintenance Data */}
+                            {/* Column 2 - Technical & Maintenance Data */}
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
+                              <span className="ml-2">{selectedShip.built_year || '-'}</span>
+                            </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Last Docking:' : 'Last Docking:'}</span>
                               <span className="ml-2">{formatDate(selectedShip.last_docking) || '-'}</span>
-                            </div>
-                            <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
-                              <span className="ml-2">{formatDate(selectedShip.last_special_survey) || '-'}</span>
                             </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Chu kỳ Dry Dock:' : 'Dry Dock Cycle:'}</span>
                               <span className="ml-2">{formatDryDockCycle(selectedShip.dry_dock_cycle) || '-'}</span>
                             </div>
                             
-                            {/* Column 3 - Management Data */}
+                            {/* Column 3 - Survey & Anniversary Data */}
                             <div className="flex items-center space-x-2">
                               <span className="font-semibold">{language === 'vi' ? 'Anniversary Date:' : 'Anniversary Date:'}</span>
                               <span>{formatAnniversaryDate(selectedShip.anniversary_date) || '-'}</span>
@@ -2550,12 +2550,12 @@ const HomePage = () => {
                               </button>
                             </div>
                             <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
-                              <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
+                              <span className="font-semibold">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
+                              <span className="ml-2">{formatDate(selectedShip.last_special_survey) || '-'}</span>
                             </div>
                             <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Công ty quản lý:' : 'Company:'}</span>
-                              <span className="ml-2">{selectedShip.company || '-'}</span>
+                              <span className="font-semibold">{language === 'vi' ? 'Chu kỳ Special Survey:' : 'Special Survey Cycle:'}</span>
+                              <span className="ml-2">{formatSpecialSurveyCycle(selectedShip.special_survey_cycle) || '-'}</span>
                             </div>
                           </div>
                         )}
