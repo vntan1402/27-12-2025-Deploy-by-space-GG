@@ -961,6 +961,93 @@ def create_dry_dock_cycle_from_legacy(legacy_months: Optional[int], last_special
             from_date = last_special_survey
         else:
             # Use current date as cycle start if no reference point
+async def process_enhanced_ship_fields(ship_data: dict, is_new_ship: bool = True, ship_id: str = None) -> None:
+    """
+    Process enhanced Anniversary Date and Dry Dock Cycle fields following Lloyd's maritime standards.
+    Handles both automatic calculation from certificates and manual override capabilities.
+    
+    Args:
+        ship_data: Dictionary containing ship data to process
+        is_new_ship: Whether this is a new ship creation or update
+        ship_id: Ship ID for updates (required for certificate lookup)
+    """
+    try:
+        # Process Anniversary Date
+        current_anniversary = ship_data.get('anniversary_date')
+        
+        if current_anniversary:
+            # Handle case where anniversary_date is provided as AnniversaryDate object or dict
+            if isinstance(current_anniversary, dict):
+                # It's already a dict (from frontend), validate and use
+                anniversary_obj = AnniversaryDate(**current_anniversary)
+            elif hasattr(current_anniversary, 'dict'):
+                # It's a Pydantic object
+                anniversary_obj = current_anniversary
+            else:
+                # Legacy datetime format - convert to enhanced format
+                logger.info("Converting legacy anniversary_date to enhanced format")
+                if isinstance(current_anniversary, str):
+                    parsed_date = parse_date_string(current_anniversary)
+                else:
+                    parsed_date = current_anniversary
+                    
+                if parsed_date:
+                    anniversary_obj = AnniversaryDate(
+                        day=parsed_date.day,
+                        month=parsed_date.month,
+                        auto_calculated=False,
+                        source_certificate_type="Manual Entry (Legacy)",
+                        manual_override=True
+                    )
+                else:
+                    anniversary_obj = None
+                    
+            if anniversary_obj:
+                ship_data['anniversary_date'] = anniversary_obj.dict()
+                # Keep legacy field for compatibility
+                ship_data['legacy_anniversary_date'] = current_anniversary if isinstance(current_anniversary, datetime) else None
+                
+        elif not is_new_ship and ship_id:
+            # For ship updates, try to auto-calculate if no anniversary date provided
+            calculated_anniversary = await calculate_anniversary_date_from_certificates(ship_id)
+            if calculated_anniversary:
+                ship_data['anniversary_date'] = calculated_anniversary.dict()
+                logger.info(f"Auto-calculated anniversary date for ship {ship_id}: {calculated_anniversary.day}/{calculated_anniversary.month}")
+        
+        # Process Dry Dock Cycle
+        current_dry_dock = ship_data.get('dry_dock_cycle')
+        legacy_dry_dock = ship_data.get('legacy_dry_dock_cycle')
+        last_special_survey = ship_data.get('last_special_survey')
+        
+        if current_dry_dock:
+            # Handle case where dry_dock_cycle is provided as DryDockCycle object or dict
+            if isinstance(current_dry_dock, dict):
+                dry_dock_obj = DryDockCycle(**current_dry_dock)
+            elif hasattr(current_dry_dock, 'dict'):
+                dry_dock_obj = current_dry_dock
+            else:
+                # Legacy integer format - convert to enhanced format
+                logger.info("Converting legacy dry_dock_cycle to enhanced format")
+                dry_dock_obj = create_dry_dock_cycle_from_legacy(current_dry_dock, last_special_survey)
+                
+            if dry_dock_obj:
+                ship_data['dry_dock_cycle'] = dry_dock_obj.dict()
+                # Keep legacy field for compatibility
+                ship_data['legacy_dry_dock_cycle'] = current_dry_dock if isinstance(current_dry_dock, int) else None
+                
+        elif legacy_dry_dock:
+            # Convert legacy field to enhanced format
+            dry_dock_obj = create_dry_dock_cycle_from_legacy(legacy_dry_dock, last_special_survey)
+            if dry_dock_obj:
+                ship_data['dry_dock_cycle'] = dry_dock_obj.dict()
+                ship_data['legacy_dry_dock_cycle'] = legacy_dry_dock
+        
+        logger.info(f"Enhanced ship fields processed successfully for ship {'(new)' if is_new_ship else ship_id}")
+        
+    except Exception as e:
+        logger.error(f"Error processing enhanced ship fields: {e}")
+        # Don't fail the ship creation/update if enhancement fails
+        pass
             from_date = datetime.now(timezone.utc)
             
         to_date = from_date + timedelta(days=cycle_months * 30.44)  # Average month length
