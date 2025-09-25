@@ -127,6 +127,13 @@ class DryDockCycle(BaseModel):
     to_date: Optional[datetime] = None    # End of 5-year cycle  
     intermediate_docking_required: bool = True  # Lloyd's requirement: one intermediate docking within cycle
     last_intermediate_docking: Optional[datetime] = None  # Last intermediate docking date
+
+class SpecialSurveyCycle(BaseModel):
+    """Special survey cycle representing maritime special survey requirements"""
+    from_date: Optional[datetime] = None  # Start of special survey cycle
+    to_date: Optional[datetime] = None    # End of special survey cycle
+    intermediate_required: bool = False   # Whether intermediate surveys are required
+    cycle_type: Optional[str] = None      # Type of special survey cycle (Annual, Intermediate, etc.)
     
 class AnniversaryDate(BaseModel):
     """Anniversary date derived from Full Term certificates with manual override capability"""
