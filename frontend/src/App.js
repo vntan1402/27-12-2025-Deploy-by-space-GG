@@ -2489,7 +2489,11 @@ const HomePage = () => {
                                     ? selectedShip.dry_dock_cycle
                                     : selectedShip.dry_dock_cycle && typeof selectedShip.dry_dock_cycle === 'number'
                                       ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
-                                      : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
+                                      : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
+                                  // Ensure enhanced special survey cycle structure
+                                  special_survey_cycle: selectedShip.special_survey_cycle && typeof selectedShip.special_survey_cycle === 'object'
+                                    ? selectedShip.special_survey_cycle
+                                    : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
                                 };
                                 setEditingShipData(initData);
                                 setShowEditShipModal(true);
