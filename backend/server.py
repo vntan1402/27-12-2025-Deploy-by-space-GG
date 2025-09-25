@@ -154,6 +154,7 @@ class ShipBase(BaseModel):
     last_docking: Optional[datetime] = None  # Last dry docking date
     last_special_survey: Optional[datetime] = None  # Last special survey date
     dry_dock_cycle: Optional[DryDockCycle] = None  # Enhanced dry dock cycle with Lloyd's requirements
+    special_survey_cycle: Optional[SpecialSurveyCycle] = None  # Special survey cycle management
     anniversary_date: Optional[AnniversaryDate] = None  # Enhanced anniversary date with auto-calculation
     ship_owner: Optional[str] = None
     company: str  # Company that owns/manages the ship
