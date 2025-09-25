@@ -3640,36 +3640,137 @@ const HomePage = () => {
                     </div>
                   </div>
                   
-                  {/* Dry Dock Cycle and Anniversary Date */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Chu kỳ Dry Dock (tháng)' : 'Dry Dock Cycle (months)'}
-                      </label>
-                      <input
-                        type="number"
-                        value={editingShipData.dry_dock_cycle || ''}
-                        onChange={(e) => setEditingShipData(prev => ({ ...prev, dry_dock_cycle: parseInt(e.target.value) || null }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="60"
-                        min="1"
-                        max="120"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        {language === 'vi' ? 'Thường là 60 tháng (5 năm)' : 'Typically 60 months (5 years)'}
-                      </p>
+                  {/* Enhanced Dry Dock Cycle */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Chu kỳ Dry Dock (5 năm theo Lloyd\'s)' : 'Dry Dock Cycle (5-year Lloyd\'s Standard)'}
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">From Date</label>
+                        <input
+                          type="date"
+                          value={editingShipData.dry_dock_cycle?.from_date || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            dry_dock_cycle: {
+                              ...prev.dry_dock_cycle,
+                              from_date: e.target.value,
+                              intermediate_docking_required: true
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">To Date (Max 5 years)</label>
+                        <input
+                          type="date"
+                          value={editingShipData.dry_dock_cycle?.to_date || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            dry_dock_cycle: {
+                              ...prev.dry_dock_cycle,
+                              to_date: e.target.value,
+                              intermediate_docking_required: true
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Anniversary Date' : 'Anniversary Date'}
+                    <div className="mt-2">
+                      <label className="flex items-center text-sm text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={editingShipData.dry_dock_cycle?.intermediate_docking_required !== false}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            dry_dock_cycle: {
+                              ...prev.dry_dock_cycle,
+                              intermediate_docking_required: e.target.checked
+                            }
+                          }))}
+                          className="mr-2"
+                        />
+                        Intermediate docking required within cycle (Lloyd's requirement)
                       </label>
-                      <input
-                        type="date"
-                        value={editingShipData.anniversary_date || ''}
-                        onChange={(e) => setEditingShipData(prev => ({ ...prev, anniversary_date: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
                     </div>
+                  </div>
+                  
+                  {/* Enhanced Anniversary Date */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Anniversary Date (Ngày/Tháng từ chứng chỉ)' : 'Anniversary Date (Day/Month from Certificates)'}
+                    </label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Day</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="31"
+                          value={editingShipData.anniversary_date?.day || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            anniversary_date: {
+                              ...prev.anniversary_date,
+                              day: parseInt(e.target.value) || null,
+                              manual_override: true,
+                              auto_calculated: false,
+                              source_certificate_type: "Manual Entry"
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="15"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Month</label>
+                        <select
+                          value={editingShipData.anniversary_date?.month || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            anniversary_date: {
+                              ...prev.anniversary_date,
+                              month: parseInt(e.target.value) || null,
+                              manual_override: true,
+                              auto_calculated: false,
+                              source_certificate_type: "Manual Entry"
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value="">Select month</option>
+                          <option value="1">Jan</option>
+                          <option value="2">Feb</option>
+                          <option value="3">Mar</option>
+                          <option value="4">Apr</option>
+                          <option value="5">May</option>
+                          <option value="6">Jun</option>
+                          <option value="7">Jul</option>
+                          <option value="8">Aug</option>
+                          <option value="9">Sep</option>
+                          <option value="10">Oct</option>
+                          <option value="11">Nov</option>
+                          <option value="12">Dec</option>
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          type="button"
+                          onClick={() => handleRecalculateAnniversaryDate(editingShipData.id)}
+                          className="w-full px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm rounded-lg transition-colors"
+                        >
+                          Auto-calculate
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {editingShipData.anniversary_date?.auto_calculated 
+                        ? `Auto-calculated from: ${editingShipData.anniversary_date?.source_certificate_type}`
+                        : 'Manual entry or auto-calculate from Full Term Class/Statutory certificates'}
+                    </p>
                   </div>
                 </div>
 
