@@ -2416,9 +2416,22 @@ const HomePage = () => {
                             </div>
                             
                             {/* Column 3 - Management Data */}
-                            <div>
+                            <div className="flex items-center space-x-2">
                               <span className="font-semibold">{language === 'vi' ? 'Anniversary Date:' : 'Anniversary Date:'}</span>
-                              <span className="ml-2">{formatDate(selectedShip.anniversary_date) || '-'}</span>
+                              <span>{formatAnniversaryDate(selectedShip.anniversary_date) || '-'}</span>
+                              {selectedShip.anniversary_date?.manual_override && (
+                                <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">Manual</span>
+                              )}
+                              {selectedShip.anniversary_date?.auto_calculated && (
+                                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Auto</span>
+                              )}
+                              <button
+                                onClick={() => handleRecalculateAnniversaryDate(selectedShip.id)}
+                                className="ml-2 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                title="Recalculate from certificates"
+                              >
+                                ↻
+                              </button>
                             </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
