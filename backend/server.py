@@ -3995,7 +3995,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             'cert_no': analysis_result.get('cert_no', 'Unknown'),
             'issue_date': parse_date_string(analysis_result.get('issue_date')),
             'valid_date': parse_date_string(analysis_result.get('valid_date')),
-            'last_endorse': parse_date_string(analysis_result.get('last_endorse')),
+            'last_endorse': get_enhanced_last_endorse(analysis_result),
             'next_survey': parse_date_string(analysis_result.get('next_survey')),
             'issued_by': analysis_result.get('issued_by'),
             'category': analysis_result.get('category', 'certificates'),
