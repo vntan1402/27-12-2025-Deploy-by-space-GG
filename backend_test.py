@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Direct PMDS Certificate Classification with Actual Certificate File
-Review Request: Test specific PMDS certificate classification with actual certificate file
+FOCUS: Multi Cert Upload Classification Discrepancy for MLC File
+Review Request: Debug Multi Cert Upload classification discrepancy for MLC file
 """
 
 import requests
@@ -13,11 +13,12 @@ from datetime import datetime
 import time
 import traceback
 import tempfile
+import subprocess
 
 # Configuration - Use external URL for testing (as per frontend .env)
 BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
-class PMDSCertificateClassificationTester:
+class MultiCertUploadClassificationTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -25,20 +26,20 @@ class PMDSCertificateClassificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # PMDS Certificate URL from review request - MLC Certificate
-        self.pmds_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/5lvr7rxs_SUNSHINE%2001%20-%20MLC-%20PM251278.pdf"
+        # MLC Certificate URL from review request
+        self.mlc_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/5lvr7rxs_SUNSHINE%2001%20-%20MLC-%20PM251278.pdf"
         
-        self.pmds_classification_tests = {
+        self.multi_cert_tests = {
             'authentication_successful': False,
             'pdf_download_successful': False,
-            'certificate_analysis_endpoint_accessible': False,
-            'pdf_text_extraction_successful': False,
+            'multi_upload_endpoint_accessible': False,
+            'single_upload_endpoint_accessible': False,
+            'multi_upload_classification_correct': False,
+            'single_upload_classification_correct': False,
+            'classification_discrepancy_identified': False,
             'ai_analysis_response_received': False,
-            'pmds_detection_triggered': False,
-            'category_field_correct': False,
-            'is_marine_certificate_true': False,
-            'classification_response_complete': False,
-            'backend_logs_captured': False
+            'backend_logs_captured': False,
+            'confidence_threshold_checked': False
         }
         
     def log(self, message, level="INFO"):
@@ -148,13 +149,13 @@ class PMDSCertificateClassificationTester:
             self.log(f"❌ Get ships error: {str(e)}", "ERROR")
             return None
     
-    def download_pmds_certificate(self):
-        """Download the specific PMDS certificate file from the provided URL"""
+    def download_mlc_certificate(self):
+        """Download the specific MLC certificate file from the provided URL"""
         try:
-            self.log("📥 Downloading PMDS certificate file...")
-            self.log(f"   URL: {self.pmds_certificate_url}")
+            self.log("📥 Downloading MLC certificate file...")
+            self.log(f"   URL: {self.mlc_certificate_url}")
             
-            response = requests.get(self.pmds_certificate_url, timeout=30)
+            response = requests.get(self.mlc_certificate_url, timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
@@ -168,7 +169,7 @@ class PMDSCertificateClassificationTester:
                 self.log(f"   File size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
                 self.log(f"   Temporary file: {temp_file.name}")
                 
-                self.pmds_classification_tests['pdf_download_successful'] = True
+                self.multi_cert_tests['pdf_download_successful'] = True
                 self.test_results['pdf_file_path'] = temp_file.name
                 self.test_results['pdf_file_size'] = file_size
                 
@@ -181,10 +182,10 @@ class PMDSCertificateClassificationTester:
             self.log(f"❌ PDF download error: {str(e)}", "ERROR")
             return None
     
-    def test_certificate_analysis_with_pmds_pdf(self, ship_id, pdf_file_path):
-        """Test certificate analysis endpoint with the actual PMDS PDF file"""
+    def test_multi_cert_upload(self, ship_id, pdf_file_path):
+        """Test Multi Cert Upload endpoint with the MLC file"""
         try:
-            self.log("🔍 Testing certificate classification with PMDS PDF file...")
+            self.log("🔍 Testing Multi Cert Upload with MLC file...")
             
             endpoint = f"{BACKEND_URL}/certificates/multi-upload"
             self.log(f"   POST {endpoint}?ship_id={ship_id}")
@@ -196,7 +197,7 @@ class PMDSCertificateClassificationTester:
             files = {'files': ('SUNSHINE_01_MLC_PM251278.pdf', pdf_content, 'application/pdf')}
             params = {'ship_id': ship_id}
             
-            self.log("   📤 Uploading PMDS certificate for classification...")
+            self.log("   📤 Uploading MLC certificate via Multi Cert Upload...")
             self.log(f"   File size: {len(pdf_content):,} bytes")
             
             start_time = time.time()
@@ -216,18 +217,17 @@ class PMDSCertificateClassificationTester:
             self.log(f"   Analysis time: {analysis_time:.2f} seconds")
             
             if response.status_code == 200:
-                self.pmds_classification_tests['certificate_analysis_endpoint_accessible'] = True
+                self.multi_cert_tests['multi_upload_endpoint_accessible'] = True
                 
                 try:
                     analysis_result = response.json()
-                    self.log("   ✅ Certificate classification endpoint accessible")
-                    self.log("   📊 ANALYZING CLASSIFICATION RESPONSE...")
+                    self.log("   ✅ Multi Cert Upload endpoint accessible")
+                    self.log("   📊 ANALYZING MULTI CERT UPLOAD RESPONSE...")
                     
                     # Log the complete response structure
                     self.log(f"   Response keys: {list(analysis_result.keys())}")
                     
-                    # Check for success field - multi-upload doesn't have a top-level success field
-                    # Instead, check if we have results
+                    # Check for results
                     results = analysis_result.get('results', [])
                     summary = analysis_result.get('summary', {})
                     
@@ -235,70 +235,48 @@ class PMDSCertificateClassificationTester:
                     self.log(f"   Summary: {summary}")
                     
                     if results and len(results) > 0:
-                        self.pmds_classification_tests['ai_analysis_response_received'] = True
+                        self.multi_cert_tests['ai_analysis_response_received'] = True
                         
                         file_result = results[0]  # Get first file result
                         
                         # Check file status and marine classification
                         file_status = file_result.get('status', '')
+                        filename = file_result.get('filename', '')
                         is_marine = file_result.get('is_marine', False)
                         
-                        self.log(f"   File Status: {file_status}")
-                        self.log(f"   Is Marine (from file result): {is_marine}")
+                        self.log(f"   📄 File: {filename}")
+                        self.log(f"   📊 Status: {file_status}")
+                        self.log(f"   🌊 Is Marine: {is_marine}")
+                        
+                        # Check if classified as "Skipped - not a marine certificate"
+                        if "skipped" in file_status.lower() and "not a marine certificate" in file_status.lower():
+                            self.log("   ❌ CRITICAL ISSUE: File classified as 'Skipped - not a marine certificate'")
+                            self.log("   🔍 This matches the user's reported issue!")
+                            self.multi_cert_tests['classification_discrepancy_identified'] = True
+                        elif "marine" in file_status.lower() or is_marine:
+                            self.log("   ✅ File correctly classified as marine certificate")
+                            self.multi_cert_tests['multi_upload_classification_correct'] = True
+                        else:
+                            self.log(f"   ⚠️ Unexpected classification status: {file_status}")
                         
                         # Check for analysis data
                         analysis_data = file_result.get('analysis', {})
                         if analysis_data:
                             self.log(f"   ✅ AI analysis data received")
                             
-                            # Check extracted text (if available)
-                            extracted_text = analysis_data.get('extracted_text', '')
-                            if extracted_text and len(extracted_text) > 100:
-                                self.log(f"   ✅ PDF text extraction successful ({len(extracted_text)} characters)")
-                                self.pmds_classification_tests['pdf_text_extraction_successful'] = True
-                                
-                                # Check for PMDS detection in extracted text
-                                text_upper = extracted_text.upper()
-                                if 'PANAMA MARITIME DOCUMENTATION SERVICES' in text_upper or 'PMDS' in text_upper:
-                                    self.log("   ✅ PMDS organization detected in extracted text")
-                                    self.pmds_classification_tests['pmds_detection_triggered'] = True
-                                else:
-                                    self.log("   ❌ PMDS organization NOT detected in extracted text")
-                                    # Log a sample of the text for debugging
-                                    sample_text = extracted_text[:500] + "..." if len(extracted_text) > 500 else extracted_text
-                                    self.log(f"   📋 Text sample: {sample_text}")
-                            else:
-                                self.log("   ❌ PDF text extraction failed or insufficient text")
-                            
                             # Check classification fields
                             category = analysis_data.get('category', '')
                             is_marine_certificate = analysis_data.get('is_marine_certificate', False)
+                            confidence = analysis_data.get('confidence', 0)
                             
-                            self.log(f"   Category: {category}")
-                            self.log(f"   Is Marine Certificate: {is_marine_certificate}")
+                            self.log(f"   📊 Category: {category}")
+                            self.log(f"   🌊 Is Marine Certificate: {is_marine_certificate}")
+                            self.log(f"   📈 Confidence: {confidence}")
                             
-                            if category == 'certificates':
-                                self.log("   ✅ Category field correct ('certificates')")
-                                self.pmds_classification_tests['category_field_correct'] = True
-                            else:
-                                self.log(f"   ❌ Category field incorrect (expected 'certificates', got '{category}')")
-                            
-                            if is_marine_certificate or is_marine:
-                                self.log("   ✅ is_marine_certificate field is true")
-                                self.pmds_classification_tests['is_marine_certificate_true'] = True
-                            else:
-                                self.log("   ❌ is_marine_certificate field is false")
-                            
-                            # Check for complete response
-                            expected_fields = ['category']
-                            found_fields = [field for field in expected_fields if field in analysis_data]
-                            
-                            if len(found_fields) == len(expected_fields) or is_marine:
-                                self.log("   ✅ Classification response complete")
-                                self.pmds_classification_tests['classification_response_complete'] = True
-                            else:
-                                missing_fields = [field for field in expected_fields if field not in analysis_data]
-                                self.log(f"   ❌ Classification response incomplete (missing: {missing_fields})")
+                            # Check for confidence threshold issues
+                            if confidence < 0.7:  # Assuming 70% threshold
+                                self.log(f"   ⚠️ Low confidence score may cause classification issues")
+                                self.multi_cert_tests['confidence_threshold_checked'] = True
                             
                             # Log certificate information if available
                             cert_info = {}
@@ -311,22 +289,8 @@ class PMDSCertificateClassificationTester:
                                 for key, value in cert_info.items():
                                     self.log(f"      {key}: {value}")
                         
-                        # Check summary for marine certificates count
-                        marine_certificates = summary.get('marine_certificates', 0)
-                        successfully_created = summary.get('successfully_created', 0)
-                        
-                        if marine_certificates > 0:
-                            self.log(f"   ✅ Marine certificates detected: {marine_certificates}")
-                            if not self.pmds_classification_tests['category_field_correct']:
-                                self.pmds_classification_tests['category_field_correct'] = True
-                            if not self.pmds_classification_tests['is_marine_certificate_true']:
-                                self.pmds_classification_tests['is_marine_certificate_true'] = True
-                        
-                        if successfully_created > 0:
-                            self.log(f"   ✅ Certificates successfully created: {successfully_created}")
-                        
                         # Log all response fields for analysis
-                        self.log("   📋 COMPLETE CLASSIFICATION RESPONSE:")
+                        self.log("   📋 COMPLETE MULTI CERT UPLOAD RESPONSE:")
                         for key, value in analysis_result.items():
                             if isinstance(value, list) and len(value) > 0:
                                 self.log(f"      {key}: [array with {len(value)} items]")
@@ -340,8 +304,8 @@ class PMDSCertificateClassificationTester:
                     else:
                         self.log("   ❌ No results found in response")
                     
-                    self.test_results['analysis_result'] = analysis_result
-                    self.test_results['analysis_time'] = analysis_time
+                    self.test_results['multi_upload_result'] = analysis_result
+                    self.test_results['multi_upload_time'] = analysis_time
                     
                     return analysis_result
                     
@@ -350,7 +314,7 @@ class PMDSCertificateClassificationTester:
                     self.log(f"   Raw response: {response.text[:500]}")
                     return None
             else:
-                self.log(f"   ❌ Certificate classification failed: HTTP {response.status_code}")
+                self.log(f"   ❌ Multi Cert Upload failed: HTTP {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -359,43 +323,140 @@ class PMDSCertificateClassificationTester:
                 return None
                 
         except Exception as e:
-            self.log(f"❌ Certificate classification error: {str(e)}", "ERROR")
+            self.log(f"❌ Multi Cert Upload error: {str(e)}", "ERROR")
+            self.log(f"   Exception type: {type(e).__name__}")
+            self.log(f"   Traceback: {traceback.format_exc()}")
+            return None
+    
+    def test_single_cert_upload(self, ship_id, pdf_file_path):
+        """Test Single Certificate Upload endpoint with the same MLC file for comparison"""
+        try:
+            self.log("🔍 Testing Single Certificate Upload with same MLC file for comparison...")
+            
+            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+            self.log(f"   POST {endpoint}")
+            
+            # Read the PDF file
+            with open(pdf_file_path, 'rb') as pdf_file:
+                pdf_content = pdf_file.read()
+            
+            files = {'file': ('SUNSHINE_01_MLC_PM251278.pdf', pdf_content, 'application/pdf')}
+            data = {'ship_id': ship_id}
+            
+            self.log("   📤 Uploading MLC certificate via Single Certificate Upload...")
+            self.log(f"   File size: {len(pdf_content):,} bytes")
+            
+            start_time = time.time()
+            
+            response = requests.post(
+                endpoint, 
+                files=files,
+                data=data,
+                headers=self.get_headers(), 
+                timeout=120  # Extended timeout for AI processing
+            )
+            
+            end_time = time.time()
+            analysis_time = end_time - start_time
+            
+            self.log(f"   Response status: {response.status_code}")
+            self.log(f"   Analysis time: {analysis_time:.2f} seconds")
+            
+            if response.status_code == 200:
+                self.multi_cert_tests['single_upload_endpoint_accessible'] = True
+                
+                try:
+                    analysis_result = response.json()
+                    self.log("   ✅ Single Certificate Upload endpoint accessible")
+                    self.log("   📊 ANALYZING SINGLE CERT UPLOAD RESPONSE...")
+                    
+                    # Log the complete response structure
+                    self.log(f"   Response keys: {list(analysis_result.keys())}")
+                    
+                    # Check success and classification
+                    success = analysis_result.get('success', False)
+                    category = analysis_result.get('category', '')
+                    is_marine_certificate = analysis_result.get('is_marine_certificate', False)
+                    
+                    self.log(f"   📊 Success: {success}")
+                    self.log(f"   📊 Category: {category}")
+                    self.log(f"   🌊 Is Marine Certificate: {is_marine_certificate}")
+                    
+                    if success and (category == 'certificates' or is_marine_certificate):
+                        self.log("   ✅ Single upload correctly classifies as marine certificate")
+                        self.multi_cert_tests['single_upload_classification_correct'] = True
+                    else:
+                        self.log("   ❌ Single upload also fails to classify as marine certificate")
+                    
+                    # Log certificate information if available
+                    cert_info = {}
+                    for field in ['cert_name', 'cert_no', 'issued_by', 'issue_date', 'valid_date']:
+                        if field in analysis_result:
+                            cert_info[field] = analysis_result[field]
+                    
+                    if cert_info:
+                        self.log("   📋 CERTIFICATE INFORMATION EXTRACTED (Single Upload):")
+                        for key, value in cert_info.items():
+                            self.log(f"      {key}: {value}")
+                    
+                    self.test_results['single_upload_result'] = analysis_result
+                    self.test_results['single_upload_time'] = analysis_time
+                    
+                    return analysis_result
+                    
+                except json.JSONDecodeError as e:
+                    self.log(f"   ❌ Failed to parse JSON response: {e}")
+                    self.log(f"   Raw response: {response.text[:500]}")
+                    return None
+            else:
+                self.log(f"   ❌ Single Certificate Upload failed: HTTP {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:500]}")
+                return None
+                
+        except Exception as e:
+            self.log(f"❌ Single Certificate Upload error: {str(e)}", "ERROR")
             self.log(f"   Exception type: {type(e).__name__}")
             self.log(f"   Traceback: {traceback.format_exc()}")
             return None
     
     def capture_backend_logs(self):
-        """Capture backend logs for analysis"""
+        """Capture backend logs during Multi Cert Upload process"""
         try:
-            self.log("📊 Capturing backend logs for analysis...")
+            self.log("📊 Capturing backend logs during Multi Cert Upload process...")
             
             # Try to read backend logs from supervisor
             try:
-                import subprocess
-                result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
+                result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
                                       capture_output=True, text=True, timeout=10)
                 if result.returncode == 0 and result.stdout:
                     self.log("   ✅ Backend logs captured successfully")
-                    self.pmds_classification_tests['backend_logs_captured'] = True
+                    self.multi_cert_tests['backend_logs_captured'] = True
                     
-                    # Look for specific PMDS-related log entries
+                    # Look for specific multi-upload and classification related log entries
                     log_lines = result.stdout.split('\n')
-                    pmds_related_logs = []
+                    relevant_logs = []
                     
                     for line in log_lines:
                         line_upper = line.upper()
-                        if any(keyword in line_upper for keyword in ['PMDS', 'PANAMA MARITIME', 'CLASSIFICATION', 'CERTIFICATE', 'OCR', 'AI']):
-                            pmds_related_logs.append(line)
+                        if any(keyword in line_upper for keyword in [
+                            'MULTI-UPLOAD', 'MULTI_UPLOAD', 'CLASSIFICATION', 'CERTIFICATE', 
+                            'MLC', 'MARINE', 'SKIPPED', 'AI ANALYSIS', 'CONFIDENCE'
+                        ]):
+                            relevant_logs.append(line)
                     
-                    if pmds_related_logs:
-                        self.log(f"   📋 Found {len(pmds_related_logs)} PMDS-related log entries:")
-                        for log_line in pmds_related_logs[-10:]:  # Show last 10 relevant logs
+                    if relevant_logs:
+                        self.log(f"   📋 Found {len(relevant_logs)} relevant log entries:")
+                        for log_line in relevant_logs[-15:]:  # Show last 15 relevant logs
                             self.log(f"      {log_line}")
                     else:
-                        self.log("   ℹ️ No specific PMDS-related log entries found")
+                        self.log("   ℹ️ No specific multi-upload related log entries found")
                     
                     self.test_results['backend_logs'] = log_lines
-                    self.test_results['pmds_related_logs'] = pmds_related_logs
+                    self.test_results['relevant_logs'] = relevant_logs
                     
                 else:
                     self.log("   ⚠️ Could not read backend logs from supervisor")
@@ -405,11 +466,11 @@ class PMDSCertificateClassificationTester:
             
             # Also try to capture error logs
             try:
-                result = subprocess.run(['tail', '-n', '20', '/var/log/supervisor/backend.err.log'], 
+                result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.err.log'], 
                                       capture_output=True, text=True, timeout=10)
                 if result.returncode == 0 and result.stdout.strip():
                     self.log("   📋 Backend error logs:")
-                    for line in result.stdout.split('\n')[-10:]:  # Show last 10 error lines
+                    for line in result.stdout.split('\n')[-15:]:  # Show last 15 error lines
                         if line.strip():
                             self.log(f"      ERROR: {line}")
                             
@@ -422,88 +483,74 @@ class PMDSCertificateClassificationTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def test_analyze_ship_certificate_endpoint(self, ship_id):
-        """Test the analyze-ship-certificate endpoint with a simple test"""
+    def compare_upload_methods(self):
+        """Compare results between Multi Cert Upload and Single Certificate Upload"""
         try:
-            self.log("🔍 Testing analyze-ship-certificate endpoint...")
+            self.log("🔍 Comparing Multi Cert Upload vs Single Certificate Upload results...")
             
-            # Create a simple test file to test the endpoint
-            test_content = b"Test PDF content for PMDS certificate classification testing"
+            multi_result = self.test_results.get('multi_upload_result')
+            single_result = self.test_results.get('single_upload_result')
             
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            self.log(f"   POST {endpoint}")
+            if not multi_result or not single_result:
+                self.log("   ⚠️ Cannot compare - missing results from one or both methods")
+                return
             
-            files = {'file': ('test_pmds_cert.pdf', test_content, 'application/pdf')}
-            data = {'ship_id': ship_id}
+            self.log("   📊 COMPARISON ANALYSIS:")
             
-            self.log("   📤 Testing analyze-ship-certificate endpoint with test file...")
-            start_time = time.time()
+            # Compare classification results
+            multi_classified_as_marine = False
+            single_classified_as_marine = False
             
-            response = requests.post(
-                endpoint, 
-                files=files,
-                data=data,
-                headers=self.get_headers(), 
-                timeout=60
-            )
+            # Check multi-upload result
+            multi_results = multi_result.get('results', [])
+            if multi_results:
+                file_result = multi_results[0]
+                file_status = file_result.get('status', '').lower()
+                is_marine = file_result.get('is_marine', False)
+                multi_classified_as_marine = is_marine or ('marine' in file_status and 'not' not in file_status)
             
-            end_time = time.time()
+            # Check single-upload result
+            single_success = single_result.get('success', False)
+            single_category = single_result.get('category', '')
+            single_is_marine = single_result.get('is_marine_certificate', False)
+            single_classified_as_marine = single_success and (single_category == 'certificates' or single_is_marine)
             
-            self.log(f"   Response status: {response.status_code}")
-            self.log(f"   Analysis time: {end_time - start_time:.2f} seconds")
+            self.log(f"   Multi Cert Upload classified as marine: {multi_classified_as_marine}")
+            self.log(f"   Single Certificate Upload classified as marine: {single_classified_as_marine}")
             
-            if response.status_code == 200:
-                analysis_result = response.json()
-                self.log("   ✅ analyze-ship-certificate endpoint is accessible")
-                self.log(f"   Response structure: {list(analysis_result.keys())}")
+            if multi_classified_as_marine != single_classified_as_marine:
+                self.log("   🚨 DISCREPANCY FOUND: Different classification results between methods!")
+                self.multi_cert_tests['classification_discrepancy_identified'] = True
                 
-                # Check if the endpoint returns expected fields
-                expected_fields = ['success', 'ship_name', 'imo_number', 'class_society', 'flag']
-                found_fields = [field for field in expected_fields if field in analysis_result]
-                
-                self.log(f"   Expected fields found: {len(found_fields)}/{len(expected_fields)}")
-                for field in found_fields:
-                    self.log(f"      ✅ {field}: {analysis_result.get(field, 'N/A')}")
-                
-                self.test_results['endpoint_test'] = analysis_result
-                return True
+                if not multi_classified_as_marine and single_classified_as_marine:
+                    self.log("   🔍 Multi Cert Upload incorrectly rejects marine certificate")
+                    self.log("   🔍 Single Certificate Upload correctly identifies marine certificate")
+                elif multi_classified_as_marine and not single_classified_as_marine:
+                    self.log("   🔍 Single Certificate Upload incorrectly rejects marine certificate")
+                    self.log("   🔍 Multi Cert Upload correctly identifies marine certificate")
             else:
-                self.log(f"   ❌ analyze-ship-certificate endpoint failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:500]}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Endpoint test error: {str(e)}", "ERROR")
-            return False
-    
-    def monitor_backend_logs(self):
-        """Monitor backend logs for classification decisions"""
-        try:
-            self.log("📊 Monitoring backend logs for classification decisions...")
+                self.log("   ✅ Both methods have consistent classification results")
             
-            # This would typically require access to backend logs
-            # For now, we'll check if we can get any debug information from the API responses
-            self.log("   ℹ️ Backend log monitoring would require direct server access")
-            self.log("   ℹ️ Classification decisions are inferred from API responses and existing data")
+            # Compare processing times
+            multi_time = self.test_results.get('multi_upload_time', 0)
+            single_time = self.test_results.get('single_upload_time', 0)
+            
+            self.log(f"   Multi Cert Upload processing time: {multi_time:.2f} seconds")
+            self.log(f"   Single Certificate Upload processing time: {single_time:.2f} seconds")
             
             return True
                 
         except Exception as e:
-            self.log(f"❌ Backend log monitoring error: {str(e)}", "ERROR")
+            self.log(f"❌ Comparison error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_pmds_classification_test(self):
-        """Main test function for PMDS MLC certificate classification with new uploaded file"""
-        self.log("🎯 STARTING PMDS MLC CERTIFICATE CLASSIFICATION TESTING")
-        self.log("🔍 Focus: Test PMDS MLC certificate classification with new uploaded file")
-        self.log("📋 Review Request: Test MLC Certificate Classification with specific PDF URL")
-        self.log("🏢 Expected: Panama Maritime Documentation Services detection")
-        self.log("🚢 Expected: Ship SUNSHINE 01 MLC certificate analysis")
-        self.log("📄 File: SUNSHINE 01 - MLC- PM251278.pdf")
+    def run_comprehensive_multi_cert_classification_test(self):
+        """Main test function for Multi Cert Upload classification discrepancy"""
+        self.log("🎯 STARTING MULTI CERT UPLOAD CLASSIFICATION DISCREPANCY TESTING")
+        self.log("🔍 Focus: Debug Multi Cert Upload classification discrepancy for MLC file")
+        self.log("📋 Review Request: MLC file classified as 'Skipped - not a marine certificate'")
+        self.log("🏢 Expected: Should be classified as marine certificate")
+        self.log("🚢 File: SUNSHINE 01 - MLC- PM251278.pdf")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -513,7 +560,7 @@ class PMDSCertificateClassificationTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        self.pmds_classification_tests['authentication_successful'] = True
+        self.multi_cert_tests['authentication_successful'] = True
         
         # Step 2: Get available ships
         self.log("\n🚢 STEP 2: GET AVAILABLE SHIPS")
@@ -523,92 +570,107 @@ class PMDSCertificateClassificationTester:
             self.log("❌ No ships available - cannot proceed with certificate testing")
             return False
         
-        # Step 3: Download PMDS MLC certificate
-        self.log("\n📥 STEP 3: DOWNLOAD PMDS MLC CERTIFICATE")
+        # Step 3: Download MLC certificate
+        self.log("\n📥 STEP 3: DOWNLOAD MLC CERTIFICATE")
         self.log("=" * 50)
-        pdf_file_path = self.download_pmds_certificate()
+        pdf_file_path = self.download_mlc_certificate()
         if not pdf_file_path:
-            self.log("❌ Failed to download PMDS certificate - cannot proceed with analysis")
+            self.log("❌ Failed to download MLC certificate - cannot proceed with analysis")
             return False
         
-        # Step 4: Test certificate analysis with actual PMDS PDF
-        self.log("\n🔍 STEP 4: ANALYZE PMDS MLC CERTIFICATE")
+        # Step 4: Test Multi Cert Upload
+        self.log("\n🔍 STEP 4: TEST MULTI CERT UPLOAD")
         self.log("=" * 50)
-        analysis_result = self.test_certificate_analysis_with_pmds_pdf(ship.get('id'), pdf_file_path)
+        multi_result = self.test_multi_cert_upload(ship.get('id'), pdf_file_path)
         
-        # Step 5: Capture backend logs
-        self.log("\n📊 STEP 5: CAPTURE BACKEND LOGS")
+        # Step 5: Test Single Certificate Upload for comparison
+        self.log("\n🔍 STEP 5: TEST SINGLE CERTIFICATE UPLOAD (COMPARISON)")
+        self.log("=" * 50)
+        single_result = self.test_single_cert_upload(ship.get('id'), pdf_file_path)
+        
+        # Step 6: Compare results
+        self.log("\n📊 STEP 6: COMPARE UPLOAD METHODS")
+        self.log("=" * 50)
+        self.compare_upload_methods()
+        
+        # Step 7: Capture backend logs
+        self.log("\n📊 STEP 7: CAPTURE BACKEND LOGS")
         self.log("=" * 50)
         self.capture_backend_logs()
         
-        # Step 6: Final analysis
-        self.log("\n📊 STEP 6: FINAL ANALYSIS")
+        # Step 8: Final analysis
+        self.log("\n📊 STEP 8: FINAL ANALYSIS")
         self.log("=" * 50)
         self.provide_final_analysis()
         
         # Clean up temporary file
         try:
-            import os
             if pdf_file_path and os.path.exists(pdf_file_path):
                 os.unlink(pdf_file_path)
                 self.log("   🗑️ Temporary PDF file cleaned up")
         except Exception as e:
             self.log(f"   ⚠️ Failed to clean up temporary file: {e}")
         
-        return analysis_result is not None
+        return multi_result is not None or single_result is not None
     
     def provide_final_analysis(self):
-        """Provide final analysis of the PMDS MLC certificate classification testing"""
+        """Provide final analysis of the Multi Cert Upload classification discrepancy testing"""
         try:
-            self.log("🎯 PMDS MLC CERTIFICATE CLASSIFICATION TESTING - RESULTS")
-            self.log("=" * 70)
+            self.log("🎯 MULTI CERT UPLOAD CLASSIFICATION DISCREPANCY TESTING - RESULTS")
+            self.log("=" * 80)
             
-            # Check which PMDS classification tests passed
+            # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.pmds_classification_tests.items():
+            for test_name, passed in self.multi_cert_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ PMDS MLC CLASSIFICATION TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ MULTI CERT UPLOAD TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ PMDS MLC CLASSIFICATION TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ MULTI CERT UPLOAD TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
-            success_rate = len(passed_tests) / len(self.pmds_classification_tests) * 100
-            self.log(f"\n📊 PMDS MLC CLASSIFICATION SUCCESS RATE: {success_rate:.1f}%")
+            success_rate = len(passed_tests) / len(self.multi_cert_tests) * 100
+            self.log(f"\n📊 MULTI CERT UPLOAD TEST SUCCESS RATE: {success_rate:.1f}%")
             
-            if success_rate >= 80:
-                self.log("🎉 EXCELLENT: PMDS MLC certificate classification is working correctly")
-            elif success_rate >= 60:
-                self.log("✅ GOOD: Majority of PMDS MLC classification features are working")
-            elif success_rate >= 40:
-                self.log("⚠️ MODERATE: Some PMDS MLC classification features are working")
+            # Specific discrepancy analysis
+            if self.multi_cert_tests.get('classification_discrepancy_identified'):
+                self.log("\n🚨 CRITICAL FINDING: CLASSIFICATION DISCREPANCY IDENTIFIED")
+                self.log("   The user's reported issue is CONFIRMED")
+                self.log("   Multi Cert Upload and Single Certificate Upload produce different results")
             else:
-                self.log("❌ POOR: PMDS MLC classification has significant issues")
+                self.log("\n✅ No classification discrepancy found between upload methods")
             
             # Analysis results
-            if self.test_results.get('analysis_result'):
-                analysis = self.test_results['analysis_result']
-                self.log(f"\n🔍 MLC CERTIFICATE ANALYSIS RESULTS:")
-                self.log(f"   Success: {analysis.get('success', 'Unknown')}")
-                self.log(f"   Category: {analysis.get('category', 'Unknown')}")
-                self.log(f"   Is Marine Certificate: {analysis.get('is_marine_certificate', 'Unknown')}")
-                self.log(f"   Certificate Name: {analysis.get('cert_name', 'Unknown')}")
-                self.log(f"   Certificate Number: {analysis.get('cert_no', 'Unknown')}")
-                self.log(f"   Issued By: {analysis.get('issued_by', 'Unknown')}")
-                
-                if analysis.get('extracted_text'):
-                    text_length = len(analysis['extracted_text'])
-                    self.log(f"   Extracted Text: {text_length} characters")
+            multi_result = self.test_results.get('multi_upload_result')
+            single_result = self.test_results.get('single_upload_result')
+            
+            if multi_result:
+                self.log(f"\n🔍 MULTI CERT UPLOAD RESULTS:")
+                results = multi_result.get('results', [])
+                if results:
+                    file_result = results[0]
+                    self.log(f"   Status: {file_result.get('status', 'Unknown')}")
+                    self.log(f"   Is Marine: {file_result.get('is_marine', 'Unknown')}")
+                    analysis = file_result.get('analysis', {})
+                    if analysis:
+                        self.log(f"   Category: {analysis.get('category', 'Unknown')}")
+                        self.log(f"   Is Marine Certificate: {analysis.get('is_marine_certificate', 'Unknown')}")
+            
+            if single_result:
+                self.log(f"\n🔍 SINGLE CERTIFICATE UPLOAD RESULTS:")
+                self.log(f"   Success: {single_result.get('success', 'Unknown')}")
+                self.log(f"   Category: {single_result.get('category', 'Unknown')}")
+                self.log(f"   Is Marine Certificate: {single_result.get('is_marine_certificate', 'Unknown')}")
             
             # Ship information
             if self.test_results.get('selected_ship'):
@@ -623,51 +685,63 @@ class PMDSCertificateClassificationTester:
                 size_mb = self.test_results['pdf_file_size'] / 1024 / 1024
                 self.log(f"\n📄 PDF FILE INFORMATION:")
                 self.log(f"   File Size: {size_mb:.2f} MB")
-                self.log(f"   Analysis Time: {self.test_results.get('analysis_time', 'Unknown'):.2f} seconds")
+                multi_time = self.test_results.get('multi_upload_time', 0)
+                single_time = self.test_results.get('single_upload_time', 0)
+                self.log(f"   Multi Upload Time: {multi_time:.2f} seconds")
+                self.log(f"   Single Upload Time: {single_time:.2f} seconds")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - PMDS MLC Certificate Classification Testing")
-    print("🔍 Focus: Test PMDS MLC certificate classification with new uploaded file")
-    print("📋 Review Request: Test MLC Certificate Classification with specific PDF URL")
-    print("🏢 Expected: Panama Maritime Documentation Services detection")
-    print("🚢 Expected: Ship SUNSHINE 01 MLC certificate analysis")
-    print("📄 File: SUNSHINE 01 - MLC- PM251278.pdf")
+    print("🎯 Ship Management System - Multi Cert Upload Classification Discrepancy Testing")
+    print("🔍 Focus: Debug Multi Cert Upload classification discrepancy for MLC file")
+    print("📋 Review Request: MLC file classified as 'Skipped - not a marine certificate'")
+    print("🏢 Expected: Should be classified as marine certificate")
+    print("🚢 File: SUNSHINE 01 - MLC- PM251278.pdf")
     print("=" * 100)
     
-    tester = PMDSCertificateClassificationTester()
-    success = tester.run_comprehensive_pmds_classification_test()
+    tester = MultiCertUploadClassificationTester()
+    success = tester.run_comprehensive_multi_cert_classification_test()
     
     print("=" * 100)
-    print("🔍 PMDS MLC CERTIFICATE CLASSIFICATION TESTING RESULTS:")
-    print("=" * 60)
+    print("🔍 MULTI CERT UPLOAD CLASSIFICATION DISCREPANCY TESTING RESULTS:")
+    print("=" * 70)
     
-    # Print PMDS classification test summary
-    passed_tests = [f for f, passed in tester.pmds_classification_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.pmds_classification_tests.items() if not passed]
+    # Print test summary
+    passed_tests = [f for f, passed in tester.multi_cert_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.multi_cert_tests.items() if not passed]
     
-    print(f"✅ PMDS MLC CLASSIFICATION TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ MULTI CERT UPLOAD TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ PMDS MLC CLASSIFICATION TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ MULTI CERT UPLOAD TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
-    # Print analysis results
-    if tester.test_results.get('analysis_result'):
-        analysis = tester.test_results['analysis_result']
-        print(f"\n🔍 MLC CERTIFICATE ANALYSIS: ✅ SUCCESS")
-        print(f"   Category: {analysis.get('category', 'Unknown')}")
-        print(f"   Is Marine Certificate: {analysis.get('is_marine_certificate', 'Unknown')}")
-        print(f"   Certificate Name: {analysis.get('cert_name', 'Unknown')}")
-        print(f"   Issued By: {analysis.get('issued_by', 'Unknown')}")
+    # Print discrepancy analysis
+    if tester.multi_cert_tests.get('classification_discrepancy_identified'):
+        print(f"\n🚨 CRITICAL FINDING: CLASSIFICATION DISCREPANCY CONFIRMED")
+        print(f"   The user's reported issue is REAL and PRESENT")
+        print(f"   Multi Cert Upload produces different results than Single Certificate Upload")
     else:
-        print(f"\n🔍 MLC CERTIFICATE ANALYSIS: ❌ FAILED")
+        print(f"\n✅ No classification discrepancy found between upload methods")
+    
+    # Print analysis results
+    multi_result = tester.test_results.get('multi_upload_result')
+    single_result = tester.test_results.get('single_upload_result')
+    
+    if multi_result:
+        results = multi_result.get('results', [])
+        if results:
+            file_result = results[0]
+            print(f"\n🔍 MULTI CERT UPLOAD: {file_result.get('status', 'Unknown')}")
+    
+    if single_result:
+        print(f"🔍 SINGLE CERT UPLOAD: {'SUCCESS' if single_result.get('success') else 'FAILED'}")
     
     # Print ship information
     if tester.test_results.get('selected_ship'):
@@ -675,33 +749,33 @@ def main():
         print(f"\n🚢 TESTED WITH SHIP: {ship.get('name')} (ID: {ship.get('id')})")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.pmds_classification_tests) * 100
+    success_rate = len(passed_tests) / len(tester.multi_cert_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 PMDS MLC certificate classification testing completed successfully!")
+        print("🎉 Multi Cert Upload classification discrepancy testing completed!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ PMDS MLC certificate classification testing completed with issues!")
+        print("❌ Multi Cert Upload classification discrepancy testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
-    if len(passed_tests) >= 7:
+    # Provide recommendations
+    if tester.multi_cert_tests.get('classification_discrepancy_identified'):
         print("\n💡 NEXT STEPS FOR MAIN AGENT:")
-        print("   ✅ PMDS MLC classification is working well")
-        print("   1. Review the specific tests passed above")
-        print("   2. PMDS detection rules are functioning correctly")
-        print("   3. Enhanced PMDS detection is working")
-        print("   4. Certificate classification as 'certificates' is working")
-        print("   5. is_marine_certificate field is correctly set to true")
+        print("   🚨 CRITICAL ISSUE CONFIRMED: Classification discrepancy exists")
+        print("   1. Review Multi Cert Upload classification logic")
+        print("   2. Check if confidence thresholds differ between upload methods")
+        print("   3. Investigate AI analysis differences in multi vs single upload")
+        print("   4. Fix the Multi Cert Upload classification to match Single Upload")
+        print("   5. Test with additional MLC certificates to confirm fix")
     else:
         print("\n💡 NEXT STEPS FOR MAIN AGENT:")
-        print("   ⚠️ PMDS MLC classification has issues")
-        print("   1. Review backend implementation for PMDS detection rules")
-        print("   2. Check if 'Panama Maritime Documentation Services' detection is working")
-        print("   3. Verify AI analysis response for classification decision")
-        print("   4. Check enhanced PMDS detection rules")
-        print("   5. Investigate exact cause of classification failure")
+        print("   ✅ No discrepancy found in current testing")
+        print("   1. The issue may be intermittent or environment-specific")
+        print("   2. Consider testing with different MLC certificate files")
+        print("   3. Check if the issue occurs with specific file sizes or formats")
+        print("   4. Monitor backend logs during user operations")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
