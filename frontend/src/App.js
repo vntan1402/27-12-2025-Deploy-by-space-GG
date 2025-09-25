@@ -2538,6 +2538,40 @@ const HomePage = () => {
                             </select>
                           </div>
                           
+                          {/* Search Filter */}
+                          <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-700">
+                              {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={certificateFilters.search}
+                                onChange={(e) => setCertificateFilters(prev => ({...prev, search: e.target.value}))}
+                                placeholder={language === 'vi' ? 'Tìm theo tên chứng chỉ...' : 'Search by certificate name...'}
+                                className="border border-gray-300 rounded px-3 py-1 pl-8 text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
+                              <svg 
+                                className="w-4 h-4 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                              {certificateFilters.search && (
+                                <button
+                                  onClick={() => setCertificateFilters(prev => ({...prev, search: ''}))}
+                                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          
                           {/* Results Count with Link Status */}
                           <div className="ml-auto flex items-center gap-3">
                             <div className="text-sm text-gray-600">
