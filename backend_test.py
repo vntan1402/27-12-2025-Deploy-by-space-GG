@@ -432,6 +432,18 @@ class AnniversaryDateDryDockTester:
                         updated_dry_dock.get('last_intermediate_docking')):
                         self.log("   ✅ Dry dock cycle with intermediate docking updated correctly")
                         self.log("   ✅ Lloyd's intermediate docking requirements verified")
+                        
+                        # Check 5-year period (from_date to to_date should be ~5 years)
+                        from_date_str = updated_dry_dock.get('from_date')
+                        to_date_str = updated_dry_dock.get('to_date')
+                        if from_date_str and to_date_str:
+                            from datetime import datetime
+                            from_date = datetime.fromisoformat(from_date_str.replace('Z', ''))
+                            to_date = datetime.fromisoformat(to_date_str.replace('Z', ''))
+                            years_diff = (to_date - from_date).days / 365.25
+                            if 4.5 <= years_diff <= 5.5:  # Allow some tolerance
+                                self.log(f"   ✅ Lloyd's 5-year dry dock cycle verified ({years_diff:.1f} years)")
+                                self.anniversary_tests['lloyd_standards_compliance_verified'] = True
                     
                     self.anniversary_tests['ship_update_enhanced_fields_tested'] = True
                 
