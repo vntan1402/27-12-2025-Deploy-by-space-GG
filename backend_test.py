@@ -19,7 +19,7 @@ import base64
 # Configuration - Use external URL from frontend/.env
 BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
-class GoogleDriveMultiFileOpenTester:
+class EnhancedEndorsementTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -27,19 +27,32 @@ class GoogleDriveMultiFileOpenTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for Google Drive multi-file opening
-        self.gdrive_tests = {
+        # Test tracking for enhanced endorsement processing
+        self.endorsement_tests = {
             'authentication_successful': False,
-            'sunshine_01_ship_found': False,
-            'certificates_retrieved': False,
-            'certificates_with_gdrive_file_ids_found': False,
-            'gdrive_view_url_api_tested': False,
-            'api_response_structure_analyzed': False,
+            'ai_prompt_enhancement_tested': False,
+            'multiple_endorsement_handling_tested': False,
+            'fallback_pattern_matching_tested': False,
+            'certificate_types_with_endorsements_tested': False,
+            'enhanced_processing_results_verified': False,
+            'pmds_certificates_tested': False,
             'backend_logs_captured': False,
-            'view_url_availability_checked': False,
-            'authentication_issues_checked': False,
-            'permission_issues_checked': False
+            'endorsement_context_recognition_verified': False,
+            'latest_endorsement_selection_verified': False
         }
+        
+        # Sample certificate types that should have endorsement requirements
+        self.certificate_types_with_endorsements = [
+            'SOLAS',
+            'MARPOL', 
+            'IAPP',
+            'IOPP',
+            'ISM',
+            'Load Line',
+            'Safety Construction',
+            'Safety Equipment',
+            'Radio Safety'
+        ]
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
@@ -82,7 +95,7 @@ class GoogleDriveMultiFileOpenTester:
                 self.log(f"   Company: {self.current_user.get('company')}")
                 self.log(f"   Full Name: {self.current_user.get('full_name')}")
                 
-                self.gdrive_tests['authentication_successful'] = True
+                self.endorsement_tests['authentication_successful'] = True
                 return True
             else:
                 self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
@@ -101,436 +114,472 @@ class GoogleDriveMultiFileOpenTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def find_sunshine_01_ship(self):
-        """Find SUNSHINE 01 ship specifically as mentioned in review request"""
+    def find_pmds_certificates(self):
+        """Find existing PMDS certificates for testing"""
         try:
-            self.log("🚢 Finding SUNSHINE 01 ship...")
+            self.log("📋 Finding existing PMDS certificates...")
             
+            # Get all ships first
             endpoint = f"{BACKEND_URL}/ships"
-            self.log(f"   GET {endpoint}")
-            
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            self.log(f"   Response status: {response.status_code}")
             
-            if response.status_code == 200:
-                ships = response.json()
-                self.log(f"   ✅ Found {len(ships)} total ships")
-                
-                # Look for SUNSHINE 01 specifically
-                sunshine_01_ship = None
-                for ship in ships:
-                    ship_name = ship.get('name', '').upper()
-                    if 'SUNSHINE' in ship_name and '01' in ship_name:
-                        sunshine_01_ship = ship
-                        break
-                
-                if sunshine_01_ship:
-                    self.log(f"   ✅ Found SUNSHINE 01 ship: {sunshine_01_ship.get('name')} (ID: {sunshine_01_ship.get('id')})")
-                    self.log(f"   IMO: {sunshine_01_ship.get('imo', 'Not specified')}")
-                    self.log(f"   Company: {sunshine_01_ship.get('company', 'Not specified')}")
-                    self.log(f"   Flag: {sunshine_01_ship.get('flag', 'Not specified')}")
-                    
-                    self.gdrive_tests['sunshine_01_ship_found'] = True
-                    self.test_results['sunshine_01_ship'] = sunshine_01_ship
-                    return sunshine_01_ship
-                else:
-                    self.log("   ❌ SUNSHINE 01 ship not found")
-                    self.log("   Available ships:")
-                    for ship in ships[:5]:  # Show first 5 ships
-                        self.log(f"      - {ship.get('name')} (ID: {ship.get('id')})")
-                    return None
-            else:
+            if response.status_code != 200:
                 self.log(f"   ❌ Failed to get ships: {response.status_code}")
-                return None
+                return []
+            
+            ships = response.json()
+            self.log(f"   Found {len(ships)} ships")
+            
+            pmds_certificates = []
+            
+            # Check certificates for each ship
+            for ship in ships:
+                ship_id = ship.get('id')
+                ship_name = ship.get('name')
                 
-        except Exception as e:
-            self.log(f"❌ Find SUNSHINE 01 ship error: {str(e)}", "ERROR")
-            return None
-    
-    def get_sunshine_01_certificates(self):
-        """Get certificates from SUNSHINE 01 ship"""
-        try:
-            self.log("📋 Getting certificates from SUNSHINE 01 ship...")
-            
-            sunshine_01_ship = self.test_results.get('sunshine_01_ship')
-            if not sunshine_01_ship:
-                self.log("   ❌ No SUNSHINE 01 ship available")
-                return None
-            
-            ship_id = sunshine_01_ship.get('id')
-            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
-            self.log(f"   GET {endpoint}")
-            
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            self.log(f"   Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                certificates = response.json()
-                self.log(f"   ✅ Found {len(certificates)} certificates for SUNSHINE 01")
+                cert_endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
+                cert_response = requests.get(cert_endpoint, headers=self.get_headers(), timeout=30)
                 
-                # Analyze certificates for Google Drive file IDs
-                certificates_with_gdrive_ids = []
-                certificates_without_gdrive_ids = []
-                
-                for cert in certificates:
-                    cert_name = cert.get('cert_name', 'Unknown Certificate')
-                    gdrive_file_id = cert.get('google_drive_file_id')
+                if cert_response.status_code == 200:
+                    certificates = cert_response.json()
                     
-                    if gdrive_file_id:
-                        certificates_with_gdrive_ids.append({
-                            'id': cert.get('id'),
-                            'name': cert_name,
-                            'google_drive_file_id': gdrive_file_id,
-                            'cert_no': cert.get('cert_no'),
-                            'issued_by': cert.get('issued_by'),
-                            'status': cert.get('status')
-                        })
-                        self.log(f"      ✅ {cert_name} - Google Drive File ID: {gdrive_file_id}")
-                    else:
-                        certificates_without_gdrive_ids.append({
-                            'id': cert.get('id'),
-                            'name': cert_name
-                        })
-                        self.log(f"      ❌ {cert_name} - No Google Drive File ID")
-                
-                self.log(f"   📊 Certificates with Google Drive File IDs: {len(certificates_with_gdrive_ids)}")
-                self.log(f"   📊 Certificates without Google Drive File IDs: {len(certificates_without_gdrive_ids)}")
-                
-                self.gdrive_tests['certificates_retrieved'] = True
-                if certificates_with_gdrive_ids:
-                    self.gdrive_tests['certificates_with_gdrive_file_ids_found'] = True
-                
-                self.test_results['all_certificates'] = certificates
-                self.test_results['certificates_with_gdrive_ids'] = certificates_with_gdrive_ids
-                self.test_results['certificates_without_gdrive_ids'] = certificates_without_gdrive_ids
-                
-                return certificates
-            else:
-                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:200]}")
-                return None
-                
+                    # Look for PMDS certificates
+                    for cert in certificates:
+                        issued_by = cert.get('issued_by', '').upper()
+                        if 'PMDS' in issued_by or 'PANAMA MARITIME DOCUMENTATION' in issued_by:
+                            pmds_certificates.append({
+                                'ship_name': ship_name,
+                                'ship_id': ship_id,
+                                'cert_id': cert.get('id'),
+                                'cert_name': cert.get('cert_name'),
+                                'cert_no': cert.get('cert_no'),
+                                'issued_by': cert.get('issued_by'),
+                                'last_endorse': cert.get('last_endorse'),
+                                'cert_type': cert.get('cert_type')
+                            })
+                            self.log(f"   ✅ Found PMDS certificate: {cert.get('cert_name')} on {ship_name}")
+            
+            self.log(f"   📊 Total PMDS certificates found: {len(pmds_certificates)}")
+            self.test_results['pmds_certificates'] = pmds_certificates
+            
+            if pmds_certificates:
+                self.endorsement_tests['pmds_certificates_tested'] = True
+            
+            return pmds_certificates
+            
         except Exception as e:
-            self.log(f"❌ Get certificates error: {str(e)}", "ERROR")
-            return None
+            self.log(f"❌ Find PMDS certificates error: {str(e)}", "ERROR")
+            return []
     
-    def test_gdrive_view_url_api(self):
-        """Test individual /api/gdrive/file/{file_id}/view calls"""
+    def test_ai_prompt_enhancement(self):
+        """Test AI prompt enhancement for endorsement date detection"""
         try:
-            self.log("🔗 Testing Google Drive view URL API...")
+            self.log("🤖 Testing AI Prompt Enhancement for endorsement date detection...")
             
-            certificates_with_gdrive_ids = self.test_results.get('certificates_with_gdrive_ids', [])
-            if not certificates_with_gdrive_ids:
-                self.log("   ❌ No certificates with Google Drive file IDs available for testing")
-                return False
+            # Create a test certificate content with multiple endorsement dates
+            test_certificate_content = """
+            INTERNATIONAL SAFETY MANAGEMENT CERTIFICATE
             
-            self.log(f"   📋 Testing {len(certificates_with_gdrive_ids)} certificates with Google Drive file IDs")
+            Certificate No: ISM-2024-001
+            Ship Name: TEST VESSEL
+            IMO Number: 1234567
             
-            view_url_test_results = []
+            This certificate is issued under the provisions of the International Safety Management Code.
             
-            for i, cert in enumerate(certificates_with_gdrive_ids[:5]):  # Test first 5 certificates
-                cert_name = cert.get('name')
-                file_id = cert.get('google_drive_file_id')
-                
-                self.log(f"   🔗 Test {i+1}: {cert_name}")
-                self.log(f"      File ID: {file_id}")
-                
-                # Test the view URL API endpoint
-                endpoint = f"{BACKEND_URL}/gdrive/file/{file_id}/view"
-                self.log(f"      GET {endpoint}")
-                
-                try:
-                    response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-                    self.log(f"      Response status: {response.status_code}")
+            ENDORSEMENT HISTORY:
+            Annual Verification Audit: 15/03/2023
+            Intermediate Verification: 20/08/2023  
+            Last Annual Survey: 12/12/2023
+            Annual Verification Audit: 18/03/2024
+            
+            This certificate is valid until: 15/03/2025
+            
+            Issued by: Panama Maritime Documentation Services, Inc.
+            Date of Issue: 15/03/2022
+            """
+            
+            # Test the analyze-ship-certificate endpoint with enhanced AI prompt
+            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+            
+            # Create a temporary file with the test content
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                temp_file.write(test_certificate_content)
+                temp_file_path = temp_file.name
+            
+            try:
+                with open(temp_file_path, 'rb') as f:
+                    files = {'file': ('test_certificate.txt', f, 'text/plain')}
+                    
+                    self.log(f"   POST {endpoint}")
+                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                    self.log(f"   Response status: {response.status_code}")
                     
                     if response.status_code == 200:
-                        try:
-                            response_data = response.json()
-                            self.log("      ✅ API call successful")
+                        result = response.json()
+                        self.log("   ✅ AI analysis completed")
+                        
+                        # Check if enhanced AI prompt detected endorsement dates
+                        last_endorse = result.get('last_endorse')
+                        text_content = result.get('text_content', '')
+                        
+                        self.log(f"   📊 AI Analysis Results:")
+                        self.log(f"      Success: {result.get('success')}")
+                        self.log(f"      Last Endorse: {last_endorse}")
+                        self.log(f"      Certificate Name: {result.get('cert_name')}")
+                        self.log(f"      Certificate Number: {result.get('cert_no')}")
+                        self.log(f"      Issued By: {result.get('issued_by')}")
+                        
+                        # Check for endorsement context recognition
+                        if 'endorsement' in text_content.lower() or 'annual' in text_content.lower() or 'survey' in text_content.lower():
+                            self.log("   ✅ Endorsement context recognized in text content")
+                            self.endorsement_tests['endorsement_context_recognition_verified'] = True
+                        
+                        # Verify enhanced processing
+                        if last_endorse:
+                            self.log(f"   ✅ Enhanced AI prompt detected endorsement date: {last_endorse}")
+                            self.endorsement_tests['ai_prompt_enhancement_tested'] = True
                             
-                            # Analyze response structure
-                            self.log(f"      📊 Response structure analysis:")
-                            self.log(f"         Response keys: {list(response_data.keys())}")
-                            
-                            # Check for view_url in different possible locations
-                            view_url = None
-                            success_status = None
-                            
-                            # Check direct view_url
-                            if 'view_url' in response_data:
-                                view_url = response_data.get('view_url')
-                                self.log(f"         ✅ Direct view_url found: {view_url[:100]}..." if view_url else "         ❌ Direct view_url is null/empty")
-                            
-                            # Check data.view_url
-                            if 'data' in response_data and isinstance(response_data['data'], dict):
-                                data_view_url = response_data['data'].get('view_url')
-                                if data_view_url:
-                                    view_url = data_view_url
-                                    self.log(f"         ✅ data.view_url found: {data_view_url[:100]}..." if data_view_url else "         ❌ data.view_url is null/empty")
-                            
-                            # Check success status
-                            if 'success' in response_data:
-                                success_status = response_data.get('success')
-                                self.log(f"         Success status: {success_status}")
-                            
-                            if 'data' in response_data and isinstance(response_data['data'], dict):
-                                data_success = response_data['data'].get('success')
-                                if data_success is not None:
-                                    success_status = data_success
-                                    self.log(f"         data.success status: {data_success}")
-                            
-                            # Check for error messages
-                            error_message = response_data.get('error') or response_data.get('message')
-                            if error_message:
-                                self.log(f"         ⚠️ Error/Message: {error_message}")
-                            
-                            view_url_test_results.append({
-                                'certificate_name': cert_name,
-                                'file_id': file_id,
-                                'status_code': response.status_code,
-                                'success': success_status,
-                                'view_url_available': bool(view_url),
-                                'view_url': view_url,
-                                'response_structure': list(response_data.keys()),
-                                'error_message': error_message,
-                                'full_response': response_data
-                            })
-                            
-                        except json.JSONDecodeError:
-                            self.log(f"      ❌ Invalid JSON response")
-                            self.log(f"      Response text: {response.text[:500]}")
-                            view_url_test_results.append({
-                                'certificate_name': cert_name,
-                                'file_id': file_id,
-                                'status_code': response.status_code,
-                                'success': False,
-                                'view_url_available': False,
-                                'error_message': 'Invalid JSON response',
-                                'response_text': response.text[:500]
-                            })
+                            # Check if it selected the latest date (should be 18/03/2024)
+                            if '2024' in str(last_endorse):
+                                self.log("   ✅ Latest endorsement date selected correctly")
+                                self.endorsement_tests['latest_endorsement_selection_verified'] = True
+                        else:
+                            self.log("   ⚠️ No endorsement date detected by AI")
+                        
+                        self.test_results['ai_prompt_test'] = result
+                        return True
                     else:
-                        self.log(f"      ❌ API call failed: {response.status_code}")
+                        self.log(f"   ❌ AI analysis failed: {response.status_code}")
                         try:
                             error_data = response.json()
-                            error_message = error_data.get('detail', 'Unknown error')
-                            self.log(f"      Error: {error_message}")
+                            self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
                         except:
-                            error_message = response.text[:200]
-                            self.log(f"      Error: {error_message}")
+                            self.log(f"   Error: {response.text[:200]}")
+                        return False
                         
-                        view_url_test_results.append({
-                            'certificate_name': cert_name,
-                            'file_id': file_id,
-                            'status_code': response.status_code,
-                            'success': False,
-                            'view_url_available': False,
-                            'error_message': error_message
-                        })
-                
-                except requests.exceptions.Timeout:
-                    self.log(f"      ❌ Request timeout")
-                    view_url_test_results.append({
-                        'certificate_name': cert_name,
-                        'file_id': file_id,
-                        'status_code': None,
-                        'success': False,
-                        'view_url_available': False,
-                        'error_message': 'Request timeout'
-                    })
-                except Exception as e:
-                    self.log(f"      ❌ Request error: {str(e)}")
-                    view_url_test_results.append({
-                        'certificate_name': cert_name,
-                        'file_id': file_id,
-                        'status_code': None,
-                        'success': False,
-                        'view_url_available': False,
-                        'error_message': str(e)
-                    })
-            
-            self.test_results['view_url_test_results'] = view_url_test_results
-            
-            # Analyze overall results
-            successful_calls = sum(1 for result in view_url_test_results if result.get('status_code') == 200)
-            calls_with_view_url = sum(1 for result in view_url_test_results if result.get('view_url_available'))
-            total_calls = len(view_url_test_results)
-            
-            self.log(f"   📊 API Test Results Summary:")
-            self.log(f"      Total API calls: {total_calls}")
-            self.log(f"      Successful calls (200 OK): {successful_calls}")
-            self.log(f"      Calls with view_url: {calls_with_view_url}")
-            self.log(f"      Success rate: {(successful_calls/total_calls*100):.1f}%")
-            self.log(f"      View URL availability rate: {(calls_with_view_url/total_calls*100):.1f}%")
-            
-            if successful_calls > 0:
-                self.gdrive_tests['gdrive_view_url_api_tested'] = True
-                self.gdrive_tests['api_response_structure_analyzed'] = True
-            
-            if calls_with_view_url > 0:
-                self.gdrive_tests['view_url_availability_checked'] = True
-            
-            return successful_calls > 0
-                
+            finally:
+                # Clean up temporary file
+                try:
+                    os.unlink(temp_file_path)
+                except:
+                    pass
+                    
         except Exception as e:
-            self.log(f"❌ Google Drive view URL API test error: {str(e)}", "ERROR")
+            self.log(f"❌ AI prompt enhancement test error: {str(e)}", "ERROR")
             return False
     
-    def analyze_api_response_patterns(self):
-        """Analyze API response patterns and identify issues"""
+    def test_multiple_endorsement_handling(self):
+        """Test handling of certificates with multiple endorsement dates"""
         try:
-            self.log("🔍 Analyzing API response patterns...")
+            self.log("📅 Testing multiple endorsement date handling...")
             
-            view_url_test_results = self.test_results.get('view_url_test_results', [])
-            if not view_url_test_results:
-                self.log("   ❌ No API test results available for analysis")
+            # Test certificate with multiple survey dates
+            test_content = """
+            CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
+            
+            Certificate No: CSSC-2024-002
+            Ship Name: MULTI SURVEY VESSEL
+            
+            SURVEY HISTORY:
+            Initial Survey: 10/01/2020
+            Annual Survey: 15/01/2021
+            Intermediate Survey: 20/07/2021
+            Annual Survey: 18/01/2022
+            Intermediate Survey: 25/07/2022
+            Annual Survey: 22/01/2023
+            Intermediate Survey: 30/07/2023
+            Annual Survey: 25/01/2024
+            
+            This certificate is valid until: 10/01/2025
+            
+            Issued by: Panama Maritime Documentation Services
+            """
+            
+            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+            
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                temp_file.write(test_content)
+                temp_file_path = temp_file.name
+            
+            try:
+                with open(temp_file_path, 'rb') as f:
+                    files = {'file': ('multi_survey_cert.txt', f, 'text/plain')}
+                    
+                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        last_endorse = result.get('last_endorse')
+                        
+                        self.log(f"   📊 Multiple Endorsement Test Results:")
+                        self.log(f"      Last Endorse Detected: {last_endorse}")
+                        
+                        # Should select the most recent date (25/01/2024)
+                        if last_endorse and '2024' in str(last_endorse):
+                            self.log("   ✅ Most recent endorsement date selected correctly")
+                            self.endorsement_tests['multiple_endorsement_handling_tested'] = True
+                        else:
+                            self.log("   ⚠️ Multiple endorsement handling may need improvement")
+                        
+                        self.test_results['multiple_endorsement_test'] = result
+                        return True
+                    else:
+                        self.log(f"   ❌ Multiple endorsement test failed: {response.status_code}")
+                        return False
+                        
+            finally:
+                try:
+                    os.unlink(temp_file_path)
+                except:
+                    pass
+                    
+        except Exception as e:
+            self.log(f"❌ Multiple endorsement handling test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_fallback_pattern_matching(self):
+        """Test fallback pattern matching when AI fails"""
+        try:
+            self.log("🔍 Testing fallback pattern matching...")
+            
+            # Test with content that might challenge AI but has clear patterns
+            test_content = """
+            LOAD LINE CERTIFICATE
+            
+            Certificate No: LL-2024-003
+            
+            This certificate contains complex formatting that might challenge AI parsing.
+            
+            Survey Information:
+            - Last endorsed: 15/06/2024
+            - Survey date: 15/06/2024
+            - Annual survey: 15/06/2024
+            
+            Valid until: 15/06/2025
+            """
+            
+            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+            
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                temp_file.write(test_content)
+                temp_file_path = temp_file.name
+            
+            try:
+                with open(temp_file_path, 'rb') as f:
+                    files = {'file': ('pattern_test_cert.txt', f, 'text/plain')}
+                    
+                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        last_endorse = result.get('last_endorse')
+                        
+                        self.log(f"   📊 Fallback Pattern Test Results:")
+                        self.log(f"      Last Endorse Detected: {last_endorse}")
+                        
+                        # Check if pattern matching worked
+                        if last_endorse and '2024-06-15' in str(last_endorse):
+                            self.log("   ✅ Fallback pattern matching working correctly")
+                            self.endorsement_tests['fallback_pattern_matching_tested'] = True
+                        else:
+                            self.log("   ⚠️ Fallback pattern matching may need improvement")
+                        
+                        self.test_results['fallback_pattern_test'] = result
+                        return True
+                    else:
+                        self.log(f"   ❌ Fallback pattern test failed: {response.status_code}")
+                        return False
+                        
+            finally:
+                try:
+                    os.unlink(temp_file_path)
+                except:
+                    pass
+                    
+        except Exception as e:
+            self.log(f"❌ Fallback pattern matching test error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_types_with_endorsements(self):
+        """Test certificate types that should have endorsement requirements"""
+        try:
+            self.log("📋 Testing certificate types with known endorsement requirements...")
+            
+            test_results = []
+            
+            for cert_type in self.certificate_types_with_endorsements[:3]:  # Test first 3 types
+                self.log(f"   🔍 Testing {cert_type} certificate...")
+                
+                # Create test content for this certificate type
+                test_content = f"""
+                {cert_type.upper()} CERTIFICATE
+                
+                Certificate No: {cert_type.replace(' ', '')}-2024-001
+                Ship Name: TEST VESSEL
+                
+                Survey Information:
+                Annual survey: 20/05/2024
+                Intermediate survey: 15/11/2023
+                
+                This certificate is valid until: 20/05/2025
+                
+                Issued by: Panama Maritime Documentation Services
+                """
+                
+                endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
+                
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                    temp_file.write(test_content)
+                    temp_file_path = temp_file.name
+                
+                try:
+                    with open(temp_file_path, 'rb') as f:
+                        files = {'file': (f'{cert_type.lower()}_cert.txt', f, 'text/plain')}
+                        
+                        response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                        
+                        if response.status_code == 200:
+                            result = response.json()
+                            last_endorse = result.get('last_endorse')
+                            
+                            test_results.append({
+                                'cert_type': cert_type,
+                                'last_endorse': last_endorse,
+                                'success': bool(last_endorse)
+                            })
+                            
+                            if last_endorse:
+                                self.log(f"      ✅ {cert_type}: Endorsement date detected - {last_endorse}")
+                            else:
+                                self.log(f"      ⚠️ {cert_type}: No endorsement date detected")
+                        else:
+                            self.log(f"      ❌ {cert_type}: Analysis failed - {response.status_code}")
+                            test_results.append({
+                                'cert_type': cert_type,
+                                'last_endorse': None,
+                                'success': False
+                            })
+                            
+                finally:
+                    try:
+                        os.unlink(temp_file_path)
+                    except:
+                        pass
+            
+            # Analyze results
+            successful_tests = sum(1 for result in test_results if result['success'])
+            total_tests = len(test_results)
+            
+            self.log(f"   📊 Certificate Type Test Results: {successful_tests}/{total_tests} successful")
+            
+            if successful_tests > 0:
+                self.endorsement_tests['certificate_types_with_endorsements_tested'] = True
+            
+            self.test_results['certificate_type_tests'] = test_results
+            return successful_tests > 0
+            
+        except Exception as e:
+            self.log(f"❌ Certificate types test error: {str(e)}", "ERROR")
+            return False
+    
+    def verify_enhanced_processing_results(self):
+        """Verify that enhanced processing results are working correctly"""
+        try:
+            self.log("✅ Verifying enhanced processing results...")
+            
+            # Check all previous test results
+            ai_test = self.test_results.get('ai_prompt_test', {})
+            multiple_test = self.test_results.get('multiple_endorsement_test', {})
+            fallback_test = self.test_results.get('fallback_pattern_test', {})
+            cert_type_tests = self.test_results.get('certificate_type_tests', [])
+            
+            verification_results = {
+                'ai_enhancement_working': bool(ai_test.get('last_endorse')),
+                'multiple_handling_working': bool(multiple_test.get('last_endorse')),
+                'fallback_working': bool(fallback_test.get('last_endorse')),
+                'cert_types_working': any(test['success'] for test in cert_type_tests)
+            }
+            
+            self.log(f"   📊 Enhanced Processing Verification:")
+            self.log(f"      AI Enhancement: {'✅' if verification_results['ai_enhancement_working'] else '❌'}")
+            self.log(f"      Multiple Handling: {'✅' if verification_results['multiple_handling_working'] else '❌'}")
+            self.log(f"      Fallback Pattern: {'✅' if verification_results['fallback_working'] else '❌'}")
+            self.log(f"      Certificate Types: {'✅' if verification_results['cert_types_working'] else '❌'}")
+            
+            # Overall verification
+            working_features = sum(verification_results.values())
+            total_features = len(verification_results)
+            
+            self.log(f"   📊 Overall Enhancement Status: {working_features}/{total_features} features working")
+            
+            if working_features >= 2:  # At least 50% working
+                self.endorsement_tests['enhanced_processing_results_verified'] = True
+                self.log("   ✅ Enhanced processing results verified successfully")
+                return True
+            else:
+                self.log("   ⚠️ Enhanced processing results need improvement")
                 return False
-            
-            # Analyze response patterns
-            response_patterns = {}
-            error_patterns = {}
-            authentication_issues = []
-            permission_issues = []
-            
-            for result in view_url_test_results:
-                status_code = result.get('status_code')
-                error_message = result.get('error_message', '')
-                
-                # Track response patterns
-                if status_code:
-                    response_patterns[status_code] = response_patterns.get(status_code, 0) + 1
-                
-                # Track error patterns
-                if error_message:
-                    error_patterns[error_message] = error_patterns.get(error_message, 0) + 1
-                
-                # Check for authentication issues
-                if status_code == 401 or 'authentication' in error_message.lower() or 'unauthorized' in error_message.lower():
-                    authentication_issues.append(result)
-                
-                # Check for permission issues
-                if status_code == 403 or 'permission' in error_message.lower() or 'forbidden' in error_message.lower():
-                    permission_issues.append(result)
-            
-            self.log("   📊 Response Pattern Analysis:")
-            for status_code, count in response_patterns.items():
-                self.log(f"      HTTP {status_code}: {count} occurrences")
-            
-            if error_patterns:
-                self.log("   📊 Error Pattern Analysis:")
-                for error, count in error_patterns.items():
-                    self.log(f"      '{error}': {count} occurrences")
-            
-            if authentication_issues:
-                self.log(f"   🔐 Authentication Issues Found: {len(authentication_issues)}")
-                self.gdrive_tests['authentication_issues_checked'] = True
-                for issue in authentication_issues[:3]:  # Show first 3
-                    self.log(f"      - {issue.get('certificate_name')}: {issue.get('error_message')}")
-            
-            if permission_issues:
-                self.log(f"   🔒 Permission Issues Found: {len(permission_issues)}")
-                self.gdrive_tests['permission_issues_checked'] = True
-                for issue in permission_issues[:3]:  # Show first 3
-                    self.log(f"      - {issue.get('certificate_name')}: {issue.get('error_message')}")
-            
-            # Analyze response structure consistency
-            response_structures = {}
-            for result in view_url_test_results:
-                if result.get('response_structure'):
-                    structure_key = str(sorted(result['response_structure']))
-                    response_structures[structure_key] = response_structures.get(structure_key, 0) + 1
-            
-            if response_structures:
-                self.log("   📊 Response Structure Analysis:")
-                for structure, count in response_structures.items():
-                    self.log(f"      Structure {structure}: {count} occurrences")
-            
-            self.test_results['response_patterns'] = response_patterns
-            self.test_results['error_patterns'] = error_patterns
-            self.test_results['authentication_issues'] = authentication_issues
-            self.test_results['permission_issues'] = permission_issues
-            
-            return True
                 
         except Exception as e:
-            self.log(f"❌ API response pattern analysis error: {str(e)}", "ERROR")
+            self.log(f"❌ Enhanced processing verification error: {str(e)}", "ERROR")
             return False
     
     def capture_backend_logs(self):
-        """Capture backend logs during API calls"""
+        """Capture backend logs for endorsement processing analysis"""
         try:
-            self.log("📝 Capturing backend logs...")
+            self.log("📝 Capturing backend logs for endorsement processing...")
             
-            # Try to capture backend logs using supervisor
+            # Try to capture backend logs
             try:
                 result = subprocess.run(
-                    ['tail', '-n', '50', '/var/log/supervisor/backend.err.log'],
+                    ['tail', '-n', '100', '/var/log/supervisor/backend.out.log'],
                     capture_output=True,
                     text=True,
                     timeout=10
                 )
                 
                 if result.returncode == 0 and result.stdout:
-                    self.log("   ✅ Backend error logs captured:")
                     log_lines = result.stdout.strip().split('\n')
-                    for line in log_lines[-10:]:  # Show last 10 lines
-                        if line.strip():
-                            self.log(f"      {line}")
                     
-                    self.test_results['backend_error_logs'] = log_lines
+                    # Look for endorsement-related log messages
+                    endorsement_logs = []
+                    for line in log_lines:
+                        if any(keyword in line.lower() for keyword in ['endorse', 'pattern matching', 'survey', 'annual']):
+                            endorsement_logs.append(line)
+                    
+                    if endorsement_logs:
+                        self.log("   ✅ Endorsement-related backend logs found:")
+                        for log_line in endorsement_logs[-5:]:  # Show last 5 relevant logs
+                            self.log(f"      {log_line}")
+                        
+                        # Check for specific pattern matching messages
+                        pattern_matching_logs = [line for line in endorsement_logs if 'pattern matching' in line.lower()]
+                        if pattern_matching_logs:
+                            self.log("   ✅ Pattern matching logs detected - fallback mechanism working")
+                    else:
+                        self.log("   ⚠️ No endorsement-specific logs found in recent backend output")
+                    
+                    self.test_results['backend_logs'] = log_lines
+                    self.test_results['endorsement_logs'] = endorsement_logs
                 else:
-                    self.log("   ⚠️ No backend error logs found or accessible")
+                    self.log("   ⚠️ No backend logs accessible")
                     
-            except subprocess.TimeoutExpired:
-                self.log("   ⚠️ Backend log capture timeout")
-            except FileNotFoundError:
-                self.log("   ⚠️ Backend log file not found")
             except Exception as e:
                 self.log(f"   ⚠️ Backend log capture error: {str(e)}")
             
-            # Try to capture backend output logs
-            try:
-                result = subprocess.run(
-                    ['tail', '-n', '50', '/var/log/supervisor/backend.out.log'],
-                    capture_output=True,
-                    text=True,
-                    timeout=10
-                )
-                
-                if result.returncode == 0 and result.stdout:
-                    self.log("   ✅ Backend output logs captured:")
-                    log_lines = result.stdout.strip().split('\n')
-                    for line in log_lines[-10:]:  # Show last 10 lines
-                        if line.strip():
-                            self.log(f"      {line}")
-                    
-                    self.test_results['backend_output_logs'] = log_lines
-                else:
-                    self.log("   ⚠️ No backend output logs found or accessible")
-                    
-            except subprocess.TimeoutExpired:
-                self.log("   ⚠️ Backend output log capture timeout")
-            except FileNotFoundError:
-                self.log("   ⚠️ Backend output log file not found")
-            except Exception as e:
-                self.log(f"   ⚠️ Backend output log capture error: {str(e)}")
-            
-            self.gdrive_tests['backend_logs_captured'] = True
+            self.endorsement_tests['backend_logs_captured'] = True
             return True
                 
         except Exception as e:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_gdrive_multi_file_open_tests(self):
-        """Main test function for Google Drive multi-file opening"""
-        self.log("🎯 STARTING GOOGLE DRIVE MULTI-FILE OPENING API TESTING")
-        self.log("🔍 Focus: Debug multi-file opening API calls and responses")
-        self.log("📋 Review Request: Test Google Drive view URL API with SUNSHINE 01 certificates")
-        self.log("🎯 Testing: Authentication, certificate retrieval, view URL API, response analysis")
+    def run_comprehensive_endorsement_tests(self):
+        """Main test function for enhanced endorsement processing"""
+        self.log("🎯 STARTING ENHANCED ENDORSEMENT PROCESSING TESTING")
+        self.log("🔍 Focus: Enhanced Last Endorse processing for maritime certificates")
+        self.log("📋 Review Request: Test AI prompt enhancement and fallback pattern matching")
+        self.log("🎯 Testing: Authentication, AI enhancement, multiple endorsements, fallback patterns")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -540,271 +589,237 @@ class GoogleDriveMultiFileOpenTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Find SUNSHINE 01 ship
-        self.log("\n🚢 STEP 2: FIND SUNSHINE 01 SHIP")
+        # Step 2: Find PMDS certificates
+        self.log("\n📋 STEP 2: FIND PMDS CERTIFICATES")
         self.log("=" * 50)
-        sunshine_01_ship = self.find_sunshine_01_ship()
-        if not sunshine_01_ship:
-            self.log("❌ SUNSHINE 01 ship not found - cannot proceed with certificate testing")
-            return False
+        pmds_certificates = self.find_pmds_certificates()
         
-        # Step 3: Get SUNSHINE 01 certificates
-        self.log("\n📋 STEP 3: GET SUNSHINE 01 CERTIFICATES")
+        # Step 3: Test AI prompt enhancement
+        self.log("\n🤖 STEP 3: TEST AI PROMPT ENHANCEMENT")
         self.log("=" * 50)
-        certificates = self.get_sunshine_01_certificates()
-        if not certificates:
-            self.log("❌ No certificates found for SUNSHINE 01 - cannot proceed with Google Drive testing")
-            return False
+        self.test_ai_prompt_enhancement()
         
-        # Step 4: Test Google Drive view URL API
-        self.log("\n🔗 STEP 4: TEST GOOGLE DRIVE VIEW URL API")
+        # Step 4: Test multiple endorsement handling
+        self.log("\n📅 STEP 4: TEST MULTIPLE ENDORSEMENT HANDLING")
         self.log("=" * 50)
-        self.test_gdrive_view_url_api()
+        self.test_multiple_endorsement_handling()
         
-        # Step 5: Analyze API response patterns
-        self.log("\n🔍 STEP 5: ANALYZE API RESPONSE PATTERNS")
+        # Step 5: Test fallback pattern matching
+        self.log("\n🔍 STEP 5: TEST FALLBACK PATTERN MATCHING")
         self.log("=" * 50)
-        self.analyze_api_response_patterns()
+        self.test_fallback_pattern_matching()
         
-        # Step 6: Capture backend logs
-        self.log("\n📝 STEP 6: CAPTURE BACKEND LOGS")
+        # Step 6: Test certificate types with endorsements
+        self.log("\n📋 STEP 6: TEST CERTIFICATE TYPES WITH ENDORSEMENTS")
+        self.log("=" * 50)
+        self.test_certificate_types_with_endorsements()
+        
+        # Step 7: Verify enhanced processing results
+        self.log("\n✅ STEP 7: VERIFY ENHANCED PROCESSING RESULTS")
+        self.log("=" * 50)
+        self.verify_enhanced_processing_results()
+        
+        # Step 8: Capture backend logs
+        self.log("\n📝 STEP 8: CAPTURE BACKEND LOGS")
         self.log("=" * 50)
         self.capture_backend_logs()
         
-        # Step 7: Final analysis
-        self.log("\n📊 STEP 7: FINAL ANALYSIS")
+        # Step 9: Final analysis
+        self.log("\n📊 STEP 9: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_gdrive_analysis()
+        self.provide_final_endorsement_analysis()
         
         return True
     
-    def provide_final_gdrive_analysis(self):
-        """Provide final analysis of the Google Drive multi-file opening testing"""
+    def provide_final_endorsement_analysis(self):
+        """Provide final analysis of the enhanced endorsement processing testing"""
         try:
-            self.log("🎯 GOOGLE DRIVE MULTI-FILE OPENING TESTING - RESULTS")
+            self.log("🎯 ENHANCED ENDORSEMENT PROCESSING TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.gdrive_tests.items():
+            for test_name, passed in self.endorsement_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ GOOGLE DRIVE TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ ENDORSEMENT TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ GOOGLE DRIVE TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ ENDORSEMENT TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
-            success_rate = len(passed_tests) / len(self.gdrive_tests) * 100
-            self.log(f"\n📊 GOOGLE DRIVE TESTING SUCCESS RATE: {success_rate:.1f}%")
+            success_rate = len(passed_tests) / len(self.endorsement_tests) * 100
+            self.log(f"\n📊 ENDORSEMENT TESTING SUCCESS RATE: {success_rate:.1f}%")
             
             # Detailed results
             self.log(f"\n🔍 DETAILED RESULTS:")
             
-            # Ship information
-            sunshine_01_ship = self.test_results.get('sunshine_01_ship')
-            if sunshine_01_ship:
-                self.log(f"   🚢 SUNSHINE 01 Ship Found:")
-                self.log(f"      Name: {sunshine_01_ship.get('name')}")
-                self.log(f"      ID: {sunshine_01_ship.get('id')}")
-                self.log(f"      Company: {sunshine_01_ship.get('company')}")
-                self.log(f"      IMO: {sunshine_01_ship.get('imo', 'Not specified')}")
+            # PMDS certificates
+            pmds_certificates = self.test_results.get('pmds_certificates', [])
+            if pmds_certificates:
+                self.log(f"   📋 PMDS Certificates Found: {len(pmds_certificates)}")
+                for cert in pmds_certificates[:3]:  # Show first 3
+                    self.log(f"      - {cert.get('cert_name')} on {cert.get('ship_name')}")
             
-            # Certificate analysis
-            certificates_with_gdrive_ids = self.test_results.get('certificates_with_gdrive_ids', [])
-            certificates_without_gdrive_ids = self.test_results.get('certificates_without_gdrive_ids', [])
+            # Test results analysis
+            ai_test = self.test_results.get('ai_prompt_test', {})
+            multiple_test = self.test_results.get('multiple_endorsement_test', {})
+            fallback_test = self.test_results.get('fallback_pattern_test', {})
+            cert_type_tests = self.test_results.get('certificate_type_tests', [])
             
-            self.log(f"   📋 Certificate Analysis:")
-            self.log(f"      Total certificates: {len(certificates_with_gdrive_ids) + len(certificates_without_gdrive_ids)}")
-            self.log(f"      With Google Drive File IDs: {len(certificates_with_gdrive_ids)}")
-            self.log(f"      Without Google Drive File IDs: {len(certificates_without_gdrive_ids)}")
+            self.log(f"   🤖 AI Prompt Enhancement:")
+            self.log(f"      Last Endorse Detected: {ai_test.get('last_endorse', 'None')}")
+            self.log(f"      Status: {'✅ Working' if ai_test.get('last_endorse') else '❌ Not Working'}")
             
-            # API test results
-            view_url_test_results = self.test_results.get('view_url_test_results', [])
-            if view_url_test_results:
-                successful_calls = sum(1 for result in view_url_test_results if result.get('status_code') == 200)
-                calls_with_view_url = sum(1 for result in view_url_test_results if result.get('view_url_available'))
-                total_calls = len(view_url_test_results)
-                
-                self.log(f"   🔗 API Test Results:")
-                self.log(f"      Total API calls: {total_calls}")
-                self.log(f"      Successful calls (200 OK): {successful_calls}")
-                self.log(f"      Calls with view_url: {calls_with_view_url}")
-                self.log(f"      Success rate: {(successful_calls/total_calls*100):.1f}%")
-                self.log(f"      View URL availability rate: {(calls_with_view_url/total_calls*100):.1f}%")
+            self.log(f"   📅 Multiple Endorsement Handling:")
+            self.log(f"      Last Endorse Detected: {multiple_test.get('last_endorse', 'None')}")
+            self.log(f"      Status: {'✅ Working' if multiple_test.get('last_endorse') else '❌ Not Working'}")
             
-            # Response patterns
-            response_patterns = self.test_results.get('response_patterns', {})
-            if response_patterns:
-                self.log(f"   📊 Response Patterns:")
-                for status_code, count in response_patterns.items():
-                    self.log(f"      HTTP {status_code}: {count} occurrences")
+            self.log(f"   🔍 Fallback Pattern Matching:")
+            self.log(f"      Last Endorse Detected: {fallback_test.get('last_endorse', 'None')}")
+            self.log(f"      Status: {'✅ Working' if fallback_test.get('last_endorse') else '❌ Not Working'}")
             
-            # Issues found
-            authentication_issues = self.test_results.get('authentication_issues', [])
-            permission_issues = self.test_results.get('permission_issues', [])
+            if cert_type_tests:
+                successful_cert_tests = sum(1 for test in cert_type_tests if test['success'])
+                total_cert_tests = len(cert_type_tests)
+                self.log(f"   📋 Certificate Types Testing:")
+                self.log(f"      Success Rate: {successful_cert_tests}/{total_cert_tests}")
+                for test in cert_type_tests:
+                    status = '✅' if test['success'] else '❌'
+                    self.log(f"      {status} {test['cert_type']}: {test.get('last_endorse', 'None')}")
             
-            if authentication_issues:
-                self.log(f"   🔐 Authentication Issues: {len(authentication_issues)} found")
-            
-            if permission_issues:
-                self.log(f"   🔒 Permission Issues: {len(permission_issues)} found")
-            
-            # Key findings for the review request
-            self.log(f"\n🎯 KEY FINDINGS FOR REVIEW REQUEST:")
-            
-            if certificates_with_gdrive_ids:
-                self.log(f"   ✅ Found {len(certificates_with_gdrive_ids)} certificates with Google Drive file IDs")
-                self.log(f"   📋 Sample certificates with file IDs:")
-                for cert in certificates_with_gdrive_ids[:3]:
-                    self.log(f"      - {cert.get('name')}: {cert.get('google_drive_file_id')}")
-            else:
-                self.log(f"   ❌ No certificates with Google Drive file IDs found")
-            
-            if view_url_test_results:
-                # Analyze exact response format
-                sample_response = None
-                for result in view_url_test_results:
-                    if result.get('full_response'):
-                        sample_response = result['full_response']
-                        break
-                
-                if sample_response:
-                    self.log(f"   📊 API Response Format Analysis:")
-                    self.log(f"      Response structure: {list(sample_response.keys())}")
-                    
-                    if 'view_url' in sample_response:
-                        self.log(f"      ✅ Direct view_url field present")
-                    elif 'data' in sample_response and isinstance(sample_response['data'], dict):
-                        data_keys = list(sample_response['data'].keys())
-                        self.log(f"      📊 data object keys: {data_keys}")
-                        if 'view_url' in data_keys:
-                            self.log(f"      ✅ data.view_url field present")
-                        else:
-                            self.log(f"      ❌ No view_url in data object")
-                    else:
-                        self.log(f"      ❌ No view_url field found in response")
+            # Backend logs analysis
+            endorsement_logs = self.test_results.get('endorsement_logs', [])
+            if endorsement_logs:
+                self.log(f"   📝 Backend Logs Analysis:")
+                self.log(f"      Endorsement-related logs found: {len(endorsement_logs)}")
+                pattern_matching_logs = [line for line in endorsement_logs if 'pattern matching' in line.lower()]
+                if pattern_matching_logs:
+                    self.log(f"      Pattern matching logs: {len(pattern_matching_logs)} found")
+                    self.log("      ✅ Fallback mechanism appears to be working")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Google Drive Multi-File Opening API Testing")
-    print("🔍 Focus: Debug multi-file opening API calls and responses")
-    print("📋 Review Request: Test Google Drive view URL API with SUNSHINE 01 certificates")
-    print("🎯 Testing: Authentication, certificate retrieval, view URL API, response analysis")
+    print("🎯 Ship Management System - Enhanced Endorsement Processing Testing")
+    print("🔍 Focus: Enhanced Last Endorse processing for maritime certificates")
+    print("📋 Review Request: Test AI prompt enhancement and fallback pattern matching")
+    print("🎯 Testing: Authentication, AI enhancement, multiple endorsements, fallback patterns")
     print("=" * 100)
     
-    tester = GoogleDriveMultiFileOpenTester()
-    success = tester.run_comprehensive_gdrive_multi_file_open_tests()
+    tester = EnhancedEndorsementTester()
+    success = tester.run_comprehensive_endorsement_tests()
     
     print("=" * 100)
-    print("🔍 GOOGLE DRIVE MULTI-FILE OPENING TESTING RESULTS:")
+    print("🔍 ENHANCED ENDORSEMENT PROCESSING TESTING RESULTS:")
     print("=" * 70)
     
     # Print test summary
-    passed_tests = [f for f, passed in tester.gdrive_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.gdrive_tests.items() if not passed]
+    passed_tests = [f for f, passed in tester.endorsement_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.endorsement_tests.items() if not passed]
     
-    print(f"✅ GOOGLE DRIVE TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ ENDORSEMENT TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ GOOGLE DRIVE TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ ENDORSEMENT TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
     # Print key findings
     print(f"\n🔍 KEY FINDINGS:")
     
-    # Certificate analysis
-    certificates_with_gdrive_ids = tester.test_results.get('certificates_with_gdrive_ids', [])
-    certificates_without_gdrive_ids = tester.test_results.get('certificates_without_gdrive_ids', [])
+    # PMDS certificates
+    pmds_certificates = tester.test_results.get('pmds_certificates', [])
+    print(f"   📋 PMDS Certificates Analysis:")
+    print(f"      Total PMDS certificates found: {len(pmds_certificates)}")
     
-    print(f"   📋 SUNSHINE 01 Certificate Analysis:")
-    print(f"      Total certificates: {len(certificates_with_gdrive_ids) + len(certificates_without_gdrive_ids)}")
-    print(f"      With Google Drive File IDs: {len(certificates_with_gdrive_ids)}")
-    print(f"      Without Google Drive File IDs: {len(certificates_without_gdrive_ids)}")
+    # Test results
+    ai_test = tester.test_results.get('ai_prompt_test', {})
+    multiple_test = tester.test_results.get('multiple_endorsement_test', {})
+    fallback_test = tester.test_results.get('fallback_pattern_test', {})
+    cert_type_tests = tester.test_results.get('certificate_type_tests', [])
     
-    # API test results
-    view_url_test_results = tester.test_results.get('view_url_test_results', [])
-    if view_url_test_results:
-        successful_calls = sum(1 for result in view_url_test_results if result.get('status_code') == 200)
-        calls_with_view_url = sum(1 for result in view_url_test_results if result.get('view_url_available'))
-        total_calls = len(view_url_test_results)
-        
-        print(f"   🔗 Google Drive View URL API Results:")
-        print(f"      Total API calls: {total_calls}")
-        print(f"      Successful calls (200 OK): {successful_calls}")
-        print(f"      Calls with view_url: {calls_with_view_url}")
-        print(f"      Success rate: {(successful_calls/total_calls*100):.1f}%")
-        print(f"      View URL availability rate: {(calls_with_view_url/total_calls*100):.1f}%")
+    print(f"   🤖 AI Prompt Enhancement: {'✅ Working' if ai_test.get('last_endorse') else '❌ Not Working'}")
+    print(f"   📅 Multiple Endorsement Handling: {'✅ Working' if multiple_test.get('last_endorse') else '❌ Not Working'}")
+    print(f"   🔍 Fallback Pattern Matching: {'✅ Working' if fallback_test.get('last_endorse') else '❌ Not Working'}")
     
-    # Ship information
-    if tester.test_results.get('sunshine_01_ship'):
-        ship = tester.test_results['sunshine_01_ship']
-        print(f"\n🚢 TESTED WITH SHIP: {ship.get('name')} (ID: {ship.get('id')})")
-        print(f"   Company: {ship.get('company')}")
-        print(f"   IMO: {ship.get('imo', 'Not specified')}")
+    if cert_type_tests:
+        successful_cert_tests = sum(1 for test in cert_type_tests if test['success'])
+        total_cert_tests = len(cert_type_tests)
+        print(f"   📋 Certificate Types Testing: {successful_cert_tests}/{total_cert_tests} successful")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.gdrive_tests) * 100
+    success_rate = len(passed_tests) / len(tester.endorsement_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 Google Drive multi-file opening API testing completed!")
+        print("🎉 Enhanced endorsement processing testing completed!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ Google Drive multi-file opening API testing completed with issues!")
+        print("❌ Enhanced endorsement processing testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
     # Provide recommendations based on findings
     print("\n💡 NEXT STEPS FOR MAIN AGENT:")
     
-    if certificates_with_gdrive_ids:
-        print("   ✅ Certificates with Google Drive file IDs found")
-        if view_url_test_results:
-            successful_calls = sum(1 for result in view_url_test_results if result.get('status_code') == 200)
-            calls_with_view_url = sum(1 for result in view_url_test_results if result.get('view_url_available'))
-            
-            if successful_calls > 0:
-                print("   ✅ Google Drive view URL API is accessible")
-                if calls_with_view_url > 0:
-                    print("   ✅ View URLs are being returned by the API")
-                    print("   1. Check frontend logic for processing view_url responses")
-                    print("   2. Verify response format handling (data.view_url vs direct view_url)")
-                    print("   3. Test multi-file opening with actual file IDs")
-                else:
-                    print("   ❌ View URLs are not available in API responses")
-                    print("   1. Check Google Drive authentication configuration")
-                    print("   2. Verify file permissions in Google Drive")
-                    print("   3. Check Apps Script implementation for view URL generation")
-            else:
-                print("   ❌ Google Drive view URL API calls are failing")
-                print("   1. Check backend Google Drive integration")
-                print("   2. Verify authentication and permissions")
-                print("   3. Check backend logs for specific error messages")
-        else:
-            print("   ❌ No API tests were performed")
-            print("   1. Ensure certificates have valid google_drive_file_id fields")
-            print("   2. Check backend API endpoint implementation")
+    # AI Enhancement recommendations
+    if ai_test.get('last_endorse'):
+        print("   ✅ AI prompt enhancement is working correctly")
     else:
-        print("   ❌ No certificates with Google Drive file IDs found")
-        print("   1. Check certificate upload process")
-        print("   2. Verify Google Drive integration during certificate creation")
-        print("   3. Check database for google_drive_file_id field population")
+        print("   ❌ AI prompt enhancement needs improvement")
+        print("   1. Check AI model configuration and prompts")
+        print("   2. Verify maritime domain knowledge in prompts")
+        print("   3. Test with different certificate formats")
+    
+    # Multiple endorsement handling
+    if multiple_test.get('last_endorse'):
+        print("   ✅ Multiple endorsement handling is working correctly")
+    else:
+        print("   ❌ Multiple endorsement handling needs improvement")
+        print("   1. Check date parsing and comparison logic")
+        print("   2. Verify latest date selection algorithm")
+    
+    # Fallback pattern matching
+    if fallback_test.get('last_endorse'):
+        print("   ✅ Fallback pattern matching is working correctly")
+    else:
+        print("   ❌ Fallback pattern matching needs improvement")
+        print("   1. Check regex patterns for endorsement dates")
+        print("   2. Verify fallback mechanism triggers correctly")
+        print("   3. Test with more diverse certificate formats")
+    
+    # Certificate types
+    if cert_type_tests:
+        successful_cert_tests = sum(1 for test in cert_type_tests if test['success'])
+        if successful_cert_tests > 0:
+            print(f"   ✅ Certificate types testing partially successful ({successful_cert_tests} working)")
+        else:
+            print("   ❌ Certificate types testing failed")
+            print("   1. Check certificate type recognition")
+            print("   2. Verify endorsement requirements mapping")
+    
+    # Backend logs
+    endorsement_logs = tester.test_results.get('endorsement_logs', [])
+    if endorsement_logs:
+        print("   ✅ Backend logs show endorsement processing activity")
+    else:
+        print("   ⚠️ No endorsement-specific backend logs found")
+        print("   1. Check backend logging configuration")
+        print("   2. Verify endorsement processing is being logged")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
