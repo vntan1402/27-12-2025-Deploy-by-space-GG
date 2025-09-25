@@ -2428,7 +2428,23 @@ const HomePage = () => {
                             {/* Edit Ship Button */}
                             <button
                               onClick={() => {
-                                setEditingShipData({...selectedShip});
+                                // Initialize enhanced fields for editing
+                                const initData = {
+                                  ...selectedShip,
+                                  // Ensure enhanced anniversary date structure
+                                  anniversary_date: selectedShip.anniversary_date && typeof selectedShip.anniversary_date === 'object' 
+                                    ? selectedShip.anniversary_date 
+                                    : selectedShip.anniversary_date 
+                                      ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
+                                      : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
+                                  // Ensure enhanced dry dock cycle structure
+                                  dry_dock_cycle: selectedShip.dry_dock_cycle && typeof selectedShip.dry_dock_cycle === 'object'
+                                    ? selectedShip.dry_dock_cycle
+                                    : selectedShip.dry_dock_cycle && typeof selectedShip.dry_dock_cycle === 'number'
+                                      ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
+                                      : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
+                                };
+                                setEditingShipData(initData);
                                 setShowEditShipModal(true);
                               }}
                               className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
