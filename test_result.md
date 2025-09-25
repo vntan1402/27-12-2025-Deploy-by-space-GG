@@ -131,13 +131,23 @@ metadata:
   run_ui: false
 
 test_plan:
-##   current_focus:
-##     - "Duplicate Certificate Resolution Modal"
-##   stuck_tasks:
-##     - 
-##   test_all: false
-##   test_priority: "high_first"
-##
+  current_focus:
+    - "Enhanced Last Endorse Processing for Maritime Certificates"
+    - "AI Prompt Enhancement for Endorsement Detection"
+    - "Multiple Endorsement Handling"
+    - "Fallback Pattern Matching"
+  stuck_tasks:
+    - "Enhanced Last Endorse Processing for Maritime Certificates"
+    - "AI Prompt Enhancement for Endorsement Detection"
+    - "Multiple Endorsement Handling"
+    - "Fallback Pattern Matching"
+    - "Certificate Types with Endorsement Requirements"
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    -agent: "testing"
+    -message: "❌ CRITICAL ENHANCED ENDORSEMENT PROCESSING TESTING COMPLETED - MAJOR AI INTEGRATION ISSUES IDENTIFIED: Comprehensive testing of enhanced Last Endorse processing for maritime certificates completed with 30% success rate (3/10 tests passed). REVIEW REQUEST REQUIREMENTS ANALYSIS: ✅ AUTHENTICATION: Login with admin1/123456 successful, user properly authenticated with ADMIN role and AMCSC company assignment. ✅ PMDS CERTIFICATES FOUND: Successfully identified 32 existing PMDS certificates across SUNSHINE 01 and SUNSHINE STAR ships, confirming maritime certificate database is populated. ❌ CRITICAL FAILURE - AI INTEGRATION BROKEN: All AI-dependent functionality failing with consistent 'AI analysis failed or no API key available' errors despite AI configuration showing provider: google, model: gemini-2.0-flash, use_emergent_key: true. ❌ ENHANCED ENDORSEMENT PROCESSING NOT WORKING: Tested all 32 existing PMDS certificates - ZERO have endorsement dates detected, confirming enhanced processing is completely non-functional. ❌ AI PROMPT ENHANCEMENT FAILED: Cannot test maritime domain knowledge improvements because AI analysis consistently fails before reaching prompt processing. ❌ MULTIPLE ENDORSEMENT HANDLING FAILED: extract_latest_endorsement_date function exists with proper logic but cannot be tested due to AI analysis failures preventing text extraction. ❌ FALLBACK PATTERN MATCHING NOT TRIGGERED: No backend logs showing 'Found endorsement date via pattern matching' messages, indicating fallback mechanism never reached due to upstream AI failures. ✅ OCR DEPENDENCY FIXED: Resolved critical Poppler dependency issue by installing poppler-utils, eliminating 'Unable to get page count' errors. Backend now successfully converts PDFs to images for OCR processing. ROOT CAUSE ANALYSIS: The enhanced endorsement processing code is implemented correctly (get_enhanced_last_endorse, extract_latest_endorsement_date functions exist) but the entire AI analysis pipeline is broken. Despite proper AI configuration, the analyze-ship-certificate endpoint returns fallback data instead of AI analysis results. This prevents all endorsement date extraction functionality from working. PRIORITY: CRITICAL - Enhanced endorsement processing is completely non-functional due to AI integration issues. Main agent must investigate and fix AI analysis pipeline before endorsement processing can be tested effectively."
 ## agent_communication:
     -agent: "main"
     -message: "✅ DUPLICATE CERTIFICATE RESOLUTION MODAL IMPLEMENTATION COMPLETED - Successfully implemented comprehensive duplicate certificate resolution functionality for multi-file upload: 1) ✅ STATE MANAGEMENT: Added duplicateResolutionModal state to track files requiring user choice with show, files, and shipId properties, 2) ✅ UPLOAD DETECTION: Modified handleMultiCertUpload to detect files with status=duplicate and requires_user_choice=true, showing modal instead of generic error message, 3) ✅ MODAL UI: Created comprehensive table-format modal displaying each duplicate file with: filename, certificate details (name, number), existing duplicate certificate info (name, number, issue date), resolution options as radio buttons (Cancel, Overwrite, Keep Both), 4) ✅ USER INTERACTION: Implemented updateFileResolution function allowing different resolution choice per file, default resolution set to 'cancel', 5) ✅ BACKEND INTEGRATION: Created processDuplicateResolutions function that processes all files, sends resolution data to /api/certificates/process-with-resolution endpoint, handles success/error responses, 6) ✅ USER FEEDBACK: Added comprehensive toast notifications for processed/cancelled counts, error handling, certificate list refresh after processing, 7) ✅ BILINGUAL SUPPORT: Full Vietnamese/English language support throughout the modal and feedback messages. The system now provides users with clear options to Cancel, Overwrite, or Keep Both for each duplicate certificate detected during multi-file upload, addressing the user's request for proper duplicate handling instead of generic error messages. READY FOR COMPREHENSIVE TESTING."
