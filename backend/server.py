@@ -3199,7 +3199,7 @@ async def get_certificate_form_fields_for_extraction():
             "cert_no": "Certificate number/identification number",
             "issue_date": "Issue date/Date of issue (format: YYYY-MM-DD)",
             "valid_date": "Valid until/Expiry date (format: YYYY-MM-DD)",
-            "last_endorse": "Last endorsement date if applicable (format: YYYY-MM-DD)",
+            "last_endorse": "Last endorsement date if applicable (format: YYYY-MM-DD). IMPORTANT ENDORSEMENT CONTEXT: Many maritime certificates require periodic endorsements/surveys: (1) SOLAS Certificates (Safety Construction, Safety Equipment, Safety Radio) - typically require annual or intermediate surveys every 2-3 years, (2) MARPOL Certificates (IAPP, IOPP) - require intermediate surveys at mid-term (2-3 years), (3) ISM Certificates (SMC, DOC) - require annual verification audits, (4) ISPS Certificates - require renewal audits every 3 years, (5) Load Line Certificate - requires annual surveys, (6) Tonnage Certificate - generally no periodic endorsements unless modifications, (7) Radio Survey Certificate - annual surveys required. Look for endorsement sections, survey stamps, annual/intermediate survey dates, or renewal dates. If multiple endorsement dates are found, extract the MOST RECENT date as this represents the last endorsement.",
             "next_survey": "Next survey date if applicable (format: YYYY-MM-DD)",
             "issued_by": "Issued by organization/authority (full name of the certifying body)",
             "category": "Document category (should be 'certificates' for marine certificates)",
