@@ -2378,37 +2378,47 @@ const HomePage = () => {
                           </div>
                         </div>
 
-                        {/* Full Ship Info (Toggle visibility) */}
+                        {/* Full Ship Info (Toggle visibility) - 3 columns layout */}
                         {showFullShipInfo && (
-                          <div className="grid grid-cols-2 gap-4 text-sm p-4 bg-gray-50 rounded-lg border">
-                            <div className="col-span-2">
+                          <div className="grid grid-cols-3 gap-4 text-sm p-4 bg-gray-50 rounded-lg border">
+                            <div className="col-span-3">
                               <h4 className="font-semibold text-gray-700 mb-3 border-b pb-2">
                                 {language === 'vi' ? 'Thông tin chi tiết tàu' : 'Detailed Ship Information'}
                               </h4>
                             </div>
+                            
+                            {/* Column 1 - Basic Ship Data */}
                             <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
-                              <span className="ml-2">{selectedShip.name}</span>
-                            </div>
-                            <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Tổ chức Phân cấp:' : 'Class Society:'}</span>
-                              <span className="ml-2">{selectedShip.ship_type || selectedShip.class_society || '-'}</span>
-                            </div>
-                            <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
-                              <span className="ml-2">{selectedShip.flag}</span>
-                            </div>
-                            <div>
-                              <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
-                              <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
+                              <span className="font-semibold">{language === 'vi' ? 'IMO:' : 'IMO:'}</span>
+                              <span className="ml-2">{selectedShip.imo || '-'}</span>
                             </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
-                              <span className="ml-2">{selectedShip.deadweight?.toLocaleString()}</span>
+                              <span className="ml-2">{selectedShip.dwt?.toLocaleString() || '-'}</span>
                             </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
-                              <span className="ml-2">{selectedShip.built_year}</span>
+                              <span className="ml-2">{selectedShip.year_built || '-'}</span>
+                            </div>
+                            
+                            {/* Column 2 - Survey & Maintenance Data */}
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Last Docking:' : 'Last Docking:'}</span>
+                              <span className="ml-2">{formatDate(selectedShip.last_docking) || '-'}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
+                              <span className="ml-2">{formatDate(selectedShip.last_special_survey) || '-'}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Chu kỳ Dry Dock:' : 'Dry Dock Cycle:'}</span>
+                              <span className="ml-2">{selectedShip.dry_dock_cycle ? `${selectedShip.dry_dock_cycle} tháng` : '-'}</span>
+                            </div>
+                            
+                            {/* Column 3 - Management Data */}
+                            <div>
+                              <span className="font-semibold">{language === 'vi' ? 'Anniversary Date:' : 'Anniversary Date:'}</span>
+                              <span className="ml-2">{formatDate(selectedShip.anniversary_date) || '-'}</span>
                             </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
