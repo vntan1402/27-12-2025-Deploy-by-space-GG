@@ -108,16 +108,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced Last Endorse Processing for Maritime Certificates"
-    - "AI Prompt Enhancement for Endorsement Detection"
-    - "Multiple Endorsement Handling"
-    - "Fallback Pattern Matching"
-  stuck_tasks:
-    - "Enhanced Last Endorse Processing for Maritime Certificates"
-    - "AI Prompt Enhancement for Endorsement Detection"
-    - "Multiple Endorsement Handling"
-    - "Fallback Pattern Matching"
-    - "Certificate Types with Endorsement Requirements"
+    - "Enhanced Detailed Ship Information with 3-Column Layout"
+    - "Survey & Maintenance Information Fields"
+    - "3-Column Layout Implementation"
+    - "Hidden Fields Implementation"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
