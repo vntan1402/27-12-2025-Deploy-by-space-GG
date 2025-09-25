@@ -1085,6 +1085,74 @@ const HomePage = () => {
     }
   };
 
+  // Pre-fetch certificate links for faster multi-copy functionality
+  const preFetchCertificateLinks = async (certificateList) => {
+    if (!certificateList || certificateList.length === 0) return;
+    
+    setLinksFetching(true);
+    const linkCache = {};
+    
+    try {
+      // Fetch links in parallel with rate limiting (5 concurrent requests)
+      const batchSize = 5;
+      const batches = [];
+      
+      for (let i = 0; i < certificateList.length; i += batchSize) {
+        const batch = certificateList.slice(i, i + batchSize);
+        batches.push(batch);
+      }
+      
+      for (const batch of batches) {
+        const promises = batch.map(async (cert) => {
+          if (!cert.google_drive_file_id) return null;
+          
+          try {
+            const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            if (data.view_url) {
+              const certName = cert.cert_name || 'Certificate';
+              const certAbbr = cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A';
+              const formattedLink = `${certName} (${certAbbr}): ${data.view_url}`;
+              
+              return {
+                id: cert.id,
+                link: formattedLink,
+                url: data.view_url
+              };
+            }
+            return null;
+          } catch (error) {
+            console.warn(`Failed to pre-fetch link for certificate ${cert.id}:`, error);
+            return null;
+          }
+        });
+        
+        const batchResults = await Promise.all(promises);
+        batchResults.forEach(result => {
+          if (result) {
+            linkCache[result.id] = result;
+          }
+        });
+        
+        // Small delay between batches to avoid overwhelming the server
+        if (batches.indexOf(batch) < batches.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+      }
+      
+      setCertificateLinks(linkCache);
+      console.log(`✅ Pre-fetched links for ${Object.keys(linkCache).length}/${certificateList.length} certificates`);
+      
+    } catch (error) {
+      console.error('Error pre-fetching certificate links:', error);
+    } finally {
+      setLinksFetching(false);
+    }
+  };
+
   const fetchCertificates = async (shipId) => {
     console.log('fetchCertificates called with shipId:', shipId);
     try {
