@@ -1167,7 +1167,7 @@ const HomePage = () => {
       let openedCount = 0;
       let errorCount = 0;
       
-      // Open files with small delays to prevent browser blocking
+      // Open files with delays to prevent browser blocking
       for (let i = 0; i < certificatesToOpen.length; i++) {
         const cert = certificatesToOpen[i];
         try {
@@ -1178,10 +1178,14 @@ const HomePage = () => {
           
           // Check both success field and view_url availability
           if (data.view_url) {
-            // Small delay between opens to prevent popup blocking
+            // Increased delay to 1 second to prevent browser popup blocking
             setTimeout(() => {
-              window.open(data.view_url, '_blank');
-            }, i * 200); // Increased delay to 200ms for better browser handling
+              // Force new window with specific features to bypass popup blockers
+              const newWindow = window.open(data.view_url, `_blank_${cert.id}`, 'noopener,noreferrer');
+              if (!newWindow) {
+                console.warn(`Popup blocked for certificate: ${cert.cert_name}`);
+              }
+            }, i * 1000); // 1 second delay between each open
             openedCount++;
           } else {
             console.error(`Failed to get view_url for certificate ${cert.cert_name}:`, data);
