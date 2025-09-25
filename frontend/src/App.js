@@ -876,6 +876,10 @@ const HomePage = () => {
           aValue = a.next_survey ? new Date(a.next_survey) : new Date(0);
           bValue = b.next_survey ? new Date(b.next_survey) : new Date(0);
           break;
+        case 'next_survey_type':
+          aValue = (a.next_survey_type || '').toLowerCase();
+          bValue = (b.next_survey_type || '').toLowerCase();
+          break;
         case 'notes':
           aValue = (a.notes || '').toLowerCase();
           bValue = (b.notes || '').toLowerCase();
