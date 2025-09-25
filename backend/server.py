@@ -121,6 +121,21 @@ class LoginResponse(BaseModel):
     user: UserResponse
     remember_me: bool
 
+class DryDockCycle(BaseModel):
+    """Dry dock cycle representing 5-year period with intermediate docking requirement"""
+    from_date: Optional[datetime] = None  # Start of 5-year cycle
+    to_date: Optional[datetime] = None    # End of 5-year cycle  
+    intermediate_docking_required: bool = True  # Lloyd's requirement: one intermediate docking within cycle
+    last_intermediate_docking: Optional[datetime] = None  # Last intermediate docking date
+    
+class AnniversaryDate(BaseModel):
+    """Anniversary date derived from Full Term certificates with manual override capability"""
+    day: Optional[int] = None  # Day (1-31)
+    month: Optional[int] = None  # Month (1-12)  
+    auto_calculated: bool = True  # Whether calculated from certificates or manually set
+    source_certificate_type: Optional[str] = None  # Type of certificate used for calculation
+    manual_override: bool = False  # Whether manually overridden by user
+
 class ShipBase(BaseModel):
     name: str
     imo: Optional[str] = None
@@ -131,10 +146,14 @@ class ShipBase(BaseModel):
     built_year: Optional[int] = None
     last_docking: Optional[datetime] = None  # Last dry docking date
     last_special_survey: Optional[datetime] = None  # Last special survey date
-    dry_dock_cycle: Optional[int] = None  # Dry dock cycle in months (typically 60 months)
-    anniversary_date: Optional[datetime] = None  # Annual survey/certificate anniversary date
+    dry_dock_cycle: Optional[DryDockCycle] = None  # Enhanced dry dock cycle with Lloyd's requirements
+    anniversary_date: Optional[AnniversaryDate] = None  # Enhanced anniversary date with auto-calculation
     ship_owner: Optional[str] = None
     company: str  # Company that owns/manages the ship
+    
+    # Legacy fields for backward compatibility
+    legacy_dry_dock_cycle: Optional[int] = None  # Original months field for compatibility
+    legacy_anniversary_date: Optional[datetime] = None  # Original datetime field for compatibility
 
 class ShipCreate(ShipBase):
     pass
