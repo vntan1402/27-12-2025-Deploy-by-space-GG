@@ -9310,6 +9310,27 @@ const AddRecordModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+              
+              {/* Next Survey Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại khảo sát' : 'Survey Type'}
+                </label>
+                <select
+                  value={certificateData.next_survey_type || ''}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, next_survey_type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">{language === 'vi' ? 'Chọn loại khảo sát' : 'Select survey type'}</option>
+                  <option value="Annual">{language === 'vi' ? 'Khảo sát hàng năm' : 'Annual Survey'}</option>
+                  <option value="Intermediate">{language === 'vi' ? 'Khảo sát trung gian' : 'Intermediate Survey'}</option>
+                  <option value="Special">{language === 'vi' ? 'Khảo sát đặc biệt' : 'Special Survey'}</option>
+                  <option value="Renewal">{language === 'vi' ? 'Khảo sát gia hạn' : 'Renewal Survey'}</option>
+                  <option value="Docking">{language === 'vi' ? 'Khảo sát neo đậu' : 'Docking Survey'}</option>
+                  <option value="Class">{language === 'vi' ? 'Khảo sát phân cấp' : 'Class Survey'}</option>
+                  <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
