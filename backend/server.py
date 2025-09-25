@@ -666,6 +666,25 @@ def extract_latest_endorsement_date(text_content: str) -> str:
     
     return None
 
+def get_enhanced_last_endorse(analysis_result: dict) -> datetime:
+    """
+    Enhanced last_endorse processing - try AI first, then fallback to pattern matching
+    """
+    # Try AI result first
+    ai_last_endorse = analysis_result.get('last_endorse')
+    if ai_last_endorse:
+        return parse_date_string(ai_last_endorse)
+    
+    # Fallback: try to extract latest endorsement date using pattern matching
+    text_content = analysis_result.get('text_content')
+    if text_content:
+        extracted_endorse = extract_latest_endorsement_date(text_content)
+        if extracted_endorse:
+            logger.info(f"Found endorsement date via pattern matching: {extracted_endorse}")
+            return parse_date_string(extracted_endorse)
+    
+    return None
+
 def calculate_certificate_status(valid_date: datetime, cert_type: str = None) -> str:
     """Calculate certificate status based on maritime regulations and grace periods"""
     if not valid_date:
