@@ -3504,6 +3504,71 @@ const HomePage = () => {
                   />
                 </div>
 
+                {/* Survey & Maintenance Section */}
+                <div className="mb-4">
+                  <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">
+                    {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng' : 'Survey & Maintenance Information'}
+                  </h4>
+                  
+                  {/* Last Docking and Last Special Survey */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Last Docking' : 'Last Docking'}
+                      </label>
+                      <input
+                        type="date"
+                        value={editingShipData.last_docking || ''}
+                        onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Last Special Survey' : 'Last Special Survey'}
+                      </label>
+                      <input
+                        type="date"
+                        value={editingShipData.last_special_survey || ''}
+                        onChange={(e) => setEditingShipData(prev => ({ ...prev, last_special_survey: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Dry Dock Cycle and Anniversary Date */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Chu kỳ Dry Dock (tháng)' : 'Dry Dock Cycle (months)'}
+                      </label>
+                      <input
+                        type="number"
+                        value={editingShipData.dry_dock_cycle || ''}
+                        onChange={(e) => setEditingShipData(prev => ({ ...prev, dry_dock_cycle: parseInt(e.target.value) || null }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="60"
+                        min="1"
+                        max="120"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {language === 'vi' ? 'Thường là 60 tháng (5 năm)' : 'Typically 60 months (5 years)'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Anniversary Date' : 'Anniversary Date'}
+                      </label>
+                      <input
+                        type="date"
+                        value={editingShipData.anniversary_date || ''}
+                        onChange={(e) => setEditingShipData(prev => ({ ...prev, anniversary_date: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Company (Read-only) */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
