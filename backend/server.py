@@ -264,7 +264,7 @@ class CertificateAbbreviationMappingUpdate(BaseModel):
 class CertificateBase(BaseModel):
     ship_id: str
     cert_name: str
-    cert_type: Optional[str] = None  # Interim, Provisional, Short term, Full Term
+    cert_type: Optional[str] = None  # Full Term, Interim, Provisional, Short term, Conditional, Other
     cert_no: Optional[str] = None  # Make cert_no optional to handle certificates without numbers
     issue_date: Optional[datetime] = None  # Make optional to handle missing dates
     valid_date: Optional[datetime] = None  # Make optional to handle missing dates
