@@ -456,9 +456,11 @@ class AnniversaryDateDryDockTester:
             self.log("🔄 Testing backward compatibility with legacy data formats...")
             
             # Test creating ship with legacy fields
+            import random
+            unique_legacy_imo = f"888{random.randint(1000, 9999)}"
             legacy_ship_data = {
-                "name": "LEGACY TEST SHIP",
-                "imo": "8888888",
+                "name": f"LEGACY TEST SHIP {random.randint(100, 999)}",
+                "imo": unique_legacy_imo,
                 "flag": "LIBERIA",
                 "ship_type": "Bulk Carrier",
                 "gross_tonnage": 15000,
