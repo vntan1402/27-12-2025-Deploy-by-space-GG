@@ -296,9 +296,11 @@ class AnniversaryDateDryDockTester:
             self.log("🆕 Testing ship creation with enhanced fields...")
             
             # Create test ship data with enhanced fields
+            import random
+            unique_imo = f"999{random.randint(1000, 9999)}"
             ship_data = {
-                "name": "TEST ANNIVERSARY SHIP",
-                "imo": "9999999",
+                "name": f"TEST ANNIVERSARY SHIP {random.randint(100, 999)}",
+                "imo": unique_imo,
                 "flag": "PANAMA",
                 "ship_type": "General Cargo",
                 "gross_tonnage": 5000,
