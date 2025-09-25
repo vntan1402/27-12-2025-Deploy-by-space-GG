@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test enhanced Last Endorse processing for maritime certificates with AI prompt enhancement and fallback pattern matching"
+user_problem_statement: "Test enhanced Detailed Ship Information with new fields and 3-column layout"
 
 backend:
   - task: "Enhanced Last Endorse Processing for Maritime Certificates"
