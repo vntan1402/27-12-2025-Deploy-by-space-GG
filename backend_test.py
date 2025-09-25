@@ -27,32 +27,23 @@ class AnniversaryDateDryDockTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for enhanced endorsement processing
-        self.endorsement_tests = {
+        # Test tracking for anniversary date and dry dock cycle enhancements
+        self.anniversary_tests = {
             'authentication_successful': False,
-            'ai_prompt_enhancement_tested': False,
-            'multiple_endorsement_handling_tested': False,
-            'fallback_pattern_matching_tested': False,
-            'certificate_types_with_endorsements_tested': False,
-            'enhanced_processing_results_verified': False,
-            'pmds_certificates_tested': False,
-            'backend_logs_captured': False,
-            'endorsement_context_recognition_verified': False,
-            'latest_endorsement_selection_verified': False
+            'ship_retrieval_enhanced_data_tested': False,
+            'anniversary_date_calculation_tested': False,
+            'anniversary_date_override_tested': False,
+            'ship_creation_enhanced_fields_tested': False,
+            'ship_update_enhanced_fields_tested': False,
+            'backward_compatibility_tested': False,
+            'lloyd_standards_compliance_verified': False,
+            'validation_day_month_tested': False,
+            'sunshine_01_ship_tested': False
         }
         
-        # Sample certificate types that should have endorsement requirements
-        self.certificate_types_with_endorsements = [
-            'SOLAS',
-            'MARPOL', 
-            'IAPP',
-            'IOPP',
-            'ISM',
-            'Load Line',
-            'Safety Construction',
-            'Safety Equipment',
-            'Radio Safety'
-        ]
+        # Test ship ID for SUNSHINE 01 as specified in review request
+        self.test_ship_id = "e21c71a2-9543-4f92-990c-72f54292fde8"
+        self.test_ship_name = "SUNSHINE 01"
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
