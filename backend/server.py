@@ -1360,6 +1360,10 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         # Prepare update data
         update_data = cert_data.dict(exclude_unset=True)
         
+        # Validate cert_type if provided
+        if 'cert_type' in update_data and update_data['cert_type']:
+            update_data['cert_type'] = validate_certificate_type(update_data['cert_type'])
+        
         # Handle certificate abbreviation mapping if it was manually edited
         if 'cert_abbreviation' in update_data and update_data['cert_abbreviation']:
             cert_name = update_data.get('cert_name') or existing_cert.get('cert_name')
