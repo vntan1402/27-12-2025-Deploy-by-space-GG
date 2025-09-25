@@ -17,7 +17,7 @@ import tempfile
 import base64
 
 # Configuration - Use external URL from frontend/.env
-BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
+BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
 class EnhancedEndorsementTester:
     def __init__(self):

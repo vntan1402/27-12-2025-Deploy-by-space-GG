@@ -1,21 +1,9 @@
 <analysis>
-The previous AI engineer demonstrated a systematic approach to developing and stabilizing the Ship Management System. Initial efforts focused on critical infrastructure: resolving OCR dependencies, correcting  for external access, and debugging core functionalities like login and document analysis. Key technical decisions included smart PDF classification and integrating Google Drive via Apps Script. Subsequently, the engineer enhanced the Certificate List UI, adding interactive elements like column controls and checkbox selection with a context menu. While a Move functionality was implemented, debugged across several iterations, and then removed per user request, significant work was also completed on dynamic Google Drive folder structures, Google Drive file deletion upon certificate removal, and ensuring UI refresh after operations. The latest activity involves diagnosing a Company Google Drive not configured error during new ship creation, despite Google Drive folders being correctly provisioned.
+The previous AI engineer systematically enhanced the Ship Management System. Initial efforts involved debugging a Company Google Drive not configured error, which revealed an Apps Script timeout, leading to increased timeouts and improved backend-Apps Script interaction. Concurrently, the engineer refined Marine Certificate classification, adding Conditional type, enhancing PMDS and maritime insurance detection, and enforcing strict categorization into six types. A significant focus was on multi-select UI/UX: fixing context menu behavior for Open and Copy Links (including pre-fetching for speed), and improving context menu positioning. The engineer also updated Cert. Name abbreviation logic, enforced Last Endorse rules for Full Term certificates, added Next Survey Type column, and restructured Detailed Ship Information with new fields and a 3-column layout. The work concluded with research into precise logic for Anniversary Date and Dry Dock Cycle.
 </analysis>
 
 <product_requirements>
-The Ship Management System - With AI Support manages maritime documents using React, FastAPI, and MongoDB. The system aims to enhance document processing, user experience, and stability.
-1.  **System Stabilization**: Ensure Preview URL access and fix login/Pydantic validation.
-2.  **AI Analysis Improvement**: Enhance Add New Ship and Multi Cert Upload by detecting PDF types (text/image) for optimized processing (direct text/OCR), fixing OCR fallbacks, and supporting JPG/PNG uploads.
-3.  **Google Drive Integration**: Enable robust file viewing and management. A dynamic folder structure matching the Homepage sidebar should be created for new ships, with a fallback. Deleting a certificate must also delete its corresponding file on Google Drive.
-4.  **Certificate List UI/UX**:
-    *   Reorder columns: Status between Next Survey and Notes; Issued by between Next Survey and Status.
-    *   Enable column resizing and sorting.
-    *   Rename Inspection Records to Hồ sơ Đăng kiểm and Survey Reports to Báo cáo kiểm tra in Vietnamese.
-    *   Certificates without Valid Date display Valid.
-    *   Add checkbox selection with a right-click context menu (Open, Copy Link, Edit, Delete).
-    *   Implement delete confirmation.
-    *   Certificate list should auto-refresh after delete/move operations.
-5.  **Codebase Cleanup**: Remove unused files. (Note: Move functionality was later removed per user request, including associated code cleanup).
+The Ship Management System, using React, FastAPI, and MongoDB, aims to improve maritime document management. Key objectives included system stabilization (login/Pydantic fixes, preview URL access), enhancing AI analysis for PDF/image processing and OCR, and robust Google Drive integration (dynamic folders, file deletion). UI/UX improvements for the Certificate List were crucial: reordering columns, resizing/sorting, renaming categories, handling Valid Date display, and implementing multi-select with context menu actions (Open, Copy Link, Edit, Delete). Specifically, multi-file opening and copying links with pre-fetching were requested. AI classification was updated to include Conditional type, recognize PMDS and maritime insurance organizations, and restrict types to six predefined values. Business rules for Last Endorse (only for Full Term certificates) were implemented. Finally, Next Survey Type and enhanced ship details (Last Docking, Last Special Survey, Dry Dock Cycle, Anniversary Date) were added with a new 3-column layout.
 </product_requirements>
 
 <key_technical_concepts>
@@ -28,7 +16,7 @@ The Ship Management System - With AI Support manages maritime documents using Re
 -   **Tailwind CSS**: Styling.
 -   **Supervisor**: Process management.
 -   **Pydantic**: Data validation.
--   **Poppler-utils, Tesseract-ocr**: System OCR dependencies.
+-   ****: Client-side caching for links.
 </key_technical_concepts>
 
 <code_architecture>
@@ -37,71 +25,31 @@ The application uses a full-stack architecture: React frontend, FastAPI backend,
 
 
 -   ****:
-    -   **Importance**: Core backend logic.
-    -   **Changes**:
-        -   Refined user creation/validation for , .
-        -   Implemented  and enhanced  for smart PDF/image processing.
-        -   Fixed  and Google Drive file viewing.
-        -   **Added **: Endpoint to list Google Drive folder structure (part of Move functionality, later removed).
-        -   **Added  (DELETE)**: Endpoint for Google Drive file deletion.
-        -   **Updated  (DELETE)**: Now calls  to delete the Google Drive file.
-        -   **Added **: Endpoint to expose the current frontend sidebar structure to Google Apps Script for dynamic folder creation.
-        -   **Modified **: Now passes  to Google Apps Script for dynamic structure fetching.
-        -   **Added  (GET)**: Endpoint to fetch a single certificate's details, needed for MoveModal.
-        -   **Removed  (POST)**: Entire endpoint and associated logic removed as part of Move functionality cleanup.
-        -   **Updated  content**: Synchronized the structure it returns to match the frontend's Vietnamese categories.
+    -   **Importance**: Core backend logic for API routes, data handling, and AI integration.
+    -   **Changes**: Enhanced logging, retry logic, and increased Apps Script timeout (90s) for Google Drive operations. Updated AI prompt for certificate classification with Conditional type, PMDS, and maritime insurance rules. Implemented  and  functions, enforcing Last Endorse only for Full Term certificates. Added  to certificate models and AI prompt. Expanded  and  models with , , , . Modified  to remove Statement of Compliance. Implemented strict validation for 6 certificate types. Adjusted permissions for abbreviation mapping endpoints.
 -   ****:
-    -   **Importance**: Centralizes OCR functionalities.
-    -   **Changes**:
-        -   Modified  to use  for better reliability.
-        -   Added  to enable Google Vision API OCR.
+    -   **Importance**: Handles Google Drive interactions.
+    -   **Changes**: Incorporates dynamic folder structure fetching from the backend and synchronized fallback logic. Its timeout is now implicitly managed by backend retry logic and increased timeout settings.
 -   ****:
-    -   **Importance**: Main React component managing application state, rendering UI, handling user interactions, and making API calls.
-    -   **Changes**:
-        -   Updated  attributes for file inputs (JPG/PNG).
-        -   Implemented UI logic for Certificate List: column reordering, sorting, resizing, checkbox selection, and context menu.
-        -   Added  state and handlers.
-        -   **Implemented  integration**: Added JSX and state variables (, ). *This functionality was later removed.*
-        -   **Fixed  calls**: Ensured  is passed for both single and multi-certificate delete/move operations to trigger correct UI refresh.
-        -   **Fixed  functions**: Added  header to API calls to correctly populate the ships dropdown.
-        -   **Modified **: Updated logic to filter certificates based on  (category).
-        -   **Removed all Move-related UI/state**: Removed  option from context menu,  function,  state, and Move Modal JSX.
--   ****:
-    -   **Importance**: Custom CSS for UI components.
-    -   **Changes**: Added styles for column resizing and tree-view structure in  (part of Move functionality, now defunct).
--   ****:
-    -   **Importance**: Handled displaying folder structure and initiating certificate moves.
-    -   **Changes**:
-        -   **Created**: Implemented to show Google Drive folders (initially flat, then as a tree structure). Handled API calls for fetching folders and moving files. Used  for toasts.
-        -   **Fixed errors**: Addressed Error loading folders by correctly deriving , and Error moving certificates by using correct backend endpoint and  callback.
-        -   **Deleted**: The entire file was removed per user request.
--   ****:
-    -   **Importance**: Utility script.
-    -   **Changes**: Updated to include  and  fields and logic to delete existing users before creation.
--   ****:
-    -   **Importance**: Python dependencies.
-    -   **Changes**: Added , , , .
--   ****:
-    -   **Importance**: Google Apps Script for Google Drive integration.
-    -   **Changes**: This is the latest version. It includes , , , , , , and  actions. It was updated to dynamically fetch folder structure from the backend's  endpoint and has an updated fallback structure matching the frontend's Vietnamese categories. It also includes improved error handling for file/folder operations.
+    -   **Importance**: Main React component managing UI, state, and API calls.
+    -   **Changes**: Fixed context menu  action and right-click multi-selection behavior. Implemented  and  for multi-select, including dynamic text, selection indicators, and robust popup handling. Introduced per-ship link pre-fetching using  with visual indicators for loading/ready states. Added a Search input field for  and . Implemented conditional display for Last Endorse field/column (only for Full Term). Added Next Survey Type column and input field. Refactored Detailed Ship Information to a 3-column layout, showing new ship-related fields and hiding others. Improved Multi-Cert Upload progress bar to show current filename. Fixed context menu positioning to prevent overflow.
 </code_architecture>
 
 <pending_tasks>
--   **Debug Company Google Drive not configured error**: Investigate why  functionality reports this error, despite creating the folder structure correctly on Google Drive. The backend is reporting a 404, suggesting a configuration or lookup issue during the Apps Script interaction.
+-   **Refine Anniversary Date logic**: Research and implement logic to derive day/month from Class/Statutory Certificates for .
+-   **Refine Dry Dock Cycle logic**: Research and implement  as a 5-year  and  range, including a single intermediate docking.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was debugging an issue with the Add new record created successfully but failed to create Google Drive folder structure: Failed to create ship folder: 404: Company Google Drive not configured.
+Immediately before this summary request, the AI engineer was tasked with refining the logic for two newly introduced fields within the Detailed Ship Information:  and . The current implementation of these fields is basic, and the user requested more sophisticated, maritime-specific logic.
 
-The following has been confirmed:
-*   **Frontend Sidebar Structure**: The frontend's  defines the correct, updated sidebar categories (e.g., in Vietnamese).
-*   **Backend **: This endpoint has been updated in  to correctly reflect the frontend's sidebar structure (with Vietnamese names) and responds successfully.
-*   **Google Apps Script**: The  is updated to dynamically fetch the folder structure from the backend using the  provided by the backend. It also has a synchronized fallback structure.
-*   **Google Drive Creation**: The actual folder structure is being created correctly on Google Drive.
+For , the user explicitly requested that it should only capture the day and month, typically derived from the expiry dates of Full Term Class and Statutory Certificates.
 
-The problem specifically lies in the backend's  during the  call to Google Apps Script. Despite folders being created, the backend encounters a 404: Company Google Drive not configured error, which implies a failure in accessing or validating the Google Drive configuration () or the associated Apps Script URL. The engineer has started investigating the backend ship creation logic.
+For , the user requested it be modeled as a 5-year period (represented by From and To fields), with the additional business rule that one intermediate docking inspection must occur within this 5-year cycle.
+
+The engineer had just initiated the research phase to gather the necessary maritime domain knowledge to accurately implement these complex business rules, reflecting a shift from basic field addition to integrating industry-specific operational logic. A previous minor issue about new ship fields displaying '-' post-save might be addressed during this refinement.
 </current_work>
 
 <optional_next_step>
-Investigate the backend's ship creation logic to debug why it fails to validate the Google Drive configuration despite successful folder creation.
+Research maritime standards for  and  to define the exact logic for deriving and displaying these values.
 </optional_next_step>
