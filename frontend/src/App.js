@@ -2205,7 +2205,7 @@ const HomePage = () => {
     if (!shipId) return;
     
     try {
-      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-anniversary-date`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-anniversary-date`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
