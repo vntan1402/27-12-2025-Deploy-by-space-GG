@@ -105,62 +105,74 @@ class AnniversaryDateDryDockTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def find_pmds_certificates(self):
-        """Find existing PMDS certificates for testing"""
+    def test_ship_retrieval_enhanced_data(self):
+        """Test basic ship retrieval endpoints to verify they handle enhanced data structures"""
         try:
-            self.log("📋 Finding existing PMDS certificates...")
+            self.log("🚢 Testing ship retrieval with enhanced data structures...")
             
-            # Get all ships first
+            # Test 1: Get all ships
             endpoint = f"{BACKEND_URL}/ships"
+            self.log(f"   GET {endpoint}")
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
             
-            if response.status_code != 200:
-                self.log(f"   ❌ Failed to get ships: {response.status_code}")
-                return []
-            
-            ships = response.json()
-            self.log(f"   Found {len(ships)} ships")
-            
-            pmds_certificates = []
-            
-            # Check certificates for each ship
-            for ship in ships:
-                ship_id = ship.get('id')
-                ship_name = ship.get('name')
+            if response.status_code == 200:
+                ships = response.json()
+                self.log(f"   ✅ Retrieved {len(ships)} ships")
                 
-                cert_endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
-                cert_response = requests.get(cert_endpoint, headers=self.get_headers(), timeout=30)
+                # Look for SUNSHINE 01 ship
+                sunshine_ship = None
+                for ship in ships:
+                    if ship.get('id') == self.test_ship_id or ship.get('name') == self.test_ship_name:
+                        sunshine_ship = ship
+                        break
                 
-                if cert_response.status_code == 200:
-                    certificates = cert_response.json()
+                if sunshine_ship:
+                    self.log(f"   ✅ Found {self.test_ship_name} ship")
+                    self.log(f"      Ship ID: {sunshine_ship.get('id')}")
+                    self.log(f"      Ship Name: {sunshine_ship.get('name')}")
                     
-                    # Look for PMDS certificates
-                    for cert in certificates:
-                        issued_by = cert.get('issued_by', '').upper()
-                        if 'PMDS' in issued_by or 'PANAMA MARITIME DOCUMENTATION' in issued_by:
-                            pmds_certificates.append({
-                                'ship_name': ship_name,
-                                'ship_id': ship_id,
-                                'cert_id': cert.get('id'),
-                                'cert_name': cert.get('cert_name'),
-                                'cert_no': cert.get('cert_no'),
-                                'issued_by': cert.get('issued_by'),
-                                'last_endorse': cert.get('last_endorse'),
-                                'cert_type': cert.get('cert_type')
-                            })
-                            self.log(f"   ✅ Found PMDS certificate: {cert.get('cert_name')} on {ship_name}")
-            
-            self.log(f"   📊 Total PMDS certificates found: {len(pmds_certificates)}")
-            self.test_results['pmds_certificates'] = pmds_certificates
-            
-            if pmds_certificates:
-                self.endorsement_tests['pmds_certificates_tested'] = True
-            
-            return pmds_certificates
-            
+                    # Check for enhanced fields
+                    anniversary_date = sunshine_ship.get('anniversary_date')
+                    dry_dock_cycle = sunshine_ship.get('dry_dock_cycle')
+                    
+                    self.log(f"      Anniversary Date: {anniversary_date}")
+                    self.log(f"      Dry Dock Cycle: {dry_dock_cycle}")
+                    
+                    # Check legacy compatibility fields
+                    legacy_anniversary = sunshine_ship.get('legacy_anniversary_date')
+                    legacy_dry_dock = sunshine_ship.get('legacy_dry_dock_cycle')
+                    
+                    self.log(f"      Legacy Anniversary Date: {legacy_anniversary}")
+                    self.log(f"      Legacy Dry Dock Cycle: {legacy_dry_dock}")
+                    
+                    self.test_results['sunshine_ship_data'] = sunshine_ship
+                    self.anniversary_tests['sunshine_01_ship_tested'] = True
+                else:
+                    self.log(f"   ⚠️ {self.test_ship_name} ship not found")
+                
+                # Test 2: Get specific ship by ID
+                if sunshine_ship:
+                    ship_endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
+                    self.log(f"   GET {ship_endpoint}")
+                    ship_response = requests.get(ship_endpoint, headers=self.get_headers(), timeout=30)
+                    
+                    if ship_response.status_code == 200:
+                        ship_data = ship_response.json()
+                        self.log("   ✅ Individual ship retrieval successful")
+                        self.log(f"      Enhanced fields present: {bool(ship_data.get('anniversary_date') or ship_data.get('dry_dock_cycle'))}")
+                        self.anniversary_tests['ship_retrieval_enhanced_data_tested'] = True
+                    else:
+                        self.log(f"   ❌ Individual ship retrieval failed: {ship_response.status_code}")
+                
+                return True
+            else:
+                self.log(f"   ❌ Ship retrieval failed: {response.status_code}")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ Find PMDS certificates error: {str(e)}", "ERROR")
-            return []
+            self.log(f"❌ Ship retrieval test error: {str(e)}", "ERROR")
+            return False
     
     def test_ai_prompt_enhancement(self):
         """Test AI prompt enhancement for endorsement date detection"""
