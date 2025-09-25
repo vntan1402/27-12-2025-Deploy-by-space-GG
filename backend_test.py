@@ -326,7 +326,7 @@ class AnniversaryDateDryDockTester:
             endpoint = f"{BACKEND_URL}/ships"
             self.log(f"   POST {endpoint}")
             
-            response = requests.post(endpoint, json=ship_data, headers=self.get_headers(), timeout=30)
+            response = requests.post(endpoint, json=ship_data, headers=self.get_headers(), timeout=10)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
