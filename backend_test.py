@@ -573,12 +573,12 @@ class AnniversaryDateDryDockTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_endorsement_tests(self):
-        """Main test function for enhanced endorsement processing"""
-        self.log("🎯 STARTING ENHANCED ENDORSEMENT PROCESSING TESTING")
-        self.log("🔍 Focus: Enhanced Last Endorse processing for maritime certificates")
-        self.log("📋 Review Request: Test AI prompt enhancement and fallback pattern matching")
-        self.log("🎯 Testing: Authentication, AI enhancement, multiple endorsements, fallback patterns")
+    def run_comprehensive_anniversary_tests(self):
+        """Main test function for anniversary date and dry dock cycle enhancements"""
+        self.log("🎯 STARTING ANNIVERSARY DATE AND DRY DOCK CYCLE TESTING")
+        self.log("🔍 Focus: Anniversary date and dry dock cycle enhancements with Lloyd's standards")
+        self.log("📋 Review Request: Test enhanced anniversary date auto-calculation and dry dock cycle handling")
+        self.log("🎯 Testing: Authentication, ship retrieval, anniversary calculation, override, CRUD operations")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -588,35 +588,35 @@ class AnniversaryDateDryDockTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Find PMDS certificates
-        self.log("\n📋 STEP 2: FIND PMDS CERTIFICATES")
+        # Step 2: Test ship retrieval with enhanced data
+        self.log("\n🚢 STEP 2: TEST SHIP RETRIEVAL WITH ENHANCED DATA")
         self.log("=" * 50)
-        pmds_certificates = self.find_pmds_certificates()
+        self.test_ship_retrieval_enhanced_data()
         
-        # Step 3: Test AI prompt enhancement
-        self.log("\n🤖 STEP 3: TEST AI PROMPT ENHANCEMENT")
+        # Step 3: Test anniversary date calculation
+        self.log("\n📅 STEP 3: TEST ANNIVERSARY DATE CALCULATION")
         self.log("=" * 50)
-        self.test_ai_prompt_enhancement()
+        self.test_anniversary_date_calculation()
         
-        # Step 4: Test multiple endorsement handling
-        self.log("\n📅 STEP 4: TEST MULTIPLE ENDORSEMENT HANDLING")
+        # Step 4: Test anniversary date override
+        self.log("\n🔧 STEP 4: TEST ANNIVERSARY DATE OVERRIDE")
         self.log("=" * 50)
-        self.test_multiple_endorsement_handling()
+        self.test_anniversary_date_override()
         
-        # Step 5: Test fallback pattern matching
-        self.log("\n🔍 STEP 5: TEST FALLBACK PATTERN MATCHING")
+        # Step 5: Test ship creation with enhanced fields
+        self.log("\n🆕 STEP 5: TEST SHIP CREATION WITH ENHANCED FIELDS")
         self.log("=" * 50)
-        self.test_fallback_pattern_matching()
+        self.test_ship_creation_enhanced_fields()
         
-        # Step 6: Test certificate types with endorsements
-        self.log("\n📋 STEP 6: TEST CERTIFICATE TYPES WITH ENDORSEMENTS")
+        # Step 6: Test ship update with enhanced fields
+        self.log("\n🔄 STEP 6: TEST SHIP UPDATE WITH ENHANCED FIELDS")
         self.log("=" * 50)
-        self.test_certificate_types_with_endorsements()
+        self.test_ship_update_enhanced_fields()
         
-        # Step 7: Verify enhanced processing results
-        self.log("\n✅ STEP 7: VERIFY ENHANCED PROCESSING RESULTS")
+        # Step 7: Test backward compatibility
+        self.log("\n🔄 STEP 7: TEST BACKWARD COMPATIBILITY")
         self.log("=" * 50)
-        self.verify_enhanced_processing_results()
+        self.test_backward_compatibility()
         
         # Step 8: Capture backend logs
         self.log("\n📝 STEP 8: CAPTURE BACKEND LOGS")
@@ -626,7 +626,7 @@ class AnniversaryDateDryDockTester:
         # Step 9: Final analysis
         self.log("\n📊 STEP 9: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_endorsement_analysis()
+        self.provide_final_anniversary_analysis()
         
         return True
     
