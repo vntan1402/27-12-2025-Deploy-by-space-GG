@@ -3526,6 +3526,7 @@ DOCUMENT TEXT CONTENT:
             result["ocr_confidence"] = ocr_confidence
             result["pdf_type"] = pdf_type
             result["text_length"] = len(text_content)
+            result["text_content"] = text_content  # Include text content for fallback processing
             result["processing_notes"] = result.get("processing_notes", [])
             result["processing_notes"].append(f"Processed as {processing_method} with confidence {ocr_confidence:.2f}")
             
