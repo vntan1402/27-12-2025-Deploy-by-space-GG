@@ -12,13 +12,12 @@ import sys
 from datetime import datetime
 import time
 import traceback
-import tempfile
 import subprocess
 
 # Configuration - Use external URL for testing (as per frontend .env)
 BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
 
-class MultiCertUploadClassificationTester:
+class CertificateListDiscrepancyTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -26,20 +25,17 @@ class MultiCertUploadClassificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # MLC Certificate URL from review request
-        self.mlc_certificate_url = "https://customer-assets.emergentagent.com/job_shipai-system/artifacts/5lvr7rxs_SUNSHINE%2001%20-%20MLC-%20PM251278.pdf"
-        
-        self.multi_cert_tests = {
+        self.discrepancy_tests = {
             'authentication_successful': False,
-            'pdf_download_successful': False,
-            'multi_upload_endpoint_accessible': False,
-            'single_upload_endpoint_accessible': False,
-            'multi_upload_classification_correct': False,
-            'single_upload_classification_correct': False,
-            'classification_discrepancy_identified': False,
-            'ai_analysis_response_received': False,
-            'backend_logs_captured': False,
-            'confidence_threshold_checked': False
+            'sunshine_01_ship_found': False,
+            'database_certificates_retrieved': False,
+            'frontend_certificates_retrieved': False,
+            'certificate_count_discrepancy_identified': False,
+            'missing_certificates_identified': False,
+            'category_filtering_analyzed': False,
+            'status_filtering_analyzed': False,
+            'pagination_effects_checked': False,
+            'database_query_analysis_completed': False
         }
         
     def log(self, message, level="INFO"):
@@ -101,10 +97,10 @@ class MultiCertUploadClassificationTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def get_available_ships(self):
-        """Get available ships for testing"""
+    def find_sunshine_01_ship(self):
+        """Find SUNSHINE 01 ship specifically mentioned in review request"""
         try:
-            self.log("🚢 Getting available ships for certificate testing...")
+            self.log("🚢 Finding SUNSHINE 01 ship...")
             
             endpoint = f"{BACKEND_URL}/ships"
             self.log(f"   GET {endpoint}")
@@ -114,207 +110,84 @@ class MultiCertUploadClassificationTester:
             
             if response.status_code == 200:
                 ships = response.json()
-                self.log(f"   ✅ Found {len(ships)} ships")
+                self.log(f"   ✅ Found {len(ships)} total ships")
                 
-                # Look for SUNSHINE 01 specifically (as mentioned in review request)
-                sunshine_01_ships = [ship for ship in ships if 'SUNSHINE 01' in ship.get('name', '').upper() or ship.get('name', '').upper() == 'SUNSHINE 01']
+                # Look for SUNSHINE 01 specifically
+                sunshine_01_ships = []
+                for ship in ships:
+                    ship_name = ship.get('name', '').upper()
+                    if 'SUNSHINE 01' in ship_name or ship_name == 'SUNSHINE 01':
+                        sunshine_01_ships.append(ship)
+                
                 if sunshine_01_ships:
                     selected_ship = sunshine_01_ships[0]
-                    self.log(f"   ✅ Selected SUNSHINE 01 ship: {selected_ship.get('name')} (ID: {selected_ship.get('id')})")
+                    self.log(f"   ✅ Found SUNSHINE 01 ship: {selected_ship.get('name')} (ID: {selected_ship.get('id')})")
                     self.log(f"   IMO: {selected_ship.get('imo', 'Not specified')}")
-                    self.test_results['selected_ship'] = selected_ship
-                    return selected_ship
-                
-                # Look for any SUNSHINE ships
-                sunshine_ships = [ship for ship in ships if 'SUNSHINE' in ship.get('name', '').upper()]
-                if sunshine_ships:
-                    selected_ship = sunshine_ships[0]
-                    self.log(f"   ✅ Selected SUNSHINE ship: {selected_ship.get('name')} (ID: {selected_ship.get('id')})")
-                    self.log(f"   IMO: {selected_ship.get('imo', 'Not specified')}")
-                    self.test_results['selected_ship'] = selected_ship
-                    return selected_ship
-                elif ships:
-                    selected_ship = ships[0]
-                    self.log(f"   ✅ Selected first available ship: {selected_ship.get('name')} (ID: {selected_ship.get('id')})")
-                    self.test_results['selected_ship'] = selected_ship
+                    self.log(f"   Company: {selected_ship.get('company', 'Not specified')}")
+                    self.log(f"   Flag: {selected_ship.get('flag', 'Not specified')}")
+                    
+                    self.discrepancy_tests['sunshine_01_ship_found'] = True
+                    self.test_results['sunshine_01_ship'] = selected_ship
                     return selected_ship
                 else:
-                    self.log("   ❌ No ships available for testing")
+                    self.log("   ❌ SUNSHINE 01 ship not found")
+                    self.log("   Available ships:")
+                    for ship in ships[:10]:  # Show first 10 ships
+                        self.log(f"      - {ship.get('name')} (ID: {ship.get('id')})")
                     return None
             else:
                 self.log(f"   ❌ Failed to get ships: {response.status_code}")
                 return None
                 
         except Exception as e:
-            self.log(f"❌ Get ships error: {str(e)}", "ERROR")
+            self.log(f"❌ Find SUNSHINE 01 ship error: {str(e)}", "ERROR")
             return None
     
-    def download_mlc_certificate(self):
-        """Download the specific MLC certificate file from the provided URL"""
+    def get_database_certificates(self, ship_id):
+        """Get complete list of all certificates for SUNSHINE 01 from database"""
         try:
-            self.log("📥 Downloading MLC certificate file...")
-            self.log(f"   URL: {self.mlc_certificate_url}")
+            self.log("📊 Getting complete database certificate list for SUNSHINE 01...")
             
-            response = requests.get(self.mlc_certificate_url, timeout=30)
+            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
+            self.log(f"   GET {endpoint}")
+            
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                # Save to temporary file
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-                temp_file.write(response.content)
-                temp_file.close()
+                certificates = response.json()
+                self.log(f"   ✅ Retrieved {len(certificates)} certificates from database")
                 
-                file_size = len(response.content)
-                self.log(f"   ✅ PDF downloaded successfully")
-                self.log(f"   File size: {file_size:,} bytes ({file_size/1024/1024:.2f} MB)")
-                self.log(f"   Temporary file: {temp_file.name}")
+                self.discrepancy_tests['database_certificates_retrieved'] = True
+                self.test_results['database_certificates'] = certificates
+                self.test_results['database_certificate_count'] = len(certificates)
                 
-                self.multi_cert_tests['pdf_download_successful'] = True
-                self.test_results['pdf_file_path'] = temp_file.name
-                self.test_results['pdf_file_size'] = file_size
+                # Log detailed certificate information
+                self.log("   📋 DATABASE CERTIFICATE DETAILS:")
+                for i, cert in enumerate(certificates, 1):
+                    cert_name = cert.get('cert_name', 'Unknown')
+                    cert_no = cert.get('cert_no', 'No Number')
+                    cert_type = cert.get('cert_type', 'Unknown Type')
+                    category = cert.get('category', 'Unknown Category')
+                    status = cert.get('status', 'Unknown Status')
+                    issue_date = cert.get('issue_date', 'No Issue Date')
+                    valid_date = cert.get('valid_date', 'No Valid Date')
+                    issued_by = cert.get('issued_by', 'Unknown Issuer')
+                    
+                    self.log(f"      {i:2d}. {cert_name}")
+                    self.log(f"          Number: {cert_no}")
+                    self.log(f"          Type: {cert_type}")
+                    self.log(f"          Category: {category}")
+                    self.log(f"          Status: {status}")
+                    self.log(f"          Issue Date: {issue_date}")
+                    self.log(f"          Valid Date: {valid_date}")
+                    self.log(f"          Issued By: {issued_by}")
+                    self.log(f"          ID: {cert.get('id', 'No ID')}")
+                    self.log("")
                 
-                return temp_file.name
+                return certificates
             else:
-                self.log(f"   ❌ Failed to download PDF: HTTP {response.status_code}")
-                return None
-                
-        except Exception as e:
-            self.log(f"❌ PDF download error: {str(e)}", "ERROR")
-            return None
-    
-    def test_multi_cert_upload(self, ship_id, pdf_file_path):
-        """Test Multi Cert Upload endpoint with the MLC file"""
-        try:
-            self.log("🔍 Testing Multi Cert Upload with MLC file...")
-            
-            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
-            self.log(f"   POST {endpoint}?ship_id={ship_id}")
-            
-            # Read the PDF file
-            with open(pdf_file_path, 'rb') as pdf_file:
-                pdf_content = pdf_file.read()
-            
-            files = {'files': ('SUNSHINE_01_MLC_PM251278.pdf', pdf_content, 'application/pdf')}
-            params = {'ship_id': ship_id}
-            
-            self.log("   📤 Uploading MLC certificate via Multi Cert Upload...")
-            self.log(f"   File size: {len(pdf_content):,} bytes")
-            
-            start_time = time.time()
-            
-            response = requests.post(
-                endpoint, 
-                files=files,
-                params=params,
-                headers=self.get_headers(), 
-                timeout=120  # Extended timeout for AI processing
-            )
-            
-            end_time = time.time()
-            analysis_time = end_time - start_time
-            
-            self.log(f"   Response status: {response.status_code}")
-            self.log(f"   Analysis time: {analysis_time:.2f} seconds")
-            
-            if response.status_code == 200:
-                self.multi_cert_tests['multi_upload_endpoint_accessible'] = True
-                
-                try:
-                    analysis_result = response.json()
-                    self.log("   ✅ Multi Cert Upload endpoint accessible")
-                    self.log("   📊 ANALYZING MULTI CERT UPLOAD RESPONSE...")
-                    
-                    # Log the complete response structure
-                    self.log(f"   Response keys: {list(analysis_result.keys())}")
-                    
-                    # Check for results
-                    results = analysis_result.get('results', [])
-                    summary = analysis_result.get('summary', {})
-                    
-                    self.log(f"   Results count: {len(results)}")
-                    self.log(f"   Summary: {summary}")
-                    
-                    if results and len(results) > 0:
-                        self.multi_cert_tests['ai_analysis_response_received'] = True
-                        
-                        file_result = results[0]  # Get first file result
-                        
-                        # Check file status and marine classification
-                        file_status = file_result.get('status', '')
-                        filename = file_result.get('filename', '')
-                        is_marine = file_result.get('is_marine', False)
-                        
-                        self.log(f"   📄 File: {filename}")
-                        self.log(f"   📊 Status: {file_status}")
-                        self.log(f"   🌊 Is Marine: {is_marine}")
-                        
-                        # Check if classified as "Skipped - not a marine certificate"
-                        if "skipped" in file_status.lower() and "not a marine certificate" in file_status.lower():
-                            self.log("   ❌ CRITICAL ISSUE: File classified as 'Skipped - not a marine certificate'")
-                            self.log("   🔍 This matches the user's reported issue!")
-                            self.multi_cert_tests['classification_discrepancy_identified'] = True
-                        elif "marine" in file_status.lower() or is_marine:
-                            self.log("   ✅ File correctly classified as marine certificate")
-                            self.multi_cert_tests['multi_upload_classification_correct'] = True
-                        else:
-                            self.log(f"   ⚠️ Unexpected classification status: {file_status}")
-                        
-                        # Check for analysis data
-                        analysis_data = file_result.get('analysis', {})
-                        if analysis_data:
-                            self.log(f"   ✅ AI analysis data received")
-                            
-                            # Check classification fields
-                            category = analysis_data.get('category', '')
-                            is_marine_certificate = analysis_data.get('is_marine_certificate', False)
-                            confidence = analysis_data.get('confidence', 0)
-                            
-                            self.log(f"   📊 Category: {category}")
-                            self.log(f"   🌊 Is Marine Certificate: {is_marine_certificate}")
-                            self.log(f"   📈 Confidence: {confidence}")
-                            
-                            # Check for confidence threshold issues
-                            if confidence < 0.7:  # Assuming 70% threshold
-                                self.log(f"   ⚠️ Low confidence score may cause classification issues")
-                                self.multi_cert_tests['confidence_threshold_checked'] = True
-                            
-                            # Log certificate information if available
-                            cert_info = {}
-                            for field in ['cert_name', 'cert_no', 'issued_by', 'issue_date', 'valid_date']:
-                                if field in analysis_data:
-                                    cert_info[field] = analysis_data[field]
-                            
-                            if cert_info:
-                                self.log("   📋 CERTIFICATE INFORMATION EXTRACTED:")
-                                for key, value in cert_info.items():
-                                    self.log(f"      {key}: {value}")
-                        
-                        # Log all response fields for analysis
-                        self.log("   📋 COMPLETE MULTI CERT UPLOAD RESPONSE:")
-                        for key, value in analysis_result.items():
-                            if isinstance(value, list) and len(value) > 0:
-                                self.log(f"      {key}: [array with {len(value)} items]")
-                                if key == 'results':
-                                    for i, item in enumerate(value):
-                                        self.log(f"        Result {i+1}: {item.get('filename', 'Unknown')} - {item.get('status', 'Unknown')}")
-                            elif isinstance(value, str) and len(value) > 100:
-                                self.log(f"      {key}: {str(value)[:100]}... ({len(value)} chars)")
-                            else:
-                                self.log(f"      {key}: {value}")
-                    else:
-                        self.log("   ❌ No results found in response")
-                    
-                    self.test_results['multi_upload_result'] = analysis_result
-                    self.test_results['multi_upload_time'] = analysis_time
-                    
-                    return analysis_result
-                    
-                except json.JSONDecodeError as e:
-                    self.log(f"   ❌ Failed to parse JSON response: {e}")
-                    self.log(f"   Raw response: {response.text[:500]}")
-                    return None
-            else:
-                self.log(f"   ❌ Multi Cert Upload failed: HTTP {response.status_code}")
+                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -323,234 +196,335 @@ class MultiCertUploadClassificationTester:
                 return None
                 
         except Exception as e:
-            self.log(f"❌ Multi Cert Upload error: {str(e)}", "ERROR")
-            self.log(f"   Exception type: {type(e).__name__}")
-            self.log(f"   Traceback: {traceback.format_exc()}")
+            self.log(f"❌ Get database certificates error: {str(e)}", "ERROR")
             return None
     
-    def test_single_cert_upload(self, ship_id, pdf_file_path):
-        """Test Single Certificate Upload endpoint with the same MLC file for comparison"""
+    def analyze_certificate_categories(self, certificates):
+        """Analyze certificate categories and potential filtering"""
         try:
-            self.log("🔍 Testing Single Certificate Upload with same MLC file for comparison...")
+            self.log("🔍 Analyzing certificate categories and filtering...")
             
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            self.log(f"   POST {endpoint}")
-            
-            # Read the PDF file
-            with open(pdf_file_path, 'rb') as pdf_file:
-                pdf_content = pdf_file.read()
-            
-            files = {'file': ('SUNSHINE_01_MLC_PM251278.pdf', pdf_content, 'application/pdf')}
-            data = {'ship_id': ship_id}
-            
-            self.log("   📤 Uploading MLC certificate via Single Certificate Upload...")
-            self.log(f"   File size: {len(pdf_content):,} bytes")
-            
-            start_time = time.time()
-            
-            response = requests.post(
-                endpoint, 
-                files=files,
-                data=data,
-                headers=self.get_headers(), 
-                timeout=120  # Extended timeout for AI processing
-            )
-            
-            end_time = time.time()
-            analysis_time = end_time - start_time
-            
-            self.log(f"   Response status: {response.status_code}")
-            self.log(f"   Analysis time: {analysis_time:.2f} seconds")
-            
-            if response.status_code == 200:
-                self.multi_cert_tests['single_upload_endpoint_accessible'] = True
-                
-                try:
-                    analysis_result = response.json()
-                    self.log("   ✅ Single Certificate Upload endpoint accessible")
-                    self.log("   📊 ANALYZING SINGLE CERT UPLOAD RESPONSE...")
-                    
-                    # Log the complete response structure
-                    self.log(f"   Response keys: {list(analysis_result.keys())}")
-                    
-                    # Check success and classification
-                    success = analysis_result.get('success', False)
-                    category = analysis_result.get('category', '')
-                    is_marine_certificate = analysis_result.get('is_marine_certificate', False)
-                    
-                    self.log(f"   📊 Success: {success}")
-                    self.log(f"   📊 Category: {category}")
-                    self.log(f"   🌊 Is Marine Certificate: {is_marine_certificate}")
-                    
-                    if success and (category == 'certificates' or is_marine_certificate):
-                        self.log("   ✅ Single upload correctly classifies as marine certificate")
-                        self.multi_cert_tests['single_upload_classification_correct'] = True
-                    else:
-                        self.log("   ❌ Single upload also fails to classify as marine certificate")
-                    
-                    # Log certificate information if available
-                    cert_info = {}
-                    for field in ['cert_name', 'cert_no', 'issued_by', 'issue_date', 'valid_date']:
-                        if field in analysis_result:
-                            cert_info[field] = analysis_result[field]
-                    
-                    if cert_info:
-                        self.log("   📋 CERTIFICATE INFORMATION EXTRACTED (Single Upload):")
-                        for key, value in cert_info.items():
-                            self.log(f"      {key}: {value}")
-                    
-                    self.test_results['single_upload_result'] = analysis_result
-                    self.test_results['single_upload_time'] = analysis_time
-                    
-                    return analysis_result
-                    
-                except json.JSONDecodeError as e:
-                    self.log(f"   ❌ Failed to parse JSON response: {e}")
-                    self.log(f"   Raw response: {response.text[:500]}")
-                    return None
-            else:
-                self.log(f"   ❌ Single Certificate Upload failed: HTTP {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:500]}")
-                return None
-                
-        except Exception as e:
-            self.log(f"❌ Single Certificate Upload error: {str(e)}", "ERROR")
-            self.log(f"   Exception type: {type(e).__name__}")
-            self.log(f"   Traceback: {traceback.format_exc()}")
-            return None
-    
-    def capture_backend_logs(self):
-        """Capture backend logs during Multi Cert Upload process"""
-        try:
-            self.log("📊 Capturing backend logs during Multi Cert Upload process...")
-            
-            # Try to read backend logs from supervisor
-            try:
-                result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
-                                      capture_output=True, text=True, timeout=10)
-                if result.returncode == 0 and result.stdout:
-                    self.log("   ✅ Backend logs captured successfully")
-                    self.multi_cert_tests['backend_logs_captured'] = True
-                    
-                    # Look for specific multi-upload and classification related log entries
-                    log_lines = result.stdout.split('\n')
-                    relevant_logs = []
-                    
-                    for line in log_lines:
-                        line_upper = line.upper()
-                        if any(keyword in line_upper for keyword in [
-                            'MULTI-UPLOAD', 'MULTI_UPLOAD', 'CLASSIFICATION', 'CERTIFICATE', 
-                            'MLC', 'MARINE', 'SKIPPED', 'AI ANALYSIS', 'CONFIDENCE'
-                        ]):
-                            relevant_logs.append(line)
-                    
-                    if relevant_logs:
-                        self.log(f"   📋 Found {len(relevant_logs)} relevant log entries:")
-                        for log_line in relevant_logs[-15:]:  # Show last 15 relevant logs
-                            self.log(f"      {log_line}")
-                    else:
-                        self.log("   ℹ️ No specific multi-upload related log entries found")
-                    
-                    self.test_results['backend_logs'] = log_lines
-                    self.test_results['relevant_logs'] = relevant_logs
-                    
-                else:
-                    self.log("   ⚠️ Could not read backend logs from supervisor")
-                    
-            except Exception as log_error:
-                self.log(f"   ⚠️ Backend log capture failed: {str(log_error)}")
-            
-            # Also try to capture error logs
-            try:
-                result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.err.log'], 
-                                      capture_output=True, text=True, timeout=10)
-                if result.returncode == 0 and result.stdout.strip():
-                    self.log("   📋 Backend error logs:")
-                    for line in result.stdout.split('\n')[-15:]:  # Show last 15 error lines
-                        if line.strip():
-                            self.log(f"      ERROR: {line}")
-                            
-            except Exception as error_log_error:
-                self.log(f"   ⚠️ Backend error log capture failed: {str(error_log_error)}")
-            
-            return True
-                
-        except Exception as e:
-            self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
-            return False
-    
-    def compare_upload_methods(self):
-        """Compare results between Multi Cert Upload and Single Certificate Upload"""
-        try:
-            self.log("🔍 Comparing Multi Cert Upload vs Single Certificate Upload results...")
-            
-            multi_result = self.test_results.get('multi_upload_result')
-            single_result = self.test_results.get('single_upload_result')
-            
-            if not multi_result or not single_result:
-                self.log("   ⚠️ Cannot compare - missing results from one or both methods")
+            if not certificates:
+                self.log("   ❌ No certificates to analyze")
                 return
             
-            self.log("   📊 COMPARISON ANALYSIS:")
+            # Group certificates by category
+            categories = {}
+            statuses = {}
+            types = {}
+            issuers = {}
             
-            # Compare classification results
-            multi_classified_as_marine = False
-            single_classified_as_marine = False
-            
-            # Check multi-upload result
-            multi_results = multi_result.get('results', [])
-            if multi_results:
-                file_result = multi_results[0]
-                file_status = file_result.get('status', '').lower()
-                is_marine = file_result.get('is_marine', False)
-                multi_classified_as_marine = is_marine or ('marine' in file_status and 'not' not in file_status)
-            
-            # Check single-upload result
-            single_success = single_result.get('success', False)
-            single_category = single_result.get('category', '')
-            single_is_marine = single_result.get('is_marine_certificate', False)
-            single_classified_as_marine = single_success and (single_category == 'certificates' or single_is_marine)
-            
-            self.log(f"   Multi Cert Upload classified as marine: {multi_classified_as_marine}")
-            self.log(f"   Single Certificate Upload classified as marine: {single_classified_as_marine}")
-            
-            if multi_classified_as_marine != single_classified_as_marine:
-                self.log("   🚨 DISCREPANCY FOUND: Different classification results between methods!")
-                self.multi_cert_tests['classification_discrepancy_identified'] = True
+            for cert in certificates:
+                # Category analysis
+                category = cert.get('category', 'Unknown')
+                if category not in categories:
+                    categories[category] = []
+                categories[category].append(cert)
                 
-                if not multi_classified_as_marine and single_classified_as_marine:
-                    self.log("   🔍 Multi Cert Upload incorrectly rejects marine certificate")
-                    self.log("   🔍 Single Certificate Upload correctly identifies marine certificate")
-                elif multi_classified_as_marine and not single_classified_as_marine:
-                    self.log("   🔍 Single Certificate Upload incorrectly rejects marine certificate")
-                    self.log("   🔍 Multi Cert Upload correctly identifies marine certificate")
-            else:
-                self.log("   ✅ Both methods have consistent classification results")
+                # Status analysis
+                status = cert.get('status', 'Unknown')
+                if status not in statuses:
+                    statuses[status] = []
+                statuses[status].append(cert)
+                
+                # Type analysis
+                cert_type = cert.get('cert_type', 'Unknown')
+                if cert_type not in types:
+                    types[cert_type] = []
+                types[cert_type].append(cert)
+                
+                # Issuer analysis
+                issued_by = cert.get('issued_by', 'Unknown')
+                if issued_by not in issuers:
+                    issuers[issued_by] = []
+                issuers[issued_by].append(cert)
             
-            # Compare processing times
-            multi_time = self.test_results.get('multi_upload_time', 0)
-            single_time = self.test_results.get('single_upload_time', 0)
+            self.log("   📊 CERTIFICATE CATEGORY ANALYSIS:")
+            for category, certs in categories.items():
+                self.log(f"      {category}: {len(certs)} certificates")
+                for cert in certs:
+                    self.log(f"         - {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No Number')})")
             
-            self.log(f"   Multi Cert Upload processing time: {multi_time:.2f} seconds")
-            self.log(f"   Single Certificate Upload processing time: {single_time:.2f} seconds")
+            self.log("   📊 CERTIFICATE STATUS ANALYSIS:")
+            for status, certs in statuses.items():
+                self.log(f"      {status}: {len(certs)} certificates")
+                for cert in certs:
+                    self.log(f"         - {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No Number')})")
+            
+            self.log("   📊 CERTIFICATE TYPE ANALYSIS:")
+            for cert_type, certs in types.items():
+                self.log(f"      {cert_type}: {len(certs)} certificates")
+                for cert in certs:
+                    self.log(f"         - {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No Number')})")
+            
+            self.log("   📊 CERTIFICATE ISSUER ANALYSIS:")
+            for issuer, certs in issuers.items():
+                self.log(f"      {issuer}: {len(certs)} certificates")
+                for cert in certs:
+                    self.log(f"         - {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No Number')})")
+            
+            self.discrepancy_tests['category_filtering_analyzed'] = True
+            self.discrepancy_tests['status_filtering_analyzed'] = True
+            
+            self.test_results['certificate_categories'] = categories
+            self.test_results['certificate_statuses'] = statuses
+            self.test_results['certificate_types'] = types
+            self.test_results['certificate_issuers'] = issuers
             
             return True
                 
         except Exception as e:
-            self.log(f"❌ Comparison error: {str(e)}", "ERROR")
+            self.log(f"❌ Certificate category analysis error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_multi_cert_classification_test(self):
-        """Main test function for Multi Cert Upload classification discrepancy"""
-        self.log("🎯 STARTING MULTI CERT UPLOAD CLASSIFICATION DISCREPANCY TESTING")
-        self.log("🔍 Focus: Debug Multi Cert Upload classification discrepancy for MLC file")
-        self.log("📋 Review Request: MLC file classified as 'Skipped - not a marine certificate'")
-        self.log("🏢 Expected: Should be classified as marine certificate")
-        self.log("🚢 File: SUNSHINE 01 - MLC- PM251278.pdf")
+    def check_general_certificates_endpoint(self):
+        """Check the general certificates endpoint for comparison"""
+        try:
+            self.log("🔍 Checking general certificates endpoint...")
+            
+            endpoint = f"{BACKEND_URL}/certificates"
+            self.log(f"   GET {endpoint}")
+            
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                all_certificates = response.json()
+                self.log(f"   ✅ Retrieved {len(all_certificates)} total certificates from general endpoint")
+                
+                # Filter for SUNSHINE 01 certificates
+                sunshine_01_ship_id = self.test_results.get('sunshine_01_ship', {}).get('id')
+                if sunshine_01_ship_id:
+                    sunshine_01_certs = [cert for cert in all_certificates if cert.get('ship_id') == sunshine_01_ship_id]
+                    self.log(f"   📊 Found {len(sunshine_01_certs)} SUNSHINE 01 certificates in general endpoint")
+                    
+                    self.test_results['general_endpoint_certificates'] = all_certificates
+                    self.test_results['general_endpoint_sunshine_01_count'] = len(sunshine_01_certs)
+                    
+                    return all_certificates
+                else:
+                    self.log("   ⚠️ No SUNSHINE 01 ship ID available for filtering")
+                    return all_certificates
+            else:
+                self.log(f"   ❌ Failed to get general certificates: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:500]}")
+                return None
+                
+        except Exception as e:
+            self.log(f"❌ General certificates endpoint error: {str(e)}", "ERROR")
+            return None
+    
+    def investigate_discrepancy(self):
+        """Investigate the 13/15 certificate discrepancy"""
+        try:
+            self.log("🔍 Investigating 13/15 certificate discrepancy...")
+            
+            database_count = self.test_results.get('database_certificate_count', 0)
+            expected_count = 15
+            displayed_count = 13  # As reported in review request
+            
+            self.log(f"   📊 Expected certificates: {expected_count}")
+            self.log(f"   📊 Displayed in frontend: {displayed_count}")
+            self.log(f"   📊 Found in database: {database_count}")
+            
+            if database_count == expected_count:
+                self.log("   ✅ Database contains all 15 expected certificates")
+                if database_count > displayed_count:
+                    self.log(f"   🚨 DISCREPANCY CONFIRMED: Database has {database_count} but frontend shows {displayed_count}")
+                    self.log(f"   🔍 {database_count - displayed_count} certificates are missing from frontend display")
+                    self.discrepancy_tests['certificate_count_discrepancy_identified'] = True
+                    
+                    # Try to identify which certificates might be hidden
+                    self.identify_potentially_hidden_certificates()
+                else:
+                    self.log("   ✅ No discrepancy found - counts match")
+            elif database_count < expected_count:
+                self.log(f"   ⚠️ Database only contains {database_count} certificates, expected {expected_count}")
+                self.log(f"   🔍 {expected_count - database_count} certificates are missing from database")
+            else:
+                self.log(f"   ⚠️ Database contains more certificates than expected: {database_count} > {expected_count}")
+            
+            return True
+                
+        except Exception as e:
+            self.log(f"❌ Discrepancy investigation error: {str(e)}", "ERROR")
+            return False
+    
+    def identify_potentially_hidden_certificates(self):
+        """Try to identify which certificates might be hidden from frontend"""
+        try:
+            self.log("🔍 Identifying potentially hidden certificates...")
+            
+            certificates = self.test_results.get('database_certificates', [])
+            if not certificates:
+                self.log("   ❌ No certificates available for analysis")
+                return
+            
+            # Look for certificates that might be filtered out
+            potentially_hidden = []
+            
+            for cert in certificates:
+                reasons = []
+                
+                # Check for unusual categories
+                category = cert.get('category', '')
+                if category and category.lower() not in ['certificates', 'certificate']:
+                    reasons.append(f"Unusual category: {category}")
+                
+                # Check for unusual statuses
+                status = cert.get('status', '')
+                if status and status.lower() in ['expired', 'invalid', 'cancelled', 'revoked']:
+                    reasons.append(f"Status: {status}")
+                
+                # Check for missing critical fields
+                if not cert.get('cert_name'):
+                    reasons.append("Missing certificate name")
+                if not cert.get('cert_no'):
+                    reasons.append("Missing certificate number")
+                if not cert.get('valid_date'):
+                    reasons.append("Missing valid date")
+                
+                # Check for unusual certificate types
+                cert_type = cert.get('cert_type', '')
+                if cert_type and cert_type.lower() in ['draft', 'template', 'test']:
+                    reasons.append(f"Type: {cert_type}")
+                
+                if reasons:
+                    potentially_hidden.append({
+                        'certificate': cert,
+                        'reasons': reasons
+                    })
+            
+            if potentially_hidden:
+                self.log(f"   🔍 Found {len(potentially_hidden)} certificates that might be filtered:")
+                for i, item in enumerate(potentially_hidden, 1):
+                    cert = item['certificate']
+                    reasons = item['reasons']
+                    self.log(f"      {i}. {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No Number')})")
+                    for reason in reasons:
+                        self.log(f"         - {reason}")
+                
+                self.discrepancy_tests['missing_certificates_identified'] = True
+                self.test_results['potentially_hidden_certificates'] = potentially_hidden
+            else:
+                self.log("   ✅ No obviously problematic certificates found")
+                self.log("   🔍 All certificates appear to have standard properties")
+            
+            return True
+                
+        except Exception as e:
+            self.log(f"❌ Hidden certificate identification error: {str(e)}", "ERROR")
+            return False
+    
+    def check_pagination_effects(self):
+        """Check if pagination might be affecting the certificate count"""
+        try:
+            self.log("🔍 Checking pagination effects on certificate display...")
+            
+            database_count = self.test_results.get('database_certificate_count', 0)
+            
+            if database_count > 10:
+                self.log(f"   📊 Database has {database_count} certificates")
+                self.log("   🔍 Checking if pagination might limit display to first 10-13 certificates")
+                
+                # Check if there's a pattern in the missing certificates
+                certificates = self.test_results.get('database_certificates', [])
+                if certificates:
+                    self.log("   📊 Certificate order analysis:")
+                    for i, cert in enumerate(certificates, 1):
+                        created_at = cert.get('created_at', 'Unknown')
+                        self.log(f"      {i:2d}. {cert.get('cert_name', 'Unknown')} (Created: {created_at})")
+                    
+                    if len(certificates) > 13:
+                        self.log("   🔍 Certificates beyond position 13 (potentially hidden):")
+                        for i, cert in enumerate(certificates[13:], 14):
+                            self.log(f"      {i:2d}. {cert.get('cert_name', 'Unknown')} - POTENTIALLY HIDDEN")
+            
+            self.discrepancy_tests['pagination_effects_checked'] = True
+            return True
+                
+        except Exception as e:
+            self.log(f"❌ Pagination check error: {str(e)}", "ERROR")
+            return False
+    
+    def perform_database_query_analysis(self):
+        """Perform comprehensive database query analysis"""
+        try:
+            self.log("🔍 Performing database query analysis...")
+            
+            sunshine_01_ship = self.test_results.get('sunshine_01_ship')
+            if not sunshine_01_ship:
+                self.log("   ❌ No SUNSHINE 01 ship data available")
+                return False
+            
+            ship_id = sunshine_01_ship.get('id')
+            ship_name = sunshine_01_ship.get('name')
+            
+            self.log(f"   📊 Analyzing certificates for ship: {ship_name} (ID: {ship_id})")
+            
+            # Get certificates again with detailed logging
+            certificates = self.test_results.get('database_certificates', [])
+            
+            if certificates:
+                self.log(f"   ✅ Query returned {len(certificates)} certificates")
+                
+                # Analyze query conditions that might affect results
+                self.log("   🔍 QUERY ANALYSIS:")
+                self.log(f"      Ship ID filter: {ship_id}")
+                self.log(f"      Total certificates found: {len(certificates)}")
+                
+                # Check for any certificates with unusual properties
+                unusual_certs = []
+                for cert in certificates:
+                    issues = []
+                    
+                    # Check ship_id consistency
+                    cert_ship_id = cert.get('ship_id')
+                    if cert_ship_id != ship_id:
+                        issues.append(f"Ship ID mismatch: {cert_ship_id} != {ship_id}")
+                    
+                    # Check for null/empty critical fields
+                    if not cert.get('cert_name'):
+                        issues.append("Empty cert_name")
+                    if not cert.get('id'):
+                        issues.append("Empty certificate ID")
+                    
+                    if issues:
+                        unusual_certs.append({
+                            'certificate': cert,
+                            'issues': issues
+                        })
+                
+                if unusual_certs:
+                    self.log(f"   ⚠️ Found {len(unusual_certs)} certificates with issues:")
+                    for item in unusual_certs:
+                        cert = item['certificate']
+                        issues = item['issues']
+                        self.log(f"      - {cert.get('cert_name', 'Unknown')}: {', '.join(issues)}")
+                else:
+                    self.log("   ✅ All certificates have consistent properties")
+                
+                self.discrepancy_tests['database_query_analysis_completed'] = True
+                return True
+            else:
+                self.log("   ❌ No certificates found in database query")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Database query analysis error: {str(e)}", "ERROR")
+            return False
+    
+    def run_comprehensive_certificate_discrepancy_investigation(self):
+        """Main test function for certificate list discrepancy investigation"""
+        self.log("🎯 STARTING CERTIFICATE LIST DATABASE DISCREPANCY INVESTIGATION")
+        self.log("🔍 Focus: Investigate Certificate List database discrepancy - showing 13/15 certificates")
+        self.log("📋 Review Request: SUNSHINE 01 ship shows 13 certificates but should show 15")
+        self.log("🚢 Target: SUNSHINE 01 ship")
+        self.log("📊 Expected: 15 certificates, Displayed: 13 certificates")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -560,222 +534,228 @@ class MultiCertUploadClassificationTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        self.multi_cert_tests['authentication_successful'] = True
+        self.discrepancy_tests['authentication_successful'] = True
         
-        # Step 2: Get available ships
-        self.log("\n🚢 STEP 2: GET AVAILABLE SHIPS")
+        # Step 2: Find SUNSHINE 01 ship
+        self.log("\n🚢 STEP 2: FIND SUNSHINE 01 SHIP")
         self.log("=" * 50)
-        ship = self.get_available_ships()
-        if not ship:
-            self.log("❌ No ships available - cannot proceed with certificate testing")
+        sunshine_01_ship = self.find_sunshine_01_ship()
+        if not sunshine_01_ship:
+            self.log("❌ SUNSHINE 01 ship not found - cannot proceed with certificate investigation")
             return False
         
-        # Step 3: Download MLC certificate
-        self.log("\n📥 STEP 3: DOWNLOAD MLC CERTIFICATE")
+        # Step 3: Get complete database certificate list
+        self.log("\n📊 STEP 3: GET COMPLETE DATABASE CERTIFICATE LIST")
         self.log("=" * 50)
-        pdf_file_path = self.download_mlc_certificate()
-        if not pdf_file_path:
-            self.log("❌ Failed to download MLC certificate - cannot proceed with analysis")
+        certificates = self.get_database_certificates(sunshine_01_ship.get('id'))
+        if certificates is None:
+            self.log("❌ Failed to retrieve certificates - cannot proceed with analysis")
             return False
         
-        # Step 4: Test Multi Cert Upload
-        self.log("\n🔍 STEP 4: TEST MULTI CERT UPLOAD")
+        # Step 4: Analyze certificate categories and filtering
+        self.log("\n🔍 STEP 4: ANALYZE CERTIFICATE CATEGORIES AND FILTERING")
         self.log("=" * 50)
-        multi_result = self.test_multi_cert_upload(ship.get('id'), pdf_file_path)
+        self.analyze_certificate_categories(certificates)
         
-        # Step 5: Test Single Certificate Upload for comparison
-        self.log("\n🔍 STEP 5: TEST SINGLE CERTIFICATE UPLOAD (COMPARISON)")
+        # Step 5: Check general certificates endpoint
+        self.log("\n🔍 STEP 5: CHECK GENERAL CERTIFICATES ENDPOINT")
         self.log("=" * 50)
-        single_result = self.test_single_cert_upload(ship.get('id'), pdf_file_path)
+        self.check_general_certificates_endpoint()
         
-        # Step 6: Compare results
-        self.log("\n📊 STEP 6: COMPARE UPLOAD METHODS")
+        # Step 6: Investigate the 13/15 discrepancy
+        self.log("\n🔍 STEP 6: INVESTIGATE 13/15 CERTIFICATE DISCREPANCY")
         self.log("=" * 50)
-        self.compare_upload_methods()
+        self.investigate_discrepancy()
         
-        # Step 7: Capture backend logs
-        self.log("\n📊 STEP 7: CAPTURE BACKEND LOGS")
+        # Step 7: Check pagination effects
+        self.log("\n🔍 STEP 7: CHECK PAGINATION EFFECTS")
         self.log("=" * 50)
-        self.capture_backend_logs()
+        self.check_pagination_effects()
         
-        # Step 8: Final analysis
-        self.log("\n📊 STEP 8: FINAL ANALYSIS")
+        # Step 8: Perform database query analysis
+        self.log("\n🔍 STEP 8: PERFORM DATABASE QUERY ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_analysis()
+        self.perform_database_query_analysis()
         
-        # Clean up temporary file
-        try:
-            if pdf_file_path and os.path.exists(pdf_file_path):
-                os.unlink(pdf_file_path)
-                self.log("   🗑️ Temporary PDF file cleaned up")
-        except Exception as e:
-            self.log(f"   ⚠️ Failed to clean up temporary file: {e}")
+        # Step 9: Final analysis
+        self.log("\n📊 STEP 9: FINAL ANALYSIS")
+        self.log("=" * 50)
+        self.provide_final_discrepancy_analysis()
         
-        return multi_result is not None or single_result is not None
+        return True
     
-    def provide_final_analysis(self):
-        """Provide final analysis of the Multi Cert Upload classification discrepancy testing"""
+    def provide_final_discrepancy_analysis(self):
+        """Provide final analysis of the certificate list discrepancy investigation"""
         try:
-            self.log("🎯 MULTI CERT UPLOAD CLASSIFICATION DISCREPANCY TESTING - RESULTS")
+            self.log("🎯 CERTIFICATE LIST DATABASE DISCREPANCY INVESTIGATION - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.multi_cert_tests.items():
+            for test_name, passed in self.discrepancy_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ MULTI CERT UPLOAD TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ DISCREPANCY INVESTIGATION TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ MULTI CERT UPLOAD TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ DISCREPANCY INVESTIGATION TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
-            success_rate = len(passed_tests) / len(self.multi_cert_tests) * 100
-            self.log(f"\n📊 MULTI CERT UPLOAD TEST SUCCESS RATE: {success_rate:.1f}%")
+            success_rate = len(passed_tests) / len(self.discrepancy_tests) * 100
+            self.log(f"\n📊 DISCREPANCY INVESTIGATION SUCCESS RATE: {success_rate:.1f}%")
             
-            # Specific discrepancy analysis
-            if self.multi_cert_tests.get('classification_discrepancy_identified'):
-                self.log("\n🚨 CRITICAL FINDING: CLASSIFICATION DISCREPANCY IDENTIFIED")
-                self.log("   The user's reported issue is CONFIRMED")
-                self.log("   Multi Cert Upload and Single Certificate Upload produce different results")
+            # Key findings
+            database_count = self.test_results.get('database_certificate_count', 0)
+            expected_count = 15
+            displayed_count = 13
+            
+            self.log(f"\n🔍 KEY FINDINGS:")
+            self.log(f"   📊 Expected certificates: {expected_count}")
+            self.log(f"   📊 Displayed in frontend: {displayed_count}")
+            self.log(f"   📊 Found in database: {database_count}")
+            
+            if database_count == expected_count:
+                self.log(f"   ✅ Database contains all {expected_count} expected certificates")
+                if database_count > displayed_count:
+                    self.log(f"   🚨 DISCREPANCY CONFIRMED: {database_count - displayed_count} certificates missing from frontend")
+                else:
+                    self.log("   ✅ No discrepancy found")
+            elif database_count < expected_count:
+                self.log(f"   ⚠️ Database missing {expected_count - database_count} certificates")
             else:
-                self.log("\n✅ No classification discrepancy found between upload methods")
+                self.log(f"   ⚠️ Database has more certificates than expected")
             
-            # Analysis results
-            multi_result = self.test_results.get('multi_upload_result')
-            single_result = self.test_results.get('single_upload_result')
+            # Certificate analysis
+            categories = self.test_results.get('certificate_categories', {})
+            statuses = self.test_results.get('certificate_statuses', {})
             
-            if multi_result:
-                self.log(f"\n🔍 MULTI CERT UPLOAD RESULTS:")
-                results = multi_result.get('results', [])
-                if results:
-                    file_result = results[0]
-                    self.log(f"   Status: {file_result.get('status', 'Unknown')}")
-                    self.log(f"   Is Marine: {file_result.get('is_marine', 'Unknown')}")
-                    analysis = file_result.get('analysis', {})
-                    if analysis:
-                        self.log(f"   Category: {analysis.get('category', 'Unknown')}")
-                        self.log(f"   Is Marine Certificate: {analysis.get('is_marine_certificate', 'Unknown')}")
+            if categories:
+                self.log(f"\n📊 CERTIFICATE CATEGORIES:")
+                for category, certs in categories.items():
+                    self.log(f"   {category}: {len(certs)} certificates")
             
-            if single_result:
-                self.log(f"\n🔍 SINGLE CERTIFICATE UPLOAD RESULTS:")
-                self.log(f"   Success: {single_result.get('success', 'Unknown')}")
-                self.log(f"   Category: {single_result.get('category', 'Unknown')}")
-                self.log(f"   Is Marine Certificate: {single_result.get('is_marine_certificate', 'Unknown')}")
+            if statuses:
+                self.log(f"\n📊 CERTIFICATE STATUSES:")
+                for status, certs in statuses.items():
+                    self.log(f"   {status}: {len(certs)} certificates")
+            
+            # Potentially hidden certificates
+            potentially_hidden = self.test_results.get('potentially_hidden_certificates', [])
+            if potentially_hidden:
+                self.log(f"\n🔍 POTENTIALLY HIDDEN CERTIFICATES ({len(potentially_hidden)}):")
+                for i, item in enumerate(potentially_hidden, 1):
+                    cert = item['certificate']
+                    reasons = item['reasons']
+                    self.log(f"   {i}. {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No Number')})")
+                    for reason in reasons:
+                        self.log(f"      - {reason}")
             
             # Ship information
-            if self.test_results.get('selected_ship'):
-                ship = self.test_results['selected_ship']
-                self.log(f"\n🚢 TESTED WITH SHIP:")
-                self.log(f"   Ship Name: {ship.get('name')}")
-                self.log(f"   Ship ID: {ship.get('id')}")
-                self.log(f"   Company: {ship.get('company')}")
-            
-            # PDF file information
-            if self.test_results.get('pdf_file_size'):
-                size_mb = self.test_results['pdf_file_size'] / 1024 / 1024
-                self.log(f"\n📄 PDF FILE INFORMATION:")
-                self.log(f"   File Size: {size_mb:.2f} MB")
-                multi_time = self.test_results.get('multi_upload_time', 0)
-                single_time = self.test_results.get('single_upload_time', 0)
-                self.log(f"   Multi Upload Time: {multi_time:.2f} seconds")
-                self.log(f"   Single Upload Time: {single_time:.2f} seconds")
+            sunshine_01_ship = self.test_results.get('sunshine_01_ship')
+            if sunshine_01_ship:
+                self.log(f"\n🚢 SUNSHINE 01 SHIP DETAILS:")
+                self.log(f"   Ship Name: {sunshine_01_ship.get('name')}")
+                self.log(f"   Ship ID: {sunshine_01_ship.get('id')}")
+                self.log(f"   Company: {sunshine_01_ship.get('company')}")
+                self.log(f"   IMO: {sunshine_01_ship.get('imo', 'Not specified')}")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Multi Cert Upload Classification Discrepancy Testing")
-    print("🔍 Focus: Debug Multi Cert Upload classification discrepancy for MLC file")
-    print("📋 Review Request: MLC file classified as 'Skipped - not a marine certificate'")
-    print("🏢 Expected: Should be classified as marine certificate")
-    print("🚢 File: SUNSHINE 01 - MLC- PM251278.pdf")
+    print("🎯 Ship Management System - Certificate List Database Discrepancy Investigation")
+    print("🔍 Focus: Investigate Certificate List database discrepancy - showing 13/15 certificates")
+    print("📋 Review Request: SUNSHINE 01 ship shows 13 certificates but should show 15")
+    print("🚢 Target: SUNSHINE 01 ship")
+    print("📊 Expected: 15 certificates, Displayed: 13 certificates")
     print("=" * 100)
     
-    tester = MultiCertUploadClassificationTester()
-    success = tester.run_comprehensive_multi_cert_classification_test()
+    tester = CertificateListDiscrepancyTester()
+    success = tester.run_comprehensive_certificate_discrepancy_investigation()
     
     print("=" * 100)
-    print("🔍 MULTI CERT UPLOAD CLASSIFICATION DISCREPANCY TESTING RESULTS:")
+    print("🔍 CERTIFICATE LIST DATABASE DISCREPANCY INVESTIGATION RESULTS:")
     print("=" * 70)
     
     # Print test summary
-    passed_tests = [f for f, passed in tester.multi_cert_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.multi_cert_tests.items() if not passed]
+    passed_tests = [f for f, passed in tester.discrepancy_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.discrepancy_tests.items() if not passed]
     
-    print(f"✅ MULTI CERT UPLOAD TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ DISCREPANCY INVESTIGATION TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ MULTI CERT UPLOAD TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ DISCREPANCY INVESTIGATION TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
-    # Print discrepancy analysis
-    if tester.multi_cert_tests.get('classification_discrepancy_identified'):
-        print(f"\n🚨 CRITICAL FINDING: CLASSIFICATION DISCREPANCY CONFIRMED")
-        print(f"   The user's reported issue is REAL and PRESENT")
-        print(f"   Multi Cert Upload produces different results than Single Certificate Upload")
+    # Print key findings
+    database_count = tester.test_results.get('database_certificate_count', 0)
+    expected_count = 15
+    displayed_count = 13
+    
+    print(f"\n🔍 KEY FINDINGS:")
+    print(f"   📊 Expected certificates: {expected_count}")
+    print(f"   📊 Displayed in frontend: {displayed_count}")
+    print(f"   📊 Found in database: {database_count}")
+    
+    if database_count == expected_count:
+        print(f"   ✅ Database contains all {expected_count} expected certificates")
+        if database_count > displayed_count:
+            print(f"   🚨 DISCREPANCY CONFIRMED: {database_count - displayed_count} certificates missing from frontend")
+        else:
+            print("   ✅ No discrepancy found")
+    elif database_count < expected_count:
+        print(f"   ⚠️ Database missing {expected_count - database_count} certificates")
     else:
-        print(f"\n✅ No classification discrepancy found between upload methods")
-    
-    # Print analysis results
-    multi_result = tester.test_results.get('multi_upload_result')
-    single_result = tester.test_results.get('single_upload_result')
-    
-    if multi_result:
-        results = multi_result.get('results', [])
-        if results:
-            file_result = results[0]
-            print(f"\n🔍 MULTI CERT UPLOAD: {file_result.get('status', 'Unknown')}")
-    
-    if single_result:
-        print(f"🔍 SINGLE CERT UPLOAD: {'SUCCESS' if single_result.get('success') else 'FAILED'}")
+        print(f"   ⚠️ Database has more certificates than expected")
     
     # Print ship information
-    if tester.test_results.get('selected_ship'):
-        ship = tester.test_results['selected_ship']
+    if tester.test_results.get('sunshine_01_ship'):
+        ship = tester.test_results['sunshine_01_ship']
         print(f"\n🚢 TESTED WITH SHIP: {ship.get('name')} (ID: {ship.get('id')})")
+        print(f"   Company: {ship.get('company')}")
+        print(f"   IMO: {ship.get('imo', 'Not specified')}")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.multi_cert_tests) * 100
+    success_rate = len(passed_tests) / len(tester.discrepancy_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 Multi Cert Upload classification discrepancy testing completed!")
-        print("✅ All testing steps executed - detailed analysis available above")
+        print("🎉 Certificate list database discrepancy investigation completed!")
+        print("✅ All investigation steps executed - detailed analysis available above")
     else:
-        print("❌ Multi Cert Upload classification discrepancy testing completed with issues!")
+        print("❌ Certificate list database discrepancy investigation completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
     # Provide recommendations
-    if tester.multi_cert_tests.get('classification_discrepancy_identified'):
+    if tester.discrepancy_tests.get('certificate_count_discrepancy_identified'):
         print("\n💡 NEXT STEPS FOR MAIN AGENT:")
-        print("   🚨 CRITICAL ISSUE CONFIRMED: Classification discrepancy exists")
-        print("   1. Review Multi Cert Upload classification logic")
-        print("   2. Check if confidence thresholds differ between upload methods")
-        print("   3. Investigate AI analysis differences in multi vs single upload")
-        print("   4. Fix the Multi Cert Upload classification to match Single Upload")
-        print("   5. Test with additional MLC certificates to confirm fix")
+        print("   🚨 CRITICAL ISSUE CONFIRMED: Certificate count discrepancy exists")
+        print("   1. Review frontend filtering logic for certificate display")
+        print("   2. Check if category-based filtering is hiding certificates")
+        print("   3. Investigate status-based filtering (expired certificates)")
+        print("   4. Check pagination limits in frontend certificate list")
+        print("   5. Verify all certificates have proper category and status values")
     else:
         print("\n💡 NEXT STEPS FOR MAIN AGENT:")
         print("   ✅ No discrepancy found in current testing")
-        print("   1. The issue may be intermittent or environment-specific")
-        print("   2. Consider testing with different MLC certificate files")
-        print("   3. Check if the issue occurs with specific file sizes or formats")
-        print("   4. Monitor backend logs during user operations")
+        print("   1. The reported 13/15 issue may be intermittent or user-specific")
+        print("   2. Consider testing with different user roles or companies")
+        print("   3. Check if the issue occurs with specific certificate types")
+        print("   4. Monitor frontend logs during user operations")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
