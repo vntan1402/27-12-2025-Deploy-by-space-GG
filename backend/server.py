@@ -961,6 +961,50 @@ def create_dry_dock_cycle_from_legacy(legacy_months: Optional[int], last_special
             from_date = last_special_survey
         else:
             # Use current date as cycle start if no reference point
+            from_date = datetime.now(timezone.utc)
+            
+        to_date = from_date + timedelta(days=cycle_months * 30.44)  # Average month length
+        
+        return DryDockCycle(
+            from_date=from_date,
+            to_date=to_date,
+            intermediate_docking_required=True,  # Lloyd's requirement
+            last_intermediate_docking=None
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating dry dock cycle from legacy data: {e}")
+        return None
+
+def format_anniversary_date_display(anniversary_date: Optional[AnniversaryDate]) -> str:
+    """Format anniversary date for display (day/month only)"""
+    if not anniversary_date or not anniversary_date.day or not anniversary_date.month:
+        return '-'
+        
+    try:
+        # Create a date string with just day and month
+        from calendar import month_abbr
+        return f"{anniversary_date.day} {month_abbr[anniversary_date.month]}"
+    except:
+        return f"{anniversary_date.day}/{anniversary_date.month:02d}"
+
+def format_dry_dock_cycle_display(dry_dock_cycle: Optional[DryDockCycle]) -> str:
+    """Format dry dock cycle for display (From - To with intermediate docking note)"""
+    if not dry_dock_cycle or not dry_dock_cycle.from_date or not dry_dock_cycle.to_date:
+        return '-'
+        
+    try:
+        from_str = dry_dock_cycle.from_date.strftime('%b %Y')
+        to_str = dry_dock_cycle.to_date.strftime('%b %Y')
+        
+        cycle_str = f"{from_str} - {to_str}"
+        if dry_dock_cycle.intermediate_docking_required:
+            cycle_str += " (Intermediate required)"
+            
+        return cycle_str
+    except:
+        return '-'
+
 async def process_enhanced_ship_fields(ship_data: dict, is_new_ship: bool = True, ship_id: str = None) -> None:
     """
     Process enhanced Anniversary Date and Dry Dock Cycle fields following Lloyd's maritime standards.
