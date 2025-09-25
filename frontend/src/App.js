@@ -1164,79 +1164,75 @@ const HomePage = () => {
       const allCertificates = getFilteredCertificates();
       const certificatesToOpen = allCertificates.filter(cert => selectedCertificates.has(cert.id));
       
+      // Show initial info toast
+      toast.info(
+        language === 'vi' 
+          ? `Đang tải ${certificatesToOpen.length} files, sẽ mở từng file với độ trễ 1 giây...`
+          : `Loading ${certificatesToOpen.length} files, will open each file with 1 second delay...`
+      );
+      
       let openedCount = 0;
       let errorCount = 0;
       
-      // Show initial toast about delayed opening
-      toast.info(
-        language === 'vi' 
-          ? `Đang mở ${certificatesToOpen.length} files với độ trễ 1 giây giữa mỗi file...`
-          : `Opening ${certificatesToOpen.length} files with 1 second delay between each file...`
-      );
-      
-      // Alternative approach: Pre-open blank tabs to bypass popup blocker
-      const preOpenedTabs = [];
-      for (let i = 0; i < certificatesToOpen.length; i++) {
-        const blankTab = window.open('about:blank', `_blank_${certificatesToOpen[i].id}`);
-        if (blankTab) {
-          preOpenedTabs.push({ tab: blankTab, cert: certificatesToOpen[i], index: i });
-        }
-      }
-      
-      // Now fetch URLs and navigate pre-opened tabs
-      for (const { tab, cert, index } of preOpenedTabs) {
+      // First, fetch all URLs in parallel for faster loading
+      const urlPromises = certificatesToOpen.map(async (cert) => {
         try {
           const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const data = await response.json();
-          
-          if (data.view_url) {
-            setTimeout(() => {
-              try {
-                if (tab && !tab.closed) {
-                  tab.location.href = data.view_url;
-                  openedCount++;
-                } else {
-                  errorCount++;
-                }
-              } catch (err) {
-                console.error(`Error navigating tab for ${cert.cert_name}:`, err);
-                errorCount++;
-                if (tab && !tab.closed) {
-                  tab.close();
-                }
-              }
-            }, index * 1000); // 1 second delay between each navigation
-          } else {
-            console.error(`Failed to get view_url for certificate ${cert.cert_name}:`, data);
-            errorCount++;
-            if (tab && !tab.closed) {
-              tab.close();
-            }
-          }
+          return { cert, url: data.view_url, success: !!data.view_url };
         } catch (error) {
-          console.error(`Error opening certificate ${cert.cert_name}:`, error);
-          errorCount++;
-          if (tab && !tab.closed) {
-            tab.close();
-          }
+          console.error(`Error fetching URL for ${cert.cert_name}:`, error);
+          return { cert, url: null, success: false };
         }
-      }
+      });
       
-      // Show summary toast after all operations complete
-      setTimeout(() => {
-        if (openedCount > 0) {
-          toast.success(
-            language === 'vi' 
-              ? `Đã cố gắng mở ${openedCount} file${errorCount > 0 ? `, ${errorCount} file lỗi` : ''}`
-              : `Attempted to open ${openedCount} file${openedCount > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}`
-          );
-        }
-        if (errorCount > 0 && openedCount === 0) {
-          toast.error(language === 'vi' ? 'Không thể mở files' : 'Cannot open files');
-        }
-      }, certificatesToOpen.length * 1000 + 500); // Wait for all files + extra 500ms
+      const urlResults = await Promise.all(urlPromises);
+      
+      // Then open tabs with delays, using direct window.open for better browser support
+      urlResults.forEach((result, index) => {
+        setTimeout(() => {
+          if (result.success && result.url) {
+            try {
+              // Use direct window.open with minimal features for better compatibility
+              const newTab = window.open(result.url, '_blank');
+              if (newTab) {
+                openedCount++;
+                console.log(`✅ Opened tab ${index + 1}/${urlResults.length}: ${result.cert.cert_name}`);
+              } else {
+                errorCount++;
+                console.warn(`❌ Failed to open tab for: ${result.cert.cert_name} (popup blocked)`);
+              }
+            } catch (error) {
+              errorCount++;
+              console.error(`❌ Error opening tab for ${result.cert.cert_name}:`, error);
+            }
+          } else {
+            errorCount++;
+            console.warn(`❌ No URL available for: ${result.cert.cert_name}`);
+          }
+          
+          // Show final toast on last iteration
+          if (index === urlResults.length - 1) {
+            setTimeout(() => {
+              if (openedCount > 0) {
+                toast.success(
+                  language === 'vi' 
+                    ? `✅ Đã mở ${openedCount}/${urlResults.length} files${errorCount > 0 ? ` (${errorCount} lỗi)` : ''}`
+                    : `✅ Opened ${openedCount}/${urlResults.length} files${errorCount > 0 ? ` (${errorCount} errors)` : ''}`
+                );
+              } else {
+                toast.error(
+                  language === 'vi' 
+                    ? '❌ Không thể mở files (có thể bị chặn popup)' 
+                    : '❌ Cannot open files (may be blocked by popup blocker)'
+                );
+              }
+            }, 100);
+          }
+        }, index * 1000); // 1 second delay between each open
+      });
       
       handleCloseContextMenu();
     } catch (error) {
