@@ -1501,6 +1501,9 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         ship_dict["id"] = str(uuid.uuid4())
         ship_dict["created_at"] = datetime.now(timezone.utc)
         
+        # Handle enhanced anniversary date and dry dock cycle
+        await process_enhanced_ship_fields(ship_dict, is_new_ship=True)
+        
         # Create ship in database first
         await mongo_db.create("ships", ship_dict)
         
