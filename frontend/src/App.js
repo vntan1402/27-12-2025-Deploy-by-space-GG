@@ -1167,42 +1167,62 @@ const HomePage = () => {
       let openedCount = 0;
       let errorCount = 0;
       
-      // Open files with delays to prevent browser blocking
-      for (let i = 0; i < certificatesToOpen.length; i++) {
-        const cert = certificatesToOpen[i];
-        try {
-          const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const data = await response.json();
-          
-          // Check both success field and view_url availability
-          if (data.view_url) {
-            // Increased delay to 1 second to prevent browser popup blocking
-            setTimeout(() => {
-              // Force new window with specific features to bypass popup blockers
-              const newWindow = window.open(data.view_url, `_blank_${cert.id}`, 'noopener,noreferrer');
-              if (!newWindow) {
-                console.warn(`Popup blocked for certificate: ${cert.cert_name}`);
-              }
-            }, i * 1000); // 1 second delay between each open
-            openedCount++;
-          } else {
-            console.error(`Failed to get view_url for certificate ${cert.cert_name}:`, data);
-            errorCount++;
-          }
-        } catch (error) {
-          console.error(`Error opening certificate ${cert.cert_name}:`, error);
-          errorCount++;
-        }
-      }
-      
       // Show initial toast about delayed opening
       toast.info(
         language === 'vi' 
           ? `Đang mở ${certificatesToOpen.length} files với độ trễ 1 giây giữa mỗi file...`
           : `Opening ${certificatesToOpen.length} files with 1 second delay between each file...`
       );
+      
+      // Alternative approach: Pre-open blank tabs to bypass popup blocker
+      const preOpenedTabs = [];
+      for (let i = 0; i < certificatesToOpen.length; i++) {
+        const blankTab = window.open('about:blank', `_blank_${certificatesToOpen[i].id}`);
+        if (blankTab) {
+          preOpenedTabs.push({ tab: blankTab, cert: certificatesToOpen[i], index: i });
+        }
+      }
+      
+      // Now fetch URLs and navigate pre-opened tabs
+      for (const { tab, cert, index } of preOpenedTabs) {
+        try {
+          const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          
+          if (data.view_url) {
+            setTimeout(() => {
+              try {
+                if (tab && !tab.closed) {
+                  tab.location.href = data.view_url;
+                  openedCount++;
+                } else {
+                  errorCount++;
+                }
+              } catch (err) {
+                console.error(`Error navigating tab for ${cert.cert_name}:`, err);
+                errorCount++;
+                if (tab && !tab.closed) {
+                  tab.close();
+                }
+              }
+            }, index * 1000); // 1 second delay between each navigation
+          } else {
+            console.error(`Failed to get view_url for certificate ${cert.cert_name}:`, data);
+            errorCount++;
+            if (tab && !tab.closed) {
+              tab.close();
+            }
+          }
+        } catch (error) {
+          console.error(`Error opening certificate ${cert.cert_name}:`, error);
+          errorCount++;
+          if (tab && !tab.closed) {
+            tab.close();
+          }
+        }
+      }
       
       // Show summary toast after all operations complete
       setTimeout(() => {
