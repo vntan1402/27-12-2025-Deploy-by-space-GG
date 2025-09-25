@@ -295,6 +295,7 @@ class CertificateUpdate(BaseModel):
     valid_date: Optional[datetime] = None
     last_endorse: Optional[datetime] = None
     next_survey: Optional[datetime] = None
+    next_survey_type: Optional[str] = None  # Next survey type
     issued_by: Optional[str] = None  # Issued by organization
     category: Optional[str] = None
     sensitivity_level: Optional[str] = None
