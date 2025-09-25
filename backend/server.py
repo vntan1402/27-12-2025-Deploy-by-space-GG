@@ -989,17 +989,17 @@ def format_anniversary_date_display(anniversary_date: Optional[AnniversaryDate])
         return f"{anniversary_date.day}/{anniversary_date.month:02d}"
 
 def format_dry_dock_cycle_display(dry_dock_cycle: Optional[DryDockCycle]) -> str:
-    """Format dry dock cycle for display (From - To with intermediate docking note)"""
+    """Format dry dock cycle for display (dd/MM/yyyy - dd/MM/yyyy format with intermediate docking note)"""
     if not dry_dock_cycle or not dry_dock_cycle.from_date or not dry_dock_cycle.to_date:
         return '-'
         
     try:
-        from_str = dry_dock_cycle.from_date.strftime('%b %Y')
-        to_str = dry_dock_cycle.to_date.strftime('%b %Y')
+        from_str = dry_dock_cycle.from_date.strftime('%d/%m/%Y')
+        to_str = dry_dock_cycle.to_date.strftime('%d/%m/%Y')
         
         cycle_str = f"{from_str} - {to_str}"
         if dry_dock_cycle.intermediate_docking_required:
-            cycle_str += " (Intermediate required)"
+            cycle_str += " (Int. required)"
             
         return cycle_str
     except:
