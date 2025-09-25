@@ -684,12 +684,12 @@ class ThreeColumnLayoutTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_anniversary_tests(self):
-        """Main test function for anniversary date and dry dock cycle enhancements"""
-        self.log("🎯 STARTING ANNIVERSARY DATE AND DRY DOCK CYCLE TESTING")
-        self.log("🔍 Focus: Anniversary date and dry dock cycle enhancements with Lloyd's standards")
-        self.log("📋 Review Request: Test enhanced anniversary date auto-calculation and dry dock cycle handling")
-        self.log("🎯 Testing: Authentication, ship retrieval, anniversary calculation, override, CRUD operations")
+    def run_comprehensive_layout_tests(self):
+        """Main test function for 3-column layout changes and special survey cycle field"""
+        self.log("🎯 STARTING 3-COLUMN LAYOUT CHANGES TESTING")
+        self.log("🔍 Focus: Updated 3-column layout changes for Detailed Ship Information")
+        self.log("📋 Review Request: Test special_survey_cycle field and 3-column layout field structure")
+        self.log("🎯 Testing: Authentication, ship retrieval, special survey cycle model, data consistency")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -699,45 +699,30 @@ class ThreeColumnLayoutTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Test ship retrieval with enhanced data
-        self.log("\n🚢 STEP 2: TEST SHIP RETRIEVAL WITH ENHANCED DATA")
+        # Step 2: Test ship retrieval with new field structure
+        self.log("\n🚢 STEP 2: TEST SHIP RETRIEVAL WITH NEW FIELD STRUCTURE")
         self.log("=" * 50)
-        self.test_ship_retrieval_enhanced_data()
+        self.test_ship_retrieval_with_new_fields()
         
-        # Step 3: Test anniversary date calculation
-        self.log("\n📅 STEP 3: TEST ANNIVERSARY DATE CALCULATION")
+        # Step 3: Test SpecialSurveyCycle model functionality
+        self.log("\n🔍 STEP 3: TEST SPECIAL SURVEY CYCLE MODEL")
         self.log("=" * 50)
-        self.test_anniversary_date_calculation()
+        self.test_special_survey_cycle_model()
         
-        # Step 4: Test anniversary date override
-        self.log("\n🔧 STEP 4: TEST ANNIVERSARY DATE OVERRIDE")
+        # Step 4: Test data consistency and backward compatibility
+        self.log("\n🔍 STEP 4: TEST DATA CONSISTENCY")
         self.log("=" * 50)
-        self.test_anniversary_date_override()
+        self.test_data_consistency()
         
-        # Step 5: Test ship creation with enhanced fields
-        self.log("\n🆕 STEP 5: TEST SHIP CREATION WITH ENHANCED FIELDS")
-        self.log("=" * 50)
-        self.test_ship_creation_enhanced_fields()
-        
-        # Step 6: Test ship update with enhanced fields
-        self.log("\n🔄 STEP 6: TEST SHIP UPDATE WITH ENHANCED FIELDS")
-        self.log("=" * 50)
-        self.test_ship_update_enhanced_fields()
-        
-        # Step 7: Test backward compatibility
-        self.log("\n🔄 STEP 7: TEST BACKWARD COMPATIBILITY")
-        self.log("=" * 50)
-        self.test_backward_compatibility()
-        
-        # Step 8: Capture backend logs
-        self.log("\n📝 STEP 8: CAPTURE BACKEND LOGS")
+        # Step 5: Capture backend logs
+        self.log("\n📝 STEP 5: CAPTURE BACKEND LOGS")
         self.log("=" * 50)
         self.capture_backend_logs()
         
-        # Step 9: Final analysis
-        self.log("\n📊 STEP 9: FINAL ANALYSIS")
+        # Step 6: Final analysis
+        self.log("\n📊 STEP 6: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_anniversary_analysis()
+        self.provide_final_layout_analysis()
         
         return True
     
