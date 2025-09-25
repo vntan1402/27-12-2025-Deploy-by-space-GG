@@ -2141,6 +2141,97 @@ const HomePage = () => {
       return '-';
     }
   };
+  // Enhanced formatting functions for Anniversary Date and Dry Dock Cycle
+  const formatAnniversaryDate = (anniversaryDate) => {
+    if (!anniversaryDate) return '-';
+    
+    // Handle enhanced anniversary date format
+    if (anniversaryDate.day && anniversaryDate.month) {
+      const monthNames = [
+        '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      return `${anniversaryDate.day} ${monthNames[anniversaryDate.month]}`;
+    }
+    
+    // Handle legacy datetime format
+    if (typeof anniversaryDate === 'string') {
+      try {
+        const date = new Date(anniversaryDate);
+        const monthNames = [
+          '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+        return `${date.getDate()} ${monthNames[date.getMonth() + 1]}`;
+      } catch {
+        return '-';
+      }
+    }
+    
+    return '-';
+  };
+  
+  const formatDryDockCycle = (dryDockCycle) => {
+    if (!dryDockCycle) return '-';
+    
+    // Handle enhanced dry dock cycle format
+    if (dryDockCycle.from_date && dryDockCycle.to_date) {
+      try {
+        const fromDate = new Date(dryDockCycle.from_date);
+        const toDate = new Date(dryDockCycle.to_date);
+        const fromStr = fromDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const toStr = toDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        let cycleStr = `${fromStr} - ${toStr}`;
+        if (dryDockCycle.intermediate_docking_required) {
+          cycleStr += ' (Int. required)';
+        }
+        return cycleStr;
+      } catch {
+        return '-';
+      }
+    }
+    
+    // Handle legacy months format
+    if (typeof dryDockCycle === 'number') {
+      return `${dryDockCycle} ${language === 'vi' ? 'tháng' : 'months'}`;
+    }
+    
+    return '-';
+  };
+  
+  // Anniversary date management functions
+  const handleRecalculateAnniversaryDate = async (shipId) => {
+    if (!shipId) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-anniversary-date`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message with calculated date
+        alert(`Anniversary date calculated: ${result.anniversary_date.display}\nSource: ${result.anniversary_date.source}`);
+        
+        // Refresh the ship data
+        if (selectedShip?.id === shipId) {
+          fetchShips(); // Refresh the ship list
+          // Optionally refresh ship details if in detail view
+        }
+      } else {
+        alert(result.message || 'Unable to calculate anniversary date from certificates');
+      }
+    } catch (error) {
+      console.error('Error recalculating anniversary date:', error);
+      alert('Failed to recalculate anniversary date');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
