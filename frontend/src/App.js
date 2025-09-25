@@ -1122,10 +1122,37 @@ const HomePage = () => {
       setSelectedCertificates(newSelected);
     }
     
+    // Calculate context menu position with viewport boundary checking
+    const contextMenuWidth = 200; // Estimated width of context menu
+    const contextMenuHeight = 180; // Estimated height of context menu
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust X position if menu would overflow right edge
+    if (x + contextMenuWidth > viewportWidth) {
+      x = viewportWidth - contextMenuWidth - 10; // 10px margin from edge
+    }
+    
+    // Adjust Y position if menu would overflow bottom edge
+    if (y + contextMenuHeight > viewportHeight) {
+      y = y - contextMenuHeight; // Show above cursor instead of below
+      // If still overflows (near top of screen), position at bottom of viewport
+      if (y < 0) {
+        y = viewportHeight - contextMenuHeight - 10; // 10px margin from bottom
+      }
+    }
+    
+    // Ensure menu doesn't go off left or top edges
+    if (x < 0) x = 10;
+    if (y < 0) y = 10;
+    
     setContextMenu({
       show: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: x,
+      y: y,
       certificate: certificate
     });
   };
