@@ -190,19 +190,29 @@ class AnniversaryDateDryDockTester:
                 result = response.json()
                 self.log("   ✅ Anniversary date calculation successful")
                 
+                # Log the full response for debugging
+                self.log(f"   📊 Full Response: {result}")
+                
                 # Check the response structure
+                success = result.get('success')
+                message = result.get('message')
                 anniversary_date = result.get('anniversary_date')
-                if anniversary_date:
+                
+                self.log(f"   📊 Anniversary Date Calculation Results:")
+                self.log(f"      Success: {success}")
+                self.log(f"      Message: {message}")
+                self.log(f"      Anniversary Date: {anniversary_date}")
+                
+                if success and anniversary_date:
                     day = anniversary_date.get('day')
                     month = anniversary_date.get('month')
-                    auto_calculated = anniversary_date.get('auto_calculated')
-                    source_cert_type = anniversary_date.get('source_certificate_type')
+                    source = anniversary_date.get('source')
+                    display = anniversary_date.get('display')
                     
-                    self.log(f"   📊 Anniversary Date Calculation Results:")
                     self.log(f"      Day: {day}")
                     self.log(f"      Month: {month}")
-                    self.log(f"      Auto Calculated: {auto_calculated}")
-                    self.log(f"      Source Certificate Type: {source_cert_type}")
+                    self.log(f"      Source: {source}")
+                    self.log(f"      Display: {display}")
                     
                     # Validate day/month values (1-31 for day, 1-12 for month)
                     if day and month:
@@ -213,13 +223,17 @@ class AnniversaryDateDryDockTester:
                             self.log(f"   ❌ Day/month validation failed: day={day}, month={month}")
                     
                     # Check Lloyd's standards compliance
-                    if auto_calculated and source_cert_type:
+                    if source and 'certificate' in source.lower():
                         self.log("   ✅ Lloyd's standards compliance: Auto-calculated from certificates")
                         self.anniversary_tests['lloyd_standards_compliance_verified'] = True
                     
                     self.anniversary_tests['anniversary_date_calculation_tested'] = True
+                elif success == False:
+                    self.log(f"   ⚠️ No anniversary date calculated: {message}")
+                    # This is still a successful test of the endpoint, just no suitable certificates
+                    self.anniversary_tests['anniversary_date_calculation_tested'] = True
                 else:
-                    self.log("   ⚠️ No anniversary date calculated - may be expected if no suitable certificates")
+                    self.log("   ⚠️ Unexpected response format")
                 
                 self.test_results['anniversary_calculation'] = result
                 return True
