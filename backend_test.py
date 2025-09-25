@@ -303,58 +303,93 @@ class ThreeColumnLayoutTester:
             self.log(f"❌ SpecialSurveyCycle model test error: {str(e)}", "ERROR")
             return False
     
-    def test_anniversary_date_override(self):
-        """Test the anniversary date override endpoint"""
+    def test_data_consistency(self):
+        """Test that all existing ship data remains intact after model changes"""
         try:
-            self.log("🔧 Testing anniversary date override endpoint...")
+            self.log("🔍 Testing data consistency and backward compatibility...")
             
-            # Test manual override of anniversary date using query parameters
-            day = 15
-            month = 8
-            
-            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/override-anniversary-date?day={day}&month={month}"
-            self.log(f"   POST {endpoint}")
-            
-            response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
+            # Get all ships to verify existing data integrity
+            endpoint = f"{BACKEND_URL}/ships"
+            self.log(f"   GET {endpoint}")
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                result = response.json()
-                self.log("   ✅ Anniversary date override successful")
+                ships = response.json()
+                self.log(f"   ✅ Retrieved {len(ships)} ships for data consistency check")
                 
-                # Check the response
-                anniversary_date = result.get('anniversary_date')
-                if anniversary_date:
-                    returned_day = anniversary_date.get('day')
-                    returned_month = anniversary_date.get('month')
-                    manual_override = anniversary_date.get('manual_override')
-                    
-                    self.log(f"   📊 Override Results:")
-                    self.log(f"      Day: {returned_day}")
-                    self.log(f"      Month: {returned_month}")
-                    self.log(f"      Manual Override: {manual_override}")
-                    
-                    # Verify override worked correctly
-                    if returned_day == 15 and returned_month == 8 and manual_override:
-                        self.log("   ✅ Manual override capabilities working correctly")
-                        self.anniversary_tests['anniversary_date_override_tested'] = True
-                        self.anniversary_tests['validation_day_month_tested'] = True
-                    else:
-                        self.log("   ❌ Manual override not working as expected")
+                # Check each ship for data integrity
+                intact_ships = 0
+                ships_with_new_fields = 0
+                ships_with_legacy_fields = 0
                 
-                self.test_results['anniversary_override'] = result
+                for ship in ships:
+                    ship_name = ship.get('name', 'Unknown')
+                    
+                    # Check core fields are intact
+                    core_fields = ['id', 'name', 'imo', 'flag', 'company']
+                    core_intact = all(ship.get(field) is not None for field in core_fields if field != 'imo')  # IMO can be None
+                    
+                    if core_intact:
+                        intact_ships += 1
+                    
+                    # Check for new fields
+                    if ship.get('special_survey_cycle') is not None:
+                        ships_with_new_fields += 1
+                    
+                    # Check for legacy fields
+                    if ship.get('legacy_dry_dock_cycle') is not None or ship.get('legacy_anniversary_date') is not None:
+                        ships_with_legacy_fields += 1
+                    
+                    # Log details for SUNSHINE 01
+                    if ship.get('name') == self.test_ship_name:
+                        self.log(f"   📊 {self.test_ship_name} Data Integrity:")
+                        self.log(f"      Core fields intact: {core_intact}")
+                        self.log(f"      Has special_survey_cycle: {ship.get('special_survey_cycle') is not None}")
+                        self.log(f"      Has legacy fields: {ship.get('legacy_dry_dock_cycle') is not None}")
+                        
+                        # Verify specific 3-column layout fields
+                        column_1_fields = ['imo', 'ship_owner', 'deadweight']
+                        column_2_fields = ['built_year', 'last_docking', 'dry_dock_cycle']
+                        column_3_fields = ['anniversary_date', 'last_special_survey', 'special_survey_cycle']
+                        
+                        for field in column_1_fields + column_2_fields + column_3_fields:
+                            value = ship.get(field)
+                            self.log(f"         {field}: {'✅' if value is not None else '⚠️'} {value}")
+                
+                self.log(f"   📊 Data Consistency Results:")
+                self.log(f"      Ships with intact core data: {intact_ships}/{len(ships)}")
+                self.log(f"      Ships with new special_survey_cycle field: {ships_with_new_fields}/{len(ships)}")
+                self.log(f"      Ships with legacy fields: {ships_with_legacy_fields}/{len(ships)}")
+                
+                # Verify data consistency
+                if intact_ships == len(ships):
+                    self.log("   ✅ All existing ship data remains intact")
+                    self.layout_tests['data_consistency_verified'] = True
+                else:
+                    self.log(f"   ⚠️ Some ships have data integrity issues: {len(ships) - intact_ships} affected")
+                
+                # Verify backward compatibility
+                if ships_with_legacy_fields > 0:
+                    self.log("   ✅ Backward compatibility maintained - legacy fields preserved")
+                    self.layout_tests['backward_compatibility_verified'] = True
+                else:
+                    self.log("   ⚠️ No legacy fields found - may indicate migration issues")
+                
+                self.test_results['data_consistency'] = {
+                    'total_ships': len(ships),
+                    'intact_ships': intact_ships,
+                    'ships_with_new_fields': ships_with_new_fields,
+                    'ships_with_legacy_fields': ships_with_legacy_fields
+                }
+                
                 return True
             else:
-                self.log(f"   ❌ Anniversary date override failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:200]}")
+                self.log(f"   ❌ Data consistency check failed: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Anniversary date override test error: {str(e)}", "ERROR")
+            self.log(f"❌ Data consistency test error: {str(e)}", "ERROR")
             return False
     
     def test_ship_creation_enhanced_fields(self):
