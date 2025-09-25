@@ -2174,13 +2174,22 @@ const HomePage = () => {
   const formatDryDockCycle = (dryDockCycle) => {
     if (!dryDockCycle) return '-';
     
-    // Handle enhanced dry dock cycle format
+    // Handle enhanced dry dock cycle format with dd/MM/yyyy format
     if (dryDockCycle.from_date && dryDockCycle.to_date) {
       try {
         const fromDate = new Date(dryDockCycle.from_date);
         const toDate = new Date(dryDockCycle.to_date);
-        const fromStr = fromDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-        const toStr = toDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        
+        // Format as dd/MM/yyyy
+        const formatDate = (date) => {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+        
+        const fromStr = formatDate(fromDate);
+        const toStr = formatDate(toDate);
         
         let cycleStr = `${fromStr} - ${toStr}`;
         if (dryDockCycle.intermediate_docking_required) {
