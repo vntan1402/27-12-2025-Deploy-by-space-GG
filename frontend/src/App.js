@@ -2693,6 +2693,18 @@ const HomePage = () => {
                                   {getSortIcon('next_survey')}
                                 </div>
                               </th>
+                              
+                              {/* Next Survey Type Column */}
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
+                                onClick={() => handleCertificateSort('next_survey_type')}
+                                style={{overflow: 'hidden'}}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Loại khảo sát' : 'Survey Type'}</span>
+                                  {getSortIcon('next_survey_type')}
+                                </div>
+                              </th>
                               <th 
                                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100 min-w-[120px] resize-handle"
                                 onClick={() => handleCertificateSort('issued_by')}
