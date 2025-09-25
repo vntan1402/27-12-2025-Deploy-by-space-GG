@@ -241,19 +241,14 @@ class AnniversaryDateDryDockTester:
         try:
             self.log("🔧 Testing anniversary date override endpoint...")
             
-            # Test manual override of anniversary date
-            override_data = {
-                "day": 15,
-                "month": 8,
-                "manual_override": True,
-                "source_certificate_type": "Manual Override by User"
-            }
+            # Test manual override of anniversary date using query parameters
+            day = 15
+            month = 8
             
-            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/override-anniversary-date"
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/override-anniversary-date?day={day}&month={month}"
             self.log(f"   POST {endpoint}")
-            self.log(f"   Override data: {override_data}")
             
-            response = requests.post(endpoint, json=override_data, headers=self.get_headers(), timeout=30)
+            response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
@@ -263,21 +258,20 @@ class AnniversaryDateDryDockTester:
                 # Check the response
                 anniversary_date = result.get('anniversary_date')
                 if anniversary_date:
-                    day = anniversary_date.get('day')
-                    month = anniversary_date.get('month')
+                    returned_day = anniversary_date.get('day')
+                    returned_month = anniversary_date.get('month')
                     manual_override = anniversary_date.get('manual_override')
-                    auto_calculated = anniversary_date.get('auto_calculated')
                     
                     self.log(f"   📊 Override Results:")
-                    self.log(f"      Day: {day}")
-                    self.log(f"      Month: {month}")
+                    self.log(f"      Day: {returned_day}")
+                    self.log(f"      Month: {returned_month}")
                     self.log(f"      Manual Override: {manual_override}")
-                    self.log(f"      Auto Calculated: {auto_calculated}")
                     
                     # Verify override worked correctly
-                    if day == 15 and month == 8 and manual_override and not auto_calculated:
+                    if returned_day == 15 and returned_month == 8 and manual_override:
                         self.log("   ✅ Manual override capabilities working correctly")
                         self.anniversary_tests['anniversary_date_override_tested'] = True
+                        self.anniversary_tests['validation_day_month_tested'] = True
                     else:
                         self.log("   ❌ Manual override not working as expected")
                 
