@@ -619,6 +619,53 @@ def validate_certificate_type(cert_type: str) -> str:
     else:
         return "Other"
 
+def extract_latest_endorsement_date(text_content: str) -> str:
+    """
+    Extract the latest/most recent endorsement date from certificate text content.
+    Handles multiple endorsement dates and returns the most recent one.
+    """
+    import re
+    from datetime import datetime
+    
+    # Common endorsement patterns and keywords
+    endorsement_keywords = [
+        r"last\s+endorsed?\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"endorsed?\s+on\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"annual\s+survey\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"intermediate\s+survey\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"survey\s+date\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"endorsement\s+date\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"last\s+survey\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"renewal\s+date\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+        r"verification\s+audit\s*:?\s*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+    ]
+    
+    found_dates = []
+    
+    try:
+        # Search for all potential endorsement dates
+        for pattern in endorsement_keywords:
+            matches = re.finditer(pattern, text_content, re.IGNORECASE | re.MULTILINE)
+            for match in matches:
+                date_str = match.group(1)
+                try:
+                    # Try to parse the date
+                    parsed_date = parse_date_string(date_str)
+                    if parsed_date:
+                        found_dates.append(parsed_date)
+                except:
+                    continue
+        
+        # If we found multiple dates, return the most recent one
+        if found_dates:
+            latest_date = max(found_dates)
+            return latest_date.strftime('%Y-%m-%d')
+    
+    except Exception as e:
+        logger.warning(f"Error extracting endorsement dates: {e}")
+    
+    return None
+
 def calculate_certificate_status(valid_date: datetime, cert_type: str = None) -> str:
     """Calculate certificate status based on maritime regulations and grace periods"""
     if not valid_date:
