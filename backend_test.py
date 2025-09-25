@@ -19,7 +19,7 @@ import base64
 # Configuration - Use external URL from frontend/.env
 BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
-class AnniversaryDateDryDockTester:
+class ThreeColumnLayoutTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -27,23 +27,30 @@ class AnniversaryDateDryDockTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for anniversary date and dry dock cycle enhancements
-        self.anniversary_tests = {
+        # Test tracking for 3-column layout changes and special survey cycle field
+        self.layout_tests = {
             'authentication_successful': False,
-            'ship_retrieval_enhanced_data_tested': False,
-            'anniversary_date_calculation_tested': False,
-            'anniversary_date_override_tested': False,
-            'ship_creation_enhanced_fields_tested': False,
-            'ship_update_enhanced_fields_tested': False,
-            'backward_compatibility_tested': False,
-            'lloyd_standards_compliance_verified': False,
-            'validation_day_month_tested': False,
-            'sunshine_01_ship_tested': False
+            'ship_retrieval_with_new_fields_tested': False,
+            'special_survey_cycle_field_verified': False,
+            'sunshine_01_ship_data_verified': False,
+            'three_column_fields_present': False,
+            'ship_update_with_special_survey_tested': False,
+            'data_consistency_verified': False,
+            'backward_compatibility_verified': False,
+            'special_survey_cycle_model_working': False,
+            'dry_dock_cycle_format_verified': False
         }
         
         # Test ship ID for SUNSHINE 01 as specified in review request
         self.test_ship_id = "e21c71a2-9543-4f92-990c-72f54292fde8"
         self.test_ship_name = "SUNSHINE 01"
+        
+        # 3-column layout field mapping as per review request
+        self.column_fields = {
+            'column_1': ['imo', 'ship_owner', 'deadweight'],
+            'column_2': ['built_year', 'last_docking', 'dry_dock_cycle'],
+            'column_3': ['anniversary_date', 'last_special_survey', 'special_survey_cycle']
+        }
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
