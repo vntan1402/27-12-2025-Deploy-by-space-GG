@@ -1197,17 +1197,26 @@ const HomePage = () => {
         }
       }
       
-      // Show summary toast
-      if (openedCount > 0) {
-        toast.success(
-          language === 'vi' 
-            ? `Đã mở ${openedCount} file${errorCount > 0 ? `, ${errorCount} file lỗi` : ''}`
-            : `Opened ${openedCount} file${openedCount > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}`
-        );
-      }
-      if (errorCount > 0 && openedCount === 0) {
-        toast.error(language === 'vi' ? 'Không thể mở files' : 'Cannot open files');
-      }
+      // Show initial toast about delayed opening
+      toast.info(
+        language === 'vi' 
+          ? `Đang mở ${certificatesToOpen.length} files với độ trễ 1 giây giữa mỗi file...`
+          : `Opening ${certificatesToOpen.length} files with 1 second delay between each file...`
+      );
+      
+      // Show summary toast after all operations complete
+      setTimeout(() => {
+        if (openedCount > 0) {
+          toast.success(
+            language === 'vi' 
+              ? `Đã cố gắng mở ${openedCount} file${errorCount > 0 ? `, ${errorCount} file lỗi` : ''}`
+              : `Attempted to open ${openedCount} file${openedCount > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}`
+          );
+        }
+        if (errorCount > 0 && openedCount === 0) {
+          toast.error(language === 'vi' ? 'Không thể mở files' : 'Cannot open files');
+        }
+      }, certificatesToOpen.length * 1000 + 500); // Wait for all files + extra 500ms
       
       handleCloseContextMenu();
     } catch (error) {
