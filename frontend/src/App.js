@@ -2209,6 +2209,44 @@ const HomePage = () => {
     return '-';
   };
   
+  
+  const formatSpecialSurveyCycle = (specialSurveyCycle) => {
+    if (!specialSurveyCycle) return '-';
+    
+    // Handle enhanced special survey cycle format with dd/MM/yyyy format
+    if (specialSurveyCycle.from_date && specialSurveyCycle.to_date) {
+      try {
+        const fromDate = new Date(specialSurveyCycle.from_date);
+        const toDate = new Date(specialSurveyCycle.to_date);
+        
+        // Format as dd/MM/yyyy
+        const formatDate = (date) => {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+        
+        const fromStr = formatDate(fromDate);
+        const toStr = formatDate(toDate);
+        
+        let cycleStr = `${fromStr} - ${toStr}`;
+        if (specialSurveyCycle.intermediate_required) {
+          cycleStr += ' (Int. required)';
+        }
+        return cycleStr;
+      } catch {
+        return '-';
+      }
+    }
+    
+    // Handle legacy months format  
+    if (typeof specialSurveyCycle === 'number') {
+      return `${specialSurveyCycle} ${language === 'vi' ? 'tháng' : 'months'}`;
+    }
+    
+    return '-';
+  };
   // Anniversary date management functions
   const handleRecalculateAnniversaryDate = async (shipId) => {
     if (!shipId) return;
