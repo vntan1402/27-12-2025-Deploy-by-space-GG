@@ -2191,11 +2191,7 @@ const HomePage = () => {
         const fromStr = formatDate(fromDate);
         const toStr = formatDate(toDate);
         
-        let cycleStr = `${fromStr} - ${toStr}`;
-        if (dryDockCycle.intermediate_docking_required) {
-          cycleStr += ' (Int. required)';
-        }
-        return cycleStr;
+        return `${fromStr} - ${toStr}`;
       } catch {
         return '-';
       }
