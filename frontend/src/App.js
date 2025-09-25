@@ -1115,9 +1115,11 @@ const HomePage = () => {
       return; // Don't show context menu for unauthorized users
     }
     
-    // If certificate is not selected, select it first
+    // If certificate is not selected, add it to current selection (don't clear others)
     if (!selectedCertificates.has(certificate.id)) {
-      setSelectedCertificates(new Set([certificate.id]));
+      const newSelected = new Set(selectedCertificates);
+      newSelected.add(certificate.id);
+      setSelectedCertificates(newSelected);
     }
     
     setContextMenu({
