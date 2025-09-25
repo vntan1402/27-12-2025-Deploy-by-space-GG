@@ -1207,9 +1207,9 @@ const HomePage = () => {
       setCertificates(response.data);
       
       // Pre-fetch certificate links for faster multi-copy functionality
-      if (response.data && response.data.length > 0) {
+      if (response.data && response.data.length > 0 && shipId) {
         // Don't await this to avoid blocking UI
-        preFetchCertificateLinks(response.data).catch(error => {
+        preFetchCertificateLinks(response.data, shipId).catch(error => {
           console.warn('Pre-fetch links failed:', error);
         });
       }
