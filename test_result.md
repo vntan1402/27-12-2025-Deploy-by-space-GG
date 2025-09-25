@@ -1162,6 +1162,18 @@
   test_all: false
   test_priority: "high_first"
 
+  - task: "Multi-Select Open Functionality in Certificate List"
+    implemented: true
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL MULTI-SELECT OPEN FUNCTIONALITY ISSUES IDENTIFIED - Comprehensive testing of multi-select Open functionality in Certificate List completed with mixed results. REVIEW REQUEST REQUIREMENTS PARTIALLY SATISFIED: ✅ AUTHENTICATION: Login with admin1/123456 successful, user properly authenticated with admin role and AMCSC company assignment. ✅ NAVIGATION: Successfully navigated to Document Portfolio → Selected SUNSHINE 01 ship → Accessed Certificates section with 29 certificates (27 displayed after filtering). ✅ CONTEXT MENU FUNCTIONALITY: Context menu appears correctly on right-click with proper options (Open, Copy Link, Edit, Delete) using selector 'div[style*=\"position: fixed\"]'. ✅ BASIC OPEN FUNCTIONALITY: Open option is clickable and does open files in new tabs (confirmed 2 total pages after clicking Open). ❌ CRITICAL ISSUES IDENTIFIED: (1) **DYNAMIC CONTEXT MENU TEXT NOT WORKING**: Context menu always shows static 'Open' text regardless of selection count. Expected behavior: 'Open X files' for multiple selections, 'Open' for single selection - this dynamic text update is NOT implemented. (2) **CHECKBOX SELECTION LOGIC ISSUES**: Multi-select checkbox functionality has problems - test showed 'Total selected: 0 certificates' despite attempting to select multiple certificates, indicating checkbox selection logic may not be working correctly. (3) **MISSING SELECTION COUNT FEEDBACK**: No visual indication of how many certificates are selected, making it unclear to users what will happen when they click Open. (4) **NO WARNING DIALOG FOR MANY FILES**: No confirmation dialog appears when attempting to open many files simultaneously, which could overwhelm the browser. ✅ EDGE CASES TESTED: Context menu appears with no explicit selection (shows 'Open' option), basic right-click functionality works consistently. ROOT CAUSE ANALYSIS: The basic context menu and Open functionality exists, but the **multi-select specific features are not properly implemented**: dynamic text updates based on selection count, proper checkbox selection tracking, and user feedback for bulk operations. USER IMPACT: Users can access context menu and open files, but the multi-select experience is confusing - they cannot tell how many files are selected or what will happen when clicking Open. The feature appears to work but lacks the expected multi-select user experience enhancements. PRIORITY: HIGH - Core multi-select functionality is missing key user experience features that make bulk file operations unclear and potentially problematic."
+
   - task: "Marine Certificate Classification with PMDS Certificate"
     implemented: true
     working: true
