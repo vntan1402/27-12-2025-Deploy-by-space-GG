@@ -692,7 +692,8 @@ const HomePage = () => {
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
     certificateType: 'all',
-    status: 'all'
+    status: 'all',
+    search: '' // Add search field
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   
