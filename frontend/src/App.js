@@ -1287,7 +1287,10 @@ const HomePage = () => {
           const data = await response.json();
           
           if (data.view_url) {
-            copiedLinks.push(`${cert.cert_name || cert.cert_abbreviation || 'Certificate'}: ${data.view_url}`);
+            // Format: "Certificate Name (Certificate Abbreviation): URL"
+            const certName = cert.cert_name || 'Certificate';
+            const certAbbr = cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A';
+            copiedLinks.push(`${certName} (${certAbbr}): ${data.view_url}`);
           } else {
             errorCount++;
           }
