@@ -177,6 +177,7 @@ class ShipUpdate(BaseModel):
     last_docking: Optional[datetime] = None
     last_special_survey: Optional[datetime] = None
     dry_dock_cycle: Optional[DryDockCycle] = None
+    special_survey_cycle: Optional[SpecialSurveyCycle] = None
     anniversary_date: Optional[AnniversaryDate] = None
     ship_owner: Optional[str] = None
     company: Optional[str] = None
