@@ -1160,6 +1160,14 @@ const HomePage = () => {
       const response = await axios.get(`${API}/ships/${shipId}/certificates`);
       console.log('Certificates fetched successfully:', response.data.length, 'certificates');
       setCertificates(response.data);
+      
+      // Pre-fetch certificate links for faster multi-copy functionality
+      if (response.data && response.data.length > 0) {
+        // Don't await this to avoid blocking UI
+        preFetchCertificateLinks(response.data).catch(error => {
+          console.warn('Pre-fetch links failed:', error);
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch certificates:', error);
       setCertificates([]);
