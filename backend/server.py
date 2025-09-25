@@ -1564,6 +1564,9 @@ async def update_ship(ship_id: str, ship_data: ShipUpdate, current_user: UserRes
         # Prepare update data
         update_data = ship_data.dict(exclude_unset=True)
         
+        # Handle enhanced anniversary date and dry dock cycle processing
+        await process_enhanced_ship_fields(update_data, is_new_ship=False, ship_id=ship_id)
+        
         if update_data:  # Only update if there's data to update
             await mongo_db.update("ships", {"id": ship_id}, update_data)
         
