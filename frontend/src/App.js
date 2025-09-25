@@ -3835,6 +3835,64 @@ const HomePage = () => {
                         : 'Manual entry or auto-calculate from Full Term Class/Statutory certificates'}
                     </p>
                   </div>
+                  
+                  {/* Enhanced Special Survey Cycle */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Chu kỳ Special Survey' : 'Special Survey Cycle'}
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">From Date</label>
+                        <input
+                          type="date"
+                          value={editingShipData.special_survey_cycle?.from_date || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            special_survey_cycle: {
+                              ...prev.special_survey_cycle,
+                              from_date: e.target.value,
+                              intermediate_required: false
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">To Date</label>
+                        <input
+                          type="date"
+                          value={editingShipData.special_survey_cycle?.to_date || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            special_survey_cycle: {
+                              ...prev.special_survey_cycle,
+                              to_date: e.target.value,
+                              intermediate_required: false
+                            }
+                          }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <label className="flex items-center text-sm text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={editingShipData.special_survey_cycle?.intermediate_required !== false}
+                          onChange={(e) => setEditingShipData(prev => ({ 
+                            ...prev, 
+                            special_survey_cycle: {
+                              ...prev.special_survey_cycle,
+                              intermediate_required: e.target.checked
+                            }
+                          }))}
+                          className="mr-2"
+                        />
+                        Intermediate surveys required within cycle
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Company (Read-only) */}
