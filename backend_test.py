@@ -726,101 +726,102 @@ class ThreeColumnLayoutTester:
         
         return True
     
-    def provide_final_anniversary_analysis(self):
-        """Provide final analysis of the anniversary date and dry dock cycle testing"""
+    def provide_final_layout_analysis(self):
+        """Provide final analysis of the 3-column layout changes testing"""
         try:
-            self.log("🎯 ANNIVERSARY DATE AND DRY DOCK CYCLE TESTING - RESULTS")
+            self.log("🎯 3-COLUMN LAYOUT CHANGES TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.anniversary_tests.items():
+            for test_name, passed in self.layout_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ LAYOUT TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ LAYOUT TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
-            success_rate = len(passed_tests) / len(self.anniversary_tests) * 100
-            self.log(f"\n📊 ANNIVERSARY TESTING SUCCESS RATE: {success_rate:.1f}%")
+            success_rate = len(passed_tests) / len(self.layout_tests) * 100
+            self.log(f"\n📊 3-COLUMN LAYOUT TESTING SUCCESS RATE: {success_rate:.1f}%")
             
             # Detailed results
             self.log(f"\n🔍 DETAILED RESULTS:")
             
-            # SUNSHINE 01 ship data
+            # SUNSHINE 01 ship data analysis
             sunshine_ship = self.test_results.get('sunshine_ship_data', {})
             if sunshine_ship:
-                self.log(f"   🚢 SUNSHINE 01 Ship Analysis:")
-                self.log(f"      Ship ID: {sunshine_ship.get('id')}")
-                self.log(f"      Anniversary Date: {sunshine_ship.get('anniversary_date')}")
-                self.log(f"      Dry Dock Cycle: {sunshine_ship.get('dry_dock_cycle')}")
+                self.log(f"   🚢 SUNSHINE 01 Ship Analysis (ID: {self.test_ship_id}):")
+                
+                # Column 1 fields
+                self.log(f"      Column 1 Fields:")
+                self.log(f"         IMO: {sunshine_ship.get('imo', 'N/A')}")
+                self.log(f"         Ship Owner: {sunshine_ship.get('ship_owner', 'N/A')}")
+                self.log(f"         Deadweight: {sunshine_ship.get('deadweight', 'N/A')}")
+                
+                # Column 2 fields
+                self.log(f"      Column 2 Fields:")
+                self.log(f"         Built Year: {sunshine_ship.get('built_year', 'N/A')}")
+                self.log(f"         Last Docking: {sunshine_ship.get('last_docking', 'N/A')}")
+                dry_dock = sunshine_ship.get('dry_dock_cycle', 'N/A')
+                self.log(f"         Dry Dock Cycle: {'Present' if dry_dock != 'N/A' else 'N/A'}")
+                
+                # Column 3 fields
+                self.log(f"      Column 3 Fields:")
+                anniversary = sunshine_ship.get('anniversary_date', 'N/A')
+                self.log(f"         Anniversary Date: {'Present' if anniversary != 'N/A' else 'N/A'}")
+                self.log(f"         Last Special Survey: {sunshine_ship.get('last_special_survey', 'N/A')}")
+                special_survey = sunshine_ship.get('special_survey_cycle', 'N/A')
+                self.log(f"         Special Survey Cycle: {'Present' if special_survey != 'N/A' else 'N/A'}")
             
-            # Test results analysis
-            anniversary_calc = self.test_results.get('anniversary_calculation', {})
-            anniversary_override = self.test_results.get('anniversary_override', {})
-            ship_creation = self.test_results.get('ship_creation', {})
-            ship_update = self.test_results.get('ship_update', {})
-            backward_compat = self.test_results.get('backward_compatibility', {})
-            
-            self.log(f"   📅 Anniversary Date Calculation:")
-            calc_result = anniversary_calc.get('anniversary_date')
-            if calc_result:
-                self.log(f"      Day/Month: {calc_result.get('day')}/{calc_result.get('month')}")
-                self.log(f"      Auto Calculated: {calc_result.get('auto_calculated')}")
-                self.log(f"      Source: {calc_result.get('source_certificate_type')}")
+            # Special Survey Cycle Model Analysis
+            special_survey_update = self.test_results.get('special_survey_update', {})
+            self.log(f"   🔍 Special Survey Cycle Model:")
+            if special_survey_update.get('special_survey_cycle'):
+                cycle_data = special_survey_update['special_survey_cycle']
                 self.log(f"      Status: ✅ Working")
-            else:
-                self.log(f"      Status: ❌ Not Working or No Certificates")
-            
-            self.log(f"   🔧 Anniversary Date Override:")
-            override_result = anniversary_override.get('anniversary_date')
-            if override_result:
-                self.log(f"      Day/Month: {override_result.get('day')}/{override_result.get('month')}")
-                self.log(f"      Manual Override: {override_result.get('manual_override')}")
-                self.log(f"      Status: ✅ Working")
+                self.log(f"      From Date: {cycle_data.get('from_date', 'N/A')}")
+                self.log(f"      To Date: {cycle_data.get('to_date', 'N/A')}")
+                self.log(f"      Intermediate Required: {cycle_data.get('intermediate_required', 'N/A')}")
+                self.log(f"      Cycle Type: {cycle_data.get('cycle_type', 'N/A')}")
             else:
                 self.log(f"      Status: ❌ Not Working")
             
-            self.log(f"   🆕 Ship Creation with Enhanced Fields:")
-            if ship_creation.get('anniversary_date') and ship_creation.get('dry_dock_cycle'):
-                self.log(f"      Status: ✅ Working")
-                self.log(f"      Enhanced fields created successfully")
+            # Data Consistency Analysis
+            data_consistency = self.test_results.get('data_consistency', {})
+            self.log(f"   🔍 Data Consistency:")
+            if data_consistency:
+                total = data_consistency.get('total_ships', 0)
+                intact = data_consistency.get('intact_ships', 0)
+                new_fields = data_consistency.get('ships_with_new_fields', 0)
+                legacy_fields = data_consistency.get('ships_with_legacy_fields', 0)
+                
+                self.log(f"      Total Ships: {total}")
+                self.log(f"      Ships with Intact Data: {intact}/{total}")
+                self.log(f"      Ships with New Fields: {new_fields}/{total}")
+                self.log(f"      Ships with Legacy Fields: {legacy_fields}/{total}")
+                self.log(f"      Status: {'✅ Good' if intact == total else '⚠️ Issues Detected'}")
             else:
-                self.log(f"      Status: ❌ Not Working")
+                self.log(f"      Status: ❌ Not Tested")
             
-            self.log(f"   🔄 Ship Update with Enhanced Fields:")
-            if ship_update.get('anniversary_date') and ship_update.get('dry_dock_cycle'):
-                self.log(f"      Status: ✅ Working")
-                self.log(f"      Enhanced fields updated successfully")
-            else:
-                self.log(f"      Status: ❌ Not Working")
-            
-            self.log(f"   🔄 Backward Compatibility:")
-            if backward_compat.get('legacy_dry_dock_cycle') and backward_compat.get('legacy_anniversary_date'):
-                self.log(f"      Status: ✅ Working")
-                self.log(f"      Legacy fields preserved and enhanced fields created")
-            else:
-                self.log(f"      Status: ❌ Not Working")
-            
-            # Lloyd's standards compliance
-            if self.anniversary_tests.get('lloyd_standards_compliance_verified'):
-                self.log(f"   ⚓ Lloyd's Maritime Standards Compliance: ✅ Verified")
-                self.log(f"      - 5-year dry dock cycle periods")
-                self.log(f"      - Intermediate docking requirements")
-                self.log(f"      - Anniversary date from Full Term certificates")
-            else:
-                self.log(f"   ⚓ Lloyd's Maritime Standards Compliance: ❌ Not Verified")
+            # Key Review Request Requirements
+            self.log(f"\n📋 REVIEW REQUEST REQUIREMENTS:")
+            self.log(f"   1. Backend Model Verification: {'✅' if self.layout_tests.get('ship_retrieval_with_new_fields_tested') else '❌'}")
+            self.log(f"   2. SUNSHINE 01 Ship Data: {'✅' if self.layout_tests.get('sunshine_01_ship_data_verified') else '❌'}")
+            self.log(f"   3. Special Survey Cycle Field: {'✅' if self.layout_tests.get('special_survey_cycle_field_verified') else '❌'}")
+            self.log(f"   4. Data Consistency: {'✅' if self.layout_tests.get('data_consistency_verified') else '❌'}")
+            self.log(f"   5. 3-Column Layout Fields: {'✅' if self.layout_tests.get('three_column_fields_present') else '❌'}")
+            self.log(f"   6. Dry Dock Cycle Format: {'✅' if self.layout_tests.get('dry_dock_cycle_format_verified') else '❌'}")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
