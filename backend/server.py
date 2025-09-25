@@ -168,10 +168,14 @@ class ShipUpdate(BaseModel):
     built_year: Optional[int] = None
     last_docking: Optional[datetime] = None
     last_special_survey: Optional[datetime] = None
-    dry_dock_cycle: Optional[int] = None
-    anniversary_date: Optional[datetime] = None
+    dry_dock_cycle: Optional[DryDockCycle] = None
+    anniversary_date: Optional[AnniversaryDate] = None
     ship_owner: Optional[str] = None
     company: Optional[str] = None
+    
+    # Legacy fields for backward compatibility  
+    legacy_dry_dock_cycle: Optional[int] = None
+    legacy_anniversary_date: Optional[datetime] = None
 
 class ShipResponse(ShipBase):
     id: str
