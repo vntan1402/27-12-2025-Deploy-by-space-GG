@@ -3914,7 +3914,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             'id': str(uuid.uuid4()),
             'ship_id': ship_id,
             'cert_name': analysis_result.get('cert_name', 'Unknown Certificate'),
-            'cert_type': analysis_result.get('cert_type', 'Full Term'),
+            'cert_type': validate_certificate_type(analysis_result.get('cert_type', 'Full Term')),
             'cert_no': analysis_result.get('cert_no', 'Unknown'),
             'issue_date': parse_date_string(analysis_result.get('issue_date')),
             'valid_date': parse_date_string(analysis_result.get('valid_date')),
