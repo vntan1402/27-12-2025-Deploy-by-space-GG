@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Enhanced Last Endorse Processing for Maritime Certificates
-Review Request: Test enhanced Last Endorse processing for maritime certificates with AI prompt enhancement and fallback pattern matching
+FOCUS: Anniversary Date and Dry Dock Cycle Enhancements
+Review Request: Test anniversary date and dry dock cycle enhancements with Lloyd's maritime standards compliance
 """
 
 import requests
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import traceback
 import subprocess
@@ -19,7 +19,7 @@ import base64
 # Configuration - Use external URL from frontend/.env
 BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
-class EnhancedEndorsementTester:
+class AnniversaryDateDryDockTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
