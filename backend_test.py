@@ -148,6 +148,26 @@ class AnniversaryDateDryDockTester:
                     
                     self.test_results['sunshine_ship_data'] = sunshine_ship
                     self.anniversary_tests['sunshine_01_ship_tested'] = True
+                    
+                    # Verify Lloyd's standards compliance from existing data
+                    if anniversary_date and dry_dock_cycle:
+                        # Check anniversary date compliance
+                        if (anniversary_date.get('auto_calculated') and 
+                            anniversary_date.get('source_certificate_type') and
+                            'certificate' in anniversary_date.get('source_certificate_type', '').lower()):
+                            self.log("   ✅ Lloyd's standards: Anniversary date auto-calculated from certificates")
+                        
+                        # Check dry dock cycle compliance
+                        if (dry_dock_cycle.get('intermediate_docking_required') and
+                            dry_dock_cycle.get('from_date') and dry_dock_cycle.get('to_date')):
+                            from datetime import datetime
+                            from_date = datetime.fromisoformat(dry_dock_cycle['from_date'])
+                            to_date = datetime.fromisoformat(dry_dock_cycle['to_date'])
+                            years_diff = (to_date - from_date).days / 365.25
+                            if 4.5 <= years_diff <= 5.5:  # Allow some tolerance
+                                self.log(f"   ✅ Lloyd's standards: 5-year dry dock cycle verified ({years_diff:.1f} years)")
+                                self.log("   ✅ Lloyd's standards: Intermediate docking requirement present")
+                                self.anniversary_tests['lloyd_standards_compliance_verified'] = True
                 else:
                     self.log(f"   ⚠️ {self.test_ship_name} ship not found")
                 
