@@ -1448,6 +1448,11 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         # Validate cert_type if provided
         if 'cert_type' in update_data and update_data['cert_type']:
             update_data['cert_type'] = validate_certificate_type(update_data['cert_type'])
+            
+            # Business rule: Only Full Term certificates can have Last Endorse
+            if update_data['cert_type'] != 'Full Term' and 'last_endorse' in update_data:
+                logger.info(f"Clearing last_endorse for {update_data['cert_type']} certificate (only Full Term certificates have endorsements)")
+                update_data['last_endorse'] = None
         
         # Handle certificate abbreviation mapping if it was manually edited
         if 'cert_abbreviation' in update_data and update_data['cert_abbreviation']:
