@@ -828,29 +828,29 @@ class ThreeColumnLayoutTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Anniversary Date and Dry Dock Cycle Testing")
-    print("🔍 Focus: Anniversary date and dry dock cycle enhancements with Lloyd's standards")
-    print("📋 Review Request: Test enhanced anniversary date auto-calculation and dry dock cycle handling")
-    print("🎯 Testing: Authentication, ship retrieval, anniversary calculation, override, CRUD operations")
+    print("🎯 Ship Management System - 3-Column Layout Changes Testing")
+    print("🔍 Focus: Updated 3-column layout changes for Detailed Ship Information")
+    print("📋 Review Request: Test special_survey_cycle field and 3-column layout field structure")
+    print("🎯 Testing: Authentication, ship retrieval, special survey cycle model, data consistency")
     print("=" * 100)
     
-    tester = AnniversaryDateDryDockTester()
-    success = tester.run_comprehensive_anniversary_tests()
+    tester = ThreeColumnLayoutTester()
+    success = tester.run_comprehensive_layout_tests()
     
     print("=" * 100)
-    print("🔍 ANNIVERSARY DATE AND DRY DOCK CYCLE TESTING RESULTS:")
+    print("🔍 3-COLUMN LAYOUT CHANGES TESTING RESULTS:")
     print("=" * 70)
     
     # Print test summary
-    passed_tests = [f for f, passed in tester.anniversary_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.anniversary_tests.items() if not passed]
+    passed_tests = [f for f, passed in tester.layout_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.layout_tests.items() if not passed]
     
-    print(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ LAYOUT TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ LAYOUT TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
@@ -862,86 +862,87 @@ def main():
     print(f"   🚢 SUNSHINE 01 Ship Analysis:")
     if sunshine_ship:
         print(f"      Ship found: ✅")
-        print(f"      Enhanced fields present: {'✅' if sunshine_ship.get('anniversary_date') or sunshine_ship.get('dry_dock_cycle') else '❌'}")
+        print(f"      Special Survey Cycle field: {'✅' if sunshine_ship.get('special_survey_cycle') is not None else '❌'}")
+        print(f"      3-column fields present: {'✅' if tester.layout_tests.get('three_column_fields_present') else '❌'}")
     else:
         print(f"      Ship found: ❌")
     
     # Test results
-    anniversary_calc = tester.test_results.get('anniversary_calculation', {})
-    anniversary_override = tester.test_results.get('anniversary_override', {})
-    ship_creation = tester.test_results.get('ship_creation', {})
-    ship_update = tester.test_results.get('ship_update', {})
-    backward_compat = tester.test_results.get('backward_compatibility', {})
+    special_survey_update = tester.test_results.get('special_survey_update', {})
+    data_consistency = tester.test_results.get('data_consistency', {})
     
-    print(f"   📅 Anniversary Date Calculation: {'✅ Working' if anniversary_calc.get('anniversary_date') else '❌ Not Working'}")
-    print(f"   🔧 Anniversary Date Override: {'✅ Working' if anniversary_override.get('anniversary_date') else '❌ Not Working'}")
-    print(f"   🆕 Ship Creation Enhanced Fields: {'✅ Working' if ship_creation.get('anniversary_date') else '❌ Not Working'}")
-    print(f"   🔄 Ship Update Enhanced Fields: {'✅ Working' if ship_update.get('anniversary_date') else '❌ Not Working'}")
-    print(f"   🔄 Backward Compatibility: {'✅ Working' if backward_compat.get('legacy_dry_dock_cycle') else '❌ Not Working'}")
-    
-    # Lloyd's standards compliance
-    lloyd_compliance = tester.anniversary_tests.get('lloyd_standards_compliance_verified', False)
-    print(f"   ⚓ Lloyd's Maritime Standards: {'✅ Compliant' if lloyd_compliance else '❌ Not Verified'}")
+    print(f"   🔍 Special Survey Cycle Model: {'✅ Working' if special_survey_update.get('special_survey_cycle') else '❌ Not Working'}")
+    print(f"   🔍 Data Consistency: {'✅ Verified' if tester.layout_tests.get('data_consistency_verified') else '❌ Issues Found'}")
+    print(f"   🔄 Backward Compatibility: {'✅ Maintained' if tester.layout_tests.get('backward_compatibility_verified') else '❌ Issues Found'}")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.anniversary_tests) * 100
+    success_rate = len(passed_tests) / len(tester.layout_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 Anniversary date and dry dock cycle testing completed!")
+        print("🎉 3-column layout changes testing completed!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ Anniversary date and dry dock cycle testing completed with issues!")
+        print("❌ 3-column layout changes testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
     # Provide recommendations based on findings
     print("\n💡 NEXT STEPS FOR MAIN AGENT:")
     
-    # Anniversary date calculation
-    if anniversary_calc.get('anniversary_date'):
-        print("   ✅ Anniversary date calculation is working correctly")
-    else:
-        print("   ❌ Anniversary date calculation needs improvement")
-        print("   1. Check certificate analysis for Full Term certificates")
-        print("   2. Verify Lloyd's standards implementation")
-        print("   3. Test with ships that have suitable certificates")
+    # Review Request Requirements
+    print("   📋 REVIEW REQUEST REQUIREMENTS STATUS:")
     
-    # Anniversary date override
-    if anniversary_override.get('anniversary_date'):
-        print("   ✅ Anniversary date override is working correctly")
+    # Backend Model Verification
+    if tester.layout_tests.get('ship_retrieval_with_new_fields_tested'):
+        print("   ✅ Backend Model Verification: Ship retrieval with new field structure working")
     else:
-        print("   ❌ Anniversary date override needs improvement")
-        print("   1. Check override endpoint implementation")
-        print("   2. Verify manual override capabilities")
-        print("   3. Test validation of day/month values")
+        print("   ❌ Backend Model Verification: Ship retrieval needs improvement")
+        print("      1. Check ship model includes special_survey_cycle field")
+        print("      2. Verify all 3-column layout fields are accessible via API")
     
-    # Ship CRUD operations
-    if ship_creation.get('anniversary_date') and ship_update.get('anniversary_date'):
-        print("   ✅ Ship CRUD with enhanced fields is working correctly")
+    # SUNSHINE 01 Ship Data
+    if tester.layout_tests.get('sunshine_01_ship_data_verified'):
+        print("   ✅ SUNSHINE 01 Ship Data: Successfully retrieved and verified")
     else:
-        print("   ❌ Ship CRUD with enhanced fields needs improvement")
-        print("   1. Check enhanced field processing in ship creation/update")
-        print("   2. Verify dry dock cycle 5-year period handling")
-        print("   3. Test intermediate docking requirements")
+        print("   ❌ SUNSHINE 01 Ship Data: Issues with ship data retrieval")
+        print("      1. Verify ship exists with correct ID")
+        print("      2. Check all required fields are present")
     
-    # Backward compatibility
-    if backward_compat.get('legacy_dry_dock_cycle'):
-        print("   ✅ Backward compatibility is working correctly")
+    # Special Survey Cycle Field
+    if tester.layout_tests.get('special_survey_cycle_field_verified'):
+        print("   ✅ Special Survey Cycle Field: Present and working in ship models")
     else:
-        print("   ❌ Backward compatibility needs improvement")
-        print("   1. Check legacy field preservation")
-        print("   2. Verify enhanced field creation from legacy data")
-        print("   3. Test migration of existing ship data")
+        print("   ❌ Special Survey Cycle Field: Missing or not working")
+        print("      1. Add special_survey_cycle field to ShipBase model")
+        print("      2. Verify SpecialSurveyCycle model is properly implemented")
+        print("      3. Test ship update with special_survey_cycle data")
     
-    # Lloyd's standards
-    if lloyd_compliance:
-        print("   ✅ Lloyd's maritime standards compliance verified")
+    # Data Consistency
+    if tester.layout_tests.get('data_consistency_verified'):
+        print("   ✅ Data Consistency: All existing ship data remains intact")
     else:
-        print("   ❌ Lloyd's maritime standards compliance needs verification")
-        print("   1. Check 5-year dry dock cycle implementation")
-        print("   2. Verify intermediate docking requirements")
-        print("   3. Test anniversary date calculation from certificates")
+        print("   ❌ Data Consistency: Issues with existing data integrity")
+        print("      1. Check for data corruption after model changes")
+        print("      2. Verify backward compatibility with existing ships")
+        print("      3. Test migration of legacy data")
+    
+    # 3-Column Layout Fields
+    if tester.layout_tests.get('three_column_fields_present'):
+        print("   ✅ 3-Column Layout Fields: All required fields present")
+    else:
+        print("   ❌ 3-Column Layout Fields: Some fields missing")
+        print("      1. Verify Column 1: IMO, Ship Owner, Deadweight")
+        print("      2. Verify Column 2: Built Year, Last Docking, Dry Dock Cycle")
+        print("      3. Verify Column 3: Anniversary Date, Last Special Survey, Special Survey Cycle")
+    
+    # Dry Dock Cycle Format
+    if tester.layout_tests.get('dry_dock_cycle_format_verified'):
+        print("   ✅ Dry Dock Cycle Format: dd/MM/yyyy format working correctly")
+    else:
+        print("   ❌ Dry Dock Cycle Format: Format issues detected")
+        print("      1. Check dry dock cycle date formatting")
+        print("      2. Verify dd/MM/yyyy format is maintained")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
