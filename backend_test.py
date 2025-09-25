@@ -636,9 +636,9 @@ class ThreeColumnLayoutTester:
             return False
     
     def capture_backend_logs(self):
-        """Capture backend logs for anniversary processing analysis"""
+        """Capture backend logs for 3-column layout and special survey cycle analysis"""
         try:
-            self.log("📝 Capturing backend logs for anniversary processing...")
+            self.log("📝 Capturing backend logs for 3-column layout processing...")
             
             # Try to capture backend logs
             try:
@@ -652,26 +652,26 @@ class ThreeColumnLayoutTester:
                 if result.returncode == 0 and result.stdout:
                     log_lines = result.stdout.strip().split('\n')
                     
-                    # Look for anniversary-related log messages
-                    anniversary_logs = []
+                    # Look for layout and special survey related log messages
+                    layout_logs = []
                     for line in log_lines:
-                        if any(keyword in line.lower() for keyword in ['anniversary', 'dry dock', 'lloyd', 'certificate', 'enhanced']):
-                            anniversary_logs.append(line)
+                        if any(keyword in line.lower() for keyword in ['special_survey', 'survey_cycle', 'ship', 'enhanced', 'model']):
+                            layout_logs.append(line)
                     
-                    if anniversary_logs:
-                        self.log("   ✅ Anniversary-related backend logs found:")
-                        for log_line in anniversary_logs[-5:]:  # Show last 5 relevant logs
+                    if layout_logs:
+                        self.log("   ✅ Layout-related backend logs found:")
+                        for log_line in layout_logs[-5:]:  # Show last 5 relevant logs
                             self.log(f"      {log_line}")
                         
-                        # Check for specific anniversary processing messages
-                        processing_logs = [line for line in anniversary_logs if 'anniversary' in line.lower()]
+                        # Check for specific special survey processing messages
+                        processing_logs = [line for line in layout_logs if 'special_survey' in line.lower()]
                         if processing_logs:
-                            self.log("   ✅ Anniversary processing logs detected")
+                            self.log("   ✅ Special survey processing logs detected")
                     else:
-                        self.log("   ⚠️ No anniversary-specific logs found in recent backend output")
+                        self.log("   ⚠️ No layout-specific logs found in recent backend output")
                     
                     self.test_results['backend_logs'] = log_lines
-                    self.test_results['anniversary_logs'] = anniversary_logs
+                    self.test_results['layout_logs'] = layout_logs
                 else:
                     self.log("   ⚠️ No backend logs accessible")
                     
