@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Google Drive Multi-File Opening API Testing
-Review Request: Debug multi-file opening API calls and responses - Test Google Drive view URL API with SUNSHINE 01 certificates
+FOCUS: Enhanced Last Endorse Processing for Maritime Certificates
+Review Request: Test enhanced Last Endorse processing for maritime certificates with AI prompt enhancement and fallback pattern matching
 """
 
 import requests
@@ -13,6 +13,8 @@ from datetime import datetime
 import time
 import traceback
 import subprocess
+import tempfile
+import base64
 
 # Configuration - Use external URL from frontend/.env
 BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
