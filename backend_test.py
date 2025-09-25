@@ -233,71 +233,65 @@ class ThreeColumnLayoutTester:
             self.log(f"❌ Ship retrieval test error: {str(e)}", "ERROR")
             return False
     
-    def test_anniversary_date_calculation(self):
-        """Test the new anniversary date calculation endpoint"""
+    def test_special_survey_cycle_model(self):
+        """Test the SpecialSurveyCycle model functionality"""
         try:
-            self.log("📅 Testing anniversary date calculation endpoint...")
+            self.log("🔍 Testing SpecialSurveyCycle model functionality...")
             
-            # Test the calculate anniversary date endpoint
-            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-anniversary-date"
-            self.log(f"   POST {endpoint}")
+            # Test ship update with special_survey_cycle data
+            special_survey_data = {
+                "from_date": "2024-01-15T00:00:00Z",
+                "to_date": "2025-01-15T00:00:00Z",
+                "intermediate_required": True,
+                "cycle_type": "Annual"
+            }
             
-            response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
+            update_data = {
+                "special_survey_cycle": special_survey_data,
+                "last_special_survey": "2024-01-15T00:00:00Z"
+            }
+            
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
+            self.log(f"   PUT {endpoint}")
+            self.log(f"   Update data: {update_data}")
+            
+            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
-                self.log("   ✅ Anniversary date calculation successful")
+                self.log("   ✅ Ship update with special_survey_cycle successful")
                 
-                # Log the full response for debugging
-                self.log(f"   📊 Full Response: {result}")
+                # Check if special_survey_cycle was saved correctly
+                updated_special_survey = result.get('special_survey_cycle')
+                updated_last_special_survey = result.get('last_special_survey')
                 
-                # Check the response structure
-                success = result.get('success')
-                message = result.get('message')
-                anniversary_date = result.get('anniversary_date')
+                self.log(f"   📊 Updated Special Survey Cycle: {updated_special_survey}")
+                self.log(f"   📊 Updated Last Special Survey: {updated_last_special_survey}")
                 
-                self.log(f"   📊 Anniversary Date Calculation Results:")
-                self.log(f"      Success: {success}")
-                self.log(f"      Message: {message}")
-                self.log(f"      Anniversary Date: {anniversary_date}")
-                
-                if success and anniversary_date:
-                    day = anniversary_date.get('day')
-                    month = anniversary_date.get('month')
-                    source = anniversary_date.get('source')
-                    display = anniversary_date.get('display')
+                if updated_special_survey:
+                    # Verify structure
+                    expected_fields = ['from_date', 'to_date', 'intermediate_required', 'cycle_type']
+                    all_fields_present = all(field in updated_special_survey for field in expected_fields)
                     
-                    self.log(f"      Day: {day}")
-                    self.log(f"      Month: {month}")
-                    self.log(f"      Source: {source}")
-                    self.log(f"      Display: {display}")
-                    
-                    # Validate day/month values (1-31 for day, 1-12 for month)
-                    if day and month:
-                        if 1 <= day <= 31 and 1 <= month <= 12:
-                            self.log("   ✅ Day/month validation passed")
-                            self.anniversary_tests['validation_day_month_tested'] = True
-                        else:
-                            self.log(f"   ❌ Day/month validation failed: day={day}, month={month}")
-                    
-                    # Check Lloyd's standards compliance
-                    if source and 'certificate' in source.lower():
-                        self.log("   ✅ Lloyd's standards compliance: Auto-calculated from certificates")
-                        self.anniversary_tests['lloyd_standards_compliance_verified'] = True
-                    
-                    self.anniversary_tests['anniversary_date_calculation_tested'] = True
-                elif success == False:
-                    self.log(f"   ⚠️ No anniversary date calculated: {message}")
-                    # This is still a successful test of the endpoint, just no suitable certificates
-                    self.anniversary_tests['anniversary_date_calculation_tested'] = True
+                    if all_fields_present:
+                        self.log("   ✅ SpecialSurveyCycle model structure verified")
+                        self.log(f"      From Date: {updated_special_survey.get('from_date')}")
+                        self.log(f"      To Date: {updated_special_survey.get('to_date')}")
+                        self.log(f"      Intermediate Required: {updated_special_survey.get('intermediate_required')}")
+                        self.log(f"      Cycle Type: {updated_special_survey.get('cycle_type')}")
+                        
+                        self.layout_tests['special_survey_cycle_model_working'] = True
+                        self.layout_tests['ship_update_with_special_survey_tested'] = True
+                    else:
+                        self.log("   ❌ SpecialSurveyCycle model structure incomplete")
                 else:
-                    self.log("   ⚠️ Unexpected response format")
+                    self.log("   ❌ Special Survey Cycle not saved in update")
                 
-                self.test_results['anniversary_calculation'] = result
+                self.test_results['special_survey_update'] = result
                 return True
             else:
-                self.log(f"   ❌ Anniversary date calculation failed: {response.status_code}")
+                self.log(f"   ❌ Ship update with special_survey_cycle failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -306,7 +300,7 @@ class ThreeColumnLayoutTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Anniversary date calculation test error: {str(e)}", "ERROR")
+            self.log(f"❌ SpecialSurveyCycle model test error: {str(e)}", "ERROR")
             return False
     
     def test_anniversary_date_override(self):
