@@ -2805,6 +2805,18 @@ const HomePage = () => {
                                     }
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      cert.next_survey_type === 'Annual' ? 'bg-blue-100 text-blue-800' :
+                                      cert.next_survey_type === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                                      cert.next_survey_type === 'Renewal' ? 'bg-green-100 text-green-800' :
+                                      cert.next_survey_type === 'Special' ? 'bg-purple-100 text-purple-800' :
+                                      cert.next_survey_type === 'Dry Dock' ? 'bg-orange-100 text-orange-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {cert.next_survey_type || (language === 'vi' ? 'Chưa xác định' : 'Not specified')}
+                                    </span>
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" title={cert.issued_by}>
                                     {cert.issued_by_abbreviation || (cert.issued_by ? 
                                       (cert.issued_by.length > 8 ? `${cert.issued_by.substring(0, 8)}...` : cert.issued_by)
