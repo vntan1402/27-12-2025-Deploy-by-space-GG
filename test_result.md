@@ -1156,7 +1156,7 @@
 
 ## test_plan:
   current_focus:
-    - "Marine Certificate Classification with PMDS Certificate"
+    - "Multi-Select Open Functionality in Certificate List"
   stuck_tasks:
     - 
   test_all: false
