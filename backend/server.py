@@ -270,6 +270,7 @@ class CertificateBase(BaseModel):
     valid_date: Optional[datetime] = None  # Make optional to handle missing dates
     last_endorse: Optional[datetime] = None
     next_survey: Optional[datetime] = None
+    next_survey_type: Optional[str] = None  # Annual, Intermediate, Special, Renewal, etc.
     issued_by: Optional[str] = None  # Classification Society, Flag, Insurance, etc.
     category: str = "certificates"
     sensitivity_level: str = "public"
