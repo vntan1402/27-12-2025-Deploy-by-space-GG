@@ -1166,7 +1166,7 @@
 
 ## test_plan:
   current_focus:
-    - "Multi-Select Open Functionality in Certificate List - TESTED"
+    - "Multi-Select Open Functionality in Certificate List - COMPLETED"
   stuck_tasks:
     - 
   test_all: false
