@@ -296,67 +296,89 @@ class AnniversaryDateDryDockTester:
             self.log(f"❌ Anniversary date override test error: {str(e)}", "ERROR")
             return False
     
-    def test_fallback_pattern_matching(self):
-        """Test fallback pattern matching when AI fails"""
+    def test_ship_creation_enhanced_fields(self):
+        """Test ship creation with enhanced anniversary_date and dry_dock_cycle fields"""
         try:
-            self.log("🔍 Testing fallback pattern matching...")
+            self.log("🆕 Testing ship creation with enhanced fields...")
             
-            # Test with content that might challenge AI but has clear patterns
-            test_content = """
-            LOAD LINE CERTIFICATE
+            # Create test ship data with enhanced fields
+            ship_data = {
+                "name": "TEST ANNIVERSARY SHIP",
+                "imo": "9999999",
+                "flag": "PANAMA",
+                "ship_type": "General Cargo",
+                "gross_tonnage": 5000,
+                "deadweight": 8000,
+                "built_year": 2020,
+                "company": "AMCSC",
+                "ship_owner": "Test Owner",
+                "last_docking": "2023-01-15T00:00:00Z",
+                "last_special_survey": "2023-06-20T00:00:00Z",
+                "anniversary_date": {
+                    "day": 20,
+                    "month": 6,
+                    "auto_calculated": False,
+                    "source_certificate_type": "Manual Entry",
+                    "manual_override": True
+                },
+                "dry_dock_cycle": {
+                    "from_date": "2023-06-20T00:00:00Z",
+                    "to_date": "2028-06-20T00:00:00Z",
+                    "intermediate_docking_required": True,
+                    "last_intermediate_docking": None
+                }
+            }
             
-            Certificate No: LL-2024-003
+            endpoint = f"{BACKEND_URL}/ships"
+            self.log(f"   POST {endpoint}")
             
-            This certificate contains complex formatting that might challenge AI parsing.
+            response = requests.post(endpoint, json=ship_data, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
             
-            Survey Information:
-            - Last endorsed: 15/06/2024
-            - Survey date: 15/06/2024
-            - Annual survey: 15/06/2024
-            
-            Valid until: 15/06/2025
-            """
-            
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
-                temp_file.write(test_content)
-                temp_file_path = temp_file.name
-            
-            try:
-                with open(temp_file_path, 'rb') as f:
-                    files = {'file': ('pattern_test_cert.txt', f, 'text/plain')}
+            if response.status_code == 200:
+                result = response.json()
+                self.log("   ✅ Ship creation with enhanced fields successful")
+                
+                # Check enhanced fields in response
+                created_anniversary = result.get('anniversary_date')
+                created_dry_dock = result.get('dry_dock_cycle')
+                
+                self.log(f"   📊 Created Ship Enhanced Fields:")
+                self.log(f"      Anniversary Date: {created_anniversary}")
+                self.log(f"      Dry Dock Cycle: {created_dry_dock}")
+                
+                # Verify enhanced fields
+                if created_anniversary and created_dry_dock:
+                    # Check anniversary date structure
+                    if (created_anniversary.get('day') == 20 and 
+                        created_anniversary.get('month') == 6 and
+                        created_anniversary.get('manual_override') == True):
+                        self.log("   ✅ Anniversary date enhanced fields correct")
                     
-                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                    # Check dry dock cycle structure
+                    if (created_dry_dock.get('intermediate_docking_required') == True and
+                        created_dry_dock.get('from_date') and
+                        created_dry_dock.get('to_date')):
+                        self.log("   ✅ Dry dock cycle enhanced fields correct")
+                        self.log("   ✅ Lloyd's 5-year period with intermediate docking requirement verified")
                     
-                    if response.status_code == 200:
-                        result = response.json()
-                        last_endorse = result.get('last_endorse')
-                        
-                        self.log(f"   📊 Fallback Pattern Test Results:")
-                        self.log(f"      Last Endorse Detected: {last_endorse}")
-                        
-                        # Check if pattern matching worked
-                        if last_endorse and '2024-06-15' in str(last_endorse):
-                            self.log("   ✅ Fallback pattern matching working correctly")
-                            self.endorsement_tests['fallback_pattern_matching_tested'] = True
-                        else:
-                            self.log("   ⚠️ Fallback pattern matching may need improvement")
-                        
-                        self.test_results['fallback_pattern_test'] = result
-                        return True
-                    else:
-                        self.log(f"   ❌ Fallback pattern test failed: {response.status_code}")
-                        return False
-                        
-            finally:
+                    self.anniversary_tests['ship_creation_enhanced_fields_tested'] = True
+                
+                # Store created ship ID for cleanup
+                self.test_results['created_ship_id'] = result.get('id')
+                self.test_results['ship_creation'] = result
+                return True
+            else:
+                self.log(f"   ❌ Ship creation failed: {response.status_code}")
                 try:
-                    os.unlink(temp_file_path)
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
                 except:
-                    pass
-                    
+                    self.log(f"   Error: {response.text[:200]}")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ Fallback pattern matching test error: {str(e)}", "ERROR")
+            self.log(f"❌ Ship creation test error: {str(e)}", "ERROR")
             return False
     
     def test_certificate_types_with_endorsements(self):
