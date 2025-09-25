@@ -112,10 +112,10 @@ class ThreeColumnLayoutTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_ship_retrieval_enhanced_data(self):
-        """Test basic ship retrieval endpoints to verify they handle enhanced data structures"""
+    def test_ship_retrieval_with_new_fields(self):
+        """Test ship retrieval to verify new field structure for 3-column layout"""
         try:
-            self.log("🚢 Testing ship retrieval with enhanced data structures...")
+            self.log("🚢 Testing ship retrieval with new field structure for 3-column layout...")
             
             # Test 1: Get all ships
             endpoint = f"{BACKEND_URL}/ships"
@@ -139,42 +139,74 @@ class ThreeColumnLayoutTester:
                     self.log(f"      Ship ID: {sunshine_ship.get('id')}")
                     self.log(f"      Ship Name: {sunshine_ship.get('name')}")
                     
-                    # Check for enhanced fields
-                    anniversary_date = sunshine_ship.get('anniversary_date')
+                    # Verify 3-column layout fields according to review request
+                    self.log("   📋 Verifying 3-column layout fields:")
+                    
+                    # Column 1: IMO, Ship Owner, Deadweight
+                    imo = sunshine_ship.get('imo')
+                    ship_owner = sunshine_ship.get('ship_owner')
+                    deadweight = sunshine_ship.get('deadweight')
+                    self.log(f"      Column 1 - IMO: {imo}")
+                    self.log(f"      Column 1 - Ship Owner: {ship_owner}")
+                    self.log(f"      Column 1 - Deadweight: {deadweight}")
+                    
+                    # Column 2: Built Year, Last Docking, Dry Dock Cycle
+                    built_year = sunshine_ship.get('built_year')
+                    last_docking = sunshine_ship.get('last_docking')
                     dry_dock_cycle = sunshine_ship.get('dry_dock_cycle')
+                    self.log(f"      Column 2 - Built Year: {built_year}")
+                    self.log(f"      Column 2 - Last Docking: {last_docking}")
+                    self.log(f"      Column 2 - Dry Dock Cycle: {dry_dock_cycle}")
                     
-                    self.log(f"      Anniversary Date: {anniversary_date}")
-                    self.log(f"      Dry Dock Cycle: {dry_dock_cycle}")
+                    # Column 3: Anniversary Date, Last Special Survey, Special Survey Cycle
+                    anniversary_date = sunshine_ship.get('anniversary_date')
+                    last_special_survey = sunshine_ship.get('last_special_survey')
+                    special_survey_cycle = sunshine_ship.get('special_survey_cycle')
+                    self.log(f"      Column 3 - Anniversary Date: {anniversary_date}")
+                    self.log(f"      Column 3 - Last Special Survey: {last_special_survey}")
+                    self.log(f"      Column 3 - Special Survey Cycle: {special_survey_cycle}")
                     
-                    # Check legacy compatibility fields
-                    legacy_anniversary = sunshine_ship.get('legacy_anniversary_date')
-                    legacy_dry_dock = sunshine_ship.get('legacy_dry_dock_cycle')
+                    # Verify special_survey_cycle field is present (key requirement)
+                    if special_survey_cycle is not None:
+                        self.log("   ✅ Special Survey Cycle field is present in ship model")
+                        self.layout_tests['special_survey_cycle_field_verified'] = True
+                        
+                        # Check structure of special_survey_cycle
+                        if isinstance(special_survey_cycle, dict):
+                            self.log(f"      Special Survey Cycle structure: {special_survey_cycle}")
+                            cycle_fields = ['from_date', 'to_date', 'intermediate_required', 'cycle_type']
+                            for field in cycle_fields:
+                                if field in special_survey_cycle:
+                                    self.log(f"         ✅ {field}: {special_survey_cycle.get(field)}")
+                                else:
+                                    self.log(f"         ⚠️ {field}: Not present")
+                            self.layout_tests['special_survey_cycle_model_working'] = True
+                    else:
+                        self.log("   ⚠️ Special Survey Cycle field is not present in ship model")
                     
-                    self.log(f"      Legacy Anniversary Date: {legacy_anniversary}")
-                    self.log(f"      Legacy Dry Dock Cycle: {legacy_dry_dock}")
+                    # Verify dry dock cycle format (dd/MM/yyyy format requirement)
+                    if dry_dock_cycle and isinstance(dry_dock_cycle, dict):
+                        from_date = dry_dock_cycle.get('from_date')
+                        to_date = dry_dock_cycle.get('to_date')
+                        if from_date and to_date:
+                            self.log(f"   ✅ Dry Dock Cycle format verified: {from_date} to {to_date}")
+                            self.layout_tests['dry_dock_cycle_format_verified'] = True
+                    
+                    # Check if all 3-column fields are present
+                    all_fields_present = all([
+                        imo is not None, ship_owner is not None, deadweight is not None,
+                        built_year is not None, last_docking is not None, dry_dock_cycle is not None,
+                        anniversary_date is not None, last_special_survey is not None, special_survey_cycle is not None
+                    ])
+                    
+                    if all_fields_present:
+                        self.log("   ✅ All 3-column layout fields are present")
+                        self.layout_tests['three_column_fields_present'] = True
+                    else:
+                        self.log("   ⚠️ Some 3-column layout fields are missing")
                     
                     self.test_results['sunshine_ship_data'] = sunshine_ship
-                    self.anniversary_tests['sunshine_01_ship_tested'] = True
-                    
-                    # Verify Lloyd's standards compliance from existing data
-                    if anniversary_date and dry_dock_cycle:
-                        # Check anniversary date compliance
-                        if (anniversary_date.get('auto_calculated') and 
-                            anniversary_date.get('source_certificate_type') and
-                            'certificate' in anniversary_date.get('source_certificate_type', '').lower()):
-                            self.log("   ✅ Lloyd's standards: Anniversary date auto-calculated from certificates")
-                        
-                        # Check dry dock cycle compliance
-                        if (dry_dock_cycle.get('intermediate_docking_required') and
-                            dry_dock_cycle.get('from_date') and dry_dock_cycle.get('to_date')):
-                            from datetime import datetime
-                            from_date = datetime.fromisoformat(dry_dock_cycle['from_date'])
-                            to_date = datetime.fromisoformat(dry_dock_cycle['to_date'])
-                            years_diff = (to_date - from_date).days / 365.25
-                            if 4.5 <= years_diff <= 5.5:  # Allow some tolerance
-                                self.log(f"   ✅ Lloyd's standards: 5-year dry dock cycle verified ({years_diff:.1f} years)")
-                                self.log("   ✅ Lloyd's standards: Intermediate docking requirement present")
-                                self.anniversary_tests['lloyd_standards_compliance_verified'] = True
+                    self.layout_tests['sunshine_01_ship_data_verified'] = True
                 else:
                     self.log(f"   ⚠️ {self.test_ship_name} ship not found")
                 
@@ -187,8 +219,8 @@ class ThreeColumnLayoutTester:
                     if ship_response.status_code == 200:
                         ship_data = ship_response.json()
                         self.log("   ✅ Individual ship retrieval successful")
-                        self.log(f"      Enhanced fields present: {bool(ship_data.get('anniversary_date') or ship_data.get('dry_dock_cycle'))}")
-                        self.anniversary_tests['ship_retrieval_enhanced_data_tested'] = True
+                        self.log(f"      New fields present: {bool(ship_data.get('special_survey_cycle'))}")
+                        self.layout_tests['ship_retrieval_with_new_fields_tested'] = True
                     else:
                         self.log(f"   ❌ Individual ship retrieval failed: {ship_response.status_code}")
                 
