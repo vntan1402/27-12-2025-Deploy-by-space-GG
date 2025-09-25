@@ -1268,7 +1268,7 @@ const HomePage = () => {
       });
       const data = await response.json();
       
-      if (data.success && data.view_url) {
+      if (data.view_url) {
         await navigator.clipboard.writeText(data.view_url);
         toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
       } else {
