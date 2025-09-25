@@ -4446,6 +4446,7 @@ async def analyze_with_google(file_content: bytes, filename: str, content_type: 
                     "cert_no": f"CERT_{filename.replace('.pdf', '').upper()}",
                     "issue_date": fallback_issue_date,
                     "valid_date": fallback_valid_date,
+                    "next_survey_type": None,  # Add next_survey_type field
                     "issued_by": "Maritime Authority (Filename-based classification)",
                     "ship_name": "Unknown Ship",
                     "confidence": 0.2,
