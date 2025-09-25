@@ -630,81 +630,101 @@ class AnniversaryDateDryDockTester:
         
         return True
     
-    def provide_final_endorsement_analysis(self):
-        """Provide final analysis of the enhanced endorsement processing testing"""
+    def provide_final_anniversary_analysis(self):
+        """Provide final analysis of the anniversary date and dry dock cycle testing"""
         try:
-            self.log("🎯 ENHANCED ENDORSEMENT PROCESSING TESTING - RESULTS")
+            self.log("🎯 ANNIVERSARY DATE AND DRY DOCK CYCLE TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.endorsement_tests.items():
+            for test_name, passed in self.anniversary_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ ENDORSEMENT TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ ENDORSEMENT TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
-            success_rate = len(passed_tests) / len(self.endorsement_tests) * 100
-            self.log(f"\n📊 ENDORSEMENT TESTING SUCCESS RATE: {success_rate:.1f}%")
+            success_rate = len(passed_tests) / len(self.anniversary_tests) * 100
+            self.log(f"\n📊 ANNIVERSARY TESTING SUCCESS RATE: {success_rate:.1f}%")
             
             # Detailed results
             self.log(f"\n🔍 DETAILED RESULTS:")
             
-            # PMDS certificates
-            pmds_certificates = self.test_results.get('pmds_certificates', [])
-            if pmds_certificates:
-                self.log(f"   📋 PMDS Certificates Found: {len(pmds_certificates)}")
-                for cert in pmds_certificates[:3]:  # Show first 3
-                    self.log(f"      - {cert.get('cert_name')} on {cert.get('ship_name')}")
+            # SUNSHINE 01 ship data
+            sunshine_ship = self.test_results.get('sunshine_ship_data', {})
+            if sunshine_ship:
+                self.log(f"   🚢 SUNSHINE 01 Ship Analysis:")
+                self.log(f"      Ship ID: {sunshine_ship.get('id')}")
+                self.log(f"      Anniversary Date: {sunshine_ship.get('anniversary_date')}")
+                self.log(f"      Dry Dock Cycle: {sunshine_ship.get('dry_dock_cycle')}")
             
             # Test results analysis
-            ai_test = self.test_results.get('ai_prompt_test', {})
-            multiple_test = self.test_results.get('multiple_endorsement_test', {})
-            fallback_test = self.test_results.get('fallback_pattern_test', {})
-            cert_type_tests = self.test_results.get('certificate_type_tests', [])
+            anniversary_calc = self.test_results.get('anniversary_calculation', {})
+            anniversary_override = self.test_results.get('anniversary_override', {})
+            ship_creation = self.test_results.get('ship_creation', {})
+            ship_update = self.test_results.get('ship_update', {})
+            backward_compat = self.test_results.get('backward_compatibility', {})
             
-            self.log(f"   🤖 AI Prompt Enhancement:")
-            self.log(f"      Last Endorse Detected: {ai_test.get('last_endorse', 'None')}")
-            self.log(f"      Status: {'✅ Working' if ai_test.get('last_endorse') else '❌ Not Working'}")
+            self.log(f"   📅 Anniversary Date Calculation:")
+            calc_result = anniversary_calc.get('anniversary_date')
+            if calc_result:
+                self.log(f"      Day/Month: {calc_result.get('day')}/{calc_result.get('month')}")
+                self.log(f"      Auto Calculated: {calc_result.get('auto_calculated')}")
+                self.log(f"      Source: {calc_result.get('source_certificate_type')}")
+                self.log(f"      Status: ✅ Working")
+            else:
+                self.log(f"      Status: ❌ Not Working or No Certificates")
             
-            self.log(f"   📅 Multiple Endorsement Handling:")
-            self.log(f"      Last Endorse Detected: {multiple_test.get('last_endorse', 'None')}")
-            self.log(f"      Status: {'✅ Working' if multiple_test.get('last_endorse') else '❌ Not Working'}")
+            self.log(f"   🔧 Anniversary Date Override:")
+            override_result = anniversary_override.get('anniversary_date')
+            if override_result:
+                self.log(f"      Day/Month: {override_result.get('day')}/{override_result.get('month')}")
+                self.log(f"      Manual Override: {override_result.get('manual_override')}")
+                self.log(f"      Status: ✅ Working")
+            else:
+                self.log(f"      Status: ❌ Not Working")
             
-            self.log(f"   🔍 Fallback Pattern Matching:")
-            self.log(f"      Last Endorse Detected: {fallback_test.get('last_endorse', 'None')}")
-            self.log(f"      Status: {'✅ Working' if fallback_test.get('last_endorse') else '❌ Not Working'}")
+            self.log(f"   🆕 Ship Creation with Enhanced Fields:")
+            if ship_creation.get('anniversary_date') and ship_creation.get('dry_dock_cycle'):
+                self.log(f"      Status: ✅ Working")
+                self.log(f"      Enhanced fields created successfully")
+            else:
+                self.log(f"      Status: ❌ Not Working")
             
-            if cert_type_tests:
-                successful_cert_tests = sum(1 for test in cert_type_tests if test['success'])
-                total_cert_tests = len(cert_type_tests)
-                self.log(f"   📋 Certificate Types Testing:")
-                self.log(f"      Success Rate: {successful_cert_tests}/{total_cert_tests}")
-                for test in cert_type_tests:
-                    status = '✅' if test['success'] else '❌'
-                    self.log(f"      {status} {test['cert_type']}: {test.get('last_endorse', 'None')}")
+            self.log(f"   🔄 Ship Update with Enhanced Fields:")
+            if ship_update.get('anniversary_date') and ship_update.get('dry_dock_cycle'):
+                self.log(f"      Status: ✅ Working")
+                self.log(f"      Enhanced fields updated successfully")
+            else:
+                self.log(f"      Status: ❌ Not Working")
             
-            # Backend logs analysis
-            endorsement_logs = self.test_results.get('endorsement_logs', [])
-            if endorsement_logs:
-                self.log(f"   📝 Backend Logs Analysis:")
-                self.log(f"      Endorsement-related logs found: {len(endorsement_logs)}")
-                pattern_matching_logs = [line for line in endorsement_logs if 'pattern matching' in line.lower()]
-                if pattern_matching_logs:
-                    self.log(f"      Pattern matching logs: {len(pattern_matching_logs)} found")
-                    self.log("      ✅ Fallback mechanism appears to be working")
+            self.log(f"   🔄 Backward Compatibility:")
+            if backward_compat.get('legacy_dry_dock_cycle') and backward_compat.get('legacy_anniversary_date'):
+                self.log(f"      Status: ✅ Working")
+                self.log(f"      Legacy fields preserved and enhanced fields created")
+            else:
+                self.log(f"      Status: ❌ Not Working")
+            
+            # Lloyd's standards compliance
+            if self.anniversary_tests.get('lloyd_standards_compliance_verified'):
+                self.log(f"   ⚓ Lloyd's Maritime Standards Compliance: ✅ Verified")
+                self.log(f"      - 5-year dry dock cycle periods")
+                self.log(f"      - Intermediate docking requirements")
+                self.log(f"      - Anniversary date from Full Term certificates")
+            else:
+                self.log(f"   ⚓ Lloyd's Maritime Standards Compliance: ❌ Not Verified")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
