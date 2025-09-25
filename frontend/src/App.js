@@ -2782,7 +2782,16 @@ const HomePage = () => {
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{cert.cert_no}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.last_endorse)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    {cert.cert_type === 'Full Term' 
+                                      ? formatDate(cert.last_endorse) 
+                                      : (
+                                        <span className="text-gray-400 text-sm italic">
+                                          {language === 'vi' ? 'Không áp dụng' : 'N/A'}
+                                        </span>
+                                      )
+                                    }
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
                                   <td className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" title={cert.issued_by}>
                                     {cert.issued_by_abbreviation || (cert.issued_by ? 
