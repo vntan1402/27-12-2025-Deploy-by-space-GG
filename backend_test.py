@@ -454,46 +454,73 @@ class AnniversaryDateDryDockTester:
             self.log(f"❌ Ship update test error: {str(e)}", "ERROR")
             return False
     
-    def verify_enhanced_processing_results(self):
-        """Verify that enhanced processing results are working correctly"""
+    def test_backward_compatibility(self):
+        """Test backward compatibility with legacy data formats"""
         try:
-            self.log("✅ Verifying enhanced processing results...")
+            self.log("🔄 Testing backward compatibility with legacy data formats...")
             
-            # Check all previous test results
-            ai_test = self.test_results.get('ai_prompt_test', {})
-            multiple_test = self.test_results.get('multiple_endorsement_test', {})
-            fallback_test = self.test_results.get('fallback_pattern_test', {})
-            cert_type_tests = self.test_results.get('certificate_type_tests', [])
-            
-            verification_results = {
-                'ai_enhancement_working': bool(ai_test.get('last_endorse')),
-                'multiple_handling_working': bool(multiple_test.get('last_endorse')),
-                'fallback_working': bool(fallback_test.get('last_endorse')),
-                'cert_types_working': any(test['success'] for test in cert_type_tests)
+            # Test creating ship with legacy fields
+            legacy_ship_data = {
+                "name": "LEGACY TEST SHIP",
+                "imo": "8888888",
+                "flag": "LIBERIA",
+                "ship_type": "Bulk Carrier",
+                "gross_tonnage": 15000,
+                "deadweight": 25000,
+                "built_year": 2015,
+                "company": "AMCSC",
+                "ship_owner": "Legacy Owner",
+                "legacy_dry_dock_cycle": 60,  # Legacy months field
+                "legacy_anniversary_date": "2024-03-15T00:00:00Z"  # Legacy datetime field
             }
             
-            self.log(f"   📊 Enhanced Processing Verification:")
-            self.log(f"      AI Enhancement: {'✅' if verification_results['ai_enhancement_working'] else '❌'}")
-            self.log(f"      Multiple Handling: {'✅' if verification_results['multiple_handling_working'] else '❌'}")
-            self.log(f"      Fallback Pattern: {'✅' if verification_results['fallback_working'] else '❌'}")
-            self.log(f"      Certificate Types: {'✅' if verification_results['cert_types_working'] else '❌'}")
+            endpoint = f"{BACKEND_URL}/ships"
+            self.log(f"   POST {endpoint} (with legacy fields)")
             
-            # Overall verification
-            working_features = sum(verification_results.values())
-            total_features = len(verification_results)
+            response = requests.post(endpoint, json=legacy_ship_data, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
             
-            self.log(f"   📊 Overall Enhancement Status: {working_features}/{total_features} features working")
-            
-            if working_features >= 2:  # At least 50% working
-                self.endorsement_tests['enhanced_processing_results_verified'] = True
-                self.log("   ✅ Enhanced processing results verified successfully")
+            if response.status_code == 200:
+                result = response.json()
+                self.log("   ✅ Ship creation with legacy fields successful")
+                
+                # Check if legacy fields are preserved
+                legacy_dry_dock = result.get('legacy_dry_dock_cycle')
+                legacy_anniversary = result.get('legacy_anniversary_date')
+                
+                # Check if enhanced fields were created from legacy
+                enhanced_dry_dock = result.get('dry_dock_cycle')
+                enhanced_anniversary = result.get('anniversary_date')
+                
+                self.log(f"   📊 Backward Compatibility Results:")
+                self.log(f"      Legacy Dry Dock Cycle: {legacy_dry_dock}")
+                self.log(f"      Legacy Anniversary Date: {legacy_anniversary}")
+                self.log(f"      Enhanced Dry Dock Cycle: {enhanced_dry_dock}")
+                self.log(f"      Enhanced Anniversary Date: {enhanced_anniversary}")
+                
+                # Verify backward compatibility
+                if legacy_dry_dock == 60 and legacy_anniversary:
+                    self.log("   ✅ Legacy fields preserved correctly")
+                
+                if enhanced_dry_dock or enhanced_anniversary:
+                    self.log("   ✅ Enhanced fields created from legacy data")
+                    self.anniversary_tests['backward_compatibility_tested'] = True
+                
+                # Store created ship ID for cleanup
+                self.test_results['legacy_ship_id'] = result.get('id')
+                self.test_results['backward_compatibility'] = result
                 return True
             else:
-                self.log("   ⚠️ Enhanced processing results need improvement")
+                self.log(f"   ❌ Legacy ship creation failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Enhanced processing verification error: {str(e)}", "ERROR")
+            self.log(f"❌ Backward compatibility test error: {str(e)}", "ERROR")
             return False
     
     def capture_backend_logs(self):
