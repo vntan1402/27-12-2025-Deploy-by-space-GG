@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Multi Cert Upload Classification Discrepancy for MLC File
-Review Request: Debug Multi Cert Upload classification discrepancy for MLC file
+FOCUS: Certificate List Database Discrepancy Investigation
+Review Request: Investigate Certificate List database discrepancy - showing 13/15 certificates for SUNSHINE 01
 """
 
 import requests
