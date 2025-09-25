@@ -1085,20 +1085,59 @@ const HomePage = () => {
     }
   };
 
+  // Load cache from sessionStorage on component mount
+  useEffect(() => {
+    try {
+      const savedCache = sessionStorage.getItem('certificateLinksCache');
+      if (savedCache) {
+        setCertificateLinksCache(JSON.parse(savedCache));
+        console.log('✅ Loaded certificate links cache from sessionStorage');
+      }
+    } catch (error) {
+      console.warn('Failed to load cache from sessionStorage:', error);
+    }
+  }, []);
+
+  // Save cache to sessionStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (Object.keys(certificateLinksCache).length > 0) {
+        sessionStorage.setItem('certificateLinksCache', JSON.stringify(certificateLinksCache));
+      }
+    } catch (error) {
+      console.warn('Failed to save cache to sessionStorage:', error);
+    }
+  }, [certificateLinksCache]);
+
+  // Get cached links for current ship
+  const getCurrentShipLinks = () => {
+    return selectedShip?.id ? (certificateLinksCache[selectedShip.id] || {}) : {};
+  };
+
   // Pre-fetch certificate links for faster multi-copy functionality
-  const preFetchCertificateLinks = async (certificateList) => {
-    if (!certificateList || certificateList.length === 0) return;
+  const preFetchCertificateLinks = async (certificateList, shipId) => {
+    if (!certificateList || certificateList.length === 0 || !shipId) return;
     
+    // Check if we already have cached links for this ship
+    const existingCache = certificateLinksCache[shipId] || {};
+    const uncachedCertificates = certificateList.filter(cert => !existingCache[cert.id]);
+    
+    if (uncachedCertificates.length === 0) {
+      console.log(`✅ All links already cached for ship ${shipId} (${certificateList.length} certificates)`);
+      return;
+    }
+    
+    console.log(`🔄 Pre-fetching ${uncachedCertificates.length}/${certificateList.length} links for ship ${shipId}`);
     setLinksFetching(true);
-    const linkCache = {};
+    const linkCache = { ...existingCache }; // Start with existing cache
     
     try {
       // Fetch links in parallel with rate limiting (5 concurrent requests)
       const batchSize = 5;
       const batches = [];
       
-      for (let i = 0; i < certificateList.length; i += batchSize) {
-        const batch = certificateList.slice(i, i + batchSize);
+      for (let i = 0; i < uncachedCertificates.length; i += batchSize) {
+        const batch = uncachedCertificates.slice(i, i + batchSize);
         batches.push(batch);
       }
       
@@ -1143,8 +1182,14 @@ const HomePage = () => {
         }
       }
       
-      setCertificateLinks(linkCache);
-      console.log(`✅ Pre-fetched links for ${Object.keys(linkCache).length}/${certificateList.length} certificates`);
+      // Update the cache for this specific ship
+      setCertificateLinksCache(prev => ({
+        ...prev,
+        [shipId]: linkCache
+      }));
+      
+      const newCachedCount = Object.keys(linkCache).length - Object.keys(existingCache).length;
+      console.log(`✅ Pre-fetched ${newCachedCount} new links for ship ${shipId}. Total cached: ${Object.keys(linkCache).length}/${certificateList.length}`);
       
     } catch (error) {
       console.error('Error pre-fetching certificate links:', error);
