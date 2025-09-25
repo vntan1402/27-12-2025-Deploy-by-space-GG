@@ -1130,15 +1130,13 @@ const HomePage = () => {
     });
   };
 
-  // Context menu actions
   const handleOpenCertificate = async (certificate) => {
     try {
       const response = await fetch(`${API}/gdrive/file/${certificate.google_drive_file_id}/view`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
-      
-      if (data.success && data.view_url) {
+      if (data.view_url) {
         window.open(data.view_url, '_blank');
       } else {
         toast.error(language === 'vi' ? 'Không thể mở file' : 'Cannot open file');
