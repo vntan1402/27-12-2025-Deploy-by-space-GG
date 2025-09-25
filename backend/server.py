@@ -129,6 +129,10 @@ class ShipBase(BaseModel):
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None
+    last_docking: Optional[datetime] = None  # Last dry docking date
+    last_special_survey: Optional[datetime] = None  # Last special survey date
+    dry_dock_cycle: Optional[int] = None  # Dry dock cycle in months (typically 60 months)
+    anniversary_date: Optional[datetime] = None  # Annual survey/certificate anniversary date
     ship_owner: Optional[str] = None
     company: str  # Company that owns/manages the ship
 
