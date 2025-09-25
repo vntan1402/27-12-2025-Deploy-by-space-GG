@@ -1147,6 +1147,67 @@ const HomePage = () => {
     setContextMenu({ show: false, x: 0, y: 0, certificate: null });
   };
 
+  const handleOpenSelectedCertificates = async () => {
+    try {
+      if (selectedCertificates.size === 0) return;
+      
+      // Warn if opening too many files
+      if (selectedCertificates.size > 10) {
+        const confirmed = window.confirm(
+          language === 'vi' 
+            ? `Bạn đang mở ${selectedCertificates.size} files. Điều này có thể làm chậm trình duyệt. Bạn có muốn tiếp tục?`
+            : `You are opening ${selectedCertificates.size} files. This may slow down your browser. Do you want to continue?`
+        );
+        if (!confirmed) return;
+      }
+
+      const allCertificates = getFilteredCertificates();
+      const certificatesToOpen = allCertificates.filter(cert => selectedCertificates.has(cert.id));
+      
+      let openedCount = 0;
+      let errorCount = 0;
+      
+      // Open files with small delays to prevent browser blocking
+      for (let i = 0; i < certificatesToOpen.length; i++) {
+        const cert = certificatesToOpen[i];
+        try {
+          const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          
+          if (data.success && data.view_url) {
+            // Small delay between opens to prevent popup blocking
+            setTimeout(() => {
+              window.open(data.view_url, '_blank');
+            }, i * 100); // 100ms delay between each open
+            openedCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          errorCount++;
+        }
+      }
+      
+      // Show summary toast
+      if (openedCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `Đã mở ${openedCount} file${errorCount > 0 ? `, ${errorCount} file lỗi` : ''}`
+            : `Opened ${openedCount} file${openedCount > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}`
+        );
+      }
+      if (errorCount > 0 && openedCount === 0) {
+        toast.error(language === 'vi' ? 'Không thể mở files' : 'Cannot open files');
+      }
+      
+      handleCloseContextMenu();
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Lỗi khi mở files' : 'Error opening files');
+    }
+  };
+
   const handleCopyLink = async (certificate) => {
     try {
       const response = await fetch(`${API}/gdrive/file/${certificate.google_drive_file_id}/view`, {
