@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Anniversary Date and Dry Dock Cycle Enhancements
-Review Request: Test anniversary date and dry dock cycle enhancements with Lloyd's maritime standards compliance
+FOCUS: 3-Column Layout Changes for Detailed Ship Information
+Review Request: Test the updated 3-column layout changes for Detailed Ship Information with special_survey_cycle field
 """
 
 import requests
