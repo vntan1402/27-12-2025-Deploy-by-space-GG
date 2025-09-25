@@ -518,9 +518,9 @@ class AnniversaryDateDryDockTester:
             return False
     
     def capture_backend_logs(self):
-        """Capture backend logs for endorsement processing analysis"""
+        """Capture backend logs for anniversary processing analysis"""
         try:
-            self.log("📝 Capturing backend logs for endorsement processing...")
+            self.log("📝 Capturing backend logs for anniversary processing...")
             
             # Try to capture backend logs
             try:
@@ -534,33 +534,32 @@ class AnniversaryDateDryDockTester:
                 if result.returncode == 0 and result.stdout:
                     log_lines = result.stdout.strip().split('\n')
                     
-                    # Look for endorsement-related log messages
-                    endorsement_logs = []
+                    # Look for anniversary-related log messages
+                    anniversary_logs = []
                     for line in log_lines:
-                        if any(keyword in line.lower() for keyword in ['endorse', 'pattern matching', 'survey', 'annual']):
-                            endorsement_logs.append(line)
+                        if any(keyword in line.lower() for keyword in ['anniversary', 'dry dock', 'lloyd', 'certificate', 'enhanced']):
+                            anniversary_logs.append(line)
                     
-                    if endorsement_logs:
-                        self.log("   ✅ Endorsement-related backend logs found:")
-                        for log_line in endorsement_logs[-5:]:  # Show last 5 relevant logs
+                    if anniversary_logs:
+                        self.log("   ✅ Anniversary-related backend logs found:")
+                        for log_line in anniversary_logs[-5:]:  # Show last 5 relevant logs
                             self.log(f"      {log_line}")
                         
-                        # Check for specific pattern matching messages
-                        pattern_matching_logs = [line for line in endorsement_logs if 'pattern matching' in line.lower()]
-                        if pattern_matching_logs:
-                            self.log("   ✅ Pattern matching logs detected - fallback mechanism working")
+                        # Check for specific anniversary processing messages
+                        processing_logs = [line for line in anniversary_logs if 'anniversary' in line.lower()]
+                        if processing_logs:
+                            self.log("   ✅ Anniversary processing logs detected")
                     else:
-                        self.log("   ⚠️ No endorsement-specific logs found in recent backend output")
+                        self.log("   ⚠️ No anniversary-specific logs found in recent backend output")
                     
                     self.test_results['backend_logs'] = log_lines
-                    self.test_results['endorsement_logs'] = endorsement_logs
+                    self.test_results['anniversary_logs'] = anniversary_logs
                 else:
                     self.log("   ⚠️ No backend logs accessible")
                     
             except Exception as e:
                 self.log(f"   ⚠️ Backend log capture error: {str(e)}")
             
-            self.endorsement_tests['backend_logs_captured'] = True
             return True
                 
         except Exception as e:
