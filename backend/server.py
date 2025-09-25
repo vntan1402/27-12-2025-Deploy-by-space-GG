@@ -583,6 +583,42 @@ def generate_organization_abbreviation(org_name: str) -> str:
     
     return abbreviation if abbreviation else org_name[:4].upper()
 
+def validate_certificate_type(cert_type: str) -> str:
+    """Validate and normalize certificate type to one of the 6 allowed types"""
+    if not cert_type:
+        return "Full Term"
+    
+    # Allowed certificate types (case insensitive)
+    allowed_types = {
+        "full term": "Full Term",
+        "interim": "Interim", 
+        "provisional": "Provisional",
+        "short term": "Short term",
+        "conditional": "Conditional",
+        "other": "Other"
+    }
+    
+    # Normalize input
+    normalized = cert_type.lower().strip()
+    
+    # Direct match
+    if normalized in allowed_types:
+        return allowed_types[normalized]
+    
+    # Partial match for common variations
+    if "full" in normalized or "term" in normalized:
+        return "Full Term"
+    elif "interim" in normalized or "temporary" in normalized:
+        return "Interim"
+    elif "provisional" in normalized:
+        return "Provisional"  
+    elif "short" in normalized:
+        return "Short term"
+    elif "conditional" in normalized:
+        return "Conditional"
+    else:
+        return "Other"
+
 def calculate_certificate_status(valid_date: datetime, cert_type: str = None) -> str:
     """Calculate certificate status based on maritime regulations and grace periods"""
     if not valid_date:
