@@ -236,73 +236,64 @@ class AnniversaryDateDryDockTester:
             self.log(f"❌ Anniversary date calculation test error: {str(e)}", "ERROR")
             return False
     
-    def test_multiple_endorsement_handling(self):
-        """Test handling of certificates with multiple endorsement dates"""
+    def test_anniversary_date_override(self):
+        """Test the anniversary date override endpoint"""
         try:
-            self.log("📅 Testing multiple endorsement date handling...")
+            self.log("🔧 Testing anniversary date override endpoint...")
             
-            # Test certificate with multiple survey dates
-            test_content = """
-            CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
+            # Test manual override of anniversary date
+            override_data = {
+                "day": 15,
+                "month": 8,
+                "manual_override": True,
+                "source_certificate_type": "Manual Override by User"
+            }
             
-            Certificate No: CSSC-2024-002
-            Ship Name: MULTI SURVEY VESSEL
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/override-anniversary-date"
+            self.log(f"   POST {endpoint}")
+            self.log(f"   Override data: {override_data}")
             
-            SURVEY HISTORY:
-            Initial Survey: 10/01/2020
-            Annual Survey: 15/01/2021
-            Intermediate Survey: 20/07/2021
-            Annual Survey: 18/01/2022
-            Intermediate Survey: 25/07/2022
-            Annual Survey: 22/01/2023
-            Intermediate Survey: 30/07/2023
-            Annual Survey: 25/01/2024
+            response = requests.post(endpoint, json=override_data, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
             
-            This certificate is valid until: 10/01/2025
-            
-            Issued by: Panama Maritime Documentation Services
-            """
-            
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
-                temp_file.write(test_content)
-                temp_file_path = temp_file.name
-            
-            try:
-                with open(temp_file_path, 'rb') as f:
-                    files = {'file': ('multi_survey_cert.txt', f, 'text/plain')}
+            if response.status_code == 200:
+                result = response.json()
+                self.log("   ✅ Anniversary date override successful")
+                
+                # Check the response
+                anniversary_date = result.get('anniversary_date')
+                if anniversary_date:
+                    day = anniversary_date.get('day')
+                    month = anniversary_date.get('month')
+                    manual_override = anniversary_date.get('manual_override')
+                    auto_calculated = anniversary_date.get('auto_calculated')
                     
-                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                    self.log(f"   📊 Override Results:")
+                    self.log(f"      Day: {day}")
+                    self.log(f"      Month: {month}")
+                    self.log(f"      Manual Override: {manual_override}")
+                    self.log(f"      Auto Calculated: {auto_calculated}")
                     
-                    if response.status_code == 200:
-                        result = response.json()
-                        last_endorse = result.get('last_endorse')
-                        
-                        self.log(f"   📊 Multiple Endorsement Test Results:")
-                        self.log(f"      Last Endorse Detected: {last_endorse}")
-                        
-                        # Should select the most recent date (25/01/2024)
-                        if last_endorse and '2024' in str(last_endorse):
-                            self.log("   ✅ Most recent endorsement date selected correctly")
-                            self.endorsement_tests['multiple_endorsement_handling_tested'] = True
-                        else:
-                            self.log("   ⚠️ Multiple endorsement handling may need improvement")
-                        
-                        self.test_results['multiple_endorsement_test'] = result
-                        return True
+                    # Verify override worked correctly
+                    if day == 15 and month == 8 and manual_override and not auto_calculated:
+                        self.log("   ✅ Manual override capabilities working correctly")
+                        self.anniversary_tests['anniversary_date_override_tested'] = True
                     else:
-                        self.log(f"   ❌ Multiple endorsement test failed: {response.status_code}")
-                        return False
-                        
-            finally:
+                        self.log("   ❌ Manual override not working as expected")
+                
+                self.test_results['anniversary_override'] = result
+                return True
+            else:
+                self.log(f"   ❌ Anniversary date override failed: {response.status_code}")
                 try:
-                    os.unlink(temp_file_path)
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
                 except:
-                    pass
-                    
+                    self.log(f"   Error: {response.text[:200]}")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ Multiple endorsement handling test error: {str(e)}", "ERROR")
+            self.log(f"❌ Anniversary date override test error: {str(e)}", "ERROR")
             return False
     
     def test_fallback_pattern_matching(self):
