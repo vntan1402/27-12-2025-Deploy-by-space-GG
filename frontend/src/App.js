@@ -1178,16 +1178,19 @@ const HomePage = () => {
           });
           const data = await response.json();
           
-          if (data.success && data.view_url) {
+          // Check both success field and view_url availability
+          if (data.view_url) {
             // Small delay between opens to prevent popup blocking
             setTimeout(() => {
               window.open(data.view_url, '_blank');
-            }, i * 100); // 100ms delay between each open
+            }, i * 200); // Increased delay to 200ms for better browser handling
             openedCount++;
           } else {
+            console.error(`Failed to get view_url for certificate ${cert.cert_name}:`, data);
             errorCount++;
           }
         } catch (error) {
+          console.error(`Error opening certificate ${cert.cert_name}:`, error);
           errorCount++;
         }
       }
@@ -1206,7 +1209,57 @@ const HomePage = () => {
       
       handleCloseContextMenu();
     } catch (error) {
+      console.error('Error in handleOpenSelectedCertificates:', error);
       toast.error(language === 'vi' ? 'Lỗi khi mở files' : 'Error opening files');
+    }
+  };
+
+  const handleCopySelectedLinks = async () => {
+    try {
+      if (selectedCertificates.size === 0) return;
+
+      const allCertificates = getFilteredCertificates();
+      const certificatesToCopy = allCertificates.filter(cert => selectedCertificates.has(cert.id));
+      
+      let copiedLinks = [];
+      let errorCount = 0;
+      
+      // Get all view URLs
+      for (const cert of certificatesToCopy) {
+        try {
+          const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          
+          if (data.view_url) {
+            copiedLinks.push(`${cert.cert_name || cert.cert_abbreviation || 'Certificate'}: ${data.view_url}`);
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          errorCount++;
+        }
+      }
+      
+      if (copiedLinks.length > 0) {
+        // Copy all links to clipboard, separated by newlines
+        const linksText = copiedLinks.join('\n');
+        await navigator.clipboard.writeText(linksText);
+        
+        toast.success(
+          language === 'vi' 
+            ? `Đã copy ${copiedLinks.length} link${errorCount > 0 ? `, ${errorCount} link lỗi` : ''}`
+            : `Copied ${copiedLinks.length} link${copiedLinks.length > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}`
+        );
+      } else {
+        toast.error(language === 'vi' ? 'Không thể lấy links' : 'Cannot get links');
+      }
+      
+      handleCloseContextMenu();
+    } catch (error) {
+      console.error('Error in handleCopySelectedLinks:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi copy links' : 'Error copying links');
     }
   };
 
