@@ -2550,12 +2550,12 @@ const HomePage = () => {
                               </div>
                             )}
                             
-                            {!linksFetching && Object.keys(certificateLinks).length > 0 && (
+                            {!linksFetching && Object.keys(getCurrentShipLinks()).length > 0 && (
                               <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
-                                {Object.keys(certificateLinks).length} {language === 'vi' ? 'links sẵn sàng' : 'links ready'}
+                                {Object.keys(getCurrentShipLinks()).length} {language === 'vi' ? 'links sẵn sàng' : 'links ready'}
                               </div>
                             )}
                           </div>
