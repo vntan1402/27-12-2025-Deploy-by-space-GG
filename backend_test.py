@@ -731,114 +731,120 @@ class AnniversaryDateDryDockTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Enhanced Endorsement Processing Testing")
-    print("🔍 Focus: Enhanced Last Endorse processing for maritime certificates")
-    print("📋 Review Request: Test AI prompt enhancement and fallback pattern matching")
-    print("🎯 Testing: Authentication, AI enhancement, multiple endorsements, fallback patterns")
+    print("🎯 Ship Management System - Anniversary Date and Dry Dock Cycle Testing")
+    print("🔍 Focus: Anniversary date and dry dock cycle enhancements with Lloyd's standards")
+    print("📋 Review Request: Test enhanced anniversary date auto-calculation and dry dock cycle handling")
+    print("🎯 Testing: Authentication, ship retrieval, anniversary calculation, override, CRUD operations")
     print("=" * 100)
     
-    tester = EnhancedEndorsementTester()
-    success = tester.run_comprehensive_endorsement_tests()
+    tester = AnniversaryDateDryDockTester()
+    success = tester.run_comprehensive_anniversary_tests()
     
     print("=" * 100)
-    print("🔍 ENHANCED ENDORSEMENT PROCESSING TESTING RESULTS:")
+    print("🔍 ANNIVERSARY DATE AND DRY DOCK CYCLE TESTING RESULTS:")
     print("=" * 70)
     
     # Print test summary
-    passed_tests = [f for f, passed in tester.endorsement_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.endorsement_tests.items() if not passed]
+    passed_tests = [f for f, passed in tester.anniversary_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.anniversary_tests.items() if not passed]
     
-    print(f"✅ ENDORSEMENT TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ ENDORSEMENT TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
     # Print key findings
     print(f"\n🔍 KEY FINDINGS:")
     
-    # PMDS certificates
-    pmds_certificates = tester.test_results.get('pmds_certificates', [])
-    print(f"   📋 PMDS Certificates Analysis:")
-    print(f"      Total PMDS certificates found: {len(pmds_certificates)}")
+    # SUNSHINE 01 ship analysis
+    sunshine_ship = tester.test_results.get('sunshine_ship_data', {})
+    print(f"   🚢 SUNSHINE 01 Ship Analysis:")
+    if sunshine_ship:
+        print(f"      Ship found: ✅")
+        print(f"      Enhanced fields present: {'✅' if sunshine_ship.get('anniversary_date') or sunshine_ship.get('dry_dock_cycle') else '❌'}")
+    else:
+        print(f"      Ship found: ❌")
     
     # Test results
-    ai_test = tester.test_results.get('ai_prompt_test', {})
-    multiple_test = tester.test_results.get('multiple_endorsement_test', {})
-    fallback_test = tester.test_results.get('fallback_pattern_test', {})
-    cert_type_tests = tester.test_results.get('certificate_type_tests', [])
+    anniversary_calc = tester.test_results.get('anniversary_calculation', {})
+    anniversary_override = tester.test_results.get('anniversary_override', {})
+    ship_creation = tester.test_results.get('ship_creation', {})
+    ship_update = tester.test_results.get('ship_update', {})
+    backward_compat = tester.test_results.get('backward_compatibility', {})
     
-    print(f"   🤖 AI Prompt Enhancement: {'✅ Working' if ai_test.get('last_endorse') else '❌ Not Working'}")
-    print(f"   📅 Multiple Endorsement Handling: {'✅ Working' if multiple_test.get('last_endorse') else '❌ Not Working'}")
-    print(f"   🔍 Fallback Pattern Matching: {'✅ Working' if fallback_test.get('last_endorse') else '❌ Not Working'}")
+    print(f"   📅 Anniversary Date Calculation: {'✅ Working' if anniversary_calc.get('anniversary_date') else '❌ Not Working'}")
+    print(f"   🔧 Anniversary Date Override: {'✅ Working' if anniversary_override.get('anniversary_date') else '❌ Not Working'}")
+    print(f"   🆕 Ship Creation Enhanced Fields: {'✅ Working' if ship_creation.get('anniversary_date') else '❌ Not Working'}")
+    print(f"   🔄 Ship Update Enhanced Fields: {'✅ Working' if ship_update.get('anniversary_date') else '❌ Not Working'}")
+    print(f"   🔄 Backward Compatibility: {'✅ Working' if backward_compat.get('legacy_dry_dock_cycle') else '❌ Not Working'}")
     
-    if cert_type_tests:
-        successful_cert_tests = sum(1 for test in cert_type_tests if test['success'])
-        total_cert_tests = len(cert_type_tests)
-        print(f"   📋 Certificate Types Testing: {successful_cert_tests}/{total_cert_tests} successful")
+    # Lloyd's standards compliance
+    lloyd_compliance = tester.anniversary_tests.get('lloyd_standards_compliance_verified', False)
+    print(f"   ⚓ Lloyd's Maritime Standards: {'✅ Compliant' if lloyd_compliance else '❌ Not Verified'}")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.endorsement_tests) * 100
+    success_rate = len(passed_tests) / len(tester.anniversary_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 Enhanced endorsement processing testing completed!")
+        print("🎉 Anniversary date and dry dock cycle testing completed!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ Enhanced endorsement processing testing completed with issues!")
+        print("❌ Anniversary date and dry dock cycle testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
     # Provide recommendations based on findings
     print("\n💡 NEXT STEPS FOR MAIN AGENT:")
     
-    # AI Enhancement recommendations
-    if ai_test.get('last_endorse'):
-        print("   ✅ AI prompt enhancement is working correctly")
+    # Anniversary date calculation
+    if anniversary_calc.get('anniversary_date'):
+        print("   ✅ Anniversary date calculation is working correctly")
     else:
-        print("   ❌ AI prompt enhancement needs improvement")
-        print("   1. Check AI model configuration and prompts")
-        print("   2. Verify maritime domain knowledge in prompts")
-        print("   3. Test with different certificate formats")
+        print("   ❌ Anniversary date calculation needs improvement")
+        print("   1. Check certificate analysis for Full Term certificates")
+        print("   2. Verify Lloyd's standards implementation")
+        print("   3. Test with ships that have suitable certificates")
     
-    # Multiple endorsement handling
-    if multiple_test.get('last_endorse'):
-        print("   ✅ Multiple endorsement handling is working correctly")
+    # Anniversary date override
+    if anniversary_override.get('anniversary_date'):
+        print("   ✅ Anniversary date override is working correctly")
     else:
-        print("   ❌ Multiple endorsement handling needs improvement")
-        print("   1. Check date parsing and comparison logic")
-        print("   2. Verify latest date selection algorithm")
+        print("   ❌ Anniversary date override needs improvement")
+        print("   1. Check override endpoint implementation")
+        print("   2. Verify manual override capabilities")
+        print("   3. Test validation of day/month values")
     
-    # Fallback pattern matching
-    if fallback_test.get('last_endorse'):
-        print("   ✅ Fallback pattern matching is working correctly")
+    # Ship CRUD operations
+    if ship_creation.get('anniversary_date') and ship_update.get('anniversary_date'):
+        print("   ✅ Ship CRUD with enhanced fields is working correctly")
     else:
-        print("   ❌ Fallback pattern matching needs improvement")
-        print("   1. Check regex patterns for endorsement dates")
-        print("   2. Verify fallback mechanism triggers correctly")
-        print("   3. Test with more diverse certificate formats")
+        print("   ❌ Ship CRUD with enhanced fields needs improvement")
+        print("   1. Check enhanced field processing in ship creation/update")
+        print("   2. Verify dry dock cycle 5-year period handling")
+        print("   3. Test intermediate docking requirements")
     
-    # Certificate types
-    if cert_type_tests:
-        successful_cert_tests = sum(1 for test in cert_type_tests if test['success'])
-        if successful_cert_tests > 0:
-            print(f"   ✅ Certificate types testing partially successful ({successful_cert_tests} working)")
-        else:
-            print("   ❌ Certificate types testing failed")
-            print("   1. Check certificate type recognition")
-            print("   2. Verify endorsement requirements mapping")
-    
-    # Backend logs
-    endorsement_logs = tester.test_results.get('endorsement_logs', [])
-    if endorsement_logs:
-        print("   ✅ Backend logs show endorsement processing activity")
+    # Backward compatibility
+    if backward_compat.get('legacy_dry_dock_cycle'):
+        print("   ✅ Backward compatibility is working correctly")
     else:
-        print("   ⚠️ No endorsement-specific backend logs found")
-        print("   1. Check backend logging configuration")
-        print("   2. Verify endorsement processing is being logged")
+        print("   ❌ Backward compatibility needs improvement")
+        print("   1. Check legacy field preservation")
+        print("   2. Verify enhanced field creation from legacy data")
+        print("   3. Test migration of existing ship data")
+    
+    # Lloyd's standards
+    if lloyd_compliance:
+        print("   ✅ Lloyd's maritime standards compliance verified")
+    else:
+        print("   ❌ Lloyd's maritime standards compliance needs verification")
+        print("   1. Check 5-year dry dock cycle implementation")
+        print("   2. Verify intermediate docking requirements")
+        print("   3. Test anniversary date calculation from certificates")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
