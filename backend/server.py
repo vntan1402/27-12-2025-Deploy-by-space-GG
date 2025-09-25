@@ -668,20 +668,33 @@ def extract_latest_endorsement_date(text_content: str) -> str:
 
 def get_enhanced_last_endorse(analysis_result: dict) -> datetime:
     """
-    Enhanced last_endorse processing - try AI first, then fallback to pattern matching
+    Enhanced last_endorse processing with certificate type validation.
+    BUSINESS RULE: Only Full Term certificates have endorsement dates.
+    Interim, Provisional, Short term, and Conditional certificates do not have endorsements.
     """
-    # Try AI result first
+    # First check certificate type - only Full Term certificates have endorsements
+    cert_type = analysis_result.get('cert_type', '').strip()
+    if cert_type and cert_type != 'Full Term':
+        logger.info(f"Certificate type '{cert_type}' does not require endorsement - skipping endorsement extraction")
+        return None
+    
+    # Try AI result first (only for Full Term certificates)
     ai_last_endorse = analysis_result.get('last_endorse')
     if ai_last_endorse:
+        logger.info(f"AI extracted endorsement date for Full Term certificate: {ai_last_endorse}")
         return parse_date_string(ai_last_endorse)
     
-    # Fallback: try to extract latest endorsement date using pattern matching
+    # Fallback: try to extract latest endorsement date using pattern matching (only for Full Term)
     text_content = analysis_result.get('text_content')
     if text_content:
         extracted_endorse = extract_latest_endorsement_date(text_content)
         if extracted_endorse:
-            logger.info(f"Found endorsement date via pattern matching: {extracted_endorse}")
+            logger.info(f"Found endorsement date via pattern matching for Full Term certificate: {extracted_endorse}")
             return parse_date_string(extracted_endorse)
+    
+    # If it's Full Term but no endorsement found, log this for review
+    if cert_type == 'Full Term':
+        logger.warning(f"Full Term certificate found but no endorsement date detected - may need manual review")
     
     return None
 
