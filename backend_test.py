@@ -14,8 +14,8 @@ import time
 import traceback
 import subprocess
 
-# Configuration - Use external URL for testing (as per frontend .env)
-BACKEND_URL = "https://shipai-system.preview.emergentagent.com/api"
+# Configuration - Use internal URL for testing due to external connectivity issues
+BACKEND_URL = "http://localhost:8001/api"
 
 class CertificateListDiscrepancyTester:
     def __init__(self):
