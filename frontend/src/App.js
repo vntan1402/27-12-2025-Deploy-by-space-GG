@@ -2412,7 +2412,7 @@ const HomePage = () => {
                             </div>
                             <div>
                               <span className="font-semibold">{language === 'vi' ? 'Chu kỳ Dry Dock:' : 'Dry Dock Cycle:'}</span>
-                              <span className="ml-2">{selectedShip.dry_dock_cycle ? `${selectedShip.dry_dock_cycle} tháng` : '-'}</span>
+                              <span className="ml-2">{formatDryDockCycle(selectedShip.dry_dock_cycle) || '-'}</span>
                             </div>
                             
                             {/* Column 3 - Management Data */}
