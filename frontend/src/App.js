@@ -2740,7 +2740,7 @@ const HomePage = () => {
                           <tbody>
                             {getFilteredCertificates().length === 0 ? (
                               <tr>
-                                <td colSpan="11" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                <td colSpan="12" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
                                   {certificates.length === 0 
                                     ? (language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates available')
                                     : (language === 'vi' ? 'Không có chứng chỉ nào phù hợp với bộ lọc' : 'No certificates match the current filters')
