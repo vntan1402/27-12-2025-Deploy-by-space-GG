@@ -1334,6 +1334,12 @@ async def get_ship_certificates(ship_id: str, current_user: UserResponse = Depen
 @api_router.post("/certificates", response_model=CertificateResponse)
 async def create_certificate(cert_data: CertificateCreate, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
+        # Validate cert_type
+        if cert_data.cert_type:
+            cert_data.cert_type = validate_certificate_type(cert_data.cert_type)
+        else:
+            cert_data.cert_type = validate_certificate_type("Full Term")
+        
         # Create certificate document
         cert_dict = cert_data.dict()
         cert_dict["id"] = str(uuid.uuid4())
