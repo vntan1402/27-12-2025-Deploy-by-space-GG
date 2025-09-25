@@ -1355,25 +1355,35 @@ const HomePage = () => {
       
       let copiedLinks = [];
       let errorCount = 0;
+      let cachedCount = 0;
+      let fetchedCount = 0;
       
-      // Get all view URLs
+      // First, try to use cached links
       for (const cert of certificatesToCopy) {
-        try {
-          const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const data = await response.json();
-          
-          if (data.view_url) {
-            // Format: "Certificate Name (Certificate Abbreviation): URL"
-            const certName = cert.cert_name || 'Certificate';
-            const certAbbr = cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A';
-            copiedLinks.push(`${certName} (${certAbbr}): ${data.view_url}`);
-          } else {
+        const cachedLink = certificateLinks[cert.id];
+        if (cachedLink && cachedLink.link) {
+          copiedLinks.push(cachedLink.link);
+          cachedCount++;
+        } else {
+          // Fallback: fetch link if not cached
+          try {
+            const response = await fetch(`${API}/gdrive/file/${cert.google_drive_file_id}/view`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            if (data.view_url) {
+              // Format: "Certificate Name (Certificate Abbreviation): URL"
+              const certName = cert.cert_name || 'Certificate';
+              const certAbbr = cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A';
+              copiedLinks.push(`${certName} (${certAbbr}): ${data.view_url}`);
+              fetchedCount++;
+            } else {
+              errorCount++;
+            }
+          } catch (error) {
             errorCount++;
           }
-        } catch (error) {
-          errorCount++;
         }
       }
       
@@ -1382,10 +1392,16 @@ const HomePage = () => {
         const linksText = copiedLinks.join('\n');
         await navigator.clipboard.writeText(linksText);
         
+        // Enhanced success message showing cache performance
+        const performanceInfo = cachedCount > 0 ? 
+          (language === 'vi' 
+            ? ` (${cachedCount} từ cache, ${fetchedCount} tải mới)` 
+            : ` (${cachedCount} cached, ${fetchedCount} fetched)`) : '';
+        
         toast.success(
           language === 'vi' 
-            ? `Đã copy ${copiedLinks.length} link${errorCount > 0 ? `, ${errorCount} link lỗi` : ''}`
-            : `Copied ${copiedLinks.length} link${copiedLinks.length > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}`
+            ? `✅ Đã copy ${copiedLinks.length} link${errorCount > 0 ? `, ${errorCount} link lỗi` : ''}${performanceInfo}`
+            : `✅ Copied ${copiedLinks.length} link${copiedLinks.length > 1 ? 's' : ''}${errorCount > 0 ? `, ${errorCount} error${errorCount > 1 ? 's' : ''}` : ''}${performanceInfo}`
         );
       } else {
         toast.error(language === 'vi' ? 'Không thể lấy links' : 'Cannot get links');
