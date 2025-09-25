@@ -1638,6 +1638,107 @@ async def get_ship(ship_id: str, current_user: UserResponse = Depends(get_curren
         raise
     except Exception as e:
         logger.error(f"Error fetching ship: {e}")
+@api_router.post("/ships/{ship_id}/calculate-anniversary-date")
+async def calculate_ship_anniversary_date(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """
+    Manually trigger anniversary date calculation from Full Term Class/Statutory certificates.
+    Follows Lloyd's maritime standards for anniversary date determination.
+    """
+    try:
+        # Check if ship exists
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Calculate anniversary date from certificates
+        calculated_anniversary = await calculate_anniversary_date_from_certificates(ship_id)
+        
+        if not calculated_anniversary:
+            return {
+                "success": False,
+                "message": "No Full Term Class/Statutory certificates with valid expiry dates found for anniversary calculation",
+                "anniversary_date": None
+            }
+        
+        # Update ship with calculated anniversary date
+        update_data = {
+            "anniversary_date": calculated_anniversary.dict()
+        }
+        
+        await mongo_db.update("ships", {"id": ship_id}, update_data)
+        
+        return {
+            "success": True,
+            "message": f"Anniversary date calculated from {calculated_anniversary.source_certificate_type}",
+            "anniversary_date": {
+                "day": calculated_anniversary.day,
+                "month": calculated_anniversary.month,
+                "source": calculated_anniversary.source_certificate_type,
+                "display": format_anniversary_date_display(calculated_anniversary)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calculating anniversary date for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate anniversary date")
+
+@api_router.post("/ships/{ship_id}/override-anniversary-date")
+async def override_ship_anniversary_date(
+    ship_id: str, 
+    day: int, 
+    month: int, 
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Manually override anniversary date for a ship.
+    Sets manual_override flag to true and stores custom day/month.
+    """
+    try:
+        # Validate day and month
+        if not (1 <= day <= 31):
+            raise HTTPException(status_code=400, detail="Day must be between 1 and 31")
+        if not (1 <= month <= 12):
+            raise HTTPException(status_code=400, detail="Month must be between 1 and 12")
+        
+        # Check if ship exists
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Create manual anniversary date
+        manual_anniversary = AnniversaryDate(
+            day=day,
+            month=month,
+            auto_calculated=False,
+            source_certificate_type="Manual Override",
+            manual_override=True
+        )
+        
+        # Update ship
+        update_data = {
+            "anniversary_date": manual_anniversary.dict()
+        }
+        
+        await mongo_db.update("ships", {"id": ship_id}, update_data)
+        
+        return {
+            "success": True,
+            "message": "Anniversary date manually overridden",
+            "anniversary_date": {
+                "day": day,
+                "month": month,
+                "manual_override": True,
+                "display": format_anniversary_date_display(manual_anniversary)
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error overriding anniversary date for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to override anniversary date")
         raise HTTPException(status_code=500, detail="Failed to fetch ship")
 
 @api_router.put("/ships/{ship_id}", response_model=ShipResponse)
