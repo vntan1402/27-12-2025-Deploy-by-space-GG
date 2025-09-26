@@ -1833,6 +1833,56 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: UserRes
         existing_user = await mongo_db.find_one("users", {"id": user_id})
         if not existing_user:
             raise HTTPException(status_code=404, detail="User not found")
+@api_router.post("/ships/{ship_id}/calculate-docking-dates")
+async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """
+    Manually trigger Last Docking dates calculation from CSSC and DD certificates.
+    Extracts Last Docking 1 (most recent) and Last Docking 2 (second most recent) from certificates.
+    """
+    try:
+        # Check if ship exists
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Calculate docking dates from certificates
+        docking_dates = await extract_last_docking_dates_from_certificates(ship_id)
+        
+        if not docking_dates["last_docking"] and not docking_dates["last_docking_2"]:
+            return {
+                "success": False,
+                "message": "No docking dates found in CSSC or Dry Docking certificates",
+                "docking_dates": None
+            }
+        
+        # Update ship with calculated docking dates
+        update_data = {}
+        if docking_dates["last_docking"]:
+            update_data["last_docking"] = docking_dates["last_docking"]
+        if docking_dates["last_docking_2"]:
+            update_data["last_docking_2"] = docking_dates["last_docking_2"]
+        
+        if update_data:
+            await mongo_db.update("ships", {"id": ship_id}, update_data)
+        
+        # Format response
+        response_data = {}
+        if docking_dates["last_docking"]:
+            response_data["last_docking"] = docking_dates["last_docking"].strftime('%d/%m/%Y')
+        if docking_dates["last_docking_2"]:
+            response_data["last_docking_2"] = docking_dates["last_docking_2"].strftime('%d/%m/%Y')
+        
+        return {
+            "success": True,
+            "message": f"Docking dates extracted from CSSC/DD certificates",
+            "docking_dates": response_data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calculating docking dates for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate docking dates")
         
         # Prepare update data
         update_data = {}
