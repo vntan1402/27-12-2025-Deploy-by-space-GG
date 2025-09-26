@@ -113,14 +113,14 @@ class SpecialSurveyCycleTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_anniversary_date_recalculate_function(self):
-        """Test the fixed Anniversary Date Recalculate Function"""
+    def test_special_survey_cycle_calculation(self):
+        """Test the Special Survey Cycle Calculation endpoint"""
         try:
-            self.log("🔄 Testing Anniversary Date Recalculate Function...")
+            self.log("🔄 Testing Special Survey Cycle Calculation...")
             self.log(f"   Target Ship: {self.test_ship_name} (ID: {self.test_ship_id})")
             
-            # Test the POST /api/ships/{ship_id}/calculate-anniversary-date endpoint
-            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-anniversary-date"
+            # Test the POST /api/ships/{ship_id}/calculate-special-survey-cycle endpoint
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-special-survey-cycle"
             self.log(f"   POST {endpoint}")
             
             response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
@@ -128,73 +128,90 @@ class SpecialSurveyCycleTester:
             
             if response.status_code == 200:
                 result = response.json()
-                self.log("   ✅ Anniversary Date Recalculate endpoint responded successfully")
+                self.log("   ✅ Special Survey Cycle Calculation endpoint responded successfully")
                 self.log(f"   📊 Response: {json.dumps(result, indent=2)}")
                 
-                # Check if the function is working (no error message)
+                # Check if the function is working
                 success = result.get('success', False)
                 message = result.get('message', '')
-                anniversary_date = result.get('anniversary_date')
+                special_survey_cycle = result.get('special_survey_cycle')
                 
                 self.log(f"   Success: {success}")
                 self.log(f"   Message: {message}")
-                self.log(f"   Anniversary Date: {anniversary_date}")
-                
-                # Verify the fix - should not get "Unable to calculate anniversary date from certificates"
-                if "Unable to calculate anniversary date from certificates" not in message:
-                    self.log("   ✅ No error message about unable to calculate - fix appears to be working")
-                    self.anniversary_tests['no_error_message_confirmed'] = True
-                else:
-                    self.log("   ❌ Still getting error message - fix may not be working")
+                self.log(f"   Special Survey Cycle: {special_survey_cycle}")
                 
                 # Check if we got a successful calculation
-                if success and anniversary_date:
-                    self.log("   ✅ Anniversary date calculation successful")
-                    self.anniversary_tests['recalculate_function_fixed'] = True
-                    
-                    # Verify expected results (day=10, month=3)
-                    calculated_day = anniversary_date.get('day')
-                    calculated_month = anniversary_date.get('month')
-                    source_cert = anniversary_date.get('source_certificate_type', '')
-                    auto_calculated = anniversary_date.get('auto_calculated', False)
-                    manual_override = anniversary_date.get('manual_override', True)
-                    
-                    self.log(f"   📊 Calculated Anniversary Date:")
-                    self.log(f"      Day: {calculated_day} (Expected: {self.expected_day})")
-                    self.log(f"      Month: {calculated_month} (Expected: {self.expected_month})")
-                    self.log(f"      Source Certificate: {source_cert}")
-                    self.log(f"      Auto Calculated: {auto_calculated}")
-                    self.log(f"      Manual Override: {manual_override}")
+                if success and special_survey_cycle:
+                    self.log("   ✅ Special Survey Cycle calculation successful")
+                    self.special_survey_tests['special_survey_endpoint_working'] = True
                     
                     # Verify expected results
-                    if calculated_day == self.expected_day and calculated_month == self.expected_month:
-                        self.log("   ✅ Expected anniversary date results verified (day=10, month=3)")
-                        self.anniversary_tests['expected_result_verified'] = True
-                    else:
-                        self.log(f"   ⚠️ Anniversary date results differ from expected (got {calculated_day}/{calculated_month})")
+                    from_date = special_survey_cycle.get('from_date')
+                    to_date = special_survey_cycle.get('to_date')
+                    intermediate_required = special_survey_cycle.get('intermediate_required')
+                    cycle_type = special_survey_cycle.get('cycle_type')
                     
-                    # Verify auto_calculated=true and manual_override=false
-                    if auto_calculated and not manual_override:
-                        self.log("   ✅ Auto-calculated=true and manual_override=false verified")
-                    else:
-                        self.log(f"   ⚠️ Auto-calculated or manual_override flags not as expected")
+                    self.log(f"   📊 Calculated Special Survey Cycle:")
+                    self.log(f"      From Date: {from_date}")
+                    self.log(f"      To Date: {to_date}")
+                    self.log(f"      Intermediate Required: {intermediate_required}")
+                    self.log(f"      Cycle Type: {cycle_type}")
                     
-                    # Check if source certificate type is set correctly
-                    if source_cert and "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE" in source_cert:
-                        self.log("   ✅ Source certificate type correctly identified")
+                    # Verify IMO 5-year logic
+                    if from_date and to_date:
+                        try:
+                            from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
+                            to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
+                            years_diff = (to_dt - from_dt).days / 365.25
+                            
+                            if 4.8 <= years_diff <= 5.2:  # Allow some tolerance for 5 years
+                                self.log(f"   ✅ IMO 5-year cycle verified ({years_diff:.1f} years)")
+                                self.special_survey_tests['imo_5_year_logic_verified'] = True
+                            else:
+                                self.log(f"   ⚠️ Cycle period not 5 years: {years_diff:.1f} years")
+                        except Exception as e:
+                            self.log(f"   ⚠️ Error parsing dates: {e}")
+                    
+                    # Verify intermediate survey requirement
+                    if intermediate_required:
+                        self.log("   ✅ Intermediate Survey required = true (IMO requirement)")
+                        self.special_survey_tests['intermediate_survey_required'] = True
                     else:
-                        self.log(f"   ⚠️ Source certificate type may not be correct: {source_cert}")
+                        self.log("   ⚠️ Intermediate Survey required should be true")
+                    
+                    # Verify cycle type
+                    if cycle_type and "SOLAS" in cycle_type and "Safety Construction" in cycle_type:
+                        self.log("   ✅ Cycle Type correctly identified as SOLAS Safety Construction")
+                        self.special_survey_tests['cycle_type_correct'] = True
+                    else:
+                        self.log(f"   ⚠️ Cycle Type may not be correct: {cycle_type}")
+                    
+                    # Verify display format
+                    if from_date and to_date:
+                        try:
+                            from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
+                            to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
+                            display_format = f"{from_dt.strftime('%d/%m/%Y')} - {to_dt.strftime('%d/%m/%Y')}"
+                            
+                            self.log(f"   📊 Display Format: {display_format}")
+                            if display_format == self.expected_display_format:
+                                self.log("   ✅ Display format matches expected format")
+                                self.special_survey_tests['display_format_correct'] = True
+                            else:
+                                self.log(f"   ⚠️ Display format differs from expected: {self.expected_display_format}")
+                        except Exception as e:
+                            self.log(f"   ⚠️ Error formatting display: {e}")
                 
                 else:
-                    self.log("   ❌ Anniversary date calculation failed or returned no data")
+                    self.log("   ❌ Special Survey Cycle calculation failed or returned no data")
                     self.log(f"      Success: {success}")
                     self.log(f"      Message: {message}")
                 
-                self.test_results['recalculate_response'] = result
+                self.test_results['special_survey_response'] = result
                 return True
                 
             else:
-                self.log(f"   ❌ Anniversary Date Recalculate failed: {response.status_code}")
+                self.log(f"   ❌ Special Survey Cycle Calculation failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -203,7 +220,7 @@ class SpecialSurveyCycleTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Anniversary Date Recalculate test error: {str(e)}", "ERROR")
+            self.log(f"❌ Special Survey Cycle Calculation test error: {str(e)}", "ERROR")
             return False
     
     def test_certificate_analysis(self):
