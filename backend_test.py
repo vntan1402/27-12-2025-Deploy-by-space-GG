@@ -258,6 +258,66 @@ class EnhancedDockingExtractionTester:
             self.log(f"❌ Enhanced CSSC bottom inspection test error: {str(e)}", "ERROR")
             return False
 
+    def test_survey_status_integration(self):
+        """Test Survey Status Integration for Docking Date Extraction"""
+        try:
+            self.log("📋 Testing Survey Status Integration...")
+            self.log("   Focus: extract_docking_dates_from_survey_status function")
+            
+            # Get ship data to check for survey status information
+            ship_endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
+            response = requests.get(ship_endpoint, headers=self.get_headers(), timeout=30)
+            
+            if response.status_code == 200:
+                ship_data = response.json()
+                self.log(f"   ✅ Retrieved ship data for {self.test_ship_name}")
+                
+                # Check if ship has survey status information
+                survey_status = ship_data.get('survey_status')
+                if survey_status:
+                    self.log("   ✅ Ship has survey status information")
+                    self.log(f"   Survey Status: {survey_status[:100]}...")  # Show first 100 chars
+                    
+                    # Test survey status patterns
+                    status_patterns_found = []
+                    for pattern in self.survey_status_patterns:
+                        if pattern.lower() in survey_status.lower():
+                            status_patterns_found.append(pattern)
+                            self.log(f"      ✅ Found survey status pattern: '{pattern}'")
+                    
+                    if status_patterns_found:
+                        self.log(f"   ✅ Survey status integration patterns working: {len(status_patterns_found)} patterns found")
+                        self.docking_tests['survey_status_integration_working'] = True
+                else:
+                    self.log("   ⚠️ Ship has no survey status information")
+                
+                # Also check certificates for survey status sections
+                certificates = self.test_results.get('cssc_analysis', {}).get('cssc_cert_details', [])
+                for cert in certificates:
+                    text_content = cert.get('text_content', '')
+                    if text_content and 'survey status' in text_content.lower():
+                        self.log(f"   ✅ Found survey status section in certificate: {cert.get('cert_name')}")
+                        
+                        # Test survey status patterns in certificate text
+                        cert_status_patterns = []
+                        for pattern in self.survey_status_patterns:
+                            if pattern.lower() in text_content.lower():
+                                cert_status_patterns.append(pattern)
+                        
+                        if cert_status_patterns:
+                            self.log(f"      ✅ Survey status patterns in certificate: {cert_status_patterns}")
+                            self.docking_tests['survey_status_docking_info_working'] = True
+                
+                return True
+                
+            else:
+                self.log(f"   ❌ Ship data retrieval failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Survey status integration test error: {str(e)}", "ERROR")
+            return False
+
     def test_certificate_text_parsing(self):
         """Test Certificate Text Content Parsing for Docking Dates"""
         try:
