@@ -9938,7 +9938,7 @@ const AddRecordModal = ({
                   onChange={(e) => setCertificateData(prev => ({ ...prev, next_survey_type: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">{language === 'vi' ? 'Chọn loại khảo sát' : 'Select survey type'}</option>
+                  <option value="">{language === 'vi' ? 'Chọn loại khảo sát tiếp theo' : 'Select next survey type'}</option>
                   <option value="Annual">{language === 'vi' ? 'Khảo sát hàng năm' : 'Annual Survey'}</option>
                   <option value="Intermediate">{language === 'vi' ? 'Khảo sát trung gian' : 'Intermediate Survey'}</option>
                   <option value="Special">{language === 'vi' ? 'Khảo sát đặc biệt' : 'Special Survey'}</option>
