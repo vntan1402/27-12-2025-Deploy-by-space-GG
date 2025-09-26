@@ -19,7 +19,7 @@ import base64
 # Configuration - Use production backend URL for testing
 BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
-class SpecialSurveyCycleTester:
+class DockingDateExtractionTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -27,35 +27,33 @@ class SpecialSurveyCycleTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for Special Survey Cycle Logic with Same Day/Month Requirement
-        self.special_survey_tests = {
+        # Test tracking for Docking Date Extraction Logic
+        self.docking_tests = {
             'authentication_successful': False,
-            'special_survey_endpoint_working': False,
-            'expected_certificate_found': False,
-            'same_day_month_verified': False,
-            'from_date_correct': False,
-            'to_date_correct': False,
-            'date_calculation_fixed': False,
-            'cycle_type_correct': False,
-            'display_format_correct': False,
-            'intermediate_required_true': False,
-            'leap_year_handling_tested': False
+            'docking_endpoint_working': False,
+            'cssc_certificate_found': False,
+            'certificate_filtering_working': False,
+            'date_extraction_patterns_working': False,
+            'assignment_logic_working': False,
+            'last_docking_1_extracted': False,
+            'last_docking_2_extracted': False,
+            'date_validation_working': False,
+            'duplicates_removed': False,
+            'sorting_working': False,
+            'ship_update_working': False,
+            'error_handling_working': False
         }
         
         # Test ship ID for SUNSHINE 01 as specified in review request
         self.test_ship_id = "e21c71a2-9543-4f92-990c-72f54292fde8"
         self.test_ship_name = "SUNSHINE 01"
         
-        # Expected results from review request - FOCUS ON SAME DAY/MONTH
+        # Expected results from review request
         self.expected_certificate = "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE"
-        self.expected_valid_date = "2026-03-10"
-        self.expected_from_date = "10/03/2021"  # MUST be same day/month as To Date
-        self.expected_to_date = "10/03/2026"    # From certificate valid_date
-        self.expected_cycle_type = "SOLAS Safety Construction Survey Cycle"
-        self.expected_display_format = "10/03/2021 - 10/03/2026"
-        
-        # Previous incorrect result that should be fixed
-        self.previous_incorrect_from_date = "09/03/2021"  # Wrong by 1 day
+        self.expected_keywords = ['safety construction', 'cssc', 'dry dock', 'dd', 'docking survey']
+        self.expected_date_patterns = [
+            'dry dock date', 'docking survey date', 'construction survey', 'issued date'
+        ]
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
