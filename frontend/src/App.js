@@ -2758,6 +2758,10 @@ const HomePage = () => {
                                     </button>
                                   </div>
                                 </div>
+                                <div>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Keel Laid:' : 'Keel Laid:'}</span>
+                                  <div className="mt-1">{formatDate(selectedShip.keel_laid) || '-'}</div>
+                                </div>
                               </div>
                             </div>
                           </div>
