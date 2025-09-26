@@ -1241,86 +1241,107 @@ class SpecialSurveyCycleTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Anniversary Date Recalculate Function Testing")
-    print("🔍 Focus: Test updated Anniversary Date logic with enhanced certificate processing")
-    print("📋 Review Request: Test Fixed Recalculate Function with valid_date logic and enhanced parsing")
-    print("🎯 Testing: Authentication, certificate analysis, recalculate function, enhanced logic")
+    print("🎯 Ship Management System - Special Survey Cycle Logic Testing")
+    print("🔍 Focus: Test enhanced Special Survey Cycle logic theo IMO standards")
+    print("📋 Review Request: Test Special Survey Cycle Calculation with IMO 5-year standards")
+    print("🎯 Testing: Authentication, certificate analysis, special survey calculation, IMO compliance")
     print("=" * 100)
     
-    tester = AnniversaryDateTester()
-    success = tester.run_comprehensive_anniversary_tests()
+    tester = SpecialSurveyCycleTester()
+    success = tester.run_comprehensive_special_survey_tests()
     
     print("=" * 100)
-    print("🔍 ANNIVERSARY DATE RECALCULATE FUNCTION TESTING RESULTS:")
+    print("🔍 SPECIAL SURVEY CYCLE LOGIC TESTING RESULTS:")
     print("=" * 70)
     
     # Print test summary
-    passed_tests = [f for f, passed in tester.anniversary_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.anniversary_tests.items() if not passed]
+    passed_tests = [f for f, passed in tester.special_survey_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.special_survey_tests.items() if not passed]
     
-    print(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ SPECIAL SURVEY TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ SPECIAL SURVEY TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
     # Print key findings
     print(f"\n🔍 KEY FINDINGS:")
     
-    # Recalculate Function Analysis
-    recalculate_result = tester.test_results.get('recalculate_response', {})
-    print(f"   🔄 Anniversary Date Recalculate Function:")
-    if recalculate_result:
-        success_flag = recalculate_result.get('success', False)
-        message = recalculate_result.get('message', 'No message')
-        anniversary_date = recalculate_result.get('anniversary_date')
+    # Special Survey Cycle Function Analysis
+    special_survey_result = tester.test_results.get('special_survey_response', {})
+    print(f"   🔄 Special Survey Cycle Calculation Function:")
+    if special_survey_result:
+        success_flag = special_survey_result.get('success', False)
+        message = special_survey_result.get('message', 'No message')
+        special_survey_cycle = special_survey_result.get('special_survey_cycle')
         
         print(f"      Function Status: {'✅ Working' if success_flag else '❌ Failed'}")
         print(f"      Message: {message}")
         
-        if anniversary_date:
-            day = anniversary_date.get('day')
-            month = anniversary_date.get('month')
-            print(f"      Calculated Result: day={day}, month={month}")
-            print(f"      Expected Result: day={tester.expected_day}, month={tester.expected_month}")
-            print(f"      Results Match: {'✅' if day == tester.expected_day and month == tester.expected_month else '❌'}")
+        if special_survey_cycle:
+            from_date = special_survey_cycle.get('from_date')
+            to_date = special_survey_cycle.get('to_date')
+            cycle_type = special_survey_cycle.get('cycle_type')
+            intermediate_required = special_survey_cycle.get('intermediate_required')
+            
+            print(f"      From Date: {from_date}")
+            print(f"      To Date: {to_date}")
+            print(f"      Cycle Type: {cycle_type}")
+            print(f"      Intermediate Required: {intermediate_required}")
+            
+            # Check display format
+            if from_date and to_date:
+                try:
+                    from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
+                    to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
+                    display_format = f"{from_dt.strftime('%d/%m/%Y')} - {to_dt.strftime('%d/%m/%Y')}"
+                    print(f"      Display Format: {display_format}")
+                    print(f"      Expected Format: {tester.expected_display_format}")
+                    print(f"      Format Match: {'✅' if display_format == tester.expected_display_format else '❌'}")
+                except Exception as e:
+                    print(f"      ❌ Error formatting display: {e}")
         else:
-            print(f"      ❌ No anniversary date calculated")
+            print(f"      ❌ No special survey cycle calculated")
     else:
-        print(f"      ❌ No response from recalculate function")
+        print(f"      ❌ No response from special survey calculation function")
     
     # Certificate Analysis
     cert_analysis = tester.test_results.get('certificate_analysis', {})
     print(f"   🔍 Certificate Analysis:")
     if cert_analysis:
         total_certs = cert_analysis.get('total_certificates', 0)
-        class_statutory_certs = cert_analysis.get('class_statutory_certificates', 0)
+        full_term_class_certs = cert_analysis.get('full_term_class_certificates', 0)
         valid_date_certs = cert_analysis.get('certificates_with_valid_date', 0)
-        expiry_date_certs = cert_analysis.get('certificates_with_expiry_date', 0)
         cargo_safety_found = cert_analysis.get('cargo_safety_cert_found', False)
         
         print(f"      Total Certificates: {total_certs}")
-        print(f"      Class/Statutory Certificates: {class_statutory_certs} (Expected: 2+)")
+        print(f"      Full Term Class Certificates: {full_term_class_certs}")
         print(f"      Certificates with valid_date: {valid_date_certs}")
-        print(f"      Certificates with expiry_date: {expiry_date_certs}")
         print(f"      CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE: {'✅ Found' if cargo_safety_found else '❌ Not Found'}")
-        print(f"      Fix Logic Confirmed: {'✅' if valid_date_certs > expiry_date_certs else '❌'}")
+        
+        # Check expected certificate
+        cargo_safety_cert = cert_analysis.get('cargo_safety_cert')
+        if cargo_safety_cert:
+            valid_date = cargo_safety_cert.get('valid_date', '')
+            print(f"      Certificate valid_date: {valid_date}")
+            print(f"      Expected valid_date: {tester.expected_valid_date}")
+            print(f"      Valid Date Match: {'✅' if tester.expected_valid_date in valid_date else '❌'}")
     else:
         print(f"      ❌ No certificate analysis performed")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.anniversary_tests) * 100
+    success_rate = len(passed_tests) / len(tester.special_survey_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 Anniversary Date Recalculate Function testing completed!")
+        print("🎉 Special Survey Cycle Logic testing completed!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ Anniversary Date Recalculate Function testing completed with issues!")
+        print("❌ Special Survey Cycle Logic testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
     # Provide recommendations based on findings
@@ -1329,46 +1350,50 @@ def main():
     # Review Request Requirements
     print("   📋 REVIEW REQUEST REQUIREMENTS STATUS:")
     
-    # Fixed Recalculate Function
-    if tester.anniversary_tests.get('recalculate_function_fixed'):
-        print("   ✅ Fixed Recalculate Function: Working correctly with valid_date logic")
+    # Special Survey Endpoint
+    if tester.special_survey_tests.get('special_survey_endpoint_working'):
+        print("   ✅ Special Survey Cycle Calculation Endpoint: Working correctly")
     else:
-        print("   ❌ Fixed Recalculate Function: Still has issues")
-        print("      1. Check if backend function uses valid_date instead of expiry_date")
-        print("      2. Verify calculate_anniversary_date_from_certificates function at line 895")
-        print("      3. Ensure condition checks cert.get('valid_date') not cert.get('expiry_date')")
+        print("   ❌ Special Survey Cycle Calculation Endpoint: Not working")
+        print("      1. Check if POST /api/ships/{ship_id}/calculate-special-survey-cycle endpoint exists")
+        print("      2. Verify calculate_special_survey_cycle_from_certificates function implementation")
+        print("      3. Ensure endpoint returns proper response structure")
     
-    # Valid_date Logic
-    if tester.anniversary_tests.get('valid_date_logic_working'):
-        print("   ✅ Valid_date Logic: Certificates use valid_date field correctly")
+    # Full Term Class Certificates
+    if tester.special_survey_tests.get('full_term_class_certificates_found'):
+        print("   ✅ Full Term Class Certificates: Found and processed correctly")
     else:
-        print("   ❌ Valid_date Logic: Issues with valid_date field usage")
-        print("      1. Verify CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE has valid_date: 2026-03-10")
-        print("      2. Check certificate data structure in database")
+        print("   ❌ Full Term Class Certificates: Not found or not processed")
+        print("      1. Verify function finds Full Term certificates with class keywords")
+        print("      2. Check certificate filtering logic for 'class', 'safety construction', etc.")
+        print("      3. Ensure CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE is identified")
     
-    # No Error Message
-    if tester.anniversary_tests.get('no_error_message_confirmed'):
-        print("   ✅ No Error Message: 'Unable to calculate anniversary date' message resolved")
+    # IMO 5-Year Logic
+    if tester.special_survey_tests.get('imo_5_year_logic_verified'):
+        print("   ✅ IMO 5-Year Logic: Verified correctly")
     else:
-        print("   ❌ Error Message Still Present: Function still returns error message")
-        print("      1. Fix backend logic to use valid_date instead of expiry_date")
-        print("      2. Test with SUNSHINE 01 ship certificates")
+        print("   ❌ IMO 5-Year Logic: Issues with 5-year calculation")
+        print("      1. Check To Date = Valid date of latest Full Term Class certificate")
+        print("      2. Verify From Date = 5 years before To Date")
+        print("      3. Ensure intermediate survey required = true")
     
     # Expected Results
-    if tester.anniversary_tests.get('expected_result_verified'):
-        print("   ✅ Expected Results: day=10, month=3 calculation verified")
+    if tester.special_survey_tests.get('date_calculation_correct'):
+        print("   ✅ Date Calculation: From Date = 2021-03-10, To Date = 2026-03-10 verified")
     else:
-        print("   ❌ Expected Results: Calculation does not match expected day=10, month=3")
+        print("   ❌ Date Calculation: Does not match expected dates")
         print("      1. Check CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE valid_date: 2026-03-10")
-        print("      2. Verify day/month extraction logic")
+        print("      2. Verify 5-year calculation logic")
+        print("      3. Ensure display format: '10/03/2021 - 10/03/2026'")
     
-    # Certificate Analysis
-    if tester.anniversary_tests.get('certificate_analysis_working'):
-        print("   ✅ Certificate Analysis: 2+ Class/Statutory certificates found")
+    # Cycle Type
+    if tester.special_survey_tests.get('cycle_type_correct'):
+        print("   ✅ Cycle Type: 'SOLAS Safety Construction Survey Cycle' verified")
     else:
-        print("   ❌ Certificate Analysis: Issues with certificate detection")
-        print("      1. Verify Class/Statutory certificate identification logic")
-        print("      2. Check certificate names contain required keywords")
+        print("   ❌ Cycle Type: Does not match expected type")
+        print("      1. Check cycle type determination logic")
+        print("      2. Verify 'safety construction' certificate detection")
+        print("      3. Ensure proper cycle type assignment")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
