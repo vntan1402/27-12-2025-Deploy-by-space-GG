@@ -1177,6 +1177,141 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
             to_date=to_date,
             intermediate_required=True,  # IMO requirement: Intermediate Survey between 2nd-3rd year
             cycle_type=cycle_type
+async def extract_docking_dates_from_survey_status(ship_id: str) -> List[datetime]:
+    """
+    Extract docking dates from Survey Status records.
+    
+    Survey Status contains docking inspection information that can be used
+    to determine Last Docking 1 and Last Docking 2 dates.
+    
+    Args:
+        ship_id: The ship ID to get survey status for
+        
+    Returns:
+        List of docking dates found in survey status
+    """
+    docking_dates = []
+    
+    try:
+        # Look for survey status in certificates or separate survey records
+        # Check if there's a dedicated survey_status collection or field
+        
+        # Method 1: Look for survey status in certificate text content
+        certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+        
+        for cert in certificates:
+            text_content = cert.get('text_content', '')
+            cert_name = cert.get('cert_name', 'Unknown')
+            
+            if not text_content:
+                continue
+                
+            # Extract survey status section
+            survey_status_section = extract_survey_status_section(text_content)
+            
+            if survey_status_section:
+                # Extract docking dates from survey status section
+                status_dates = extract_docking_dates_from_survey_status_text(survey_status_section, cert_name)
+                docking_dates.extend(status_dates)
+        
+        # Method 2: Check if there's a separate survey_status field in ship record
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if ship and ship.get('survey_status'):
+            survey_status_text = ship.get('survey_status')
+            if isinstance(survey_status_text, str):
+                status_dates = extract_docking_dates_from_survey_status_text(survey_status_text, "Ship Survey Status")
+                docking_dates.extend(status_dates)
+        
+        # Remove duplicates and sort
+        unique_dates = list(set(docking_dates))
+        unique_dates.sort(reverse=True)  # Most recent first
+        
+        logger.info(f"Extracted {len(unique_dates)} docking dates from survey status for ship {ship_id}")
+        
+        return unique_dates
+        
+    except Exception as e:
+        logger.error(f"Error extracting docking dates from survey status for ship {ship_id}: {e}")
+        return []
+
+def extract_survey_status_section(text_content: str) -> str:
+    """
+    Extract the survey status section from certificate text content.
+    
+    Looks for sections containing survey status information.
+    """
+    import re
+    
+    try:
+        # Patterns to identify survey status sections
+        status_section_patterns = [
+            r"survey\s+status[:\s]*(.{0,500}?)(?:\n\s*\n|\Z)",
+            r"status\s+of\s+(?:surveys?|inspections?)[:\s]*(.{0,500}?)(?:\n\s*\n|\Z)",
+            r"inspection\s+status[:\s]*(.{0,500}?)(?:\n\s*\n|\Z)",
+            r"docking\s+(?:survey\s+)?status[:\s]*(.{0,500}?)(?:\n\s*\n|\Z)"
+        ]
+        
+        for pattern in status_section_patterns:
+            match = re.search(pattern, text_content, re.IGNORECASE | re.DOTALL)
+            if match:
+                return match.group(1).strip()
+        
+        return ""
+        
+    except Exception as e:
+        logger.warning(f"Error extracting survey status section: {e}")
+        return ""
+
+def extract_docking_dates_from_survey_status_text(status_text: str, source: str) -> List[datetime]:
+    """
+    Extract docking dates specifically from survey status text.
+    
+    Focuses on survey status specific patterns and formatting.
+    """
+    import re
+    
+    docking_dates = []
+    
+    try:
+        # Survey status specific patterns
+        status_patterns = [
+            # Status with docking dates
+            r"docking[:\s]*(?:survey|inspection)?[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"dry\s*dock[:\s]*(?:survey|inspection)?[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"bottom\s+inspection[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"hull\s+(?:survey|inspection)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Status completion patterns
+            r"(?:completed|done|finished)[:\s]*.*?(?:docking|dry\s*dock)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"(?:docking|dry\s*dock).*?(?:completed|done|finished)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Last/next docking in status
+            r"last\s+(?:docking|dry\s*dock)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"previous\s+(?:docking|dry\s*dock)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # General date patterns in status context
+            r"(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[:\s]*(?:docking|dry\s*dock)",
+            r"(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})[:\s]*.*?(?:bottom|hull).*?(?:inspection|survey)"
+        ]
+        
+        for pattern in status_patterns:
+            matches = re.finditer(pattern, status_text, re.IGNORECASE)
+            for match in matches:
+                date_str = match.group(1)
+                try:
+                    parsed_date = parse_date_string(date_str)
+                    if parsed_date:
+                        current_year = datetime.now().year
+                        if 1980 <= parsed_date.year <= current_year + 1:
+                            docking_dates.append(parsed_date)
+                            logger.info(f"Extracted survey status docking date: {date_str} -> {parsed_date} from {source}")
+                except:
+                    continue
+        
+    except Exception as e:
+        logger.warning(f"Error extracting docking dates from survey status text: {e}")
+    
+    return docking_dates
         )
             
     except Exception as e:
