@@ -2482,8 +2482,8 @@ async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse 
         if not existing_ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Calculate docking dates from certificates
-        docking_dates = await extract_last_docking_dates_from_certificates(ship_id)
+        # Calculate docking dates from certificates using AI analysis
+        docking_dates = await extract_docking_dates_with_ai_analysis(ship_id)
         
         if not docking_dates["last_docking"] and not docking_dates["last_docking_2"]:
             return {
