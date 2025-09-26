@@ -251,10 +251,10 @@ class DockingDateExtractionTester:
             self.log(f"❌ Docking Date Extraction test error: {str(e)}", "ERROR")
             return False
     
-    def test_certificate_verification_for_same_day_month(self):
-        """Test Certificate Verification for Same Day/Month Logic"""
+    def test_cssc_certificate_detection(self):
+        """Test CSSC Certificate Detection and Filtering"""
         try:
-            self.log("🔍 Testing Certificate Verification for Same Day/Month Logic...")
+            self.log("🔍 Testing CSSC Certificate Detection and Filtering...")
             
             # Get certificates for SUNSHINE 01 ship
             endpoint = f"{BACKEND_URL}/certificates"
@@ -268,71 +268,68 @@ class DockingDateExtractionTester:
                 certificates = response.json()
                 self.log(f"   ✅ Retrieved {len(certificates)} certificates for {self.test_ship_name}")
                 
-                # Look for the specific certificate mentioned in review request
-                cargo_safety_cert = None
+                # Look for CSSC and docking-related certificates
+                cssc_certificates = []
+                docking_certificates = []
+                
                 for cert in certificates:
-                    if "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE" in cert.get('cert_name', '').upper():
-                        cargo_safety_cert = cert
-                        break
+                    cert_name = cert.get('cert_name', '').lower()
+                    
+                    # Check for CSSC certificate
+                    if "cargo ship safety construction certificate" in cert_name:
+                        cssc_certificates.append(cert)
+                        self.log(f"   ✅ Found CSSC: {cert.get('cert_name')}")
+                    
+                    # Check for docking-related keywords
+                    for keyword in self.expected_keywords:
+                        if keyword in cert_name:
+                            docking_certificates.append(cert)
+                            self.log(f"   ✅ Found docking-related cert ('{keyword}'): {cert.get('cert_name')}")
+                            break
                 
-                if cargo_safety_cert:
-                    self.log(f"   ✅ Found CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE")
-                    self.log(f"      Certificate Name: {cargo_safety_cert.get('cert_name')}")
-                    self.log(f"      Certificate Type: {cargo_safety_cert.get('cert_type')}")
-                    self.log(f"      Valid Date: {cargo_safety_cert.get('valid_date')}")
+                if cssc_certificates:
+                    self.log(f"   ✅ CSSC Certificate Detection successful ({len(cssc_certificates)} found)")
+                    self.docking_tests['cssc_certificate_found'] = True
                     
-                    self.special_survey_tests['expected_certificate_found'] = True
+                    # Analyze the first CSSC certificate
+                    cssc_cert = cssc_certificates[0]
+                    self.log(f"   📊 CSSC Certificate Analysis:")
+                    self.log(f"      Name: {cssc_cert.get('cert_name')}")
+                    self.log(f"      Type: {cssc_cert.get('cert_type')}")
+                    self.log(f"      Issue Date: {cssc_cert.get('issue_date')}")
+                    self.log(f"      Valid Date: {cssc_cert.get('valid_date')}")
+                    self.log(f"      Has Text Content: {bool(cssc_cert.get('text_content'))}")
                     
-                    # Verify the specific valid_date: 2026-03-10
-                    valid_date = cargo_safety_cert.get('valid_date')
-                    if valid_date and "2026-03-10" in valid_date:
-                        self.log(f"   ✅ Certificate has expected valid_date: 2026-03-10")
+                    # Check if certificate has text content for date extraction
+                    if cssc_cert.get('text_content'):
+                        self.log("   ✅ CSSC certificate has text content for date extraction")
+                        text_content = cssc_cert.get('text_content', '')
                         
-                        # Parse the valid_date to verify day and month
-                        try:
-                            valid_dt = datetime.fromisoformat(valid_date.replace('Z', ''))
-                            valid_day = valid_dt.day
-                            valid_month = valid_dt.month
-                            valid_year = valid_dt.year
-                            
-                            self.log(f"   📊 Certificate Valid Date Analysis:")
-                            self.log(f"      Day: {valid_day}")
-                            self.log(f"      Month: {valid_month}")
-                            self.log(f"      Year: {valid_year}")
-                            
-                            # Expected: To Date = 10/03/2026 (from certificate)
-                            # Expected: From Date = 10/03/2021 (same day/month, 5 years earlier)
-                            expected_to_day = 10
-                            expected_to_month = 3
-                            expected_to_year = 2026
-                            expected_from_day = 10
-                            expected_from_month = 3
-                            expected_from_year = 2021
-                            
-                            if (valid_day == expected_to_day and 
-                                valid_month == expected_to_month and 
-                                valid_year == expected_to_year):
-                                self.log(f"   ✅ Certificate valid_date matches expected To Date components")
-                                self.log(f"      Expected From Date should be: {expected_from_day}/{expected_from_month}/{expected_from_year}")
-                                self.log(f"      Expected To Date should be: {expected_to_day}/{expected_to_month}/{expected_to_year}")
-                                self.log(f"      CRITICAL: From Date and To Date must have same day ({expected_from_day}) and month ({expected_from_month})")
-                            else:
-                                self.log(f"   ⚠️ Certificate valid_date components don't match expected")
-                                
-                        except Exception as e:
-                            self.log(f"   ⚠️ Error parsing certificate valid_date: {e}")
+                        # Test date extraction patterns
+                        date_patterns_found = []
+                        for pattern in self.expected_date_patterns:
+                            if pattern.replace(' ', '') in text_content.lower().replace(' ', ''):
+                                date_patterns_found.append(pattern)
+                        
+                        if date_patterns_found:
+                            self.log(f"   ✅ Date extraction patterns found: {date_patterns_found}")
+                            self.docking_tests['date_extraction_patterns_working'] = True
+                        else:
+                            self.log("   ⚠️ No expected date patterns found in certificate text")
                     else:
-                        self.log(f"   ⚠️ Certificate valid_date doesn't match expected: {valid_date}")
-                else:
-                    self.log(f"   ❌ CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE not found")
-                    self.log(f"   Available certificates:")
-                    for cert in certificates[:5]:  # Show first 5
-                        self.log(f"      - {cert.get('cert_name', 'Unknown')}")
+                        self.log("   ⚠️ CSSC certificate has no text content")
                 
-                self.test_results['certificate_verification'] = {
+                if docking_certificates:
+                    self.log(f"   ✅ Certificate Filtering working ({len(docking_certificates)} docking-related certificates)")
+                    self.docking_tests['certificate_filtering_working'] = True
+                else:
+                    self.log("   ⚠️ No docking-related certificates found with expected keywords")
+                
+                self.test_results['certificate_analysis'] = {
                     'total_certificates': len(certificates),
-                    'cargo_safety_cert_found': cargo_safety_cert is not None,
-                    'cargo_safety_cert': cargo_safety_cert
+                    'cssc_certificates': len(cssc_certificates),
+                    'docking_certificates': len(docking_certificates),
+                    'cssc_cert_details': cssc_certificates[0] if cssc_certificates else None
                 }
                 
                 return True
@@ -342,7 +339,7 @@ class DockingDateExtractionTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Certificate verification test error: {str(e)}", "ERROR")
+            self.log(f"❌ CSSC certificate detection test error: {str(e)}", "ERROR")
             return False
 
     def test_edge_cases_and_leap_year_handling(self):
