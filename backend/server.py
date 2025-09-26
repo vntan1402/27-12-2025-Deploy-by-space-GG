@@ -1147,7 +1147,13 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
         
         # Calculate Special Survey Cycle according to IMO 5-year standard
         to_date = latest_date  # End of current 5-year cycle
-        from_date = to_date - timedelta(days=5*365.25)  # Start of 5-year cycle (accounting for leap years)
+        
+        # Calculate From Date: same day/month, 5 years earlier
+        try:
+            from_date = to_date.replace(year=to_date.year - 5)
+        except ValueError:
+            # Handle leap year edge case (Feb 29th)
+            from_date = to_date.replace(year=to_date.year - 5, month=2, day=28)
         
         # Determine cycle type based on certificate
         cert_name = latest_cert.get('cert_name', 'Class Certificate')
