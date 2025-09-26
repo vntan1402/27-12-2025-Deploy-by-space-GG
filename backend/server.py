@@ -1041,6 +1041,40 @@ def create_dry_dock_cycle_from_legacy(legacy_months: Optional[int], last_special
     - One intermediate docking inspection required within the cycle
     - Cycle typically starts from last special survey or dry docking date
     
+    Args:
+        legacy_months: Original months field (typically 60)
+        last_special_survey: Date of last special survey to calculate cycle from
+        
+    Returns:
+        DryDockCycle object or None
+    """
+    if not legacy_months:
+        return None
+        
+    try:
+        # Default to 60 months (5 years) if legacy value exists but is unusual
+        cycle_months = min(legacy_months, 60)  # Lloyd's maximum
+        
+        # Calculate from_date and to_date
+        if last_special_survey:
+            from_date = last_special_survey
+        else:
+            # Use current date as cycle start if no reference point
+            from_date = datetime.now(timezone.utc)
+            
+        to_date = from_date + timedelta(days=cycle_months * 30.44)  # Average month length
+        
+        return DryDockCycle(
+            from_date=from_date,
+            to_date=to_date,
+            intermediate_docking_required=True,  # Lloyd's requirement
+            last_intermediate_docking=None
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating dry dock cycle from legacy data: {e}")
+        return None
+
 async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Optional[SpecialSurveyCycle]:
     """
     Calculate Special Survey Cycle from Full Term Class certificates following IMO/Classification Society standards.
