@@ -4665,6 +4665,38 @@ const AccountControlPage = () => {
     }
   };
 
+  // Helper function to format date from DD/MM/YYYY to YYYY-MM-DD for HTML date inputs
+  const formatDateForInput = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return '';
+    
+    try {
+      // Handle DD/MM/YYYY format (from AI extraction)
+      if (dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const [day, month, year] = parts;
+          // Validate parts
+          if (day && month && year && year.length === 4) {
+            const paddedDay = day.padStart(2, '0');
+            const paddedMonth = month.padStart(2, '0');
+            return `${year}-${paddedMonth}-${paddedDay}`;
+          }
+        }
+      }
+      
+      // Handle other date formats or ISO dates
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+      
+      return '';
+    } catch (error) {
+      console.warn('Date formatting error:', error, 'for date:', dateString);
+      return '';
+    }
+  };
+
   const handlePdfAnalysis = async () => {
     if (!pdfFile) {
       toast.error(language === 'vi' ? 'Vui lòng chọn file PDF!' : 'Please select a PDF file!');
