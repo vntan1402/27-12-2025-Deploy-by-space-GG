@@ -629,6 +629,242 @@ def generate_organization_abbreviation(org_name: str) -> str:
     
     return abbreviation if abbreviation else org_name[:4].upper()
 
+# Class Society Dynamic Mapping System
+async def get_dynamic_class_society_mappings() -> dict:
+    """Get user-defined class society mappings from database"""
+    try:
+        # Get all dynamic mappings from the database
+        dynamic_mappings = await mongo_db.find_all("class_society_mappings", {})
+        
+        # Convert to dictionary format
+        mappings = {}
+        for mapping in dynamic_mappings:
+            full_name = mapping.get("full_name", "").strip()
+            abbreviation = mapping.get("abbreviation", "").strip()
+            if full_name and abbreviation:
+                mappings[full_name.lower()] = abbreviation
+        
+        return mappings
+        
+    except Exception as e:
+        logger.error(f"Error getting dynamic class society mappings: {e}")
+        return {}
+
+def suggest_class_society_abbreviation(full_name: str) -> str:
+    """Suggest an abbreviation for a class society full name using intelligent logic"""
+    try:
+        full_name = full_name.strip()
+        
+        # Handle common patterns
+        name_lower = full_name.lower()
+        
+        # Special cases for known patterns
+        if "vietnam register" in name_lower or "đăng kiểm việt nam" in name_lower:
+            return "VR"
+        elif "panama maritime" in name_lower:
+            return "PMDS"
+        elif "lloyd's register" in name_lower or "lloyds register" in name_lower:
+            return "LR"
+        elif "american bureau" in name_lower:
+            return "ABS"
+        elif "bureau veritas" in name_lower:
+            return "BV"
+        elif "classification society" in name_lower and "china" in name_lower:
+            return "CCS"
+        elif "nippon kaiji" in name_lower:
+            return "NK"
+        elif "korean register" in name_lower:
+            return "KR"
+        elif "russian maritime" in name_lower:
+            return "RS"
+        elif "dnv gl" in name_lower or "det norske veritas" in name_lower:
+            return "DNV GL"
+        elif "rina" in name_lower:
+            return "RINA"
+        
+        # General abbreviation logic
+        words = full_name.upper().split()
+        
+        # Filter out common words
+        filter_words = {"OF", "THE", "AND", "FOR", "MARITIME", "SHIPPING", "REGISTER", "SOCIETY", "CLASSIFICATION", "BUREAU", "SERVICES", "GROUP", "LIMITED", "LTD", "INC", "CORPORATION", "CORP"}
+        important_words = [word for word in words if word not in filter_words and len(word) > 1]
+        
+        if len(important_words) == 0:
+            # Fallback: use first letters of all words
+            return "".join(word[0] for word in words if len(word) > 0)[:4]
+        elif len(important_words) == 1:
+            # Single word: take first 2-3 characters
+            word = important_words[0]
+            return word[:3] if len(word) > 3 else word
+        elif len(important_words) <= 4:
+            # Multiple words: take first letter of each
+            return "".join(word[0] for word in important_words)
+        else:
+            # Too many words: take first letter of first 4 important words
+            return "".join(word[0] for word in important_words[:4])
+            
+    except Exception as e:
+        logger.error(f"Error suggesting abbreviation for '{full_name}': {e}")
+        # Fallback: first 3 characters
+        return full_name.upper()[:3] if full_name else "UNK"
+
+async def save_class_society_mapping(full_name: str, abbreviation: str, user_id: str = None) -> bool:
+    """Save a new class society mapping to the database"""
+    try:
+        # Check if mapping already exists
+        existing = await mongo_db.find_one("class_society_mappings", {"full_name": full_name.strip()})
+        
+        if existing:
+            # Update existing mapping
+            update_result = await mongo_db.update(
+                "class_society_mappings", 
+                {"full_name": full_name.strip()},
+                {
+                    "abbreviation": abbreviation.strip(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_by": user_id
+                }
+            )
+            return update_result
+        else:
+            # Create new mapping
+            mapping_data = {
+                "id": str(uuid.uuid4()),
+                "full_name": full_name.strip(),
+                "abbreviation": abbreviation.strip(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_by": user_id,
+                "auto_suggested": False  # Manual entry
+            }
+            
+            result = await mongo_db.insert_one("class_society_mappings", mapping_data)
+            return result is not None
+            
+    except Exception as e:
+        logger.error(f"Error saving class society mapping '{full_name}' -> '{abbreviation}': {e}")
+        return False
+
+async def detect_and_suggest_new_class_society(class_society_input: str) -> dict:
+    """
+    Detect if class_society_input is a new full name that needs abbreviation mapping.
+    Returns suggestion info if new mapping is needed.
+    """
+    try:
+        if not class_society_input or len(class_society_input.strip()) <= 3:
+            return {"is_new": False}
+        
+        class_society_clean = class_society_input.strip()
+        
+        # Get existing static mappings (hardcoded ones)
+        static_mappings = {
+            "panama maritime documentation services": "PMDS",
+            "lloyd's register": "LR", 
+            "dnv gl": "DNV GL",
+            "american bureau of shipping": "ABS",
+            "bureau veritas": "BV",
+            "rina": "RINA",
+            "china classification society": "CCS",
+            "nippon kaiji kyokai": "NK", 
+            "russian maritime register of shipping": "RS",
+            "korean register": "KR",
+            "vietnam register": "VR",
+            "đăng kiểm việt nam": "VR"
+        }
+        
+        # Get dynamic mappings from database
+        dynamic_mappings = await get_dynamic_class_society_mappings()
+        
+        # Combine all mappings
+        all_mappings = {**static_mappings, **dynamic_mappings}
+        
+        # Check if input is already an abbreviation (short and uppercase)
+        if len(class_society_clean) <= 4 and class_society_clean.isupper():
+            return {"is_new": False, "reason": "Already an abbreviation"}
+        
+        # Check if this full name already has a mapping
+        class_society_lower = class_society_clean.lower()
+        if class_society_lower in all_mappings:
+            return {
+                "is_new": False, 
+                "existing_abbreviation": all_mappings[class_society_lower],
+                "reason": "Already mapped"
+            }
+        
+        # Check for partial matches (in case user typed slight variation)
+        for existing_name in all_mappings.keys():
+            # Check if 80% of words match
+            existing_words = set(existing_name.lower().split())
+            input_words = set(class_society_lower.split())
+            
+            if len(existing_words & input_words) / max(len(existing_words), len(input_words)) >= 0.8:
+                return {
+                    "is_new": False,
+                    "existing_abbreviation": all_mappings[existing_name],
+                    "similar_to": existing_name,
+                    "reason": "Similar to existing mapping"
+                }
+        
+        # This appears to be a new class society - suggest abbreviation
+        suggested_abbreviation = suggest_class_society_abbreviation(class_society_clean)
+        
+        return {
+            "is_new": True,
+            "full_name": class_society_clean,
+            "suggested_abbreviation": suggested_abbreviation,
+            "message": f"New class society detected: '{class_society_clean}'. Suggested abbreviation: '{suggested_abbreviation}'"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error detecting new class society '{class_society_input}': {e}")
+        return {"is_new": False, "error": str(e)}
+
+async def get_updated_class_society_prompt_section() -> str:
+    """Get updated class society abbreviations including dynamic mappings for AI prompts"""
+    try:
+        # Static mappings
+        static_section = """COMMON CLASS_SOCIETY ABBREVIATIONS:
+- Panama Maritime Documentation Services → PMDS
+- Lloyd's Register → LR
+- DNV GL → DNV GL
+- American Bureau of Shipping → ABS
+- Bureau Veritas → BV
+- RINA → RINA
+- China Classification Society → CCS
+- Nippon Kaiji Kyokai → NK
+- Russian Maritime Register of Shipping → RS
+- Korean Register → KR
+- Vietnam Register (Đăng kiểm Việt Nam) → VR"""
+        
+        # Get dynamic mappings
+        dynamic_mappings = await get_dynamic_class_society_mappings()
+        
+        if dynamic_mappings:
+            dynamic_section = "\n\nADDITIONAL CLASS_SOCIETY ABBREVIATIONS (User-defined):"
+            for full_name, abbreviation in dynamic_mappings.items():
+                # Capitalize properly for display
+                display_name = " ".join(word.capitalize() for word in full_name.split())
+                dynamic_section += f"\n- {display_name} → {abbreviation}"
+            
+            return static_section + dynamic_section
+        else:
+            return static_section
+            
+    except Exception as e:
+        logger.error(f"Error getting updated class society prompt section: {e}")
+        # Fallback to static mappings
+        return """COMMON CLASS_SOCIETY ABBREVIATIONS:
+- Panama Maritime Documentation Services → PMDS
+- Lloyd's Register → LR  
+- DNV GL → DNV GL
+- American Bureau of Shipping → ABS
+- Bureau Veritas → BV
+- RINA → RINA
+- China Classification Society → CCS
+- Nippon Kaiji Kyokai → NK
+- Russian Maritime Register of Shipping → RS
+- Korean Register → KR
+- Vietnam Register (Đăng kiểm Việt Nam) → VR"""
+
 def validate_certificate_type(cert_type: str) -> str:
     """Validate and normalize certificate type to one of the 6 allowed types"""
     if not cert_type:
