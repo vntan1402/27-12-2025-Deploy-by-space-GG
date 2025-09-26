@@ -1279,6 +1279,28 @@ async def process_enhanced_ship_fields(ship_data: dict, is_new_ship: bool = True
                 ship_data['dry_dock_cycle'] = dry_dock_obj.dict()
                 ship_data['legacy_dry_dock_cycle'] = legacy_dry_dock
         
+        # Process Special Survey Cycle (auto-calculate from certificates if not provided)
+        current_special_survey = ship_data.get('special_survey_cycle')
+        
+        if current_special_survey:
+            # Handle case where special_survey_cycle is provided
+            if isinstance(current_special_survey, dict):
+                special_survey_obj = SpecialSurveyCycle(**current_special_survey)
+            elif hasattr(current_special_survey, 'dict'):
+                special_survey_obj = current_special_survey
+            else:
+                special_survey_obj = None
+                
+            if special_survey_obj:
+                ship_data['special_survey_cycle'] = special_survey_obj.dict()
+                
+        elif not is_new_ship and ship_id:
+            # For ship updates, try to auto-calculate Special Survey cycle from certificates
+            calculated_special_survey = await calculate_special_survey_cycle_from_certificates(ship_id)
+            if calculated_special_survey:
+                ship_data['special_survey_cycle'] = calculated_special_survey.dict()
+                logger.info(f"Auto-calculated Special Survey cycle for ship {ship_id}: {calculated_special_survey.from_date} to {calculated_special_survey.to_date}")
+        
         logger.info(f"Enhanced ship fields processed successfully for ship {'(new)' if is_new_ship else ship_id}")
         
     except Exception as e:
