@@ -974,7 +974,7 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
                 full_term_certs.append(cert)
         
         if not full_term_certs:
-            logger.info(f"No Full Term Class/Statutory certificates with expiry dates found for ship {ship_id}")
+            logger.info(f"No Full Term Class/Statutory certificates with valid dates found for ship {ship_id}")
             return None
             
         logger.info(f"Found {len(full_term_certs)} Full Term Class/Statutory certificates for anniversary calculation")
