@@ -1116,6 +1116,170 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
             if cert_type != 'Full Term':
                 continue
                 
+async def extract_last_docking_dates_from_certificates(ship_id: str) -> Dict[str, Optional[datetime]]:
+    """
+    Extract Last Docking 1 and Last Docking 2 from CSSC and DD certificates.
+    
+    Target Certificates:
+    - CSSC (Cargo Ship Safety Construction Certificate) 
+    - DD (Dry Docking certificates)
+    
+    Extraction Logic:
+    - Look for docking/dry dock dates in certificate text content
+    - Find most recent 2 docking dates
+    - Last Docking 1 = Most recent, Last Docking 2 = Second most recent
+    
+    Args:
+        ship_id: The ship ID to get certificates for
+        
+    Returns:
+        Dict with last_docking and last_docking_2 dates or None
+    """
+    try:
+        # Get all certificates for this ship
+        certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+        
+        if not certificates:
+            logger.info(f"No certificates found for ship {ship_id}")
+            return {"last_docking": None, "last_docking_2": None}
+        
+        # Filter for CSSC and Dry Docking certificates
+        docking_certs = []
+        docking_keywords = [
+            'safety construction', 'cssc', 'cargo ship safety construction',
+            'dry dock', 'dry docking', 'dd', 'docking survey', 
+            'drydock', 'dry-dock'
+        ]
+        
+        for cert in certificates:
+            cert_name = cert.get('cert_name', '').lower()
+            cert_type = cert.get('cert_type', '').strip()
+            
+            # Check if it's a docking-related certificate
+            is_docking_cert = any(keyword in cert_name for keyword in docking_keywords)
+            
+            if is_docking_cert and cert.get('text_content'):
+                docking_certs.append(cert)
+        
+        if not docking_certs:
+            logger.info(f"No CSSC or Dry Docking certificates found for ship {ship_id}")
+            return {"last_docking": None, "last_docking_2": None}
+            
+        logger.info(f"Found {len(docking_certs)} CSSC/DD certificates for docking extraction for ship {ship_id}")
+        
+        # Extract docking dates from certificate text content
+        docking_dates = []
+        
+        for cert in docking_certs:
+            cert_name = cert.get('cert_name', 'Unknown')
+            text_content = cert.get('text_content', '')
+            
+            # Extract docking dates from text content
+            extracted_dates = extract_docking_dates_from_text(text_content, cert_name)
+            
+            for date_obj in extracted_dates:
+                docking_dates.append((date_obj, cert_name))
+                logger.info(f"Extracted docking date: {date_obj.strftime('%d/%m/%Y')} from {cert_name}")
+        
+        if not docking_dates:
+            logger.info(f"No docking dates found in CSSC/DD certificates for ship {ship_id}")
+            return {"last_docking": None, "last_docking_2": None}
+        
+        # Sort docking dates by date (most recent first)
+        docking_dates.sort(key=lambda x: x[0], reverse=True)
+        
+        # Assign Last Docking 1 (most recent) and Last Docking 2 (second most recent)
+        last_docking = docking_dates[0][0] if len(docking_dates) > 0 else None
+        last_docking_2 = docking_dates[1][0] if len(docking_dates) > 1 else None
+        
+        logger.info(f"Calculated docking dates for ship {ship_id}: Last Docking 1={last_docking}, Last Docking 2={last_docking_2}")
+        
+        return {
+            "last_docking": last_docking,
+            "last_docking_2": last_docking_2
+        }
+            
+    except Exception as e:
+        logger.error(f"Error extracting docking dates from certificates for ship {ship_id}: {e}")
+        return {"last_docking": None, "last_docking_2": None}
+
+def extract_docking_dates_from_text(text_content: str, cert_name: str) -> List[datetime]:
+    """
+    Extract docking dates from certificate text content.
+    
+    Looks for patterns related to dry docking, docking surveys, and construction surveys.
+    """
+    import re
+    
+    docking_dates = []
+    
+    try:
+        # Docking-related patterns to search for
+        docking_patterns = [
+            # Direct docking date patterns
+            r"dry\s*dock(?:ing)?\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"docking\s*survey\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"last\s*dry\s*dock[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"dry\s*dock(?:ed|ing)?\s*on[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Construction survey related (for CSSC)
+            r"construction\s*survey[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"initial\s*survey[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"built\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Survey completion dates that might indicate docking
+            r"survey\s*completed[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"inspection\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Certificate issue dates for construction certificates (could indicate dry dock completion)
+            r"issued[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"certificate\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+        ]
+        
+        for pattern in docking_patterns:
+            matches = re.finditer(pattern, text_content, re.IGNORECASE)
+            for match in matches:
+                date_str = match.group(1)
+                try:
+                    parsed_date = parse_date_string(date_str)
+                    if parsed_date:
+                        # Only include dates that make sense for docking (not too old, not future)
+                        current_year = datetime.now().year
+                        if 1980 <= parsed_date.year <= current_year + 1:
+                            docking_dates.append(parsed_date)
+                            logger.info(f"Extracted docking date: {date_str} -> {parsed_date} from {cert_name}")
+                except:
+                    continue
+        
+        # For CSSC certificates, also check for construction/build dates
+        if "safety construction" in cert_name.lower() or "cssc" in cert_name.lower():
+            # Look for specific CSSC-related dates
+            cssc_patterns = [
+                r"keel\s*laid[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+                r"construction\s*commenced[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+                r"delivered[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+            ]
+            
+            for pattern in cssc_patterns:
+                matches = re.finditer(pattern, text_content, re.IGNORECASE)
+                for match in matches:
+                    date_str = match.group(1)
+                    try:
+                        parsed_date = parse_date_string(date_str)
+                        if parsed_date and 1980 <= parsed_date.year <= datetime.now().year + 1:
+                            docking_dates.append(parsed_date)
+                            logger.info(f"Extracted CSSC construction date: {date_str} -> {parsed_date} from {cert_name}")
+                    except:
+                        continue
+    
+    except Exception as e:
+        logger.warning(f"Error extracting docking dates from text: {e}")
+    
+    # Remove duplicates and return
+    unique_dates = list(set(docking_dates))
+    unique_dates.sort(reverse=True)  # Most recent first
+    
+    return unique_dates
             # Check if it's a Class certificate that determines Special Survey cycle
             is_class_cert = any(keyword in cert_name for keyword in class_keywords)
             
