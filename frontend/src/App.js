@@ -2301,7 +2301,11 @@ const HomePage = () => {
         alert(result.message || 'Unable to calculate Special Survey cycle from certificates');
       }
     } catch (error) {
-  
+      console.error('Error recalculating special survey cycle:', error);
+      alert('Failed to recalculate special survey cycle');
+    }
+  };
+
   // Last Docking dates management functions
   const handleRecalculateDockingDates = async (shipId) => {
     if (!shipId) return;
