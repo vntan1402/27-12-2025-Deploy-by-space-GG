@@ -27,31 +27,35 @@ class SpecialSurveyCycleTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for Special Survey Cycle Logic
+        # Test tracking for Special Survey Cycle Logic with Same Day/Month Requirement
         self.special_survey_tests = {
             'authentication_successful': False,
             'special_survey_endpoint_working': False,
-            'full_term_class_certificates_found': False,
-            'imo_5_year_logic_verified': False,
-            'certificate_analysis_working': False,
             'expected_certificate_found': False,
-            'date_calculation_correct': False,
+            'same_day_month_verified': False,
+            'from_date_correct': False,
+            'to_date_correct': False,
+            'date_calculation_fixed': False,
             'cycle_type_correct': False,
             'display_format_correct': False,
-            'intermediate_survey_required': False
+            'intermediate_required_true': False,
+            'leap_year_handling_tested': False
         }
         
         # Test ship ID for SUNSHINE 01 as specified in review request
         self.test_ship_id = "e21c71a2-9543-4f92-990c-72f54292fde8"
         self.test_ship_name = "SUNSHINE 01"
         
-        # Expected results from review request
+        # Expected results from review request - FOCUS ON SAME DAY/MONTH
         self.expected_certificate = "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE"
         self.expected_valid_date = "2026-03-10"
-        self.expected_from_date = "2021-03-10"
-        self.expected_to_date = "2026-03-10"
+        self.expected_from_date = "10/03/2021"  # MUST be same day/month as To Date
+        self.expected_to_date = "10/03/2026"    # From certificate valid_date
         self.expected_cycle_type = "SOLAS Safety Construction Survey Cycle"
         self.expected_display_format = "10/03/2021 - 10/03/2026"
+        
+        # Previous incorrect result that should be fixed
+        self.previous_incorrect_from_date = "09/03/2021"  # Wrong by 1 day
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
