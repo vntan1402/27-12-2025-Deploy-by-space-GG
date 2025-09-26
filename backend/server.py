@@ -1615,6 +1615,14 @@ async def process_enhanced_ship_fields(ship_data: dict, is_new_ship: bool = True
                 ship_data['last_docking_2'] = calculated_docking["last_docking_2"]
                 logger.info(f"Auto-calculated Last Docking 2 for ship {ship_id}: {calculated_docking['last_docking_2']}")
         
+        # Process Next Docking (auto-calculate from last docking if not provided)
+        if not ship_data.get('next_docking') and not is_new_ship and ship_id:
+            # Try to auto-calculate next docking from last docking dates
+            calculated_next_docking = await calculate_next_docking_for_ship(ship_id)
+            if calculated_next_docking:
+                ship_data['next_docking'] = calculated_next_docking
+                logger.info(f"Auto-calculated Next Docking for ship {ship_id}: {calculated_next_docking}")
+        
         logger.info(f"Enhanced ship fields processed successfully for ship {'(new)' if is_new_ship else ship_id}")
         
     except Exception as e:
