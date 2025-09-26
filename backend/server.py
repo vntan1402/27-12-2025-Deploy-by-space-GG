@@ -1845,6 +1845,32 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: UserRes
         existing_user = await mongo_db.find_one("users", {"id": user_id})
         if not existing_user:
             raise HTTPException(status_code=404, detail="User not found")
+        
+        # Prepare update data
+        update_data = {}
+        for field, value in user_data.dict(exclude_unset=True).items():
+            if value is not None:
+                if field == 'password':
+                    # Hash password if provided
+                    update_data['password_hash'] = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                else:
+                    update_data[field] = value
+        
+        # Update user
+        success = await mongo_db.update("users", {"id": user_id}, update_data)
+        if not success:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get updated user
+        updated_user = await mongo_db.find_one("users", {"id": user_id})
+        return UserResponse(**updated_user)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating user: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update user")
+
 @api_router.post("/ships/{ship_id}/calculate-docking-dates")
 async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     """
