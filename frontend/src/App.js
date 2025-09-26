@@ -9252,169 +9252,294 @@ const AddRecordModal = ({
 
         {/* Ship Form */}
         {recordType === 'ship' && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tên tàu' : 'Ship Name'} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={shipData.name}
-                  onChange={(e) => setShipData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Nhập tên tàu' : 'Enter ship name'}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Số IMO' : 'IMO Number'} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={shipData.imo_number}
-                  onChange={(e) => setShipData(prev => ({ ...prev, imo_number: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="1234567"
-                />
-              </div>
+          <div className="grid grid-cols-12 gap-4">
+            
+            {/* Basic Ship Information Section */}
+            <div className="col-span-12">
+              <h4 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b">
+                {language === 'vi' ? 'Thông tin cơ bản' : 'Basic Information'}
+              </h4>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tổ chức Phân cấp' : 'Class Society'} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={shipData.class_society}
-                  onChange={(e) => setShipData(prev => ({ ...prev, class_society: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="DNV GL, ABS, LR..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Cờ' : 'Flag'} *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={shipData.flag}
-                  onChange={(e) => setShipData(prev => ({ ...prev, flag: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Việt Nam, Singapore...' : 'Vietnam, Singapore...'}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tổng Dung Tích (GT)' : 'Gross Tonnage (GT)'}
-                </label>
-                <input
-                  type="number"
-                  value={shipData.gross_tonnage}
-                  onChange={(e) => setShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Trọng Tải (DWT)' : 'Deadweight (DWT)'}
-                </label>
-                <input
-                  type="number"
-                  value={shipData.deadweight}
-                  onChange={(e) => setShipData(prev => ({ ...prev, deadweight: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Năm đóng' : 'Built Year'}
-                </label>
-                <input
-                  type="number"
-                  value={shipData.built_year}
-                  onChange={(e) => setShipData(prev => ({ ...prev, built_year: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="2020"
-                />
-              </div>
-            </div>
-
-            {/* Ship Owner and Company Fields */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'} *
-                </label>
-                <select
-                  required
-                  value={shipData.ship_owner}
-                  onChange={(e) => setShipData(prev => ({ ...prev, ship_owner: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">{language === 'vi' ? 'Chọn chủ tàu' : 'Select ship owner'}</option>
-                  {availableCompanies.map(company => (
-                    <option key={company.id} value={language === 'vi' ? company.name_vn : company.name_en}>
-                      {language === 'vi' ? company.name_vn : company.name_en}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Công ty quản lý' : 'Company'} *
-                </label>
-                <div className="relative">
-                  <select
-                    required
-                    disabled
-                    value={shipData.company}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                  >
-                    <option value={shipData.company}>
-                      {shipData.company || (language === 'vi' ? 'Công ty của bạn' : 'Your company')}
-                    </option>
-                  </select>
-                  <div className="absolute right-2 top-2 text-gray-400">
-                    🔒
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' 
-                    ? 'Tự động điền từ công ty của bạn' 
-                    : 'Auto-filled from your company'
-                  }
-                </p>
-              </div>
-            </div>
-
-            {/* Keel Laid Field */}
-            <div>
+            {/* Ship Name - Full width */}
+            <div className="col-span-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Ngày đặt sống tàu' : 'Keel Laid'}
+                {language === 'vi' ? 'Tên tàu' : 'Ship Name'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={shipData.name}
+                onChange={(e) => setShipData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder={language === 'vi' ? 'Nhập tên tàu' : 'Enter ship name'}
+              />
+            </div>
+
+            {/* IMO - Short width */}
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Số IMO' : 'IMO Number'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={shipData.imo_number}
+                onChange={(e) => setShipData(prev => ({ ...prev, imo_number: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="1234567"
+              />
+            </div>
+
+            {/* Flag - Medium width */}
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Cờ' : 'Flag'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={shipData.flag}
+                onChange={(e) => setShipData(prev => ({ ...prev, flag: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder={language === 'vi' ? 'Việt Nam, Singapore...' : 'Vietnam, Singapore...'}
+              />
+            </div>
+
+            {/* Class Society - Medium width */}
+            <div className="col-span-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tổ chức Phân cấp' : 'Class Society'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={shipData.class_society}
+                onChange={(e) => setShipData(prev => ({ ...prev, class_society: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="DNV GL, ABS, LR..."
+              />
+            </div>
+
+            {/* Ship Owner - Medium width */}
+            <div className="col-span-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'} *
+              </label>
+              <select
+                required
+                value={shipData.ship_owner}
+                onChange={(e) => setShipData(prev => ({ ...prev, ship_owner: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="">{language === 'vi' ? 'Chọn chủ tàu' : 'Select ship owner'}</option>
+                {availableCompanies.map(company => (
+                  <option key={company.id} value={language === 'vi' ? company.name_vn : company.name_en}>
+                    {language === 'vi' ? company.name_vn : company.name_en}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Gross Tonnage - Short width */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'GT' : 'GT'}
+              </label>
+              <input
+                type="number"
+                value={shipData.gross_tonnage}
+                onChange={(e) => setShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="0"
+              />
+            </div>
+
+            {/* Deadweight - Short width */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'DWT' : 'DWT'}
+              </label>
+              <input
+                type="number"
+                value={shipData.deadweight}
+                onChange={(e) => setShipData(prev => ({ ...prev, deadweight: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="0"
+              />
+            </div>
+
+            {/* Built Year - Short width */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Năm đóng' : 'Built Year'}
+              </label>
+              <input
+                type="number"
+                value={shipData.built_year}
+                onChange={(e) => setShipData(prev => ({ ...prev, built_year: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="2020"
+              />
+            </div>
+
+            {/* Keel Laid - Short width */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Keel Laid' : 'Keel Laid'}
               </label>
               <input
                 type="date"
                 value={shipData.keel_laid || ''}
                 onChange={(e) => setShipData(prev => ({ ...prev, keel_laid: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                {language === 'vi' 
-                  ? 'Ngày bắt đầu xây dựng tàu (đặt sống tàu)' 
-                  : 'Date when ship construction began (keel laying)'
-                }
-              </p>
+            </div>
+
+            {/* Company - Short width (locked) */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Công ty' : 'Company'} *
+              </label>
+              <div className="relative">
+                <select
+                  required
+                  disabled
+                  value={shipData.company}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed text-sm"
+                >
+                  <option value={shipData.company}>
+                    {shipData.company || (language === 'vi' ? 'Công ty của bạn' : 'Your company')}
+                  </option>
+                </select>
+                <div className="absolute right-2 top-2 text-gray-400 text-sm">
+                  🔒
+                </div>
+              </div>
+            </div>
+
+            {/* Survey & Maintenance Section */}
+            <div className="col-span-12 mt-4">
+              <h4 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b">
+                {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng (Tùy chọn)' : 'Survey & Maintenance Information (Optional)'}
+              </h4>
+            </div>
+
+            {/* Docking Dates Row */}
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
+              </label>
+              <input
+                type="date"
+                value={shipData.last_docking || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, last_docking: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Last Docking 2' : 'Last Docking 2'}
+              </label>
+              <input
+                type="date"
+                value={shipData.last_docking_2 || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, last_docking_2: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Next Docking' : 'Next Docking'}
+              </label>
+              <input
+                type="date"
+                value={shipData.next_docking || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, next_docking: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Last Special Survey' : 'Last Special Survey'}
+              </label>
+              <input
+                type="date"
+                value={shipData.last_special_survey || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, last_special_survey: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            {/* Anniversary Date Section */}
+            <div className="col-span-6 mt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Anniversary Date' : 'Anniversary Date'}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={shipData.anniversary_date_day || ''}
+                    onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_day: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="Day"
+                  />
+                </div>
+                <div>
+                  <select
+                    value={shipData.anniversary_date_month || ''}
+                    onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_month: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  >
+                    <option value="">Month</option>
+                    <option value="1">Jan</option>
+                    <option value="2">Feb</option>
+                    <option value="3">Mar</option>
+                    <option value="4">Apr</option>
+                    <option value="5">May</option>
+                    <option value="6">Jun</option>
+                    <option value="7">Jul</option>
+                    <option value="8">Aug</option>
+                    <option value="9">Sep</option>
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Special Survey Cycle Section */}
+            <div className="col-span-6 mt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Special Survey Cycle (IMO 5-year)' : 'Special Survey Cycle (IMO 5-year)'}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="date"
+                    value={shipData.special_survey_from_date || ''}
+                    onChange={(e) => setShipData(prev => ({ ...prev, special_survey_from_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="From Date"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="date"
+                    value={shipData.special_survey_to_date || ''}
+                    onChange={(e) => setShipData(prev => ({ ...prev, special_survey_to_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    placeholder="To Date"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}
