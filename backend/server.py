@@ -177,6 +177,7 @@ class ShipUpdate(BaseModel):
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None
+    keel_laid: Optional[datetime] = None
     last_docking: Optional[datetime] = None
     last_docking_2: Optional[datetime] = None
     next_docking: Optional[datetime] = None
