@@ -117,11 +117,14 @@ class SpecialSurveyCycleTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_special_survey_cycle_calculation(self):
-        """Test the Special Survey Cycle Calculation endpoint"""
+    def test_special_survey_cycle_same_day_month(self):
+        """Test the Special Survey Cycle Calculation with Same Day/Month Requirement"""
         try:
-            self.log("🔄 Testing Special Survey Cycle Calculation...")
+            self.log("🎯 Testing Special Survey Cycle with Same Day/Month Requirement...")
             self.log(f"   Target Ship: {self.test_ship_name} (ID: {self.test_ship_id})")
+            self.log(f"   FOCUS: From Date must have same day/month as To Date")
+            self.log(f"   Expected: To Date = 10/03/2026, From Date = 10/03/2021 (same day/month)")
+            self.log(f"   Previous Issue: From Date = 09/03/2021 (wrong by 1 day)")
             
             # Test the POST /api/ships/{ship_id}/calculate-special-survey-cycle endpoint
             endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-special-survey-cycle"
@@ -142,14 +145,13 @@ class SpecialSurveyCycleTester:
                 
                 self.log(f"   Success: {success}")
                 self.log(f"   Message: {message}")
-                self.log(f"   Special Survey Cycle: {special_survey_cycle}")
                 
                 # Check if we got a successful calculation
                 if success and special_survey_cycle:
                     self.log("   ✅ Special Survey Cycle calculation successful")
                     self.special_survey_tests['special_survey_endpoint_working'] = True
                     
-                    # Verify expected results
+                    # Extract dates for same day/month verification
                     from_date = special_survey_cycle.get('from_date')
                     to_date = special_survey_cycle.get('to_date')
                     intermediate_required = special_survey_cycle.get('intermediate_required')
@@ -161,27 +163,75 @@ class SpecialSurveyCycleTester:
                     self.log(f"      Intermediate Required: {intermediate_required}")
                     self.log(f"      Cycle Type: {cycle_type}")
                     
-                    # Verify IMO 5-year logic
+                    # CRITICAL TEST: Verify Same Day/Month Requirement
                     if from_date and to_date:
                         try:
                             from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
                             to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
-                            years_diff = (to_dt - from_dt).days / 365.25
                             
-                            if 4.8 <= years_diff <= 5.2:  # Allow some tolerance for 5 years
-                                self.log(f"   ✅ IMO 5-year cycle verified ({years_diff:.1f} years)")
-                                self.special_survey_tests['imo_5_year_logic_verified'] = True
+                            from_day = from_dt.day
+                            from_month = from_dt.month
+                            to_day = to_dt.day
+                            to_month = to_dt.month
+                            
+                            self.log(f"   🔍 SAME DAY/MONTH VERIFICATION:")
+                            self.log(f"      From Date: Day={from_day}, Month={from_month}")
+                            self.log(f"      To Date: Day={to_day}, Month={to_month}")
+                            
+                            # Check if day and month are the same
+                            if from_day == to_day and from_month == to_month:
+                                self.log("   ✅ SAME DAY/MONTH REQUIREMENT VERIFIED!")
+                                self.log(f"      From Date and To Date have same day ({from_day}) and month ({from_month})")
+                                self.special_survey_tests['same_day_month_verified'] = True
                             else:
-                                self.log(f"   ⚠️ Cycle period not 5 years: {years_diff:.1f} years")
+                                self.log("   ❌ SAME DAY/MONTH REQUIREMENT FAILED!")
+                                self.log(f"      From Date: Day={from_day}, Month={from_month}")
+                                self.log(f"      To Date: Day={to_day}, Month={to_month}")
+                                self.log("      From Date and To Date should have same day and month")
+                            
+                            # Check specific expected dates
+                            from_display = from_dt.strftime('%d/%m/%Y')
+                            to_display = to_dt.strftime('%d/%m/%Y')
+                            
+                            self.log(f"   📊 Display Format: {from_display} - {to_display}")
+                            
+                            # Verify To Date matches expected (from certificate valid_date)
+                            if to_display == self.expected_to_date:
+                                self.log(f"   ✅ To Date correct: {to_display}")
+                                self.special_survey_tests['to_date_correct'] = True
+                            else:
+                                self.log(f"   ⚠️ To Date differs from expected: {self.expected_to_date}")
+                            
+                            # Verify From Date matches expected (same day/month, 5 years earlier)
+                            if from_display == self.expected_from_date:
+                                self.log(f"   ✅ From Date correct: {from_display}")
+                                self.special_survey_tests['from_date_correct'] = True
+                                self.special_survey_tests['date_calculation_fixed'] = True
+                            else:
+                                self.log(f"   ❌ From Date incorrect: {from_display}")
+                                self.log(f"      Expected: {self.expected_from_date}")
+                                if from_display == self.previous_incorrect_from_date:
+                                    self.log(f"      ⚠️ Still showing previous incorrect result: {self.previous_incorrect_from_date}")
+                                else:
+                                    self.log(f"      Different from previous incorrect result: {self.previous_incorrect_from_date}")
+                            
+                            # Verify complete display format
+                            complete_display = f"{from_display} - {to_display}"
+                            if complete_display == self.expected_display_format:
+                                self.log(f"   ✅ Complete display format correct: {complete_display}")
+                                self.special_survey_tests['display_format_correct'] = True
+                            else:
+                                self.log(f"   ⚠️ Complete display format differs from expected: {self.expected_display_format}")
+                            
                         except Exception as e:
-                            self.log(f"   ⚠️ Error parsing dates: {e}")
+                            self.log(f"   ❌ Error parsing dates for same day/month verification: {e}")
                     
                     # Verify intermediate survey requirement
                     if intermediate_required:
-                        self.log("   ✅ Intermediate Survey required = true (IMO requirement)")
-                        self.special_survey_tests['intermediate_survey_required'] = True
+                        self.log("   ✅ Intermediate Required = true")
+                        self.special_survey_tests['intermediate_required_true'] = True
                     else:
-                        self.log("   ⚠️ Intermediate Survey required should be true")
+                        self.log("   ⚠️ Intermediate Required should be true")
                     
                     # Verify cycle type
                     if cycle_type and "SOLAS" in cycle_type and "Safety Construction" in cycle_type:
@@ -189,22 +239,6 @@ class SpecialSurveyCycleTester:
                         self.special_survey_tests['cycle_type_correct'] = True
                     else:
                         self.log(f"   ⚠️ Cycle Type may not be correct: {cycle_type}")
-                    
-                    # Verify display format
-                    if from_date and to_date:
-                        try:
-                            from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
-                            to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
-                            display_format = f"{from_dt.strftime('%d/%m/%Y')} - {to_dt.strftime('%d/%m/%Y')}"
-                            
-                            self.log(f"   📊 Display Format: {display_format}")
-                            if display_format == self.expected_display_format:
-                                self.log("   ✅ Display format matches expected format")
-                                self.special_survey_tests['display_format_correct'] = True
-                            else:
-                                self.log(f"   ⚠️ Display format differs from expected: {self.expected_display_format}")
-                        except Exception as e:
-                            self.log(f"   ⚠️ Error formatting display: {e}")
                 
                 else:
                     self.log("   ❌ Special Survey Cycle calculation failed or returned no data")
@@ -224,7 +258,7 @@ class SpecialSurveyCycleTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Special Survey Cycle Calculation test error: {str(e)}", "ERROR")
+            self.log(f"❌ Special Survey Cycle same day/month test error: {str(e)}", "ERROR")
             return False
     
     def test_certificate_analysis_for_special_survey(self):
