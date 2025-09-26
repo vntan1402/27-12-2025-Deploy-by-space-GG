@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Enhanced AI Certificate Analysis Testing
-Review Request: Test the enhanced AI extraction with the real SUNSHINE 01 CSSC certificate that the user uploaded.
+FOCUS: Date Formatting Fixes in AI Extraction
+Review Request: Test the improved AI extraction with date formatting fixes using the SUNSHINE 01 certificate.
 """
 
 import requests
