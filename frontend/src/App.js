@@ -8932,6 +8932,7 @@ const AddRecordModal = ({
         ship_type: shipData.class_society?.trim() || '', // Frontend uses class_society, backend expects ship_type
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
+        keel_laid: shipData.keel_laid || null,
         ship_owner: shipData.ship_owner?.trim() || '',
         company: shipData.company?.trim() || user?.company || ''
       };
