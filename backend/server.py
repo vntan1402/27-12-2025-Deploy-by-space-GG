@@ -2033,6 +2033,10 @@ async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse =
     except Exception as e:
         logger.error(f"Error calculating next docking for ship {ship_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to calculate next docking date")
+
+@api_router.get("/users/query", response_model=List[UserResponse])
+async def query_users(
+    company: Optional[str] = None,
     department: Optional[str] = None, 
     ship: Optional[str] = None,
     sort_by: Optional[str] = "full_name",
