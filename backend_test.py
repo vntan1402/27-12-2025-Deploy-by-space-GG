@@ -183,10 +183,11 @@ class EnhancedDockingExtractionTester:
             self.log(f"❌ Backend startup verification error: {str(e)}", "ERROR")
             return False
 
-    def test_cssc_certificate_detection(self):
-        """Test CSSC Certificate Detection and Filtering"""
+    def test_enhanced_cssc_bottom_inspection_extraction(self):
+        """Test Enhanced CSSC Bottom Inspection Extraction"""
         try:
-            self.log("🔍 Testing CSSC Certificate Detection and Filtering...")
+            self.log("🔍 Testing Enhanced CSSC Bottom Inspection Extraction...")
+            self.log("   Focus: 'inspections of the outside of the ship's bottom' patterns")
             
             # Get certificates for SUNSHINE 01 ship
             endpoint = f"{BACKEND_URL}/certificates"
@@ -200,68 +201,51 @@ class EnhancedDockingExtractionTester:
                 certificates = response.json()
                 self.log(f"   ✅ Retrieved {len(certificates)} certificates for {self.test_ship_name}")
                 
-                # Look for CSSC and docking-related certificates
+                # Look for CSSC certificates specifically
                 cssc_certificates = []
-                docking_certificates = []
                 
                 for cert in certificates:
                     cert_name = cert.get('cert_name', '').lower()
                     
-                    # Check for CSSC certificate
+                    # Check for CSSC certificate (CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE)
                     if "cargo ship safety construction certificate" in cert_name:
                         cssc_certificates.append(cert)
                         self.log(f"   ✅ Found CSSC: {cert.get('cert_name')}")
-                    
-                    # Check for docking-related keywords
-                    for keyword in self.expected_keywords:
-                        if keyword in cert_name:
-                            docking_certificates.append(cert)
-                            self.log(f"   ✅ Found docking-related cert ('{keyword}'): {cert.get('cert_name')}")
-                            break
                 
                 if cssc_certificates:
                     self.log(f"   ✅ CSSC Certificate Detection successful ({len(cssc_certificates)} found)")
                     self.docking_tests['cssc_certificate_found'] = True
                     
-                    # Analyze the first CSSC certificate
-                    cssc_cert = cssc_certificates[0]
-                    self.log(f"   📊 CSSC Certificate Analysis:")
-                    self.log(f"      Name: {cssc_cert.get('cert_name')}")
-                    self.log(f"      Type: {cssc_cert.get('cert_type')}")
-                    self.log(f"      Issue Date: {cssc_cert.get('issue_date')}")
-                    self.log(f"      Valid Date: {cssc_cert.get('valid_date')}")
-                    self.log(f"      Has Text Content: {bool(cssc_cert.get('text_content'))}")
-                    
-                    # Check if certificate has text content for date extraction
-                    if cssc_cert.get('text_content'):
-                        self.log("   ✅ CSSC certificate has text content for date extraction")
+                    # Test enhanced CSSC bottom inspection patterns
+                    for cssc_cert in cssc_certificates:
+                        self.log(f"   📊 Analyzing CSSC Certificate: {cssc_cert.get('cert_name')}")
+                        self.log(f"      Type: {cssc_cert.get('cert_type')}")
+                        self.log(f"      Issue Date: {cssc_cert.get('issue_date')}")
+                        self.log(f"      Valid Date: {cssc_cert.get('valid_date')}")
+                        
                         text_content = cssc_cert.get('text_content', '')
-                        
-                        # Test date extraction patterns
-                        date_patterns_found = []
-                        for pattern in self.expected_date_patterns:
-                            if pattern.replace(' ', '') in text_content.lower().replace(' ', ''):
-                                date_patterns_found.append(pattern)
-                        
-                        if date_patterns_found:
-                            self.log(f"   ✅ Date extraction patterns found: {date_patterns_found}")
-                            self.docking_tests['date_extraction_patterns_working'] = True
+                        if text_content:
+                            self.log("   ✅ CSSC certificate has text content for enhanced pattern matching")
+                            
+                            # Test enhanced CSSC bottom inspection patterns
+                            bottom_patterns_found = []
+                            for pattern in self.cssc_bottom_patterns:
+                                if pattern.lower() in text_content.lower():
+                                    bottom_patterns_found.append(pattern)
+                                    self.log(f"      ✅ Found CSSC bottom pattern: '{pattern}'")
+                            
+                            if bottom_patterns_found:
+                                self.log(f"   ✅ Enhanced CSSC bottom inspection patterns working: {len(bottom_patterns_found)} patterns found")
+                                self.docking_tests['cssc_bottom_inspection_patterns_working'] = True
+                            else:
+                                self.log("   ⚠️ No enhanced CSSC bottom inspection patterns found")
                         else:
-                            self.log("   ⚠️ No expected date patterns found in certificate text")
-                    else:
-                        self.log("   ⚠️ CSSC certificate has no text content")
+                            self.log("   ⚠️ CSSC certificate has no text content for pattern matching")
                 
-                if docking_certificates:
-                    self.log(f"   ✅ Certificate Filtering working ({len(docking_certificates)} docking-related certificates)")
-                    self.docking_tests['certificate_filtering_working'] = True
-                else:
-                    self.log("   ⚠️ No docking-related certificates found with expected keywords")
-                
-                self.test_results['certificate_analysis'] = {
+                self.test_results['cssc_analysis'] = {
                     'total_certificates': len(certificates),
                     'cssc_certificates': len(cssc_certificates),
-                    'docking_certificates': len(docking_certificates),
-                    'cssc_cert_details': cssc_certificates[0] if cssc_certificates else None
+                    'cssc_cert_details': cssc_certificates
                 }
                 
                 return True
@@ -271,7 +255,7 @@ class EnhancedDockingExtractionTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ CSSC certificate detection test error: {str(e)}", "ERROR")
+            self.log(f"❌ Enhanced CSSC bottom inspection test error: {str(e)}", "ERROR")
             return False
 
     def test_certificate_text_parsing(self):
