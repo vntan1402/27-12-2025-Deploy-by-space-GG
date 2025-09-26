@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Enhanced Ship Creation Form Testing
-Review Request: Test the enhanced Ship Creation form with complete field coverage including new field integration testing, backend model compatibility, ship creation API testing, and AI extraction fields verification.
+FOCUS: Enhanced AI Certificate Analysis Testing
+Review Request: Test the enhanced AI extraction with the real SUNSHINE 01 CSSC certificate that the user uploaded.
 """
 
 import requests
@@ -12,9 +12,11 @@ import sys
 from datetime import datetime, timedelta
 import time
 import traceback
+import tempfile
+from urllib.parse import urlparse
 
-# Configuration - Use local backend URL for testing
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use environment variable for backend URL
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marine-cert-system.preview.emergentagent.com') + '/api'
 
 class ShipCreationTester:
     def __init__(self):
