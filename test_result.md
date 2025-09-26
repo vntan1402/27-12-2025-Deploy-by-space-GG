@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test anniversary date and dry dock cycle enhancements with Lloyd's maritime standards compliance"
+user_problem_statement: "Test the enhanced AI extraction with the real SUNSHINE 01 CSSC certificate that the user uploaded"
 
 backend:
   - task: "Ship Retrieval with Enhanced Data Structures"
