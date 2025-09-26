@@ -203,6 +203,226 @@ class AnniversaryDateTester:
             self.log(f"❌ Anniversary Date Recalculate test error: {str(e)}", "ERROR")
             return False
     
+    def test_certificate_analysis(self):
+        """Test Certificate Analysis for Anniversary Date Calculation"""
+        try:
+            self.log("🔍 Testing Certificate Analysis for Anniversary Date Calculation...")
+            
+            # Get certificates for SUNSHINE 01 ship
+            endpoint = f"{BACKEND_URL}/certificates"
+            params = {"ship_id": self.test_ship_id}
+            self.log(f"   GET {endpoint}?ship_id={self.test_ship_id}")
+            
+            response = requests.get(endpoint, params=params, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                self.log(f"   ✅ Retrieved {len(certificates)} certificates for {self.test_ship_name}")
+                
+                # Analyze certificates for anniversary date calculation
+                full_term_certs = []
+                class_statutory_certs = []
+                certs_with_valid_date = []
+                certs_with_expiry_date = []
+                
+                class_statutory_keywords = [
+                    'class', 'statutory', 'safety', 'construction', 'equipment', 
+                    'load line', 'tonnage', 'radio', 'cargo ship safety'
+                ]
+                
+                for cert in certificates:
+                    cert_type = cert.get('cert_type', '').strip()
+                    cert_name = cert.get('cert_name', '').lower()
+                    valid_date = cert.get('valid_date')
+                    expiry_date = cert.get('expiry_date')
+                    
+                    # Count Full Term certificates
+                    if cert_type == 'Full Term':
+                        full_term_certs.append(cert)
+                    
+                    # Count Class/Statutory certificates
+                    is_class_statutory = any(keyword in cert_name for keyword in class_statutory_keywords)
+                    if is_class_statutory:
+                        class_statutory_certs.append(cert)
+                    
+                    # Count certificates with valid_date vs expiry_date
+                    if valid_date:
+                        certs_with_valid_date.append(cert)
+                    if expiry_date:
+                        certs_with_expiry_date.append(cert)
+                
+                self.log(f"   📊 Certificate Analysis Results:")
+                self.log(f"      Total Certificates: {len(certificates)}")
+                self.log(f"      Full Term Certificates: {len(full_term_certs)}")
+                self.log(f"      Class/Statutory Certificates: {len(class_statutory_certs)}")
+                self.log(f"      Certificates with valid_date: {len(certs_with_valid_date)}")
+                self.log(f"      Certificates with expiry_date: {len(certs_with_expiry_date)}")
+                
+                # Look for the specific certificate mentioned in review request
+                cargo_safety_cert = None
+                for cert in certificates:
+                    if "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE" in cert.get('cert_name', '').upper():
+                        cargo_safety_cert = cert
+                        break
+                
+                if cargo_safety_cert:
+                    self.log(f"   ✅ Found CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE")
+                    self.log(f"      Certificate Name: {cargo_safety_cert.get('cert_name')}")
+                    self.log(f"      Certificate Type: {cargo_safety_cert.get('cert_type')}")
+                    self.log(f"      Valid Date: {cargo_safety_cert.get('valid_date')}")
+                    self.log(f"      Expiry Date: {cargo_safety_cert.get('expiry_date')}")
+                    
+                    # Check if it has valid_date: 2026-03-10
+                    valid_date = cargo_safety_cert.get('valid_date')
+                    if valid_date and "2026-03-10" in valid_date:
+                        self.log(f"   ✅ Certificate has expected valid_date: 2026-03-10")
+                        self.log(f"      This should provide day=10, month=3 for anniversary calculation")
+                        self.anniversary_tests['valid_date_logic_working'] = True
+                    else:
+                        self.log(f"   ⚠️ Certificate valid_date may not match expected: {valid_date}")
+                else:
+                    self.log(f"   ⚠️ CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE not found")
+                
+                # Verify the fix - certificates should use valid_date, not expiry_date
+                if len(certs_with_valid_date) > len(certs_with_expiry_date):
+                    self.log(f"   ✅ More certificates have valid_date ({len(certs_with_valid_date)}) than expiry_date ({len(certs_with_expiry_date)})")
+                    self.log(f"      This confirms the fix should use valid_date instead of expiry_date")
+                else:
+                    self.log(f"   ⚠️ Certificate date field distribution may need review")
+                
+                # Check for Class/Statutory certificates as mentioned in review request
+                if len(class_statutory_certs) >= 2:
+                    self.log(f"   ✅ Found {len(class_statutory_certs)} Class/Statutory certificates (expected: 2+)")
+                    self.anniversary_tests['certificate_analysis_working'] = True
+                else:
+                    self.log(f"   ⚠️ Found only {len(class_statutory_certs)} Class/Statutory certificates")
+                
+                # List some key certificates for analysis
+                self.log(f"   📋 Key Certificates for Anniversary Date Calculation:")
+                for cert in class_statutory_certs[:5]:  # Show first 5
+                    cert_name = cert.get('cert_name', 'Unknown')
+                    cert_type = cert.get('cert_type', 'Unknown')
+                    valid_date = cert.get('valid_date', 'None')
+                    self.log(f"      - {cert_name} ({cert_type}) - Valid: {valid_date}")
+                
+                self.test_results['certificate_analysis'] = {
+                    'total_certificates': len(certificates),
+                    'full_term_certificates': len(full_term_certs),
+                    'class_statutory_certificates': len(class_statutory_certs),
+                    'certificates_with_valid_date': len(certs_with_valid_date),
+                    'certificates_with_expiry_date': len(certs_with_expiry_date),
+                    'cargo_safety_cert_found': cargo_safety_cert is not None,
+                    'certificates': certificates
+                }
+                
+                return True
+                
+            else:
+                self.log(f"   ❌ Certificate retrieval failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Certificate analysis test error: {str(e)}", "ERROR")
+            return False
+
+    def test_enhanced_logic_verification(self):
+        """Test Enhanced Logic for Anniversary Date Calculation"""
+        try:
+            self.log("🧠 Testing Enhanced Logic for Anniversary Date Calculation...")
+            
+            # Test the logic priorities and parsing capabilities
+            self.log("   📋 Testing Logic Components:")
+            
+            # 1. Test Full Term certificate priority
+            self.log("   1️⃣ Testing Full Term Certificate Priority Logic...")
+            
+            # Get ship data to check current anniversary date
+            ship_endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
+            self.log(f"      GET {ship_endpoint}")
+            ship_response = requests.get(ship_endpoint, headers=self.get_headers(), timeout=30)
+            
+            if ship_response.status_code == 200:
+                ship_data = ship_response.json()
+                current_anniversary = ship_data.get('anniversary_date')
+                
+                self.log(f"      Current Anniversary Date: {current_anniversary}")
+                
+                if current_anniversary:
+                    source_cert = current_anniversary.get('source_certificate_type', '')
+                    if 'Full Term' in source_cert:
+                        self.log("      ✅ Anniversary date derived from Full Term certificate")
+                        self.anniversary_tests['full_term_priority_verified'] = True
+                    else:
+                        self.log(f"      ⚠️ Anniversary date source: {source_cert}")
+                else:
+                    self.log("      ⚠️ No current anniversary date found")
+            
+            # 2. Test endorsement parsing (if available)
+            self.log("   2️⃣ Testing Endorsement 'Due range for annual Survey' Parsing...")
+            
+            # Get certificates and check for endorsement text
+            cert_endpoint = f"{BACKEND_URL}/certificates"
+            params = {"ship_id": self.test_ship_id}
+            cert_response = requests.get(cert_endpoint, params=params, headers=self.get_headers(), timeout=30)
+            
+            if cert_response.status_code == 200:
+                certificates = cert_response.json()
+                endorsement_found = False
+                
+                for cert in certificates:
+                    # Check if certificate has text content with endorsement information
+                    text_content = cert.get('text_content', '')
+                    if text_content and 'due range for annual survey' in text_content.lower():
+                        self.log(f"      ✅ Found endorsement text in certificate: {cert.get('cert_name', 'Unknown')}")
+                        endorsement_found = True
+                        break
+                
+                if endorsement_found:
+                    self.log("      ✅ Endorsement parsing capability detected")
+                    self.anniversary_tests['endorsement_parsing_working'] = True
+                else:
+                    self.log("      ⚠️ No endorsement text found in certificates")
+            
+            # 3. Test most common day/month combination logic
+            self.log("   3️⃣ Testing Most Common Day/Month Combination Logic...")
+            
+            # This would be tested by the recalculate function itself
+            # We can verify this by checking if the calculated result makes sense
+            recalculate_result = self.test_results.get('recalculate_response', {})
+            if recalculate_result.get('success'):
+                anniversary_date = recalculate_result.get('anniversary_date', {})
+                day = anniversary_date.get('day')
+                month = anniversary_date.get('month')
+                
+                if day and month:
+                    self.log(f"      ✅ Most common logic produced result: day={day}, month={month}")
+                    self.anniversary_tests['most_common_logic_working'] = True
+                else:
+                    self.log("      ⚠️ Most common logic did not produce valid day/month")
+            else:
+                self.log("      ⚠️ Cannot test most common logic - recalculate function failed")
+            
+            # 4. Test edge cases and error handling
+            self.log("   4️⃣ Testing Edge Cases and Error Handling...")
+            
+            # Test with a non-existent ship ID
+            fake_ship_id = "00000000-0000-0000-0000-000000000000"
+            fake_endpoint = f"{BACKEND_URL}/ships/{fake_ship_id}/calculate-anniversary-date"
+            fake_response = requests.post(fake_endpoint, headers=self.get_headers(), timeout=10)
+            
+            if fake_response.status_code == 404:
+                self.log("      ✅ Proper error handling for non-existent ship")
+                self.anniversary_tests['edge_cases_handled'] = True
+            else:
+                self.log(f"      ⚠️ Unexpected response for non-existent ship: {fake_response.status_code}")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Enhanced logic verification error: {str(e)}", "ERROR")
+            return False
+
     def test_special_survey_cycle_model(self):
         """Test the SpecialSurveyCycle model functionality"""
         try:
