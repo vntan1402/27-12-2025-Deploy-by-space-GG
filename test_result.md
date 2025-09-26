@@ -331,13 +331,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Ship Retrieval with Enhanced Data Structures"
-    - "Anniversary Date Calculation Endpoint"
-    - "Anniversary Date Override Endpoint"
-    - "Ship Update with Enhanced Fields"
-    - "Lloyd's Maritime Standards Compliance"
-    - "Day/Month Validation"
-    - "Special Survey Cycle Calculation with IMO Standards"
+    - "Enhanced AI Certificate Analysis with Real SUNSHINE 01 CSSC Certificate"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
