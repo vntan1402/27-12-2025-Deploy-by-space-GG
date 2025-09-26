@@ -1360,11 +1360,7 @@ class SpecialSurveyCycleTester:
             
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
-            return Falseisplay_format_correct') else '❌'}")
-            self.log(f"   9. Intermediate Survey Required: {'✅' if self.special_survey_tests.get('intermediate_survey_required') else '❌'}")
-                
-        except Exception as e:
-            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
+            return False
 
 def main():
     """Main test execution"""
