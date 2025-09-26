@@ -54,12 +54,38 @@ class EnhancedDockingExtractionTester:
         self.test_ship_id = "e21c71a2-9543-4f92-990c-72f54292fde8"
         self.test_ship_name = "SUNSHINE 01"
         
-        # Expected results from review request
+        # Enhanced patterns from review request
         self.expected_certificate = "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE"
-        self.expected_keywords = ['safety construction', 'cssc', 'dry dock', 'dd', 'docking survey']
-        self.expected_date_patterns = [
-            'dry dock date', 'docking survey date', 'construction survey', 'issued date'
+        
+        # Enhanced pattern categories (20+ patterns)
+        self.cssc_bottom_patterns = [
+            "inspections of the outside of the ship's bottom",
+            "bottom inspection", 
+            "hull bottom survey",
+            "outside of ship's bottom",
+            "ship bottom inspection"
         ]
+        
+        self.survey_status_patterns = [
+            "survey status...docking",
+            "docking inspection status", 
+            "status...dry dock",
+            "survey status docking",
+            "docking survey status"
+        ]
+        
+        self.general_docking_patterns = [
+            "dry dock date",
+            "docking survey date", 
+            "construction survey",
+            "last dry dock",
+            "docking inspection",
+            "hull survey",
+            "bottom survey"
+        ]
+        
+        # Priority order: CSSC Bottom → Survey Status → General Docking
+        self.pattern_priority = ["CSSC Bottom", "Survey Status", "General Docking"]
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
