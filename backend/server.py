@@ -1173,11 +1173,6 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
         logger.error(f"Error calculating Special Survey cycle from certificates for ship {ship_id}: {e}")
         
     return None
-    Args:
-        legacy_months: Original months field (typically 60)
-        last_special_survey: Date of last special survey to calculate cycle from
-        
-    Returns:
         DryDockCycle object or None
     """
     if not legacy_months:
