@@ -555,14 +555,14 @@ class AnniversaryDateTester:
                 # Verify data consistency
                 if intact_ships == len(ships):
                     self.log("   ✅ All existing ship data remains intact")
-                    self.layout_tests['data_consistency_verified'] = True
+                    self.anniversary_tests['data_consistency_verified'] = True
                 else:
                     self.log(f"   ⚠️ Some ships have data integrity issues: {len(ships) - intact_ships} affected")
                 
                 # Verify backward compatibility
                 if ships_with_legacy_fields > 0:
                     self.log("   ✅ Backward compatibility maintained - legacy fields preserved")
-                    self.layout_tests['backward_compatibility_verified'] = True
+                    self.anniversary_tests['backward_compatibility_verified'] = True
                 else:
                     self.log("   ⚠️ No legacy fields found - may indicate migration issues")
                 
