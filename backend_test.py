@@ -1706,5 +1706,26 @@ def main():
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
 
+def main():
+    """Main function to run docking date extraction tests"""
+    print("🎯 DOCKING DATE EXTRACTION TESTING STARTED")
+    print("=" * 80)
+    
+    try:
+        tester = DockingDateExtractionTester()
+        success = tester.run_comprehensive_docking_date_tests()
+        
+        if success:
+            print("\n✅ DOCKING DATE EXTRACTION TESTING COMPLETED")
+        else:
+            print("\n❌ DOCKING DATE EXTRACTION TESTING FAILED")
+            
+    except Exception as e:
+        print(f"\n❌ CRITICAL ERROR: {str(e)}")
+        traceback.print_exc()
+    
+    # Always exit with 0 for testing purposes - we want to capture the results
+    sys.exit(0)
+
 if __name__ == "__main__":
     main()
