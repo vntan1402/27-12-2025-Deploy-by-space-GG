@@ -110,125 +110,97 @@ class AnniversaryDateTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_ship_retrieval_with_new_fields(self):
-        """Test ship retrieval to verify new field structure for 3-column layout"""
+    def test_anniversary_date_recalculate_function(self):
+        """Test the fixed Anniversary Date Recalculate Function"""
         try:
-            self.log("🚢 Testing ship retrieval with new field structure for 3-column layout...")
+            self.log("🔄 Testing Anniversary Date Recalculate Function...")
+            self.log(f"   Target Ship: {self.test_ship_name} (ID: {self.test_ship_id})")
             
-            # Test 1: Get all ships
-            endpoint = f"{BACKEND_URL}/ships"
-            self.log(f"   GET {endpoint}")
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            # Test the POST /api/ships/{ship_id}/calculate-anniversary-date endpoint
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-anniversary-date"
+            self.log(f"   POST {endpoint}")
+            
+            response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                ships = response.json()
-                self.log(f"   ✅ Retrieved {len(ships)} ships")
+                result = response.json()
+                self.log("   ✅ Anniversary Date Recalculate endpoint responded successfully")
+                self.log(f"   📊 Response: {json.dumps(result, indent=2)}")
                 
-                # Look for SUNSHINE 01 ship
-                sunshine_ship = None
-                for ship in ships:
-                    if ship.get('id') == self.test_ship_id or ship.get('name') == self.test_ship_name:
-                        sunshine_ship = ship
-                        break
+                # Check if the function is working (no error message)
+                success = result.get('success', False)
+                message = result.get('message', '')
+                anniversary_date = result.get('anniversary_date')
                 
-                if sunshine_ship:
-                    self.log(f"   ✅ Found {self.test_ship_name} ship")
-                    self.log(f"      Ship ID: {sunshine_ship.get('id')}")
-                    self.log(f"      Ship Name: {sunshine_ship.get('name')}")
-                    
-                    # Verify 3-column layout fields according to review request
-                    self.log("   📋 Verifying 3-column layout fields:")
-                    
-                    # Column 1: IMO, Ship Owner, Deadweight
-                    imo = sunshine_ship.get('imo')
-                    ship_owner = sunshine_ship.get('ship_owner')
-                    deadweight = sunshine_ship.get('deadweight')
-                    self.log(f"      Column 1 - IMO: {imo}")
-                    self.log(f"      Column 1 - Ship Owner: {ship_owner}")
-                    self.log(f"      Column 1 - Deadweight: {deadweight}")
-                    
-                    # Column 2: Built Year, Last Docking, Dry Dock Cycle
-                    built_year = sunshine_ship.get('built_year')
-                    last_docking = sunshine_ship.get('last_docking')
-                    dry_dock_cycle = sunshine_ship.get('dry_dock_cycle')
-                    self.log(f"      Column 2 - Built Year: {built_year}")
-                    self.log(f"      Column 2 - Last Docking: {last_docking}")
-                    self.log(f"      Column 2 - Dry Dock Cycle: {dry_dock_cycle}")
-                    
-                    # Column 3: Anniversary Date, Last Special Survey, Special Survey Cycle
-                    anniversary_date = sunshine_ship.get('anniversary_date')
-                    last_special_survey = sunshine_ship.get('last_special_survey')
-                    special_survey_cycle = sunshine_ship.get('special_survey_cycle')
-                    self.log(f"      Column 3 - Anniversary Date: {anniversary_date}")
-                    self.log(f"      Column 3 - Last Special Survey: {last_special_survey}")
-                    self.log(f"      Column 3 - Special Survey Cycle: {special_survey_cycle}")
-                    
-                    # Verify special_survey_cycle field is present (key requirement)
-                    if special_survey_cycle is not None:
-                        self.log("   ✅ Special Survey Cycle field is present in ship model")
-                        self.layout_tests['special_survey_cycle_field_verified'] = True
-                        
-                        # Check structure of special_survey_cycle
-                        if isinstance(special_survey_cycle, dict):
-                            self.log(f"      Special Survey Cycle structure: {special_survey_cycle}")
-                            cycle_fields = ['from_date', 'to_date', 'intermediate_required', 'cycle_type']
-                            for field in cycle_fields:
-                                if field in special_survey_cycle:
-                                    self.log(f"         ✅ {field}: {special_survey_cycle.get(field)}")
-                                else:
-                                    self.log(f"         ⚠️ {field}: Not present")
-                            self.layout_tests['special_survey_cycle_model_working'] = True
-                    else:
-                        self.log("   ⚠️ Special Survey Cycle field is not present in ship model")
-                    
-                    # Verify dry dock cycle format (dd/MM/yyyy format requirement)
-                    if dry_dock_cycle and isinstance(dry_dock_cycle, dict):
-                        from_date = dry_dock_cycle.get('from_date')
-                        to_date = dry_dock_cycle.get('to_date')
-                        if from_date and to_date:
-                            self.log(f"   ✅ Dry Dock Cycle format verified: {from_date} to {to_date}")
-                            self.layout_tests['dry_dock_cycle_format_verified'] = True
-                    
-                    # Check if all 3-column fields are present
-                    all_fields_present = all([
-                        imo is not None, ship_owner is not None, deadweight is not None,
-                        built_year is not None, last_docking is not None, dry_dock_cycle is not None,
-                        anniversary_date is not None, last_special_survey is not None, special_survey_cycle is not None
-                    ])
-                    
-                    if all_fields_present:
-                        self.log("   ✅ All 3-column layout fields are present")
-                        self.layout_tests['three_column_fields_present'] = True
-                    else:
-                        self.log("   ⚠️ Some 3-column layout fields are missing")
-                    
-                    self.test_results['sunshine_ship_data'] = sunshine_ship
-                    self.layout_tests['sunshine_01_ship_data_verified'] = True
+                self.log(f"   Success: {success}")
+                self.log(f"   Message: {message}")
+                self.log(f"   Anniversary Date: {anniversary_date}")
+                
+                # Verify the fix - should not get "Unable to calculate anniversary date from certificates"
+                if "Unable to calculate anniversary date from certificates" not in message:
+                    self.log("   ✅ No error message about unable to calculate - fix appears to be working")
+                    self.anniversary_tests['no_error_message_confirmed'] = True
                 else:
-                    self.log(f"   ⚠️ {self.test_ship_name} ship not found")
+                    self.log("   ❌ Still getting error message - fix may not be working")
                 
-                # Test 2: Get specific ship by ID
-                if sunshine_ship:
-                    ship_endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
-                    self.log(f"   GET {ship_endpoint}")
-                    ship_response = requests.get(ship_endpoint, headers=self.get_headers(), timeout=30)
+                # Check if we got a successful calculation
+                if success and anniversary_date:
+                    self.log("   ✅ Anniversary date calculation successful")
+                    self.anniversary_tests['recalculate_function_fixed'] = True
                     
-                    if ship_response.status_code == 200:
-                        ship_data = ship_response.json()
-                        self.log("   ✅ Individual ship retrieval successful")
-                        self.log(f"      New fields present: {bool(ship_data.get('special_survey_cycle'))}")
-                        self.layout_tests['ship_retrieval_with_new_fields_tested'] = True
+                    # Verify expected results (day=10, month=3)
+                    calculated_day = anniversary_date.get('day')
+                    calculated_month = anniversary_date.get('month')
+                    source_cert = anniversary_date.get('source_certificate_type', '')
+                    auto_calculated = anniversary_date.get('auto_calculated', False)
+                    manual_override = anniversary_date.get('manual_override', True)
+                    
+                    self.log(f"   📊 Calculated Anniversary Date:")
+                    self.log(f"      Day: {calculated_day} (Expected: {self.expected_day})")
+                    self.log(f"      Month: {calculated_month} (Expected: {self.expected_month})")
+                    self.log(f"      Source Certificate: {source_cert}")
+                    self.log(f"      Auto Calculated: {auto_calculated}")
+                    self.log(f"      Manual Override: {manual_override}")
+                    
+                    # Verify expected results
+                    if calculated_day == self.expected_day and calculated_month == self.expected_month:
+                        self.log("   ✅ Expected anniversary date results verified (day=10, month=3)")
+                        self.anniversary_tests['expected_result_verified'] = True
                     else:
-                        self.log(f"   ❌ Individual ship retrieval failed: {ship_response.status_code}")
+                        self.log(f"   ⚠️ Anniversary date results differ from expected (got {calculated_day}/{calculated_month})")
+                    
+                    # Verify auto_calculated=true and manual_override=false
+                    if auto_calculated and not manual_override:
+                        self.log("   ✅ Auto-calculated=true and manual_override=false verified")
+                    else:
+                        self.log(f"   ⚠️ Auto-calculated or manual_override flags not as expected")
+                    
+                    # Check if source certificate type is set correctly
+                    if source_cert and "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE" in source_cert:
+                        self.log("   ✅ Source certificate type correctly identified")
+                    else:
+                        self.log(f"   ⚠️ Source certificate type may not be correct: {source_cert}")
                 
+                else:
+                    self.log("   ❌ Anniversary date calculation failed or returned no data")
+                    self.log(f"      Success: {success}")
+                    self.log(f"      Message: {message}")
+                
+                self.test_results['recalculate_response'] = result
                 return True
+                
             else:
-                self.log(f"   ❌ Ship retrieval failed: {response.status_code}")
+                self.log(f"   ❌ Anniversary Date Recalculate failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Ship retrieval test error: {str(e)}", "ERROR")
+            self.log(f"❌ Anniversary Date Recalculate test error: {str(e)}", "ERROR")
             return False
     
     def test_special_survey_cycle_model(self):
