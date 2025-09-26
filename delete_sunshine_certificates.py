@@ -63,8 +63,8 @@ async def delete_sunshine_01_certificates():
     except Exception as e:
         print(f"❌ Error: {str(e)}")
     finally:
-        # Close MongoDB connection
-        await mongo_db.close()
+        # MongoDB connection will be handled automatically
+        pass
 
 if __name__ == "__main__":
     # Load environment variables
