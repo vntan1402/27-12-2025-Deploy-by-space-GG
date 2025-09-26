@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Docking Date Extraction Logic Testing from CSSC and DD Certificates
-Review Request: Test docking date extraction logic sau khi fix syntax error
+FOCUS: Enhanced Docking Extraction Logic với CSSC "inspections of the outside of the ship's bottom" và Survey Status
+Review Request: Test enhanced docking extraction logic với CSSC "inspections of the outside of the ship's bottom" và Survey Status
 """
 
 import requests
