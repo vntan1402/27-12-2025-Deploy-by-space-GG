@@ -2594,7 +2594,16 @@ const HomePage = () => {
                               <div className="space-y-3">
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 1:' : 'Last Docking 1:'}</span>
-                                  <div className="mt-1">{formatDate(selectedShip.last_docking) || '-'}</div>
+                                  <div className="mt-1 flex items-center space-x-2">
+                                    <span>{formatDate(selectedShip.last_docking) || '-'}</span>
+                                    <button
+                                      onClick={() => handleRecalculateDockingDates(selectedShip.id)}
+                                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                      title="Recalculate from CSSC/DD certificates"
+                                    >
+                                      ↻
+                                    </button>
+                                  </div>
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 2:' : 'Last Docking 2:'}</span>
