@@ -151,6 +151,7 @@ class ShipBase(BaseModel):
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None
+    keel_laid: Optional[datetime] = None  # Keel laid date (start of ship construction)
     last_docking: Optional[datetime] = None  # Last dry docking date (Docking 1)
     last_docking_2: Optional[datetime] = None  # Second last dry docking date (Docking 2)
     next_docking: Optional[datetime] = None  # Next scheduled docking date (IMO: max 30 months from last docking)
