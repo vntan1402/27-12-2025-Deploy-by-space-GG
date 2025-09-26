@@ -841,6 +841,15 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
             return 0.0
         
         # Return 100% only if BOTH cert_no and cert_name match exactly
+        if fields_matched == 2:
+            return 100.0
+        else:
+            return 0.0
+        
+    except Exception as e:
+        logger.error(f"Error calculating certificate similarity: {e}")
+        return 0.0
+
 def extract_endorsement_due_dates(text_content: str) -> List[datetime]:
     """
     Extract anniversary dates from endorsement "Due range for annual Survey" text.
