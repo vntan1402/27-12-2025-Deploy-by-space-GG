@@ -1415,10 +1415,7 @@ class DockingDateExtractionTester:
             
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
-            return Falsetle()}")
-            
-            # Overall assessment
-            success_rate = len(passed_tests) / len(self.special_survey_tests) * 100
+            return False
             self.log(f"\n📊 SAME DAY/MONTH TESTING SUCCESS RATE: {success_rate:.1f}%")
             
             # CRITICAL REVIEW REQUEST VERIFICATION
