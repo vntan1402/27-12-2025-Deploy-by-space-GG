@@ -2743,28 +2743,6 @@ async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse 
     except Exception as e:
         logger.error(f"Error calculating docking dates for ship {ship_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to calculate docking dates")
-        
-        # Prepare update data
-        update_data = {}
-        for field, value in user_data.dict(exclude_unset=True).items():
-            if field == "password" and value:
-                # Hash new password
-                update_data["password_hash"] = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            else:
-                update_data[field] = value
-        
-        if update_data:  # Only update if there's data to update
-            await mongo_db.update("users", {"id": user_id}, update_data)
-        
-        # Get updated user
-        updated_user = await mongo_db.find_one("users", {"id": user_id})
-        return UserResponse(**updated_user)
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error updating user: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update user")
 
 @api_router.delete("/users/{user_id}")
 async def delete_user(user_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
