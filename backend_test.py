@@ -471,8 +471,8 @@ class AnniversaryDateTester:
                         self.log(f"      Intermediate Required: {updated_special_survey.get('intermediate_required')}")
                         self.log(f"      Cycle Type: {updated_special_survey.get('cycle_type')}")
                         
-                        self.layout_tests['special_survey_cycle_model_working'] = True
-                        self.layout_tests['ship_update_with_special_survey_tested'] = True
+                        self.anniversary_tests['special_survey_cycle_model_working'] = True
+                        self.anniversary_tests['ship_update_with_special_survey_tested'] = True
                     else:
                         self.log("   ❌ SpecialSurveyCycle model structure incomplete")
                 else:
