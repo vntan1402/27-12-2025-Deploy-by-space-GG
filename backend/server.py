@@ -1901,6 +1901,57 @@ async def calculate_ship_anniversary_date(ship_id: str, current_user: UserRespon
         logger.error(f"Error calculating anniversary date for ship {ship_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to calculate anniversary date")
 
+@api_router.post("/ships/{ship_id}/calculate-special-survey-cycle")
+async def calculate_ship_special_survey_cycle(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """
+    Manually trigger Special Survey Cycle calculation from Full Term Class certificates.
+    Follows IMO 5-year cycle standards and Classification Society requirements.
+    """
+    try:
+        # Check if ship exists
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Calculate Special Survey cycle from certificates
+        calculated_cycle = await calculate_special_survey_cycle_from_certificates(ship_id)
+        
+        if not calculated_cycle:
+            return {
+                "success": False,
+                "message": "No Full Term Class certificates with valid dates found for Special Survey cycle calculation",
+                "special_survey_cycle": None
+            }
+        
+        # Update ship with calculated Special Survey cycle
+        update_data = {
+            "special_survey_cycle": calculated_cycle.dict()
+        }
+        
+        await mongo_db.update("ships", {"id": ship_id}, update_data)
+        
+        # Format display
+        from_str = calculated_cycle.from_date.strftime('%d/%m/%Y')
+        to_str = calculated_cycle.to_date.strftime('%d/%m/%Y')
+        
+        return {
+            "success": True,
+            "message": f"Special Survey cycle calculated from {calculated_cycle.cycle_type}",
+            "special_survey_cycle": {
+                "from_date": from_str,
+                "to_date": to_str,
+                "cycle_type": calculated_cycle.cycle_type,
+                "intermediate_required": calculated_cycle.intermediate_required,
+                "display": f"{from_str} - {to_str}"
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calculating Special Survey cycle for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate Special Survey cycle")
+
 @api_router.post("/ships/{ship_id}/override-anniversary-date")
 async def override_ship_anniversary_date(
     ship_id: str, 
