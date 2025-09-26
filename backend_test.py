@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Class Society Dynamic Mapping System Testing
-Review Request: Test the new Class Society Dynamic Mapping System implementation with API endpoints, detection logic, integration testing, smart features, and database operations.
+FOCUS: Keel Laid Field Functionality Testing
+Review Request: Test the newly added Keel Laid field functionality including backend models, ship creation/update, AI extraction enhancement, and database operations.
 """
 
 import requests
