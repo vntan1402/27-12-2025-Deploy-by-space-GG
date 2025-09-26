@@ -8738,7 +8738,9 @@ const AddRecordModal = ({
         console.log('📋 Processing extracted data for auto-fill');
         
         // Convert extracted data to match frontend form field names
+        // Enhanced to support ALL Ship Creation Form fields
         const processedData = {
+          // Basic Information Section (original fields)
           name: analysisData.ship_name || '', 
           imo_number: analysisData.imo_number || '',
           class_society: analysisData.class_society || '', 
@@ -8748,12 +8750,18 @@ const AddRecordModal = ({
           built_year: analysisData.built_year ? String(analysisData.built_year) : '',
           keel_laid: analysisData.keel_laid || '',
           ship_owner: analysisData.ship_owner || '',
-          // Survey & maintenance fields (optional - rarely extracted from certificates)
+          
+          // Survey & Maintenance Information Section (NEW fields from enhanced extraction)
           last_docking: analysisData.last_docking || '',
           last_docking_2: analysisData.last_docking_2 || '', 
           next_docking: analysisData.next_docking || '',
-          last_special_survey: analysisData.last_special_survey || ''
-          // Note: Anniversary date and special survey cycle are complex objects, handled separately if needed
+          last_special_survey: analysisData.last_special_survey || '',
+          
+          // Anniversary Date & Special Survey Cycle (NEW fields)
+          anniversary_date_day: analysisData.anniversary_date_day ? String(analysisData.anniversary_date_day) : '',
+          anniversary_date_month: analysisData.anniversary_date_month ? String(analysisData.anniversary_date_month) : '',
+          special_survey_from_date: analysisData.special_survey_from_date || '',
+          special_survey_to_date: analysisData.special_survey_to_date || ''
         };
         
         console.log('📝 Processed data for form:', processedData);
