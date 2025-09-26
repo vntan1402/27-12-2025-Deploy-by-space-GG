@@ -1177,6 +1177,13 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
             to_date=to_date,
             intermediate_required=True,  # IMO requirement: Intermediate Survey between 2nd-3rd year
             cycle_type=cycle_type
+        )
+            
+    except Exception as e:
+        logger.error(f"Error calculating Special Survey cycle from certificates for ship {ship_id}: {e}")
+        
+    return None
+
 async def extract_docking_dates_from_survey_status(ship_id: str) -> List[datetime]:
     """
     Extract docking dates from Survey Status records.
