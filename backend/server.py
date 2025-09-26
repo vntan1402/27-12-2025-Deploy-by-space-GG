@@ -901,17 +901,33 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
             
         logger.info(f"Found {len(full_term_certs)} Full Term Class/Statutory certificates for anniversary calculation")
         
-        # Find the most common expiry day/month combination
-        expiry_dates = []
+        # Extract anniversary dates from valid_date and endorsement due dates
+        anniversary_dates = []
         for cert in full_term_certs:
-            expiry_str = cert.get('expiry_date')
-            if expiry_str:
+            cert_name = cert.get('cert_name', 'Unknown')
+            
+            # Method 1: Get from valid_date (primary)
+            valid_date_str = cert.get('valid_date') or cert.get('expiry_date')
+            if valid_date_str:
                 try:
-                    expiry_date = parse_date_string(expiry_str)
-                    if expiry_date:
-                        expiry_dates.append((expiry_date.day, expiry_date.month, cert.get('cert_name', 'Unknown')))
+                    valid_date = parse_date_string(valid_date_str)
+                    if valid_date:
+                        anniversary_dates.append((valid_date.day, valid_date.month, f"{cert_name} (valid_date)"))
+                        logger.info(f"Found valid_date anniversary: {valid_date.day}/{valid_date.month} from {cert_name}")
                 except:
-                    continue
+                    pass
+            
+            # Method 2: Extract from endorsement "Due range for annual Survey" 
+            text_content = cert.get('text_content', '')
+            if text_content:
+                due_dates = extract_endorsement_due_dates(text_content)
+                for due_date in due_dates:
+                    anniversary_dates.append((due_date.day, due_date.month, f"{cert_name} (endorsement)"))
+                    logger.info(f"Found endorsement anniversary: {due_date.day}/{due_date.month} from {cert_name}")
+        
+        if not anniversary_dates:
+            logger.info(f"No valid anniversary dates found in Full Term certificates for ship {ship_id}")
+            return None
         
         if not expiry_dates:
             logger.info(f"No valid expiry dates found in Full Term certificates for ship {ship_id}")
