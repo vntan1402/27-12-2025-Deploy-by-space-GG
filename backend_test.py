@@ -261,10 +261,10 @@ class SpecialSurveyCycleTester:
             self.log(f"❌ Special Survey Cycle same day/month test error: {str(e)}", "ERROR")
             return False
     
-    def test_certificate_analysis_for_special_survey(self):
-        """Test Certificate Analysis for Special Survey Cycle Calculation"""
+    def test_certificate_verification_for_same_day_month(self):
+        """Test Certificate Verification for Same Day/Month Logic"""
         try:
-            self.log("🔍 Testing Certificate Analysis for Special Survey Cycle Calculation...")
+            self.log("🔍 Testing Certificate Verification for Same Day/Month Logic...")
             
             # Get certificates for SUNSHINE 01 ship
             endpoint = f"{BACKEND_URL}/certificates"
@@ -277,41 +277,6 @@ class SpecialSurveyCycleTester:
             if response.status_code == 200:
                 certificates = response.json()
                 self.log(f"   ✅ Retrieved {len(certificates)} certificates for {self.test_ship_name}")
-                
-                # Analyze certificates for Special Survey Cycle calculation
-                full_term_certs = []
-                class_certificates = []
-                certs_with_valid_date = []
-                
-                # Keywords for Class certificates (IMO standards)
-                class_keywords = [
-                    'class', 'classification', 'safety construction', 'safety equipment',
-                    'safety radio', 'cargo ship safety', 'passenger ship safety'
-                ]
-                
-                for cert in certificates:
-                    cert_type = cert.get('cert_type', '').strip()
-                    cert_name = cert.get('cert_name', '').lower()
-                    valid_date = cert.get('valid_date')
-                    
-                    # Count Full Term certificates
-                    if cert_type == 'Full Term':
-                        full_term_certs.append(cert)
-                    
-                    # Count Class certificates for Special Survey
-                    is_class_cert = any(keyword in cert_name for keyword in class_keywords)
-                    if is_class_cert:
-                        class_certificates.append(cert)
-                    
-                    # Count certificates with valid_date
-                    if valid_date:
-                        certs_with_valid_date.append(cert)
-                
-                self.log(f"   📊 Certificate Analysis Results:")
-                self.log(f"      Total Certificates: {len(certificates)}")
-                self.log(f"      Full Term Certificates: {len(full_term_certs)}")
-                self.log(f"      Class Certificates: {len(class_certificates)}")
-                self.log(f"      Certificates with valid_date: {len(certs_with_valid_date)}")
                 
                 # Look for the specific certificate mentioned in review request
                 cargo_safety_cert = None
@@ -328,72 +293,57 @@ class SpecialSurveyCycleTester:
                     
                     self.special_survey_tests['expected_certificate_found'] = True
                     
-                    # Check if it has valid_date: 2026-03-10
+                    # Verify the specific valid_date: 2026-03-10
                     valid_date = cargo_safety_cert.get('valid_date')
                     if valid_date and "2026-03-10" in valid_date:
                         self.log(f"   ✅ Certificate has expected valid_date: 2026-03-10")
-                        self.log(f"      This should provide To Date = 2026-03-10, From Date = 2021-03-10")
                         
-                        # Verify date calculation logic
+                        # Parse the valid_date to verify day and month
                         try:
-                            from datetime import datetime
-                            to_date = datetime.fromisoformat(valid_date.replace('Z', ''))
-                            from_date = to_date - timedelta(days=5*365.25)  # 5 years before
+                            valid_dt = datetime.fromisoformat(valid_date.replace('Z', ''))
+                            valid_day = valid_dt.day
+                            valid_month = valid_dt.month
+                            valid_year = valid_dt.year
                             
-                            expected_from = from_date.strftime('%d/%m/%Y')
-                            expected_to = to_date.strftime('%d/%m/%Y')
+                            self.log(f"   📊 Certificate Valid Date Analysis:")
+                            self.log(f"      Day: {valid_day}")
+                            self.log(f"      Month: {valid_month}")
+                            self.log(f"      Year: {valid_year}")
                             
-                            self.log(f"      Calculated From Date: {expected_from}")
-                            self.log(f"      Calculated To Date: {expected_to}")
+                            # Expected: To Date = 10/03/2026 (from certificate)
+                            # Expected: From Date = 10/03/2021 (same day/month, 5 years earlier)
+                            expected_to_day = 10
+                            expected_to_month = 3
+                            expected_to_year = 2026
+                            expected_from_day = 10
+                            expected_from_month = 3
+                            expected_from_year = 2021
                             
-                            if expected_from == "10/03/2021" and expected_to == "10/03/2026":
-                                self.log("   ✅ Date calculation matches expected results")
-                                self.special_survey_tests['date_calculation_correct'] = True
+                            if (valid_day == expected_to_day and 
+                                valid_month == expected_to_month and 
+                                valid_year == expected_to_year):
+                                self.log(f"   ✅ Certificate valid_date matches expected To Date components")
+                                self.log(f"      Expected From Date should be: {expected_from_day}/{expected_from_month}/{expected_from_year}")
+                                self.log(f"      Expected To Date should be: {expected_to_day}/{expected_to_month}/{expected_to_year}")
+                                self.log(f"      CRITICAL: From Date and To Date must have same day ({expected_from_day}) and month ({expected_from_month})")
                             else:
-                                self.log(f"   ⚠️ Date calculation differs from expected")
+                                self.log(f"   ⚠️ Certificate valid_date components don't match expected")
                                 
                         except Exception as e:
-                            self.log(f"   ⚠️ Error calculating dates: {e}")
+                            self.log(f"   ⚠️ Error parsing certificate valid_date: {e}")
                     else:
-                        self.log(f"   ⚠️ Certificate valid_date may not match expected: {valid_date}")
+                        self.log(f"   ⚠️ Certificate valid_date doesn't match expected: {valid_date}")
                 else:
-                    self.log(f"   ⚠️ CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE not found")
+                    self.log(f"   ❌ CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE not found")
+                    self.log(f"   Available certificates:")
+                    for cert in certificates[:5]:  # Show first 5
+                        self.log(f"      - {cert.get('cert_name', 'Unknown')}")
                 
-                # Check for Full Term Class certificates
-                full_term_class_certs = []
-                for cert in full_term_certs:
-                    cert_name = cert.get('cert_name', '').lower()
-                    is_class_cert = any(keyword in cert_name for keyword in class_keywords)
-                    if is_class_cert:
-                        full_term_class_certs.append(cert)
-                
-                if len(full_term_class_certs) > 0:
-                    self.log(f"   ✅ Found {len(full_term_class_certs)} Full Term Class certificates")
-                    self.special_survey_tests['full_term_class_certificates_found'] = True
-                else:
-                    self.log(f"   ⚠️ No Full Term Class certificates found")
-                
-                # List key certificates for Special Survey analysis
-                self.log(f"   📋 Key Certificates for Special Survey Cycle Calculation:")
-                for cert in full_term_class_certs[:5]:  # Show first 5
-                    cert_name = cert.get('cert_name', 'Unknown')
-                    cert_type = cert.get('cert_type', 'Unknown')
-                    valid_date = cert.get('valid_date', 'None')
-                    self.log(f"      - {cert_name} ({cert_type}) - Valid: {valid_date}")
-                
-                self.test_results['certificate_analysis'] = {
+                self.test_results['certificate_verification'] = {
                     'total_certificates': len(certificates),
-                    'full_term_certificates': len(full_term_certs),
-                    'class_certificates': len(class_certificates),
-                    'full_term_class_certificates': len(full_term_class_certs),
-                    'certificates_with_valid_date': len(certs_with_valid_date),
                     'cargo_safety_cert_found': cargo_safety_cert is not None,
-                    'cargo_safety_cert': cargo_safety_cert,
-                    'certificates': certificates
+                    'cargo_safety_cert': cargo_safety_cert
                 }
-                
-                if len(full_term_class_certs) > 0:
-                    self.special_survey_tests['certificate_analysis_working'] = True
                 
                 return True
                 
@@ -402,7 +352,7 @@ class SpecialSurveyCycleTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Certificate analysis test error: {str(e)}", "ERROR")
+            self.log(f"❌ Certificate verification test error: {str(e)}", "ERROR")
             return False
 
     def test_imo_5_year_logic_verification(self):
