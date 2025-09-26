@@ -1116,6 +1116,72 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
             if cert_type != 'Full Term':
                 continue
                 
+            # Check if it's a Class certificate that determines Special Survey cycle
+            is_class_cert = any(keyword in cert_name for keyword in class_keywords)
+            
+            if is_class_cert and (cert.get('valid_date') or cert.get('expiry_date')):
+                full_term_class_certs.append(cert)
+        
+        if not full_term_class_certs:
+            logger.info(f"No Full Term Class certificates with valid dates found for ship {ship_id}")
+            return None
+            
+        logger.info(f"Found {len(full_term_class_certs)} Full Term Class certificates for Special Survey cycle calculation")
+        
+        # Find the certificate with the latest valid date (current cycle endpoint)
+        latest_cert = None
+        latest_date = None
+        
+        for cert in full_term_class_certs:
+            valid_date_str = cert.get('valid_date') or cert.get('expiry_date')
+            if valid_date_str:
+                try:
+                    valid_date = parse_date_string(valid_date_str)
+                    if valid_date and (latest_date is None or valid_date > latest_date):
+                        latest_date = valid_date
+                        latest_cert = cert
+                except:
+                    continue
+        
+        if not latest_cert or not latest_date:
+            logger.info(f"No valid certificate dates found for Special Survey cycle calculation for ship {ship_id}")
+            return None
+        
+        # Calculate Special Survey Cycle according to IMO 5-year standard
+        to_date = latest_date  # End of current 5-year cycle
+        
+        # Calculate From Date: same day/month, 5 years earlier
+        try:
+            from_date = to_date.replace(year=to_date.year - 5)
+        except ValueError:
+            # Handle leap year edge case (Feb 29th)
+            from_date = to_date.replace(year=to_date.year - 5, month=2, day=28)
+        
+        # Determine cycle type based on certificate
+        cert_name = latest_cert.get('cert_name', 'Class Certificate')
+        cycle_type = "Class Survey Cycle"
+        
+        if "safety construction" in cert_name.lower():
+            cycle_type = "SOLAS Safety Construction Survey Cycle"
+        elif "safety equipment" in cert_name.lower():
+            cycle_type = "SOLAS Safety Equipment Survey Cycle"
+        elif "safety radio" in cert_name.lower():
+            cycle_type = "SOLAS Safety Radio Survey Cycle"
+        
+        logger.info(f"Calculated Special Survey cycle for ship {ship_id}: {from_date.strftime('%d/%m/%Y')} - {to_date.strftime('%d/%m/%Y')} from {cert_name}")
+        
+        return SpecialSurveyCycle(
+            from_date=from_date,
+            to_date=to_date,
+            intermediate_required=True,  # IMO requirement: Intermediate Survey between 2nd-3rd year
+            cycle_type=cycle_type
+        )
+            
+    except Exception as e:
+        logger.error(f"Error calculating Special Survey cycle from certificates for ship {ship_id}: {e}")
+        
+    return None
+
 async def extract_last_docking_dates_from_certificates(ship_id: str) -> Dict[str, Optional[datetime]]:
     """
     Extract Last Docking 1 and Last Docking 2 from CSSC and DD certificates.
