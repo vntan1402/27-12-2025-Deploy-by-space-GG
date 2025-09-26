@@ -30,6 +30,8 @@ class DockingDateExtractionTester:
         # Test tracking for Docking Date Extraction Logic
         self.docking_tests = {
             'authentication_successful': False,
+            'backend_startup_verified': False,
+            'basic_endpoint_connectivity': False,
             'docking_endpoint_working': False,
             'cssc_certificate_found': False,
             'certificate_filtering_working': False,
@@ -41,6 +43,8 @@ class DockingDateExtractionTester:
             'duplicates_removed': False,
             'sorting_working': False,
             'ship_update_working': False,
+            'response_format_correct': False,
+            'dd_mm_yyyy_format_verified': False,
             'error_handling_working': False
         }
         
