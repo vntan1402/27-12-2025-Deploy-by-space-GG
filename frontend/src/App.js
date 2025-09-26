@@ -3046,7 +3046,7 @@ const HomePage = () => {
                                 style={{overflow: 'hidden'}}
                               >
                                 <div className="flex items-center justify-between">
-                                  <span>{language === 'vi' ? 'Loại khảo sát' : 'Survey Type'}</span>
+                                  <span>{language === 'vi' ? 'Loại khảo sát tiếp theo' : 'Next Survey Type'}</span>
                                   {getSortIcon('next_survey_type')}
                                 </div>
                               </th>
