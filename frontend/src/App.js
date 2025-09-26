@@ -8841,9 +8841,35 @@ const AddRecordModal = ({
         deadweight: shipData.deadweight ? parseFloat(shipData.deadweight) : null,
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
         keel_laid: shipData.keel_laid || null,
+        last_docking: shipData.last_docking || null,
+        last_docking_2: shipData.last_docking_2 || null,
+        next_docking: shipData.next_docking || null,
+        last_special_survey: shipData.last_special_survey || null,
         ship_owner: shipData.ship_owner?.trim() || '',
         company: shipData.company?.trim() || user?.company || ''
       };
+
+      // Add Anniversary Date if provided
+      if (shipData.anniversary_date_day && shipData.anniversary_date_month) {
+        shipPayload.anniversary_date = {
+          day: parseInt(shipData.anniversary_date_day),
+          month: parseInt(shipData.anniversary_date_month),
+          manual_override: true,
+          auto_calculated: false,
+          source_certificate_type: "Manual Entry"
+        };
+      }
+
+      // Add Special Survey Cycle if provided
+      if (shipData.special_survey_from_date && shipData.special_survey_to_date) {
+        shipPayload.special_survey_cycle = {
+          from_date: shipData.special_survey_from_date,
+          to_date: shipData.special_survey_to_date,
+          cycle_type: "IMO 5-year Standard",
+          manual_override: true,
+          auto_calculated: false
+        };
+      }
       
       // Remove null values to avoid database constraint issues
       Object.keys(shipPayload).forEach(key => {
