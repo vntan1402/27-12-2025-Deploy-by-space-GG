@@ -1474,6 +1474,17 @@ async def process_enhanced_ship_fields(ship_data: dict, is_new_ship: bool = True
                 ship_data['special_survey_cycle'] = calculated_special_survey.dict()
                 logger.info(f"Auto-calculated Special Survey cycle for ship {ship_id}: {calculated_special_survey.from_date} to {calculated_special_survey.to_date}")
         
+        # Process Last Docking dates (auto-calculate from CSSC/DD certificates if not provided)
+        if not ship_data.get('last_docking') and not ship_data.get('last_docking_2') and not is_new_ship and ship_id:
+            # Try to auto-calculate docking dates from certificates
+            calculated_docking = await extract_last_docking_dates_from_certificates(ship_id)
+            if calculated_docking["last_docking"]:
+                ship_data['last_docking'] = calculated_docking["last_docking"]
+                logger.info(f"Auto-calculated Last Docking 1 for ship {ship_id}: {calculated_docking['last_docking']}")
+            if calculated_docking["last_docking_2"]:
+                ship_data['last_docking_2'] = calculated_docking["last_docking_2"]
+                logger.info(f"Auto-calculated Last Docking 2 for ship {ship_id}: {calculated_docking['last_docking_2']}")
+        
         logger.info(f"Enhanced ship fields processed successfully for ship {'(new)' if is_new_ship else ship_id}")
         
     except Exception as e:
