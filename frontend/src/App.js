@@ -2602,12 +2602,8 @@ const HomePage = () => {
                                 </div>
                               </div>
                               
-                              {/* Column 2 - Cycle Management (Vertical) */}
+                              {/* Column 2 - Special Survey Management (Vertical) */}
                               <div className="space-y-3">
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Dry Dock:' : 'Dry Dock Cycle:'}</span>
-                                  <div className="mt-1">{formatDryDockCycle(selectedShip.dry_dock_cycle) || '-'}</div>
-                                </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Special Survey:' : 'Special Survey Cycle:'}</span>
                                   <div className="mt-1 flex items-center space-x-2">
