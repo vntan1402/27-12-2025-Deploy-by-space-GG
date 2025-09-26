@@ -3723,8 +3723,8 @@ const HomePage = () => {
       {/* Edit Ship Modal */}
       {showEditShipModal && editingShipData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
               <h3 className="text-xl font-bold text-gray-800">
                 {language === 'vi' ? 'Chỉnh sửa thông tin tàu' : 'Edit Ship Information'}
               </h3>
@@ -3739,28 +3739,36 @@ const HomePage = () => {
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-6">
               <form onSubmit={(e) => {
                 e.preventDefault();
                 handleEditShip(editingShipData);
               }}>
-                {/* Ship Name */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Tên tàu' : 'Ship Name'} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingShipData.name || ''}
-                    onChange={(e) => setEditingShipData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <div className="grid grid-cols-12 gap-4">
+                  
+                  {/* Basic Ship Information Section */}
+                  <div className="col-span-12">
+                    <h4 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b">
+                      {language === 'vi' ? 'Thông tin cơ bản' : 'Basic Information'}
+                    </h4>
+                  </div>
+                  
+                  {/* Ship Name - Full width */}
+                  <div className="col-span-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Tên tàu' : 'Ship Name'} *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editingShipData.name || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
 
-                {/* IMO and Flag */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
+                  {/* IMO - Short width */}
+                  <div className="col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Số IMO' : 'IMO Number'}
                     </label>
@@ -3768,11 +3776,13 @@ const HomePage = () => {
                       type="text"
                       value={editingShipData.imo || ''}
                       onChange={(e) => setEditingShipData(prev => ({ ...prev, imo: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       placeholder="1234567"
                     />
                   </div>
-                  <div>
+
+                  {/* Flag - Medium width */}
+                  <div className="col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Cờ' : 'Flag'} *
                     </label>
@@ -3781,68 +3791,26 @@ const HomePage = () => {
                       required
                       value={editingShipData.flag || ''}
                       onChange={(e) => setEditingShipData(prev => ({ ...prev, flag: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     />
                   </div>
-                </div>
 
-                {/* Class Society */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Tổ chức Phân cấp' : 'Class Society'} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editingShipData.class_society || ''}
-                    onChange={(e) => setEditingShipData(prev => ({ ...prev, class_society: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Gross Tonnage, Deadweight, Year Built */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div>
+                  {/* Class Society - Medium width */}
+                  <div className="col-span-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Tổng Dung Tích (GT)' : 'Gross Tonnage (GT)'}
+                      {language === 'vi' ? 'Tổ chức Phân cấp' : 'Class Society'} *
                     </label>
                     <input
-                      type="number"
-                      value={editingShipData.gross_tonnage || ''}
-                      onChange={(e) => setEditingShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="0"
+                      type="text"
+                      required
+                      value={editingShipData.class_society || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, class_society: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Trọng Tải (DWT)' : 'Deadweight (DWT)'}
-                    </label>
-                    <input
-                      type="number"
-                      value={editingShipData.deadweight || ''}
-                      onChange={(e) => setEditingShipData(prev => ({ ...prev, deadweight: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Năm đóng' : 'Built Year'}
-                    </label>
-                    <input
-                      type="number"
-                      value={editingShipData.year_built || ''}
-                      onChange={(e) => setEditingShipData(prev => ({ ...prev, year_built: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="2020"
-                    />
-                  </div>
-                </div>
 
-                {/* Ship Owner and Keel Laid */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
+                  {/* Ship Owner - Medium width */}
+                  <div className="col-span-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'} *
                     </label>
@@ -3851,97 +3819,138 @@ const HomePage = () => {
                       required
                       value={editingShipData.ship_owner || ''}
                       onChange={(e) => setEditingShipData(prev => ({ ...prev, ship_owner: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     />
                   </div>
-                  <div>
+
+                  {/* Gross Tonnage - Short width */}
+                  <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Ngày đặt sống tàu' : 'Keel Laid'}
+                      {language === 'vi' ? 'GT' : 'GT'}
+                    </label>
+                    <input
+                      type="number"
+                      value={editingShipData.gross_tonnage || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, gross_tonnage: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Deadweight - Short width */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'DWT' : 'DWT'}
+                    </label>
+                    <input
+                      type="number"
+                      value={editingShipData.deadweight || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, deadweight: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Built Year - Short width */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Năm đóng' : 'Built Year'}
+                    </label>
+                    <input
+                      type="number"
+                      value={editingShipData.year_built || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, year_built: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      placeholder="2020"
+                    />
+                  </div>
+
+                  {/* Keel Laid - Short width */}
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Keel Laid' : 'Keel Laid'}
                     </label>
                     <input
                       type="date"
                       value={editingShipData.keel_laid ? new Date(editingShipData.keel_laid).toISOString().split('T')[0] : ''}
                       onChange={(e) => setEditingShipData(prev => ({ ...prev, keel_laid: e.target.value ? e.target.value : null }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     />
                   </div>
-                </div>
 
-                {/* Survey & Maintenance Section */}
-                <div className="mb-4">
-                  <h4 className="text-lg font-medium text-gray-800 mb-3 border-b pb-2">
-                    {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng' : 'Survey & Maintenance Information'}
-                  </h4>
-                  
-                  {/* Docking & Survey Dates */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
-                      </label>
+                  {/* Survey & Maintenance Section */}
+                  <div className="col-span-12 mt-4">
+                    <h4 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b">
+                      {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng' : 'Survey & Maintenance Information'}
+                    </h4>
+                  </div>
+
+                  {/* Docking Dates Row */}
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
+                    </label>
+                    <input
+                      type="date"
+                      value={editingShipData.last_docking || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Last Docking 2' : 'Last Docking 2'}
+                    </label>
+                    <input
+                      type="date"
+                      value={editingShipData.last_docking_2 || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking_2: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Next Docking' : 'Next Docking'}
+                    </label>
+                    <div className="flex space-x-1">
                       <input
                         type="date"
-                        value={editingShipData.last_docking || ''}
-                        onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={editingShipData.next_docking || ''}
+                        onChange={(e) => setEditingShipData(prev => ({ ...prev, next_docking: e.target.value }))}
+                        className="flex-1 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Last Docking 2' : 'Last Docking 2'}
-                      </label>
-                      <input
-                        type="date"
-                        value={editingShipData.last_docking_2 || ''}
-                        onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking_2: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Next Docking (IMO 30 tháng)' : 'Next Docking (IMO 30-month)'}
-                      </label>
-                      <div className="flex space-x-2">
-                        <input
-                          type="date"
-                          value={editingShipData.next_docking || ''}
-                          onChange={(e) => setEditingShipData(prev => ({ ...prev, next_docking: e.target.value }))}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleRecalculateNextDocking(editingShipData.id)}
-                          className="px-3 py-2 bg-orange-100 hover:bg-orange-200 text-orange-800 text-sm rounded-lg transition-colors"
-                          title="Auto-calculate based on IMO requirements"
-                        >
-                          Auto IMO
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        IMO SOLAS: Max 30 months from last docking (ships 15+ years: stricter)
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Last Special Survey' : 'Last Special Survey'}
-                      </label>
-                      <input
-                        type="date"
-                        value={editingShipData.last_special_survey || ''}
-                        onChange={(e) => setEditingShipData(prev => ({ ...prev, last_special_survey: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRecalculateNextDocking(editingShipData.id)}
+                        className="px-2 py-2 bg-orange-100 hover:bg-orange-200 text-orange-800 text-xs rounded-lg transition-colors"
+                        title="Auto-calculate"
+                      >
+                        IMO
+                      </button>
                     </div>
                   </div>
-                  
-                  {/* Enhanced Anniversary Date */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Anniversary Date (Ngày/Tháng từ chứng chỉ)' : 'Anniversary Date (Day/Month from Certificates)'}
+
+                  <div className="col-span-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Last Special Survey' : 'Last Special Survey'}
                     </label>
-                    <div className="grid grid-cols-3 gap-4">
+                    <input
+                      type="date"
+                      value={editingShipData.last_special_survey || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, last_special_survey: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+
+                  {/* Anniversary Date Section */}
+                  <div className="col-span-6 mt-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Anniversary Date' : 'Anniversary Date'}
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Day</label>
                         <input
                           type="number"
                           min="1"
@@ -3957,12 +3966,11 @@ const HomePage = () => {
                               source_certificate_type: "Manual Entry"
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="15"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="Day"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Month</label>
                         <select
                           value={editingShipData.anniversary_date?.month || ''}
                           onChange={(e) => setEditingShipData(prev => ({ 
@@ -3975,9 +3983,9 @@ const HomePage = () => {
                               source_certificate_type: "Manual Entry"
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                         >
-                          <option value="">Select month</option>
+                          <option value="">Month</option>
                           <option value="1">Jan</option>
                           <option value="2">Feb</option>
                           <option value="3">Mar</option>
@@ -3992,31 +4000,25 @@ const HomePage = () => {
                           <option value="12">Dec</option>
                         </select>
                       </div>
-                      <div className="flex items-end">
+                      <div>
                         <button
                           type="button"
                           onClick={() => handleRecalculateAnniversaryDate(editingShipData.id)}
                           className="w-full px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 text-sm rounded-lg transition-colors"
                         >
-                          Auto-calculate
+                          Auto
                         </button>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {editingShipData.anniversary_date?.auto_calculated 
-                        ? `Auto-calculated from: ${editingShipData.anniversary_date?.source_certificate_type}`
-                        : 'Manual entry or auto-calculate from Full Term Class/Statutory certificates'}
-                    </p>
                   </div>
-                  
-                  {/* Enhanced Special Survey Cycle (IMO 5-year Standard) */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Chu kỳ Special Survey (IMO 5 năm)' : 'Special Survey Cycle (IMO 5-year Standard)'}
+
+                  {/* Special Survey Cycle Section */}
+                  <div className="col-span-6 mt-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Special Survey Cycle (IMO 5-year)' : 'Special Survey Cycle (IMO 5-year)'}
                     </label>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">From Date (Start of 5-year cycle)</label>
                         <input
                           type="date"
                           value={editingShipData.special_survey_cycle?.from_date || ''}
@@ -4025,14 +4027,16 @@ const HomePage = () => {
                             special_survey_cycle: {
                               ...prev.special_survey_cycle,
                               from_date: e.target.value,
-                              intermediate_required: true
+                              cycle_type: "IMO 5-year Standard",
+                              manual_override: true,
+                              auto_calculated: false
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="From Date"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">To Date (Valid date of Full Term cert)</label>
                         <input
                           type="date"
                           value={editingShipData.special_survey_cycle?.to_date || ''}
@@ -4041,98 +4045,46 @@ const HomePage = () => {
                             special_survey_cycle: {
                               ...prev.special_survey_cycle,
                               to_date: e.target.value,
-                              intermediate_required: true
+                              cycle_type: "IMO 5-year Standard",
+                              manual_override: true,
+                              auto_calculated: false
                             }
                           }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                          placeholder="To Date"
                         />
                       </div>
-                      <div className="flex items-end">
+                      <div>
                         <button
                           type="button"
                           onClick={() => handleRecalculateSpecialSurveyCycle(editingShipData.id)}
                           className="w-full px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 text-sm rounded-lg transition-colors"
                         >
-                          Auto-calculate from Full Term
+                          Auto
                         </button>
                       </div>
                     </div>
-                    <div className="mt-2 space-y-2">
-                      <label className="flex items-center text-sm text-gray-600">
-                        <input
-                          type="checkbox"
-                          checked={editingShipData.special_survey_cycle?.intermediate_required !== false}
-                          onChange={(e) => setEditingShipData(prev => ({ 
-                            ...prev, 
-                            special_survey_cycle: {
-                              ...prev.special_survey_cycle,
-                              intermediate_required: e.target.checked
-                            }
-                          }))}
-                          className="mr-2"
-                        />
-                        Intermediate Survey required (IMO: between 2nd-3rd year)
-                      </label>
-                      {editingShipData.special_survey_cycle?.cycle_type && (
-                        <p className="text-xs text-purple-600">
-                          Cycle Type: {editingShipData.special_survey_cycle.cycle_type}
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      IMO Standard: 5-year cycle from Full Term Class certificate valid dates with mandatory Intermediate Survey
-                    </p>
                   </div>
-                </div>
-
-                {/* Company (Read-only) */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Công ty quản lý' : 'Company'} *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      disabled
-                      value={user?.company || 'N/A'}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-                    />
-                    <div className="absolute right-2 top-2 text-gray-400">🔒</div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {language === 'vi' ? 'Không thể thay đổi công ty' : 'Company cannot be changed'}
-                  </p>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => handleDeleteShip(editingShipData.id)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all flex items-center"
+                    onClick={() => {
+                      setShowEditShipModal(false);
+                      setEditingShipData(null);
+                    }}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
                   >
-                    <span className="mr-2">🗑️</span>
-                    {language === 'vi' ? 'Xóa tàu' : 'Delete Ship'}
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
                   </button>
-                  
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowEditShipModal(false);
-                        setEditingShipData(null);
-                      }}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
-                    >
-                      {language === 'vi' ? 'Hủy' : 'Cancel'}
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
-                    >
-                      {language === 'vi' ? 'Cập nhật' : 'Update'}
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
+                  >
+                    {language === 'vi' ? 'Lưu thay đổi' : 'Save Changes'}
+                  </button>
                 </div>
               </form>
             </div>
