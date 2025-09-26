@@ -436,7 +436,7 @@ class EnhancedAIExtractionTester:
             
             for field, value in self.analysis_result.items():
                 total_fields += 1
-                if value is not None and value != "" and value != "N/A":
+                if value is not None and value != "" and value != "N/A" and value != "null":
                     extracted_fields += 1
                     self.log(f"   ✅ {field}: {value}")
                 else:
