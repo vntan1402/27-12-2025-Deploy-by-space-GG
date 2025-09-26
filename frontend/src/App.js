@@ -2590,39 +2590,45 @@ const HomePage = () => {
                             </div>
                             
                             <div className="grid grid-cols-3 gap-6 text-sm">
-                              {/* Column 1 - Basic Ship Information (Vertical) */}
+                              {/* Column 1 - Survey & Maintenance Data (Vertical) */}
                               <div className="space-y-3">
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'IMO:' : 'IMO:'}</span>
-                                  <div className="mt-1">{selectedShip.imo || '-'}</div>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
-                                  <div className="mt-1">{selectedShip.ship_owner || '-'}</div>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
-                                  <div className="mt-1">{selectedShip.deadweight?.toLocaleString() || '-'}</div>
-                                </div>
-                              </div>
-                              
-                              {/* Column 2 - Technical & Maintenance Data (Vertical) */}
-                              <div className="space-y-3">
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
-                                  <div className="mt-1">{selectedShip.built_year || '-'}</div>
-                                </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking:' : 'Last Docking:'}</span>
                                   <div className="mt-1">{formatDate(selectedShip.last_docking) || '-'}</div>
                                 </div>
                                 <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Dry Dock:' : 'Dry Dock Cycle:'}</span>
-                                  <div className="mt-1">{formatDryDockCycle(selectedShip.dry_dock_cycle) || '-'}</div>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
+                                  <div className="mt-1">{formatDate(selectedShip.last_special_survey) || '-'}</div>
                                 </div>
                               </div>
                               
-                              {/* Column 3 - Survey & Anniversary Data (Vertical) */}
+                              {/* Column 2 - Cycle Management (Vertical) */}
+                              <div className="space-y-3">
+                                <div>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Dry Dock:' : 'Dry Dock Cycle:'}</span>
+                                  <div className="mt-1">{formatDryDockCycle(selectedShip.dry_dock_cycle) || '-'}</div>
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Special Survey:' : 'Special Survey Cycle:'}</span>
+                                  <div className="mt-1 flex items-center space-x-2">
+                                    <span>{formatSpecialSurveyCycle(selectedShip.special_survey_cycle) || '-'}</span>
+                                    {selectedShip.special_survey_cycle?.cycle_type && (
+                                      <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded" title={selectedShip.special_survey_cycle.cycle_type}>
+                                        IMO
+                                      </span>
+                                    )}
+                                    <button
+                                      onClick={() => handleRecalculateSpecialSurveyCycle(selectedShip.id)}
+                                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                      title="Recalculate from Full Term certificates"
+                                    >
+                                      ↻
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Column 3 - Anniversary & Compliance (Vertical) */}
                               <div className="space-y-3">
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Anniversary Date:' : 'Anniversary Date:'}</span>
@@ -2638,28 +2644,6 @@ const HomePage = () => {
                                       onClick={() => handleRecalculateAnniversaryDate(selectedShip.id)}
                                       className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
                                       title="Recalculate from certificates"
-                                    >
-                                      ↻
-                                    </button>
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
-                                  <div className="mt-1">{formatDate(selectedShip.last_special_survey) || '-'}</div>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Special Survey:' : 'Special Survey Cycle:'}</span>
-                                  <div className="mt-1 flex items-center space-x-2">
-                                    <span>{formatSpecialSurveyCycle(selectedShip.special_survey_cycle) || '-'}</span>
-                                    {selectedShip.special_survey_cycle?.cycle_type && (
-                                      <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded" title={selectedShip.special_survey_cycle.cycle_type}>
-                                        IMO
-                                      </span>
-                                    )}
-                                    <button
-                                      onClick={() => handleRecalculateSpecialSurveyCycle(selectedShip.id)}
-                                      className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-                                      title="Recalculate from Full Term certificates"
                                     >
                                       ↻
                                     </button>
