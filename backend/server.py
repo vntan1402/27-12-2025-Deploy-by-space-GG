@@ -1173,10 +1173,6 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
         logger.error(f"Error calculating Special Survey cycle from certificates for ship {ship_id}: {e}")
         
     return None
-        
-    except Exception as e:
-        logger.error(f"Error creating dry dock cycle from legacy data: {e}")
-        return None
 
 def format_anniversary_date_display(anniversary_date: Optional[AnniversaryDate]) -> str:
     """Format anniversary date for display (day/month only)"""
