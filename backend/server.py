@@ -928,15 +928,6 @@ def extract_endorsement_due_dates(text_content: str) -> List[datetime]:
     
     return due_dates
 
-        if fields_matched == 2:
-            return 100.0
-        else:
-            return 0.0
-        
-    except Exception as e:
-        logger.error(f"Error calculating certificate similarity: {e}")
-        return 0.0
-
 async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional[AnniversaryDate]:
     """
     Calculate Anniversary Date from Full Term Class and Statutory Certificates following Lloyd's standards.
