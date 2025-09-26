@@ -2542,24 +2542,42 @@ const HomePage = () => {
                       
                       {/* Ship Information */}
                       <div className="mb-6">
-                        {/* Basic Ship Info (Always visible) */}
-                        <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                        {/* Basic Ship Info (Always visible) - Enhanced 3x3 Grid Layout */}
+                        <div className="grid grid-cols-3 gap-4 text-sm mb-4">
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
-                            <span className="ml-2">{selectedShip.name}</span>
+                            <div className="mt-1">{selectedShip.name}</div>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổ chức Phân cấp:' : 'Class Society:'}</span>
-                            <span className="ml-2">{selectedShip.ship_type || selectedShip.class_society || '-'}</span>
+                            <div className="mt-1">{selectedShip.ship_type || selectedShip.class_society || '-'}</div>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
-                            <span className="ml-2">{selectedShip.flag}</span>
+                            <div className="mt-1">{selectedShip.flag}</div>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'IMO:' : 'IMO:'}</span>
+                            <div className="mt-1">{selectedShip.imo || '-'}</div>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
+                            <div className="mt-1">{selectedShip.ship_owner || '-'}</div>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
+                            <div className="mt-1">{selectedShip.built_year || '-'}</div>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
-                            <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString()}</span>
+                            <div className="mt-1">{selectedShip.gross_tonnage?.toLocaleString() || '-'}</div>
                           </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
+                            <div className="mt-1">{selectedShip.deadweight?.toLocaleString() || '-'}</div>
+                          </div>
+                          {/* Empty slot for 3x3 grid */}
+                          <div></div>
                         </div>
 
                         {/* Full Ship Info (Toggle visibility) - 3 columns layout */}
