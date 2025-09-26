@@ -946,7 +946,7 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
     """
     try:
         # Get all certificates for this ship
-        certificates = await mongo_db.certificates.find({"ship_id": ship_id}).to_list(length=None)
+        certificates = await mongo_db.find("certificates", {"ship_id": ship_id})
         
         if not certificates:
             logger.info(f"No certificates found for ship {ship_id}")
