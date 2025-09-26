@@ -2244,10 +2244,11 @@ const HomePage = () => {
     if (!shipId) return;
     
     try {
+      const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-anniversary-date`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${currentToken}`,
           'Content-Type': 'application/json'
         }
       });
