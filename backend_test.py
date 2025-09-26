@@ -13,8 +13,8 @@ from datetime import datetime, timedelta
 import time
 import traceback
 
-# Configuration - Use production URL from frontend/.env
-BACKEND_URL = "https://marine-cert-system.preview.emergentagent.com/api"
+# Configuration - Use local backend URL for testing
+BACKEND_URL = "http://localhost:8001/api"
 
 class ShipCreationTester:
     def __init__(self):
