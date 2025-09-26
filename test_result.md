@@ -247,6 +247,7 @@ test_plan:
     - "Ship Update with Enhanced Fields"
     - "Lloyd's Maritime Standards Compliance"
     - "Day/Month Validation"
+    - "Special Survey Cycle Calculation with IMO Standards"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
