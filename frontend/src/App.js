@@ -3787,8 +3787,8 @@ const HomePage = () => {
                   <input
                     type="text"
                     required
-                    value={editingShipData.ship_type || ''}
-                    onChange={(e) => setEditingShipData(prev => ({ ...prev, ship_type: e.target.value }))}
+                    value={editingShipData.class_society || ''}
+                    onChange={(e) => setEditingShipData(prev => ({ ...prev, class_society: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
