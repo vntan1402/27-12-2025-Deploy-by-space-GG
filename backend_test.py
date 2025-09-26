@@ -799,18 +799,18 @@ class EnhancedDockingExtractionTester:
             return False
 
 def main():
-    """Main function to run docking date extraction tests"""
-    print("🎯 DOCKING DATE EXTRACTION TESTING STARTED")
+    """Main function to run enhanced docking extraction tests"""
+    print("🎯 ENHANCED DOCKING EXTRACTION TESTING STARTED")
     print("=" * 80)
     
     try:
-        tester = DockingDateExtractionTester()
-        success = tester.run_comprehensive_docking_date_tests()
+        tester = EnhancedDockingExtractionTester()
+        success = tester.run_comprehensive_enhanced_docking_tests()
         
         if success:
-            print("\n✅ DOCKING DATE EXTRACTION TESTING COMPLETED")
+            print("\n✅ ENHANCED DOCKING EXTRACTION TESTING COMPLETED")
         else:
-            print("\n❌ DOCKING DATE EXTRACTION TESTING FAILED")
+            print("\n❌ ENHANCED DOCKING EXTRACTION TESTING FAILED")
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
