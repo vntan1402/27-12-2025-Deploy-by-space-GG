@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Recalculate Docking Dates API Endpoint Testing
-Review Request: Test the "Recalculate Docking Dates" API endpoint to verify that the handleRecalculateDockingDates function fix is working correctly.
+FOCUS: AI-Enhanced Recalculate Docking Dates Functionality Testing
+Review Request: Test the updated AI-enhanced "Recalculate Docking Dates" functionality that now uses AI configuration from System Settings to analyze CSSC certificates.
 """
 
 import requests
@@ -16,8 +16,8 @@ import subprocess
 import tempfile
 import base64
 
-# Configuration - Use localhost for testing since external URL has issues
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use production URL from frontend/.env
+BACKEND_URL = "https://marine-cert-system.preview.emergentagent.com/api"
 
 class EnhancedDockingExtractionTester:
     def __init__(self):
