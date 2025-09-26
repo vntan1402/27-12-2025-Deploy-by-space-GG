@@ -2109,7 +2109,7 @@ async def get_ship_form_fields_for_extraction() -> dict:
             "ship_type": "Type of vessel - Look for the ship type section. If you see a list of options separated by '/' (like 'Bulk Carrier / Oil Tanker / Chemical Tanker / Gas Carrier / Cargo ship other than any of the previous'), try to determine which is selected. If unclear which option is selected from the list, or if 'Cargo ship other than any of the previous' appears in the options, default to 'General Cargo'. Only return specific types (Bulk Carrier, Oil Tanker, etc.) if there's clear indication that specific type is selected.",
             "gross_tonnage": "Gross tonnage (GT) - numerical value only",
             "deadweight": "Deadweight tonnage (DWT) - numerical value only",
-            "built_year": "Year built/constructed - 4-digit year as number",
+            "built_year": "Year built/constructed - 4-digit year as number. Look for 'Built Year', 'Year Built', 'Construction Year', 'Date Built', 'Year of Build', 'Built', 'Construction Date', or 'Date of delivery'. For 'Date of delivery' field, extract only the YEAR portion from the date.",
             "ship_owner": "Ship owner company name - the legal owner of the vessel",
             "company": "Operating company or management company - the company that operates/manages the vessel (may be different from ship owner). If not explicitly mentioned as 'Operating Company' or 'Management Company', return null."
         }
