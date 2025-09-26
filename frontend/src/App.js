@@ -2341,7 +2341,11 @@ const HomePage = () => {
         alert(result.message || 'Unable to extract docking dates from CSSC/DD certificates');
       }
     } catch (error) {
-  
+      console.error('Error recalculating docking dates:', error);
+      alert('Failed to recalculate docking dates');
+    }
+  };
+
   // Next Docking calculation functions
   const handleRecalculateNextDocking = async (shipId) => {
     if (!shipId) return;
@@ -2380,14 +2384,6 @@ const HomePage = () => {
     } catch (error) {
       console.error('Error recalculating next docking date:', error);
       alert('Failed to recalculate next docking date');
-    }
-  };
-      console.error('Error recalculating docking dates:', error);
-      alert('Failed to recalculate docking dates');
-    }
-  };
-      console.error('Error recalculating Special Survey cycle:', error);
-      alert('Failed to recalculate Special Survey cycle');
     }
   };
 
