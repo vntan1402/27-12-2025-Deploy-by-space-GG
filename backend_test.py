@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Special Survey Cycle Logic Testing with IMO Standards
-Review Request: Test enhanced Special Survey Cycle logic theo IMO standards
+FOCUS: Special Survey Cycle Logic Testing with Same Day/Month Requirement
+Review Request: Test fixed Special Survey Cycle logic với same day/month requirement
 """
 
 import requests
