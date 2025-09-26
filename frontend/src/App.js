@@ -2268,6 +2268,38 @@ const HomePage = () => {
         alert(result.message || 'Unable to calculate anniversary date from certificates');
       }
     } catch (error) {
+  // Special Survey Cycle management functions
+  const handleRecalculateSpecialSurveyCycle = async (shipId) => {
+    if (!shipId) return;
+    
+    try {
+      const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-special-survey-cycle`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message with calculated cycle
+        alert(`Special Survey cycle calculated: ${result.special_survey_cycle.display}\nCycle Type: ${result.special_survey_cycle.cycle_type}\nIntermediate Survey Required: ${result.special_survey_cycle.intermediate_required ? 'Yes' : 'No'}`);
+        
+        // Refresh the ship data
+        if (selectedShip?.id === shipId) {
+          fetchShips(); // Refresh the ship list
+        }
+      } else {
+        alert(result.message || 'Unable to calculate Special Survey cycle from certificates');
+      }
+    } catch (error) {
+      console.error('Error recalculating Special Survey cycle:', error);
+      alert('Failed to recalculate Special Survey cycle');
+    }
+  };
       console.error('Error recalculating anniversary date:', error);
       alert('Failed to recalculate anniversary date');
     }
