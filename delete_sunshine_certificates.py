@@ -54,11 +54,21 @@ async def delete_sunshine_01_certificates():
             print("❌ Deletion cancelled")
             return
         
-        # Delete all certificates
+        # Delete all certificates one by one
         print("🗑️  Deleting certificates...")
-        delete_result = await mongo_db.delete_many("certificates", {"ship_id": ship_id})
+        deleted_count = 0
+        for cert in certificates:
+            cert_id = cert.get("id")
+            cert_name = cert.get("cert_name", "Unknown")
+            
+            success = await mongo_db.delete("certificates", {"id": cert_id})
+            if success:
+                deleted_count += 1
+                print(f"  ✅ Deleted: {cert_name}")
+            else:
+                print(f"  ❌ Failed to delete: {cert_name}")
         
-        print(f"✅ Successfully deleted {delete_result.deleted_count} certificates for SUNSHINE 01")
+        print(f"✅ Successfully deleted {deleted_count} certificates for SUNSHINE 01")
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")
