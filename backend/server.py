@@ -2143,6 +2143,7 @@ COMMON CLASS_SOCIETY ABBREVIATIONS:
 - Nippon Kaiji Kyokai → NK
 - Russian Maritime Register of Shipping → RS
 - Korean Register → KR
+- Vietnam Register (Đăng kiểm Việt Nam) → VR
 
 COMMON SHIP_TYPE STANDARDS (only use if EXACTLY matching document text):
 - General Cargo (for general cargo ships or when specific type not mentioned)
