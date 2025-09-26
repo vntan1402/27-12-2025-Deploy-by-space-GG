@@ -9488,6 +9488,25 @@ const AddRecordModal = ({
                 </p>
               </div>
             </div>
+
+            {/* Keel Laid Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Ngày đặt sống tàu' : 'Keel Laid'}
+              </label>
+              <input
+                type="date"
+                value={shipData.keel_laid || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, keel_laid: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' 
+                  ? 'Ngày bắt đầu xây dựng tàu (đặt sống tàu)' 
+                  : 'Date when ship construction began (keel laying)'
+                }
+              </p>
+            </div>
           </div>
         )}
 
