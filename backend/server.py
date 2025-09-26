@@ -2407,10 +2407,10 @@ If you see a list like "Bulk Carrier / Oil Tanker / Chemical Tanker / Gas Carrie
 If "Cargo ship other than any of the previous" appears in the options, return "General Cargo".
 """
         
-        # Create JSON example
+        # Create JSON example with proper data types for all fields
         json_example = "{\n"
         for i, field_name in enumerate(ship_fields.keys()):
-            if field_name in ["gross_tonnage", "deadweight", "built_year"]:
+            if field_name in ["gross_tonnage", "deadweight", "built_year", "anniversary_date_day", "anniversary_date_month"]:
                 example_value = "null"  # Show as number or null
             else:
                 example_value = '"null"'  # Show as string or null
