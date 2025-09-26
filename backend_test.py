@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: AI-Enhanced Recalculate Docking Dates Functionality Testing
-Review Request: Test the updated AI-enhanced "Recalculate Docking Dates" functionality that now uses AI configuration from System Settings to analyze CSSC certificates.
+FOCUS: Class Society Dynamic Mapping System Testing
+Review Request: Test the new Class Society Dynamic Mapping System implementation with API endpoints, detection logic, integration testing, smart features, and database operations.
 """
 
 import requests
