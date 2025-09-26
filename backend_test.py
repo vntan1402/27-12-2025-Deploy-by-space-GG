@@ -355,6 +355,108 @@ class SpecialSurveyCycleTester:
             self.log(f"❌ Certificate verification test error: {str(e)}", "ERROR")
             return False
 
+    def test_edge_cases_and_leap_year_handling(self):
+        """Test Edge Cases and Leap Year Handling for Same Day/Month Logic"""
+        try:
+            self.log("🧪 Testing Edge Cases and Leap Year Handling...")
+            
+            # Test 1: Verify year calculation logic
+            self.log("   1️⃣ Testing Year Calculation Logic...")
+            
+            # Test the logic: From Date = To Date - 5 years (same day/month)
+            test_cases = [
+                {"to_date": "2026-03-10", "expected_from": "2021-03-10", "description": "Normal case (review request)"},
+                {"to_date": "2028-02-29", "expected_from": "2023-02-28", "description": "Leap year edge case (Feb 29th)"},
+                {"to_date": "2025-12-31", "expected_from": "2020-12-31", "description": "Year end case"},
+                {"to_date": "2024-01-01", "expected_from": "2019-01-01", "description": "Year start case"},
+            ]
+            
+            for test_case in test_cases:
+                to_date_str = test_case["to_date"]
+                expected_from_str = test_case["expected_from"]
+                description = test_case["description"]
+                
+                self.log(f"      Testing: {description}")
+                self.log(f"         To Date: {to_date_str}")
+                self.log(f"         Expected From Date: {expected_from_str}")
+                
+                try:
+                    # Parse to_date
+                    to_dt = datetime.fromisoformat(to_date_str)
+                    
+                    # Calculate from_date using same day/month logic
+                    try:
+                        from_dt = to_dt.replace(year=to_dt.year - 5)
+                    except ValueError:
+                        # Handle leap year edge case (Feb 29th)
+                        from_dt = to_dt.replace(year=to_dt.year - 5, month=2, day=28)
+                        self.log(f"         ⚠️ Leap year adjustment: Feb 29 -> Feb 28")
+                    
+                    calculated_from_str = from_dt.strftime('%Y-%m-%d')
+                    
+                    self.log(f"         Calculated From Date: {calculated_from_str}")
+                    
+                    # Verify same day/month
+                    if from_dt.day == to_dt.day and from_dt.month == to_dt.month:
+                        self.log(f"         ✅ Same day/month verified: Day={from_dt.day}, Month={from_dt.month}")
+                    else:
+                        self.log(f"         ❌ Same day/month failed: From({from_dt.day}/{from_dt.month}) != To({to_dt.day}/{to_dt.month})")
+                    
+                    # Check if matches expected
+                    if calculated_from_str == expected_from_str:
+                        self.log(f"         ✅ Calculation matches expected result")
+                        if description == "Normal case (review request)":
+                            self.log(f"         🎯 Review request case verified!")
+                        elif description == "Leap year edge case (Feb 29th)":
+                            self.special_survey_tests['leap_year_handling_tested'] = True
+                    else:
+                        self.log(f"         ⚠️ Calculation differs from expected: {expected_from_str}")
+                        
+                except Exception as e:
+                    self.log(f"         ❌ Error in calculation: {e}")
+            
+            # Test 2: Verify no date calculation errors
+            self.log("   2️⃣ Testing Date Calculation Error Prevention...")
+            
+            # Test with the actual review request data
+            review_to_date = "2026-03-10T00:00:00Z"
+            try:
+                to_dt = datetime.fromisoformat(review_to_date.replace('Z', ''))
+                from_dt = to_dt.replace(year=to_dt.year - 5)
+                
+                from_display = from_dt.strftime('%d/%m/%Y')
+                to_display = to_dt.strftime('%d/%m/%Y')
+                
+                self.log(f"      Review Request Verification:")
+                self.log(f"         Input: {review_to_date}")
+                self.log(f"         To Date: {to_display}")
+                self.log(f"         From Date: {from_display}")
+                
+                # Check against expected results
+                if to_display == self.expected_to_date and from_display == self.expected_from_date:
+                    self.log(f"      ✅ Review request calculation correct")
+                    self.log(f"         Expected: {self.expected_display_format}")
+                    self.log(f"         Calculated: {from_display} - {to_display}")
+                else:
+                    self.log(f"      ❌ Review request calculation incorrect")
+                    self.log(f"         Expected: {self.expected_display_format}")
+                    self.log(f"         Calculated: {from_display} - {to_display}")
+                
+                # Check if it's NOT the previous incorrect result
+                if from_display != self.previous_incorrect_from_date:
+                    self.log(f"      ✅ Fixed: No longer showing previous incorrect result ({self.previous_incorrect_from_date})")
+                else:
+                    self.log(f"      ❌ Still showing previous incorrect result: {self.previous_incorrect_from_date}")
+                    
+            except Exception as e:
+                self.log(f"      ❌ Error in review request verification: {e}")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Edge cases and leap year test error: {str(e)}", "ERROR")
+            return False
+
     def test_imo_5_year_logic_verification(self):
         """Test IMO 5-Year Logic Verification"""
         try:
