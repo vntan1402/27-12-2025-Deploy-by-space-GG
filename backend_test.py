@@ -16,8 +16,8 @@ import subprocess
 import tempfile
 import base64
 
-# Configuration - Use internal URL for testing
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use external URL from frontend/.env
+BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
 class AnniversaryDateTester:
     def __init__(self):
