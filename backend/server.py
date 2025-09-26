@@ -151,7 +151,8 @@ class ShipBase(BaseModel):
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None
-    last_docking: Optional[datetime] = None  # Last dry docking date
+    last_docking: Optional[datetime] = None  # Last dry docking date (Docking 1)
+    last_docking_2: Optional[datetime] = None  # Second last dry docking date (Docking 2)
     last_special_survey: Optional[datetime] = None  # Last special survey date
     dry_dock_cycle: Optional[DryDockCycle] = None  # Enhanced dry dock cycle with Lloyd's requirements
     special_survey_cycle: Optional[SpecialSurveyCycle] = None  # Special survey cycle management
