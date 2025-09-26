@@ -2337,6 +2337,47 @@ const HomePage = () => {
         alert(result.message || 'Unable to extract docking dates from CSSC/DD certificates');
       }
     } catch (error) {
+  
+  // Next Docking calculation functions
+  const handleRecalculateNextDocking = async (shipId) => {
+    if (!shipId) return;
+    
+    try {
+      const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-next-docking`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message with calculated date
+        let message = `Next docking calculated: ${result.next_docking.date}\n`;
+        message += `Interval: ${result.next_docking.interval_months} months (${result.next_docking.compliance})\n`;
+        message += `Class Society: ${result.next_docking.class_society}\n`;
+        if (result.next_docking.ship_age) {
+          message += `Ship Age: ${result.next_docking.ship_age} years\n`;
+        }
+        message += `Notes: ${result.next_docking.notes}`;
+        
+        alert(message);
+        
+        // Refresh the ship data
+        if (selectedShip?.id === shipId) {
+          fetchShips(); // Refresh the ship list
+        }
+      } else {
+        alert(result.message || 'Unable to calculate next docking date. Last docking date required.');
+      }
+    } catch (error) {
+      console.error('Error recalculating next docking date:', error);
+      alert('Failed to recalculate next docking date');
+    }
+  };
       console.error('Error recalculating docking dates:', error);
       alert('Failed to recalculate docking dates');
     }
