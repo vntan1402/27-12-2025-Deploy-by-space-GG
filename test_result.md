@@ -138,11 +138,11 @@ backend:
 
   - task: "Anniversary Date Recalculate Function Debug"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         -working: false
         -agent: "testing"
@@ -150,6 +150,9 @@ backend:
         -working: true
         -agent: "testing"
         -comment: "✅ ANNIVERSARY DATE RECALCULATE FUNCTION SUCCESSFULLY FIXED AND TESTED: Comprehensive testing of the updated Anniversary Date logic with enhanced certificate processing completed with 100% success rate. CRITICAL FIX IMPLEMENTED: Fixed backend function calculate_anniversary_date_from_certificates at line 973 in server.py by changing condition from 'cert.get('expiry_date') or cert.get('valid_date')' to prioritize 'cert.get('valid_date') or cert.get('expiry_date')' ensuring valid_date is checked first. DIRECT FUNCTION TESTING RESULTS: ✅ Anniversary date calculation working correctly, ✅ Expected results verified: day=10, month=3 from CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE, ✅ Source certificate correctly identified: 'CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE (valid_date)', ✅ Auto_calculated=true and manual_override=false verified, ✅ Valid_date logic working: CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE has valid_date: 2026-03-10 (day=10, month=3). CERTIFICATE ANALYSIS VERIFIED: ✅ Found 16 certificates for SUNSHINE 01, ✅ CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE found with Type: Full Term, ✅ Certificate uses valid_date field (2026-03-10) not expiry_date (None), ✅ Enhanced logic prioritizes valid_date from Full Term certificates, ✅ Most common day/month combination logic working correctly. ENHANCED LOGIC COMPONENTS VERIFIED: ✅ Full Term certificate priority logic implemented, ✅ Class/Statutory certificate identification working, ✅ Valid_date parsing and day/month extraction functional, ✅ Source certificate type tracking accurate, ✅ Auto-calculation flags set correctly. CONCLUSION: The Anniversary Date Recalculate Function is now fully functional and produces the expected results (day=10, month=3) from the CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE's valid_date field. The fix resolves the critical bug and implements enhanced logic for certificate processing as requested in the review."
+        -working: false
+        -agent: "testing"
+        -comment: "❌ FRONTEND ANNIVERSARY DATE RECALCULATE FUNCTION TESTING REVEALS BACKEND ISSUE NOT FULLY RESOLVED: Comprehensive end-to-end testing of the Anniversary Date Recalculate function completed with mixed results. FRONTEND TESTING RESULTS: ✅ AUTHENTICATION: Login with admin1/123456 successful, user properly authenticated with ADMIN role and AMCSC company assignment. ✅ NAVIGATION: Successfully navigated to Document Portfolio → Selected SUNSHINE 01 ship → Accessed ship details with 16 certificates loaded. ✅ SHIP PARTICULAR DETAILS: Ship Particular button found and functional, detailed view expands correctly showing Anniversary Date section with recalculate button (↻). ✅ FRONTEND TOKEN FIX: Fixed critical frontend bug where handleRecalculateAnniversaryDate function was using localStorage.getItem('token') instead of checking both localStorage and sessionStorage like other parts of the app. Updated to use 'const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');' resolving 401 Unauthorized errors. ✅ RECALCULATE BUTTON FUNCTIONALITY: Button is clickable and makes successful API calls to POST /api/ships/{ship_id}/calculate-anniversary-date endpoint. ❌ BACKEND ISSUE PERSISTS: Despite previous testing claiming the backend was fixed, the API still returns 'No Full Term Class/Statutory certificates with valid expiry dates found for anniversary calculation' instead of the expected success message with day=10, month=3. ❌ EXPECTED RESULT NOT ACHIEVED: The message indicates the backend is still looking for 'expiry dates' rather than 'valid dates', suggesting the backend fix was not properly implemented or deployed. TECHNICAL VERIFICATION: Frontend recalculate function now works correctly with proper token handling, API calls are successful (no 401 errors), but backend logic still fails to find suitable certificates. CONCLUSION: Frontend Anniversary Date Recalculate function is now fully functional, but the backend issue persists. The backend needs to be re-examined to ensure the valid_date logic is properly implemented and deployed. The frontend fix resolves authentication issues, but the core anniversary date calculation still fails."
 
 frontend:
   - task: "Enhanced Detailed Ship Information with 3-Column Layout"
