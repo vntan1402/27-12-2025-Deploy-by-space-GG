@@ -3841,8 +3841,8 @@ const HomePage = () => {
                     {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng' : 'Survey & Maintenance Information'}
                   </h4>
                   
-                  {/* Last Docking 1, Last Docking 2 and Last Special Survey */}
-                  <div className="grid grid-cols-3 gap-4 mb-4">
+                  {/* Docking & Survey Dates */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
@@ -3864,6 +3864,30 @@ const HomePage = () => {
                         onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking_2: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Next Docking (IMO 30 tháng)' : 'Next Docking (IMO 30-month)'}
+                      </label>
+                      <div className="flex space-x-2">
+                        <input
+                          type="date"
+                          value={editingShipData.next_docking || ''}
+                          onChange={(e) => setEditingShipData(prev => ({ ...prev, next_docking: e.target.value }))}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRecalculateNextDocking(editingShipData.id)}
+                          className="px-3 py-2 bg-orange-100 hover:bg-orange-200 text-orange-800 text-sm rounded-lg transition-colors"
+                          title="Auto-calculate based on IMO requirements"
+                        >
+                          Auto IMO
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        IMO SOLAS: Max 30 months from last docking (ships 15+ years: stricter)
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
