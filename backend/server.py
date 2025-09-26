@@ -1384,6 +1384,12 @@ async def extract_last_docking_dates_from_certificates(ship_id: str) -> Dict[str
                 docking_dates.append((date_obj, cert_name))
                 logger.info(f"Extracted docking date: {date_obj.strftime('%d/%m/%Y')} from {cert_name}")
         
+        # Also extract from Survey Status
+        survey_status_dates = await extract_docking_dates_from_survey_status(ship_id)
+        for date_obj in survey_status_dates:
+            docking_dates.append((date_obj, "Survey Status"))
+            logger.info(f"Extracted docking date from survey status: {date_obj.strftime('%d/%m/%Y')}")
+        
         if not docking_dates:
             logger.info(f"No docking dates found in CSSC/DD certificates for ship {ship_id}")
             return {"last_docking": None, "last_docking_2": None}
