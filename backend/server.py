@@ -7311,7 +7311,7 @@ async def create_class_society_mapping(
 @api_router.post("/detect-new-class-society")
 async def detect_new_class_society(
     data: dict,
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: UserResponse = Depends(get_current_user),
     _: bool = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Detect if a class society input is new and suggest abbreviation"""
