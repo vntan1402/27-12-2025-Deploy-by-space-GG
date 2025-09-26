@@ -1368,14 +1368,17 @@ class SpecialSurveyCycleTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - Special Survey Cycle Logic Testing")
-    print("🔍 Focus: Test enhanced Special Survey Cycle logic theo IMO standards")
-    print("📋 Review Request: Test Special Survey Cycle Calculation with IMO 5-year standards")
-    print("🎯 Testing: Authentication, certificate analysis, special survey calculation, IMO compliance")
+    print("🎯 Ship Management System - Special Survey Cycle Same Day/Month Testing")
+    print("🔍 Focus: Test fixed Special Survey Cycle logic với same day/month requirement")
+    print("📋 Review Request: Verify From Date có cùng ngày/tháng với To Date")
+    print("🎯 Expected: CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE với valid_date: 2026-03-10")
+    print("🎯 Should calculate: To Date = 10/03/2026, From Date = 10/03/2021 (cùng ngày/tháng)")
+    print("🎯 Previous result: From Date = 09/03/2021 (sai 1 ngày)")
+    print("🎯 After fix: From Date = 10/03/2021 (đúng cùng ngày/tháng)")
     print("=" * 100)
     
     tester = SpecialSurveyCycleTester()
-    success = tester.run_comprehensive_special_survey_tests()
+    success = tester.run_comprehensive_same_day_month_tests()
     
     print("=" * 100)
     print("🔍 SPECIAL SURVEY CYCLE LOGIC TESTING RESULTS:")
