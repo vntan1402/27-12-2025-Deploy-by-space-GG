@@ -915,12 +915,12 @@ class SpecialSurveyCycleTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_anniversary_tests(self):
-        """Main test function for Anniversary Date Recalculate Function"""
-        self.log("🎯 STARTING ANNIVERSARY DATE RECALCULATE FUNCTION TESTING")
-        self.log("🔍 Focus: Test updated Anniversary Date logic with enhanced certificate processing")
-        self.log("📋 Review Request: Test Fixed Recalculate Function with valid_date logic and enhanced parsing")
-        self.log("🎯 Testing: Authentication, recalculate function, certificate analysis, enhanced logic")
+    def run_comprehensive_special_survey_tests(self):
+        """Main test function for Special Survey Cycle Logic"""
+        self.log("🎯 STARTING SPECIAL SURVEY CYCLE LOGIC TESTING")
+        self.log("🔍 Focus: Test enhanced Special Survey Cycle logic theo IMO standards")
+        self.log("📋 Review Request: Test Special Survey Cycle Calculation with IMO 5-year standards")
+        self.log("🎯 Testing: Authentication, certificate analysis, special survey calculation, IMO compliance")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -930,30 +930,35 @@ class SpecialSurveyCycleTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Test Certificate Analysis
-        self.log("\n🔍 STEP 2: TEST CERTIFICATE ANALYSIS")
+        # Step 2: Test Certificate Analysis for Special Survey
+        self.log("\n🔍 STEP 2: TEST CERTIFICATE ANALYSIS FOR SPECIAL SURVEY")
         self.log("=" * 50)
-        self.test_certificate_analysis()
+        self.test_certificate_analysis_for_special_survey()
         
-        # Step 3: Test Anniversary Date Recalculate Function
-        self.log("\n🔄 STEP 3: TEST ANNIVERSARY DATE RECALCULATE FUNCTION")
+        # Step 3: Test Special Survey Cycle Calculation
+        self.log("\n🔄 STEP 3: TEST SPECIAL SURVEY CYCLE CALCULATION")
         self.log("=" * 50)
-        self.test_anniversary_date_recalculate_function()
+        self.test_special_survey_cycle_calculation()
         
-        # Step 4: Test Enhanced Logic Verification
-        self.log("\n🧠 STEP 4: TEST ENHANCED LOGIC VERIFICATION")
+        # Step 4: Test IMO 5-Year Logic Verification
+        self.log("\n🧠 STEP 4: TEST IMO 5-YEAR LOGIC VERIFICATION")
         self.log("=" * 50)
-        self.test_enhanced_logic_verification()
+        self.test_imo_5_year_logic_verification()
         
-        # Step 5: Capture backend logs
-        self.log("\n📝 STEP 5: CAPTURE BACKEND LOGS")
+        # Step 5: Test Complete Integration
+        self.log("\n🔗 STEP 5: TEST COMPLETE INTEGRATION")
+        self.log("=" * 50)
+        self.test_complete_integration()
+        
+        # Step 6: Capture backend logs
+        self.log("\n📝 STEP 6: CAPTURE BACKEND LOGS")
         self.log("=" * 50)
         self.capture_backend_logs()
         
-        # Step 6: Final analysis
-        self.log("\n📊 STEP 6: FINAL ANALYSIS")
+        # Step 7: Final analysis
+        self.log("\n📊 STEP 7: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_anniversary_analysis()
+        self.provide_final_special_survey_analysis()
         
         return True
     
