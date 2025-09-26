@@ -9931,7 +9931,7 @@ const AddRecordModal = ({
               {/* Next Survey Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Loại khảo sát' : 'Survey Type'}
+                  {language === 'vi' ? 'Loại khảo sát tiếp theo' : 'Next Survey Type'}
                 </label>
                 <select
                   value={certificateData.next_survey_type || ''}
