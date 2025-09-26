@@ -2561,12 +2561,12 @@ const HomePage = () => {
                             <span className="ml-2">{selectedShip.imo || '-'}</span>
                           </div>
                           <div>
-                            <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
-                            <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
-                          </div>
-                          <div>
                             <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
                             <span className="ml-2">{selectedShip.built_year || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
+                            <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
