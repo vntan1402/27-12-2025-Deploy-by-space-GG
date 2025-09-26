@@ -159,9 +159,9 @@ backend:
 
   - task: "Docking Date Extraction Logic Testing"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
