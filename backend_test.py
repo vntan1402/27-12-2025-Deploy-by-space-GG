@@ -115,17 +115,16 @@ class DockingDateExtractionTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_special_survey_cycle_same_day_month(self):
-        """Test the Special Survey Cycle Calculation with Same Day/Month Requirement"""
+    def test_docking_date_extraction_endpoint(self):
+        """Test the Docking Date Extraction Function"""
         try:
-            self.log("🎯 Testing Special Survey Cycle with Same Day/Month Requirement...")
+            self.log("🎯 Testing Docking Date Extraction Function...")
             self.log(f"   Target Ship: {self.test_ship_name} (ID: {self.test_ship_id})")
-            self.log(f"   FOCUS: From Date must have same day/month as To Date")
-            self.log(f"   Expected: To Date = 10/03/2026, From Date = 10/03/2021 (same day/month)")
-            self.log(f"   Previous Issue: From Date = 09/03/2021 (wrong by 1 day)")
+            self.log(f"   FOCUS: Extract Last Docking 1 & 2 from CSSC and DD certificates")
+            self.log(f"   Expected: Find CSSC certificates and extract docking dates")
             
-            # Test the POST /api/ships/{ship_id}/calculate-special-survey-cycle endpoint
-            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-special-survey-cycle"
+            # Test the POST /api/ships/{ship_id}/calculate-docking-dates endpoint
+            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-docking-dates"
             self.log(f"   POST {endpoint}")
             
             response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
@@ -133,21 +132,21 @@ class DockingDateExtractionTester:
             
             if response.status_code == 200:
                 result = response.json()
-                self.log("   ✅ Special Survey Cycle Calculation endpoint responded successfully")
+                self.log("   ✅ Docking Date Extraction endpoint responded successfully")
                 self.log(f"   📊 Response: {json.dumps(result, indent=2)}")
                 
                 # Check if the function is working
                 success = result.get('success', False)
                 message = result.get('message', '')
-                special_survey_cycle = result.get('special_survey_cycle')
+                docking_dates = result.get('docking_dates')
                 
                 self.log(f"   Success: {success}")
                 self.log(f"   Message: {message}")
                 
                 # Check if we got a successful calculation
-                if success and special_survey_cycle:
-                    self.log("   ✅ Special Survey Cycle calculation successful")
-                    self.special_survey_tests['special_survey_endpoint_working'] = True
+                if success and docking_dates:
+                    self.log("   ✅ Docking Date Extraction successful")
+                    self.docking_tests['docking_endpoint_working'] = True
                     
                     # Extract dates for same day/month verification
                     from_date = special_survey_cycle.get('from_date')
