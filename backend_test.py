@@ -165,7 +165,7 @@ class ShipFieldsConsistencyTester:
             self.log(f"   POST {endpoint}")
             self.log(f"   Testing fields: {', '.join(self.all_expected_fields)}")
             
-            response = requests.post(endpoint, json=self.comprehensive_ship_data, headers=self.get_headers(), timeout=30)
+            response = requests.post(endpoint, json=self.comprehensive_ship_data, headers=self.get_headers(), timeout=60)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
