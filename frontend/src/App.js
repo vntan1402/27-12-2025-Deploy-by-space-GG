@@ -8886,6 +8886,7 @@ const AddRecordModal = ({
         flag: shipData.flag?.trim() || '',
         ship_type: shipData.class_society?.trim() || '', // Frontend uses class_society, backend expects ship_type
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
+        deadweight: shipData.deadweight ? parseFloat(shipData.deadweight) : null,
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
         keel_laid: shipData.keel_laid || null,
         ship_owner: shipData.ship_owner?.trim() || '',
