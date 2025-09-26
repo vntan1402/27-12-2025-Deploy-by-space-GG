@@ -1025,63 +1025,86 @@ class AnniversaryDateTester:
 
 def main():
     """Main test execution"""
-    print("🎯 Ship Management System - 3-Column Layout Changes Testing")
-    print("🔍 Focus: Updated 3-column layout changes for Detailed Ship Information")
-    print("📋 Review Request: Test special_survey_cycle field and 3-column layout field structure")
-    print("🎯 Testing: Authentication, ship retrieval, special survey cycle model, data consistency")
+    print("🎯 Ship Management System - Anniversary Date Recalculate Function Testing")
+    print("🔍 Focus: Test updated Anniversary Date logic with enhanced certificate processing")
+    print("📋 Review Request: Test Fixed Recalculate Function with valid_date logic and enhanced parsing")
+    print("🎯 Testing: Authentication, certificate analysis, recalculate function, enhanced logic")
     print("=" * 100)
     
-    tester = ThreeColumnLayoutTester()
-    success = tester.run_comprehensive_layout_tests()
+    tester = AnniversaryDateTester()
+    success = tester.run_comprehensive_anniversary_tests()
     
     print("=" * 100)
-    print("🔍 3-COLUMN LAYOUT CHANGES TESTING RESULTS:")
+    print("🔍 ANNIVERSARY DATE RECALCULATE FUNCTION TESTING RESULTS:")
     print("=" * 70)
     
     # Print test summary
-    passed_tests = [f for f, passed in tester.layout_tests.items() if passed]
-    failed_tests = [f for f, passed in tester.layout_tests.items() if not passed]
+    passed_tests = [f for f, passed in tester.anniversary_tests.items() if passed]
+    failed_tests = [f for f, passed in tester.anniversary_tests.items() if not passed]
     
-    print(f"✅ LAYOUT TESTS PASSED ({len(passed_tests)}/10):")
+    print(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
     for test in passed_tests:
         print(f"   ✅ {test.replace('_', ' ').title()}")
     
     if failed_tests:
-        print(f"\n❌ LAYOUT TESTS FAILED ({len(failed_tests)}/10):")
+        print(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
         for test in failed_tests:
             print(f"   ❌ {test.replace('_', ' ').title()}")
     
     # Print key findings
     print(f"\n🔍 KEY FINDINGS:")
     
-    # SUNSHINE 01 ship analysis
-    sunshine_ship = tester.test_results.get('sunshine_ship_data', {})
-    print(f"   🚢 SUNSHINE 01 Ship Analysis:")
-    if sunshine_ship:
-        print(f"      Ship found: ✅")
-        print(f"      Special Survey Cycle field: {'✅' if sunshine_ship.get('special_survey_cycle') is not None else '❌'}")
-        print(f"      3-column fields present: {'✅' if tester.layout_tests.get('three_column_fields_present') else '❌'}")
+    # Recalculate Function Analysis
+    recalculate_result = tester.test_results.get('recalculate_response', {})
+    print(f"   🔄 Anniversary Date Recalculate Function:")
+    if recalculate_result:
+        success_flag = recalculate_result.get('success', False)
+        message = recalculate_result.get('message', 'No message')
+        anniversary_date = recalculate_result.get('anniversary_date')
+        
+        print(f"      Function Status: {'✅ Working' if success_flag else '❌ Failed'}")
+        print(f"      Message: {message}")
+        
+        if anniversary_date:
+            day = anniversary_date.get('day')
+            month = anniversary_date.get('month')
+            print(f"      Calculated Result: day={day}, month={month}")
+            print(f"      Expected Result: day={tester.expected_day}, month={tester.expected_month}")
+            print(f"      Results Match: {'✅' if day == tester.expected_day and month == tester.expected_month else '❌'}")
+        else:
+            print(f"      ❌ No anniversary date calculated")
     else:
-        print(f"      Ship found: ❌")
+        print(f"      ❌ No response from recalculate function")
     
-    # Test results
-    special_survey_update = tester.test_results.get('special_survey_update', {})
-    data_consistency = tester.test_results.get('data_consistency', {})
-    
-    print(f"   🔍 Special Survey Cycle Model: {'✅ Working' if special_survey_update.get('special_survey_cycle') else '❌ Not Working'}")
-    print(f"   🔍 Data Consistency: {'✅ Verified' if tester.layout_tests.get('data_consistency_verified') else '❌ Issues Found'}")
-    print(f"   🔄 Backward Compatibility: {'✅ Maintained' if tester.layout_tests.get('backward_compatibility_verified') else '❌ Issues Found'}")
+    # Certificate Analysis
+    cert_analysis = tester.test_results.get('certificate_analysis', {})
+    print(f"   🔍 Certificate Analysis:")
+    if cert_analysis:
+        total_certs = cert_analysis.get('total_certificates', 0)
+        class_statutory_certs = cert_analysis.get('class_statutory_certificates', 0)
+        valid_date_certs = cert_analysis.get('certificates_with_valid_date', 0)
+        expiry_date_certs = cert_analysis.get('certificates_with_expiry_date', 0)
+        cargo_safety_found = cert_analysis.get('cargo_safety_cert_found', False)
+        
+        print(f"      Total Certificates: {total_certs}")
+        print(f"      Class/Statutory Certificates: {class_statutory_certs} (Expected: 2+)")
+        print(f"      Certificates with valid_date: {valid_date_certs}")
+        print(f"      Certificates with expiry_date: {expiry_date_certs}")
+        print(f"      CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE: {'✅ Found' if cargo_safety_found else '❌ Not Found'}")
+        print(f"      Fix Logic Confirmed: {'✅' if valid_date_certs > expiry_date_certs else '❌'}")
+    else:
+        print(f"      ❌ No certificate analysis performed")
     
     # Calculate success rate
-    success_rate = len(passed_tests) / len(tester.layout_tests) * 100
+    success_rate = len(passed_tests) / len(tester.anniversary_tests) * 100
     print(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}%")
     
     print("=" * 100)
     if success:
-        print("🎉 3-column layout changes testing completed!")
+        print("🎉 Anniversary Date Recalculate Function testing completed!")
         print("✅ All testing steps executed - detailed analysis available above")
     else:
-        print("❌ 3-column layout changes testing completed with issues!")
+        print("❌ Anniversary Date Recalculate Function testing completed with issues!")
         print("🔍 Check detailed logs above for specific issues")
     
     # Provide recommendations based on findings
@@ -1090,56 +1113,46 @@ def main():
     # Review Request Requirements
     print("   📋 REVIEW REQUEST REQUIREMENTS STATUS:")
     
-    # Backend Model Verification
-    if tester.layout_tests.get('ship_retrieval_with_new_fields_tested'):
-        print("   ✅ Backend Model Verification: Ship retrieval with new field structure working")
+    # Fixed Recalculate Function
+    if tester.anniversary_tests.get('recalculate_function_fixed'):
+        print("   ✅ Fixed Recalculate Function: Working correctly with valid_date logic")
     else:
-        print("   ❌ Backend Model Verification: Ship retrieval needs improvement")
-        print("      1. Check ship model includes special_survey_cycle field")
-        print("      2. Verify all 3-column layout fields are accessible via API")
+        print("   ❌ Fixed Recalculate Function: Still has issues")
+        print("      1. Check if backend function uses valid_date instead of expiry_date")
+        print("      2. Verify calculate_anniversary_date_from_certificates function at line 895")
+        print("      3. Ensure condition checks cert.get('valid_date') not cert.get('expiry_date')")
     
-    # SUNSHINE 01 Ship Data
-    if tester.layout_tests.get('sunshine_01_ship_data_verified'):
-        print("   ✅ SUNSHINE 01 Ship Data: Successfully retrieved and verified")
+    # Valid_date Logic
+    if tester.anniversary_tests.get('valid_date_logic_working'):
+        print("   ✅ Valid_date Logic: Certificates use valid_date field correctly")
     else:
-        print("   ❌ SUNSHINE 01 Ship Data: Issues with ship data retrieval")
-        print("      1. Verify ship exists with correct ID")
-        print("      2. Check all required fields are present")
+        print("   ❌ Valid_date Logic: Issues with valid_date field usage")
+        print("      1. Verify CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE has valid_date: 2026-03-10")
+        print("      2. Check certificate data structure in database")
     
-    # Special Survey Cycle Field
-    if tester.layout_tests.get('special_survey_cycle_field_verified'):
-        print("   ✅ Special Survey Cycle Field: Present and working in ship models")
+    # No Error Message
+    if tester.anniversary_tests.get('no_error_message_confirmed'):
+        print("   ✅ No Error Message: 'Unable to calculate anniversary date' message resolved")
     else:
-        print("   ❌ Special Survey Cycle Field: Missing or not working")
-        print("      1. Add special_survey_cycle field to ShipBase model")
-        print("      2. Verify SpecialSurveyCycle model is properly implemented")
-        print("      3. Test ship update with special_survey_cycle data")
+        print("   ❌ Error Message Still Present: Function still returns error message")
+        print("      1. Fix backend logic to use valid_date instead of expiry_date")
+        print("      2. Test with SUNSHINE 01 ship certificates")
     
-    # Data Consistency
-    if tester.layout_tests.get('data_consistency_verified'):
-        print("   ✅ Data Consistency: All existing ship data remains intact")
+    # Expected Results
+    if tester.anniversary_tests.get('expected_result_verified'):
+        print("   ✅ Expected Results: day=10, month=3 calculation verified")
     else:
-        print("   ❌ Data Consistency: Issues with existing data integrity")
-        print("      1. Check for data corruption after model changes")
-        print("      2. Verify backward compatibility with existing ships")
-        print("      3. Test migration of legacy data")
+        print("   ❌ Expected Results: Calculation does not match expected day=10, month=3")
+        print("      1. Check CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE valid_date: 2026-03-10")
+        print("      2. Verify day/month extraction logic")
     
-    # 3-Column Layout Fields
-    if tester.layout_tests.get('three_column_fields_present'):
-        print("   ✅ 3-Column Layout Fields: All required fields present")
+    # Certificate Analysis
+    if tester.anniversary_tests.get('certificate_analysis_working'):
+        print("   ✅ Certificate Analysis: 2+ Class/Statutory certificates found")
     else:
-        print("   ❌ 3-Column Layout Fields: Some fields missing")
-        print("      1. Verify Column 1: IMO, Ship Owner, Deadweight")
-        print("      2. Verify Column 2: Built Year, Last Docking, Dry Dock Cycle")
-        print("      3. Verify Column 3: Anniversary Date, Last Special Survey, Special Survey Cycle")
-    
-    # Dry Dock Cycle Format
-    if tester.layout_tests.get('dry_dock_cycle_format_verified'):
-        print("   ✅ Dry Dock Cycle Format: dd/MM/yyyy format working correctly")
-    else:
-        print("   ❌ Dry Dock Cycle Format: Format issues detected")
-        print("      1. Check dry dock cycle date formatting")
-        print("      2. Verify dd/MM/yyyy format is maintained")
+        print("   ❌ Certificate Analysis: Issues with certificate detection")
+        print("      1. Verify Class/Statutory certificate identification logic")
+        print("      2. Check certificate names contain required keywords")
     
     # Always exit with 0 for testing purposes - we want to capture the results
     sys.exit(0)
