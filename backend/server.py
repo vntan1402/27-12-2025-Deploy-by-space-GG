@@ -841,6 +841,84 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
             return 0.0
         
         # Return 100% only if BOTH cert_no and cert_name match exactly
+def extract_endorsement_due_dates(text_content: str) -> List[datetime]:
+    """
+    Extract anniversary dates from endorsement "Due range for annual Survey" text.
+    
+    Looks for patterns like:
+    - "Due range for annual Survey: 15/01/2024 - 15/01/2025"
+    - "Annual Survey due: 15 Jan 2024"
+    - "Next annual survey: 15/01/2024"
+    
+    Returns list of datetime objects with potential anniversary dates.
+    """
+    import re
+    from datetime import datetime
+    
+    due_dates = []
+    
+    try:
+        # Pattern 1: "Due range for annual Survey: DD/MM/YYYY - DD/MM/YYYY"
+        due_range_patterns = [
+            r"due\s+range\s+for\s+annual\s+survey[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"annual\s+survey\s+due[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"next\s+annual\s+survey[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"survey\s+due\s+date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"anniversary\s+date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+        ]
+        
+        for pattern in due_range_patterns:
+            matches = re.finditer(pattern, text_content, re.IGNORECASE)
+            for match in matches:
+                date_str = match.group(1)
+                try:
+                    parsed_date = parse_date_string(date_str)
+                    if parsed_date:
+                        due_dates.append(parsed_date)
+                        logger.info(f"Extracted endorsement due date: {date_str} -> {parsed_date}")
+                except:
+                    continue
+        
+        # Pattern 2: Look for dates in ENDORSEMENT sections
+        endorsement_section = ""
+        if "endorsement" in text_content.lower():
+            # Extract endorsement section
+            lines = text_content.split('\n')
+            in_endorsement = False
+            for line in lines:
+                if "endorsement" in line.lower() and "annual" in line.lower():
+                    in_endorsement = True
+                    endorsement_section += line + " "
+                elif in_endorsement:
+                    if len(line.strip()) > 0 and not any(keyword in line.lower() for keyword in ['certificate', 'issued', 'page']):
+                        endorsement_section += line + " "
+                    else:
+                        break
+        
+        # Extract dates from endorsement section
+        if endorsement_section:
+            date_patterns = [
+                r"(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+                r"(\d{1,2}\s+\w{3,9}\s+\d{4})"
+            ]
+            
+            for pattern in date_patterns:
+                matches = re.finditer(pattern, endorsement_section)
+                for match in matches:
+                    date_str = match.group(1)
+                    try:
+                        parsed_date = parse_date_string(date_str)
+                        if parsed_date:
+                            due_dates.append(parsed_date)
+                            logger.info(f"Extracted endorsement section date: {date_str} -> {parsed_date}")
+                    except:
+                        continue
+    
+    except Exception as e:
+        logger.warning(f"Error extracting endorsement due dates: {e}")
+    
+    return due_dates
+
         if fields_matched == 2:
             return 100.0
         else:
