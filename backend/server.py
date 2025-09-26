@@ -1319,12 +1319,6 @@ def extract_docking_dates_from_survey_status_text(status_text: str, source: str)
         logger.warning(f"Error extracting docking dates from survey status text: {e}")
     
     return docking_dates
-        )
-            
-    except Exception as e:
-        logger.error(f"Error calculating Special Survey cycle from certificates for ship {ship_id}: {e}")
-        
-    return None
 
 async def extract_last_docking_dates_from_certificates(ship_id: str) -> Dict[str, Optional[datetime]]:
     """
