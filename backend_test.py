@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Ship Fields Consistency Testing
-Review Request: Test the ship fields consistency across forms and AI extraction including field coverage verification, AI extraction field check, backend model consistency, and edit ship form validation.
+FOCUS: Enhanced Ship Creation Form Testing
+Review Request: Test the enhanced Ship Creation form with complete field coverage including new field integration testing, backend model compatibility, ship creation API testing, and AI extraction fields verification.
 """
 
 import requests
