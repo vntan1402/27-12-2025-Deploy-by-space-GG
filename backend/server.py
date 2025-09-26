@@ -737,7 +737,7 @@ async def save_class_society_mapping(full_name: str, abbreviation: str, user_id:
                 "auto_suggested": False  # Manual entry
             }
             
-            result = await mongo_db.insert_one("class_society_mappings", mapping_data)
+            result = await mongo_db.create("class_society_mappings", mapping_data)
             return result is not None
             
     except Exception as e:
