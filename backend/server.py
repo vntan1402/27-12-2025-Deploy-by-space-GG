@@ -7310,7 +7310,7 @@ async def detect_new_class_society(
 
 @api_router.get("/class-society-mappings")
 async def get_class_society_mappings(
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: UserResponse = Depends(get_current_user),
     _: bool = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Get all class society mappings (static + dynamic)"""
