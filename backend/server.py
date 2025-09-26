@@ -7292,7 +7292,7 @@ async def create_class_society_mapping(
             raise HTTPException(status_code=400, detail="Both full_name and abbreviation are required")
         
         # Save the mapping
-        success = await save_class_society_mapping(full_name, abbreviation, current_user.get('id'))
+        success = await save_class_society_mapping(full_name, abbreviation, current_user.id)
         
         if success:
             return {
