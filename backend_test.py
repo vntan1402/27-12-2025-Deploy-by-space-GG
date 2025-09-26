@@ -217,16 +217,17 @@ class EnhancedAIExtractionTester:
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                analysis_result = response.json()
+                response_data = response.json()
                 self.log("✅ Certificate analysis successful")
                 
                 # Store the analysis result for detailed verification
-                self.analysis_result = analysis_result
+                # The actual analysis data is in the 'analysis' field
+                self.analysis_result = response_data.get('analysis', {})
                 self.extraction_tests['analyze_certificate_endpoint_accessible'] = True
                 
                 # Log the full response for analysis
                 self.log("   Analysis result received:")
-                self.log(f"   {json.dumps(analysis_result, indent=2)}")
+                self.log(f"   {json.dumps(response_data, indent=2)}")
                 
                 return True
             else:
