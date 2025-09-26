@@ -23,7 +23,7 @@ async def delete_sunshine_01_certificates():
         
         # First, find the SUNSHINE 01 ship
         print("🔍 Looking for SUNSHINE 01 ship...")
-        sunshine_ship = await mongo_db.find_one("ships", {"ship_name": "SUNSHINE 01"})
+        sunshine_ship = await mongo_db.find_one("ships", {"name": "SUNSHINE 01"})
         
         if not sunshine_ship:
             print("❌ SUNSHINE 01 ship not found in database")
