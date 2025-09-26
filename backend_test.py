@@ -16,8 +16,8 @@ import subprocess
 import tempfile
 import base64
 
-# Configuration - Use production backend URL for testing
-BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
+# Configuration - Use localhost for testing since external URL has issues
+BACKEND_URL = "http://localhost:8001/api"
 
 class EnhancedDockingExtractionTester:
     def __init__(self):
