@@ -2671,7 +2671,7 @@ const HomePage = () => {
                             </div>
                             
                             <div className="grid grid-cols-3 gap-6 text-sm">
-                              {/* Column 1 - Survey & Maintenance Data (Vertical) */}
+                              {/* Column 1 - Docking Data (Vertical) */}
                               <div className="space-y-3">
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 1:' : 'Last Docking 1:'}</span>
@@ -2708,10 +2708,6 @@ const HomePage = () => {
                                     </button>
                                   </div>
                                 </div>
-                                <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
-                                  <div className="mt-1">{formatDate(selectedShip.last_special_survey) || '-'}</div>
-                                </div>
                               </div>
                               
                               {/* Column 2 - Special Survey Management (Vertical) */}
@@ -2733,6 +2729,10 @@ const HomePage = () => {
                                       ↻
                                     </button>
                                   </div>
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
+                                  <div className="mt-1">{formatDate(selectedShip.last_special_survey) || '-'}</div>
                                 </div>
                               </div>
                               
