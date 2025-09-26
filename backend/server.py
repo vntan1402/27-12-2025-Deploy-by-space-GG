@@ -1964,6 +1964,20 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
 @api_router.get("/users/filtered", response_model=List[UserResponse])
 async def get_filtered_users(
     company: Optional[str] = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get filtered users by company"""
+    try:
+        query = {}
+        if company:
+            query["company"] = company
+        
+        users = await mongo_db.find_all("users", query)
+        return [UserResponse(**user) for user in users]
+    except Exception as e:
+        logger.error(f"Error getting filtered users: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get users")
+
 @api_router.post("/ships/{ship_id}/calculate-next-docking")
 async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     """
