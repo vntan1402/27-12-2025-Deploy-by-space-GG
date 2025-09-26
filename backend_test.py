@@ -1122,71 +1122,78 @@ class SpecialSurveyCycleTester:
         
         return True
     
-    def provide_final_anniversary_analysis(self):
-        """Provide final analysis of the Anniversary Date Recalculate Function testing"""
+    def provide_final_special_survey_analysis(self):
+        """Provide final analysis of the Special Survey Cycle Logic testing"""
         try:
-            self.log("🎯 ANNIVERSARY DATE RECALCULATE FUNCTION TESTING - RESULTS")
+            self.log("🎯 SPECIAL SURVEY CYCLE LOGIC TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.anniversary_tests.items():
+            for test_name, passed in self.special_survey_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ ANNIVERSARY TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ SPECIAL SURVEY TESTS PASSED ({len(passed_tests)}/10):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ ANNIVERSARY TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ SPECIAL SURVEY TESTS FAILED ({len(failed_tests)}/10):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
-            success_rate = len(passed_tests) / len(self.anniversary_tests) * 100
-            self.log(f"\n📊 ANNIVERSARY DATE TESTING SUCCESS RATE: {success_rate:.1f}%")
+            success_rate = len(passed_tests) / len(self.special_survey_tests) * 100
+            self.log(f"\n📊 SPECIAL SURVEY CYCLE TESTING SUCCESS RATE: {success_rate:.1f}%")
             
             # Detailed results
             self.log(f"\n🔍 DETAILED RESULTS:")
             
-            # Recalculate Function Analysis
-            recalculate_result = self.test_results.get('recalculate_response', {})
-            self.log(f"   🔄 Anniversary Date Recalculate Function:")
-            if recalculate_result:
-                success = recalculate_result.get('success', False)
-                message = recalculate_result.get('message', 'No message')
-                anniversary_date = recalculate_result.get('anniversary_date')
+            # Special Survey Cycle Function Analysis
+            special_survey_result = self.test_results.get('special_survey_response', {})
+            self.log(f"   🔄 Special Survey Cycle Calculation Function:")
+            if special_survey_result:
+                success = special_survey_result.get('success', False)
+                message = special_survey_result.get('message', 'No message')
+                special_survey_cycle = special_survey_result.get('special_survey_cycle')
                 
                 self.log(f"      Status: {'✅ Working' if success else '❌ Failed'}")
                 self.log(f"      Message: {message}")
                 
-                if anniversary_date:
-                    day = anniversary_date.get('day')
-                    month = anniversary_date.get('month')
-                    source_cert = anniversary_date.get('source_certificate_type', 'Unknown')
-                    auto_calc = anniversary_date.get('auto_calculated', False)
-                    manual_override = anniversary_date.get('manual_override', True)
+                if special_survey_cycle:
+                    from_date = special_survey_cycle.get('from_date')
+                    to_date = special_survey_cycle.get('to_date')
+                    intermediate_required = special_survey_cycle.get('intermediate_required')
+                    cycle_type = special_survey_cycle.get('cycle_type', 'Unknown')
                     
-                    self.log(f"      Calculated Day: {day} (Expected: {self.expected_day})")
-                    self.log(f"      Calculated Month: {month} (Expected: {self.expected_month})")
-                    self.log(f"      Source Certificate: {source_cert}")
-                    self.log(f"      Auto Calculated: {auto_calc}")
-                    self.log(f"      Manual Override: {manual_override}")
+                    self.log(f"      From Date: {from_date}")
+                    self.log(f"      To Date: {to_date}")
+                    self.log(f"      Intermediate Required: {intermediate_required}")
+                    self.log(f"      Cycle Type: {cycle_type}")
                     
                     # Check if results match expectations
-                    if day == self.expected_day and month == self.expected_month:
-                        self.log(f"      ✅ Results match expected values")
-                    else:
-                        self.log(f"      ⚠️ Results differ from expected values")
+                    if from_date and to_date:
+                        try:
+                            from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
+                            to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
+                            display_format = f"{from_dt.strftime('%d/%m/%Y')} - {to_dt.strftime('%d/%m/%Y')}"
+                            
+                            self.log(f"      Display Format: {display_format}")
+                            if display_format == self.expected_display_format:
+                                self.log(f"      ✅ Display format matches expected")
+                            else:
+                                self.log(f"      ⚠️ Display format differs from expected: {self.expected_display_format}")
+                        except Exception as e:
+                            self.log(f"      ⚠️ Error formatting display: {e}")
                 else:
-                    self.log(f"      ❌ No anniversary date calculated")
+                    self.log(f"      ❌ No special survey cycle calculated")
             else:
-                self.log(f"      ❌ No recalculate response received")
+                self.log(f"      ❌ No special survey response received")
             
             # Certificate Analysis
             cert_analysis = self.test_results.get('certificate_analysis', {})
@@ -1194,37 +1201,40 @@ class SpecialSurveyCycleTester:
             if cert_analysis:
                 total_certs = cert_analysis.get('total_certificates', 0)
                 full_term_certs = cert_analysis.get('full_term_certificates', 0)
-                class_statutory_certs = cert_analysis.get('class_statutory_certificates', 0)
+                class_certs = cert_analysis.get('class_certificates', 0)
+                full_term_class_certs = cert_analysis.get('full_term_class_certificates', 0)
                 valid_date_certs = cert_analysis.get('certificates_with_valid_date', 0)
-                expiry_date_certs = cert_analysis.get('certificates_with_expiry_date', 0)
                 cargo_safety_found = cert_analysis.get('cargo_safety_cert_found', False)
                 
                 self.log(f"      Total Certificates: {total_certs}")
                 self.log(f"      Full Term Certificates: {full_term_certs}")
-                self.log(f"      Class/Statutory Certificates: {class_statutory_certs}")
+                self.log(f"      Class Certificates: {class_certs}")
+                self.log(f"      Full Term Class Certificates: {full_term_class_certs}")
                 self.log(f"      Certificates with valid_date: {valid_date_certs}")
-                self.log(f"      Certificates with expiry_date: {expiry_date_certs}")
                 self.log(f"      CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE: {'✅ Found' if cargo_safety_found else '❌ Not Found'}")
                 
-                # Verify the fix logic
-                if valid_date_certs > expiry_date_certs:
-                    self.log(f"      ✅ More certificates use valid_date - fix logic confirmed")
-                else:
-                    self.log(f"      ⚠️ Certificate date field distribution needs review")
+                # Verify expected certificate
+                cargo_safety_cert = cert_analysis.get('cargo_safety_cert')
+                if cargo_safety_cert:
+                    valid_date = cargo_safety_cert.get('valid_date', '')
+                    if "2026-03-10" in valid_date:
+                        self.log(f"      ✅ Expected certificate with valid_date: 2026-03-10 found")
+                    else:
+                        self.log(f"      ⚠️ Certificate valid_date: {valid_date}")
             else:
                 self.log(f"      ❌ No certificate analysis performed")
             
             # Key Review Request Requirements
             self.log(f"\n📋 REVIEW REQUEST REQUIREMENTS:")
-            self.log(f"   1. Fixed Recalculate Function: {'✅' if self.anniversary_tests.get('recalculate_function_fixed') else '❌'}")
-            self.log(f"   2. Valid_date Logic Working: {'✅' if self.anniversary_tests.get('valid_date_logic_working') else '❌'}")
-            self.log(f"   3. No Error Message Confirmed: {'✅' if self.anniversary_tests.get('no_error_message_confirmed') else '❌'}")
-            self.log(f"   4. Expected Result Verified: {'✅' if self.anniversary_tests.get('expected_result_verified') else '❌'}")
-            self.log(f"   5. Certificate Analysis Working: {'✅' if self.anniversary_tests.get('certificate_analysis_working') else '❌'}")
-            self.log(f"   6. Full Term Priority Verified: {'✅' if self.anniversary_tests.get('full_term_priority_verified') else '❌'}")
-            self.log(f"   7. Endorsement Parsing Working: {'✅' if self.anniversary_tests.get('endorsement_parsing_working') else '❌'}")
-            self.log(f"   8. Most Common Logic Working: {'✅' if self.anniversary_tests.get('most_common_logic_working') else '❌'}")
-            self.log(f"   9. Edge Cases Handled: {'✅' if self.anniversary_tests.get('edge_cases_handled') else '❌'}")
+            self.log(f"   1. Special Survey Endpoint Working: {'✅' if self.special_survey_tests.get('special_survey_endpoint_working') else '❌'}")
+            self.log(f"   2. Full Term Class Certificates Found: {'✅' if self.special_survey_tests.get('full_term_class_certificates_found') else '❌'}")
+            self.log(f"   3. IMO 5-Year Logic Verified: {'✅' if self.special_survey_tests.get('imo_5_year_logic_verified') else '❌'}")
+            self.log(f"   4. Certificate Analysis Working: {'✅' if self.special_survey_tests.get('certificate_analysis_working') else '❌'}")
+            self.log(f"   5. Expected Certificate Found: {'✅' if self.special_survey_tests.get('expected_certificate_found') else '❌'}")
+            self.log(f"   6. Date Calculation Correct: {'✅' if self.special_survey_tests.get('date_calculation_correct') else '❌'}")
+            self.log(f"   7. Cycle Type Correct: {'✅' if self.special_survey_tests.get('cycle_type_correct') else '❌'}")
+            self.log(f"   8. Display Format Correct: {'✅' if self.special_survey_tests.get('display_format_correct') else '❌'}")
+            self.log(f"   9. Intermediate Survey Required: {'✅' if self.special_survey_tests.get('intermediate_survey_required') else '❌'}")
                 
         except Exception as e:
             self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
