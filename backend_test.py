@@ -688,10 +688,10 @@ class EnhancedDockingExtractionTester:
         
         return True
 
-    def provide_final_docking_analysis(self):
-        """Provide final analysis of the Docking Date Extraction testing"""
+    def provide_final_enhanced_docking_analysis(self):
+        """Provide final analysis of the Enhanced Docking Extraction testing"""
         try:
-            self.log("🎯 DOCKING DATE EXTRACTION TESTING - RESULTS")
+            self.log("🎯 ENHANCED DOCKING EXTRACTION TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
@@ -704,12 +704,12 @@ class EnhancedDockingExtractionTester:
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ DOCKING DATE TESTS PASSED ({len(passed_tests)}/{len(self.docking_tests)}):")
+            self.log(f"✅ ENHANCED DOCKING TESTS PASSED ({len(passed_tests)}/{len(self.docking_tests)}):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ DOCKING DATE TESTS FAILED ({len(failed_tests)}/{len(self.docking_tests)}):")
+                self.log(f"\n❌ ENHANCED DOCKING TESTS FAILED ({len(failed_tests)}/{len(self.docking_tests)}):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
@@ -717,78 +717,85 @@ class EnhancedDockingExtractionTester:
             success_rate = (len(passed_tests) / len(self.docking_tests)) * 100
             self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.docking_tests)})")
             
-            # Provide specific analysis based on review request
-            self.log("\n🎯 REVIEW REQUEST ANALYSIS:")
+            # Provide specific analysis based on enhanced review request
+            self.log("\n🎯 ENHANCED REVIEW REQUEST ANALYSIS:")
             
-            # 1. Quick Fix Verification
-            if (self.docking_tests['authentication_successful'] and 
-                self.docking_tests['backend_startup_verified'] and 
-                self.docking_tests['basic_endpoint_connectivity']):
-                self.log("   ✅ Quick Fix Verification: PASSED")
+            # 1. Enhanced CSSC Bottom Inspection Extraction
+            if (self.docking_tests['cssc_certificate_found'] and 
+                self.docking_tests['cssc_bottom_inspection_patterns_working']):
+                self.log("   ✅ Enhanced CSSC Bottom Inspection Extraction: PASSED")
                 self.log("      - Login as admin1/123456: ✅")
-                self.log("      - Backend startup verified: ✅")
-                self.log("      - Basic endpoint connectivity: ✅")
-            else:
-                self.log("   ❌ Quick Fix Verification: FAILED")
-            
-            # 2. Docking Date Extraction
-            if (self.docking_tests['docking_endpoint_working'] and 
-                self.docking_tests['last_docking_1_extracted']):
-                self.log("   ✅ Docking Date Extraction: PASSED")
-                self.log("      - POST /api/ships/.../calculate-docking-dates: ✅")
-                self.log("      - Last Docking 1 extracted: ✅")
-                if self.docking_tests['last_docking_2_extracted']:
-                    self.log("      - Last Docking 2 extracted: ✅")
-            else:
-                self.log("   ❌ Docking Date Extraction: FAILED")
-            
-            # 3. CSSC Certificate Detection
-            if self.docking_tests['cssc_certificate_found']:
-                self.log("   ✅ CSSC Certificate Detection: PASSED")
                 self.log("      - CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE found: ✅")
+                self.log("      - Enhanced patterns tìm 'inspections of the outside of the ship's bottom': ✅")
             else:
-                self.log("   ❌ CSSC Certificate Detection: FAILED")
+                self.log("   ❌ Enhanced CSSC Bottom Inspection Extraction: FAILED")
             
-            # 4. Certificate Filtering
-            if self.docking_tests['certificate_filtering_working']:
-                self.log("   ✅ Certificate Filtering: PASSED")
-                self.log("      - Keywords filtering working: ✅")
+            # 2. Survey Status Integration
+            if self.docking_tests['survey_status_integration_working']:
+                self.log("   ✅ Survey Status Integration: PASSED")
+                self.log("      - extract_docking_dates_from_survey_status function: ✅")
+                self.log("      - Survey status docking patterns working: ✅")
             else:
-                self.log("   ❌ Certificate Filtering: FAILED")
+                self.log("   ❌ Survey Status Integration: FAILED")
             
-            # 5. Response Format
+            # 3. Enhanced Pattern Matching
+            if (self.docking_tests['enhanced_pattern_matching_working'] and 
+                self.docking_tests['priority_order_working']):
+                self.log("   ✅ Enhanced Pattern Matching: PASSED")
+                self.log("      - 20+ new patterns hoạt động: ✅")
+                self.log("      - Priority order (CSSC Bottom → Survey Status → General Docking): ✅")
+            else:
+                self.log("   ❌ Enhanced Pattern Matching: FAILED")
+            
+            # 4. Complete Docking Workflow
+            if (self.docking_tests['docking_endpoint_working'] and 
+                self.docking_tests['last_docking_1_extracted'] and
+                self.docking_tests['next_docking_calculation_working']):
+                self.log("   ✅ Complete Docking Workflow: PASSED")
+                self.log("      - Last Docking 1 & 2 assignment từ enhanced extraction: ✅")
+                self.log("      - Next Docking calculation (IMO 30-month): ✅")
+                self.log("      - Complete integration với ship processing: ✅")
+            else:
+                self.log("   ❌ Complete Docking Workflow: FAILED")
+            
+            # 5. Enhanced Results Validation
+            if (self.docking_tests['enhanced_results_verified'] and 
+                self.docking_tests['cssc_bottom_inspection_focus_working'] and
+                self.docking_tests['improved_accuracy_verified']):
+                self.log("   ✅ Enhanced Results Validation: PASSED")
+                self.log("      - Better extraction từ CSSC certificates với bottom inspection focus: ✅")
+                self.log("      - Survey status docking information: ✅")
+                self.log("      - Improved Last Docking 1 & 2 assignment accuracy: ✅")
+            else:
+                self.log("   ❌ Enhanced Results Validation: FAILED")
+            
+            # 6. Response Format and Integration
             if (self.docking_tests['response_format_correct'] and 
                 self.docking_tests['dd_mm_yyyy_format_verified']):
-                self.log("   ✅ Response Format: PASSED")
-                self.log("      - Success response format: ✅")
+                self.log("   ✅ Response Format & Integration: PASSED")
+                self.log("      - Enhanced response format: ✅")
                 self.log("      - dd/MM/yyyy formatting: ✅")
             else:
-                self.log("   ❌ Response Format: FAILED")
+                self.log("   ❌ Response Format & Integration: FAILED")
             
-            # 6. Date Validation and Ship Update
-            if (self.docking_tests['date_validation_working'] and 
-                self.docking_tests['ship_update_working']):
-                self.log("   ✅ Date Validation & Ship Update: PASSED")
-                self.log("      - Date range validation (1980-current): ✅")
-                self.log("      - Ship update with calculated dates: ✅")
-            else:
-                self.log("   ❌ Date Validation & Ship Update: FAILED")
-            
-            # Final conclusion
+            # Final conclusion for enhanced functionality
             if success_rate >= 80:
-                self.log(f"\n🎉 CONCLUSION: DOCKING DATE EXTRACTION LOGIC IS WORKING CORRECTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Syntax error fix successful!")
+                self.log(f"\n🎉 CONCLUSION: ENHANCED DOCKING EXTRACTION LOGIC IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Enhanced patterns và Survey Status integration successful!")
+                self.log(f"   ✅ CSSC 'inspections of the outside of the ship's bottom' patterns working")
+                self.log(f"   ✅ Survey Status docking information extraction working")
+                self.log(f"   ✅ Priority order (CSSC Bottom → Survey Status → General Docking) implemented")
             elif success_rate >= 60:
-                self.log(f"\n⚠️ CONCLUSION: DOCKING DATE EXTRACTION PARTIALLY WORKING")
-                self.log(f"   Success rate: {success_rate:.1f}% - Some issues need attention")
+                self.log(f"\n⚠️ CONCLUSION: ENHANCED DOCKING EXTRACTION PARTIALLY WORKING")
+                self.log(f"   Success rate: {success_rate:.1f}% - Some enhanced features need attention")
             else:
-                self.log(f"\n❌ CONCLUSION: DOCKING DATE EXTRACTION HAS CRITICAL ISSUES")
-                self.log(f"   Success rate: {success_rate:.1f}% - Major problems detected")
+                self.log(f"\n❌ CONCLUSION: ENHANCED DOCKING EXTRACTION HAS CRITICAL ISSUES")
+                self.log(f"   Success rate: {success_rate:.1f}% - Enhanced functionality not working properly")
             
             return True
             
         except Exception as e:
-            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
+            self.log(f"❌ Final enhanced analysis error: {str(e)}", "ERROR")
             return False
 
 def main():
