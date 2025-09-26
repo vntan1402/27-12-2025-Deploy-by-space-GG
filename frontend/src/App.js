@@ -3733,16 +3733,27 @@ const HomePage = () => {
                     {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng' : 'Survey & Maintenance Information'}
                   </h4>
                   
-                  {/* Last Docking and Last Special Survey */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Last Docking 1, Last Docking 2 and Last Special Survey */}
+                  <div className="grid grid-cols-3 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {language === 'vi' ? 'Last Docking' : 'Last Docking'}
+                        {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
                       </label>
                       <input
                         type="date"
                         value={editingShipData.last_docking || ''}
                         onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Last Docking 2' : 'Last Docking 2'}
+                      </label>
+                      <input
+                        type="date"
+                        value={editingShipData.last_docking_2 || ''}
+                        onChange={(e) => setEditingShipData(prev => ({ ...prev, last_docking_2: e.target.value }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
