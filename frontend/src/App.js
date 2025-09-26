@@ -3889,14 +3889,14 @@ const HomePage = () => {
                     </p>
                   </div>
                   
-                  {/* Enhanced Special Survey Cycle */}
+                  {/* Enhanced Special Survey Cycle (IMO 5-year Standard) */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Chu kỳ Special Survey' : 'Special Survey Cycle'}
+                      {language === 'vi' ? 'Chu kỳ Special Survey (IMO 5 năm)' : 'Special Survey Cycle (IMO 5-year Standard)'}
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">From Date</label>
+                        <label className="block text-xs text-gray-600 mb-1">From Date (Start of 5-year cycle)</label>
                         <input
                           type="date"
                           value={editingShipData.special_survey_cycle?.from_date || ''}
@@ -3905,14 +3905,14 @@ const HomePage = () => {
                             special_survey_cycle: {
                               ...prev.special_survey_cycle,
                               from_date: e.target.value,
-                              intermediate_required: false
+                              intermediate_required: true
                             }
                           }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">To Date</label>
+                        <label className="block text-xs text-gray-600 mb-1">To Date (Valid date of Full Term cert)</label>
                         <input
                           type="date"
                           value={editingShipData.special_survey_cycle?.to_date || ''}
@@ -3921,14 +3921,23 @@ const HomePage = () => {
                             special_survey_cycle: {
                               ...prev.special_survey_cycle,
                               to_date: e.target.value,
-                              intermediate_required: false
+                              intermediate_required: true
                             }
                           }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
+                      <div className="flex items-end">
+                        <button
+                          type="button"
+                          onClick={() => handleRecalculateSpecialSurveyCycle(editingShipData.id)}
+                          className="w-full px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 text-sm rounded-lg transition-colors"
+                        >
+                          Auto-calculate from Full Term
+                        </button>
+                      </div>
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
                       <label className="flex items-center text-sm text-gray-600">
                         <input
                           type="checkbox"
@@ -3942,9 +3951,17 @@ const HomePage = () => {
                           }))}
                           className="mr-2"
                         />
-                        Intermediate surveys required within cycle
+                        Intermediate Survey required (IMO: between 2nd-3rd year)
                       </label>
+                      {editingShipData.special_survey_cycle?.cycle_type && (
+                        <p className="text-xs text-purple-600">
+                          Cycle Type: {editingShipData.special_survey_cycle.cycle_type}
+                        </p>
+                      )}
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      IMO Standard: 5-year cycle from Full Term Class certificate valid dates with mandatory Intermediate Survey
+                    </p>
                   </div>
                 </div>
 
