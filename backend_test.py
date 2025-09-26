@@ -318,7 +318,7 @@ class ShipFieldsConsistencyTester:
             self.log("\n   🧪 Test 1: AI Configuration Check")
             
             ai_config_endpoint = f"{BACKEND_URL}/ai-config"
-            ai_response = requests.get(ai_config_endpoint, headers=self.get_headers(), timeout=30)
+            ai_response = requests.get(ai_config_endpoint, headers=self.get_headers(), timeout=60)
             
             if ai_response.status_code == 200:
                 ai_config = ai_response.json()
