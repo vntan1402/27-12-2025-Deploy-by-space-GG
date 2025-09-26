@@ -19,7 +19,7 @@ import base64
 # Configuration - Use production backend URL for testing
 BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
-class AnniversaryDateTester:
+class SpecialSurveyCycleTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -27,18 +27,18 @@ class AnniversaryDateTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for Anniversary Date Recalculate Function
-        self.anniversary_tests = {
+        # Test tracking for Special Survey Cycle Logic
+        self.special_survey_tests = {
             'authentication_successful': False,
-            'recalculate_function_fixed': False,
-            'valid_date_logic_working': False,
-            'endorsement_parsing_working': False,
+            'special_survey_endpoint_working': False,
+            'full_term_class_certificates_found': False,
+            'imo_5_year_logic_verified': False,
             'certificate_analysis_working': False,
-            'expected_result_verified': False,
-            'no_error_message_confirmed': False,
-            'full_term_priority_verified': False,
-            'most_common_logic_working': False,
-            'edge_cases_handled': False
+            'expected_certificate_found': False,
+            'date_calculation_correct': False,
+            'cycle_type_correct': False,
+            'display_format_correct': False,
+            'intermediate_survey_required': False
         }
         
         # Test ship ID for SUNSHINE 01 as specified in review request
@@ -46,9 +46,12 @@ class AnniversaryDateTester:
         self.test_ship_name = "SUNSHINE 01"
         
         # Expected results from review request
-        self.expected_day = 10
-        self.expected_month = 3
-        self.expected_certificate_type = "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE"
+        self.expected_certificate = "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE"
+        self.expected_valid_date = "2026-03-10"
+        self.expected_from_date = "2021-03-10"
+        self.expected_to_date = "2026-03-10"
+        self.expected_cycle_type = "SOLAS Safety Construction Survey Cycle"
+        self.expected_display_format = "10/03/2021 - 10/03/2026"
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
