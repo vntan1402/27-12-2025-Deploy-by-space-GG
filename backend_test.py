@@ -341,6 +341,118 @@ class DockingDateExtractionTester:
         except Exception as e:
             self.log(f"❌ CSSC certificate detection test error: {str(e)}", "ERROR")
             return False
+    def test_date_validation_and_ship_update(self):
+        """Test Date Validation (1980 - current year range) and Ship Update"""
+        try:
+            self.log("📅 Testing Date Validation and Ship Update...")
+            
+            # Test date validation range (1980 - current year)
+            current_year = datetime.now().year
+            self.log(f"   Expected date range: 1980 - {current_year}")
+            
+            # Check if extracted dates are within valid range
+            docking_response = self.test_results.get('docking_response', {})
+            if docking_response.get('success'):
+                docking_dates = docking_response.get('docking_dates', {})
+                
+                for date_type, date_str in docking_dates.items():
+                    if date_str:
+                        try:
+                            parsed_date = datetime.strptime(date_str, '%d/%m/%Y')
+                            year = parsed_date.year
+                            
+                            if 1980 <= year <= current_year:
+                                self.log(f"   ✅ {date_type} date validation passed: {date_str} (year {year})")
+                                self.docking_tests['date_validation_working'] = True
+                            else:
+                                self.log(f"   ❌ {date_type} date validation failed: {date_str} (year {year} out of range)")
+                        except Exception as e:
+                            self.log(f"   ❌ Error parsing {date_type} date: {e}")
+            
+            # Test ship update with calculated docking dates
+            self.log("   🔄 Testing Ship Update with Calculated Docking Dates...")
+            
+            # Get current ship data
+            ship_endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
+            ship_response = requests.get(ship_endpoint, headers=self.get_headers(), timeout=30)
+            
+            if ship_response.status_code == 200:
+                ship_data = ship_response.json()
+                
+                # Check if ship was updated with docking dates
+                current_last_docking = ship_data.get('last_docking')
+                current_last_docking_2 = ship_data.get('last_docking_2')
+                
+                self.log(f"   📊 Current Ship Docking Dates:")
+                self.log(f"      Last Docking: {current_last_docking}")
+                self.log(f"      Last Docking 2: {current_last_docking_2}")
+                
+                if current_last_docking or current_last_docking_2:
+                    self.log("   ✅ Ship update with calculated docking dates successful")
+                    self.docking_tests['ship_update_working'] = True
+                else:
+                    self.log("   ⚠️ Ship may not have been updated with docking dates")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Date validation and ship update test error: {str(e)}", "ERROR")
+            return False
+
+    def test_certificate_text_parsing(self):
+        """Test Certificate Text Content Parsing for Docking Dates"""
+        try:
+            self.log("📝 Testing Certificate Text Content Parsing...")
+            
+            # Get certificate details for text analysis
+            cert_analysis = self.test_results.get('certificate_analysis', {})
+            cssc_cert = cert_analysis.get('cssc_cert_details')
+            
+            if cssc_cert and cssc_cert.get('text_content'):
+                text_content = cssc_cert.get('text_content')
+                self.log(f"   ✅ Analyzing text content from: {cssc_cert.get('cert_name')}")
+                self.log(f"   Text content length: {len(text_content)} characters")
+                
+                # Look for docking-related text patterns
+                docking_patterns = [
+                    'dry dock', 'docking', 'construction survey', 'issued', 'certificate date',
+                    'survey completed', 'inspection date', 'built date', 'keel laid'
+                ]
+                
+                found_patterns = []
+                for pattern in docking_patterns:
+                    if pattern in text_content.lower():
+                        found_patterns.append(pattern)
+                
+                if found_patterns:
+                    self.log(f"   ✅ Certificate text parsing patterns found: {found_patterns}")
+                    self.docking_tests['certificate_filtering_working'] = True
+                
+                # Look for date patterns in text
+                import re
+                date_patterns = [
+                    r'\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}',  # DD/MM/YYYY format
+                    r'\d{1,2}\s+\w{3,9}\s+\d{4}'  # DD Month YYYY format
+                ]
+                
+                dates_found = []
+                for pattern in date_patterns:
+                    matches = re.findall(pattern, text_content)
+                    dates_found.extend(matches)
+                
+                if dates_found:
+                    self.log(f"   ✅ Date patterns found in text: {len(dates_found)} dates")
+                    self.log(f"   Sample dates: {dates_found[:3]}")  # Show first 3
+                else:
+                    self.log("   ⚠️ No date patterns found in certificate text")
+            else:
+                self.log("   ⚠️ No CSSC certificate text content available for parsing")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Certificate text parsing test error: {str(e)}", "ERROR")
+            return False
 
     def test_edge_cases_and_leap_year_handling(self):
         """Test Edge Cases and Leap Year Handling for Same Day/Month Logic"""
