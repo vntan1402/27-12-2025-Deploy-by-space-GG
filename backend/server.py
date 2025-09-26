@@ -1281,6 +1281,133 @@ def extract_docking_dates_from_text(text_content: str, cert_name: str) -> List[d
     
     docking_dates = []
     
+def calculate_next_docking_from_last_docking(last_docking: Optional[datetime], ship_age: Optional[int] = None, class_society: str = None) -> Optional[datetime]:
+    """
+    Calculate Next Docking date based on IMO regulations and Classification Society standards.
+    
+    IMO Requirements (2025):
+    - Dry docking at least twice within 5-year period
+    - Maximum interval: 30 months ±6 months from last docking
+    - Ships 15+ years: More stringent requirements, no consecutive UWILD
+    - Standard cycle: 30 months between dockings
+    
+    Classification Society Variations:
+    - Lloyd's Register: 30 months standard, extensions to 7.5 years under approved schemes
+    - DNV: 30 months standard, condition-based extensions possible
+    - VR (Veritas): 30 months standard
+    - PMDS: Following IMO standard 30 months
+    
+    Args:
+        last_docking: Date of last dry docking
+        ship_age: Age of ship in years (for 15+ year requirements)
+        class_society: Classification society (LR, DNV, VR, PMDS)
+        
+    Returns:
+        Next docking date or None
+    """
+    if not last_docking:
+        return None
+        
+    try:
+        # Base IMO requirement: 30 months from last docking
+        base_interval_months = 30
+        
+        # Adjust based on ship age and classification society
+        if ship_age and ship_age >= 15:
+            # Ships 15+ years: More stringent, typically no extension
+            interval_months = 30  # Strict 30 months for older ships
+        else:
+            # Newer ships: May have slight flexibility
+            interval_months = 30
+            
+        # Classification society specific adjustments
+        if class_society:
+            class_society_lower = class_society.lower()
+            
+            if "lloyd" in class_society_lower or "lr" in class_society_lower:
+                # Lloyd's Register: Standard 30 months, extensions possible under schemes
+                interval_months = 30  # Conservative default
+            elif "dnv" in class_society_lower:
+                # DNV: Standard 30 months, condition-based extensions
+                interval_months = 30
+            elif "veritas" in class_society_lower or "vr" in class_society_lower:
+                # Veritas: Standard IMO compliance
+                interval_months = 30
+            elif "pmds" in class_society_lower:
+                # PMDS: Following IMO standard
+                interval_months = 30
+        
+        # Calculate next docking date
+        next_docking = last_docking + timedelta(days=interval_months * 30.44)  # Average month length
+        
+        logger.info(f"Calculated next docking: {interval_months} months from {last_docking.strftime('%d/%m/%Y')} = {next_docking.strftime('%d/%m/%Y')}")
+        
+        return next_docking
+        
+    except Exception as e:
+        logger.error(f"Error calculating next docking date: {e}")
+        return None
+
+async def calculate_next_docking_for_ship(ship_id: str) -> Optional[datetime]:
+    """
+    Calculate Next Docking for a ship based on ship data and IMO requirements.
+    
+    Priority order:
+    1. Use last_docking if available
+    2. Fallback to last_docking_2 if last_docking not available
+    3. Consider ship age (built_year) for 15+ year requirements
+    4. Apply classification society (ship_type) specific rules
+    
+    Returns:
+        Next docking date or None
+    """
+    try:
+        # Get ship data
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            logger.warning(f"Ship not found for next docking calculation: {ship_id}")
+            return None
+        
+        # Extract relevant data
+        last_docking = ship.get('last_docking')
+        last_docking_2 = ship.get('last_docking_2')
+        built_year = ship.get('built_year')
+        class_society = ship.get('ship_type') or ship.get('class_society')
+        
+        # Calculate ship age
+        ship_age = None
+        if built_year:
+            current_year = datetime.now().year
+            ship_age = current_year - built_year
+        
+        # Use most recent docking date
+        reference_docking = None
+        if last_docking:
+            if isinstance(last_docking, str):
+                reference_docking = parse_date_string(last_docking)
+            else:
+                reference_docking = last_docking
+        elif last_docking_2:
+            if isinstance(last_docking_2, str):
+                reference_docking = parse_date_string(last_docking_2)
+            else:
+                reference_docking = last_docking_2
+        
+        if not reference_docking:
+            logger.info(f"No docking dates available for next docking calculation: {ship_id}")
+            return None
+        
+        # Calculate next docking
+        next_docking = calculate_next_docking_from_last_docking(reference_docking, ship_age, class_society)
+        
+        if next_docking:
+            logger.info(f"Calculated next docking for ship {ship_id}: {next_docking.strftime('%d/%m/%Y')} (Age: {ship_age}, Class: {class_society})")
+        
+        return next_docking
+        
+    except Exception as e:
+        logger.error(f"Error calculating next docking for ship {ship_id}: {e}")
+        return None
     try:
         # Docking-related patterns to search for
         docking_patterns = [
