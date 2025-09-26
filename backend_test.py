@@ -1210,10 +1210,10 @@ class SpecialSurveyCycleTester:
         
         return True
     
-    def provide_final_special_survey_analysis(self):
-        """Provide final analysis of the Special Survey Cycle Logic testing"""
+    def provide_final_same_day_month_analysis(self):
+        """Provide final analysis of the Same Day/Month Logic testing"""
         try:
-            self.log("🎯 SPECIAL SURVEY CYCLE LOGIC TESTING - RESULTS")
+            self.log("🎯 SPECIAL SURVEY CYCLE SAME DAY/MONTH TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
@@ -1226,21 +1226,21 @@ class SpecialSurveyCycleTester:
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ SPECIAL SURVEY TESTS PASSED ({len(passed_tests)}/10):")
+            self.log(f"✅ SAME DAY/MONTH TESTS PASSED ({len(passed_tests)}/{len(self.special_survey_tests)}):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ SPECIAL SURVEY TESTS FAILED ({len(failed_tests)}/10):")
+                self.log(f"\n❌ SAME DAY/MONTH TESTS FAILED ({len(failed_tests)}/{len(self.special_survey_tests)}):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Overall assessment
             success_rate = len(passed_tests) / len(self.special_survey_tests) * 100
-            self.log(f"\n📊 SPECIAL SURVEY CYCLE TESTING SUCCESS RATE: {success_rate:.1f}%")
+            self.log(f"\n📊 SAME DAY/MONTH TESTING SUCCESS RATE: {success_rate:.1f}%")
             
-            # Detailed results
-            self.log(f"\n🔍 DETAILED RESULTS:")
+            # CRITICAL REVIEW REQUEST VERIFICATION
+            self.log(f"\n🎯 CRITICAL REVIEW REQUEST VERIFICATION:")
             
             # Special Survey Cycle Function Analysis
             special_survey_result = self.test_results.get('special_survey_response', {})
@@ -1264,45 +1264,61 @@ class SpecialSurveyCycleTester:
                     self.log(f"      Intermediate Required: {intermediate_required}")
                     self.log(f"      Cycle Type: {cycle_type}")
                     
-                    # Check if results match expectations
+                    # CRITICAL: Check same day/month requirement
                     if from_date and to_date:
                         try:
                             from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
                             to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
-                            display_format = f"{from_dt.strftime('%d/%m/%Y')} - {to_dt.strftime('%d/%m/%Y')}"
+                            
+                            from_display = from_dt.strftime('%d/%m/%Y')
+                            to_display = to_dt.strftime('%d/%m/%Y')
+                            display_format = f"{from_display} - {to_display}"
                             
                             self.log(f"      Display Format: {display_format}")
-                            if display_format == self.expected_display_format:
-                                self.log(f"      ✅ Display format matches expected")
+                            
+                            # Check same day/month
+                            same_day = from_dt.day == to_dt.day
+                            same_month = from_dt.month == to_dt.month
+                            
+                            self.log(f"      🔍 SAME DAY/MONTH VERIFICATION:")
+                            self.log(f"         From Date: Day={from_dt.day}, Month={from_dt.month}")
+                            self.log(f"         To Date: Day={to_dt.day}, Month={to_dt.month}")
+                            self.log(f"         Same Day: {'✅' if same_day else '❌'}")
+                            self.log(f"         Same Month: {'✅' if same_month else '❌'}")
+                            
+                            if same_day and same_month:
+                                self.log(f"      ✅ SAME DAY/MONTH REQUIREMENT SATISFIED!")
                             else:
-                                self.log(f"      ⚠️ Display format differs from expected: {self.expected_display_format}")
+                                self.log(f"      ❌ SAME DAY/MONTH REQUIREMENT FAILED!")
+                            
+                            # Check against expected results
+                            if display_format == self.expected_display_format:
+                                self.log(f"      ✅ Display format matches expected: {self.expected_display_format}")
+                            else:
+                                self.log(f"      ❌ Display format differs from expected: {self.expected_display_format}")
+                                
+                            # Check if fixed from previous incorrect result
+                            if from_display != self.previous_incorrect_from_date:
+                                self.log(f"      ✅ FIXED: No longer showing previous incorrect result ({self.previous_incorrect_from_date})")
+                            else:
+                                self.log(f"      ❌ STILL BROKEN: Showing previous incorrect result ({self.previous_incorrect_from_date})")
+                                
                         except Exception as e:
-                            self.log(f"      ⚠️ Error formatting display: {e}")
+                            self.log(f"      ❌ Error formatting display: {e}")
                 else:
                     self.log(f"      ❌ No special survey cycle calculated")
             else:
                 self.log(f"      ❌ No special survey response received")
             
-            # Certificate Analysis
-            cert_analysis = self.test_results.get('certificate_analysis', {})
-            self.log(f"   🔍 Certificate Analysis:")
-            if cert_analysis:
-                total_certs = cert_analysis.get('total_certificates', 0)
-                full_term_certs = cert_analysis.get('full_term_certificates', 0)
-                class_certs = cert_analysis.get('class_certificates', 0)
-                full_term_class_certs = cert_analysis.get('full_term_class_certificates', 0)
-                valid_date_certs = cert_analysis.get('certificates_with_valid_date', 0)
-                cargo_safety_found = cert_analysis.get('cargo_safety_cert_found', False)
+            # Certificate Verification
+            cert_verification = self.test_results.get('certificate_verification', {})
+            self.log(f"   🔍 Certificate Verification:")
+            if cert_verification:
+                cargo_safety_found = cert_verification.get('cargo_safety_cert_found', False)
+                cargo_safety_cert = cert_verification.get('cargo_safety_cert')
                 
-                self.log(f"      Total Certificates: {total_certs}")
-                self.log(f"      Full Term Certificates: {full_term_certs}")
-                self.log(f"      Class Certificates: {class_certs}")
-                self.log(f"      Full Term Class Certificates: {full_term_class_certs}")
-                self.log(f"      Certificates with valid_date: {valid_date_certs}")
                 self.log(f"      CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE: {'✅ Found' if cargo_safety_found else '❌ Not Found'}")
                 
-                # Verify expected certificate
-                cargo_safety_cert = cert_analysis.get('cargo_safety_cert')
                 if cargo_safety_cert:
                     valid_date = cargo_safety_cert.get('valid_date', '')
                     if "2026-03-10" in valid_date:
@@ -1310,18 +1326,41 @@ class SpecialSurveyCycleTester:
                     else:
                         self.log(f"      ⚠️ Certificate valid_date: {valid_date}")
             else:
-                self.log(f"      ❌ No certificate analysis performed")
+                self.log(f"      ❌ No certificate verification performed")
             
-            # Key Review Request Requirements
-            self.log(f"\n📋 REVIEW REQUEST REQUIREMENTS:")
-            self.log(f"   1. Special Survey Endpoint Working: {'✅' if self.special_survey_tests.get('special_survey_endpoint_working') else '❌'}")
-            self.log(f"   2. Full Term Class Certificates Found: {'✅' if self.special_survey_tests.get('full_term_class_certificates_found') else '❌'}")
-            self.log(f"   3. IMO 5-Year Logic Verified: {'✅' if self.special_survey_tests.get('imo_5_year_logic_verified') else '❌'}")
-            self.log(f"   4. Certificate Analysis Working: {'✅' if self.special_survey_tests.get('certificate_analysis_working') else '❌'}")
-            self.log(f"   5. Expected Certificate Found: {'✅' if self.special_survey_tests.get('expected_certificate_found') else '❌'}")
-            self.log(f"   6. Date Calculation Correct: {'✅' if self.special_survey_tests.get('date_calculation_correct') else '❌'}")
-            self.log(f"   7. Cycle Type Correct: {'✅' if self.special_survey_tests.get('cycle_type_correct') else '❌'}")
-            self.log(f"   8. Display Format Correct: {'✅' if self.special_survey_tests.get('display_format_correct') else '❌'}")
+            # Key Review Request Requirements Summary
+            self.log(f"\n📋 REVIEW REQUEST REQUIREMENTS SUMMARY:")
+            self.log(f"   1. Login as admin1/123456: {'✅' if self.special_survey_tests.get('authentication_successful') else '❌'}")
+            self.log(f"   2. POST /api/ships/.../calculate-special-survey-cycle: {'✅' if self.special_survey_tests.get('special_survey_endpoint_working') else '❌'}")
+            self.log(f"   3. CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE found: {'✅' if self.special_survey_tests.get('expected_certificate_found') else '❌'}")
+            self.log(f"   4. From Date có cùng ngày/tháng với To Date: {'✅' if self.special_survey_tests.get('same_day_month_verified') else '❌'}")
+            self.log(f"   5. To Date = 10/03/2026: {'✅' if self.special_survey_tests.get('to_date_correct') else '❌'}")
+            self.log(f"   6. From Date = 10/03/2021: {'✅' if self.special_survey_tests.get('from_date_correct') else '❌'}")
+            self.log(f"   7. Date calculation fixed: {'✅' if self.special_survey_tests.get('date_calculation_fixed') else '❌'}")
+            self.log(f"   8. Display format '10/03/2021 - 10/03/2026': {'✅' if self.special_survey_tests.get('display_format_correct') else '❌'}")
+            self.log(f"   9. Cycle type 'SOLAS Safety Construction Survey Cycle': {'✅' if self.special_survey_tests.get('cycle_type_correct') else '❌'}")
+            self.log(f"   10. Intermediate_required: true: {'✅' if self.special_survey_tests.get('intermediate_required_true') else '❌'}")
+            self.log(f"   11. Leap year handling tested: {'✅' if self.special_survey_tests.get('leap_year_handling_tested') else '❌'}")
+            
+            # Final conclusion
+            critical_tests = ['same_day_month_verified', 'from_date_correct', 'to_date_correct', 'date_calculation_fixed']
+            critical_passed = sum(1 for test in critical_tests if self.special_survey_tests.get(test, False))
+            
+            self.log(f"\n🎯 FINAL CONCLUSION:")
+            if critical_passed == len(critical_tests):
+                self.log(f"   ✅ SAME DAY/MONTH REQUIREMENT SUCCESSFULLY IMPLEMENTED!")
+                self.log(f"   ✅ From Date now has same day/month as To Date")
+                self.log(f"   ✅ Date calculation logic has been fixed")
+            else:
+                self.log(f"   ❌ SAME DAY/MONTH REQUIREMENT NOT FULLY IMPLEMENTED")
+                self.log(f"   ❌ Critical tests passed: {critical_passed}/{len(critical_tests)}")
+                self.log(f"   ❌ Date calculation logic may still need fixes")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
+            return Falseisplay_format_correct') else '❌'}")
             self.log(f"   9. Intermediate Survey Required: {'✅' if self.special_survey_tests.get('intermediate_survey_required') else '❌'}")
                 
         except Exception as e:
