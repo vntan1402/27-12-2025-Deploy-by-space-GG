@@ -7280,7 +7280,7 @@ async def get_usage_stats(
 @api_router.post("/class-society-mappings")
 async def create_class_society_mapping(
     mapping_data: dict,
-    current_user: dict = Depends(get_current_user_from_token),
+    current_user: UserResponse = Depends(get_current_user),
     _: bool = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Create or update a class society mapping"""
