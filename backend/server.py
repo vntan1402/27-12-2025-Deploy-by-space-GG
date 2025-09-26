@@ -7277,6 +7277,104 @@ async def get_usage_stats(
         logger.error(f"Error fetching usage stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch usage statistics")
 
+@api_router.post("/class-society-mappings")
+async def create_class_society_mapping(
+    mapping_data: dict,
+    current_user: dict = Depends(get_current_user_from_token),
+    _: bool = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create or update a class society mapping"""
+    try:
+        full_name = mapping_data.get('full_name', '').strip()
+        abbreviation = mapping_data.get('abbreviation', '').strip()
+        
+        if not full_name or not abbreviation:
+            raise HTTPException(status_code=400, detail="Both full_name and abbreviation are required")
+        
+        # Save the mapping
+        success = await save_class_society_mapping(full_name, abbreviation, current_user.get('id'))
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"Class society mapping saved: {full_name} → {abbreviation}"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to save class society mapping")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating class society mapping: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create class society mapping")
+
+@api_router.post("/detect-new-class-society")
+async def detect_new_class_society(
+    data: dict,
+    current_user: dict = Depends(get_current_user_from_token),
+    _: bool = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Detect if a class society input is new and suggest abbreviation"""
+    try:
+        class_society_input = data.get('class_society', '').strip()
+        
+        if not class_society_input:
+            return {"is_new": False, "reason": "Empty input"}
+        
+        # Detect and get suggestion
+        result = await detect_and_suggest_new_class_society(class_society_input)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error detecting new class society: {e}")
+        raise HTTPException(status_code=500, detail="Failed to detect new class society")
+
+@api_router.get("/class-society-mappings")
+async def get_class_society_mappings(
+    current_user: dict = Depends(get_current_user_from_token),
+    _: bool = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get all class society mappings (static + dynamic)"""
+    try:
+        # Get static mappings  
+        static_mappings = {
+            "Panama Maritime Documentation Services": "PMDS",
+            "Lloyd's Register": "LR", 
+            "DNV GL": "DNV GL",
+            "American Bureau of Shipping": "ABS",
+            "Bureau Veritas": "BV",
+            "RINA": "RINA",
+            "China Classification Society": "CCS",
+            "Nippon Kaiji Kyokai": "NK", 
+            "Russian Maritime Register of Shipping": "RS",
+            "Korean Register": "KR",
+            "Vietnam Register": "VR",
+            "Đăng kiểm Việt Nam": "VR"
+        }
+        
+        # Get dynamic mappings
+        dynamic_mappings_raw = await mongo_db.find_all("class_society_mappings", {})
+        dynamic_mappings = {}
+        
+        for mapping in dynamic_mappings_raw:
+            full_name = mapping.get("full_name", "").strip()
+            abbreviation = mapping.get("abbreviation", "").strip() 
+            if full_name and abbreviation:
+                # Capitalize for display
+                display_name = " ".join(word.capitalize() for word in full_name.split())
+                dynamic_mappings[display_name] = abbreviation
+        
+        return {
+            "static_mappings": static_mappings,
+            "dynamic_mappings": dynamic_mappings,
+            "total_count": len(static_mappings) + len(dynamic_mappings)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting class society mappings: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get class society mappings")
+
 # Add the router to the main app
 app.include_router(api_router)
 
