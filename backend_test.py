@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Anniversary Date Recalculate Function Testing
-Review Request: Test updated Anniversary Date logic with enhanced certificate processing
+FOCUS: Special Survey Cycle Logic Testing with IMO Standards
+Review Request: Test enhanced Special Survey Cycle logic theo IMO standards
 """
 
 import requests
@@ -16,8 +16,8 @@ import subprocess
 import tempfile
 import base64
 
-# Configuration - Use internal backend URL for testing
-BACKEND_URL = "http://localhost:8001/api"
+# Configuration - Use production backend URL for testing
+BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
 class AnniversaryDateTester:
     def __init__(self):
