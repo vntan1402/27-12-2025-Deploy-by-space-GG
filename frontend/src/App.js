@@ -1025,6 +1025,7 @@ const HomePage = () => {
         imo: updatedShipData.imo?.trim() || null,
         flag: updatedShipData.flag?.trim() || '',
         ship_type: updatedShipData.ship_type?.trim() || '',
+        class_society: updatedShipData.class_society?.trim() || '',
         gross_tonnage: updatedShipData.gross_tonnage ? parseFloat(updatedShipData.gross_tonnage) : null,
         year_built: updatedShipData.year_built ? parseInt(updatedShipData.year_built) : null,
         ship_owner: updatedShipData.ship_owner?.trim() || '',
