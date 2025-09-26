@@ -929,19 +929,15 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
             logger.info(f"No valid anniversary dates found in Full Term certificates for ship {ship_id}")
             return None
         
-        if not expiry_dates:
-            logger.info(f"No valid expiry dates found in Full Term certificates for ship {ship_id}")
-            return None
-            
         # Find most common day/month combination (maritime best practice)
         from collections import Counter
-        day_month_combinations = [(day, month) for day, month, _ in expiry_dates]
+        day_month_combinations = [(day, month) for day, month, _ in anniversary_dates]
         most_common = Counter(day_month_combinations).most_common(1)
         
         if most_common:
             day, month = most_common[0][0]
             # Find the certificate type that provided this date
-            source_cert = next((cert_name for d, m, cert_name in expiry_dates if d == day and m == month), 'Class/Statutory Certificate')
+            source_cert = next((cert_name for d, m, cert_name in anniversary_dates if d == day and m == month), 'Full Term Class/Statutory Certificate')
             
             logger.info(f"Calculated anniversary date for ship {ship_id}: {day}/{month} from {source_cert}")
             
