@@ -970,7 +970,7 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
             # Check if it's a Class or Statutory certificate
             is_class_statutory = any(keyword in cert_name for keyword in class_statutory_keywords)
             
-            if is_class_statutory and (cert.get('expiry_date') or cert.get('valid_date')):
+            if is_class_statutory and (cert.get('valid_date') or cert.get('expiry_date')):
                 full_term_certs.append(cert)
         
         if not full_term_certs:
