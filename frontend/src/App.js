@@ -8839,6 +8839,7 @@ const AddRecordModal = ({
           gross_tonnage: analysisData.gross_tonnage ? String(analysisData.gross_tonnage) : '',
           deadweight: analysisData.deadweight ? String(analysisData.deadweight) : '',
           built_year: analysisData.built_year ? String(analysisData.built_year) : '',
+          keel_laid: analysisData.keel_laid || '',
           ship_owner: analysisData.ship_owner || ''
         };
         
