@@ -8748,20 +8748,20 @@ const AddRecordModal = ({
           gross_tonnage: analysisData.gross_tonnage ? String(analysisData.gross_tonnage) : '',
           deadweight: analysisData.deadweight ? String(analysisData.deadweight) : '',
           built_year: analysisData.built_year ? String(analysisData.built_year) : '',
-          keel_laid: analysisData.keel_laid || '',
+          keel_laid: formatDateForInput(analysisData.keel_laid) || '',
           ship_owner: analysisData.ship_owner || '',
           
           // Survey & Maintenance Information Section (NEW fields from enhanced extraction)
-          last_docking: analysisData.last_docking || '',
-          last_docking_2: analysisData.last_docking_2 || '', 
-          next_docking: analysisData.next_docking || '',
-          last_special_survey: analysisData.last_special_survey || '',
+          last_docking: formatDateForInput(analysisData.last_docking) || '',
+          last_docking_2: formatDateForInput(analysisData.last_docking_2) || '', 
+          next_docking: formatDateForInput(analysisData.next_docking) || '',
+          last_special_survey: formatDateForInput(analysisData.last_special_survey) || '',
           
           // Anniversary Date & Special Survey Cycle (NEW fields)
           anniversary_date_day: analysisData.anniversary_date_day ? String(analysisData.anniversary_date_day) : '',
           anniversary_date_month: analysisData.anniversary_date_month ? String(analysisData.anniversary_date_month) : '',
-          special_survey_from_date: analysisData.special_survey_from_date || '',
-          special_survey_to_date: analysisData.special_survey_to_date || ''
+          special_survey_from_date: formatDateForInput(analysisData.special_survey_from_date) || '',
+          special_survey_to_date: formatDateForInput(analysisData.special_survey_to_date) || ''
         };
         
         console.log('📝 Processed data for form:', processedData);
