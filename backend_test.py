@@ -27,30 +27,28 @@ class AnniversaryDateTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for 3-column layout changes and special survey cycle field
-        self.layout_tests = {
+        # Test tracking for Anniversary Date Recalculate Function
+        self.anniversary_tests = {
             'authentication_successful': False,
-            'ship_retrieval_with_new_fields_tested': False,
-            'special_survey_cycle_field_verified': False,
-            'sunshine_01_ship_data_verified': False,
-            'three_column_fields_present': False,
-            'ship_update_with_special_survey_tested': False,
-            'data_consistency_verified': False,
-            'backward_compatibility_verified': False,
-            'special_survey_cycle_model_working': False,
-            'dry_dock_cycle_format_verified': False
+            'recalculate_function_fixed': False,
+            'valid_date_logic_working': False,
+            'endorsement_parsing_working': False,
+            'certificate_analysis_working': False,
+            'expected_result_verified': False,
+            'no_error_message_confirmed': False,
+            'full_term_priority_verified': False,
+            'most_common_logic_working': False,
+            'edge_cases_handled': False
         }
         
         # Test ship ID for SUNSHINE 01 as specified in review request
         self.test_ship_id = "e21c71a2-9543-4f92-990c-72f54292fde8"
         self.test_ship_name = "SUNSHINE 01"
         
-        # 3-column layout field mapping as per review request
-        self.column_fields = {
-            'column_1': ['imo', 'ship_owner', 'deadweight'],
-            'column_2': ['built_year', 'last_docking', 'dry_dock_cycle'],
-            'column_3': ['anniversary_date', 'last_special_survey', 'special_survey_cycle']
-        }
+        # Expected results from review request
+        self.expected_day = 10
+        self.expected_month = 3
+        self.expected_certificate_type = "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE"
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
