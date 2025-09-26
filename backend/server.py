@@ -2357,8 +2357,10 @@ async def get_ship_form_fields_for_extraction() -> dict:
             prompt_section += f"{field_counter}. {field_name.upper().replace('_', ' ')}: {description}\n"
             field_counter += 1
         
-        # Add important clarification section
-        prompt_section += """
+        # Add important clarification section with dynamic class society mappings
+        dynamic_class_society_section = await get_updated_class_society_prompt_section()
+        
+        prompt_section += f"""
 IMPORTANT CLARIFICATIONS:
 - CLASS_SOCIETY: This is the organization/authority that ISSUED the certificate (the one whose letterhead, signature, or stamp appears on the document)
 - COMPANY: This is the operating/management company of the vessel (different from the certificate issuer). Only extract if explicitly mentioned as operating company.
@@ -2368,18 +2370,7 @@ REQUIRED FORMATS:
 - CLASS_SOCIETY must be abbreviated (e.g., PMDS, LR, DNV GL, ABS, BV, RINA, CCS, NK)
 - SHIP_TYPE must be short standard names (e.g., General Cargo, Bulk Carrier, Oil Tanker, Chemical Tanker, Container Ship, Gas Carrier, Passenger Ship, RoRo Cargo, Other Cargo)
 
-COMMON CLASS_SOCIETY ABBREVIATIONS:
-- Panama Maritime Documentation Services → PMDS
-- Lloyd's Register → LR
-- DNV GL → DNV GL
-- American Bureau of Shipping → ABS
-- Bureau Veritas → BV
-- RINA → RINA
-- China Classification Society → CCS
-- Nippon Kaiji Kyokai → NK
-- Russian Maritime Register of Shipping → RS
-- Korean Register → KR
-- Vietnam Register (Đăng kiểm Việt Nam) → VR
+{dynamic_class_society_section}
 
 COMMON SHIP_TYPE STANDARDS (only use if EXACTLY matching document text):
 - General Cargo (for general cargo ships or when specific type not mentioned)
