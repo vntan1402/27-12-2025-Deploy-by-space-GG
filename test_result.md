@@ -155,6 +155,21 @@ backend:
         -comment: "❌ FRONTEND ANNIVERSARY DATE RECALCULATE FUNCTION TESTING REVEALS BACKEND ISSUE NOT FULLY RESOLVED: Comprehensive end-to-end testing of the Anniversary Date Recalculate function completed with mixed results. FRONTEND TESTING RESULTS: ✅ AUTHENTICATION: Login with admin1/123456 successful, user properly authenticated with ADMIN role and AMCSC company assignment. ✅ NAVIGATION: Successfully navigated to Document Portfolio → Selected SUNSHINE 01 ship → Accessed ship details with 16 certificates loaded. ✅ SHIP PARTICULAR DETAILS: Ship Particular button found and functional, detailed view expands correctly showing Anniversary Date section with recalculate button (↻). ✅ FRONTEND TOKEN FIX: Fixed critical frontend bug where handleRecalculateAnniversaryDate function was using localStorage.getItem('token') instead of checking both localStorage and sessionStorage like other parts of the app. Updated to use 'const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');' resolving 401 Unauthorized errors. ✅ RECALCULATE BUTTON FUNCTIONALITY: Button is clickable and makes successful API calls to POST /api/ships/{ship_id}/calculate-anniversary-date endpoint. ❌ BACKEND ISSUE PERSISTS: Despite previous testing claiming the backend was fixed, the API still returns 'No Full Term Class/Statutory certificates with valid expiry dates found for anniversary calculation' instead of the expected success message with day=10, month=3. ❌ EXPECTED RESULT NOT ACHIEVED: The message indicates the backend is still looking for 'expiry dates' rather than 'valid dates', suggesting the backend fix was not properly implemented or deployed. TECHNICAL VERIFICATION: Frontend recalculate function now works correctly with proper token handling, API calls are successful (no 401 errors), but backend logic still fails to find suitable certificates. CONCLUSION: Frontend Anniversary Date Recalculate function is now fully functional, but the backend issue persists. The backend needs to be re-examined to ensure the valid_date logic is properly implemented and deployed. The frontend fix resolves authentication issues, but the core anniversary date calculation still fails."
 
 frontend:
+  - task: "Anniversary Date Recalculate Function Frontend Fix"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: false
+        -agent: "testing"
+        -comment: "❌ FRONTEND TOKEN HANDLING BUG IDENTIFIED: During testing of Anniversary Date Recalculate function, discovered critical bug in handleRecalculateAnniversaryDate function at line 2250. Function was using localStorage.getItem('token') for Authorization header, but the auth system uses both localStorage and sessionStorage. This caused 401 Unauthorized errors when users logged in without 'Remember Me' option (using sessionStorage). Other parts of the app correctly use getStoredToken() function that checks both storage locations."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ FRONTEND TOKEN HANDLING BUG SUCCESSFULLY FIXED: Fixed critical authentication issue in Anniversary Date Recalculate function. ISSUE RESOLVED: Updated handleRecalculateAnniversaryDate function to use proper token retrieval: 'const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');' instead of only checking localStorage. TESTING VERIFICATION: ✅ Login with admin1/123456 successful, ✅ Navigation to SUNSHINE 01 ship working, ✅ Ship Particular details expansion functional, ✅ Recalculate button (↻) found and clickable, ✅ API calls now successful (no more 401 errors), ✅ Function executes and receives backend response. TECHNICAL DETAILS: Fixed line 2250 in /app/frontend/src/App.js, token handling now consistent with rest of application, authentication works for both localStorage and sessionStorage users. CONCLUSION: Frontend Anniversary Date Recalculate function is now fully functional from authentication and API call perspective. The fix ensures all users can successfully trigger the recalculate function regardless of their login method (Remember Me or session-only)."
+
   - task: "Enhanced Detailed Ship Information with 3-Column Layout"
     implemented: true
     working: true
