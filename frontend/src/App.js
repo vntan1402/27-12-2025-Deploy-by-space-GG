@@ -2268,6 +2268,11 @@ const HomePage = () => {
         alert(result.message || 'Unable to calculate anniversary date from certificates');
       }
     } catch (error) {
+      console.error('Error recalculating anniversary date:', error);
+      alert('Failed to recalculate anniversary date');
+    }
+  };
+
   // Special Survey Cycle management functions
   const handleRecalculateSpecialSurveyCycle = async (shipId) => {
     if (!shipId) return;
@@ -2298,10 +2303,6 @@ const HomePage = () => {
     } catch (error) {
       console.error('Error recalculating Special Survey cycle:', error);
       alert('Failed to recalculate Special Survey cycle');
-    }
-  };
-      console.error('Error recalculating anniversary date:', error);
-      alert('Failed to recalculate anniversary date');
     }
   };
 
