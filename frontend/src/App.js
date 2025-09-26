@@ -1027,6 +1027,7 @@ const HomePage = () => {
         ship_type: updatedShipData.ship_type?.trim() || '',
         class_society: updatedShipData.class_society?.trim() || '',
         gross_tonnage: updatedShipData.gross_tonnage ? parseFloat(updatedShipData.gross_tonnage) : null,
+        deadweight: updatedShipData.deadweight ? parseFloat(updatedShipData.deadweight) : null,
         year_built: updatedShipData.year_built ? parseInt(updatedShipData.year_built) : null,
         keel_laid: updatedShipData.keel_laid || null,
         ship_owner: updatedShipData.ship_owner?.trim() || '',
