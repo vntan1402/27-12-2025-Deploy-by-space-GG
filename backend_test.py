@@ -19,7 +19,7 @@ import base64
 # Configuration - Use production backend URL for testing
 BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
-class DockingDateExtractionTester:
+class EnhancedDockingExtractionTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -27,22 +27,24 @@ class DockingDateExtractionTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for Docking Date Extraction Logic
+        # Test tracking for Enhanced Docking Extraction Logic
         self.docking_tests = {
             'authentication_successful': False,
             'backend_startup_verified': False,
             'basic_endpoint_connectivity': False,
             'docking_endpoint_working': False,
             'cssc_certificate_found': False,
-            'certificate_filtering_working': False,
-            'date_extraction_patterns_working': False,
-            'assignment_logic_working': False,
+            'cssc_bottom_inspection_patterns_working': False,
+            'survey_status_integration_working': False,
+            'enhanced_pattern_matching_working': False,
+            'priority_order_working': False,
             'last_docking_1_extracted': False,
             'last_docking_2_extracted': False,
-            'date_validation_working': False,
-            'duplicates_removed': False,
-            'sorting_working': False,
-            'ship_update_working': False,
+            'next_docking_calculation_working': False,
+            'enhanced_results_verified': False,
+            'cssc_bottom_inspection_focus_working': False,
+            'survey_status_docking_info_working': False,
+            'improved_accuracy_verified': False,
             'response_format_correct': False,
             'dd_mm_yyyy_format_verified': False,
             'error_handling_working': False
