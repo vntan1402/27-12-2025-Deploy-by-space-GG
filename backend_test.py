@@ -100,7 +100,7 @@ class DockingDateExtractionTester:
                 self.log(f"   Company: {self.current_user.get('company')}")
                 self.log(f"   Full Name: {self.current_user.get('full_name')}")
                 
-                self.special_survey_tests['authentication_successful'] = True
+                self.docking_tests['authentication_successful'] = True
                 return True
             else:
                 self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
