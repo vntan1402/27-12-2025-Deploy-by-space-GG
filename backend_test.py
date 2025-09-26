@@ -874,12 +874,12 @@ class AnniversaryDateTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_layout_tests(self):
-        """Main test function for 3-column layout changes and special survey cycle field"""
-        self.log("🎯 STARTING 3-COLUMN LAYOUT CHANGES TESTING")
-        self.log("🔍 Focus: Updated 3-column layout changes for Detailed Ship Information")
-        self.log("📋 Review Request: Test special_survey_cycle field and 3-column layout field structure")
-        self.log("🎯 Testing: Authentication, ship retrieval, special survey cycle model, data consistency")
+    def run_comprehensive_anniversary_tests(self):
+        """Main test function for Anniversary Date Recalculate Function"""
+        self.log("🎯 STARTING ANNIVERSARY DATE RECALCULATE FUNCTION TESTING")
+        self.log("🔍 Focus: Test updated Anniversary Date logic with enhanced certificate processing")
+        self.log("📋 Review Request: Test Fixed Recalculate Function with valid_date logic and enhanced parsing")
+        self.log("🎯 Testing: Authentication, recalculate function, certificate analysis, enhanced logic")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -889,20 +889,20 @@ class AnniversaryDateTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Test ship retrieval with new field structure
-        self.log("\n🚢 STEP 2: TEST SHIP RETRIEVAL WITH NEW FIELD STRUCTURE")
+        # Step 2: Test Certificate Analysis
+        self.log("\n🔍 STEP 2: TEST CERTIFICATE ANALYSIS")
         self.log("=" * 50)
-        self.test_ship_retrieval_with_new_fields()
+        self.test_certificate_analysis()
         
-        # Step 3: Test SpecialSurveyCycle model functionality
-        self.log("\n🔍 STEP 3: TEST SPECIAL SURVEY CYCLE MODEL")
+        # Step 3: Test Anniversary Date Recalculate Function
+        self.log("\n🔄 STEP 3: TEST ANNIVERSARY DATE RECALCULATE FUNCTION")
         self.log("=" * 50)
-        self.test_special_survey_cycle_model()
+        self.test_anniversary_date_recalculate_function()
         
-        # Step 4: Test data consistency and backward compatibility
-        self.log("\n🔍 STEP 4: TEST DATA CONSISTENCY")
+        # Step 4: Test Enhanced Logic Verification
+        self.log("\n🧠 STEP 4: TEST ENHANCED LOGIC VERIFICATION")
         self.log("=" * 50)
-        self.test_data_consistency()
+        self.test_enhanced_logic_verification()
         
         # Step 5: Capture backend logs
         self.log("\n📝 STEP 5: CAPTURE BACKEND LOGS")
@@ -912,7 +912,7 @@ class AnniversaryDateTester:
         # Step 6: Final analysis
         self.log("\n📊 STEP 6: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_layout_analysis()
+        self.provide_final_anniversary_analysis()
         
         return True
     
