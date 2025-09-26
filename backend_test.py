@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: 3-Column Layout Changes for Detailed Ship Information
-Review Request: Test the updated 3-column layout changes for Detailed Ship Information with special_survey_cycle field
+FOCUS: Anniversary Date Recalculate Function Testing
+Review Request: Test updated Anniversary Date logic with enhanced certificate processing
 """
 
 import requests
@@ -19,7 +19,7 @@ import base64
 # Configuration - Use external URL from frontend/.env
 BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
 
-class ThreeColumnLayoutTester:
+class AnniversaryDateTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
