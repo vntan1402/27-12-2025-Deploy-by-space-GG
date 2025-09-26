@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Enhanced Docking Extraction Logic với CSSC "inspections of the outside of the ship's bottom" và Survey Status
-Review Request: Test enhanced docking extraction logic với CSSC "inspections of the outside of the ship's bottom" và Survey Status
+FOCUS: Recalculate Docking Dates API Endpoint Testing
+Review Request: Test the "Recalculate Docking Dates" API endpoint to verify that the handleRecalculateDockingDates function fix is working correctly.
 """
 
 import requests
