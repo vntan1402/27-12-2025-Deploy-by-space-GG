@@ -1264,15 +1264,15 @@ class DockingDateExtractionTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_same_day_month_tests(self):
-        """Main test function for Special Survey Cycle Same Day/Month Logic"""
-        self.log("🎯 STARTING SPECIAL SURVEY CYCLE SAME DAY/MONTH TESTING")
-        self.log("🔍 Focus: Test fixed Special Survey Cycle logic với same day/month requirement")
-        self.log("📋 Review Request: Verify From Date có cùng ngày/tháng với To Date")
-        self.log("🎯 Expected: CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE với valid_date: 2026-03-10")
-        self.log("🎯 Should calculate: To Date = 10/03/2026, From Date = 10/03/2021 (cùng ngày/tháng)")
-        self.log("🎯 Previous result: From Date = 09/03/2021 (sai 1 ngày)")
-        self.log("🎯 After fix: From Date = 10/03/2021 (đúng cùng ngày/tháng)")
+    def run_comprehensive_docking_date_tests(self):
+        """Main test function for Docking Date Extraction Logic"""
+        self.log("🎯 STARTING DOCKING DATE EXTRACTION TESTING")
+        self.log("🔍 Focus: Test docking date extraction logic sau khi fix syntax error")
+        self.log("📋 Review Request: Verify CSSC certificate detection and date extraction")
+        self.log("🎯 Expected: CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE detection")
+        self.log("🎯 Keywords: 'safety construction', 'cssc', 'dry dock', 'dd'")
+        self.log("🎯 Date range: 1980 - current year")
+        self.log("🎯 Format: dd/MM/yyyy")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -1282,30 +1282,35 @@ class DockingDateExtractionTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Test Certificate Verification for Same Day/Month Logic
-        self.log("\n🔍 STEP 2: CERTIFICATE VERIFICATION FOR SAME DAY/MONTH LOGIC")
+        # Step 2: Backend Startup Verification
+        self.log("\n🔧 STEP 2: BACKEND STARTUP VERIFICATION")
         self.log("=" * 50)
-        self.test_certificate_verification_for_same_day_month()
+        self.test_backend_startup_verification()
         
-        # Step 3: Test Special Survey Cycle with Same Day/Month Requirement
-        self.log("\n🎯 STEP 3: SPECIAL SURVEY CYCLE SAME DAY/MONTH TEST")
+        # Step 3: CSSC Certificate Detection
+        self.log("\n🔍 STEP 3: CSSC CERTIFICATE DETECTION")
         self.log("=" * 50)
-        self.test_special_survey_cycle_same_day_month()
+        self.test_cssc_certificate_detection()
         
-        # Step 4: Test Edge Cases and Leap Year Handling
-        self.log("\n🧪 STEP 4: EDGE CASES AND LEAP YEAR HANDLING")
+        # Step 4: Certificate Text Parsing
+        self.log("\n📝 STEP 4: CERTIFICATE TEXT PARSING")
         self.log("=" * 50)
-        self.test_edge_cases_and_leap_year_handling()
+        self.test_certificate_text_parsing()
         
-        # Step 5: Capture backend logs
-        self.log("\n📝 STEP 5: CAPTURE BACKEND LOGS")
+        # Step 5: Docking Date Extraction Endpoint
+        self.log("\n🎯 STEP 5: DOCKING DATE EXTRACTION ENDPOINT")
         self.log("=" * 50)
-        self.capture_backend_logs()
+        self.test_docking_date_extraction_endpoint()
         
-        # Step 6: Final analysis
-        self.log("\n📊 STEP 6: FINAL ANALYSIS")
+        # Step 6: Date Validation and Ship Update
+        self.log("\n📅 STEP 6: DATE VALIDATION AND SHIP UPDATE")
         self.log("=" * 50)
-        self.provide_final_same_day_month_analysis()
+        self.test_date_validation_and_ship_update()
+        
+        # Step 7: Final analysis
+        self.log("\n📊 STEP 7: FINAL ANALYSIS")
+        self.log("=" * 50)
+        self.provide_final_docking_analysis()
         
         return True
     
