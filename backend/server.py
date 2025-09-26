@@ -176,6 +176,7 @@ class ShipUpdate(BaseModel):
     deadweight: Optional[float] = None
     built_year: Optional[int] = None
     last_docking: Optional[datetime] = None
+    last_docking_2: Optional[datetime] = None
     last_special_survey: Optional[datetime] = None
     dry_dock_cycle: Optional[DryDockCycle] = None
     special_survey_cycle: Optional[SpecialSurveyCycle] = None
