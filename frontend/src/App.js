@@ -2564,9 +2564,9 @@ const HomePage = () => {
                             <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
                             <span className="ml-2">{selectedShip.built_year || '-'}</span>
                           </div>
-                          <div>
+                          <div className={`${(selectedShip.ship_owner || '').length > 25 ? 'row-span-2' : ''}`}>
                             <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
-                            <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
+                            <span className="ml-2 break-words">{selectedShip.ship_owner || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
@@ -2576,8 +2576,8 @@ const HomePage = () => {
                             <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
                             <span className="ml-2">{selectedShip.deadweight?.toLocaleString() || '-'}</span>
                           </div>
-                          {/* Empty slot for 3x3 grid */}
-                          <div></div>
+                          {/* Empty slot - will be occupied by Ship Owner if text is long */}
+                          <div className={`${(selectedShip.ship_owner || '').length > 25 ? 'hidden' : ''}`}></div>
                         </div>
 
                         {/* Full Ship Info (Toggle visibility) - 3 columns layout */}
