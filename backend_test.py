@@ -2,7 +2,7 @@
 """
 Backend Testing Script for Ship Management System
 FOCUS: Docking Date Extraction Logic Testing from CSSC and DD Certificates
-Review Request: Test auto-extraction logic cho Last Docking 1 & 2 từ CSSC và DD certificates
+Review Request: Test docking date extraction logic sau khi fix syntax error
 """
 
 import requests
