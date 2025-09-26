@@ -8747,7 +8747,13 @@ const AddRecordModal = ({
           deadweight: analysisData.deadweight ? String(analysisData.deadweight) : '',
           built_year: analysisData.built_year ? String(analysisData.built_year) : '',
           keel_laid: analysisData.keel_laid || '',
-          ship_owner: analysisData.ship_owner || ''
+          ship_owner: analysisData.ship_owner || '',
+          // Survey & maintenance fields (optional - rarely extracted from certificates)
+          last_docking: analysisData.last_docking || '',
+          last_docking_2: analysisData.last_docking_2 || '', 
+          next_docking: analysisData.next_docking || '',
+          last_special_survey: analysisData.last_special_survey || ''
+          // Note: Anniversary date and special survey cycle are complex objects, handled separately if needed
         };
         
         console.log('📝 Processed data for form:', processedData);
