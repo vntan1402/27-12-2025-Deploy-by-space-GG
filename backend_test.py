@@ -17,7 +17,7 @@ import tempfile
 import base64
 
 # Configuration - Use internal backend URL for testing
-BACKEND_URL = "http://localhost:8001/api"
+BACKEND_URL = "http://localhost:8010/api"
 
 class SpecialSurveyCycleTester:
     def __init__(self):
