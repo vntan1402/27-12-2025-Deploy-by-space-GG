@@ -2301,6 +2301,46 @@ const HomePage = () => {
         alert(result.message || 'Unable to calculate Special Survey cycle from certificates');
       }
     } catch (error) {
+  
+  // Last Docking dates management functions
+  const handleRecalculateDockingDates = async (shipId) => {
+    if (!shipId) return;
+    
+    try {
+      const currentToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ships/${shipId}/calculate-docking-dates`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Show success message with calculated dates
+        let message = 'Docking dates extracted from CSSC/DD certificates:\n';
+        if (result.docking_dates.last_docking) {
+          message += `Last Docking 1: ${result.docking_dates.last_docking}\n`;
+        }
+        if (result.docking_dates.last_docking_2) {
+          message += `Last Docking 2: ${result.docking_dates.last_docking_2}`;
+        }
+        alert(message);
+        
+        // Refresh the ship data
+        if (selectedShip?.id === shipId) {
+          fetchShips(); // Refresh the ship list
+        }
+      } else {
+        alert(result.message || 'Unable to extract docking dates from CSSC/DD certificates');
+      }
+    } catch (error) {
+      console.error('Error recalculating docking dates:', error);
+      alert('Failed to recalculate docking dates');
+    }
+  };
       console.error('Error recalculating Special Survey cycle:', error);
       alert('Failed to recalculate Special Survey cycle');
     }
