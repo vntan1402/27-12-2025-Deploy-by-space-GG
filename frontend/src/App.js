@@ -2593,8 +2593,12 @@ const HomePage = () => {
                               {/* Column 1 - Survey & Maintenance Data (Vertical) */}
                               <div className="space-y-3">
                                 <div>
-                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking:' : 'Last Docking:'}</span>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 1:' : 'Last Docking 1:'}</span>
                                   <div className="mt-1">{formatDate(selectedShip.last_docking) || '-'}</div>
+                                </div>
+                                <div>
+                                  <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 2:' : 'Last Docking 2:'}</span>
+                                  <div className="mt-1">{formatDate(selectedShip.last_docking_2) || '-'}</div>
                                 </div>
                                 <div>
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
