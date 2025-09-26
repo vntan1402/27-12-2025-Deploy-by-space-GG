@@ -2546,35 +2546,35 @@ const HomePage = () => {
                         <div className="grid grid-cols-3 gap-4 text-sm mb-4">
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
-                            <div className="mt-1">{selectedShip.name}</div>
+                            <span className="ml-2">{selectedShip.name}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổ chức Phân cấp:' : 'Class Society:'}</span>
-                            <div className="mt-1">{selectedShip.ship_type || selectedShip.class_society || '-'}</div>
+                            <span className="ml-2">{selectedShip.ship_type || selectedShip.class_society || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
-                            <div className="mt-1">{selectedShip.flag}</div>
+                            <span className="ml-2">{selectedShip.flag}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'IMO:' : 'IMO:'}</span>
-                            <div className="mt-1">{selectedShip.imo || '-'}</div>
+                            <span className="ml-2">{selectedShip.imo || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Chủ tàu:' : 'Ship Owner:'}</span>
-                            <div className="mt-1">{selectedShip.ship_owner || '-'}</div>
+                            <span className="ml-2">{selectedShip.ship_owner || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
-                            <div className="mt-1">{selectedShip.built_year || '-'}</div>
+                            <span className="ml-2">{selectedShip.built_year || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổng Dung Tích:' : 'Gross Tonnage:'}</span>
-                            <div className="mt-1">{selectedShip.gross_tonnage?.toLocaleString() || '-'}</div>
+                            <span className="ml-2">{selectedShip.gross_tonnage?.toLocaleString() || '-'}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Trọng Tải:' : 'Deadweight:'}</span>
-                            <div className="mt-1">{selectedShip.deadweight?.toLocaleString() || '-'}</div>
+                            <span className="ml-2">{selectedShip.deadweight?.toLocaleString() || '-'}</span>
                           </div>
                           {/* Empty slot for 3x3 grid */}
                           <div></div>
