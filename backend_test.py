@@ -16,8 +16,8 @@ import subprocess
 import tempfile
 import base64
 
-# Configuration - Use production backend URL for testing
-BACKEND_URL = "https://vessel-docs-hub.preview.emergentagent.com/api"
+# Configuration - Use internal backend URL for testing
+BACKEND_URL = "http://localhost:8001/api"
 
 class SpecialSurveyCycleTester:
     def __init__(self):
