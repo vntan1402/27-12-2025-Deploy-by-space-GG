@@ -2544,9 +2544,9 @@ const HomePage = () => {
                       <div className="mb-6">
                         {/* Basic Ship Info (Always visible) - Enhanced 3x3 Grid Layout */}
                         <div className="grid grid-cols-3 gap-4 text-sm mb-4">
-                          <div>
-                            <span className="font-semibold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
-                            <span className="ml-2">{selectedShip.name}</span>
+                          <div className="text-base font-bold">
+                            <span className="font-bold">{language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}</span>
+                            <span className="ml-2 font-bold">{selectedShip.name}</span>
                           </div>
                           <div>
                             <span className="font-semibold">{language === 'vi' ? 'Tổ chức Phân cấp:' : 'Class Society:'}</span>
