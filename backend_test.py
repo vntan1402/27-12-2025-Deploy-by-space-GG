@@ -1165,12 +1165,15 @@ class SpecialSurveyCycleTester:
             self.log(f"❌ Backend log capture error: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_special_survey_tests(self):
-        """Main test function for Special Survey Cycle Logic"""
-        self.log("🎯 STARTING SPECIAL SURVEY CYCLE LOGIC TESTING")
-        self.log("🔍 Focus: Test enhanced Special Survey Cycle logic theo IMO standards")
-        self.log("📋 Review Request: Test Special Survey Cycle Calculation with IMO 5-year standards")
-        self.log("🎯 Testing: Authentication, certificate analysis, special survey calculation, IMO compliance")
+    def run_comprehensive_same_day_month_tests(self):
+        """Main test function for Special Survey Cycle Same Day/Month Logic"""
+        self.log("🎯 STARTING SPECIAL SURVEY CYCLE SAME DAY/MONTH TESTING")
+        self.log("🔍 Focus: Test fixed Special Survey Cycle logic với same day/month requirement")
+        self.log("📋 Review Request: Verify From Date có cùng ngày/tháng với To Date")
+        self.log("🎯 Expected: CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE với valid_date: 2026-03-10")
+        self.log("🎯 Should calculate: To Date = 10/03/2026, From Date = 10/03/2021 (cùng ngày/tháng)")
+        self.log("🎯 Previous result: From Date = 09/03/2021 (sai 1 ngày)")
+        self.log("🎯 After fix: From Date = 10/03/2021 (đúng cùng ngày/tháng)")
         self.log("=" * 100)
         
         # Step 1: Authenticate
@@ -1180,35 +1183,30 @@ class SpecialSurveyCycleTester:
             self.log("❌ Authentication failed - cannot proceed with testing")
             return False
         
-        # Step 2: Test Certificate Analysis for Special Survey
-        self.log("\n🔍 STEP 2: TEST CERTIFICATE ANALYSIS FOR SPECIAL SURVEY")
+        # Step 2: Test Certificate Verification for Same Day/Month Logic
+        self.log("\n🔍 STEP 2: CERTIFICATE VERIFICATION FOR SAME DAY/MONTH LOGIC")
         self.log("=" * 50)
-        self.test_certificate_analysis_for_special_survey()
+        self.test_certificate_verification_for_same_day_month()
         
-        # Step 3: Test Special Survey Cycle Calculation
-        self.log("\n🔄 STEP 3: TEST SPECIAL SURVEY CYCLE CALCULATION")
+        # Step 3: Test Special Survey Cycle with Same Day/Month Requirement
+        self.log("\n🎯 STEP 3: SPECIAL SURVEY CYCLE SAME DAY/MONTH TEST")
         self.log("=" * 50)
-        self.test_special_survey_cycle_calculation()
+        self.test_special_survey_cycle_same_day_month()
         
-        # Step 4: Test IMO 5-Year Logic Verification
-        self.log("\n🧠 STEP 4: TEST IMO 5-YEAR LOGIC VERIFICATION")
+        # Step 4: Test Edge Cases and Leap Year Handling
+        self.log("\n🧪 STEP 4: EDGE CASES AND LEAP YEAR HANDLING")
         self.log("=" * 50)
-        self.test_imo_5_year_logic_verification()
+        self.test_edge_cases_and_leap_year_handling()
         
-        # Step 5: Test Complete Integration
-        self.log("\n🔗 STEP 5: TEST COMPLETE INTEGRATION")
-        self.log("=" * 50)
-        self.test_complete_integration()
-        
-        # Step 6: Capture backend logs
-        self.log("\n📝 STEP 6: CAPTURE BACKEND LOGS")
+        # Step 5: Capture backend logs
+        self.log("\n📝 STEP 5: CAPTURE BACKEND LOGS")
         self.log("=" * 50)
         self.capture_backend_logs()
         
-        # Step 7: Final analysis
-        self.log("\n📊 STEP 7: FINAL ANALYSIS")
+        # Step 6: Final analysis
+        self.log("\n📊 STEP 6: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_special_survey_analysis()
+        self.provide_final_same_day_month_analysis()
         
         return True
     
