@@ -1275,11 +1275,111 @@ def extract_docking_dates_from_text(text_content: str, cert_name: str) -> List[d
     """
     Extract docking dates from certificate text content.
     
-    Looks for patterns related to dry docking, docking surveys, and construction surveys.
+    Enhanced Logic:
+    1. CSSC Certificate: Look for "inspections of the outside of the ship's bottom" = Docking Inspection
+    2. Survey Status: Extract docking inspection dates from survey status
+    3. General docking patterns
     """
     import re
     
     docking_dates = []
+    
+    try:
+        # Priority 1: CSSC-specific "inspections of the outside of the ship's bottom"
+        cssc_bottom_patterns = [
+            # Direct "inspections of the outside of the ship's bottom" patterns
+            r"inspections?\s+of\s+the\s+outside\s+of\s+the\s+ship[''']?s\s+bottom[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"outside\s+of\s+(?:the\s+)?ship[''']?s\s+bottom[:\s]*(?:inspection|survey)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"bottom\s+inspection[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"hull\s+bottom\s+(?:inspection|survey)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Variations with "docking" context
+            r"(?:docking|dry\s*dock)\s+(?:inspection|survey).*outside.*bottom[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"outside.*bottom.*(?:inspection|survey)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+        ]
+        
+        # Priority 2: Survey Status patterns
+        survey_status_patterns = [
+            # Survey status docking inspection patterns
+            r"survey\s+status[:\s]*.*?docking[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"docking\s+(?:inspection|survey)\s+status[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"status[:\s]*.*?(?:dry\s*dock|docking)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"last\s+docking\s+(?:inspection|survey)[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Survey completion with docking context
+            r"docking\s+(?:survey\s+)?completed[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"completed.*docking[:\s]*(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+        ]
+        
+        # Priority 3: General docking patterns
+        general_docking_patterns = [
+            # Direct docking date patterns
+            r"dry\s*dock(?:ing)?\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"docking\s*survey\s*date[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"last\s*dry\s*dock[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"dry\s*dock(?:ed|ing)?\s*on[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Construction survey related (for CSSC)
+            r"construction\s*survey[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"initial\s*survey[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            
+            # Survey completion dates that might indicate docking
+            r"survey\s*completed[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+            r"inspection\s*completed[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+        ]
+        
+        # Process patterns in priority order
+        all_pattern_groups = [
+            ("CSSC Bottom Inspection", cssc_bottom_patterns),
+            ("Survey Status", survey_status_patterns), 
+            ("General Docking", general_docking_patterns)
+        ]
+        
+        for group_name, patterns in all_pattern_groups:
+            for pattern in patterns:
+                matches = re.finditer(pattern, text_content, re.IGNORECASE)
+                for match in matches:
+                    date_str = match.group(1)
+                    try:
+                        parsed_date = parse_date_string(date_str)
+                        if parsed_date:
+                            # Only include dates that make sense for docking (not too old, not future)
+                            current_year = datetime.now().year
+                            if 1980 <= parsed_date.year <= current_year + 1:
+                                docking_dates.append(parsed_date)
+                                logger.info(f"Extracted {group_name} docking date: {date_str} -> {parsed_date} from {cert_name}")
+                    except:
+                        continue
+        
+        # For CSSC certificates, also check for construction/build dates
+        if "safety construction" in cert_name.lower() or "cssc" in cert_name.lower():
+            # Look for specific CSSC-related dates
+            cssc_construction_patterns = [
+                r"keel\s*laid[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+                r"construction\s*commenced[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})",
+                r"delivered[:\s]+(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})"
+            ]
+            
+            for pattern in cssc_construction_patterns:
+                matches = re.finditer(pattern, text_content, re.IGNORECASE)
+                for match in matches:
+                    date_str = match.group(1)
+                    try:
+                        parsed_date = parse_date_string(date_str)
+                        if parsed_date and 1980 <= parsed_date.year <= datetime.now().year + 1:
+                            docking_dates.append(parsed_date)
+                            logger.info(f"Extracted CSSC construction date: {date_str} -> {parsed_date} from {cert_name}")
+                    except:
+                        continue
+    
+    except Exception as e:
+        logger.warning(f"Error extracting docking dates from text: {e}")
+    
+    # Remove duplicates and return
+    unique_dates = list(set(docking_dates))
+    unique_dates.sort(reverse=True)  # Most recent first
+    
+    return unique_dates
     
 def calculate_next_docking_from_last_docking(last_docking: Optional[datetime], ship_age: Optional[int] = None, class_society: str = None) -> Optional[datetime]:
     """
