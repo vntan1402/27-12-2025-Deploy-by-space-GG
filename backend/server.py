@@ -1241,6 +1241,220 @@ async def extract_docking_dates_from_survey_status(ship_id: str) -> List[datetim
         logger.error(f"Error extracting docking dates from survey status for ship {ship_id}: {e}")
         return []
 
+async def extract_docking_dates_with_ai_analysis(ship_id: str) -> Dict[str, Optional[datetime]]:
+    """
+    Extract Last Docking 1 and Last Docking 2 using AI to analyze CSSC certificates.
+    
+    Enhanced version that uses AI configuration from System Settings to re-analyze
+    CSSC certificate content for more accurate docking date extraction.
+    
+    Args:
+        ship_id: The ship ID to analyze certificates for
+        
+    Returns:
+        Dict with last_docking and last_docking_2 dates or None
+    """
+    try:
+        # Get AI configuration from system settings
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            logger.warning("No AI configuration found, falling back to traditional extraction")
+            return await extract_last_docking_dates_from_certificates(ship_id)
+        
+        ai_config = {
+            "provider": ai_config_doc.get("provider", "openai"),
+            "model": ai_config_doc.get("model", "gpt-4"),
+            "api_key": ai_config_doc.get("api_key"),
+            "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+        }
+        
+        logger.info(f"Using AI analysis for docking dates extraction: {ai_config['provider']} {ai_config['model']}")
+        
+        # Get all certificates for this ship
+        certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+        
+        if not certificates:
+            logger.info(f"No certificates found for ship {ship_id}")
+            return {"last_docking": None, "last_docking_2": None}
+        
+        # Filter for CSSC certificates (prioritized for docking information)
+        cssc_certs = []
+        cssc_keywords = [
+            'safety construction', 'cssc', 'cargo ship safety construction',
+            'construction certificate', 'safety certificate'
+        ]
+        
+        for cert in certificates:
+            cert_name = cert.get('cert_name', '').lower()
+            
+            # Check if it's a CSSC certificate
+            is_cssc_cert = any(keyword in cert_name for keyword in cssc_keywords)
+            
+            if is_cssc_cert and (cert.get('text_content') or cert.get('google_drive_file_id')):
+                cssc_certs.append(cert)
+        
+        if not cssc_certs:
+            logger.info(f"No CSSC certificates found for ship {ship_id}, falling back to traditional extraction")
+            return await extract_last_docking_dates_from_certificates(ship_id)
+        
+        logger.info(f"Found {len(cssc_certs)} CSSC certificates for AI analysis")
+        
+        # Analyze each CSSC certificate with AI
+        all_docking_dates = []
+        
+        for cert in cssc_certs:
+            cert_name = cert.get('cert_name', 'Unknown Certificate')
+            text_content = cert.get('text_content', '')
+            
+            if not text_content and cert.get('google_drive_file_id'):
+                # If no text content but has file, we could potentially re-process
+                # For now, skip certificates without text content
+                logger.warning(f"Certificate {cert_name} has no text content for AI analysis")
+                continue
+            
+            # AI Analysis prompt specifically for docking dates extraction
+            docking_analysis_prompt = """
+You are a maritime certificate analysis expert specializing in docking date extraction from CSSC (Cargo Ship Safety Construction Certificate) documents.
+
+Please analyze this CSSC certificate and extract ALL docking-related dates with high precision.
+
+**CRITICAL FOCUS AREAS:**
+1. **"Inspections of the outside of the ship's bottom"** - This is the PRIMARY indicator of dry docking dates
+2. **Bottom inspection dates** - Key for identifying actual docking events
+3. **Dry dock dates or docking survey dates** - Direct indicators
+4. **Hull inspection dates** - Secondary indicators
+5. **Construction survey dates** - May indicate docking for repairs/modifications
+
+**DATE EXTRACTION PRIORITY:**
+- Look for patterns like: "DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"
+- Context phrases: "inspected on", "docked on", "bottom inspection", "dry dock", "hull survey"
+- Recent dates (within last 10 years) are more relevant
+
+**IMPORTANT:** 
+- Extract ONLY actual docking dates (when ship was in dry dock)
+- Ignore issue dates, valid dates, or general survey dates unless they specifically mention docking/bottom inspection
+- Return dates in chronological order (most recent first)
+
+Please return a JSON response with:
+{
+  "docking_dates": [
+    {
+      "date": "DD/MM/YYYY",
+      "context": "Brief description of what indicates this was a docking date",
+      "confidence": "high/medium/low"
+    }
+  ],
+  "analysis_notes": "Brief explanation of extraction logic used"
+}
+
+Certificate content to analyze:
+"""
+            
+            try:
+                # Use AI to analyze the certificate text
+                ai_result = await analyze_with_emergent_llm_text_enhanced(
+                    text_content=text_content,
+                    filename=cert_name,
+                    api_key=ai_config['api_key'] if not ai_config['use_emergent_key'] else EMERGENT_LLM_KEY,
+                    analysis_prompt=docking_analysis_prompt
+                )
+                
+                # Parse AI response for docking dates
+                if ai_result.get('success') and ai_result.get('analysis_result'):
+                    analysis_data = ai_result.get('analysis_result', {})
+                    
+                    # Extract docking dates from AI response
+                    ai_docking_dates = analysis_data.get('docking_dates', [])
+                    
+                    for date_info in ai_docking_dates:
+                        date_str = date_info.get('date', '')
+                        confidence = date_info.get('confidence', 'medium')
+                        context = date_info.get('context', '')
+                        
+                        try:
+                            parsed_date = parse_date_string(date_str)
+                            if parsed_date:
+                                # Only include dates that make sense (not too old, not future)
+                                current_year = datetime.now().year
+                                if 1980 <= parsed_date.year <= current_year + 1:
+                                    all_docking_dates.append({
+                                        'date': parsed_date,
+                                        'source': cert_name,
+                                        'confidence': confidence,
+                                        'context': context,
+                                        'method': 'AI_analysis'
+                                    })
+                                    logger.info(f"AI extracted docking date: {date_str} -> {parsed_date} from {cert_name} (confidence: {confidence})")
+                        except Exception as date_error:
+                            logger.warning(f"Failed to parse AI extracted date '{date_str}': {date_error}")
+                            continue
+                
+            except Exception as ai_error:
+                logger.warning(f"AI analysis failed for certificate {cert_name}: {ai_error}")
+                # Fallback to traditional extraction for this certificate
+                fallback_dates = extract_docking_dates_from_text(text_content, cert_name)
+                for date_obj in fallback_dates:
+                    all_docking_dates.append({
+                        'date': date_obj,
+                        'source': cert_name,
+                        'confidence': 'medium',
+                        'context': 'Traditional regex extraction',
+                        'method': 'traditional_extraction'
+                    })
+        
+        # Also include traditional extraction as backup
+        traditional_dates = await extract_docking_dates_from_survey_status(ship_id)
+        for date_obj in traditional_dates:
+            all_docking_dates.append({
+                'date': date_obj,
+                'source': 'Survey Status',
+                'confidence': 'medium',
+                'context': 'Survey status extraction',
+                'method': 'traditional_extraction'
+            })
+        
+        if not all_docking_dates:
+            logger.info(f"No docking dates found via AI analysis for ship {ship_id}")
+            return {"last_docking": None, "last_docking_2": None}
+        
+        # Sort by date (most recent first) and confidence
+        all_docking_dates.sort(key=lambda x: (x['date'], x['confidence'] == 'high'), reverse=True)
+        
+        # Remove duplicates (dates within 7 days of each other)
+        unique_dates = []
+        for date_entry in all_docking_dates:
+            is_duplicate = False
+            for existing in unique_dates:
+                date_diff = abs((date_entry['date'] - existing['date']).days)
+                if date_diff <= 7:  # Consider dates within 7 days as duplicates
+                    is_duplicate = True
+                    # Keep the one with higher confidence
+                    if date_entry['confidence'] == 'high' and existing['confidence'] != 'high':
+                        unique_dates[unique_dates.index(existing)] = date_entry
+                    break
+            
+            if not is_duplicate:
+                unique_dates.append(date_entry)
+        
+        # Get Last Docking 1 (most recent) and Last Docking 2 (second most recent)
+        last_docking = unique_dates[0]['date'] if len(unique_dates) > 0 else None
+        last_docking_2 = unique_dates[1]['date'] if len(unique_dates) > 1 else None
+        
+        logger.info(f"AI-enhanced docking dates for ship {ship_id}:")
+        logger.info(f"  Last Docking 1: {last_docking} (from {unique_dates[0]['source'] if unique_dates else 'N/A'})")
+        logger.info(f"  Last Docking 2: {last_docking_2} (from {unique_dates[1]['source'] if len(unique_dates) > 1 else 'N/A'})")
+        
+        return {
+            "last_docking": last_docking,
+            "last_docking_2": last_docking_2
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in AI-enhanced docking dates extraction for ship {ship_id}: {e}")
+        # Fallback to traditional extraction
+        logger.info("Falling back to traditional docking dates extraction")
+        return await extract_last_docking_dates_from_certificates(ship_id)
+
 def extract_survey_status_section(text_content: str) -> str:
     """
     Extract the survey status section from certificate text content.
