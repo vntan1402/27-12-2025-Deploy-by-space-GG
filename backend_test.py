@@ -119,6 +119,42 @@ class DockingDateExtractionTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
+    def test_backend_startup_verification(self):
+        """Test backend startup and basic connectivity"""
+        try:
+            self.log("🔧 Testing Backend Startup and Basic Connectivity...")
+            
+            # Test basic health endpoint
+            health_endpoint = f"{BACKEND_URL.replace('/api', '')}/health"
+            try:
+                response = requests.get(health_endpoint, timeout=10)
+                if response.status_code == 200:
+                    self.log("   ✅ Backend health check passed")
+                    self.docking_tests['backend_startup_verified'] = True
+                else:
+                    self.log(f"   ⚠️ Backend health check returned: {response.status_code}")
+            except:
+                self.log("   ⚠️ Backend health endpoint not available")
+            
+            # Test basic API connectivity with ships endpoint
+            ships_endpoint = f"{BACKEND_URL}/ships"
+            try:
+                response = requests.get(ships_endpoint, headers=self.get_headers(), timeout=10)
+                if response.status_code == 200:
+                    self.log("   ✅ Basic API connectivity verified")
+                    self.docking_tests['basic_endpoint_connectivity'] = True
+                else:
+                    self.log(f"   ⚠️ Ships endpoint returned: {response.status_code}")
+            except Exception as e:
+                self.log(f"   ❌ Basic API connectivity failed: {e}")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Backend startup verification error: {str(e)}", "ERROR")
+            return False
+
     def test_docking_date_extraction_endpoint(self):
         """Test the Docking Date Extraction Function"""
         try:
@@ -152,105 +188,58 @@ class DockingDateExtractionTester:
                     self.log("   ✅ Docking Date Extraction successful")
                     self.docking_tests['docking_endpoint_working'] = True
                     
-                    # Extract dates for same day/month verification
-                    from_date = special_survey_cycle.get('from_date')
-                    to_date = special_survey_cycle.get('to_date')
-                    intermediate_required = special_survey_cycle.get('intermediate_required')
-                    cycle_type = special_survey_cycle.get('cycle_type')
+                    # Extract Last Docking 1 and Last Docking 2
+                    last_docking_1 = docking_dates.get('last_docking')
+                    last_docking_2 = docking_dates.get('last_docking_2')
                     
-                    self.log(f"   📊 Calculated Special Survey Cycle:")
-                    self.log(f"      From Date: {from_date}")
-                    self.log(f"      To Date: {to_date}")
-                    self.log(f"      Intermediate Required: {intermediate_required}")
-                    self.log(f"      Cycle Type: {cycle_type}")
+                    self.log(f"   📊 Extracted Docking Dates:")
+                    self.log(f"      Last Docking 1 (Most Recent): {last_docking_1}")
+                    self.log(f"      Last Docking 2 (Second Most Recent): {last_docking_2}")
                     
-                    # CRITICAL TEST: Verify Same Day/Month Requirement
-                    if from_date and to_date:
+                    # Verify Last Docking 1 extraction
+                    if last_docking_1:
+                        self.log("   ✅ Last Docking 1 extracted successfully")
+                        self.docking_tests['last_docking_1_extracted'] = True
+                        
+                        # Verify dd/MM/yyyy format
+                        if '/' in last_docking_1 and len(last_docking_1.split('/')) == 3:
+                            self.log("   ✅ Last Docking 1 format verified (dd/MM/yyyy)")
+                            self.docking_tests['dd_mm_yyyy_format_verified'] = True
+                    
+                    # Verify Last Docking 2 extraction
+                    if last_docking_2:
+                        self.log("   ✅ Last Docking 2 extracted successfully")
+                        self.docking_tests['last_docking_2_extracted'] = True
+                    
+                    # Verify response format
+                    expected_response_fields = ['success', 'message', 'docking_dates']
+                    if all(field in result for field in expected_response_fields):
+                        self.log("   ✅ Response format correct")
+                        self.docking_tests['response_format_correct'] = True
+                    
+                    # Verify assignment logic (Last Docking 1 should be more recent than Last Docking 2)
+                    if last_docking_1 and last_docking_2:
                         try:
-                            from_dt = datetime.fromisoformat(from_date.replace('Z', ''))
-                            to_dt = datetime.fromisoformat(to_date.replace('Z', ''))
-                            
-                            from_day = from_dt.day
-                            from_month = from_dt.month
-                            to_day = to_dt.day
-                            to_month = to_dt.month
-                            
-                            self.log(f"   🔍 SAME DAY/MONTH VERIFICATION:")
-                            self.log(f"      From Date: Day={from_day}, Month={from_month}")
-                            self.log(f"      To Date: Day={to_day}, Month={to_month}")
-                            
-                            # Check if day and month are the same
-                            if from_day == to_day and from_month == to_month:
-                                self.log("   ✅ SAME DAY/MONTH REQUIREMENT VERIFIED!")
-                                self.log(f"      From Date and To Date have same day ({from_day}) and month ({from_month})")
-                                self.special_survey_tests['same_day_month_verified'] = True
+                            date1 = datetime.strptime(last_docking_1, '%d/%m/%Y')
+                            date2 = datetime.strptime(last_docking_2, '%d/%m/%Y')
+                            if date1 > date2:
+                                self.log("   ✅ Assignment logic correct (Last Docking 1 > Last Docking 2)")
+                                self.docking_tests['assignment_logic_working'] = True
                             else:
-                                self.log("   ❌ SAME DAY/MONTH REQUIREMENT FAILED!")
-                                self.log(f"      From Date: Day={from_day}, Month={from_month}")
-                                self.log(f"      To Date: Day={to_day}, Month={to_month}")
-                                self.log("      From Date and To Date should have same day and month")
-                            
-                            # Check specific expected dates
-                            from_display = from_dt.strftime('%d/%m/%Y')
-                            to_display = to_dt.strftime('%d/%m/%Y')
-                            
-                            self.log(f"   📊 Display Format: {from_display} - {to_display}")
-                            
-                            # Verify To Date matches expected (from certificate valid_date)
-                            if to_display == self.expected_to_date:
-                                self.log(f"   ✅ To Date correct: {to_display}")
-                                self.special_survey_tests['to_date_correct'] = True
-                            else:
-                                self.log(f"   ⚠️ To Date differs from expected: {self.expected_to_date}")
-                            
-                            # Verify From Date matches expected (same day/month, 5 years earlier)
-                            if from_display == self.expected_from_date:
-                                self.log(f"   ✅ From Date correct: {from_display}")
-                                self.special_survey_tests['from_date_correct'] = True
-                                self.special_survey_tests['date_calculation_fixed'] = True
-                            else:
-                                self.log(f"   ❌ From Date incorrect: {from_display}")
-                                self.log(f"      Expected: {self.expected_from_date}")
-                                if from_display == self.previous_incorrect_from_date:
-                                    self.log(f"      ⚠️ Still showing previous incorrect result: {self.previous_incorrect_from_date}")
-                                else:
-                                    self.log(f"      Different from previous incorrect result: {self.previous_incorrect_from_date}")
-                            
-                            # Verify complete display format
-                            complete_display = f"{from_display} - {to_display}"
-                            if complete_display == self.expected_display_format:
-                                self.log(f"   ✅ Complete display format correct: {complete_display}")
-                                self.special_survey_tests['display_format_correct'] = True
-                            else:
-                                self.log(f"   ⚠️ Complete display format differs from expected: {self.expected_display_format}")
-                            
-                        except Exception as e:
-                            self.log(f"   ❌ Error parsing dates for same day/month verification: {e}")
-                    
-                    # Verify intermediate survey requirement
-                    if intermediate_required:
-                        self.log("   ✅ Intermediate Required = true")
-                        self.special_survey_tests['intermediate_required_true'] = True
-                    else:
-                        self.log("   ⚠️ Intermediate Required should be true")
-                    
-                    # Verify cycle type
-                    if cycle_type and "SOLAS" in cycle_type and "Safety Construction" in cycle_type:
-                        self.log("   ✅ Cycle Type correctly identified as SOLAS Safety Construction")
-                        self.special_survey_tests['cycle_type_correct'] = True
-                    else:
-                        self.log(f"   ⚠️ Cycle Type may not be correct: {cycle_type}")
+                                self.log("   ⚠️ Assignment logic may be incorrect")
+                        except:
+                            self.log("   ⚠️ Could not verify assignment logic due to date parsing error")
                 
                 else:
-                    self.log("   ❌ Special Survey Cycle calculation failed or returned no data")
+                    self.log("   ❌ Docking Date Extraction failed or returned no data")
                     self.log(f"      Success: {success}")
                     self.log(f"      Message: {message}")
                 
-                self.test_results['special_survey_response'] = result
+                self.test_results['docking_response'] = result
                 return True
                 
             else:
-                self.log(f"   ❌ Special Survey Cycle Calculation failed: {response.status_code}")
+                self.log(f"   ❌ Docking Date Extraction failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -259,7 +248,7 @@ class DockingDateExtractionTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Special Survey Cycle same day/month test error: {str(e)}", "ERROR")
+            self.log(f"❌ Docking Date Extraction test error: {str(e)}", "ERROR")
             return False
     
     def test_certificate_verification_for_same_day_month(self):
