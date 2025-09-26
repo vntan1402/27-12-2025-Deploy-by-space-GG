@@ -3080,6 +3080,32 @@ async def update_ship(ship_id: str, ship_data: ShipUpdate, current_user: UserRes
         # Prepare update data
         update_data = ship_data.dict(exclude_unset=True)
         
+        # Check for new class society and suggest mapping (if class_society is being updated)
+        if 'class_society' in update_data:
+            class_society_input = update_data.get('class_society', '').strip()
+            if class_society_input:
+                try:
+                    detection_result = await detect_and_suggest_new_class_society(class_society_input)
+                    if detection_result.get('is_new'):
+                        # Log suggestion for admin/system review
+                        logger.info(f"New class society detected in ship update: {detection_result}")
+                        
+                        # Optionally auto-save common/recognized patterns
+                        if len(class_society_input) > 10:  # Only auto-save if it looks like a full name
+                            suggested_abbr = detection_result.get('suggested_abbreviation')
+                            if suggested_abbr:
+                                # Auto-save mapping for future use
+                                auto_save_success = await save_class_society_mapping(
+                                    class_society_input, 
+                                    suggested_abbr, 
+                                    current_user.id
+                                )
+                                if auto_save_success:
+                                    logger.info(f"Auto-saved class society mapping: {class_society_input} → {suggested_abbr}")
+                except Exception as cs_error:
+                    logger.warning(f"Error checking class society mapping: {cs_error}")
+                    # Continue with ship update even if class society detection fails
+        
         # Handle enhanced anniversary date and dry dock cycle processing
         await process_enhanced_ship_fields(update_data, is_new_ship=False, ship_id=ship_id)
         
