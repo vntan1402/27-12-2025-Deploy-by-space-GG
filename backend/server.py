@@ -1923,6 +1923,61 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
 @api_router.get("/users/filtered", response_model=List[UserResponse])
 async def get_filtered_users(
     company: Optional[str] = None,
+@api_router.post("/ships/{ship_id}/calculate-next-docking")
+async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """
+    Calculate Next Docking date based on IMO regulations and Classification Society standards.
+    Uses Last Docking date and applies IMO 30-month interval with classification society considerations.
+    """
+    try:
+        # Check if ship exists
+        existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not existing_ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Calculate next docking date
+        next_docking = await calculate_next_docking_for_ship(ship_id)
+        
+        if not next_docking:
+            return {
+                "success": False,
+                "message": "Unable to calculate next docking date. Last docking date required.",
+                "next_docking": None
+            }
+        
+        # Update ship with calculated next docking date
+        update_data = {
+            "next_docking": next_docking
+        }
+        
+        await mongo_db.update("ships", {"id": ship_id}, update_data)
+        
+        # Get ship details for response
+        ship_data = existing_ship
+        ship_age = None
+        if ship_data.get('built_year'):
+            ship_age = datetime.now().year - ship_data.get('built_year')
+        
+        class_society = ship_data.get('ship_type') or ship_data.get('class_society', 'Standard')
+        
+        return {
+            "success": True,
+            "message": f"Next docking calculated based on IMO 30-month standard",
+            "next_docking": {
+                "date": next_docking.strftime('%d/%m/%Y'),
+                "interval_months": 30,
+                "ship_age": ship_age,
+                "class_society": class_society,
+                "compliance": "IMO SOLAS requirements",
+                "notes": f"Ships 15+ years: stricter requirements" if ship_age and ship_age >= 15 else "Standard IMO interval"
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calculating next docking for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate next docking date")
     department: Optional[str] = None, 
     ship: Optional[str] = None,
     sort_by: Optional[str] = "full_name",
