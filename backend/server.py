@@ -2348,6 +2348,7 @@ async def get_ship_form_fields_for_extraction() -> dict:
             "gross_tonnage": "Gross tonnage (GT) - numerical value only",
             "deadweight": "Deadweight tonnage (DWT) - numerical value only",
             "built_year": "Year built/constructed - 4-digit year as number. Look for 'Built Year', 'Year Built', 'Construction Year', 'Date Built', 'Year of Build', 'Built', 'Construction Date', or 'Date of delivery'. For 'Date of delivery' field, extract only the YEAR portion from the date.",
+            "keel_laid": "Keel laid date - full date when ship construction began. Look for 'Keel Laid', 'Keel Laying Date', 'Construction Started', 'Keel Down', 'Keel Laid Date', or 'Date of Keel Laying'. Return in DD/MM/YYYY format if found.",
             "ship_owner": "Ship owner company name - the legal owner of the vessel",
             "company": "Operating company or management company - the company that operates/manages the vessel (may be different from ship owner). If not explicitly mentioned as 'Operating Company' or 'Management Company', return null."
         }
