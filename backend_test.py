@@ -294,7 +294,7 @@ class EnhancedAIExtractionTester:
             
             for field in self.expected_survey_fields:
                 value = self.analysis_result.get(field)
-                if value is not None and value != "":
+                if value is not None and value != "" and value != "null":
                     survey_fields_found += 1
                     self.log(f"   ✅ {field}: {value}")
                 else:
