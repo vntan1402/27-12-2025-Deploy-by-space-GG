@@ -628,14 +628,14 @@ class EnhancedDockingExtractionTester:
             self.log(f"❌ Date validation and ship update test error: {str(e)}", "ERROR")
             return False
 
-    def run_comprehensive_docking_date_tests(self):
-        """Main test function for Docking Date Extraction Logic"""
-        self.log("🎯 STARTING DOCKING DATE EXTRACTION TESTING")
-        self.log("🔍 Focus: Test docking date extraction logic sau khi fix syntax error")
-        self.log("📋 Review Request: Verify CSSC certificate detection and date extraction")
-        self.log("🎯 Expected: CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE detection")
-        self.log("🎯 Keywords: 'safety construction', 'cssc', 'dry dock', 'dd'")
-        self.log("🎯 Date range: 1980 - current year")
+    def run_comprehensive_enhanced_docking_tests(self):
+        """Main test function for Enhanced Docking Extraction Logic"""
+        self.log("🎯 STARTING ENHANCED DOCKING EXTRACTION TESTING")
+        self.log("🔍 Focus: Enhanced docking extraction logic với CSSC 'inspections of the outside of the ship's bottom' và Survey Status")
+        self.log("📋 Review Request: Test enhanced patterns tìm docking information từ both CSSC và Survey Status sections")
+        self.log("🎯 Expected: Better extraction từ CSSC certificates với bottom inspection focus")
+        self.log("🎯 Priority Order: CSSC Bottom → Survey Status → General Docking")
+        self.log("🎯 Enhanced Patterns: 20+ new patterns hoạt động")
         self.log("🎯 Format: dd/MM/yyyy")
         self.log("=" * 100)
         
@@ -651,30 +651,40 @@ class EnhancedDockingExtractionTester:
         self.log("=" * 50)
         self.test_backend_startup_verification()
         
-        # Step 3: CSSC Certificate Detection
-        self.log("\n🔍 STEP 3: CSSC CERTIFICATE DETECTION")
+        # Step 3: Enhanced CSSC Bottom Inspection Extraction
+        self.log("\n🔍 STEP 3: ENHANCED CSSC BOTTOM INSPECTION EXTRACTION")
         self.log("=" * 50)
-        self.test_cssc_certificate_detection()
+        self.test_enhanced_cssc_bottom_inspection_extraction()
         
-        # Step 4: Certificate Text Parsing
-        self.log("\n📝 STEP 4: CERTIFICATE TEXT PARSING")
+        # Step 4: Survey Status Integration
+        self.log("\n📋 STEP 4: SURVEY STATUS INTEGRATION")
+        self.log("=" * 50)
+        self.test_survey_status_integration()
+        
+        # Step 5: Enhanced Pattern Matching
+        self.log("\n🎯 STEP 5: ENHANCED PATTERN MATCHING (20+ PATTERNS)")
+        self.log("=" * 50)
+        self.test_enhanced_pattern_matching()
+        
+        # Step 6: Certificate Text Parsing
+        self.log("\n📝 STEP 6: CERTIFICATE TEXT PARSING")
         self.log("=" * 50)
         self.test_certificate_text_parsing()
         
-        # Step 5: Docking Date Extraction Endpoint
-        self.log("\n🎯 STEP 5: DOCKING DATE EXTRACTION ENDPOINT")
+        # Step 7: Complete Docking Workflow
+        self.log("\n🎯 STEP 7: COMPLETE DOCKING WORKFLOW")
         self.log("=" * 50)
-        self.test_docking_date_extraction_endpoint()
+        self.test_complete_docking_workflow()
         
-        # Step 6: Date Validation and Ship Update
-        self.log("\n📅 STEP 6: DATE VALIDATION AND SHIP UPDATE")
+        # Step 8: Date Validation and Ship Update
+        self.log("\n📅 STEP 8: DATE VALIDATION AND SHIP UPDATE")
         self.log("=" * 50)
         self.test_date_validation_and_ship_update()
         
-        # Step 7: Final analysis
-        self.log("\n📊 STEP 7: FINAL ANALYSIS")
+        # Step 9: Final analysis
+        self.log("\n📊 STEP 9: FINAL ANALYSIS")
         self.log("=" * 50)
-        self.provide_final_docking_analysis()
+        self.provide_final_enhanced_docking_analysis()
         
         return True
 
