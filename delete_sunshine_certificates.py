@@ -19,7 +19,7 @@ async def delete_sunshine_01_certificates():
     
     try:
         # Initialize MongoDB connection
-        await mongo_db.initialize()
+        await mongo_db.connect()
         
         # First, find the SUNSHINE 01 ship
         print("🔍 Looking for SUNSHINE 01 ship...")
@@ -63,8 +63,8 @@ async def delete_sunshine_01_certificates():
     except Exception as e:
         print(f"❌ Error: {str(e)}")
     finally:
-        # MongoDB connection will be handled automatically
-        pass
+        # Disconnect from MongoDB
+        await mongo_db.disconnect()
 
 if __name__ == "__main__":
     # Load environment variables
