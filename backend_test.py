@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Special Survey Cycle Logic Testing with Same Day/Month Requirement
-Review Request: Test fixed Special Survey Cycle logic với same day/month requirement
+FOCUS: Docking Date Extraction Logic Testing from CSSC and DD Certificates
+Review Request: Test auto-extraction logic cho Last Docking 1 & 2 từ CSSC và DD certificates
 """
 
 import requests
