@@ -2366,7 +2366,7 @@ async def get_ship_form_fields_for_extraction() -> dict:
             # Anniversary & Survey Cycle Information
             "anniversary_date_day": "Anniversary date - day only (1-31). Look for 'Anniversary Date', annual survey schedules, or due dates that repeat yearly. Extract only the DAY number.",
             "anniversary_date_month": "Anniversary date - month only (1-12). Look for 'Anniversary Date', annual survey schedules, or due dates that repeat yearly. Extract only the MONTH number.",
-            "special_survey_from_date": "Start date of current 5-year special survey cycle. Look for survey cycle start dates, special survey commencement. Return in DD/MM/YYYY format.", 
+            "special_survey_from_date": "CALCULATED FIELD - Do not extract from certificate. This will be automatically calculated as 5 years before the special_survey_to_date. Return null and let system calculate.", 
             "special_survey_to_date": "End date of current 5-year special survey cycle (typically 5 years from start). Look for survey cycle end dates, certificate validity. Return in DD/MM/YYYY format."
         }
         
