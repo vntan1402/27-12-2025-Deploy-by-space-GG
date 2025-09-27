@@ -760,11 +760,11 @@ class SurveyTypeTester:
                 self.log("❌ Authentication failed - cannot proceed with testing")
                 return False
             
-            # Step 2: Create Test Ship
-            self.log("\n🚢 STEP 2: CREATE TEST SHIP")
+            # Step 2: Get Existing Ship
+            self.log("\n🚢 STEP 2: GET EXISTING SHIP")
             self.log("=" * 50)
-            if not self.create_test_ship():
-                self.log("❌ Test ship creation failed - cannot proceed with testing")
+            if not self.get_existing_ship():
+                self.log("❌ No existing ship available - cannot proceed with testing")
                 return False
             
             # Step 3: Create Test Certificates
