@@ -2416,7 +2416,7 @@ If "Cargo ship other than any of the previous" appears in the options, return "G
             if field_name in ["gross_tonnage", "deadweight", "built_year", "anniversary_date_day", "anniversary_date_month"]:
                 example_value = "null"  # Show as number or null
             else:
-                example_value = '"null"'  # Show as string or null
+                example_value = '"null"'  # Show as string or null (includes delivery_date)
             
             comma = "," if i < len(ship_fields) - 1 else ""
             json_example += f'  "{field_name}": {example_value}{comma}\n'
