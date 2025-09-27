@@ -4134,6 +4134,43 @@ async def analyze_ship_certificate(
         except Exception as log_error:
             logger.warning(f"Failed to log analysis: {str(log_error)}")
         
+        # Post-process analysis result for special calculations
+        if analysis_result and not analysis_result.get("error"):
+            try:
+                # Calculate special_survey_from_date as 5 years before special_survey_to_date
+                if analysis_result.get("special_survey_to_date") and not analysis_result.get("special_survey_from_date"):
+                    to_date_str = analysis_result.get("special_survey_to_date")
+                    try:
+                        # Parse to_date (expect DD/MM/YYYY format)
+                        if isinstance(to_date_str, str) and '/' in to_date_str:
+                            parts = to_date_str.split('/')
+                            if len(parts) == 3:
+                                day, month, year = parts
+                                to_date = datetime(int(year), int(month), int(day))
+                                # Calculate 5 years earlier
+                                from_date = to_date.replace(year=to_date.year - 5)
+                                # Format back to DD/MM/YYYY
+                                analysis_result["special_survey_from_date"] = from_date.strftime("%d/%m/%Y")
+                                logger.info(f"Calculated special survey from_date: {analysis_result['special_survey_from_date']} (5 years before {to_date_str})")
+                    except Exception as calc_error:
+                        logger.warning(f"Failed to calculate special survey from_date: {calc_error}")
+                        
+                # Ensure both built_year and delivery_date are populated
+                if analysis_result.get("delivery_date") and not analysis_result.get("built_year"):
+                    # Extract year from delivery_date for built_year compatibility
+                    delivery_str = analysis_result.get("delivery_date")
+                    try:
+                        if isinstance(delivery_str, str):
+                            if '/' in delivery_str:
+                                parts = delivery_str.split('/')
+                                if len(parts) == 3:
+                                    analysis_result["built_year"] = int(parts[2])  # DD/MM/YYYY -> YYYY
+                    except Exception as year_error:
+                        logger.warning(f"Failed to extract built_year from delivery_date: {year_error}")
+                        
+            except Exception as post_process_error:
+                logger.warning(f"Error in analysis post-processing: {post_process_error}")
+        
         return {
             "success": True,
             "analysis": analysis_result,
