@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
 Backend Testing Script for Ship Management System
-FOCUS: Special Survey From Date Fix & Next Docking Logic Testing
-Review Request: Test both backend enhancements that were just implemented:
+FOCUS: Testing the two specific fixes for "Add Ship from Certificate" functionality
 
-PRIORITY 1 - CONFIRM SPECIAL SURVEY FROM_DATE FIX:
-- Verify that special_survey_from_date calculation is working correctly
-- Expected: if special_survey_to_date = "10/03/2026", then special_survey_from_date should be "10/03/2021"
+FIX 1: ENHANCED NEXT DOCKING CALCULATION IN AI ANALYSIS
+- Updated post-processing logic to handle "null" string values properly
+- Added better null checking for last_docking and special_survey_to_date
+- Test the /api/analyze-ship-certificate endpoint to see if Next Docking is now being calculated
 
-PRIORITY 2 - TEST NEW NEXT DOCKING LOGIC:
-- Test the new Next Docking calculation logic which should use:
-  "Last Docking gần nhất + 36 tháng HOẶC Special Survey Cycle To tuỳ ngày nào gần hơn"
-- This means: Take nearest Last Docking + 36 months OR Special Survey Cycle To Date - whichever is NEARER (earlier)
+FIX 2: ENHANCED DATE PARSING FOR MONTH/YEAR FORMATS  
+- Updated parse_date_string to handle formats like "NOV 2020", "NOV. 2020", "DEC 2020"
+- Test if Last Docking dates are now properly parsed from month/year only formats
+
+TEST SCENARIOS:
+1. Upload a test certificate with month/year docking dates like "NOV 2020", "DEC 2022"
+2. Verify Last Docking dates are parsed correctly without adding artificial days
+3. Verify Next Docking is now being auto-calculated during AI analysis
+4. Verify Special Survey From Date is being auto-calculated (should already work)
 """
 
 import requests
