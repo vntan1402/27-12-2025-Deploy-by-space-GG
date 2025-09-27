@@ -6029,12 +6029,29 @@ def parse_date_string(date_str: str) -> Optional[datetime]:
             '%m/%d/%Y',
             '%Y-%m-%d %H:%M:%S',
             '%d-%m-%Y',
-            '%Y/%m/%d'
+            '%Y/%m/%d',
+            '%m/%Y',  # Month/Year only (will default to day 1)
+            '%b %Y',  # "NOV 2020"
+            '%b. %Y', # "NOV. 2020"
+            '%B %Y'   # "NOVEMBER 2020"
         ]
+        
+        # Clean the input string
+        date_str_clean = str(date_str).strip()
+        
+        # Handle special cases for month/year formats
+        if re.match(r'^\w{3,4}\.?\s+\d{4}$', date_str_clean):
+            # "NOV 2020", "NOV. 2020", "DEC 2020" etc
+            for fmt in ['%b %Y', '%b. %Y', '%B %Y']:
+                try:
+                    parsed_date = datetime.strptime(date_str_clean, fmt)
+                    return parsed_date.replace(tzinfo=timezone.utc)
+                except ValueError:
+                    continue
         
         for fmt in date_formats:
             try:
-                parsed_date = datetime.strptime(str(date_str), fmt)
+                parsed_date = datetime.strptime(date_str_clean, fmt)
                 return parsed_date.replace(tzinfo=timezone.utc)
             except ValueError:
                 continue
