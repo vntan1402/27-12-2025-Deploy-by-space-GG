@@ -52,6 +52,18 @@
 user_problem_statement: "Test the new Multi Certificate Upload functionality with 0.5s delay between files to verify the sequential processing works correctly"
 
 backend:
+  - task: "Multi Certificate Upload API with Sequential Processing Support"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "testing"
+        -comment: "✅ MULTI CERTIFICATE UPLOAD API BACKEND SUPPORT VERIFIED: Backend API endpoint POST /api/certificates/multi-upload successfully supports the sequential processing functionality. NETWORK ACTIVITY CONFIRMED: Console logs show successful API calls to https://marinetrack-1.preview.emergentagent.com/api/certificates/multi-upload?ship_id=f1579fdb-5276-459c-aa05-eb0a074f18bb with proper request handling. INTEGRATION WORKING: Frontend successfully communicates with backend for multi-certificate upload processing, with proper response handling and error management. The backend correctly processes individual files and returns appropriate responses for the sequential upload workflow."
+
   - task: "Special Survey From Date Calculation Bug Fix"
     implemented: true
     working: true
