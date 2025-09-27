@@ -36,7 +36,8 @@ function handleRequest(e) {
           "move_file",
           "delete_file",
           "get_file_view_url",
-          "get_file_download_url"
+          "get_file_download_url",
+          "delete_ship_folder"
         ],
         fixes: [
           "Updated fallback structure to match backend sidebar",
