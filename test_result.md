@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the new Survey Type determination functionality that automatically assigns survey types based on maritime regulations"
+user_problem_statement: "Test the new Multi Certificate Upload functionality with 0.5s delay between files to verify the sequential processing works correctly"
 
 backend:
   - task: "Special Survey From Date Calculation Bug Fix"
