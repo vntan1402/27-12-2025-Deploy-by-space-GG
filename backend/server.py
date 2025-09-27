@@ -4233,7 +4233,7 @@ async def analyze_ship_certificate(
                         logger.warning(f"Failed to calculate special survey from_date: {calc_error}")
 
                 # Calculate Next Docking using NEW ENHANCED LOGIC
-                if not analysis_result.get("next_docking"):
+                if not analysis_result.get("next_docking") or analysis_result.get("next_docking") in ['null', 'None', '', 'dd/mm/yyyy']:
                     try:
                         # Get Last Docking dates
                         last_docking_1 = analysis_result.get("last_docking")
@@ -4244,9 +4244,9 @@ async def analyze_ship_certificate(
                         parsed_ld1 = None
                         parsed_ld2 = None
                         
-                        if last_docking_1:
+                        if last_docking_1 and last_docking_1 not in ['null', 'None', '']:
                             parsed_ld1 = parse_date_string(last_docking_1)
-                        if last_docking_2:
+                        if last_docking_2 and last_docking_2 not in ['null', 'None', '']:
                             parsed_ld2 = parse_date_string(last_docking_2)
                         
                         # Find the nearest (most recent) Last Docking
@@ -4264,7 +4264,7 @@ async def analyze_ship_certificate(
                             
                             # Parse Special Survey To Date for comparison
                             parsed_special_survey_to = None
-                            if special_survey_to_date:
+                            if special_survey_to_date and special_survey_to_date not in ['null', 'None', '']:
                                 parsed_special_survey_to = parse_date_string(special_survey_to_date)
                             
                             # Choose whichever is NEARER (earlier)
