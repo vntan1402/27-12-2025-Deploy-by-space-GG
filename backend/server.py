@@ -4231,6 +4231,57 @@ async def analyze_ship_certificate(
                                 logger.info(f"Calculated special survey from_date: {analysis_result['special_survey_from_date']} (5 years before {to_date_str})")
                     except Exception as calc_error:
                         logger.warning(f"Failed to calculate special survey from_date: {calc_error}")
+
+                # Calculate Next Docking using NEW ENHANCED LOGIC
+                if not analysis_result.get("next_docking"):
+                    try:
+                        # Get Last Docking dates
+                        last_docking_1 = analysis_result.get("last_docking")
+                        last_docking_2 = analysis_result.get("last_docking_2")
+                        special_survey_to_date = analysis_result.get("special_survey_to_date")
+                        
+                        # Parse Last Docking dates and find the nearest (most recent)
+                        parsed_ld1 = None
+                        parsed_ld2 = None
+                        
+                        if last_docking_1:
+                            parsed_ld1 = parse_date_string(last_docking_1)
+                        if last_docking_2:
+                            parsed_ld2 = parse_date_string(last_docking_2)
+                        
+                        # Find the nearest (most recent) Last Docking
+                        reference_docking = None
+                        if parsed_ld1 and parsed_ld2:
+                            reference_docking = max(parsed_ld1, parsed_ld2)
+                        elif parsed_ld1:
+                            reference_docking = parsed_ld1
+                        elif parsed_ld2:
+                            reference_docking = parsed_ld2
+                        
+                        if reference_docking:
+                            # Calculate Last Docking + 36 months
+                            docking_plus_36 = reference_docking + timedelta(days=36 * 30.44)
+                            
+                            # Parse Special Survey To Date for comparison
+                            parsed_special_survey_to = None
+                            if special_survey_to_date:
+                                parsed_special_survey_to = parse_date_string(special_survey_to_date)
+                            
+                            # Choose whichever is NEARER (earlier)
+                            if parsed_special_survey_to and docking_plus_36 > parsed_special_survey_to:
+                                # Special Survey To Date is nearer (earlier)
+                                next_docking_date = parsed_special_survey_to
+                                calculation_method = "Special Survey Cycle To Date"
+                            else:
+                                # Last Docking + 36 months is nearer (or no Special Survey date)
+                                next_docking_date = docking_plus_36
+                                calculation_method = "Last Docking + 36 months"
+                            
+                            analysis_result["next_docking"] = next_docking_date.strftime("%d/%m/%Y")
+                            logger.info(f"Calculated Next Docking: {analysis_result['next_docking']} (Method: {calculation_method})")
+                            
+                    except Exception as next_docking_calc_error:
+                        logger.warning(f"Failed to calculate Next Docking: {next_docking_calc_error}")
                         
                 # Ensure both built_year and delivery_date are populated
                 if analysis_result.get("delivery_date") and not analysis_result.get("built_year"):
