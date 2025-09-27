@@ -1301,7 +1301,7 @@ const HomePage = () => {
       }
       
       // Get selected certificate data
-      const selectedCertificatesData = filteredCertificates.filter(cert => 
+      const selectedCertificatesData = getFilteredCertificates().filter(cert => 
         selectedCertificates.has(cert.id)
       );
       
