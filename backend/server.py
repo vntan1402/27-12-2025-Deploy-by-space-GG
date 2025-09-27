@@ -178,7 +178,7 @@ class ShipUpdate(BaseModel):
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None  # Legacy field - year only (for backward compatibility)
-    built_date: Optional[datetime] = None  # Full construction/delivery date (enhanced field)
+    delivery_date: Optional[datetime] = None  # Full delivery date (enhanced field)
     keel_laid: Optional[datetime] = None
     last_docking: Optional[datetime] = None
     last_docking_2: Optional[datetime] = None
