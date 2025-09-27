@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """
 Certificate Analysis Testing Script for Ship Management System
-FOCUS: Testing specific issues reported by user in "Add Ship from Certificate" functionality
+FOCUS: Testing the two specific fixes for "Add Ship from Certificate" functionality
 
-ISSUE 1: LAST DOCKING AUTO-ADDING DAYS
-- Test AI extraction to see if Last Docking 1 & 2 are incorrectly adding days when only month/year should be extracted
-- The user showed: Last Docking 1: 30/11/2020, Last Docking 2: 31/10/2022
-- Expected: Should show month/year only like "NOV 2020", "OCT 2022" if the certificate only has month/year info
-- Check if the AI prompt is working correctly: "Extract EXACTLY as found - if only month/year is available, return in MM/YYYY format"
+CRITICAL FIX 1: SPECIAL SURVEY FROM_DATE NULL STRING HANDLING
+- Fixed the condition check from `not analysis_result.get("special_survey_from_date")` 
+- To: `(not analysis_result.get("special_survey_from_date") or analysis_result.get("special_survey_from_date") in ['null', 'None', '', 'N/A'])`
+- Test expected behavior: special_survey_to_date: "10/03/2026" → special_survey_from_date: "10/03/2021"
 
-ISSUE 2: NEXT DOCKING AND SPECIAL SURVEY FROM DATE NOT AUTO-FILLING  
-- Test if Next Docking calculation is working in the AI certificate analysis
-- Test if Special Survey From Date calculation is working in the AI certificate analysis
-- The user's form shows: Next Docking: dd/mm/yyyy (empty), Special Survey From: dd/mm/yyyy (empty) 
-- Expected: Both should be auto-calculated and filled during the analysis
+FIX 2: ENHANCED LAST DOCKING PROMPTS FOR MONTH/YEAR ONLY
+- Enhanced AI prompts to be more explicit about NOT adding artificial days
+- Added "CRITICAL" warnings and specific examples
+- Test expected behavior: Certificate with "NOV 2020" should return "NOV 2020", not "30/11/2020"
+
+TEST REQUIREMENTS:
+1. Test /api/analyze-ship-certificate endpoint with a certificate that has:
+   - Special Survey To Date (to test from_date calculation)
+   - Month/year only docking dates (to test Last Docking format)
+2. Verify the exact response shows:
+   - special_survey_from_date calculated correctly
+   - last_docking extracted in month/year format without artificial days
+3. Check backend logs for calculation messages
 """
 
 import requests
