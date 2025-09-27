@@ -16,9 +16,19 @@ import sys
 from datetime import datetime, timezone
 import traceback
 
-# Configuration - Use environment variable for backend URL
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marinetrack-1.preview.emergentagent.com') + '/api'
-print(f"Using backend URL: {BACKEND_URL}")
+# Configuration - Try internal URL first, then external
+try:
+    # Test internal connection first
+    test_response = requests.get('http://0.0.0.0:8001/api/ships', timeout=10)
+    if test_response.status_code in [200, 401]:  # 401 is expected without auth
+        BACKEND_URL = 'http://0.0.0.0:8001/api'
+        print("Using internal backend URL: http://0.0.0.0:8001/api")
+    else:
+        raise Exception("Internal URL not working")
+except:
+    # Fallback to external URL
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marinetrack-1.preview.emergentagent.com') + '/api'
+    print(f"Using external backend URL: {BACKEND_URL}")
 
 class ShipCreationDebugTester:
     def __init__(self):
