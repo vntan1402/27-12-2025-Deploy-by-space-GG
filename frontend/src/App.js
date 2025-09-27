@@ -8693,6 +8693,40 @@ const AddRecordModal = ({
   };
 
   // Helper function to format date from DD/MM/YYYY to YYYY-MM-DD for HTML date inputs
+  const convertLastDockingToDateTime = (mmYyyyString) => {
+    if (!mmYyyyString || typeof mmYyyyString !== 'string') return null;
+    
+    try {
+      // Handle MM/YYYY format (convert to first day of the month)
+      const mmYyyyPattern = /^\d{1,2}\/\d{4}$/;
+      if (mmYyyyPattern.test(mmYyyyString.trim())) {
+        const [month, year] = mmYyyyString.trim().split('/');
+        const paddedMonth = month.padStart(2, '0');
+        // Convert to ISO datetime (first day of the month)
+        return `${year}-${paddedMonth}-01T00:00:00Z`;
+      }
+      
+      // If it's already a full date format, return as is
+      if (mmYyyyString.includes('-') || mmYyyyString.includes('T')) {
+        return mmYyyyString;
+      }
+      
+      // If it's DD/MM/YYYY format, convert to ISO
+      const ddMmYyyyPattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+      if (ddMmYyyyPattern.test(mmYyyyString.trim())) {
+        const [day, month, year] = mmYyyyString.trim().split('/');
+        const paddedDay = day.padStart(2, '0');
+        const paddedMonth = month.padStart(2, '0');
+        return `${year}-${paddedMonth}-${paddedDay}T00:00:00Z`;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error converting last docking date:', error);
+      return null;
+    }
+  };
+
   const formatLastDockingForDisplay = (dateString) => {
     if (!dateString || typeof dateString !== 'string') return '';
     
