@@ -33,10 +33,10 @@ from urllib.parse import urlparse
 # Configuration - Use environment variable for backend URL
 try:
     # Test internal connection first
-    test_response = requests.get('http://0.0.0.0:8001/api/ships', timeout=5)
-    if test_response.status_code in [200, 401]:  # 401 is expected without auth
-        BACKEND_URL = 'http://0.0.0.0:8001/api'
-        print("Using internal backend URL: http://0.0.0.0:8001/api")
+    test_response = requests.get('http://127.0.0.1:8001/api/ships', timeout=5)
+    if test_response.status_code in [200, 401, 403]:  # 403 is also expected without auth
+        BACKEND_URL = 'http://127.0.0.1:8001/api'
+        print("Using internal backend URL: http://127.0.0.1:8001/api")
     else:
         raise Exception("Internal URL not working")
 except:
