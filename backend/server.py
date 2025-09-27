@@ -7457,6 +7457,96 @@ async def delete_gdrive_file(
         logger.error(f"❌ Error deleting file from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete file: {str(e)}")
 
+@api_router.post("/companies/{company_id}/gdrive/delete-ship-folder")
+async def delete_ship_folder_from_gdrive(
+    company_id: str,
+    folder_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete ship folder from Google Drive"""
+    try:
+        # Validate request data
+        ship_name = folder_data.get("ship_name")
+        
+        if not ship_name:
+            raise HTTPException(status_code=400, detail="Missing ship_name")
+        
+        # Get company
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Company Google Drive not configured")
+        
+        # Get Apps Script configuration
+        apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        main_folder_id = gdrive_config_doc.get("main_folder_id")
+        
+        if not apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        if not main_folder_id:
+            raise HTTPException(status_code=400, detail="Main folder ID not configured")
+        
+        # Call Apps Script to delete ship folder
+        payload = {
+            "action": "delete_ship_folder",
+            "ship_name": ship_name,
+            "main_folder_id": main_folder_id,
+            "company_name": company.get("name_en", "Unknown Company")
+        }
+        
+        logger.info(f"🗑️ Deleting ship folder '{ship_name}' from Google Drive for company {company_id}")
+        
+        # Make request to Apps Script
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                apps_script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=60)  # Longer timeout for folder deletion
+            ) as response:
+                if response.status != 200:
+                    logger.error(f"Apps Script request failed: {response.status}")
+                    raise HTTPException(status_code=500, detail="Failed to delete ship folder")
+                
+                result = await response.json()
+                
+                if not result.get("success"):
+                    logger.error(f"Apps Script returned error: {result.get('message', 'Unknown error')}")
+                    # Don't fail if folder not found (may already be deleted)
+                    if result.get("error_type") == "folder_not_found":
+                        logger.info(f"Ship folder '{ship_name}' not found on Google Drive (may already be deleted)")
+                        return {
+                            "success": True,
+                            "message": "Ship folder not found on Google Drive (may already be deleted)",
+                            "ship_name": ship_name,
+                            "warning": "Ship folder was not found on Google Drive"
+                        }
+                    else:
+                        raise HTTPException(status_code=500, detail=f"Delete folder failed: {result.get('message', 'Unknown error')}")
+                
+                logger.info(f"✅ Ship folder '{ship_name}' deleted successfully from Google Drive")
+                
+                return {
+                    "success": True,
+                    "message": "Ship folder deleted successfully from Google Drive",
+                    "ship_name": ship_name,
+                    "folder_name": result.get("folder_name"),
+                    "files_deleted": result.get("files_deleted", 0),
+                    "subfolders_deleted": result.get("subfolders_deleted", 0),
+                    "deleted_timestamp": result.get("deleted_timestamp")
+                }
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting ship folder from Google Drive: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete ship folder: {str(e)}")
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
