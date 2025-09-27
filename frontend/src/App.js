@@ -1072,29 +1072,118 @@ const HomePage = () => {
     }
   };
 
-  const handleDeleteShip = async (shipId) => {
-    if (!window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa tàu này?' : 'Are you sure you want to delete this ship?')) {
-      return;
-    }
-    
+  const handleDeleteShip = async (shipId, deleteOption) => {
     try {
-      await axios.delete(`${API}/ships/${shipId}`);
+      setIsDeletingShip(true);
       
-      // Update local state
-      setShips(ships.filter(ship => ship.id !== shipId));
+      // Show initial loading message
+      toast.info(language === 'vi' 
+        ? `Đang xóa tàu ${deleteShipData?.name}...`
+        : `Deleting ship ${deleteShipData?.name}...`
+      );
+
+      // Delete ship from database
+      const deleteResponse = await fetch(`${API}/ships/${shipId}`, {
+        method: 'DELETE',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!deleteResponse.ok) {
+        const errorData = await deleteResponse.json();
+        throw new Error(errorData.detail || 'Failed to delete ship from database');
+      }
+
+      // If user chose to delete Google Drive folder as well
+      if (deleteOption === 'with_gdrive') {
+        try {
+          // Get user's company ID for Google Drive operations
+          const userCompanyId = user?.company_id || user?.company;
+          
+          if (userCompanyId && deleteShipData?.name) {
+            toast.info(language === 'vi' 
+              ? 'Đang xóa folder Google Drive...'
+              : 'Deleting Google Drive folder...'
+            );
+
+            const gdriveDeleteResponse = await fetch(`${API}/companies/${userCompanyId}/gdrive/delete-ship-folder`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                ship_name: deleteShipData.name
+              })
+            });
+
+            if (!gdriveDeleteResponse.ok) {
+              console.warn('Failed to delete Google Drive folder, but ship data was deleted from database');
+              toast.warning(language === 'vi' 
+                ? 'Đã xóa dữ liệu tàu nhưng không thể xóa folder Google Drive'
+                : 'Ship data deleted but failed to delete Google Drive folder'
+              );
+            } else {
+              toast.success(language === 'vi' 
+                ? 'Đã xóa folder Google Drive thành công'
+                : 'Google Drive folder deleted successfully'
+              );
+            }
+          }
+        } catch (gdriveError) {
+          console.error('Google Drive deletion error:', gdriveError);
+          toast.warning(language === 'vi' 
+            ? 'Đã xóa dữ liệu tàu nhưng có lỗi khi xóa folder Google Drive'
+            : 'Ship data deleted but Google Drive folder deletion failed'
+          );
+        }
+      }
+
+      // Success message
+      toast.success(language === 'vi' 
+        ? `Đã xóa tàu "${deleteShipData?.name}" thành công`
+        : `Ship "${deleteShipData?.name}" deleted successfully`
+      );
+
+      // Refresh ships list
+      await fetchShips();
+
+      // Close modals and reset states
+      setShowDeleteShipModal(false);
+      setShowEditShipModal(false);
+      setDeleteShipData(null);
+      setEditingShipData(null);
+      setDeleteShipOption('database_only');
       
-      // Clear selected ship if it was deleted
-      if (selectedShip?.id === shipId) {
+      // Navigate back to ship list if current ship was deleted
+      if (selectedShip && selectedShip.id === shipId) {
         setSelectedShip(null);
+        setCertificates([]);
+      }
+
+    } catch (error) {
+      console.error('Ship deletion error:', error);
+      
+      let errorMessage = 'Unknown error occurred';
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map(err => err.msg || err).join(', ');
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
-      toast.success(language === 'vi' ? 'Xóa tàu thành công!' : 'Ship deleted successfully!');
-      setShowEditShipModal(false);
-      setEditingShipData(null);
-    } catch (error) {
-      console.error('Ship delete error:', error);
-      const errorMessage = error.response?.data?.detail || error.message;
-      toast.error(language === 'vi' ? `Không thể xóa tàu: ${errorMessage}` : `Failed to delete ship: ${errorMessage}`);
+      toast.error(language === 'vi' 
+        ? `Không thể xóa tàu: ${errorMessage}`
+        : `Failed to delete ship: ${errorMessage}`
+      );
+    } finally {
+      setIsDeletingShip(false);
     }
   };
 
