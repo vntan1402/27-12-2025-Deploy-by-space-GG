@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Fix the special_survey_from_date calculation bug and implement new Next Docking logic (Last Docking + 36 months OR Special Survey To Date, whichever nearer)"
+user_problem_statement: "Test the new Delete Ship functionality in the Edit Ship Information modal to verify it works correctly with both deletion options"
 
 backend:
   - task: "Special Survey From Date Calculation Bug Fix"
