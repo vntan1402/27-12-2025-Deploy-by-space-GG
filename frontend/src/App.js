@@ -9021,7 +9021,40 @@ const AddRecordModal = ({
       onSuccess('ship');
     } catch (error) {
       console.error('Ship creation error:', error);
-      const errorMessage = error.response?.data?.detail || error.message;
+      
+      // Enhanced error message handling
+      let errorMessage = 'Unknown error occurred';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle FastAPI validation errors (array of error objects)
+        if (Array.isArray(errorData.detail)) {
+          const errorMessages = errorData.detail.map(err => {
+            if (typeof err === 'object' && err.msg) {
+              const field = Array.isArray(err.loc) ? err.loc.join('.') : 'field';
+              return `${field}: ${err.msg}`;
+            }
+            return String(err);
+          });
+          errorMessage = errorMessages.join(', ');
+        } 
+        // Handle single error message
+        else if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        }
+        // Handle error objects
+        else if (typeof errorData.detail === 'object') {
+          errorMessage = JSON.stringify(errorData.detail);
+        }
+        // Handle other error formats
+        else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast.error(language === 'vi' ? `Không thể thêm tàu: ${errorMessage}` : `Failed to add ship: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
