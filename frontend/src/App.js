@@ -1963,235 +1963,203 @@ const HomePage = () => {
     setMultiCertUploads(initialUploads);
     
     try {
-      // Process files using new ship-specific endpoint
-      const formData = new FormData();
-      fileArray.forEach(file => {
-        formData.append('files', file);
-      });
+      let successCount = 0;
+      let errorCount = 0;
+      let totalFiles = fileArray.length;
       
-      // Use new multi-cert upload endpoint for specific ship
-      const response = await axios.post(`${API}/certificates/multi-upload?ship_id=${selectedShip.id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          // Update all files' progress during upload
-          setMultiCertUploads(prev => prev.map(upload => ({
-            ...upload,
-            status: upload.status === 'pending' ? 'uploading' : upload.status,
-            progress: upload.status === 'uploading' ? progress : upload.progress,
-            stage: upload.status === 'pending' ? 
-              (language === 'vi' ? `Đang upload ${upload.filename}...` : `Uploading ${upload.filename}...`) : 
-              upload.stage
-          })));
-        }
-      });
-      
-      // Update stage to processing after upload completes
-      setMultiCertUploads(prev => prev.map(upload => ({
-        ...upload,
-        status: 'analyzing',
-        stage: language === 'vi' ? `Đang xử lý và phân tích ${upload.filename}...` : `Processing and analyzing ${upload.filename}...`
-      })));
-      
-      const results = response.data.results || [];
-      const summary = response.data.summary || {};
-      
-      // Process results and update states
-      const updatedUploads = initialUploads.map((upload, index) => {
-        const result = results[index];
-        if (!result) {
-          return {
-            ...upload,
-            status: 'error',
-            progress: 100,
-            stage: language === 'vi' ? 'Lỗi server' : 'Server error',
-            error: 'No result returned from server'
-          };
-        }
-        
-        if (result.status === 'error') {
-          return {
-            ...upload,
-            status: 'error',
-            progress: 100,
-            stage: language === 'vi' ? 'Lỗi xử lý' : 'Processing error',
-            error: result.message || 'Unknown error'
-          };
-        }
-        
-        if (result.status === 'skipped') {
-          return {
-            ...upload,
-            status: 'skipped',
-            progress: 100,
-            stage: language === 'vi' ? 'Bỏ qua - không phải marine certificate' : 'Skipped - not a marine certificate',
-            analysis: result.analysis,
-            isMarine: false,
-            error: result.message
-          };
-        }
-        
-        if (result.status === 'duplicate') {
-          return {
-            ...upload,
-            status: 'duplicate',
-            progress: 100,
-            stage: language === 'vi' ? 'Phát hiện certificate trùng lặp' : 'Duplicate certificate detected',
-            analysis: result.analysis,
-            isMarine: true,
-            error: result.message,
-            duplicates: result.duplicates || [],
-            duplicate_certificate: result.duplicate_certificate,
-            requires_user_choice: result.requires_user_choice || false
-          };
-        }
-        
-        if (result.status === 'requires_user_choice') {
-          return {
-            ...upload,
-            status: 'requires_user_choice',
-            progress: 100,
-            stage: language === 'vi' ? 'Cần lựa chọn folder' : 'Folder selection required',
-            analysis: result.analysis,
-            isMarine: true,
-            message: result.message,
-            availableFolders: result.available_folders || [],
-            shipFolderExists: result.ship_folder_exists
-          };
-        }
-        
-        return {
-          ...upload,
-          status: 'completed',
-          progress: 100,
-          stage: language === 'vi' ? 'Hoàn thành xử lý' : 'Processing completed',
-          analysis: result.analysis,
-          upload: result.upload,
-          certificate: result.certificate,
-          isMarine: result.is_marine
-        };
-      });
-      
-      setMultiCertUploads(updatedUploads);
-      
-      // Check if there are duplicate files requiring user choice
-      const duplicateFiles = updatedUploads.filter(upload => 
-        upload.status === 'duplicate' && upload.requires_user_choice
+      // Show initial info about batch processing with delay
+      toast.info(language === 'vi' 
+        ? `Bắt đầu upload ${totalFiles} files với delay 0.5s giữa các file...`
+        : `Starting upload of ${totalFiles} files with 0.5s delay between files...`
       );
       
-      if (duplicateFiles.length > 0) {
-        // Show duplicate resolution modal
-        setDuplicateResolutionModal({
-          show: true,
-          files: duplicateFiles.map(file => ({
-            ...file,
-            resolution: 'cancel' // default resolution
-          })),
-          shipId: selectedShip.id
-        });
-      }
-      
-      // Set summary from backend response
-      setUploadSummary({
-        totalFiles: summary.total_files || fileArray.length,
-        marineCount: summary.marine_certificates || 0,
-        nonMarineCount: summary.non_marine_files || 0,
-        successCount: summary.successfully_created || 0,
-        errorCount: summary.errors || 0,
-        certificatesCreated: summary.certificates_created || [],
-        nonMarineFiles: summary.non_marine_files_list || [],
-        errorFiles: summary.error_files || []
-      });
-      
-      // Show summary toast only if no duplicates requiring user choice
-      if (duplicateFiles.length === 0) {
-        if (summary.successfully_created > 0) {
-          toast.success(
-            language === 'vi' 
-              ? `✅ Đã tạo thành công ${summary.successfully_created} certificates từ ${summary.total_files} files`
-              : `✅ Successfully created ${summary.successfully_created} certificates from ${summary.total_files} files`
-          );
+      // Process files sequentially with 0.5s delay between each
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        
+        try {
+          // Update status to uploading for current file
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? {
+                  ...upload,
+                  status: 'uploading',
+                  stage: language === 'vi' 
+                    ? `Đang upload ${file.name}... (${i + 1}/${totalFiles})`
+                    : `Uploading ${file.name}... (${i + 1}/${totalFiles})`
+                }
+              : upload
+          ));
           
-          // Auto-fill functionality for single file upload in AddRecordModal
-          if (autoFillCallback && fileArray.length === 1 && updatedUploads.length > 0) {
-            const uploadResult = updatedUploads[0];
-            if (uploadResult.status === 'completed' && uploadResult.analysis) {
-              console.log('🎯 Single file upload successful, triggering auto-fill:', uploadResult.analysis);
-              
-              // Prepare auto-fill data from analysis
-              const analysisData = uploadResult.analysis;
-              const autoFillData = {
-                cert_name: analysisData.cert_name || analysisData.certificate_name || '',
-                cert_no: analysisData.cert_no || analysisData.certificate_number || '',
-                issue_date: analysisData.issue_date || '',
-                valid_date: analysisData.valid_date || analysisData.expiry_date || '',
-                issued_by: analysisData.issued_by || '',
-                ship_id: selectedShip.id,
-                category: 'certificates',
-                sensitivity_level: 'internal'
-              };
-              
-              // Filter out empty values and count filled fields
-              const filledFields = Object.keys(autoFillData).filter(key => 
-                autoFillData[key] && String(autoFillData[key]).trim()
-              ).length;
-              
-              if (filledFields > 0) {
-                console.log('📋 Calling auto-fill callback with', filledFields, 'fields');
-                
-                // Call the auto-fill callback
-                autoFillCallback(autoFillData, filledFields);
-                
-                // Show enhanced success message for auto-fill
-                toast.success(
-                  language === 'vi' 
-                    ? `✅ Certificate tạo thành công và đã auto-fill ${filledFields} trường thông tin!`
-                    : `✅ Certificate created successfully and auto-filled ${filledFields} fields!`
-                );
-              }
+          // Create FormData for single file
+          const formData = new FormData();
+          formData.append('files', file);
+          
+          // Upload single file
+          const response = await axios.post(`${API}/certificates/multi-upload?ship_id=${selectedShip.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              'Authorization': `Bearer ${token}`
+            },
+            onUploadProgress: (progressEvent) => {
+              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? {
+                      ...upload,
+                      progress: progress,
+                      stage: language === 'vi' 
+                        ? `Đang upload ${file.name}... ${progress}% (${i + 1}/${totalFiles})`
+                        : `Uploading ${file.name}... ${progress}% (${i + 1}/${totalFiles})`
+                    }
+                  : upload
+              ));
             }
+          });
+          
+          // Process the response for this file
+          const results = response.data.results || [];
+          const result = results[0]; // Should be only one result
+          
+          if (result && result.status === 'completed') {
+            successCount++;
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'completed',
+                    progress: 100,
+                    stage: language === 'vi' ? 'Hoàn thành' : 'Completed',
+                    analysis: result.analysis,
+                    upload: result.upload,
+                    certificate: result.certificate,
+                    isMarine: result.is_marine
+                  }
+                : upload
+            ));
+            
+            // Show individual success message for each file
+            toast.success(language === 'vi' 
+              ? `✅ Upload thành công: ${file.name} (${i + 1}/${totalFiles})`
+              : `✅ Upload successful: ${file.name} (${i + 1}/${totalFiles})`
+            );
+          } else {
+            errorCount++;
+            const errorMsg = result?.error || result?.message || 'Unknown error';
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'error',
+                    progress: 100,
+                    stage: language === 'vi' ? 'Lỗi xử lý' : 'Processing error',
+                    error: errorMsg
+                  }
+                : upload
+            ));
+            
+            // Show individual error message
+            toast.error(language === 'vi' 
+              ? `❌ Lỗi upload: ${file.name} - ${errorMsg}`
+              : `❌ Upload error: ${file.name} - ${errorMsg}`
+            );
           }
           
-          // Refresh certificate list
-          await fetchCertificates(selectedShip.id);
-        }
-        
-        if (summary.non_marine_files > 0) {
-          toast.info(
-            language === 'vi'
-              ? `ℹ️ ${summary.non_marine_files} files không phải marine certificates và đã được bỏ qua`
-              : `ℹ️ ${summary.non_marine_files} files were not marine certificates and were skipped`
+        } catch (fileError) {
+          errorCount++;
+          console.error(`Error uploading file ${file.name}:`, fileError);
+          
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? {
+                  ...upload,
+                  status: 'error',
+                  progress: 100,
+                  stage: language === 'vi' ? 'Lỗi upload' : 'Upload error',
+                  error: fileError.response?.data?.detail || fileError.message
+                }
+              : upload
+          ));
+          
+          toast.error(language === 'vi' 
+            ? `❌ Lỗi upload: ${file.name}`
+            : `❌ Upload error: ${file.name}`
           );
         }
         
-        if (summary.errors > 0) {
-          toast.warning(
-            language === 'vi'
-              ? `⚠️ ${summary.errors} files gặp lỗi trong quá trình xử lý`
-              : `⚠️ ${summary.errors} files encountered errors during processing`
-          );
+        // Add 0.5s delay between files (except for the last file)
+        if (i < fileArray.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Update status for next file during delay
+          if (i + 1 < fileArray.length) {
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i + 1
+                ? {
+                    ...upload,
+                    stage: language === 'vi' 
+                      ? `Chuẩn bị upload ${fileArray[i + 1].name}...`
+                      : `Preparing to upload ${fileArray[i + 1].name}...`
+                  }
+                : upload
+            ));
+          }
         }
+      }
+      
+      // Show final summary
+      const finalSummary = {
+        total_files: totalFiles,
+        successful_uploads: successCount,
+        failed_uploads: errorCount,
+        processing_time: `${totalFiles} files with 0.5s delay`
+      };
+      
+      setUploadSummary(finalSummary);
+      
+      // Final success/error toast
+      if (successCount > 0 && errorCount === 0) {
+        toast.success(language === 'vi' 
+          ? `🎉 Tất cả ${successCount} files đã được upload thành công!`
+          : `🎉 All ${successCount} files uploaded successfully!`
+        );
+      } else if (successCount > 0 && errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `⚠️ Upload hoàn thành: ${successCount} thành công, ${errorCount} lỗi`
+          : `⚠️ Upload completed: ${successCount} successful, ${errorCount} errors`
+        );
+      } else {
+        toast.error(language === 'vi' 
+          ? `❌ Upload thất bại: ${errorCount} files lỗi`
+          : `❌ Upload failed: ${errorCount} files with errors`
+        );
+      }
+      
+      // Refresh certificates if any were successfully uploaded
+      if (successCount > 0) {
+        await fetchCertificates(selectedShip.id);
       }
       
     } catch (error) {
-      console.error('Multi-file upload error:', error);
-      
-      // Update all uploads with error status
-      setMultiCertUploads(prev => prev.map(upload => ({
-        ...upload,
-        status: 'error',
-        progress: 100,
-        error: error.response?.data?.detail || error.message || 'Upload failed'
-      })));
-      
+      console.error('Multi cert upload error:', error);
       toast.error(
         language === 'vi'
-          ? `❌ Lỗi upload: ${error.response?.data?.detail || error.message}`
-          : `❌ Upload error: ${error.response?.data?.detail || error.message}`
+          ? `❌ Lỗi xử lý: ${error.response?.data?.detail || error.message}`
+          : `❌ Processing error: ${error.response?.data?.detail || error.message}`
       );
+      
+      // Update all pending/uploading files to error status
+      setMultiCertUploads(prev => prev.map(upload => 
+        upload.status === 'pending' || upload.status === 'uploading'
+          ? {
+              ...upload,
+              status: 'error',
+              progress: 100,
+              stage: language === 'vi' ? 'Lỗi xử lý batch' : 'Batch processing error',
+              error: error.response?.data?.detail || error.message
+            }
+          : upload
+      ));
     } finally {
       setIsMultiCertProcessing(false);
     }
