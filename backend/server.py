@@ -4215,7 +4215,9 @@ async def analyze_ship_certificate(
         if analysis_result and not analysis_result.get("error"):
             try:
                 # Calculate special_survey_from_date as 5 years before special_survey_to_date
-                if analysis_result.get("special_survey_to_date") and not analysis_result.get("special_survey_from_date"):
+                if (analysis_result.get("special_survey_to_date") and 
+                    (not analysis_result.get("special_survey_from_date") or 
+                     analysis_result.get("special_survey_from_date") in ['null', 'None', '', 'N/A'])):
                     to_date_str = analysis_result.get("special_survey_to_date")
                     try:
                         # Parse to_date (expect DD/MM/YYYY format)
