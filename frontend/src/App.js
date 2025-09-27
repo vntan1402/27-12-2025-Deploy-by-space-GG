@@ -8698,37 +8698,39 @@ const AddRecordModal = ({
     
     try {
       // Check if it's month/year only format (like "NOV 2020", "DEC. 2022")
-      const monthYearPattern = /^[A-Z]{3}\.?\s+\d{4}$/i;
+      const monthYearPattern = /^[A-Z]{3,4}\.?\s+\d{4}$/i;
       if (monthYearPattern.test(dateString.trim())) {
-        // It's month/year format, return as is
-        return dateString.trim();
-      }
-      
-      // Check if it's MM/YYYY format
-      const mmYyyyPattern = /^\d{1,2}\/\d{4}$/;
-      if (mmYyyyPattern.test(dateString.trim())) {
-        // Convert MM/YYYY to MON YYYY format
-        const [month, year] = dateString.split('/');
-        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                           'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        const monthIndex = parseInt(month) - 1;
-        if (monthIndex >= 0 && monthIndex < 12) {
-          return `${monthNames[monthIndex]} ${year}`;
+        // Convert month name to number
+        const parts = dateString.trim().split(/\s+/);
+        const monthName = parts[0].replace('.', '').toUpperCase();
+        const year = parts[1];
+        
+        const monthMap = {
+          'JAN': '01', 'FEB': '02', 'MAR': '03', 'APR': '04', 'MAY': '05', 'JUN': '06',
+          'JUL': '07', 'AUG': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DEC': '12'
+        };
+        
+        if (monthMap[monthName]) {
+          return `${monthMap[monthName]}/${year}`;
         }
       }
       
-      // If it's a full date (DD/MM/YYYY or ISO format), convert to MON YYYY
+      // Check if it's MM/YYYY format - return as is
+      const mmYyyyPattern = /^\d{1,2}\/\d{4}$/;
+      if (mmYyyyPattern.test(dateString.trim())) {
+        const [month, year] = dateString.split('/');
+        const paddedMonth = month.padStart(2, '0');
+        return `${paddedMonth}/${year}`;
+      }
+      
+      // If it's a full date (DD/MM/YYYY or ISO format), convert to MM/YYYY
       if (dateString.includes('/')) {
         const parts = dateString.split('/');
         if (parts.length === 3) {
           const [day, month, year] = parts;
           if (year && year.length === 4) {
-            const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                               'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-            const monthIndex = parseInt(month) - 1;
-            if (monthIndex >= 0 && monthIndex < 12) {
-              return `${monthNames[monthIndex]} ${year}`;
-            }
+            const paddedMonth = month.padStart(2, '0');
+            return `${paddedMonth}/${year}`;
           }
         }
       }
@@ -8736,9 +8738,9 @@ const AddRecordModal = ({
       // Handle ISO date format
       const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
-        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-                           'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${year}`;
       }
       
       return dateString; // Return as is if cannot parse
