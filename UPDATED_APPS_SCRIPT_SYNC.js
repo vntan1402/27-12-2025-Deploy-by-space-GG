@@ -88,7 +88,9 @@ function handleRequest(e) {
             "check_ship_folder_exists",
             "get_folder_structure",
             "move_file",
-            "delete_file"
+            "delete_file",
+            "get_file_view_url",
+            "get_file_download_url"
           ]
         });
     }
