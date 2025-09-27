@@ -1188,6 +1188,94 @@ const HomePage = () => {
     }
   };
 
+  // Handle updating survey types for all certificates of current ship
+  const handleUpdateSurveyTypes = async () => {
+    if (!selectedShip) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
+    
+    try {
+      setIsUpdatingSurveyTypes(true);
+      
+      toast.info(language === 'vi' 
+        ? 'Đang cập nhật Survey Types dựa trên quy định hàng hải...'
+        : 'Updating Survey Types based on maritime regulations...'
+      );
+
+      // Get all certificates for the current ship
+      const shipCertificates = certificates.filter(cert => cert.ship_id === selectedShip.id);
+      
+      if (shipCertificates.length === 0) {
+        toast.info(language === 'vi' 
+          ? 'Không có chứng chỉ nào để cập nhật'
+          : 'No certificates to update'
+        );
+        return;
+      }
+
+      let updatedCount = 0;
+      let errorCount = 0;
+
+      // Process each certificate
+      for (const certificate of shipCertificates) {
+        try {
+          const response = await fetch(`${API}/certificates/${certificate.id}/determine-survey-type`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            updatedCount++;
+          } else {
+            errorCount++;
+            console.error(`Failed to update survey type for certificate: ${certificate.id}`);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`Error updating survey type for certificate ${certificate.id}:`, error);
+        }
+      }
+
+      // Show results
+      if (updatedCount > 0) {
+        toast.success(language === 'vi' 
+          ? `Đã cập nhật Survey Types cho ${updatedCount}/${shipCertificates.length} chứng chỉ`
+          : `Updated Survey Types for ${updatedCount}/${shipCertificates.length} certificates`
+        );
+        
+        // Refresh certificates list to show updated survey types
+        await fetchCertificates(selectedShip.id);
+      }
+
+      if (errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `${errorCount} chứng chỉ không thể cập nhật`
+          : `${errorCount} certificates could not be updated`
+        );
+      }
+
+      if (updatedCount === 0 && errorCount === 0) {
+        toast.info(language === 'vi' 
+          ? 'Tất cả Survey Types đã được cập nhật'
+          : 'All Survey Types are already up to date'
+        );
+      }
+
+    } catch (error) {
+      console.error('Survey types update error:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi cập nhật Survey Types'
+        : 'Error updating Survey Types'
+      );
+    } finally {
+      setIsUpdatingSurveyTypes(false);
+    }
+  };
+
   // Load cache from sessionStorage on component mount
   useEffect(() => {
     try {
