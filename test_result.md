@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the enhanced AI extraction with the real SUNSHINE 01 CSSC certificate that the user uploaded"
+user_problem_statement: "Fix the special_survey_from_date calculation bug and implement new Next Docking logic (Last Docking + 36 months OR Special Survey To Date, whichever nearer)"
 
 backend:
   - task: "Ship Retrieval with Enhanced Data Structures"
