@@ -687,6 +687,10 @@ const HomePage = () => {
   const [showShipListModal, setShowShipListModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [editingShipData, setEditingShipData] = useState(null);
+  const [showDeleteShipModal, setShowDeleteShipModal] = useState(false);
+  const [deleteShipData, setDeleteShipData] = useState(null);
+  const [deleteShipOption, setDeleteShipOption] = useState('database_only'); // 'database_only' or 'with_gdrive'
+  const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
   
   // Certificate List filters and sorting
