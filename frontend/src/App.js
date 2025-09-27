@@ -8693,6 +8693,61 @@ const AddRecordModal = ({
   };
 
   // Helper function to format date from DD/MM/YYYY to YYYY-MM-DD for HTML date inputs
+  const formatLastDockingForDisplay = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return '';
+    
+    try {
+      // Check if it's month/year only format (like "NOV 2020", "DEC. 2022")
+      const monthYearPattern = /^[A-Z]{3}\.?\s+\d{4}$/i;
+      if (monthYearPattern.test(dateString.trim())) {
+        // It's month/year format, return as is
+        return dateString.trim();
+      }
+      
+      // Check if it's MM/YYYY format
+      const mmYyyyPattern = /^\d{1,2}\/\d{4}$/;
+      if (mmYyyyPattern.test(dateString.trim())) {
+        // Convert MM/YYYY to MON YYYY format
+        const [month, year] = dateString.split('/');
+        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                           'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        const monthIndex = parseInt(month) - 1;
+        if (monthIndex >= 0 && monthIndex < 12) {
+          return `${monthNames[monthIndex]} ${year}`;
+        }
+      }
+      
+      // If it's a full date (DD/MM/YYYY or ISO format), convert to MON YYYY
+      if (dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const [day, month, year] = parts;
+          if (year && year.length === 4) {
+            const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                               'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+            const monthIndex = parseInt(month) - 1;
+            if (monthIndex >= 0 && monthIndex < 12) {
+              return `${monthNames[monthIndex]} ${year}`;
+            }
+          }
+        }
+      }
+      
+      // Handle ISO date format
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+                           'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+      }
+      
+      return dateString; // Return as is if cannot parse
+    } catch (error) {
+      console.error('Error formatting last docking date:', error);
+      return dateString;
+    }
+  };
+
   const formatDateForInput = (dateString) => {
     if (!dateString || typeof dateString !== 'string') return '';
     
