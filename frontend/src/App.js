@@ -1029,6 +1029,7 @@ const HomePage = () => {
         gross_tonnage: updatedShipData.gross_tonnage ? parseFloat(updatedShipData.gross_tonnage) : null,
         deadweight: updatedShipData.deadweight ? parseFloat(updatedShipData.deadweight) : null,
         year_built: updatedShipData.year_built ? parseInt(updatedShipData.year_built) : null,
+        delivery_date: updatedShipData.delivery_date || null,
         keel_laid: updatedShipData.keel_laid || null,
         ship_owner: updatedShipData.ship_owner?.trim() || '',
         company: user?.company || '' // Always use user's company
