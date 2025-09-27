@@ -9579,7 +9579,7 @@ const AddRecordModal = ({
                 value={shipData.last_docking || ''}
                 onChange={(e) => setShipData(prev => ({ ...prev, last_docking: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="JAN 2023"
+                placeholder="11/2020"
               />
             </div>
 
