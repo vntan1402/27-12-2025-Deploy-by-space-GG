@@ -111,7 +111,7 @@ class MarineCertificateDebugTester:
             endpoint = f"{BACKEND_URL}/auth/login"
             self.log(f"   POST {endpoint}")
             
-            response = requests.post(endpoint, json=login_data, timeout=60)
+            response = requests.post(endpoint, json=login_data, timeout=120)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
