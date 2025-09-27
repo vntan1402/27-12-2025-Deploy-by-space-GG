@@ -31,7 +31,7 @@ import base64
 from pathlib import Path
 
 # Configuration - Use internal backend URL directly
-BACKEND_URL = 'http://0.0.0.0:8001/api'
+BACKEND_URL = 'http://localhost:8001/api'
 print(f"Using internal backend URL: {BACKEND_URL}")
 
 class MarineCertificateDebugTester:
