@@ -1289,6 +1289,105 @@ const HomePage = () => {
     });
   };
 
+  const handleDownloadSelectedCertificates = async () => {
+    try {
+      if (selectedCertificates.size === 0) return;
+      
+      // Show loading toast for multiple files
+      if (selectedCertificates.size > 1) {
+        toast.info(language === 'vi' 
+          ? `Đang tải xuống ${selectedCertificates.size} chứng chỉ...` 
+          : `Downloading ${selectedCertificates.size} certificates...`);
+      }
+      
+      // Get selected certificate data
+      const selectedCertificatesData = filteredCertificates.filter(cert => 
+        selectedCertificates.has(cert.id)
+      );
+      
+      // Download each certificate
+      for (const certificate of selectedCertificatesData) {
+        try {
+          await downloadSingleCertificate(certificate);
+          // Small delay between downloads to avoid overwhelming the browser
+          if (selectedCertificates.size > 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (error) {
+          console.error(`Failed to download certificate: ${certificate.certificate_name}`, error);
+          toast.error(language === 'vi' 
+            ? `Không thể tải: ${certificate.certificate_name}` 
+            : `Failed to download: ${certificate.certificate_name}`);
+        }
+      }
+      
+      // Success message
+      if (selectedCertificates.size > 1) {
+        toast.success(language === 'vi' 
+          ? `Đã tải xuống ${selectedCertificates.size} chứng chỉ` 
+          : `Downloaded ${selectedCertificates.size} certificates`);
+      }
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi tải xuống' : 'Download error');
+    }
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+  };
+
+  const downloadSingleCertificate = async (certificate) => {
+    try {
+      // Get download URL from backend
+      const response = await fetch(`${API}/gdrive/file/${certificate.google_drive_file_id}/download`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get download URL');
+      }
+      
+      const data = await response.json();
+      
+      if (data.download_url) {
+        // Create temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = data.download_url;
+        
+        // Generate filename: Certificate Name + Extension
+        const filename = certificate.certificate_name 
+          ? `${certificate.certificate_name}.pdf`
+          : `Certificate_${certificate.id}.pdf`;
+        
+        link.download = filename;
+        link.target = '_blank';
+        
+        // Append to document, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log(`Downloaded: ${filename}`);
+      } else {
+        throw new Error('No download URL provided');
+      }
+    } catch (error) {
+      console.error('Single certificate download error:', error);
+      throw error;
+    }
+  };
+
+  const handleDownloadCertificate = async (certificate) => {
+    try {
+      await downloadSingleCertificate(certificate);
+      toast.success(language === 'vi' 
+        ? `Đã tải xuống: ${certificate.certificate_name}` 
+        : `Downloaded: ${certificate.certificate_name}`);
+    } catch (error) {
+      toast.error(language === 'vi' ? 'Không thể tải xuống file' : 'Cannot download file');
+    }
+    setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+  };
+
   const handleOpenCertificate = async (certificate) => {
     try {
       const response = await fetch(`${API}/gdrive/file/${certificate.google_drive_file_id}/view`, {
