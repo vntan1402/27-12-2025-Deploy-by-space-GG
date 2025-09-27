@@ -9441,17 +9441,16 @@ const AddRecordModal = ({
               />
             </div>
 
-            {/* Built Year - Short width */}
+            {/* Delivery Date - Short width */}
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Năm đóng' : 'Built Year'}
+                {language === 'vi' ? 'Ngày giao' : 'Delivery Date'}
               </label>
               <input
-                type="number"
-                value={shipData.built_year}
-                onChange={(e) => setShipData(prev => ({ ...prev, built_year: e.target.value }))}
+                type="date"
+                value={shipData.delivery_date || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, delivery_date: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="2020"
               />
             </div>
 
