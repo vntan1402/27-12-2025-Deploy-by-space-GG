@@ -8994,8 +8994,9 @@ const AddRecordModal = ({
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
         delivery_date: shipData.delivery_date || null,
         keel_laid: shipData.keel_laid || null,
-        last_docking: shipData.last_docking || null,
-        last_docking_2: shipData.last_docking_2 || null,
+        // Convert Last Docking MM/YYYY format to datetime for backend
+        last_docking: convertLastDockingToDateTime(shipData.last_docking),
+        last_docking_2: convertLastDockingToDateTime(shipData.last_docking_2),
         next_docking: shipData.next_docking || null,
         last_special_survey: shipData.last_special_survey || null,
         ship_owner: shipData.ship_owner?.trim() || '',
