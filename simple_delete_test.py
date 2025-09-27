@@ -8,7 +8,7 @@ import json
 import time
 
 # Configuration
-BACKEND_URL = "https://marine-cert-system.preview.emergentagent.com/api"
+BACKEND_URL = "https://marinetrack-1.preview.emergentagent.com/api"
 
 def test_certificate_delete():
     print("🗑️ Testing Certificate Delete Fix...")
