@@ -2358,8 +2358,8 @@ async def get_ship_form_fields_for_extraction() -> dict:
             "company": "Operating company or management company - the company that operates/manages the vessel (may be different from ship owner). If not explicitly mentioned as 'Operating Company' or 'Management Company', return null.",
             
             # Survey & Maintenance Information Section  
-            "last_docking": "Most recent dry docking date. Look for 'Last Docking', 'Dry Dock', 'Docking Survey', 'inspections of the outside of the ship's bottom', or similar docking-related dates. Return most recent date in DD/MM/YYYY format.",
-            "last_docking_2": "Second most recent dry docking date. Look for second-to-last docking inspection or dry dock survey date. Return in DD/MM/YYYY format.",
+            "last_docking": "Most recent dry docking date. Look for 'Last Docking', 'Dry Dock', 'Docking Survey', 'inspections of the outside of the ship's bottom'. Extract EXACTLY as found - if only month/year is available, return in MM/YYYY format; if full date is available, return in DD/MM/YYYY format. Do not add missing day information.",
+            "last_docking_2": "Second most recent dry docking date. Look for second-to-last docking inspection or dry dock survey date. Extract EXACTLY as found - if only month/year is available, return in MM/YYYY format; if full date is available, return in DD/MM/YYYY format. Do not add missing day information.",
             "next_docking": "Next scheduled dry docking date. Look for 'Next Docking', 'Next Dry Dock', scheduled docking dates. Return in DD/MM/YYYY format.",
             "last_special_survey": "Most recent special survey date. Look for 'Special Survey', 'Renewal Survey', 'Full Survey', or 5-year survey cycles. Return in DD/MM/YYYY format.",
             
