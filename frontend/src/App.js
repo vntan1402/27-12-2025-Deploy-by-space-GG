@@ -8854,8 +8854,8 @@ const AddRecordModal = ({
           ship_owner: analysisData.ship_owner || '',
           
           // Survey & Maintenance Information Section (NEW fields from enhanced extraction)
-          last_docking: formatDateForInput(analysisData.last_docking) || '',
-          last_docking_2: formatDateForInput(analysisData.last_docking_2) || '', 
+          last_docking: formatLastDockingForDisplay(analysisData.last_docking) || '',
+          last_docking_2: formatLastDockingForDisplay(analysisData.last_docking_2) || '', 
           next_docking: formatDateForInput(analysisData.next_docking) || '',
           last_special_survey: formatDateForInput(analysisData.last_special_survey) || '',
           
