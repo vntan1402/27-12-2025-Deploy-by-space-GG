@@ -7820,6 +7820,92 @@ def update_certificates_survey_types():
         logger.error(f"Error updating certificates survey types: {e}")
         return 0
 
+@api_router.post("/certificates/update-survey-types")
+async def update_all_survey_types(
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Manually trigger update of survey types for all certificates
+    """
+    try:
+        updated_count = await update_certificates_survey_types_async()
+        return {
+            "success": True,
+            "message": f"Successfully updated survey types for {updated_count} certificates",
+            "updated_count": updated_count
+        }
+    except Exception as e:
+        logger.error(f"Error updating survey types: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update survey types")
+
+@api_router.post("/certificates/{certificate_id}/determine-survey-type")
+async def determine_certificate_survey_type(
+    certificate_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Determine and update survey type for a specific certificate
+    """
+    try:
+        # Get certificate
+        certificate = await mongo_db.find_one("certificates", {"id": certificate_id})
+        if not certificate:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+            
+        # Get ship data
+        ship_id = certificate.get('ship_id')
+        ship_data = {}
+        if ship_id:
+            ship_data = await mongo_db.find_one("ships", {"id": ship_id}) or {}
+            
+        # Determine survey type
+        survey_type = determine_survey_type(certificate, ship_data)
+        
+        # Update certificate
+        await mongo_db.update("certificates", 
+                             {"id": certificate_id}, 
+                             {"next_survey_type": survey_type})
+        
+        return {
+            "success": True,
+            "certificate_id": certificate_id,
+            "survey_type": survey_type,
+            "message": f"Survey type updated to: {survey_type}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error determining survey type for certificate {certificate_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to determine survey type")
+
+async def update_certificates_survey_types_async():
+    """
+    Async version of update_certificates_survey_types for API endpoints
+    """
+    try:
+        certificates = await mongo_db.find_all("certificates", {})
+        updated_count = 0
+        
+        for cert in certificates:
+            ship_id = cert.get('ship_id')
+            if ship_id:
+                ship_data = await mongo_db.find_one("ships", {"id": ship_id})
+                if ship_data:
+                    new_survey_type = determine_survey_type(cert, ship_data)
+                    if new_survey_type != cert.get('next_survey_type'):
+                        await mongo_db.update("certificates", 
+                                             {"id": cert['id']}, 
+                                             {"next_survey_type": new_survey_type})
+                        updated_count += 1
+                        
+        logger.info(f"Updated survey types for {updated_count} certificates")
+        return updated_count
+        
+    except Exception as e:
+        logger.error(f"Error updating certificates survey types: {e}")
+        return 0
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
