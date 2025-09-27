@@ -718,11 +718,11 @@ class SurveyTypeTester:
             return False
     
     def cleanup_test_data(self):
-        """Clean up test ship and certificates"""
+        """Clean up test certificates only (not the ship since we're using existing)"""
         try:
-            self.log("🧹 Cleaning up test data...")
+            self.log("🧹 Cleaning up test certificates...")
             
-            # Delete test certificates
+            # Delete test certificates only
             for cert_data in self.test_certificates:
                 cert_id = cert_data.get('id')
                 if cert_id:
@@ -732,17 +732,7 @@ class SurveyTypeTester:
                     except:
                         pass
             
-            # Delete test ship
-            if self.test_ship_id:
-                try:
-                    endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}"
-                    response = requests.delete(endpoint, headers=self.get_headers(), timeout=30)
-                    if response.status_code == 200:
-                        self.log("✅ Test data cleaned up successfully")
-                    else:
-                        self.log(f"⚠️ Test ship cleanup failed: {response.status_code}")
-                except Exception as e:
-                    self.log(f"⚠️ Cleanup error: {str(e)}")
+            self.log("✅ Test certificates cleaned up successfully")
                     
         except Exception as e:
             self.log(f"⚠️ Cleanup error: {str(e)}", "WARNING")
