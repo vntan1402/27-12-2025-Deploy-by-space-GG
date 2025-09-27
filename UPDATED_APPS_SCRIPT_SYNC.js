@@ -750,3 +750,94 @@ function findFolderByName(parentFolder, folderName) {
   var folders = parentFolder.getFoldersByName(folderName);
   return folders.hasNext() ? folders.next() : null;
 }
+
+/**
+ * Handle get file view URL request
+ */
+function handleGetFileViewUrl(requestData) {
+  try {
+    var fileId = requestData.file_id;
+    
+    if (!fileId) {
+      return createJsonResponse(false, "file_id is required");
+    }
+    
+    try {
+      // Try to get file to verify it exists and we have access
+      var file = DriveApp.getFileById(fileId);
+      
+      // Generate view URL
+      var viewUrl = "https://drive.google.com/file/d/" + fileId + "/view";
+      
+      return createJsonResponse(true, "File view URL generated successfully", {
+        file_id: fileId,
+        file_name: file.getName(),
+        view_url: viewUrl,
+        generated_timestamp: new Date().toISOString()
+      });
+      
+    } catch (fileError) {
+      // File doesn't exist or no access - return generic URL anyway
+      var viewUrl = "https://drive.google.com/file/d/" + fileId + "/view";
+      
+      return createJsonResponse(true, "File view URL generated (file access not verified)", {
+        file_id: fileId,
+        view_url: viewUrl,
+        warning: "Could not verify file access: " + fileError.toString(),
+        generated_timestamp: new Date().toISOString()
+      });
+    }
+    
+  } catch (error) {
+    return createJsonResponse(false, "Error generating file view URL: " + error.toString(), {
+      file_id: requestData.file_id || "unknown",
+      error_type: "view_url_generation_error"
+    });
+  }
+}
+
+/**
+ * Handle get file download URL request
+ */
+function handleGetFileDownloadUrl(requestData) {
+  try {
+    var fileId = requestData.file_id;
+    
+    if (!fileId) {
+      return createJsonResponse(false, "file_id is required");
+    }
+    
+    try {
+      // Try to get file to verify it exists and we have access
+      var file = DriveApp.getFileById(fileId);
+      
+      // Generate download URL
+      var downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+      
+      return createJsonResponse(true, "File download URL generated successfully", {
+        file_id: fileId,
+        file_name: file.getName(),
+        file_size: file.getSize(),
+        download_url: downloadUrl,
+        generated_timestamp: new Date().toISOString()
+      });
+      
+    } catch (fileError) {
+      // File doesn't exist or no access - return generic URL anyway
+      var downloadUrl = "https://drive.google.com/uc?export=download&id=" + fileId;
+      
+      return createJsonResponse(true, "File download URL generated (file access not verified)", {
+        file_id: fileId,
+        download_url: downloadUrl,
+        warning: "Could not verify file access: " + fileError.toString(),
+        generated_timestamp: new Date().toISOString()
+      });
+    }
+    
+  } catch (error) {
+    return createJsonResponse(false, "Error generating file download URL: " + error.toString(), {
+      file_id: requestData.file_id || "unknown",
+      error_type: "download_url_generation_error"
+    });
+  }
+}
