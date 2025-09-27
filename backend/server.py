@@ -2031,16 +2031,16 @@ def calculate_next_docking_from_last_docking(last_docking: Optional[datetime], s
 
 async def calculate_next_docking_for_ship(ship_id: str) -> Optional[datetime]:
     """
-    Calculate Next Docking for a ship based on ship data and IMO requirements.
+    Calculate Next Docking for a ship using NEW ENHANCED LOGIC per user requirements.
     
-    Priority order:
-    1. Use last_docking if available
-    2. Fallback to last_docking_2 if last_docking not available
-    3. Consider ship age (built_year) for 15+ year requirements
-    4. Apply classification society (ship_type) specific rules
+    NEW LOGIC:
+    1. Get Last Docking (nearest: last_docking or last_docking_2)
+    2. Get Special Survey Cycle To Date 
+    3. Calculate: Last Docking + 36 months
+    4. Choose whichever is NEARER: Last Docking + 36 months OR Special Survey To Date
     
     Returns:
-        Next docking date or None
+        Next docking date (whichever is nearer)
     """
     try:
         # Get ship data
@@ -2054,6 +2054,7 @@ async def calculate_next_docking_for_ship(ship_id: str) -> Optional[datetime]:
         last_docking_2 = ship.get('last_docking_2')
         built_year = ship.get('built_year')
         class_society = ship.get('ship_type') or ship.get('class_society')
+        special_survey_cycle = ship.get('special_survey_cycle')
         
         # Calculate ship age
         ship_age = None
@@ -2061,25 +2062,70 @@ async def calculate_next_docking_for_ship(ship_id: str) -> Optional[datetime]:
             current_year = datetime.now().year
             ship_age = current_year - built_year
         
-        # Use most recent docking date
+        # Use most recent docking date (NEAREST Last Docking)
         reference_docking = None
+        docking_source = None
+        
+        # Parse both docking dates and find the most recent
+        parsed_last_docking = None
+        parsed_last_docking_2 = None
+        
         if last_docking:
             if isinstance(last_docking, str):
-                reference_docking = parse_date_string(last_docking)
+                parsed_last_docking = parse_date_string(last_docking)
             else:
-                reference_docking = last_docking
-        elif last_docking_2:
+                parsed_last_docking = last_docking
+        
+        if last_docking_2:
             if isinstance(last_docking_2, str):
-                reference_docking = parse_date_string(last_docking_2)
+                parsed_last_docking_2 = parse_date_string(last_docking_2)
             else:
-                reference_docking = last_docking_2
+                parsed_last_docking_2 = last_docking_2
+        
+        # Choose the NEAREST (most recent) Last Docking
+        if parsed_last_docking and parsed_last_docking_2:
+            if parsed_last_docking >= parsed_last_docking_2:
+                reference_docking = parsed_last_docking
+                docking_source = "Last Docking 1"
+            else:
+                reference_docking = parsed_last_docking_2
+                docking_source = "Last Docking 2"
+        elif parsed_last_docking:
+            reference_docking = parsed_last_docking
+            docking_source = "Last Docking 1"
+        elif parsed_last_docking_2:
+            reference_docking = parsed_last_docking_2
+            docking_source = "Last Docking 2"
         
         if not reference_docking:
             logger.info(f"No docking dates available for next docking calculation: {ship_id}")
             return None
         
-        # Calculate next docking
-        next_docking = calculate_next_docking_from_last_docking(reference_docking, ship_age, class_society)
+        logger.info(f"Using nearest Last Docking from {docking_source}: {reference_docking.strftime('%d/%m/%Y')}")
+        
+        # Get Special Survey Cycle To Date
+        special_survey_to_date = None
+        if special_survey_cycle and isinstance(special_survey_cycle, dict):
+            to_date_value = special_survey_cycle.get('to_date')
+            if to_date_value:
+                if isinstance(to_date_value, str):
+                    special_survey_to_date = parse_date_string(to_date_value)
+                else:
+                    special_survey_to_date = to_date_value
+                
+                if special_survey_to_date:
+                    logger.info(f"Special Survey Cycle To Date: {special_survey_to_date.strftime('%d/%m/%Y')}")
+        
+        if not special_survey_to_date:
+            logger.info(f"No Special Survey Cycle To Date available for ship {ship_id}")
+        
+        # Calculate next docking using NEW ENHANCED LOGIC
+        next_docking = calculate_next_docking_from_last_docking(
+            reference_docking, 
+            ship_age, 
+            class_society, 
+            special_survey_to_date
+        )
         
         if next_docking:
             logger.info(f"Calculated next docking for ship {ship_id}: {next_docking.strftime('%d/%m/%Y')} (Age: {ship_age}, Class: {class_society})")
