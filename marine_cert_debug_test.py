@@ -30,9 +30,9 @@ from urllib.parse import urlparse
 import base64
 from pathlib import Path
 
-# Configuration - Use internal backend URL directly
-BACKEND_URL = 'http://localhost:8001/api'
-print(f"Using internal backend URL: {BACKEND_URL}")
+# Configuration - Use external backend URL with longer timeout
+BACKEND_URL = 'https://marinetrack-1.preview.emergentagent.com/api'
+print(f"Using external backend URL: {BACKEND_URL}")
 
 class MarineCertificateDebugTester:
     def __init__(self):
