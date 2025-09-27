@@ -568,7 +568,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Enhanced AI Certificate Analysis with Real SUNSHINE 01 CSSC Certificate"
+    - "Marine Certificate Classification Debug - Multi Cert Upload Issues"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
