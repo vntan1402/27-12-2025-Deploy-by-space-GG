@@ -71,6 +71,13 @@ function handleRequest(e) {
       case 'delete_file':
         return handleDeleteFile(requestData);
         
+      case 'get_file_view_url':
+        return handleGetFileViewUrl(requestData);
+        
+      case 'get_file_download_url':
+        return handleGetFileDownloadUrl(requestData);
+        
+        
       default:
         return createJsonResponse(true, "Apps Script working - no action specified", {
           received_action: action,
