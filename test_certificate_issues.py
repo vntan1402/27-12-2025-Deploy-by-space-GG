@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Configuration
-BACKEND_URL = 'http://127.0.0.1:8001/api'
+BACKEND_URL = 'https://marinetrack-1.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""
