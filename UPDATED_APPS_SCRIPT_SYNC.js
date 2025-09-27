@@ -77,6 +77,9 @@ function handleRequest(e) {
       case 'get_file_download_url':
         return handleGetFileDownloadUrl(requestData);
         
+      case 'delete_ship_folder':
+        return handleDeleteShipFolder(requestData);
+        
         
       default:
         return createJsonResponse(true, "Apps Script working - no action specified", {
