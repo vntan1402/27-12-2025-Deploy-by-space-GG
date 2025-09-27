@@ -28,8 +28,8 @@ import tempfile
 from urllib.parse import urlparse
 
 # Configuration - Use internal backend URL directly
-BACKEND_URL = 'http://localhost:8001/api'
-print("Using internal backend URL: http://localhost:8001/api")
+BACKEND_URL = 'http://127.0.0.1:8001/api'
+print("Using internal backend URL: http://127.0.0.1:8001/api")
 
 class CertificateAnalysisTester:
     def __init__(self):
