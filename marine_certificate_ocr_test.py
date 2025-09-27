@@ -29,8 +29,8 @@ import traceback
 import base64
 from io import BytesIO
 
-# Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marinetrack-1.preview.emergentagent.com') + '/api'
+# Configuration - Use internal URL for testing
+BACKEND_URL = 'http://localhost:8001/api'
 print(f"Using backend URL: {BACKEND_URL}")
 
 class MarineCertificateOCRTester:
