@@ -1977,71 +1977,56 @@ def extract_docking_dates_from_text(text_content: str, cert_name: str) -> List[d
     
     return unique_dates
     
-def calculate_next_docking_from_last_docking(last_docking: Optional[datetime], ship_age: Optional[int] = None, class_society: str = None) -> Optional[datetime]:
+def calculate_next_docking_from_last_docking(last_docking: Optional[datetime], ship_age: Optional[int] = None, class_society: str = None, special_survey_to_date: Optional[datetime] = None) -> Optional[datetime]:
     """
-    Calculate Next Docking date based on IMO regulations and Classification Society standards.
+    Calculate Next Docking date using NEW ENHANCED LOGIC per user requirements.
     
-    IMO Requirements (2025):
-    - Dry docking at least twice within 5-year period
-    - Maximum interval: 30 months ±6 months from last docking
-    - Ships 15+ years: More stringent requirements, no consecutive UWILD
-    - Standard cycle: 30 months between dockings
-    
-    Classification Society Variations:
-    - Lloyd's Register: 30 months standard, extensions to 7.5 years under approved schemes
-    - DNV: 30 months standard, condition-based extensions possible
-    - VR (Veritas): 30 months standard
-    - PMDS: Following IMO standard 30 months
+    NEW LOGIC (2025): 
+    - Take Last Docking (nearest) + 36 months OR Special Survey Cycle To Date
+    - Choose whichever date is NEARER (earlier in time)
+    - This replaces the old 30-month IMO standard with enhanced 36-month + Special Survey logic
     
     Args:
         last_docking: Date of last dry docking
-        ship_age: Age of ship in years (for 15+ year requirements)
-        class_society: Classification society (LR, DNV, VR, PMDS)
+        ship_age: Age of ship in years (for reference)
+        class_society: Classification society (for reference)
+        special_survey_to_date: Special Survey Cycle To Date for comparison
         
     Returns:
-        Next docking date or None
+        Next docking date (whichever is nearer: Last Docking + 36 months OR Special Survey To Date)
     """
     if not last_docking:
         return None
         
     try:
-        # Base IMO requirement: 30 months from last docking
-        base_interval_months = 30
+        # NEW LOGIC: Calculate Last Docking + 36 months
+        docking_plus_36_months = last_docking + timedelta(days=36 * 30.44)  # 36 months from last docking
         
-        # Adjust based on ship age and classification society
-        if ship_age and ship_age >= 15:
-            # Ships 15+ years: More stringent, typically no extension
-            interval_months = 30  # Strict 30 months for older ships
+        logger.info(f"Last Docking + 36 months: {last_docking.strftime('%d/%m/%Y')} + 36 months = {docking_plus_36_months.strftime('%d/%m/%Y')}")
+        
+        # If no Special Survey To Date, use Last Docking + 36 months
+        if not special_survey_to_date:
+            logger.info(f"No Special Survey To Date available, using Last Docking + 36 months: {docking_plus_36_months.strftime('%d/%m/%Y')}")
+            return docking_plus_36_months
+        
+        # Compare both dates and choose the NEARER (earlier) one
+        logger.info(f"Special Survey To Date: {special_survey_to_date.strftime('%d/%m/%Y')}")
+        
+        if docking_plus_36_months <= special_survey_to_date:
+            # Last Docking + 36 months is nearer (earlier)
+            next_docking = docking_plus_36_months
+            chosen_method = "Last Docking + 36 months"
         else:
-            # Newer ships: May have slight flexibility
-            interval_months = 30
-            
-        # Classification society specific adjustments
-        if class_society:
-            class_society_lower = class_society.lower()
-            
-            if "lloyd" in class_society_lower or "lr" in class_society_lower:
-                # Lloyd's Register: Standard 30 months, extensions possible under schemes
-                interval_months = 30  # Conservative default
-            elif "dnv" in class_society_lower:
-                # DNV: Standard 30 months, condition-based extensions
-                interval_months = 30
-            elif "veritas" in class_society_lower or "vr" in class_society_lower:
-                # Veritas: Standard IMO compliance
-                interval_months = 30
-            elif "pmds" in class_society_lower:
-                # PMDS: Following IMO standard
-                interval_months = 30
+            # Special Survey To Date is nearer (earlier)
+            next_docking = special_survey_to_date
+            chosen_method = "Special Survey Cycle To Date"
         
-        # Calculate next docking date
-        next_docking = last_docking + timedelta(days=interval_months * 30.44)  # Average month length
-        
-        logger.info(f"Calculated next docking: {interval_months} months from {last_docking.strftime('%d/%m/%Y')} = {next_docking.strftime('%d/%m/%Y')}")
+        logger.info(f"Next Docking chosen: {next_docking.strftime('%d/%m/%Y')} (Method: {chosen_method})")
         
         return next_docking
         
     except Exception as e:
-        logger.error(f"Error calculating next docking date: {e}")
+        logger.error(f"Error calculating next docking date with new logic: {e}")
         return None
 
 async def calculate_next_docking_for_ship(ship_id: str) -> Optional[datetime]:
