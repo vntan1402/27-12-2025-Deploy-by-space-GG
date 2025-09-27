@@ -8887,6 +8887,7 @@ const AddRecordModal = ({
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
         deadweight: shipData.deadweight ? parseFloat(shipData.deadweight) : null,
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
+        delivery_date: shipData.delivery_date || null,
         keel_laid: shipData.keel_laid || null,
         last_docking: shipData.last_docking || null,
         last_docking_2: shipData.last_docking_2 || null,
