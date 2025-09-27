@@ -2611,8 +2611,11 @@ async def get_filtered_users(
 @api_router.post("/ships/{ship_id}/calculate-next-docking")
 async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     """
-    Calculate Next Docking date based on IMO regulations and Classification Society standards.
-    Uses Last Docking date and applies IMO 30-month interval with classification society considerations.
+    Calculate Next Docking date using NEW ENHANCED LOGIC (2025).
+    
+    NEW LOGIC: 
+    - Last Docking (nearest) + 36 months OR Special Survey Cycle To Date
+    - Choose whichever date is NEARER (earlier in time)
     """
     try:
         # Check if ship exists
@@ -2620,7 +2623,7 @@ async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse =
         if not existing_ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Calculate next docking date
+        # Calculate next docking date using NEW LOGIC
         next_docking = await calculate_next_docking_for_ship(ship_id)
         
         if not next_docking:
@@ -2637,7 +2640,7 @@ async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse =
         
         await mongo_db.update("ships", {"id": ship_id}, update_data)
         
-        # Get ship details for response
+        # Get ship details for enhanced response
         ship_data = existing_ship
         ship_age = None
         if ship_data.get('built_year'):
@@ -2645,16 +2648,59 @@ async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse =
         
         class_society = ship_data.get('ship_type') or ship_data.get('class_society', 'Standard')
         
+        # Determine which method was used for calculation
+        last_docking = ship_data.get('last_docking')
+        last_docking_2 = ship_data.get('last_docking_2')
+        special_survey_cycle = ship_data.get('special_survey_cycle')
+        
+        # Get calculation details for response
+        calculation_method = "Unknown"
+        reference_date = None
+        
+        # Find the nearest last docking
+        if last_docking or last_docking_2:
+            if last_docking and last_docking_2:
+                parsed_ld1 = parse_date_string(last_docking) if isinstance(last_docking, str) else last_docking
+                parsed_ld2 = parse_date_string(last_docking_2) if isinstance(last_docking_2, str) else last_docking_2
+                if parsed_ld1 and parsed_ld2:
+                    reference_date = max(parsed_ld1, parsed_ld2)
+                elif parsed_ld1:
+                    reference_date = parsed_ld1
+                elif parsed_ld2:
+                    reference_date = parsed_ld2
+            elif last_docking:
+                reference_date = parse_date_string(last_docking) if isinstance(last_docking, str) else last_docking
+            elif last_docking_2:
+                reference_date = parse_date_string(last_docking_2) if isinstance(last_docking_2, str) else last_docking_2
+        
+        # Determine calculation method used
+        if reference_date:
+            docking_plus_36 = reference_date + timedelta(days=36 * 30.44)
+            special_survey_to = None
+            
+            if special_survey_cycle and isinstance(special_survey_cycle, dict):
+                to_date_val = special_survey_cycle.get('to_date')
+                if to_date_val:
+                    special_survey_to = parse_date_string(to_date_val) if isinstance(to_date_val, str) else to_date_val
+            
+            if special_survey_to and docking_plus_36 <= special_survey_to:
+                calculation_method = "Last Docking + 36 months"
+            elif special_survey_to:
+                calculation_method = "Special Survey Cycle To Date"
+            else:
+                calculation_method = "Last Docking + 36 months (no Special Survey)"
+        
         return {
             "success": True,
-            "message": f"Next docking calculated based on IMO 30-month standard",
+            "message": f"Next docking calculated using NEW ENHANCED LOGIC: {calculation_method}",
             "next_docking": {
                 "date": next_docking.strftime('%d/%m/%Y'),
-                "interval_months": 30,
+                "calculation_method": calculation_method,
+                "interval_months": 36,
                 "ship_age": ship_age,
                 "class_society": class_society,
-                "compliance": "IMO SOLAS requirements",
-                "notes": f"Ships 15+ years: stricter requirements" if ship_age and ship_age >= 15 else "Standard IMO interval"
+                "compliance": "Enhanced Logic: Last Docking + 36 months OR Special Survey To Date (whichever nearer)",
+                "reference_docking": reference_date.strftime('%d/%m/%Y') if reference_date else None
             }
         }
         
