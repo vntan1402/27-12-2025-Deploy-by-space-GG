@@ -846,3 +846,108 @@ function handleGetFileDownloadUrl(requestData) {
     });
   }
 }
+
+/**
+ * Handle delete ship folder request
+ */
+function handleDeleteShipFolder(requestData) {
+  try {
+    var shipName = requestData.ship_name;
+    var mainFolderId = requestData.main_folder_id;
+    var companyName = requestData.company_name || "Unknown Company";
+    
+    if (!shipName) {
+      return createJsonResponse(false, "ship_name is required");
+    }
+    
+    if (!mainFolderId) {
+      return createJsonResponse(false, "main_folder_id is required");
+    }
+    
+    try {
+      // Get the main company folder
+      var mainFolder = DriveApp.getFolderById(mainFolderId);
+      
+      // Search for ship folder
+      var shipFolders = mainFolder.getFoldersByName(shipName);
+      
+      if (!shipFolders.hasNext()) {
+        return createJsonResponse(false, "Ship folder not found on Google Drive", {
+          ship_name: shipName,
+          main_folder_id: mainFolderId,
+          error_type: "folder_not_found"
+        });
+      }
+      
+      var shipFolder = shipFolders.next();
+      var shipFolderId = shipFolder.getId();
+      var shipFolderName = shipFolder.getName();
+      
+      // Count files and subfolders before deletion
+      var filesCount = 0;
+      var subfoldersCount = 0;
+      
+      try {
+        // Count subfolders
+        var subfolders = shipFolder.getFolders();
+        while (subfolders.hasNext()) {
+          subfoldersCount++;
+          var subfolder = subfolders.next();
+          
+          // Count files in subfolders
+          var filesInSubfolder = subfolder.getFiles();
+          while (filesInSubfolder.hasNext()) {
+            filesCount++;
+            filesInSubfolder.next();
+          }
+        }
+        
+        // Count files in root ship folder
+        var filesInRoot = shipFolder.getFiles();
+        while (filesInRoot.hasNext()) {
+          filesCount++;
+          filesInRoot.next();
+        }
+      } catch (countError) {
+        Logger.log("Warning: Could not count files/folders: " + countError.toString());
+      }
+      
+      // Delete the ship folder (this will also delete all contents)
+      try {
+        shipFolder.setTrashed(true);
+        Logger.log("✅ Ship folder moved to trash: " + shipFolderName);
+      } catch (deleteError) {
+        Logger.log("❌ Error moving folder to trash: " + deleteError.toString());
+        throw deleteError;
+      }
+      
+      return createJsonResponse(true, "Ship folder deleted successfully from Google Drive", {
+        ship_name: shipName,
+        folder_name: shipFolderName,
+        folder_id: shipFolderId,
+        files_deleted: filesCount,
+        subfolders_deleted: subfoldersCount,
+        delete_method: "moved_to_trash",
+        deleted_timestamp: new Date().toISOString(),
+        company_name: companyName,
+        main_folder_id: mainFolderId
+      });
+      
+    } catch (folderError) {
+      Logger.log("❌ Folder operation error: " + folderError.toString());
+      return createJsonResponse(false, "Failed to delete ship folder: " + folderError.toString(), {
+        ship_name: shipName,
+        main_folder_id: mainFolderId,
+        error_type: "folder_operation_error"
+      });
+    }
+    
+  } catch (error) {
+    Logger.log("❌ General delete ship folder error: " + error.toString());
+    return createJsonResponse(false, "Error deleting ship folder: " + error.toString(), {
+      ship_name: requestData.ship_name || "unknown",
+      main_folder_id: requestData.main_folder_id || "unknown",
+      error_type: "general_error"
+    });
+  }
+}
