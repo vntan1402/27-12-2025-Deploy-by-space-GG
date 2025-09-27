@@ -7547,6 +7547,279 @@ async def delete_ship_folder_from_gdrive(
         logger.error(f"❌ Error deleting ship folder from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete ship folder: {str(e)}")
 
+def determine_survey_type(certificate_data: dict, ship_data: dict) -> str:
+    """
+    Determine appropriate Survey Type based on maritime regulations (SOLAS, ISM, ISPS, MLC) and ship information.
+    
+    Survey Types:
+    - Initial: First survey before certificate issuance
+    - Annual: Yearly maintenance survey (within ±3 months of anniversary)
+    - Intermediate: Mid-cycle survey (around 2-3 years into 5-year cycle)  
+    - Special: 5-year comprehensive survey (often with dry dock)
+    - Renewal: End of certificate validity, comprehensive survey for new certificate
+    - Additional: After repairs, modifications, or incidents
+    - Occasional: Special survey outside regular cycle for specific reasons
+    - Interim: Temporary or transitional survey between regular cycles
+    
+    Args:
+        certificate_data: Certificate information including type, dates, status
+        ship_data: Ship information including age, class society, last surveys
+        
+    Returns:
+        Appropriate survey type string
+    """
+    try:
+        # Extract key information
+        cert_type = certificate_data.get('cert_type', '').upper()
+        cert_name = certificate_data.get('certificate_name', '').upper()
+        cert_abbreviation = certificate_data.get('cert_abbreviation', '').upper()
+        issue_date = certificate_data.get('issue_date')
+        expiry_date = certificate_data.get('expiry_date')
+        status = certificate_data.get('status', '').lower()
+        
+        # Ship information
+        ship_age = None
+        built_year = ship_data.get('built_year') or ship_data.get('year_built')
+        if built_year:
+            ship_age = datetime.now().year - built_year
+            
+        class_society = ship_data.get('class_society') or ship_data.get('ship_type', '')
+        last_special_survey = ship_data.get('last_special_survey')
+        last_docking = ship_data.get('last_docking') or ship_data.get('last_docking_2')
+        
+        # Parse dates for calculations
+        current_date = datetime.now()
+        issue_dt = None
+        expiry_dt = None
+        
+        if issue_date:
+            issue_dt = parse_date_string(issue_date) if isinstance(issue_date, str) else issue_date
+        if expiry_date:
+            expiry_dt = parse_date_string(expiry_date) if isinstance(expiry_date, str) else expiry_date
+            
+        # SOLAS and Class Certificates Logic
+        if any(keyword in cert_name for keyword in ['CLASS', 'CLASSIFICATION', 'SOLAS', 'SAFETY', 'CONSTRUCTION']) or \
+           any(keyword in cert_abbreviation for keyword in ['CC', 'CSC', 'SSC', 'SOLAS']):
+            
+            # For new ships (less than 1 year old) - Initial Survey
+            if ship_age and ship_age < 1:
+                return "Initial"
+                
+            # Check certificate age and status
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                cert_validity_years = (expiry_dt - issue_dt).days / 365.25
+                
+                # Initial Survey: New certificate or very recent issue
+                if cert_age_months < 6:
+                    return "Initial"
+                    
+                # Special Survey: Every 5 years (comprehensive)
+                if cert_validity_years >= 4.5 and cert_age_months >= 48:  # Near 5-year mark
+                    return "Special"
+                    
+                # Intermediate Survey: Mid-cycle (2-3 years)
+                if 18 <= cert_age_months <= 42:
+                    return "Intermediate"
+                    
+                # Annual Survey: Yearly maintenance
+                if cert_age_months >= 10:
+                    return "Annual"
+                    
+            # Renewal Survey: Near expiry or expired
+            if expiry_dt and (current_date >= expiry_dt or (expiry_dt - current_date).days <= 90):
+                return "Renewal"
+                
+            return "Annual"  # Default for Class/SOLAS certificates
+            
+        # ISM Certificate Logic
+        elif any(keyword in cert_name for keyword in ['ISM', 'SAFETY MANAGEMENT', 'DOCUMENT OF COMPLIANCE']) or \
+             any(keyword in cert_abbreviation for keyword in ['ISM', 'DOC', 'SMC']):
+            
+            # ISM has different cycle: Initial -> Annual -> Intermediate (2.5 years) -> Renewal (5 years)
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                # Initial: New ISM certificate
+                if cert_age_months < 6:
+                    return "Initial"
+                    
+                # Intermediate: Mid-cycle audit (around 2.5 years)
+                if 24 <= cert_age_months <= 36:
+                    return "Intermediate"
+                    
+                # Renewal: Near 5-year expiry
+                if cert_age_months >= 48 or (expiry_dt - current_date).days <= 180:
+                    return "Renewal"
+                    
+                # Annual: Regular audit
+                return "Annual"
+                
+            return "Annual"  # Default for ISM
+            
+        # ISPS Certificate Logic  
+        elif any(keyword in cert_name for keyword in ['ISPS', 'SECURITY', 'PORT FACILITY']) or \
+             any(keyword in cert_abbreviation for keyword in ['ISPS', 'ISC']):
+            
+            # Similar to ISM cycle but focused on security
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                if cert_age_months < 6:
+                    return "Initial"
+                elif 24 <= cert_age_months <= 36:
+                    return "Intermediate" 
+                elif cert_age_months >= 48 or (expiry_dt - current_date).days <= 180:
+                    return "Renewal"
+                else:
+                    return "Annual"
+                    
+            return "Annual"
+            
+        # MLC Certificate Logic
+        elif any(keyword in cert_name for keyword in ['MLC', 'LABOUR', 'MARITIME LABOUR']) or \
+             any(keyword in cert_abbreviation for keyword in ['MLC', 'DMLC']):
+            
+            # MLC has 3-year inspection cycle
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                if cert_age_months < 6:
+                    return "Initial"
+                elif cert_age_months >= 30 or (expiry_dt - current_date).days <= 180:  # Near 3-year renewal
+                    return "Renewal"
+                else:
+                    return "Intermediate"  # MLC uses intermediate for mid-cycle
+                    
+            return "Intermediate"
+            
+        # Radio Survey Certificates
+        elif any(keyword in cert_name for keyword in ['RADIO', 'GMDSS']) or \
+             any(keyword in cert_abbreviation for keyword in ['RSC', 'GMDSS']):
+            
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                if cert_age_months < 3:
+                    return "Initial"
+                elif (expiry_dt - current_date).days <= 90:
+                    return "Renewal"
+                else:
+                    return "Annual"
+                    
+            return "Annual"
+            
+        # Load Line Certificate
+        elif any(keyword in cert_name for keyword in ['LOAD LINE', 'LOADLINE']) or \
+             any(keyword in cert_abbreviation for keyword in ['LLC', 'ILLC']):
+            
+            # Load Line follows 5-year cycle similar to Class
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                if cert_age_months < 6:
+                    return "Initial"
+                elif cert_age_months >= 48:
+                    return "Special"
+                elif 18 <= cert_age_months <= 42:
+                    return "Intermediate"
+                else:
+                    return "Annual"
+                    
+            return "Annual"
+            
+        # Prevention of Pollution Certificates (MARPOL)
+        elif any(keyword in cert_name for keyword in ['POLLUTION', 'MARPOL', 'IOPP', 'SEWAGE', 'GARBAGE']) or \
+             any(keyword in cert_abbreviation for keyword in ['IOPP', 'ISPP', 'IAPP']):
+            
+            if issue_dt and expiry_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                if cert_age_months < 6:
+                    return "Initial"
+                elif cert_age_months >= 48:
+                    return "Renewal"
+                elif 18 <= cert_age_months <= 42:
+                    return "Intermediate"
+                else:
+                    return "Annual"
+                    
+            return "Annual"
+            
+        # Tonnage Certificate
+        elif any(keyword in cert_name for keyword in ['TONNAGE']) or \
+             any(keyword in cert_abbreviation for keyword in ['ITC']):
+            return "Initial"  # Tonnage certificates typically don't require regular surveys
+            
+        # Insurance and P&I Certificates
+        elif any(keyword in cert_name for keyword in ['INSURANCE', 'P&I', 'LIABILITY']) or \
+             'INSURANCE' in cert_type:
+            
+            if issue_dt and expiry_dt:
+                if (expiry_dt - current_date).days <= 60:
+                    return "Renewal"
+                    
+            return "Annual"
+            
+        # Conditional or Special Cases
+        elif 'CONDITIONAL' in cert_type.upper() or status == 'conditional':
+            return "Additional"  # Conditional certificates often require additional surveys
+            
+        # Default cases based on certificate status and age
+        else:
+            if status in ['expired', 'suspended', 'cancelled']:
+                return "Renewal"
+            elif status == 'conditional':
+                return "Additional"
+                
+            # Age-based determination for unknown certificate types
+            if issue_dt:
+                cert_age_months = (current_date - issue_dt).days / 30.44
+                
+                if cert_age_months < 3:
+                    return "Initial"
+                elif cert_age_months >= 48:
+                    return "Renewal"
+                elif 20 <= cert_age_months <= 40:
+                    return "Intermediate"
+                else:
+                    return "Annual"
+                    
+        # Final fallback
+        return "Annual"
+        
+    except Exception as e:
+        logger.error(f"Error determining survey type: {e}")
+        return "Annual"  # Safe fallback
+
+def update_certificates_survey_types():
+    """
+    Batch update survey types for all certificates based on current ship and certificate data
+    """
+    try:
+        # This function can be called periodically or on-demand to update all certificates
+        certificates = mongo_db.find_all("certificates", {})
+        updated_count = 0
+        
+        for cert in certificates:
+            ship_id = cert.get('ship_id')
+            if ship_id:
+                ship_data = mongo_db.find_one("ships", {"id": ship_id})
+                if ship_data:
+                    new_survey_type = determine_survey_type(cert, ship_data)
+                    if new_survey_type != cert.get('next_survey_type'):
+                        mongo_db.update("certificates", 
+                                       {"id": cert['id']}, 
+                                       {"next_survey_type": new_survey_type})
+                        updated_count += 1
+                        
+        logger.info(f"Updated survey types for {updated_count} certificates")
+        return updated_count
+        
+    except Exception as e:
+        logger.error(f"Error updating certificates survey types: {e}")
+        return 0
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
