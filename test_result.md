@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the new Delete Ship functionality in the Edit Ship Information modal to verify it works correctly with both deletion options"
+user_problem_statement: "Test the new Survey Type determination functionality that automatically assigns survey types based on maritime regulations"
 
 backend:
   - task: "Special Survey From Date Calculation Bug Fix"
