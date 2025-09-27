@@ -276,7 +276,7 @@ backend:
 
   - task: "Marine Certificate Classification Debug - Multi Cert Upload Issues"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
