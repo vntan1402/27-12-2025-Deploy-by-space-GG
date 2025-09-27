@@ -140,44 +140,38 @@ class SurveyTypeTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def create_test_ship(self):
-        """Create a test ship for survey type testing"""
+    def get_existing_ship(self):
+        """Get an existing ship for survey type testing"""
         try:
-            self.log("🚢 Creating test ship for Survey Type testing...")
-            
-            ship_data = {
-                'name': 'SURVEY TYPE TEST SHIP',
-                'imo': '9888888',
-                'flag': 'PANAMA',
-                'ship_type': 'DNV GL',
-                'gross_tonnage': 5000.0,
-                'built_year': 2020,  # 4 years old
-                'ship_owner': 'Test Owner',
-                'company': 'AMCSC',
-                'last_special_survey': '2021-03-10T00:00:00Z',
-                'last_docking': '2023-06-15T00:00:00Z'
-            }
+            self.log("🚢 Getting existing ship for Survey Type testing...")
             
             endpoint = f"{BACKEND_URL}/ships"
-            response = requests.post(
+            response = requests.get(
                 endpoint,
-                json=ship_data,
                 headers=self.get_headers(),
                 timeout=30
             )
             
-            if response.status_code in [200, 201]:
-                response_data = response.json()
-                self.test_ship_id = response_data.get('id')
-                self.log("✅ Test ship created successfully")
-                self.log(f"   Ship ID: {self.test_ship_id}")
-                return True
+            if response.status_code == 200:
+                ships = response.json()
+                if ships and len(ships) > 0:
+                    # Use the first available ship
+                    ship = ships[0]
+                    self.test_ship_id = ship.get('id')
+                    ship_name = ship.get('name', 'Unknown')
+                    self.log("✅ Using existing ship for testing")
+                    self.log(f"   Ship ID: {self.test_ship_id}")
+                    self.log(f"   Ship Name: {ship_name}")
+                    return True
+                else:
+                    self.log("❌ No existing ships found")
+                    return False
             else:
-                self.log(f"❌ Test ship creation failed: {response.status_code}")
+                self.log(f"❌ Failed to get ships: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Test ship creation error: {str(e)}", "ERROR")
+            self.log(f"❌ Get existing ship error: {str(e)}", "ERROR")
             return False
     
     def create_test_certificates(self):
