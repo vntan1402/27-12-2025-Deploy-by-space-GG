@@ -11622,7 +11622,7 @@ const AddRecordModal = ({
                                 
                                 {/* Survey Information */}
                                 {(analysis.last_endorse || analysis.next_survey || analysis.next_survey_type) && (
-                                  <div className="bg-orange-25 rounded p-2 border-l-4 border-orange-400">
+                                  <div className="bg-orange-50 rounded p-2 border-l-4 border-orange-400">
                                     <div className="text-xs font-medium text-orange-700 mb-1">Survey Information</div>
                                     {analysis.last_endorse && (
                                       <div className="flex justify-between items-center mb-1">
