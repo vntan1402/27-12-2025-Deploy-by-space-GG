@@ -2264,21 +2264,24 @@ const HomePage = () => {
         total_files: totalFiles,
         successful_uploads: successCount,
         failed_uploads: errorCount,
-        processing_time: `${totalFiles} files with 0.5s delay`
+        manual_review_count: manualReviewCount,
+        processing_time: `${totalFiles} files uploaded concurrently with 0.5s staggered start`
       };
       
       setUploadSummary(finalSummary);
       
       // Final success/error toast
-      if (successCount > 0 && errorCount === 0) {
+      if (successCount > 0 && errorCount === 0 && manualReviewCount === 0) {
         toast.success(language === 'vi' 
           ? `🎉 Tất cả ${successCount} files đã được upload thành công!`
           : `🎉 All ${successCount} files uploaded successfully!`
         );
-      } else if (successCount > 0 && errorCount > 0) {
+      } else if (successCount > 0 && (errorCount > 0 || manualReviewCount > 0)) {
+        const reviewText = manualReviewCount > 0 ? 
+          (language === 'vi' ? `, ${manualReviewCount} cần xem xét` : `, ${manualReviewCount} need review`) : '';
         toast.warning(language === 'vi' 
-          ? `⚠️ Upload hoàn thành: ${successCount} thành công, ${errorCount} lỗi`
-          : `⚠️ Upload completed: ${successCount} successful, ${errorCount} errors`
+          ? `⚠️ Upload hoàn thành: ${successCount} thành công, ${errorCount} lỗi${reviewText}`
+          : `⚠️ Upload completed: ${successCount} successful, ${errorCount} errors${reviewText}`
         );
       } else {
         toast.error(language === 'vi' 
