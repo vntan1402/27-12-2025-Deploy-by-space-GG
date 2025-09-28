@@ -3861,7 +3861,7 @@ async def process_certificate_with_resolution(
 @api_router.post("/certificates/upload-multi-files")
 async def upload_multi_files(
     files: List[UploadFile] = File(...),
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Upload multiple certificate files with AI analysis and Google Drive integration"""
     try:
