@@ -4007,17 +4007,13 @@ async def multi_cert_upload_for_ship(
         # Get user's company for Google Drive configuration
         user_company_id = await resolve_company_id(current_user)
         
-        # Get company-specific Google Drive configuration first, fallback to system
+        # Get company-specific Google Drive configuration first
         gdrive_config_doc = None
         if user_company_id:
             gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
             logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
         
-        # Fallback to system Google Drive config if no company config
-        if not gdrive_config_doc:
-            gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
-            logger.info(f"Using system Google Drive config: {'Found' if gdrive_config_doc else 'Not found'}")
-        
+                
         if not gdrive_config_doc:
             raise HTTPException(status_code=500, detail="Google Drive not configured. Please configure Google Drive (system or company-specific) first.")
         
