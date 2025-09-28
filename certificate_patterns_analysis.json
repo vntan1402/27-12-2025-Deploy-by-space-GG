@@ -8,14 +8,147 @@
     "Initial": 9
   },
   "certificate_names": {
-    "Unknown": {
-      "count": 24,
+    "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE": {
+      "count": 3,
       "cert_types": [
-        "Full Term",
+        "Interim",
+        "Full Term"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "Maritime Certificate - modified_marine_cert": {
+      "count": 1,
+      "cert_types": [
+        "Full Term"
+      ],
+      "survey_types": [
+        "Unknown"
+      ]
+    },
+    "Maritime Certificate - ambiguous_doc": {
+      "count": 1,
+      "cert_types": [
+        "Full Term"
+      ],
+      "survey_types": [
+        "Unknown"
+      ]
+    },
+    "CARGO SHIP SAFETY EQUIPMENT CERTIFICATE": {
+      "count": 2,
+      "cert_types": [
         "Interim"
       ],
       "survey_types": [
         "Initial",
+        "Unknown"
+      ]
+    },
+    "INTERNATIONAL LOAD LINE CERTIFICATE": {
+      "count": 2,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "INTERNATIONAL SEWAGE POLLUTION PREVENTION CERTIFICATE": {
+      "count": 2,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "CLASSIFICATION CERTIFICATE": {
+      "count": 2,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "CARGO SHIP SAFETY RADIO CERTIFICATE": {
+      "count": 2,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "DOCUMENT OF COMPLIANCE WITH THE SPECIAL\nREQUIREMENTS FOR SHIPS CARRYING DANGEROUS GOODS": {
+      "count": 2,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "CERTIFICATE OF COMPLIANCE\nFOR THE CARRIAGE OF SOLID BULK CARGOES": {
+      "count": 2,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    },
+    "INTERNATIONAL OIL POLLUTION \nPREVENTION CERTIFICATE": {
+      "count": 1,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial"
+      ]
+    },
+    "INTERNATIONAL OIL POLLUTION PREVENTION CERTIFICATE": {
+      "count": 1,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Unknown"
+      ]
+    },
+    "Maritime Certificate - cert1": {
+      "count": 1,
+      "cert_types": [
+        "Full Term"
+      ],
+      "survey_types": [
+        "Unknown"
+      ]
+    },
+    "Maritime Certificate - cert2": {
+      "count": 1,
+      "cert_types": [
+        "Full Term"
+      ],
+      "survey_types": [
+        "Unknown"
+      ]
+    },
+    "Maritime Certificate - cert3": {
+      "count": 1,
+      "cert_types": [
+        "Full Term"
+      ],
+      "survey_types": [
         "Unknown"
       ]
     }
@@ -25,196 +158,268 @@
   },
   "date_patterns": [
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE",
       "cert_type": "Full Term",
       "issue_date": "2025-01-24 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-03-10 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "73319627-c53e-4901-9ee3-757e2b4a2a81",
+      "cert_no": "PM25385",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "Maritime Certificate - modified_marine_cert",
       "cert_type": "Full Term",
       "issue_date": "2025-09-28 00:00:00",
       "expiry_date": null,
       "valid_date": "2030-09-27 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "73319627-c53e-4901-9ee3-757e2b4a2a81",
+      "cert_no": "CERT_MODIFIED_MARINE_CERT",
+      "issued_by": "Maritime Authority (Filename-based classification)"
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "Maritime Certificate - ambiguous_doc",
       "cert_type": "Full Term",
       "issue_date": "2025-09-28 00:00:00",
       "expiry_date": null,
       "valid_date": "2030-09-27 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "73319627-c53e-4901-9ee3-757e2b4a2a81",
+      "cert_no": "CERT_AMBIGUOUS_DOC",
+      "issued_by": "Maritime Authority (Filename-based classification)"
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494418",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY EQUIPMENT CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494416",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "INTERNATIONAL LOAD LINE CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494419",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "INTERNATIONAL SEWAGE POLLUTION PREVENTION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494423",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CLASSIFICATION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494421",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY RADIO CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494417",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "DOCUMENT OF COMPLIANCE WITH THE SPECIAL\nREQUIREMENTS FOR SHIPS CARRYING DANGEROUS GOODS",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494425",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CERTIFICATE OF COMPLIANCE\nFOR THE CARRIAGE OF SOLID BULK CARGOES",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494424",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "INTERNATIONAL OIL POLLUTION \nPREVENTION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Initial"
+      "current_survey_type": "Initial",
+      "ship_id": "26e7cc88-1999-4496-8d76-a2f46c07da3a",
+      "cert_no": "PM252494422",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY EQUIPMENT CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494416",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY RADIO CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494417",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494418",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CLASSIFICATION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494421",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "INTERNATIONAL LOAD LINE CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494419",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "INTERNATIONAL SEWAGE POLLUTION PREVENTION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494423",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "DOCUMENT OF COMPLIANCE WITH THE SPECIAL\nREQUIREMENTS FOR SHIPS CARRYING DANGEROUS GOODS",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494425",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "INTERNATIONAL OIL POLLUTION PREVENTION CERTIFICATE",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494422",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "CERTIFICATE OF COMPLIANCE\nFOR THE CARRIAGE OF SOLID BULK CARGOES",
       "cert_type": "Interim",
       "issue_date": "2025-08-22 00:00:00",
       "expiry_date": null,
       "valid_date": "2026-01-21 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "27f2c006-e63f-47fa-b7d0-58d0327676da",
+      "cert_no": "PM252494424",
+      "issued_by": "Panama Maritime Documentation Services, Inc."
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "Maritime Certificate - cert1",
       "cert_type": "Full Term",
       "issue_date": "2025-09-28 00:00:00",
       "expiry_date": null,
       "valid_date": "2030-09-27 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "73319627-c53e-4901-9ee3-757e2b4a2a81",
+      "cert_no": "CERT_CERT1",
+      "issued_by": "Maritime Authority (Filename-based classification)"
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "Maritime Certificate - cert2",
       "cert_type": "Full Term",
       "issue_date": "2025-09-28 00:00:00",
       "expiry_date": null,
       "valid_date": "2030-09-27 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "73319627-c53e-4901-9ee3-757e2b4a2a81",
+      "cert_no": "CERT_CERT2",
+      "issued_by": "Maritime Authority (Filename-based classification)"
     },
     {
-      "cert_name": "Unknown",
+      "cert_name": "Maritime Certificate - cert3",
       "cert_type": "Full Term",
       "issue_date": "2025-09-28 00:00:00",
       "expiry_date": null,
       "valid_date": "2030-09-27 00:00:00",
-      "current_survey_type": "Unknown"
+      "current_survey_type": "Unknown",
+      "ship_id": "73319627-c53e-4901-9ee3-757e2b4a2a81",
+      "cert_no": "CERT_CERT3",
+      "issued_by": "Maritime Authority (Filename-based classification)"
     }
   ],
   "ships_with_multiple_certs": {
