@@ -294,7 +294,7 @@ class EnhancedDebugTester:
                 self.log(f"   Message: {message}")
                 
                 # Focus on AI analysis result
-                analysis_result = result.get('analysis_result')
+                analysis_result = result.get('analysis_result') or result.get('analysis')
                 if analysis_result:
                     self.log("\n🤖 AI ANALYSIS RESULT FOUND:")
                     self.analyze_ai_response_structure(analysis_result)
@@ -305,6 +305,45 @@ class EnhancedDebugTester:
                 # Check for specific error patterns
                 if not success:
                     self.identify_classification_failure_cause(message, analysis_result)
+                else:
+                    # Even if successful, analyze the classification
+                    self.log("\n✅ CLASSIFICATION SUCCESSFUL - Analyzing details:")
+                    if analysis_result:
+                        category = analysis_result.get('category')
+                        extraction_error = analysis_result.get('extraction_error')
+                        confidence = analysis_result.get('confidence', 0)
+                        
+                        self.log(f"   Category: '{category}'")
+                        self.log(f"   Confidence: {confidence}")
+                        if extraction_error:
+                            self.log(f"   ⚠️ Extraction Error: {extraction_error}")
+                            self.log("   🔍 This indicates AI analysis failed, using fallback classification")
+                        
+                        # Check if this was AI analysis or fallback
+                        if "filename" in str(extraction_error).lower():
+                            self.log("   🔍 ROOT CAUSE IDENTIFIED: AI analysis failed, fallback to filename classification")
+                            self.log("   💡 ISSUE: AI is not properly analyzing the certificate content")
+                        elif category == 'certificates':
+                            self.log("   ✅ AI successfully classified as 'certificates'")
+                        else:
+                            self.log(f"   ❌ AI classified as '{category}' instead of 'certificates'")
+                    
+                    # Check upload status
+                    upload_info = result.get('upload', {})
+                    if not upload_info.get('success', True):
+                        upload_error = upload_info.get('error', 'Unknown upload error')
+                        self.log(f"   ⚠️ Upload Issue: {upload_error}")
+                        
+                    # Check certificate creation
+                    cert_info = result.get('certificate', {})
+                    if cert_info.get('success', False):
+                        cert_id = cert_info.get('id')
+                        self.log(f"   ✅ Certificate created successfully: {cert_id}")
+                    
+                    # Check marine classification
+                    is_marine = result.get('is_marine', False)
+                    self.log(f"   Marine Classification: {is_marine}")
+                    
                     
         except Exception as e:
             self.log(f"❌ Response analysis error: {str(e)}", "ERROR")
