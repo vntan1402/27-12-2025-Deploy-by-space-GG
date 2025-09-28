@@ -3618,7 +3618,9 @@ const HomePage = () => {
                                       )
                                     }
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{formatDate(cert.next_survey)}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    {cert.next_survey_display || formatDate(cert.next_survey)}
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                       cert.next_survey_type === 'Annual' ? 'bg-blue-100 text-blue-800' :
