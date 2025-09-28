@@ -3250,7 +3250,7 @@ const HomePage = () => {
                                 : 'bg-gray-400 cursor-not-allowed text-white'
                             }`}
                             title={selectedShip 
-                              ? (language === 'vi' ? 'Tự động cập nhật loại khảo sát dựa trên quy định hàng hải' : 'Auto-update survey types based on maritime regulations')
+                              ? (language === 'vi' ? 'Cập nhật loại khảo sát tiếp theo' : 'Update next survey types')
                               : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
                             }
                           >
