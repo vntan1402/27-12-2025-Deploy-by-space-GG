@@ -11504,7 +11504,7 @@ const AddRecordModal = ({
                   <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 max-h-96 overflow-auto">
                     {(() => {
                       const reviewData = pendingManualReviews.find(r => r.filename === fileViewerData.filename);
-                      const analysis = reviewData?.analysis || {};
+                      const analysis = fileViewerData.analysis || reviewData?.analysis || {};
                       
                       return (
                         <div className="space-y-4">
