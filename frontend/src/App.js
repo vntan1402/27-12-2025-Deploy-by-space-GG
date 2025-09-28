@@ -5562,7 +5562,9 @@ const AccountControlPage = () => {
       fetchCompanies();
     } catch (error) {
       console.error('Delete company error:', error);
-      toast.error(language === 'vi' ? 'Không thể xóa công ty!' : 'Failed to delete company!');
+      const errorMessage = error.response?.data?.detail || 
+        (language === 'vi' ? 'Không thể xóa công ty!' : 'Failed to delete company!');
+      toast.error(errorMessage);
     }
   };
 
