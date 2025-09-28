@@ -9914,6 +9914,64 @@ const AddRecordModal = ({
     }
   };
 
+  // Poll Google Drive folder creation status
+  const startGoogleDriveFolderPolling = async (shipId, shipName) => {
+    const maxPollingTime = 185000; // 185 seconds (slightly more than backend timeout)
+    const pollingInterval = 3000; // 3 seconds
+    const startTime = Date.now();
+    
+    const pollStatus = async () => {
+      try {
+        const response = await axios.get(`${API}/ships/${shipId}/gdrive-folder-status`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const status = response.data.gdrive_folder_status;
+        
+        if (status === 'completed') {
+          toast.success(language === 'vi' 
+            ? `✅ Folder structure cho tàu "${shipName}" đã được tạo thành công trên Google Drive!`
+            : `✅ Folder structure for ship "${shipName}" created successfully on Google Drive!`
+          );
+          return; // Stop polling
+        } else if (status === 'failed' || status === 'error') {
+          const errorMsg = response.data.gdrive_folder_error || 'Unknown error';
+          toast.error(language === 'vi'
+            ? `❌ Không thể tạo folder cho tàu "${shipName}": ${errorMsg}`
+            : `❌ Failed to create folder for ship "${shipName}": ${errorMsg}`
+          );
+          return; // Stop polling
+        } else if (status === 'timeout') {
+          toast.warning(language === 'vi'
+            ? `⏰ Tạo folder cho tàu "${shipName}" bị timeout sau 180 giây`
+            : `⏰ Folder creation for ship "${shipName}" timed out after 180 seconds`
+          );
+          return; // Stop polling
+        } else if (status === 'pending') {
+          // Check if total polling time exceeded
+          if (Date.now() - startTime > maxPollingTime) {
+            toast.warning(language === 'vi'
+              ? `⏰ Hết thời gian chờ tạo folder cho tàu "${shipName}"`
+              : `⏰ Polling timeout for folder creation of ship "${shipName}"`
+            );
+            return; // Stop polling
+          }
+          // Continue polling
+          setTimeout(pollStatus, pollingInterval);
+        }
+      } catch (error) {
+        console.error('Error polling folder status:', error);
+        toast.error(language === 'vi'
+          ? `❌ Lỗi khi kiểm tra trạng thái folder cho tàu "${shipName}"`
+          : `❌ Error checking folder status for ship "${shipName}"`
+        );
+      }
+    };
+    
+    // Start polling after a short delay
+    setTimeout(pollStatus, pollingInterval);
+  };
+
   // Google Drive Ship Folder Creation with Complete Hierarchy Structure
   const createShipGoogleDriveFolder = async (shipName, companyId) => {
     try {
