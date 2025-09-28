@@ -63,7 +63,7 @@ def test_apps_script_direct():
         "parent_folder_id": "1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG",
         "ship_name": "APPS_SCRIPT_TEST_SHIP",
         "company_id": "78fdb82e-bc68-4618-b277-3f69e8840f1e",
-        "backend_api_url": "https://repo-pickup.preview.emergentagent.com"
+        "backend_api_url": "https://fleetops-7.preview.emergentagent.com"
     }
     
     try:
@@ -97,12 +97,12 @@ def test_apps_script_direct():
     log_message("\n🧪 Test 3: Check for potential callback issues")
     log_message("   💡 The Apps Script might be trying to call back to the backend")
     log_message("   💡 If the backend API URL is not accessible from Apps Script, it could cause timeouts")
-    log_message("   💡 Backend API URL being sent: https://repo-pickup.preview.emergentagent.com")
+    log_message("   💡 Backend API URL being sent: https://fleetops-7.preview.emergentagent.com")
     
     # Test if the backend URL is accessible
     try:
         log_message("   🔍 Testing if backend URL is accessible...")
-        backend_test = requests.get("https://repo-pickup.preview.emergentagent.com/api/sidebar-structure", timeout=10)
+        backend_test = requests.get("https://fleetops-7.preview.emergentagent.com/api/sidebar-structure", timeout=10)
         log_message(f"   Backend accessibility: {backend_test.status_code}")
         if backend_test.status_code == 200:
             log_message("   ✅ Backend URL is accessible from external requests")
