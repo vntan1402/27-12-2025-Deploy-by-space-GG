@@ -3240,7 +3240,7 @@ const HomePage = () => {
                         </div>
                         
                         <div className="flex gap-3">
-                          {/* Update Survey Types Button */}
+                          {/* Update Next Survey Button */}
                           <button
                             onClick={handleUpdateSurveyTypes}
                             disabled={isUpdatingSurveyTypes || !selectedShip}
