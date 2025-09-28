@@ -7943,46 +7943,8 @@ async def handle_manual_review_action(
 # SURVEY TYPE UPDATE ENDPOINTS REMOVED
 # User will implement custom survey type logic
 
-@api_router.post("/certificates/{certificate_id}/determine-survey-type")
-async def determine_certificate_survey_type(
-    certificate_id: str,
-    current_user: UserResponse = Depends(get_current_user)
-):
-    """
-    Determine and update survey type for a specific certificate
-    """
-    try:
-        # Get certificate
-        certificate = await mongo_db.find_one("certificates", {"id": certificate_id})
-        if not certificate:
-            raise HTTPException(status_code=404, detail="Certificate not found")
-            
-        # Get ship data
-        ship_id = certificate.get('ship_id')
-        ship_data = {}
-        if ship_id:
-            ship_data = await mongo_db.find_one("ships", {"id": ship_id}) or {}
-            
-        # Determine survey type
-        survey_type = determine_survey_type(certificate, ship_data)
-        
-        # Update certificate
-        await mongo_db.update("certificates", 
-                             {"id": certificate_id}, 
-                             {"next_survey_type": survey_type})
-        
-        return {
-            "success": True,
-            "certificate_id": certificate_id,
-            "survey_type": survey_type,
-            "message": f"Survey type updated to: {survey_type}"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error determining survey type for certificate {certificate_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to determine survey type")
+# INDIVIDUAL SURVEY TYPE DETERMINATION ENDPOINT REMOVED
+# User will implement custom survey type logic
 
 # SURVEY TYPE UPDATE FUNCTION REMOVED
 # User will implement custom survey type logic
