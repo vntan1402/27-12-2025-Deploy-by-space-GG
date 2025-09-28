@@ -5719,6 +5719,63 @@ def classify_by_filename(filename: str) -> dict:
             "issued_by": None
         }
 
+async def create_google_drive_folder_background(ship_dict: dict, current_user):
+    """Background task to create Google Drive folder structure with timeout"""
+    ship_name = ship_dict.get('name', 'Unknown Ship')
+    ship_id = ship_dict.get('id')
+    
+    try:
+        logger.info(f"🚀 Starting background Google Drive folder creation for ship: {ship_name}")
+        
+        # Set timeout of 180 seconds
+        result = await asyncio.wait_for(
+            create_google_drive_folder_for_new_ship(ship_dict, current_user),
+            timeout=180.0
+        )
+        
+        if result.get("success"):
+            logger.info(f"✅ Background Google Drive folder creation completed successfully for ship: {ship_name}")
+            
+            # Store success status in database for frontend polling
+            await mongo_db.update("ships", {"id": ship_id}, {
+                "gdrive_folder_status": "completed",
+                "gdrive_folder_created_at": datetime.now(timezone.utc),
+                "gdrive_folder_error": None
+            })
+            
+        else:
+            error_msg = result.get("error", "Unknown error")
+            logger.warning(f"❌ Background Google Drive folder creation failed for ship {ship_name}: {error_msg}")
+            
+            # Store error status in database
+            await mongo_db.update("ships", {"id": ship_id}, {
+                "gdrive_folder_status": "failed",
+                "gdrive_folder_error": error_msg,
+                "gdrive_folder_created_at": datetime.now(timezone.utc)
+            })
+            
+    except asyncio.TimeoutError:
+        timeout_msg = f"Google Drive folder creation timed out after 180 seconds"
+        logger.error(f"⏰ {timeout_msg} for ship: {ship_name}")
+        
+        # Store timeout status in database
+        await mongo_db.update("ships", {"id": ship_id}, {
+            "gdrive_folder_status": "timeout",
+            "gdrive_folder_error": timeout_msg,
+            "gdrive_folder_created_at": datetime.now(timezone.utc)
+        })
+        
+    except Exception as e:
+        error_msg = f"Background Google Drive folder creation failed with exception: {e}"
+        logger.error(f"💥 {error_msg} for ship: {ship_name}")
+        
+        # Store exception status in database
+        await mongo_db.update("ships", {"id": ship_id}, {
+            "gdrive_folder_status": "error",
+            "gdrive_folder_error": str(e),
+            "gdrive_folder_created_at": datetime.now(timezone.utc)
+        })
+
 async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user) -> dict:
     """Create Google Drive folder structure for a newly created ship using dynamic structure"""
     try:
