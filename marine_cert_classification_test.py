@@ -208,7 +208,7 @@ class MarineCertificateClassificationTester:
             
             ship_data = {
                 'name': self.test_ship_name,
-                'imo': '9415313',  # Use consistent IMO for testing
+                'imo': '9999888',  # Use different IMO to avoid conflicts
                 'flag': 'PANAMA',
                 'ship_type': 'PMDS',
                 'gross_tonnage': 2959.0,
