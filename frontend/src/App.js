@@ -11322,41 +11322,75 @@ const AddRecordModal = ({
               {/* File Content Display */}
               <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-auto">
                 {fileViewerData.content_type && fileViewerData.content_type.includes('pdf') ? (
-                  <div className="text-center py-8">
-                    <svg className="w-16 h-16 mx-auto text-red-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                    </svg>
-                    <h5 className="text-lg font-medium text-gray-900 mb-2">PDF Document</h5>
-                    <p className="text-gray-600 mb-4">
-                      {language === 'vi' 
-                        ? 'Preview PDF không khả dụng trong modal này. Vui lòng download file để xem đầy đủ.'
-                        : 'PDF preview not available in this modal. Please download the file for full view.'}
-                    </p>
-                    <button
-                      onClick={() => {
-                        // Download the file
-                        const link = document.createElement('a');
-                        link.href = `data:application/pdf;base64,${fileViewerData.content_b64}`;
-                        link.download = fileViewerData.filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                    >
-                      {language === 'vi' ? 'Download PDF' : 'Download PDF'}
-                    </button>
+                  <div className="space-y-4">
+                    {/* PDF Viewer */}
+                    <div className="bg-white rounded-lg border border-gray-300 min-h-80">
+                      <div className="flex justify-between items-center p-3 bg-gray-100 rounded-t-lg border-b">
+                        <h6 className="font-medium text-gray-800">PDF Preview</h6>
+                        <button
+                          onClick={() => {
+                            // Download the file
+                            const link = document.createElement('a');
+                            link.href = `data:application/pdf;base64,${fileViewerData.content_b64}`;
+                            link.download = fileViewerData.filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                        >
+                          {language === 'vi' ? 'Tải PDF' : 'Download PDF'}
+                        </button>
+                      </div>
+                      <div className="p-2" style={{ height: '300px' }}>
+                        <iframe
+                          src={`data:application/pdf;base64,${fileViewerData.content_b64}`}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 'none', borderRadius: '4px' }}
+                          title={fileViewerData.filename}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ) : fileViewerData.content_type && fileViewerData.content_type.includes('image') ? (
-                  <div className="text-center">
-                    <img 
-                      src={`data:${fileViewerData.content_type};base64,${fileViewerData.content_b64}`}
-                      alt={fileViewerData.filename}
-                      className="max-w-full max-h-80 mx-auto rounded-lg shadow-lg"
-                    />
+                  <div className="space-y-4">
+                    {/* Image Viewer */}
+                    <div className="text-center bg-white rounded-lg border border-gray-300 p-4">
+                      <img 
+                        src={`data:${fileViewerData.content_type};base64,${fileViewerData.content_b64}`}
+                        alt={fileViewerData.filename}
+                        className="max-w-full max-h-80 mx-auto rounded-lg shadow-lg"
+                        style={{ maxHeight: '320px', objectFit: 'contain' }}
+                      />
+                      <div className="mt-3 flex justify-center space-x-2">
+                        <button
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = `data:${fileViewerData.content_type};base64,${fileViewerData.content_b64}`;
+                            link.download = fileViewerData.filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="text-sm px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+                        >
+                          {language === 'vi' ? 'Tải ảnh' : 'Download Image'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const newWindow = window.open();
+                            newWindow.document.write(`<img src="data:${fileViewerData.content_type};base64,${fileViewerData.content_b64}" style="max-width:100%; height:auto;" alt="${fileViewerData.filename}" />`);
+                          }}
+                          className="text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                        >
+                          {language === 'vi' ? 'Mở cửa sổ mới' : 'Open in New Window'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8">
+                  <div className="text-center py-8 bg-white rounded-lg border border-gray-300">
                     <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                     </svg>
@@ -11369,15 +11403,139 @@ const AddRecordModal = ({
                 )}
               </div>
               
-              {/* Action Instructions */}
+              {/* AI Analysis Summary */}
               <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h6 className="font-medium text-blue-800 mb-2">
-                  {language === 'vi' ? 'Hướng dẫn:' : 'Instructions:'}
+                <h6 className="font-medium text-blue-800 mb-3 flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {language === 'vi' ? '📊 Tóm tắt phân tích AI' : '📊 AI Analysis Summary'}
                 </h6>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• <strong>{language === 'vi' ? 'Bỏ qua:' : 'Skip:'}</strong> {language === 'vi' ? 'Không xử lý file này' : 'Do not process this file'}</li>
-                  <li>• <strong>{language === 'vi' ? 'Xác nhận Marine Cert:' : 'Confirm Marine Cert:'}</strong> {language === 'vi' ? 'Xác nhận đây là Marine Certificate và thêm vào hệ thống' : 'Confirm this is a Marine Certificate and add to system'}</li>
-                </ul>
+                
+                {(() => {
+                  const reviewData = pendingManualReviews.find(r => r.filename === fileViewerData.filename);
+                  const analysis = reviewData?.analysis || {};
+                  
+                  return (
+                    <div className="space-y-3">
+                      {/* Classification Summary */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="text-sm">
+                            <span className="font-medium text-blue-700">
+                              {language === 'vi' ? 'Phân loại:' : 'Classification:'}
+                            </span>
+                            <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                              fileViewerData.detected_category === 'certificates' 
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-orange-100 text-orange-800'
+                            }`}>
+                              {fileViewerData.detected_category || 'Unknown'}
+                            </span>
+                          </div>
+                          <div className="text-sm">
+                            <span className="font-medium text-blue-700">
+                              {language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}
+                            </span>
+                            <span className="ml-2 text-blue-900 capitalize">{fileViewerData.confidence || 'Unknown'}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {analysis.ship_name && (
+                            <div className="text-sm">
+                              <span className="font-medium text-blue-700">
+                                {language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}
+                              </span>
+                              <span className="ml-2 text-blue-900">{analysis.ship_name}</span>
+                            </div>
+                          )}
+                          {analysis.cert_type && (
+                            <div className="text-sm">
+                              <span className="font-medium text-blue-700">
+                                {language === 'vi' ? 'Loại chứng chỉ:' : 'Certificate Type:'}
+                              </span>
+                              <span className="ml-2 text-blue-900">{analysis.cert_type}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Extracted Information */}
+                      {(analysis.cert_name || analysis.cert_no || analysis.issued_by) && (
+                        <div className="border-t border-blue-200 pt-3">
+                          <h6 className="text-sm font-medium text-blue-800 mb-2">
+                            {language === 'vi' ? 'Thông tin trích xuất:' : 'Extracted Information:'}
+                          </h6>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                            {analysis.cert_name && (
+                              <div>
+                                <span className="font-medium text-blue-600">
+                                  {language === 'vi' ? 'Tên chứng chỉ:' : 'Certificate Name:'}
+                                </span>
+                                <div className="text-blue-800 text-xs mt-1 break-words">{analysis.cert_name}</div>
+                              </div>
+                            )}
+                            {analysis.cert_no && (
+                              <div>
+                                <span className="font-medium text-blue-600">
+                                  {language === 'vi' ? 'Số chứng chỉ:' : 'Certificate No:'}
+                                </span>
+                                <div className="text-blue-800 text-xs mt-1">{analysis.cert_no}</div>
+                              </div>
+                            )}
+                            {analysis.issued_by && (
+                              <div>
+                                <span className="font-medium text-blue-600">
+                                  {language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}
+                                </span>
+                                <div className="text-blue-800 text-xs mt-1 break-words">{analysis.issued_by}</div>
+                              </div>
+                            )}
+                            {analysis.issue_date && (
+                              <div>
+                                <span className="font-medium text-blue-600">
+                                  {language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}
+                                </span>
+                                <div className="text-blue-800 text-xs mt-1">{analysis.issue_date}</div>
+                              </div>
+                            )}
+                            {analysis.valid_date && (
+                              <div>
+                                <span className="font-medium text-blue-600">
+                                  {language === 'vi' ? 'Hạn hiệu lực:' : 'Valid Until:'}
+                                </span>
+                                <div className="text-blue-800 text-xs mt-1">{analysis.valid_date}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Processing Method & Quality */}
+                      <div className="border-t border-blue-200 pt-3">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-blue-600">
+                              {language === 'vi' ? 'Phương thức xử lý:' : 'Processing Method:'}
+                            </span>
+                            <div className="text-blue-800 text-xs mt-1 capitalize">
+                              {analysis.processing_method || 'AI Analysis'}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-medium text-blue-600">
+                              {language === 'vi' ? 'Chất lượng văn bản:' : 'Text Quality:'}
+                            </span>
+                            <div className="text-blue-800 text-xs mt-1">
+                              {analysis.text_length ? `${analysis.text_length} characters` : 'Good'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             
