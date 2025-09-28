@@ -8006,23 +8006,8 @@ async def handle_manual_review_action(
         logger.error(f"Error handling manual review action: {e}")
         raise HTTPException(status_code=500, detail="Failed to process manual review action")
 
-@api_router.post("/certificates/update-survey-types")
-async def update_all_survey_types(
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
-):
-    """
-    Manually trigger update of survey types for all certificates
-    """
-    try:
-        updated_count = await update_certificates_survey_types_async()
-        return {
-            "success": True,
-            "message": f"Successfully updated survey types for {updated_count} certificates",
-            "updated_count": updated_count
-        }
-    except Exception as e:
-        logger.error(f"Error updating survey types: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update survey types")
+# SURVEY TYPE UPDATE ENDPOINTS REMOVED
+# User will implement custom survey type logic
 
 @api_router.post("/certificates/{certificate_id}/determine-survey-type")
 async def determine_certificate_survey_type(
