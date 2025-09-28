@@ -121,7 +121,6 @@ class LoginResponse(BaseModel):
     user: UserResponse
     remember_me: bool
 
-
 class SpecialSurveyCycle(BaseModel):
     """Special survey cycle representing maritime special survey requirements"""
     from_date: Optional[datetime] = None  # Start of special survey cycle
@@ -151,14 +150,12 @@ class ShipBase(BaseModel):
     last_docking_2: Optional[datetime] = None  # Second last dry docking date (Docking 2)
     next_docking: Optional[datetime] = None  # Next scheduled docking date (IMO: max 30 months from last docking)
     last_special_survey: Optional[datetime] = None  # Last special survey date
-    dry_dock_cycle: Optional[DryDockCycle] = None  # Enhanced dry dock cycle with Lloyd's requirements
     special_survey_cycle: Optional[SpecialSurveyCycle] = None  # Special survey cycle management
     anniversary_date: Optional[AnniversaryDate] = None  # Enhanced anniversary date with auto-calculation
     ship_owner: Optional[str] = None
     company: str  # Company that owns/manages the ship
     
     # Legacy fields for backward compatibility
-    legacy_dry_dock_cycle: Optional[int] = None  # Original months field for compatibility
     legacy_anniversary_date: Optional[datetime] = None  # Original datetime field for compatibility
 
 class ShipCreate(ShipBase):
@@ -178,14 +175,12 @@ class ShipUpdate(BaseModel):
     last_docking_2: Optional[datetime] = None
     next_docking: Optional[datetime] = None
     last_special_survey: Optional[datetime] = None
-    dry_dock_cycle: Optional[DryDockCycle] = None
     special_survey_cycle: Optional[SpecialSurveyCycle] = None
     anniversary_date: Optional[AnniversaryDate] = None
     ship_owner: Optional[str] = None
     company: Optional[str] = None
     
     # Legacy fields for backward compatibility  
-    legacy_dry_dock_cycle: Optional[int] = None
     legacy_anniversary_date: Optional[datetime] = None
 
 class ShipResponse(ShipBase):
