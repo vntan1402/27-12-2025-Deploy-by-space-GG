@@ -9696,6 +9696,7 @@ const AddRecordModal = ({
         last_docking_2: convertLastDockingToDateTime(shipData.last_docking_2),
         next_docking: shipData.next_docking || null,
         last_special_survey: shipData.last_special_survey || null,
+        last_intermediate_survey: shipData.last_intermediate_survey || null,
         ship_owner: shipData.ship_owner?.trim() || '',
         company: shipData.company?.trim() || user?.company || ''
       };
