@@ -8031,7 +8031,7 @@ class EnhancedSurveyTypeDetermination:
     """Enhanced survey type determination based on ship's complete certificate portfolio"""
     
     def __init__(self):
-        self.current_date = datetime.now()
+        self.current_date = datetime.now(timezone.utc)
         
         # Define certificate priority classes (higher priority certificates drive survey types)
         self.high_priority_certificates = {
