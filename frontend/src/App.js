@@ -11614,7 +11614,7 @@ const AddRecordModal = ({
                                 
                                 {/* Authority */}
                                 {analysis.issued_by && (
-                                  <div className="bg-purple-25 rounded p-2 border-l-4 border-purple-400">
+                                  <div className="bg-purple-50 rounded p-2 border-l-4 border-purple-400">
                                     <div className="text-xs font-medium text-purple-700 mb-1">Issuing Authority</div>
                                     <span className="text-xs text-purple-800">{analysis.issued_by}</span>
                                   </div>
