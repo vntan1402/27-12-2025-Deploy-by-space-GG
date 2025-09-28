@@ -25,6 +25,15 @@ async def analyze_certificate_patterns():
             print("❌ No certificates found in database")
             return
         
+        # Print detailed information about first few certificates to understand structure
+        print(f"\n🔍 DETAILED CERTIFICATE STRUCTURE (First 3 certificates):")
+        for i, cert in enumerate(certificates[:3]):
+            print(f"\nCertificate {i+1}:")
+            for key, value in cert.items():
+                if key not in ['_id']:  # Skip MongoDB internal ID
+                    print(f"   {key}: {value}")
+            print("-" * 50)
+        
         # Analyze certificate patterns
         patterns = {
             'cert_types': {},
