@@ -122,7 +122,6 @@ class LoginResponse(BaseModel):
     remember_me: bool
 
 
-
 class SpecialSurveyCycle(BaseModel):
     """Special survey cycle representing maritime special survey requirements"""
     from_date: Optional[datetime] = None  # Start of special survey cycle
