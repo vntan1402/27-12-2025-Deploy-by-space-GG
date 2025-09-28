@@ -11537,6 +11537,44 @@ const AddRecordModal = ({
                   );
                 })()}
               </div>
+              
+              {/* Action Instructions */}
+              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <h6 className="font-medium text-green-800 mb-2 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {language === 'vi' ? 'Hướng dẫn quyết định:' : 'Decision Guidelines:'}
+                </h6>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex items-start">
+                      <span className="inline-block w-2 h-2 bg-red-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      <div>
+                        <strong className="text-green-700">{language === 'vi' ? 'Bỏ qua nếu:' : 'Skip if:'}</strong>
+                        <ul className="text-green-600 ml-2 mt-1">
+                          <li>• {language === 'vi' ? 'Không phải tài liệu hàng hải' : 'Not a maritime document'}</li>
+                          <li>• {language === 'vi' ? 'Báo cáo test/bảo trì thiết bị' : 'Equipment test/maintenance report'}</li>
+                          <li>• {language === 'vi' ? 'Tài liệu thương mại/hành chính' : 'Commercial/administrative document'}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-start">
+                      <span className="inline-block w-2 h-2 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      <div>
+                        <strong className="text-green-700">{language === 'vi' ? 'Xác nhận Marine Cert nếu:' : 'Confirm Marine Cert if:'}</strong>
+                        <ul className="text-green-600 ml-2 mt-1">
+                          <li>• {language === 'vi' ? 'Chứng chỉ an toàn/kỹ thuật tàu' : 'Ship safety/technical certificate'}</li>
+                          <li>• {language === 'vi' ? 'Có từ khóa: SOLAS, MARPOL, ISM, ISPS' : 'Contains: SOLAS, MARPOL, ISM, ISPS'}</li>
+                          <li>• {language === 'vi' ? 'Cấp bởi Cơ quan Hàng hải' : 'Issued by Maritime Authority'}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
             {/* Modal Action Buttons */}
