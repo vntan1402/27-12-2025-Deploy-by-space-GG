@@ -3971,7 +3971,7 @@ async def upload_multi_files(
 async def multi_cert_upload_for_ship(
     ship_id: str,
     files: List[UploadFile] = File(...),
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([ UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Upload multiple certificate files for a specific ship with AI analysis and Google Drive integration"""
     try:
