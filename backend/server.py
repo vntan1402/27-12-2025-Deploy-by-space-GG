@@ -7781,7 +7781,6 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         # Extract certificate information
         cert_name = certificate_data.get('cert_name', '').upper()
         cert_type = certificate_data.get('cert_type', '').upper()
-        issue_date = certificate_data.get('issue_date')
         valid_date = certificate_data.get('valid_date')
         current_date = datetime.now()
         
