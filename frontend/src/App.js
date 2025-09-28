@@ -3628,6 +3628,14 @@ const HomePage = () => {
                                       cert.next_survey_type === 'Renewal' ? 'bg-green-100 text-green-800' :
                                       cert.next_survey_type === 'Special' ? 'bg-purple-100 text-purple-800' :
                                       cert.next_survey_type === 'Dry Dock' ? 'bg-orange-100 text-orange-800' :
+                                      cert.next_survey_type === '1st Annual Survey' ? 'bg-blue-100 text-blue-800' :
+                                      cert.next_survey_type === '2nd Annual Survey/Intermediate Survey' ? 'bg-yellow-100 text-yellow-800' :
+                                      cert.next_survey_type === '3rd Annual Survey' ? 'bg-blue-100 text-blue-800' :
+                                      cert.next_survey_type === '4th Annual Survey' ? 'bg-blue-100 text-blue-800' :
+                                      cert.next_survey_type === 'Special Survey' ? 'bg-purple-100 text-purple-800' :
+                                      cert.next_survey_type === 'Condition Certificate Expiry' ? 'bg-red-100 text-red-800' :
+                                      cert.next_survey_type?.includes('Annual Survey') ? 'bg-blue-100 text-blue-800' :
+                                      cert.next_survey_type?.includes('Intermediate') ? 'bg-yellow-100 text-yellow-800' :
                                       'bg-gray-100 text-gray-800'
                                     }`}>
                                       {cert.next_survey_type || (language === 'vi' ? 'Chưa xác định' : 'Not specified')}
