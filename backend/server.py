@@ -7982,8 +7982,14 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         # Format next survey date with window
         next_survey_formatted = next_survey_date.strftime('%d/%m/%Y')
         
-        # Add window information (±3M for English)
-        window_text_en = f'±{window_months}M'
+        # Add window information based on survey type
+        # Special Survey: only -3M (must be done before deadline)
+        # Other surveys: ±3M (can be done before or after within window)
+        if next_survey_type == 'Special Survey':
+            window_text_en = f'-{window_months}M'
+        else:
+            window_text_en = f'±{window_months}M'
+            
         next_survey_with_window = f'{next_survey_formatted} ({window_text_en})'
         
         return {
