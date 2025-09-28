@@ -7786,14 +7786,7 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         current_date = datetime.now()
         
         # Parse dates
-        issue_dt = None
         valid_dt = None
-        
-        if issue_date:
-            if isinstance(issue_date, str):
-                issue_dt = parse_date_string(issue_date)
-            else:
-                issue_dt = issue_date
                 
         if valid_date:
             if isinstance(valid_date, str):
