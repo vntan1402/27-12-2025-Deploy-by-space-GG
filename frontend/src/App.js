@@ -11441,7 +11441,7 @@ const AddRecordModal = ({
                           {/* Classification Summary */}
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                          <div className="text-sm">
+                              <div className="text-sm">
                             <span className="font-medium text-blue-700">
                               {language === 'vi' ? 'Phân loại:' : 'Classification:'}
                             </span>
