@@ -8053,27 +8053,8 @@ async def determine_certificate_survey_type(
 # SURVEY TYPE UPDATE FUNCTION REMOVED
 # User will implement custom survey type logic
 
-@api_router.post("/certificates/update-survey-types-enhanced")
-async def update_all_survey_types_enhanced(
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
-):
-    """
-    Update survey types for all certificates using enhanced logic that considers ship certificate portfolios
-    """
-    try:
-        result = await update_certificates_survey_types_enhanced()
-        
-        return {
-            "success": True,
-            "updated_count": result['updated_count'],
-            "total_certificates": result['total_certificates'],
-            "improvement_rate": f"{(result['updated_count']/result['total_certificates'])*100:.1f}%" if result['total_certificates'] > 0 else "0.0%",
-            "results": result['results'][:10],  # Show first 10 results
-            "message": f"Enhanced logic updated survey types for {result['updated_count']} certificates"
-        }
-    except Exception as e:
-        logger.error(f"Error updating survey types with enhanced logic: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update survey types with enhanced logic")
+# ENHANCED SURVEY TYPE UPDATE ENDPOINT REMOVED
+# User will implement custom survey type logic
 
 @api_router.post("/certificates/{certificate_id}/determine-survey-type-enhanced")
 async def determine_certificate_survey_type_enhanced(
