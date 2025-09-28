@@ -1279,6 +1279,111 @@ const HomePage = () => {
     }
   };
 
+  // Handle manual review actions for files not auto-classified as marine certificates
+  const handleManualReviewAction = async (action, reviewData) => {
+    try {
+      const actionData = {
+        action: action, // "view", "skip", "confirm_marine"
+        temp_file_id: reviewData.temp_file_id,
+        filename: reviewData.filename,
+        file_content_b64: reviewData.file_content_b64,
+        ship_id: selectedShip?.id,
+        analysis_result: reviewData.analysis,
+        original_category: reviewData.detected_category
+      };
+
+      if (action === 'view') {
+        // Show file viewer modal
+        setFileViewerData({
+          filename: reviewData.filename,
+          content_b64: reviewData.file_content_b64,
+          content_type: reviewData.content_type,
+          detected_category: reviewData.detected_category,
+          confidence: reviewData.confidence
+        });
+        setShowFileViewer(true);
+        return;
+      }
+
+      // For skip and confirm_marine actions, call backend
+      const response = await fetch(`${API}/certificates/manual-review-action`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(actionData)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (action === 'skip') {
+          toast.info(language === 'vi' 
+            ? `⏭️ Đã bỏ qua file: ${reviewData.filename}`
+            : `⏭️ Skipped file: ${reviewData.filename}`
+          );
+          
+          // Remove from pending manual reviews
+          setPendingManualReviews(prev => 
+            prev.filter(item => item.temp_file_id !== reviewData.temp_file_id)
+          );
+          
+          // Update multiCertUploads status
+          setMultiCertUploads(prev => prev.map(upload => 
+            upload.filename === reviewData.filename
+              ? {
+                  ...upload,
+                  status: 'skipped',
+                  progress: 100,
+                  stage: language === 'vi' ? 'Đã bỏ qua' : 'Skipped'
+                }
+              : upload
+          ));
+          
+        } else if (action === 'confirm_marine') {
+          toast.success(language === 'vi' 
+            ? `✅ Đã xác nhận và thêm chứng chỉ: ${reviewData.filename}`
+            : `✅ Confirmed and added certificate: ${reviewData.filename}`
+          );
+          
+          // Remove from pending manual reviews
+          setPendingManualReviews(prev => 
+            prev.filter(item => item.temp_file_id !== reviewData.temp_file_id)
+          );
+          
+          // Update multiCertUploads status
+          setMultiCertUploads(prev => prev.map(upload => 
+            upload.filename === reviewData.filename
+              ? {
+                  ...upload,
+                  status: 'completed',
+                  progress: 100,
+                  stage: language === 'vi' ? 'Hoàn thành (Đã xác nhận)' : 'Completed (User Confirmed)',
+                  certificate: { id: result.certificate_id },
+                  survey_type: result.survey_type,
+                  user_confirmed: true
+                }
+              : upload
+          ));
+          
+          // Refresh certificates list
+          await fetchCertificates(selectedShip.id);
+        }
+        
+      } else {
+        throw new Error(`Action failed: ${response.statusText}`);
+      }
+
+    } catch (error) {
+      console.error('Manual review action error:', error);
+      toast.error(language === 'vi' 
+        ? `Lỗi khi thực hiện hành động: ${error.message}`
+        : `Error performing action: ${error.message}`
+      );
+    }
+  };
+
   // Load cache from sessionStorage on component mount
   useEffect(() => {
     try {
