@@ -2933,6 +2933,54 @@ async def update_company(company_id: str, company_data: CompanyUpdate, current_u
         logger.error(f"Error updating company: {e}")
         raise HTTPException(status_code=500, detail="Failed to update company")
 
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    try:
+        # Check if company exists
+        existing_company = await mongo_db.find_one("companies", {"id": company_id})
+        if not existing_company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Check if there are any ships associated with this company
+        ships_count = len(await mongo_db.find_all("ships", {"company": company_id}))
+        if ships_count > 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Cannot delete company. There are {ships_count} ships associated with this company. Please delete or reassign the ships first."
+            )
+        
+        # Check if there are any users associated with this company
+        users_with_company = await mongo_db.find_all("users", {"company": company_id})
+        if users_with_company:
+            user_names = [user.get('username', 'Unknown') for user in users_with_company]
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot delete company. The following users are associated with this company: {', '.join(user_names)}. Please reassign or delete these users first."
+            )
+        
+        # Delete company Google Drive configuration if exists
+        try:
+            await mongo_db.delete("company_gdrive_config", {"company_id": company_id})
+            logger.info(f"Deleted Google Drive config for company: {company_id}")
+        except Exception as e:
+            logger.warning(f"Could not delete Google Drive config for company {company_id}: {e}")
+        
+        # Delete the company
+        await mongo_db.delete("companies", {"id": company_id})
+        
+        logger.info(f"Company {company_id} ({existing_company.get('name', 'Unknown')}) deleted successfully by {current_user.username}")
+        
+        return {
+            "message": f"Company '{existing_company.get('name', 'Unknown')}' deleted successfully",
+            "company_id": company_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting company: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete company")
+
 # Ship endpoints
 @api_router.get("/ships", response_model=List[ShipResponse])
 async def get_ships(current_user: UserResponse = Depends(get_current_user)):
