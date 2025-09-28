@@ -11647,7 +11647,7 @@ const AddRecordModal = ({
                                 
                                 {/* Additional Notes */}
                                 {analysis.notes && (
-                                  <div className="bg-gray-25 rounded p-2 border-l-4 border-gray-400">
+                                  <div className="bg-gray-50 rounded p-2 border-l-4 border-gray-400">
                                     <div className="text-xs font-medium text-gray-700 mb-1">Additional Notes</div>
                                     <p className="text-xs text-gray-600">{analysis.notes}</p>
                                   </div>
