@@ -157,6 +157,7 @@ class ShipBase(BaseModel):
     last_docking_2: Optional[datetime] = None  # Second last dry docking date (Docking 2)
     next_docking: Optional[datetime] = None  # Next scheduled docking date (IMO: max 30 months from last docking)
     last_special_survey: Optional[datetime] = None  # Last special survey date
+    last_intermediate_survey: Optional[datetime] = None  # Last intermediate survey date (between special surveys, typically 2.5-3 years)
     special_survey_cycle: Optional[SpecialSurveyCycle] = None  # Special survey cycle management
     dry_dock_cycle: Optional[DryDockCycle] = None  # Dry dock cycle management
     anniversary_date: Optional[AnniversaryDate] = None  # Enhanced anniversary date with auto-calculation
