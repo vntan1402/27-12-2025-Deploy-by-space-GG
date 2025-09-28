@@ -11586,6 +11586,7 @@ const AddRecordModal = ({
                 })()}
               </div>
             </div>
+            </div>
               
             {/* Action Instructions */}
             <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
