@@ -158,6 +158,7 @@ class ShipBase(BaseModel):
     next_docking: Optional[datetime] = None  # Next scheduled docking date (IMO: max 30 months from last docking)
     last_special_survey: Optional[datetime] = None  # Last special survey date
     special_survey_cycle: Optional[SpecialSurveyCycle] = None  # Special survey cycle management
+    dry_dock_cycle: Optional[DryDockCycle] = None  # Dry dock cycle management
     anniversary_date: Optional[AnniversaryDate] = None  # Enhanced anniversary date with auto-calculation
     ship_owner: Optional[str] = None
     company: str  # Company that owns/manages the ship
