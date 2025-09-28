@@ -2137,7 +2137,7 @@ const HomePage = () => {
             const results = response.data.results || [];
             const result = results[0]; // Should be only one result
             
-            if (result && result.status === 'completed') {
+            if (result && (result.status === 'completed' || result.status === 'success' || result.status === 'duplicate')) {
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
