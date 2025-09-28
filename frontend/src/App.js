@@ -11442,24 +11442,24 @@ const AddRecordModal = ({
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <div className="text-sm">
-                            <span className="font-medium text-blue-700">
-                              {language === 'vi' ? 'Phân loại:' : 'Classification:'}
-                            </span>
-                            <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
-                              fileViewerData.detected_category === 'certificates' 
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-orange-100 text-orange-800'
-                            }`}>
-                              {fileViewerData.detected_category || 'Unknown'}
-                            </span>
-                          </div>
-                          <div className="text-sm">
-                            <span className="font-medium text-blue-700">
-                              {language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}
-                            </span>
-                            <span className="ml-2 text-blue-900 capitalize">{fileViewerData.confidence || 'Unknown'}</span>
-                          </div>
-                        </div>
+                                <span className="font-medium text-blue-700">
+                                  {language === 'vi' ? 'Phân loại:' : 'Classification:'}
+                                </span>
+                                <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                                  fileViewerData.detected_category === 'certificates' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {fileViewerData.detected_category || 'Unknown'}
+                                </span>
+                              </div>
+                              <div className="text-sm">
+                                <span className="font-medium text-blue-700">
+                                  {language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}
+                                </span>
+                                <span className="ml-2 text-blue-900 capitalize">{fileViewerData.confidence || 'Unknown'}</span>
+                              </div>
+                            </div>
                         
                         <div className="space-y-2">
                           {analysis.ship_name && (
