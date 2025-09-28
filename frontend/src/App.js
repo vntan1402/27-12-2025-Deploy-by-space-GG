@@ -9728,7 +9728,7 @@ const AddRecordModal = ({
         if (shipPayload[key] === null || shipPayload[key] === '') {
           if (key === 'imo') {
             delete shipPayload[key]; // Remove IMO entirely if empty
-          } else if (['gross_tonnage', 'deadweight', 'year_built', 'delivery_date', 'keel_laid', 'last_docking', 'last_docking_2', 'next_docking', 'last_special_survey'].includes(key)) {
+          } else if (['gross_tonnage', 'deadweight', 'year_built', 'delivery_date', 'keel_laid', 'last_docking', 'last_docking_2', 'next_docking', 'last_special_survey', 'last_intermediate_survey'].includes(key)) {
             delete shipPayload[key]; // Remove optional numeric/date fields if empty
           }
         }
