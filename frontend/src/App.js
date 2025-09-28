@@ -9141,7 +9141,14 @@ const AddRecordModal = ({
   setUploadSummary,
   handleUploadToFolder,
   handleSkipFile,
-  defaultTab
+  defaultTab,
+  // File Viewer Modal props
+  showFileViewer,
+  setShowFileViewer,
+  fileViewerData,
+  setFileViewerData,
+  pendingManualReviews,
+  handleManualReviewAction
 }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user, token } = useAuth();
