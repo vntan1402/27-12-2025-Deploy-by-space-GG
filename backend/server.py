@@ -2941,6 +2941,36 @@ async def update_company(company_id: str, company_data: CompanyUpdate, current_u
         logger.error(f"Error updating company: {e}")
         raise HTTPException(status_code=500, detail="Failed to update company")
 
+@api_router.get("/ships/{ship_id}/gdrive-folder-status")
+async def get_ship_gdrive_folder_status(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """Get Google Drive folder creation status for a ship"""
+    try:
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Check if user has access to this ship's company
+        if ship.get('company') != current_user.company and current_user.role not in ['admin', 'super_admin']:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        status = ship.get('gdrive_folder_status', 'pending')
+        error = ship.get('gdrive_folder_error')
+        created_at = ship.get('gdrive_folder_created_at')
+        
+        return {
+            "ship_id": ship_id,
+            "ship_name": ship.get('name'),
+            "gdrive_folder_status": status,
+            "gdrive_folder_error": error,
+            "gdrive_folder_created_at": created_at
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Google Drive folder status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get folder status")
+
 @api_router.delete("/companies/{company_id}")
 async def delete_company(company_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
