@@ -2153,10 +2153,14 @@ const HomePage = () => {
                   : upload
               ));
               
-              // Show individual success message for each file
+              // Show individual success message for each file with status context
+              const statusMessage = result.status === 'duplicate' 
+                ? (language === 'vi' ? ' (Đã tồn tại)' : ' (Already exists)')
+                : '';
+              
               toast.success(language === 'vi' 
-                ? `✅ Upload thành công: ${file.name} (${i + 1}/${totalFiles})`
-                : `✅ Upload successful: ${file.name} (${i + 1}/${totalFiles})`
+                ? `✅ Upload thành công: ${file.name}${statusMessage} (${i + 1}/${totalFiles})`
+                : `✅ Upload successful: ${file.name}${statusMessage} (${i + 1}/${totalFiles})`
               );
               
               resolve({ status: 'success', file: file.name });
