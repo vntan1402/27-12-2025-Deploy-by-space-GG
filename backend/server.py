@@ -8536,8 +8536,9 @@ async def handle_manual_review_action(
                     "ai_confidence": analysis_result.get("confidence")
                 }
                 
-                # Auto-determine survey type
-                auto_survey_type = determine_survey_type(cert_data, ship)
+                # Auto-determine survey type using enhanced logic
+                ship_certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+                auto_survey_type = determine_survey_type_enhanced_wrapper(cert_data, ship, ship_certificates)
                 cert_data['next_survey_type'] = auto_survey_type
                 
                 # Save certificate
