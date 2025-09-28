@@ -3888,11 +3888,7 @@ async def upload_multi_files(
             gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
             logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
         
-        # Fallback to system Google Drive config if no company config
-        if not gdrive_config_doc:
-            gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
-            logger.info(f"Using system Google Drive config: {'Found' if gdrive_config_doc else 'Not found'}")
-        
+                
         if not gdrive_config_doc:
             raise HTTPException(status_code=500, detail="Google Drive not configured. Please configure Google Drive (system or company-specific) first.")
         
