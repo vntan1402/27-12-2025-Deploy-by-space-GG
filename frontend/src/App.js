@@ -11499,22 +11499,28 @@ const AddRecordModal = ({
                     {language === 'vi' ? '🤖 Phân tích AI' : '🤖 AI Analysis'}
                   </h5>
                   
-                  {/* AI Analysis Summary */}
+                  {/* AI Analysis Summary - Enhanced */}
                   <div className="bg-blue-50 rounded-lg border border-blue-200 p-4 max-h-96 overflow-auto">
                     {(() => {
                       const reviewData = pendingManualReviews.find(r => r.filename === fileViewerData.filename);
                       const analysis = reviewData?.analysis || {};
                       
                       return (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {/* Classification Summary */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <div className="text-sm">
-                                <span className="font-medium text-blue-700">
-                                  {language === 'vi' ? 'Phân loại:' : 'Classification:'}
+                          <div className="bg-white rounded-lg p-3 border border-blue-100">
+                            <h6 className="text-sm font-semibold text-blue-700 mb-2 flex items-center">
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                              </svg>
+                              {language === 'vi' ? 'Kết quả phân loại' : 'Classification Result'}
+                            </h6>
+                            <div className="grid grid-cols-1 gap-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-600">
+                                  {language === 'vi' ? 'Phân loại:' : 'Category:'}
                                 </span>
-                                <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                   fileViewerData.detected_category === 'certificates' 
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-orange-100 text-orange-800'
@@ -11522,137 +11528,161 @@ const AddRecordModal = ({
                                   {fileViewerData.detected_category || 'Unknown'}
                                 </span>
                               </div>
-                              <div className="text-sm">
-                                <span className="font-medium text-blue-700">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-600">
                                   {language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}
                                 </span>
-                                <span className="ml-2 text-blue-900 capitalize">{fileViewerData.confidence || 'Unknown'}</span>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                  fileViewerData.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                                  fileViewerData.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {fileViewerData.confidence || 'Unknown'}
+                                </span>
                               </div>
                             </div>
-                        
-                        <div className="space-y-2">
-                          {analysis.ship_name && (
-                            <div className="text-sm">
-                              <span className="font-medium text-blue-700">
-                                {language === 'vi' ? 'Tên tàu:' : 'Ship Name:'}
-                              </span>
-                              <span className="ml-2 text-blue-900">{analysis.ship_name}</span>
+                          </div>
+                          
+                          {/* Certificate Information */}
+                          {analysis && Object.keys(analysis).length > 0 && (
+                            <div className="bg-white rounded-lg p-3 border border-blue-100">
+                              <h6 className="text-sm font-semibold text-blue-700 mb-3 flex items-center">
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                {language === 'vi' ? 'Thông tin được trích xuất' : 'Extracted Information'}
+                              </h6>
+                              
+                              <div className="space-y-2">
+                                {/* Certificate Details */}
+                                {(analysis.cert_name || analysis.cert_no) && (
+                                  <div className="bg-blue-25 rounded p-2 border-l-4 border-blue-400">
+                                    <div className="text-xs font-medium text-blue-700 mb-1">Certificate Details</div>
+                                    {analysis.cert_name && (
+                                      <div className="flex justify-between items-start mb-1">
+                                        <span className="text-xs text-blue-600 font-medium">Name:</span>
+                                        <span className="text-xs text-blue-800 max-w-40 text-right">{analysis.cert_name}</span>
+                                      </div>
+                                    )}
+                                    {analysis.cert_no && (
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-xs text-blue-600 font-medium">Number:</span>
+                                        <span className="text-xs text-blue-800">{analysis.cert_no}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Ship Information */}
+                                {(analysis.ship_name || analysis.imo_number) && (
+                                  <div className="bg-green-25 rounded p-2 border-l-4 border-green-400">
+                                    <div className="text-xs font-medium text-green-700 mb-1">Ship Information</div>
+                                    {analysis.ship_name && (
+                                      <div className="flex justify-between items-center mb-1">
+                                        <span className="text-xs text-green-600 font-medium">Ship Name:</span>
+                                        <span className="text-xs text-green-800">{analysis.ship_name}</span>
+                                      </div>
+                                    )}
+                                    {analysis.imo_number && (
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-xs text-green-600 font-medium">IMO:</span>
+                                        <span className="text-xs text-green-800">{analysis.imo_number}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Dates */}
+                                {(analysis.issue_date || analysis.valid_date) && (
+                                  <div className="bg-yellow-25 rounded p-2 border-l-4 border-yellow-400">
+                                    <div className="text-xs font-medium text-yellow-700 mb-1">Important Dates</div>
+                                    {analysis.issue_date && (
+                                      <div className="flex justify-between items-center mb-1">
+                                        <span className="text-xs text-yellow-600 font-medium">Issue Date:</span>
+                                        <span className="text-xs text-yellow-800">{analysis.issue_date}</span>
+                                      </div>
+                                    )}
+                                    {analysis.valid_date && (
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-xs text-red-600 font-medium">Valid Until:</span>
+                                        <span className="text-xs text-red-800 font-medium">{analysis.valid_date}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Authority */}
+                                {analysis.issued_by && (
+                                  <div className="bg-purple-25 rounded p-2 border-l-4 border-purple-400">
+                                    <div className="text-xs font-medium text-purple-700 mb-1">Issuing Authority</div>
+                                    <span className="text-xs text-purple-800">{analysis.issued_by}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Survey Information */}
+                                {(analysis.last_endorse || analysis.next_survey || analysis.next_survey_type) && (
+                                  <div className="bg-orange-25 rounded p-2 border-l-4 border-orange-400">
+                                    <div className="text-xs font-medium text-orange-700 mb-1">Survey Information</div>
+                                    {analysis.last_endorse && (
+                                      <div className="flex justify-between items-center mb-1">
+                                        <span className="text-xs text-orange-600 font-medium">Last Endorse:</span>
+                                        <span className="text-xs text-orange-800">{analysis.last_endorse}</span>
+                                      </div>
+                                    )}
+                                    {analysis.next_survey && (
+                                      <div className="flex justify-between items-center mb-1">
+                                        <span className="text-xs text-orange-600 font-medium">Next Survey:</span>
+                                        <span className="text-xs text-orange-800">{analysis.next_survey}</span>
+                                      </div>
+                                    )}
+                                    {analysis.next_survey_type && (
+                                      <div className="flex justify-between items-center">
+                                        <span className="text-xs text-orange-600 font-medium">Survey Type:</span>
+                                        <span className="text-xs text-orange-800 capitalize">{analysis.next_survey_type}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* Additional Notes */}
+                                {analysis.notes && (
+                                  <div className="bg-gray-25 rounded p-2 border-l-4 border-gray-400">
+                                    <div className="text-xs font-medium text-gray-700 mb-1">Additional Notes</div>
+                                    <p className="text-xs text-gray-600">{analysis.notes}</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
-                          {analysis.cert_type && (
-                            <div className="text-sm">
-                              <span className="font-medium text-blue-700">
-                                {language === 'vi' ? 'Loại chứng chỉ:' : 'Certificate Type:'}
-                              </span>
-                              <span className="ml-2 text-blue-900">{analysis.cert_type}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Extracted Information */}
-                      {(analysis.cert_name || analysis.cert_no || analysis.issued_by) && (
-                        <div className="border-t border-blue-200 pt-3">
-                          <h6 className="text-sm font-medium text-blue-800 mb-2">
-                            {language === 'vi' ? 'Thông tin trích xuất:' : 'Extracted Information:'}
-                          </h6>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                            {analysis.cert_name && (
-                              <div>
-                                <span className="font-medium text-blue-600">
-                                  {language === 'vi' ? 'Tên chứng chỉ:' : 'Certificate Name:'}
-                                </span>
-                                <div className="text-blue-800 text-xs mt-1 break-words">{analysis.cert_name}</div>
+                          
+                          {/* Action Recommendation */}
+                          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                            <h6 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {language === 'vi' ? 'Đề xuất hành động' : 'Recommended Action'}
+                            </h6>
+                            {fileViewerData.detected_category === 'certificates' ? (
+                              <div className="text-xs text-green-700 bg-green-100 p-2 rounded">
+                                <div className="font-medium">✅ {language === 'vi' ? 'Xác nhận Marine Certificate' : 'Confirm as Marine Certificate'}</div>
+                                <div className="mt-1">{language === 'vi' ? 'Hệ thống đã phân loại đúng.' : 'System classification appears correct.'}</div>
                               </div>
-                            )}
-                            {analysis.cert_no && (
-                              <div>
-                                <span className="font-medium text-blue-600">
-                                  {language === 'vi' ? 'Số chứng chỉ:' : 'Certificate No:'}
-                                </span>
-                                <div className="text-blue-800 text-xs mt-1">{analysis.cert_no}</div>
-                              </div>
-                            )}
-                            {analysis.issued_by && (
-                              <div>
-                                <span className="font-medium text-blue-600">
-                                  {language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}
-                                </span>
-                                <div className="text-blue-800 text-xs mt-1 break-words">{analysis.issued_by}</div>
-                              </div>
-                            )}
-                            {analysis.issue_date && (
-                              <div>
-                                <span className="font-medium text-blue-600">
-                                  {language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}
-                                </span>
-                                <div className="text-blue-800 text-xs mt-1">{analysis.issue_date}</div>
-                              </div>
-                            )}
-                            {analysis.valid_date && (
-                              <div>
-                                <span className="font-medium text-blue-600">
-                                  {language === 'vi' ? 'Hạn hiệu lực:' : 'Valid Until:'}
-                                </span>
-                                <div className="text-blue-800 text-xs mt-1">{analysis.valid_date}</div>
+                            ) : (
+                              <div className="text-xs text-orange-700 bg-orange-100 p-2 rounded">
+                                <div className="font-medium">⚠️ {language === 'vi' ? 'Cần xem xét' : 'Review Required'}</div>
+                                <div className="mt-1">
+                                  {language === 'vi' 
+                                    ? 'Hệ thống không tự động nhận diện là Marine Certificate. Vui lòng kiểm tra nội dung file và xác nhận.'
+                                    : 'System did not automatically classify as Marine Certificate. Please review file content and confirm.'}
+                                </div>
                               </div>
                             )}
                           </div>
                         </div>
-                      )}
-                      
-                      {/* Extracted Text Preview */}
-                      {analysis.extracted_text && analysis.extracted_text.length > 50 && (
-                        <div className="border-t border-blue-200 pt-3">
-                          <h6 className="text-sm font-medium text-blue-800 mb-2">
-                            {language === 'vi' ? 'Văn bản trích xuất (AI đọc được):' : 'Extracted Text (AI Reading):'}
-                          </h6>
-                          <div className="bg-white border border-blue-200 rounded p-2 max-h-32 overflow-y-auto">
-                            <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
-                              {analysis.extracted_text.length > 500 
-                                ? `${analysis.extracted_text.substring(0, 500)}...` 
-                                : analysis.extracted_text}
-                            </pre>
-                          </div>
-                          {analysis.extracted_text.length > 500 && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              {language === 'vi' 
-                                ? `Hiển thị 500/${analysis.extracted_text.length} ký tự đầu tiên`
-                                : `Showing first 500/${analysis.extracted_text.length} characters`}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Processing Method & Quality */}
-                      <div className="border-t border-blue-200 pt-3">
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium text-blue-600">
-                              {language === 'vi' ? 'Phương thức xử lý:' : 'Processing Method:'}
-                            </span>
-                            <div className="text-blue-800 text-xs mt-1 capitalize">
-                              {analysis.processing_method || 'AI Analysis'}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="font-medium text-blue-600">
-                              {language === 'vi' ? 'Chất lượng văn bản:' : 'Text Quality:'}
-                            </span>
-                            <div className="text-blue-800 text-xs mt-1">
-                              {analysis.text_length ? 
-                                (analysis.text_length > 100 ? 
-                                  (language === 'vi' ? `Tốt (${analysis.text_length} ký tự)` : `Good (${analysis.text_length} chars)`) :
-                                  (language === 'vi' ? `Thấp (${analysis.text_length} ký tự)` : `Low (${analysis.text_length} chars)`)
-                                ) : 'N/A'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
+                      );
+                    })()}
+                  </div>
             </div>
             </div>
             
