@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the new Enhanced Survey Type Determination system that improves the 'Next Survey Type' determination logic by analyzing the ship's complete certificate portfolio instead of individual certificates"
+user_problem_statement: "Test the updated 'Update Next Survey' functionality in the Certificate List. I have just implemented a new Next Survey calculation system based on IMO regulations and 5-year survey cycles."
 
 backend:
   - task: "Multi Certificate Upload API with Sequential Processing Support"
