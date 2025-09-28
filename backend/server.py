@@ -4019,9 +4019,18 @@ async def multi_cert_upload_for_ship(
                     file_content, file.filename, file.content_type, ai_config
                 )
                 
-                logger.info(f"AI Analysis results for {file.filename}:")
-                logger.info(f"  Category: {analysis_result.get('category')}")
-                logger.info(f"  Is Marine Certificate: {analysis_result.get('category') == 'certificates'}")
+                # Enhanced logging for debugging marine certificate classification
+                logger.info(f"🔍 AI Analysis Debug for {file.filename}:")
+                logger.info(f"   Raw analysis_result type: {type(analysis_result)}")
+                logger.info(f"   Raw analysis_result keys: {list(analysis_result.keys()) if isinstance(analysis_result, dict) else 'Not a dict'}")
+                logger.info(f"   Raw analysis_result: {json.dumps(analysis_result, indent=2, default=str)}")
+                
+                # Check category classification specifically
+                category = analysis_result.get("category")
+                logger.info(f"   📂 Category value: '{category}' (type: {type(category)})")
+                logger.info(f"   📂 Category == 'certificates': {category == 'certificates'}")
+                logger.info(f"   📂 Category in ['certificates']: {category in ['certificates']}")
+                logger.info(f"   📂 Category lower == 'certificates': {category.lower() == 'certificates' if isinstance(category, str) else False}")
                 
                 # Check if it's a Marine Certificate
                 is_marine_certificate = analysis_result.get("category") == "certificates"
