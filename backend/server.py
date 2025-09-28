@@ -189,6 +189,7 @@ class ShipUpdate(BaseModel):
     last_docking_2: Optional[datetime] = None
     next_docking: Optional[datetime] = None
     last_special_survey: Optional[datetime] = None
+    last_intermediate_survey: Optional[datetime] = None  # Last intermediate survey date (midpoint between special surveys)
     special_survey_cycle: Optional[SpecialSurveyCycle] = None
     anniversary_date: Optional[AnniversaryDate] = None
     ship_owner: Optional[str] = None
