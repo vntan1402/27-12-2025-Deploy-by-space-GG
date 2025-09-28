@@ -2151,6 +2151,46 @@ const HomePage = () => {
               ? `✅ Upload thành công: ${file.name} (${i + 1}/${totalFiles})`
               : `✅ Upload successful: ${file.name} (${i + 1}/${totalFiles})`
             );
+            
+          } else if (result && result.status === 'requires_manual_review') {
+            // File requires manual review - add to pending reviews
+            const reviewData = {
+              temp_file_id: result.temp_file_id,
+              filename: result.filename,
+              file_content_b64: result.file_content_b64,
+              content_type: result.content_type,
+              detected_category: result.detected_category,
+              confidence: result.confidence,
+              analysis: result.analysis,
+              file_size: result.file_size,
+              manual_override_options: result.manual_override_options,
+              upload_index: i
+            };
+            
+            setPendingManualReviews(prev => [...prev, reviewData]);
+            
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'requires_manual_review',
+                    progress: 100,
+                    stage: language === 'vi' ? 'Cần xem xét thủ công' : 'Requires Manual Review',
+                    analysis: result.analysis,
+                    detected_category: result.detected_category,
+                    confidence: result.confidence,
+                    requires_user_action: true,
+                    manual_override_options: result.manual_override_options
+                  }
+                : upload
+            ));
+            
+            // Show manual review notification
+            toast.warning(language === 'vi' 
+              ? `⚠️ Cần xem xét: ${file.name} - Hệ thống phân loại: ${result.detected_category}`
+              : `⚠️ Manual review needed: ${file.name} - System classified as: ${result.detected_category}`
+            );
+            
           } else {
             errorCount++;
             const errorMsg = result?.error || result?.message || 'Unknown error';
