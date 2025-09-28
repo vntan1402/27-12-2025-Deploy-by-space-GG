@@ -11557,7 +11557,7 @@ const AddRecordModal = ({
                               <div className="space-y-2">
                                 {/* Certificate Details */}
                                 {(analysis.cert_name || analysis.cert_no) && (
-                                  <div className="bg-blue-25 rounded p-2 border-l-4 border-blue-400">
+                                  <div className="bg-blue-50 rounded p-2 border-l-4 border-blue-400">
                                     <div className="text-xs font-medium text-blue-700 mb-1">Certificate Details</div>
                                     {analysis.cert_name && (
                                       <div className="flex justify-between items-start mb-1">
