@@ -20,7 +20,7 @@ async def test_enhanced_survey_api():
     
     # Test credentials (from test data)
     login_data = {
-        "email": "admin1@example.com",
+        "username": "admin1",
         "password": "123456"
     }
     
