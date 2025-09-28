@@ -3018,22 +3018,15 @@ async def create_ship(ship_data: ShipCreate, current_user: UserResponse = Depend
         # Create ship in database first
         await mongo_db.create("ships", ship_dict)
         
-        # After successful ship creation, create Google Drive folder structure
-        try:
-            logger.info(f"Starting Google Drive folder creation for ship: {ship_dict.get('name')}")
-            result = await create_google_drive_folder_for_new_ship(ship_dict, current_user)
-            if result.get("success"):
-                logger.info(f"Successfully created Google Drive folder structure for ship: {ship_dict.get('name', 'Unknown')}")
-            else:
-                error_msg = result.get("error", "Unknown error")
-                logger.warning(f"Ship created but Google Drive folder creation failed: {error_msg}")
-                # Don't fail the ship creation if Google Drive fails - just log the warning
-        except Exception as gdrive_error:
-            logger.warning(f"Ship created but Google Drive folder creation failed with exception: {gdrive_error}")
-            logger.warning(f"Exception type: {type(gdrive_error).__name__}")
-            # Don't fail the ship creation if Google Drive fails - just log the warning
+        # Immediately return ship response after database creation
+        ship_response = ShipResponse(**ship_dict)
         
-        return ShipResponse(**ship_dict)
+        # Start Google Drive folder creation as background task (non-blocking)
+        asyncio.create_task(create_google_drive_folder_background(ship_dict, current_user))
+        
+        logger.info(f"Ship '{ship_dict.get('name')}' created successfully in database. Google Drive folder creation started in background.")
+        
+        return ship_response
         
     except Exception as e:
         logger.error(f"Error creating ship: {e}")
@@ -5305,7 +5298,7 @@ async def get_certificate_form_fields_for_extraction():
         # Get certificate fields from CertificateBase model
         cert_fields = {
             "cert_name": "Certificate name/title (look for main certificate title or heading)",
-            "cert_type": "Certificate type - MUST be one of: Full Term, Interim, Provisional, Short term, Conditional, Other (choose the most appropriate from these 6 options only)",
+            "cert_type": "Certificate type - MUST be one of: Full Term, Interim, Provisional, Short term, Conditional,Ins Other (choose the most appropriate from these 6 options only)",
             "cert_no": "Certificate number/identification number",
             "issue_date": "Issue date/Date of issue (format: YYYY-MM-DD)",
             "valid_date": "Valid until/Expiry date (format: YYYY-MM-DD)",
