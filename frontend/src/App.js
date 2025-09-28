@@ -9590,6 +9590,7 @@ const AddRecordModal = ({
           last_docking_2: formatLastDockingForDisplay(analysisData.last_docking_2) || '', 
           next_docking: formatDateForInput(analysisData.next_docking) || '',
           last_special_survey: formatDateForInput(analysisData.last_special_survey) || '',
+          last_intermediate_survey: formatDateForInput(analysisData.last_intermediate_survey) || '',
           
           // Anniversary Date & Special Survey Cycle (NEW fields)
           anniversary_date_day: analysisData.anniversary_date_day ? String(analysisData.anniversary_date_day) : '',
