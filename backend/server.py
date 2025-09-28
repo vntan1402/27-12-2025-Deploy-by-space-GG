@@ -8050,32 +8050,8 @@ async def determine_certificate_survey_type(
         logger.error(f"Error determining survey type for certificate {certificate_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to determine survey type")
 
-async def update_certificates_survey_types_async():
-    """
-    Async version of update_certificates_survey_types for API endpoints
-    """
-    try:
-        certificates = await mongo_db.find_all("certificates", {})
-        updated_count = 0
-        
-        for cert in certificates:
-            ship_id = cert.get('ship_id')
-            if ship_id:
-                ship_data = await mongo_db.find_one("ships", {"id": ship_id})
-                if ship_data:
-                    new_survey_type = determine_survey_type(cert, ship_data)
-                    if new_survey_type != cert.get('next_survey_type'):
-                        await mongo_db.update("certificates", 
-                                             {"id": cert['id']}, 
-                                             {"next_survey_type": new_survey_type})
-                        updated_count += 1
-                        
-        logger.info(f"Updated survey types for {updated_count} certificates")
-        return updated_count
-        
-    except Exception as e:
-        logger.error(f"Error updating certificates survey types: {e}")
-        return 0
+# SURVEY TYPE UPDATE FUNCTION REMOVED
+# User will implement custom survey type logic
 
 @api_router.post("/certificates/update-survey-types-enhanced")
 async def update_all_survey_types_enhanced(
