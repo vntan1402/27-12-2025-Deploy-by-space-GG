@@ -121,12 +121,7 @@ class LoginResponse(BaseModel):
     user: UserResponse
     remember_me: bool
 
-class DryDockCycle(BaseModel):
-    """Dry dock cycle representing 5-year period with intermediate docking requirement"""
-    from_date: Optional[datetime] = None  # Start of 5-year cycle
-    to_date: Optional[datetime] = None    # End of 5-year cycle  
-    intermediate_docking_required: bool = True  # Lloyd's requirement: one intermediate docking within cycle
-    last_intermediate_docking: Optional[datetime] = None  # Last intermediate docking date
+
 
 class SpecialSurveyCycle(BaseModel):
     """Special survey cycle representing maritime special survey requirements"""
