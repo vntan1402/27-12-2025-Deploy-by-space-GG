@@ -1191,7 +1191,7 @@ const HomePage = () => {
     }
   };
 
-  // Handle updating survey types for all certificates of current ship
+  // Handle updating Next Survey and Next Survey Type for all certificates of current ship
   const handleUpdateSurveyTypes = async () => {
     if (!selectedShip) {
       toast.warning(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
@@ -1202,77 +1202,80 @@ const HomePage = () => {
       setIsUpdatingSurveyTypes(true);
       
       toast.info(language === 'vi' 
-        ? 'Đang cập nhật Survey Types dựa trên quy định hàng hải...'
-        : 'Updating Survey Types based on maritime regulations...'
+        ? 'Đang cập nhật Next Survey dựa trên quy định IMO và chu kỳ 5 năm...'
+        : 'Updating Next Survey based on IMO regulations and 5-year cycle...'
       );
 
-      // Get all certificates for the current ship
-      const shipCertificates = certificates.filter(cert => cert.ship_id === selectedShip.id);
-      
-      if (shipCertificates.length === 0) {
-        toast.info(language === 'vi' 
-          ? 'Không có chứng chỉ nào để cập nhật'
-          : 'No certificates to update'
-        );
-        return;
-      }
-
-      let updatedCount = 0;
-      let errorCount = 0;
-
-      // Process each certificate
-      for (const certificate of shipCertificates) {
-        try {
-          const response = await fetch(`${API}/certificates/${certificate.id}/determine-survey-type`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            updatedCount++;
-          } else {
-            errorCount++;
-            console.error(`Failed to update survey type for certificate: ${certificate.id}`);
-          }
-        } catch (error) {
-          errorCount++;
-          console.error(`Error updating survey type for certificate ${certificate.id}:`, error);
+      // Call the new API endpoint to update next survey for the ship
+      const response = await fetch(`${API}/ships/${selectedShip.id}/update-next-survey`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      }
+      });
 
-      // Show results
-      if (updatedCount > 0) {
-        toast.success(language === 'vi' 
-          ? `Đã cập nhật Survey Types cho ${updatedCount}/${shipCertificates.length} chứng chỉ`
-          : `Updated Survey Types for ${updatedCount}/${shipCertificates.length} certificates`
-        );
+      if (response.ok) {
+        const result = await response.json();
         
-        // Refresh certificates list to show updated survey types
-        await fetchCertificates(selectedShip.id);
-      }
-
-      if (errorCount > 0) {
-        toast.warning(language === 'vi' 
-          ? `${errorCount} chứng chỉ không thể cập nhật`
-          : `${errorCount} certificates could not be updated`
-        );
-      }
-
-      if (updatedCount === 0 && errorCount === 0) {
-        toast.info(language === 'vi' 
-          ? 'Tất cả Survey Types đã được cập nhật'
-          : 'All Survey Types are already up to date'
+        if (result.success) {
+          // Show detailed success message
+          toast.success(language === 'vi' 
+            ? `Đã cập nhật Next Survey cho ${result.updated_count}/${result.total_certificates} chứng chỉ của tàu ${result.ship_name}`
+            : `Updated Next Survey for ${result.updated_count}/${result.total_certificates} certificates of ship ${result.ship_name}`
+          );
+          
+          // Show detailed results if available
+          if (result.results && result.results.length > 0) {
+            console.log('Next Survey Update Results:', result.results);
+            
+            // Show first few updated certificates in console for debugging
+            result.results.slice(0, 3).forEach((cert, index) => {
+              console.log(`Certificate ${index + 1}: ${cert.cert_name}`);
+              console.log(`  Next Survey: ${cert.old_next_survey} → ${cert.new_next_survey}`);
+              console.log(`  Next Survey Type: ${cert.old_next_survey_type} → ${cert.new_next_survey_type}`);
+              console.log(`  Reasoning: ${cert.reasoning}`);
+            });
+            
+            // Show summary toast with first few changes
+            const sampleChanges = result.results.slice(0, 2);
+            const changesSummary = sampleChanges.map(cert => 
+              `${cert.cert_name}: ${cert.new_next_survey_type}`
+            ).join('; ');
+            
+            if (changesSummary) {
+              setTimeout(() => {
+                toast.info(language === 'vi' 
+                  ? `Ví dụ cập nhật: ${changesSummary}`
+                  : `Sample updates: ${changesSummary}`, 
+                  { autoClose: 8000 }
+                );
+              }, 2000);
+            }
+          }
+          
+          // Refresh certificates list to show updated next survey info
+          await fetchCertificates(selectedShip.id);
+          
+        } else {
+          toast.warning(result.message || (language === 'vi' 
+            ? 'Không thể cập nhật Next Survey'
+            : 'Could not update Next Survey'
+          ));
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(language === 'vi' 
+          ? `Lỗi khi cập nhật Next Survey: ${errorData.detail || response.statusText}`
+          : `Error updating Next Survey: ${errorData.detail || response.statusText}`
         );
       }
 
     } catch (error) {
-      console.error('Survey types update error:', error);
+      console.error('Next Survey update error:', error);
       toast.error(language === 'vi' 
-        ? 'Lỗi khi cập nhật Survey Types'
-        : 'Error updating Survey Types'
+        ? 'Lỗi khi cập nhật Next Survey'
+        : 'Error updating Next Survey'
       );
     } finally {
       setIsUpdatingSurveyTypes(false);
