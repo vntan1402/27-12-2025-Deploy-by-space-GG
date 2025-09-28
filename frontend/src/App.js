@@ -3148,6 +3148,22 @@ const HomePage = () => {
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
                                   <div className="mt-1">{formatDate(selectedShip.last_special_survey) || '-'}</div>
                                 </div>
+                                <div>
+                                  <span className="font-semibold text-gray-700 flex items-center">
+                                    {language === 'vi' ? 'Last Intermediate:' : 'Last Intermediate:'}
+                                    <div className="group relative ml-1">
+                                      <svg className="w-3 h-3 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      <div className="absolute bottom-full left-0 mb-2 w-48 p-2 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        {language === 'vi' 
+                                          ? 'Kiểm tra trung gian giữa 2 Special Survey (2.5-3 năm)'
+                                          : 'Mid-cycle inspection between Special Surveys (2.5-3 years)'}
+                                      </div>
+                                    </div>
+                                  </span>
+                                  <div className="mt-1">{formatDate(selectedShip.last_intermediate_survey) || '-'}</div>
+                                </div>
                               </div>
                               
                               {/* Column 3 - Anniversary & Compliance (Vertical) */}
