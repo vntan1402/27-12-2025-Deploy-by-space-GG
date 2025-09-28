@@ -165,6 +165,11 @@ class ShipBase(BaseModel):
     
     # Legacy fields for backward compatibility
     legacy_anniversary_date: Optional[datetime] = None  # Original datetime field for compatibility
+    
+    # Google Drive folder creation status fields
+    gdrive_folder_status: Optional[str] = "pending"  # pending, completed, failed, timeout, error
+    gdrive_folder_error: Optional[str] = None  # Error message if creation failed
+    gdrive_folder_created_at: Optional[datetime] = None  # When folder creation was completed/failed
 
 class ShipCreate(ShipBase):
     pass
