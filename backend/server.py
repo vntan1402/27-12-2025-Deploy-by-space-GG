@@ -380,6 +380,50 @@ class CertificateResponse(BaseModel):
     status: Optional[str] = None  # NEW: Valid/Expired status
     issued_by_abbreviation: Optional[str] = None  # NEW: Organization abbreviation
     has_notes: Optional[bool] = None  # NEW: Flag to indicate if certificate has notes
+    next_survey_display: Optional[str] = None  # NEW: Display format for next survey with window
+    
+    @field_validator('next_survey', mode='before')
+    @classmethod
+    def validate_next_survey(cls, v):
+        """Handle both datetime and string formats for next_survey field"""
+        if v is None:
+            return None
+        
+        # If already datetime, return as is
+        if isinstance(v, datetime):
+            return v
+        
+        # If string, try to parse it
+        if isinstance(v, str):
+            # Try dd/MM/yyyy format first
+            try:
+                parsed_date = datetime.strptime(v, '%d/%m/%Y')
+                return parsed_date
+            except ValueError:
+                pass
+            
+            # Try dd/MM/yyyy HH:MM:SS format
+            try:
+                parsed_date = datetime.strptime(v, '%d/%m/%Y %H:%M:%S')
+                return parsed_date
+            except ValueError:
+                pass
+                
+            # Try ISO format
+            try:
+                # Handle ISO format with Z
+                if v.endswith('Z'):
+                    v = v[:-1] + '+00:00'
+                return datetime.fromisoformat(v)
+            except ValueError:
+                pass
+            
+            # If all parsing fails, log warning and return None
+            logger.warning(f"Could not parse next_survey date: {v}")
+            return None
+        
+        # If not string or datetime, return None
+        return None
 
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
