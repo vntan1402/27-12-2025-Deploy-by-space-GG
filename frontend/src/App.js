@@ -692,6 +692,9 @@ const HomePage = () => {
   const [deleteShipOption, setDeleteShipOption] = useState('database_only'); // 'database_only' or 'with_gdrive'
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [isUpdatingSurveyTypes, setIsUpdatingSurveyTypes] = useState(false);
+  const [pendingManualReviews, setPendingManualReviews] = useState([]); // Files requiring manual review
+  const [showFileViewer, setShowFileViewer] = useState(false);
+  const [fileViewerData, setFileViewerData] = useState(null);
   const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
   
   // Certificate List filters and sorting
