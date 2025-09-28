@@ -84,7 +84,10 @@ async def analyze_certificate_patterns():
                     'issue_date': str(issue_date) if issue_date else None,
                     'expiry_date': str(expiry_date) if expiry_date else None,
                     'valid_date': str(valid_date) if valid_date else None,
-                    'current_survey_type': survey_type
+                    'current_survey_type': survey_type,
+                    'ship_id': ship_id,
+                    'cert_no': cert.get('cert_no'),
+                    'issued_by': cert.get('issued_by')
                 })
             
             # Group by ship
