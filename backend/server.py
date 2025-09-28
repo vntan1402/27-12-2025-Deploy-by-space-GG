@@ -136,6 +136,13 @@ class AnniversaryDate(BaseModel):
     source_certificate_type: Optional[str] = None  # Type of certificate used for calculation
     manual_override: bool = False  # Whether manually overridden by user
 
+class DryDockCycle(BaseModel):
+    """Dry dock cycle representing maritime dry docking requirements"""
+    from_date: Optional[datetime] = None  # Start of dry dock cycle
+    to_date: Optional[datetime] = None    # End of dry dock cycle
+    intermediate_docking_required: bool = True  # Whether intermediate docking is required
+    last_intermediate_docking: Optional[datetime] = None  # Date of last intermediate docking
+
 class ShipBase(BaseModel):
     name: str
     imo: Optional[str] = None
