@@ -11512,6 +11512,29 @@ const AddRecordModal = ({
                         </div>
                       )}
                       
+                      {/* Extracted Text Preview */}
+                      {analysis.extracted_text && analysis.extracted_text.length > 50 && (
+                        <div className="border-t border-blue-200 pt-3">
+                          <h6 className="text-sm font-medium text-blue-800 mb-2">
+                            {language === 'vi' ? 'Văn bản trích xuất (AI đọc được):' : 'Extracted Text (AI Reading):'}
+                          </h6>
+                          <div className="bg-white border border-blue-200 rounded p-2 max-h-32 overflow-y-auto">
+                            <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                              {analysis.extracted_text.length > 500 
+                                ? `${analysis.extracted_text.substring(0, 500)}...` 
+                                : analysis.extracted_text}
+                            </pre>
+                          </div>
+                          {analysis.extracted_text.length > 500 && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              {language === 'vi' 
+                                ? `Hiển thị 500/${analysis.extracted_text.length} ký tự đầu tiên`
+                                : `Showing first 500/${analysis.extracted_text.length} characters`}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
                       {/* Processing Method & Quality */}
                       <div className="border-t border-blue-200 pt-3">
                         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -11528,7 +11551,11 @@ const AddRecordModal = ({
                               {language === 'vi' ? 'Chất lượng văn bản:' : 'Text Quality:'}
                             </span>
                             <div className="text-blue-800 text-xs mt-1">
-                              {analysis.text_length ? `${analysis.text_length} characters` : 'Good'}
+                              {analysis.text_length ? 
+                                (analysis.text_length > 100 ? 
+                                  (language === 'vi' ? `Tốt (${analysis.text_length} ký tự)` : `Good (${analysis.text_length} chars)`) :
+                                  (language === 'vi' ? `Thấp (${analysis.text_length} ký tự)` : `Low (${analysis.text_length} chars)`)
+                                ) : 'N/A'}
                             </div>
                           </div>
                         </div>
