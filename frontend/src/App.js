@@ -11584,7 +11584,8 @@ const AddRecordModal = ({
                   );
                 })()}
               </div>
-              
+                </div>
+                
               {/* Action Instructions */}
               <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                 <h6 className="font-medium text-green-800 mb-2 flex items-center">
