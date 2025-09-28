@@ -8245,10 +8245,21 @@ class EnhancedSurveyTypeDetermination:
         current_validity_period_months = None
         
         if current_issue_date:
+            # Ensure timezone awareness
+            if current_issue_date.tzinfo is None:
+                current_issue_date = current_issue_date.replace(tzinfo=timezone.utc)
             current_cert_age_months = (self.current_date - current_issue_date).days / 30.44
         if current_valid_date:
+            # Ensure timezone awareness
+            if current_valid_date.tzinfo is None:
+                current_valid_date = current_valid_date.replace(tzinfo=timezone.utc)
             current_time_to_expiry_months = (current_valid_date - self.current_date).days / 30.44
         if current_issue_date and current_valid_date:
+            # Ensure timezone awareness for both dates
+            if current_issue_date.tzinfo is None:
+                current_issue_date = current_issue_date.replace(tzinfo=timezone.utc)
+            if current_valid_date.tzinfo is None:
+                current_valid_date = current_valid_date.replace(tzinfo=timezone.utc)
             current_validity_period_months = (current_valid_date - current_issue_date).days / 30.44
         
         # Categorize current certificate
