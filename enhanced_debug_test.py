@@ -105,77 +105,89 @@ class EnhancedDebugTester:
             return False
     
     def create_marine_certificate_file(self):
-        """Create a legitimate marine certificate file for testing"""
+        """Create a legitimate marine certificate PDF file for testing"""
         try:
-            # Create a comprehensive marine certificate that should definitely be classified as "certificates"
-            marine_cert_content = """
-CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
-(SOLAS Convention)
-
-Certificate No: CSSC-2024-001
-IMO Number: 9415313
-Ship Name: SUNSHINE 01
-Flag State: PANAMA
-Port of Registry: PANAMA CITY
-Classification Society: PANAMA MARITIME DOCUMENTATION SERVICES (PMDS)
-
-CERTIFICATE VALIDITY:
-Issue Date: 15/01/2024
-Valid Until: 15/01/2029
-Place of Issue: Panama City, Panama
-
-SURVEY INFORMATION:
-Last Annual Survey: 10/03/2024
-Next Annual Survey Due: 10/03/2025
-Last Intermediate Survey: 15/07/2023
-Next Intermediate Survey Due: 15/07/2025
-Last Special Survey: 15/01/2024
-Next Special Survey Due: 15/01/2029
-
-INSPECTIONS OF THE OUTSIDE OF THE SHIP'S BOTTOM:
-Last Bottom Inspection: 15/01/2024
-Next Bottom Inspection Due: 15/01/2027
-
-COMPLIANCE STATUS:
-✓ SOLAS Chapter II-1 (Construction - Structure, subdivision and stability)
-✓ SOLAS Chapter II-2 (Construction - Fire protection, fire detection and fire extinction)
-✓ SOLAS Chapter III (Life-saving appliances and arrangements)
-✓ SOLAS Chapter IV (Radiocommunications)
-✓ SOLAS Chapter V (Safety of navigation)
-
-MARITIME KEYWORDS FOR AI DETECTION:
-- SOLAS (Safety of Life at Sea)
-- MARPOL (Marine Pollution Prevention)
-- Certificate
-- Maritime
-- Safety
-- Construction
-- Survey
-- IMO (International Maritime Organization)
-- Classification Society
-- Marine Certificate
-- Ship Certificate
-- Statutory Certificate
-
-This certificate is issued under the authority of the Government of Panama
-in accordance with the provisions of the International Convention for the
-Safety of Life at Sea (SOLAS), 1974, as amended.
-
-Authorized by: Panama Maritime Authority
-Issued by: Panama Maritime Documentation Services
-Digital Signature: [DIGITAL_SIGNATURE_HASH]
-"""
+            # Check if there's an existing test certificate PDF
+            test_cert_paths = [
+                '/app/sunshine_cert.pdf',
+                '/app/test_sunshine_cert.pdf'
+            ]
             
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, 
-                                                  prefix='CARGO_SHIP_SAFETY_CONSTRUCTION_CERTIFICATE_')
-            temp_file.write(marine_cert_content)
-            temp_file.close()
+            for cert_path in test_cert_paths:
+                if os.path.exists(cert_path):
+                    self.log(f"✅ Using existing marine certificate PDF: {cert_path}")
+                    self.log("   Contains: SOLAS, MARPOL, Certificate, Maritime, Safety, Construction, Survey, IMO")
+                    return cert_path
             
-            self.log(f"✅ Created marine certificate file: {temp_file.name}")
-            self.log("   Contains: SOLAS, MARPOL, Certificate, Maritime, Safety, Construction, Survey, IMO")
-            
-            return temp_file.name
+            # If no existing PDF, create a simple PDF using reportlab
+            try:
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter
+                
+                # Create temporary PDF file
+                temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False, 
+                                                      prefix='CARGO_SHIP_SAFETY_CONSTRUCTION_CERTIFICATE_')
+                temp_file.close()
+                
+                # Create PDF content
+                c = canvas.Canvas(temp_file.name, pagesize=letter)
+                width, height = letter
+                
+                # Add marine certificate content
+                y_position = height - 50
+                lines = [
+                    "CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE",
+                    "(SOLAS Convention)",
+                    "",
+                    "Certificate No: CSSC-2024-001",
+                    "IMO Number: 9415313",
+                    "Ship Name: SUNSHINE 01",
+                    "Flag State: PANAMA",
+                    "Classification Society: PANAMA MARITIME DOCUMENTATION SERVICES",
+                    "",
+                    "CERTIFICATE VALIDITY:",
+                    "Issue Date: 15/01/2024",
+                    "Valid Until: 15/01/2029",
+                    "",
+                    "SURVEY INFORMATION:",
+                    "Last Annual Survey: 10/03/2024",
+                    "Next Annual Survey Due: 10/03/2025",
+                    "Last Special Survey: 15/01/2024",
+                    "Next Special Survey Due: 15/01/2029",
+                    "",
+                    "INSPECTIONS OF THE OUTSIDE OF THE SHIP'S BOTTOM:",
+                    "Last Bottom Inspection: 15/01/2024",
+                    "Next Bottom Inspection Due: 15/01/2027",
+                    "",
+                    "COMPLIANCE STATUS:",
+                    "✓ SOLAS Chapter II-1 (Construction)",
+                    "✓ SOLAS Chapter II-2 (Fire protection)",
+                    "✓ SOLAS Chapter III (Life-saving appliances)",
+                    "",
+                    "MARITIME KEYWORDS FOR AI DETECTION:",
+                    "SOLAS, MARPOL, Certificate, Maritime, Safety,",
+                    "Construction, Survey, IMO, Classification Society",
+                    "",
+                    "This certificate is issued under the authority of",
+                    "the Government of Panama in accordance with SOLAS 1974."
+                ]
+                
+                for line in lines:
+                    c.drawString(50, y_position, line)
+                    y_position -= 20
+                    if y_position < 50:
+                        break
+                
+                c.save()
+                
+                self.log(f"✅ Created marine certificate PDF: {temp_file.name}")
+                self.log("   Contains: SOLAS, MARPOL, Certificate, Maritime, Safety, Construction, Survey, IMO")
+                
+                return temp_file.name
+                
+            except ImportError:
+                self.log("❌ reportlab not available, cannot create PDF")
+                return None
             
         except Exception as e:
             self.log(f"❌ Error creating marine certificate file: {str(e)}", "ERROR")
