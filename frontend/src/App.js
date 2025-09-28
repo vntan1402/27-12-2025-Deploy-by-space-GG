@@ -11576,7 +11576,7 @@ const AddRecordModal = ({
                                 
                                 {/* Ship Information */}
                                 {(analysis.ship_name || analysis.imo_number) && (
-                                  <div className="bg-green-25 rounded p-2 border-l-4 border-green-400">
+                                  <div className="bg-green-50 rounded p-2 border-l-4 border-green-400">
                                     <div className="text-xs font-medium text-green-700 mb-1">Ship Information</div>
                                     {analysis.ship_name && (
                                       <div className="flex justify-between items-center mb-1">
