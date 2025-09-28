@@ -3427,25 +3427,8 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         # Get updated certificate
         updated_cert = await mongo_db.find_one("certificates", {"id": cert_id})
         
-        # Auto-determine survey type if certificate or ship data changed using enhanced logic
-        if updated_cert and updated_cert.get('ship_id'):
-            ship_data = await mongo_db.find_one("ships", {"id": updated_cert['ship_id']})
-            if ship_data:
-                # Check if key fields that affect survey type were updated
-                survey_affecting_fields = ['cert_type', 'issue_date', 'expiry_date', 'status', 'certificate_name']
-                if any(field in update_data for field in survey_affecting_fields):
-                    # Get all certificates for the ship for enhanced analysis
-                    ship_certificates = await mongo_db.find_all("certificates", {"ship_id": updated_cert['ship_id']})
-                    
-                    # Use enhanced survey type determination
-                    auto_survey_type = determine_survey_type_enhanced_wrapper(updated_cert, ship_data, ship_certificates)
-                    
-                    # Update survey type if it changed and wasn't manually set in this update
-                    if (auto_survey_type != updated_cert.get('next_survey_type') and 
-                        'next_survey_type' not in update_data):
-                        await mongo_db.update("certificates", {"id": cert_id}, {"next_survey_type": auto_survey_type})
-                        updated_cert['next_survey_type'] = auto_survey_type
-                        logger.info(f"Auto-updated enhanced survey type for certificate {cert_id}: {auto_survey_type}")
+        # Survey type auto-determination disabled - user will implement custom logic
+        # No automatic survey type updates
         
         enhanced_cert = await enhance_certificate_response(updated_cert)
         return CertificateResponse(**enhanced_cert)
