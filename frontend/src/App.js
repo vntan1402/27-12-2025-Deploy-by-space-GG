@@ -5555,10 +5555,13 @@ const AccountControlPage = () => {
     }
 
     try {
-      await axios.delete(`${API}/companies/${company.id}`);
+      await axios.delete(`${API}/companies/${company.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       toast.success(language === 'vi' ? 'Công ty đã được xóa thành công!' : 'Company deleted successfully!');
       fetchCompanies();
     } catch (error) {
+      console.error('Delete company error:', error);
       toast.error(language === 'vi' ? 'Không thể xóa công ty!' : 'Failed to delete company!');
     }
   };
