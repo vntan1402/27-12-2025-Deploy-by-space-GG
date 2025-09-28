@@ -7756,8 +7756,298 @@ async def delete_ship_folder_from_gdrive(
         logger.error(f"❌ Error deleting ship folder from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete ship folder: {str(e)}")
 
-# SURVEY TYPE DETERMINATION LOGIC REMOVED
-# User will implement custom survey type logic
+def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
+    """
+    Calculate Next Survey and Next Survey Type based on IMO regulations
+    
+    Logic:
+    1. Determine Special Survey Cycle and Anniversary Date
+    2. In 5-year Special Survey Cycle, Anniversary Date each year = Annual Survey
+    3. Annual Surveys: 1st, 2nd, 3rd, 4th Annual Survey
+    4. Next Survey = nearest future Annual Survey date (dd/MM/yyyy format) with ±3 months window
+    5. Condition certificates: Next Survey = valid_date
+    6. Next Survey Type = nearest future Annual Survey type with Intermediate Survey considerations
+    
+    Args:
+        certificate_data: Certificate information
+        ship_data: Ship information
+        
+    Returns:
+        dict with next_survey, next_survey_type, and reasoning
+    """
+    try:
+        from datetime import datetime, timedelta
+        
+        # Extract certificate information
+        cert_name = certificate_data.get('cert_name', '').upper()
+        cert_type = certificate_data.get('cert_type', '').upper()
+        issue_date = certificate_data.get('issue_date')
+        valid_date = certificate_data.get('valid_date')
+        current_date = datetime.now()
+        
+        # Parse dates
+        issue_dt = None
+        valid_dt = None
+        
+        if issue_date:
+            if isinstance(issue_date, str):
+                issue_dt = parse_date_string(issue_date)
+            else:
+                issue_dt = issue_date
+                
+        if valid_date:
+            if isinstance(valid_date, str):
+                valid_dt = parse_date_string(valid_date)
+            else:
+                valid_dt = valid_date
+        
+        # Rule 4: No valid date = no Next Survey
+        if not valid_dt:
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': 'No valid date available'
+            }
+        
+        # Rule 2: Condition certificates = valid_date
+        if 'CONDITION' in cert_type:
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y'),
+                'next_survey_type': 'Condition Certificate Expiry',
+                'reasoning': 'Condition certificate uses valid date as next survey'
+            }
+        
+        # Get ship anniversary date and special survey cycle
+        ship_anniversary = ship_data.get('anniversary_date', {})
+        special_survey_cycle = ship_data.get('special_survey_cycle', {})
+        
+        # Determine anniversary day/month
+        anniversary_day = None
+        anniversary_month = None
+        
+        if isinstance(ship_anniversary, dict):
+            anniversary_day = ship_anniversary.get('day')
+            anniversary_month = ship_anniversary.get('month')
+        
+        # If no ship anniversary, try to derive from certificate valid_date
+        if not anniversary_day or not anniversary_month:
+            if valid_dt:
+                anniversary_day = valid_dt.day
+                anniversary_month = valid_dt.month
+            else:
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': 'Cannot determine anniversary date'
+                }
+        
+        # Determine certificate's survey window (±3 months for most certificates)
+        window_months = 3
+        
+        # Special cases for different certificate types
+        if any(keyword in cert_name for keyword in ['RADIO', 'GMDSS']):
+            window_months = 3  # Radio certificates: ±3 months
+        elif any(keyword in cert_name for keyword in ['MLC', 'LABOUR']):
+            window_months = 3  # MLC certificates: ±3 months
+        
+        # Calculate 5-year cycle based on valid_date or special survey cycle
+        cycle_start = None
+        cycle_end = None
+        
+        if isinstance(special_survey_cycle, dict):
+            cycle_from = special_survey_cycle.get('from_date')
+            cycle_to = special_survey_cycle.get('to_date')
+            
+            if cycle_from and cycle_to:
+                cycle_start = parse_date_string(cycle_from) if isinstance(cycle_from, str) else cycle_from
+                cycle_end = parse_date_string(cycle_to) if isinstance(cycle_to, str) else cycle_to
+        
+        # If no special survey cycle, create one based on valid_date
+        if not cycle_start or not cycle_end:
+            if valid_dt:
+                # Assume certificate valid_date is part of current 5-year cycle
+                # Find cycle start (previous special survey)
+                years_from_valid = (current_date.year - valid_dt.year)
+                if years_from_valid >= 0:
+                    # If valid_date is in the past, it might be from previous cycle
+                    cycle_start = datetime(valid_dt.year - (years_from_valid % 5), anniversary_month, anniversary_day)
+                    cycle_end = datetime(cycle_start.year + 5, anniversary_month, anniversary_day)
+                else:
+                    # Valid_date is in future
+                    cycle_start = datetime(current_date.year, anniversary_month, anniversary_day)
+                    cycle_end = datetime(cycle_start.year + 5, anniversary_month, anniversary_day)
+        
+        if not cycle_start or not cycle_end:
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': 'Cannot determine survey cycle'
+            }
+        
+        # Generate Annual Survey dates for the 5-year cycle
+        annual_surveys = []
+        for i in range(1, 5):  # 1st, 2nd, 3rd, 4th Annual Survey
+            survey_date = datetime(cycle_start.year + i, anniversary_month, anniversary_day)
+            annual_surveys.append({
+                'date': survey_date,
+                'type': f'{i}{"st" if i == 1 else "nd" if i == 2 else "rd" if i == 3 else "th"} Annual Survey',
+                'number': i
+            })
+        
+        # Add Special Survey at the end of cycle
+        annual_surveys.append({
+            'date': cycle_end,
+            'type': 'Special Survey',
+            'number': 5
+        })
+        
+        # Find next survey in the future
+        future_surveys = [survey for survey in annual_surveys if survey['date'] > current_date]
+        
+        if not future_surveys:
+            # If no future surveys in current cycle, start next cycle
+            next_cycle_start = cycle_end
+            next_annual_date = datetime(next_cycle_start.year + 1, anniversary_month, anniversary_day)
+            future_surveys = [{
+                'date': next_annual_date,
+                'type': '1st Annual Survey',
+                'number': 1
+            }]
+        
+        # Get the nearest future survey
+        next_survey_info = min(future_surveys, key=lambda x: x['date'])
+        next_survey_date = next_survey_info['date']
+        next_survey_type = next_survey_info['type']
+        
+        # Check for Intermediate Survey considerations
+        if next_survey_info['number'] in [2, 3]:  # 2nd or 3rd Annual Survey
+            # Check if intermediate survey is required
+            ship_last_intermediate = ship_data.get('last_intermediate_survey')
+            
+            if next_survey_info['number'] == 2:
+                # 2nd Annual Survey can be Intermediate Survey
+                next_survey_type = '2nd Annual Survey/Intermediate Survey'
+            elif next_survey_info['number'] == 3:
+                # 3rd Annual Survey logic
+                if ship_last_intermediate:
+                    last_intermediate_dt = parse_date_string(ship_last_intermediate) if isinstance(ship_last_intermediate, str) else ship_last_intermediate
+                    if last_intermediate_dt and last_intermediate_dt < next_survey_date:
+                        next_survey_type = '3rd Annual Survey'
+                    else:
+                        next_survey_type = 'Intermediate Survey'
+                else:
+                    # No last intermediate info = intermediate survey needed
+                    next_survey_type = 'Intermediate Survey'
+        
+        # Format next survey date with window
+        next_survey_formatted = next_survey_date.strftime('%d/%m/%Y')
+        
+        # Add window information (±3M for English or ±3T for Vietnamese)
+        window_text_en = f'±{window_months}M'
+        window_text_vi = f'±{window_months}T'
+        next_survey_with_window = f'{next_survey_formatted} ({window_text_en})'
+        
+        return {
+            'next_survey': next_survey_with_window,
+            'next_survey_type': next_survey_type,
+            'reasoning': f'Based on {anniversary_day}/{anniversary_month} anniversary date and 5-year survey cycle',
+            'raw_date': next_survey_formatted,
+            'window_months': window_months
+        }
+        
+    except Exception as e:
+        logger.error(f"Error calculating next survey info: {e}")
+        return {
+            'next_survey': None,
+            'next_survey_type': None,
+            'reasoning': f'Error in calculation: {str(e)}'
+        }
+
+@api_router.post("/ships/{ship_id}/update-next-survey")
+async def update_ship_next_survey(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Update Next Survey and Next Survey Type for all certificates of a ship
+    based on IMO regulations and 5-year survey cycle
+    """
+    try:
+        # Get ship data
+        ship_data = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship_data:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get all certificates for the ship
+        certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+        if not certificates:
+            return {
+                "success": True,
+                "message": "No certificates found for this ship",
+                "updated_count": 0,
+                "results": []
+            }
+        
+        updated_count = 0
+        results = []
+        
+        for cert in certificates:
+            # Calculate next survey info
+            survey_info = calculate_next_survey_info(cert, ship_data)
+            
+            # Prepare update data
+            update_data = {}
+            
+            if survey_info['next_survey']:
+                update_data['next_survey'] = survey_info['raw_date']  # Store raw date without window
+                update_data['next_survey_display'] = survey_info['next_survey']  # Store display format with window
+            else:
+                update_data['next_survey'] = None
+                update_data['next_survey_display'] = None
+                
+            if survey_info['next_survey_type']:
+                update_data['next_survey_type'] = survey_info['next_survey_type']
+            else:
+                update_data['next_survey_type'] = None
+            
+            # Update certificate if there are changes
+            current_next_survey = cert.get('next_survey')
+            current_next_survey_type = cert.get('next_survey_type')
+            
+            if (update_data.get('next_survey') != current_next_survey or 
+                update_data.get('next_survey_type') != current_next_survey_type):
+                
+                await mongo_db.update("certificates", {"id": cert['id']}, update_data)
+                updated_count += 1
+                
+                results.append({
+                    'cert_id': cert['id'],
+                    'cert_name': cert.get('cert_name', 'Unknown'),
+                    'cert_type': cert.get('cert_type', 'Unknown'),
+                    'old_next_survey': current_next_survey,
+                    'new_next_survey': update_data.get('next_survey_display'),
+                    'old_next_survey_type': current_next_survey_type,
+                    'new_next_survey_type': update_data.get('next_survey_type'),
+                    'reasoning': survey_info['reasoning']
+                })
+        
+        logger.info(f"Updated next survey info for {updated_count} certificates in ship {ship_id}")
+        
+        return {
+            "success": True,
+            "message": f"Updated next survey information for {updated_count} certificates",
+            "ship_id": ship_id,
+            "ship_name": ship_data.get('name', 'Unknown'),
+            "updated_count": updated_count,
+            "total_certificates": len(certificates),
+            "results": results[:10]  # Show first 10 results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating next survey for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update next survey information")
 
 # ENHANCED SURVEY TYPE LOGIC REMOVED
 # User will implement custom survey type logic
