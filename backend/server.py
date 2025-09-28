@@ -7990,7 +7990,18 @@ async def update_ship_next_survey(
             update_data = {}
             
             if survey_info['next_survey']:
-                update_data['next_survey'] = survey_info['raw_date']  # Store raw date without window
+                # Store next_survey as ISO datetime for compatibility
+                if survey_info.get('raw_date'):
+                    try:
+                        # Parse dd/MM/yyyy format and convert to ISO datetime
+                        from datetime import datetime
+                        parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
+                        update_data['next_survey'] = parsed_date.isoformat() + 'Z'
+                    except:
+                        update_data['next_survey'] = None
+                else:
+                    update_data['next_survey'] = None
+                    
                 update_data['next_survey_display'] = survey_info['next_survey']  # Store display format with window
             else:
                 update_data['next_survey'] = None
