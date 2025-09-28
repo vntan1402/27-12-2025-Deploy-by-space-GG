@@ -4051,6 +4051,13 @@ const HomePage = () => {
           handleUploadToFolder={handleUploadToFolder}
           handleSkipFile={handleSkipFile}
           defaultTab={addRecordDefaultTab}
+          // File Viewer Modal props
+          showFileViewer={showFileViewer}
+          setShowFileViewer={setShowFileViewer}
+          fileViewerData={fileViewerData}
+          setFileViewerData={setFileViewerData}
+          pendingManualReviews={pendingManualReviews}
+          handleManualReviewAction={handleManualReviewAction}
         />
       )}
 
