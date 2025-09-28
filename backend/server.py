@@ -1116,6 +1116,10 @@ async def enhance_certificate_response(cert_dict: dict) -> dict:
         # Add has_notes flag
         cert_dict['has_notes'] = bool(cert_dict.get('notes'))
         
+        # Ensure next_survey_display is included if available
+        if 'next_survey_display' not in cert_dict:
+            cert_dict['next_survey_display'] = None
+        
         return cert_dict
     except Exception as e:
         logger.error(f"Error enhancing certificate response: {e}")
