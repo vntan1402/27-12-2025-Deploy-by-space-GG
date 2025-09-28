@@ -11595,7 +11595,7 @@ const AddRecordModal = ({
                                 
                                 {/* Dates */}
                                 {(analysis.issue_date || analysis.valid_date) && (
-                                  <div className="bg-yellow-25 rounded p-2 border-l-4 border-yellow-400">
+                                  <div className="bg-yellow-50 rounded p-2 border-l-4 border-yellow-400">
                                     <div className="text-xs font-medium text-yellow-700 mb-1">Important Dates</div>
                                     {analysis.issue_date && (
                                       <div className="flex justify-between items-center mb-1">
