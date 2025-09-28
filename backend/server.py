@@ -8150,12 +8150,23 @@ class EnhancedSurveyTypeDetermination:
                 'validity_period_months': None
             }
             
-            # Calculate time periods
+            # Calculate time periods (handle timezone awareness)
             if issue_date:
+                # Ensure both dates have timezone info
+                if issue_date.tzinfo is None:
+                    issue_date = issue_date.replace(tzinfo=timezone.utc)
                 cert_analysis['cert_age_months'] = (self.current_date - issue_date).days / 30.44
             if valid_date:
+                # Ensure both dates have timezone info
+                if valid_date.tzinfo is None:
+                    valid_date = valid_date.replace(tzinfo=timezone.utc)
                 cert_analysis['time_to_expiry_months'] = (valid_date - self.current_date).days / 30.44
             if issue_date and valid_date:
+                # Ensure both dates have timezone info for calculation
+                if issue_date.tzinfo is None:
+                    issue_date = issue_date.replace(tzinfo=timezone.utc)
+                if valid_date.tzinfo is None:
+                    valid_date = valid_date.replace(tzinfo=timezone.utc)
                 cert_analysis['validity_period_months'] = (valid_date - issue_date).days / 30.44
             
             # Categorize by type
