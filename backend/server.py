@@ -8661,6 +8661,174 @@ async def update_certificates_survey_types_async():
         logger.error(f"Error updating certificates survey types: {e}")
         return 0
 
+@api_router.post("/certificates/update-survey-types-enhanced")
+async def update_all_survey_types_enhanced(
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Update survey types for all certificates using enhanced logic that considers ship certificate portfolios
+    """
+    try:
+        result = await update_certificates_survey_types_enhanced()
+        
+        return {
+            "success": True,
+            "updated_count": result['updated_count'],
+            "total_certificates": result['total_certificates'],
+            "improvement_rate": f"{(result['updated_count']/result['total_certificates'])*100:.1f}%" if result['total_certificates'] > 0 else "0.0%",
+            "results": result['results'][:10],  # Show first 10 results
+            "message": f"Enhanced logic updated survey types for {result['updated_count']} certificates"
+        }
+    except Exception as e:
+        logger.error(f"Error updating survey types with enhanced logic: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update survey types with enhanced logic")
+
+@api_router.post("/certificates/{certificate_id}/determine-survey-type-enhanced")
+async def determine_certificate_survey_type_enhanced(
+    certificate_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Determine and update survey type for a specific certificate using enhanced logic
+    """
+    try:
+        # Get certificate
+        certificate = await mongo_db.find_one("certificates", {"id": certificate_id})
+        if not certificate:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+            
+        # Get ship data and all ship certificates
+        ship_id = certificate.get('ship_id')
+        ship_data = {}
+        ship_certificates = []
+        
+        if ship_id:
+            ship_data = await mongo_db.find_one("ships", {"id": ship_id}) or {}
+            ship_certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+            
+        # Initialize enhanced logic
+        enhanced_logic = EnhancedSurveyTypeDetermination()
+        
+        # Determine survey type with enhanced logic
+        survey_type, reasoning = enhanced_logic.determine_survey_type_enhanced(
+            certificate, ship_certificates, ship_data
+        )
+        
+        # Get current survey type for comparison
+        current_survey_type = certificate.get('next_survey_type', 'Unknown')
+        
+        # Update certificate
+        await mongo_db.update("certificates", 
+                             {"id": certificate_id}, 
+                             {"next_survey_type": survey_type})
+        
+        return {
+            "success": True,
+            "certificate_id": certificate_id,
+            "certificate_name": certificate.get('cert_name', 'Unknown'),
+            "ship_name": ship_data.get('name', 'Unknown'),
+            "previous_survey_type": current_survey_type,
+            "enhanced_survey_type": survey_type,
+            "reasoning": reasoning,
+            "changed": current_survey_type != survey_type,
+            "message": f"Survey type updated to: {survey_type}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error determining enhanced survey type for certificate {certificate_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to determine enhanced survey type")
+
+@api_router.get("/certificates/survey-type-analysis")
+async def get_survey_type_analysis(
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get analysis of current survey types vs enhanced logic predictions
+    """
+    try:
+        # Get all certificates and ships
+        certificates = await mongo_db.find_all("certificates", {})
+        ships = {ship['id']: ship for ship in await mongo_db.find_all("ships", {})}
+        
+        # Group certificates by ship
+        from collections import defaultdict
+        ship_certificates = defaultdict(list)
+        for cert in certificates:
+            ship_id = cert.get('ship_id')
+            if ship_id:
+                ship_certificates[ship_id].append(cert)
+        
+        # Initialize enhanced logic
+        enhanced_logic = EnhancedSurveyTypeDetermination()
+        
+        analysis = {
+            'total_certificates': len(certificates),
+            'current_survey_types': {},
+            'enhanced_survey_types': {},
+            'potential_improvements': [],
+            'certificate_categories': {},
+            'ship_analysis': {}
+        }
+        
+        for cert in certificates:
+            ship_id = cert.get('ship_id')
+            current_survey_type = cert.get('next_survey_type', 'Unknown')
+            
+            # Count current survey types
+            analysis['current_survey_types'][current_survey_type] = analysis['current_survey_types'].get(current_survey_type, 0) + 1
+            
+            if ship_id and ship_id in ships:
+                ship_data = ships[ship_id]
+                ship_certs = ship_certificates[ship_id]
+                
+                # Apply enhanced logic
+                enhanced_survey_type, reasoning = enhanced_logic.determine_survey_type_enhanced(
+                    cert, ship_certs, ship_data
+                )
+                
+                # Count enhanced survey types
+                analysis['enhanced_survey_types'][enhanced_survey_type] = analysis['enhanced_survey_types'].get(enhanced_survey_type, 0) + 1
+                
+                # Track potential improvements
+                if current_survey_type != enhanced_survey_type:
+                    analysis['potential_improvements'].append({
+                        'cert_id': cert['id'],
+                        'cert_name': cert.get('cert_name', 'Unknown'),
+                        'ship_name': ship_data.get('name', 'Unknown'),
+                        'current': current_survey_type,
+                        'enhanced': enhanced_survey_type,
+                        'reasoning': reasoning
+                    })
+                
+                # Track certificate categories
+                category = enhanced_logic.categorize_certificate(cert.get('cert_name', 'Unknown'))
+                if category not in analysis['certificate_categories']:
+                    analysis['certificate_categories'][category] = {'count': 0, 'survey_types': {}}
+                analysis['certificate_categories'][category]['count'] += 1
+                analysis['certificate_categories'][category]['survey_types'][enhanced_survey_type] = \
+                    analysis['certificate_categories'][category]['survey_types'].get(enhanced_survey_type, 0) + 1
+        
+        # Calculate improvement statistics
+        improvement_count = len(analysis['potential_improvements'])
+        improvement_rate = (improvement_count / analysis['total_certificates']) * 100 if analysis['total_certificates'] > 0 else 0
+        
+        return {
+            "success": True,
+            "analysis": analysis,
+            "improvement_statistics": {
+                "total_certificates": analysis['total_certificates'],
+                "potential_improvements": improvement_count,
+                "improvement_rate": f"{improvement_rate:.1f}%",
+                "unknown_survey_types": analysis['current_survey_types'].get('Unknown', 0)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing survey types: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze survey types")
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
