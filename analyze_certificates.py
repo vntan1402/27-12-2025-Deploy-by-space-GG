@@ -72,6 +72,9 @@ async def analyze_certificate_patterns():
             status = cert.get('status', 'Unknown')
             patterns['status_distribution'][status] = patterns['status_distribution'].get(status, 0) + 1
             
+            # Group by ship
+            ship_id = cert.get('ship_id')
+            
             # Date pattern analysis
             issue_date = cert.get('issue_date')
             expiry_date = cert.get('expiry_date') 
@@ -89,9 +92,6 @@ async def analyze_certificate_patterns():
                     'cert_no': cert.get('cert_no'),
                     'issued_by': cert.get('issued_by')
                 })
-            
-            # Group by ship
-            ship_id = cert.get('ship_id')
             if ship_id:
                 if ship_id not in ships_certs:
                     ships_certs[ship_id] = []
