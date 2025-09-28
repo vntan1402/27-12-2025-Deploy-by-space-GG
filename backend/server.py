@@ -5449,17 +5449,48 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
 Analyze this maritime document ({filename}) and extract the following information:
 
 1. DOCUMENT CLASSIFICATION - Classify into one of these categories:
+
    - certificates: Maritime certificates issued by Classification Society, Flag State, Port State, Maritime Authorities, or Maritime Documentation Services. 
-     Examples: Safety Management Certificate, IAPP Certificate, IOPP Certificate, Load Line Certificate, 
-     Radio Survey Certificate, Safety Construction Certificate, Tonnage Certificate, Crew Accommodation Certificate,
-     Cargo Ship Safety Certificate, Certificate of Inspection, etc.
      
-     IMPORTANT: Documents from Panama Maritime Documentation Services (PMDS), Maritime Documentation Centers,
-     or any organization issuing certificates "on behalf of" or "under authority of" flag states are ALWAYS "certificates"
-   - test_reports: Test/maintenance reports for lifesaving, firefighting, radio equipment, safety systems
-   - survey_reports: Survey reports issued by Classification Society (annual, intermediate, special surveys)
-   - drawings_manuals: DWG files, technical drawings, equipment manuals, ship plans
-   - other_documents: Documents not fitting above categories (crew lists, commercial documents, etc.)
+     MANDATORY CERTIFICATE KEYWORDS (if ANY of these are present, classify as "certificates"):
+     ✓ "Certificate" + any maritime context (SOLAS, MARPOL, Safety, Construction, etc.)
+     ✓ "SOLAS" (Safety of Life at Sea Convention)
+     ✓ "MARPOL" (Marine Pollution Prevention)
+     ✓ "Classification Society" documents (Lloyd's, DNV, ABS, etc.)
+     ✓ "Safety Certificate", "Construction Certificate", "Equipment Certificate" 
+     ✓ "Load Line Certificate", "Radio Survey Certificate", "Tonnage Certificate"
+     ✓ "ISM", "ISPS", "MLC" certificates
+     ✓ "IMO Number" + certificate context
+     ✓ "Flag State" + certificate context
+     ✓ "Panama Maritime Documentation Services (PMDS)"
+     ✓ "on behalf of" + government/flag state
+     ✓ Ship certificates with validity dates and issuing authorities
+     
+     SPECIFIC EXAMPLES OF CERTIFICATES (ALWAYS classify as "certificates"):
+     - Cargo Ship Safety Construction Certificate (CSSC)
+     - Cargo Ship Safety Equipment Certificate  
+     - Passenger Ship Safety Certificate
+     - International Load Line Certificate
+     - International Anti-Fouling System Certificate
+     - Safety Management Certificate (SMC)
+     - Document of Compliance (DOC)
+     - International Ship Security Certificate (ISSC)
+     - Maritime Labour Certificate (MLC)
+     - Radio Survey Certificate
+     - Certificate of Class/Classification
+     - Any document with "Certificate" in title + ship/vessel information
+     
+   - test_reports: Test/maintenance reports for equipment (NOT certificates)
+   - survey_reports: Survey reports by Classification Society (annual, intermediate, special surveys)
+   - drawings_manuals: Technical drawings, equipment manuals, ship plans
+   - other_documents: Documents not fitting above categories
+
+   CRITICAL CLASSIFICATION RULES:
+   🔴 IF document contains "Certificate" + ship/maritime information → ALWAYS "certificates"
+   🔴 IF document contains SOLAS, MARPOL, ISM, ISPS, MLC → ALWAYS "certificates" 
+   🔴 IF document has IMO Number + certificate context → ALWAYS "certificates"
+   🔴 IF issued by Flag State/Classification Society with validity → ALWAYS "certificates"
+   🔴 IF document title contains "Certificate" → ALWAYS "certificates" (unless clearly test report)
 
 2. SHIP INFORMATION - Extract ship details:
    - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
@@ -5470,21 +5501,12 @@ Analyze this maritime document ({filename}) and extract the following informatio
 4. CONFIDENCE ASSESSMENT:
    - confidence: Assign confidence level (high/medium/low) based on document quality and information clarity
 
-IMPORTANT CLASSIFICATION RULES:
-- ANY document with "Certificate" in the name AND maritime/ship information = "certificates"
-- Documents from Classification Societies (DNV GL, ABS, Lloyd's Register, etc.) = usually "certificates" or "survey_reports"
-- Documents from Maritime Insurance Organizations (P&I Clubs, Marine Insurance Companies) = "certificates"
-- Documents from Maritime Documentation Services (PMDS, Maritime Documentation Centers) = "certificates"
-- Flag State documents (Panama, Liberia, Marshall Islands, etc.) = usually "certificates"
-- IAPP, IOPP, SMC, DOC, ISM, ISPS certificates = "certificates"
-- Crew Accommodation Certificates, Cargo Ship Safety Certificates = "certificates"
-
-ENHANCED DETECTION RULES:
-- If document contains "Panama Maritime Documentation Services" OR "PMDS" → classify as "certificates"
-- If document contains "Certificate of Inspection" + ship/vessel information → "certificates"
-- If document contains "on behalf of" + government/country name → "certificates"
-- If document has IMO number + any certificate-related title → "certificates"
-- Documents with phrases like "certify that", "is hereby certified", "this is to certify" → likely "certificates"
+ENHANCED MARINE CERTIFICATE DETECTION:
+- Documents with "Certificate of", "certify that", "is hereby certified" → "certificates"
+- Documents from Classification Societies → "certificates" or "survey_reports"  
+- Documents from Maritime Authorities/Flag States → "certificates"
+- Documents with ship registration + certificate context → "certificates"
+- Documents with validity periods + maritime authority → "certificates"
 
 Return response as JSON format. If information is not found, return null for that field.
 
