@@ -10609,6 +10609,77 @@ const AddRecordModal = ({
                         </div>
                       )}
                       
+                      {/* Manual Review Required */}
+                      {fileUpload.status === 'requires_manual_review' && (
+                        <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <h5 className="text-sm font-semibold text-orange-700 mb-2">
+                            🔍 {language === 'vi' ? 'Cần xem xét thủ công' : 'Manual Review Required'}
+                          </h5>
+                          <div className="text-sm space-y-2">
+                            <div className="flex justify-between">
+                              <span className="font-medium text-orange-600">
+                                {language === 'vi' ? 'Hệ thống phân loại:' : 'System classified as:'}
+                              </span>
+                              <span className="text-orange-800 capitalize">{fileUpload.detected_category || 'unknown'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="font-medium text-orange-600">
+                                {language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}
+                              </span>
+                              <span className="text-orange-800 capitalize">{fileUpload.confidence || 'unknown'}</span>
+                            </div>
+                            <p className="text-xs text-orange-600 mt-2">
+                              {language === 'vi' 
+                                ? 'Hệ thống không tự động nhận diện đây là Marine Certificate. Vui lòng xem lại và xác nhận.' 
+                                : 'System did not automatically identify this as a Marine Certificate. Please review and confirm.'}
+                            </p>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex justify-end space-x-2 mt-3 pt-2 border-t border-orange-200">
+                            <button
+                              onClick={() => {
+                                const reviewData = pendingManualReviews.find(r => r.filename === fileUpload.name);
+                                if (reviewData) handleManualReviewAction('view', reviewData);
+                              }}
+                              className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              {language === 'vi' ? 'Xem' : 'View'}
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                const reviewData = pendingManualReviews.find(r => r.filename === fileUpload.name);
+                                if (reviewData) handleManualReviewAction('skip', reviewData);
+                              }}
+                              className="px-3 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors flex items-center"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {language === 'vi' ? 'Bỏ qua' : 'Skip'}
+                            </button>
+                            
+                            <button
+                              onClick={() => {
+                                const reviewData = pendingManualReviews.find(r => r.filename === fileUpload.name);
+                                if (reviewData) handleManualReviewAction('confirm_marine', reviewData);
+                              }}
+                              className="px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+                            >
+                              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              {language === 'vi' ? 'Xác nhận Marine Cert' : 'Confirm Marine Cert'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* Non-Marine Certificate */}
                       {fileUpload.status === 'skipped' && (
                         <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
