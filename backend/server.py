@@ -7790,74 +7790,8 @@ def update_certificates_survey_types():
         logger.error(f"Error updating certificates survey types: {e}")
         return 0
 
-async def update_certificates_survey_types_enhanced():
-    """
-    Batch update survey types for all certificates using enhanced logic
-    """
-    try:
-        # Get all certificates and ships
-        certificates = await mongo_db.find_all("certificates", {})
-        ships = {ship['id']: ship for ship in await mongo_db.find_all("ships", {})}
-        
-        # Group certificates by ship
-        from collections import defaultdict
-        ship_certificates = defaultdict(list)
-        for cert in certificates:
-            ship_id = cert.get('ship_id')
-            if ship_id:
-                ship_certificates[ship_id].append(cert)
-        
-        # Initialize enhanced logic
-        enhanced_logic = EnhancedSurveyTypeDetermination()
-        
-        updated_count = 0
-        results = []
-        
-        for cert in certificates:
-            ship_id = cert.get('ship_id')
-            if ship_id and ship_id in ships:
-                ship_data = ships[ship_id]
-                ship_certs = ship_certificates[ship_id]
-                
-                # Get current survey type
-                current_survey_type = cert.get('next_survey_type', 'Unknown')
-                
-                # Apply enhanced logic
-                enhanced_survey_type, reasoning = enhanced_logic.determine_survey_type_enhanced(
-                    cert, ship_certs, ship_data
-                )
-                
-                # Update if different
-                if enhanced_survey_type != current_survey_type:
-                    await mongo_db.update("certificates", 
-                                         {"id": cert['id']}, 
-                                         {"next_survey_type": enhanced_survey_type})
-                    updated_count += 1
-                    
-                    results.append({
-                        'cert_id': cert['id'],
-                        'cert_name': cert.get('cert_name', 'Unknown'),
-                        'ship_name': ship_data.get('name', 'Unknown'),
-                        'old_survey_type': current_survey_type,
-                        'new_survey_type': enhanced_survey_type,
-                        'reasoning': reasoning
-                    })
-                        
-        logger.info(f"Enhanced logic updated survey types for {updated_count} certificates")
-        return {
-            'updated_count': updated_count,
-            'total_certificates': len(certificates),
-            'results': results
-        }
-        
-    except Exception as e:
-        logger.error(f"Error updating certificates survey types with enhanced logic: {e}")
-        return {
-            'updated_count': 0,
-            'total_certificates': 0,
-            'results': [],
-            'error': str(e)
-        }
+# ENHANCED SURVEY TYPE UPDATE FUNCTION REMOVED
+# User will implement custom survey type logic
 
 @api_router.post("/certificates/manual-review-action")
 async def handle_manual_review_action(
