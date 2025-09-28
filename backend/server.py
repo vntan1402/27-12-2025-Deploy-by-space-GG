@@ -3366,15 +3366,20 @@ async def create_certificate(cert_data: CertificateCreate, current_user: UserRes
         cert_dict["id"] = str(uuid.uuid4())
         cert_dict["created_at"] = datetime.now(timezone.utc)
         
-        # Auto-determine next survey type based on ship and certificate data
+        # Auto-determine next survey type based on ship and certificate data using enhanced logic
         if cert_dict.get('ship_id'):
             ship_data = await mongo_db.find_one("ships", {"id": cert_dict['ship_id']})
             if ship_data:
-                auto_survey_type = determine_survey_type(cert_dict, ship_data)
+                # Get all certificates for the ship for enhanced analysis
+                ship_certificates = await mongo_db.find_all("certificates", {"ship_id": cert_dict['ship_id']})
+                
+                # Use enhanced survey type determination
+                auto_survey_type = determine_survey_type_enhanced_wrapper(cert_dict, ship_data, ship_certificates)
+                
                 # Only set if not already specified
                 if not cert_dict.get('next_survey_type'):
                     cert_dict['next_survey_type'] = auto_survey_type
-                    logger.info(f"Auto-determined survey type for new certificate: {auto_survey_type}")
+                    logger.info(f"Auto-determined enhanced survey type for new certificate: {auto_survey_type}")
         
         await mongo_db.create("certificates", cert_dict)
         
