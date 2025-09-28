@@ -7762,33 +7762,8 @@ async def delete_ship_folder_from_gdrive(
 # ENHANCED SURVEY TYPE LOGIC REMOVED
 # User will implement custom survey type logic
 
-def update_certificates_survey_types():
-    """
-    Batch update survey types for all certificates based on current ship and certificate data
-    """
-    try:
-        # This function can be called periodically or on-demand to update all certificates
-        certificates = mongo_db.find_all("certificates", {})
-        updated_count = 0
-        
-        for cert in certificates:
-            ship_id = cert.get('ship_id')
-            if ship_id:
-                ship_data = mongo_db.find_one("ships", {"id": ship_id})
-                if ship_data:
-                    new_survey_type = determine_survey_type(cert, ship_data)
-                    if new_survey_type != cert.get('next_survey_type'):
-                        mongo_db.update("certificates", 
-                                       {"id": cert['id']}, 
-                                       {"next_survey_type": new_survey_type})
-                        updated_count += 1
-                        
-        logger.info(f"Updated survey types for {updated_count} certificates")
-        return updated_count
-        
-    except Exception as e:
-        logger.error(f"Error updating certificates survey types: {e}")
-        return 0
+# BATCH SURVEY TYPE UPDATE FUNCTION REMOVED
+# User will implement custom survey type logic
 
 # ENHANCED SURVEY TYPE UPDATE FUNCTION REMOVED
 # User will implement custom survey type logic
