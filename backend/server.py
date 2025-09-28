@@ -351,8 +351,28 @@ class CertificateUpdate(BaseModel):
     sensitivity_level: Optional[str] = None
     notes: Optional[str] = None  # NEW: Notes field for reference certificates
 
-class CertificateResponse(CertificateBase):
+class CertificateResponse(BaseModel):
+    # Make all fields optional to handle legacy data with missing fields
     id: str
+    ship_id: Optional[str] = None
+    cert_name: Optional[str] = None  # Made optional to handle legacy data
+    cert_type: Optional[str] = None
+    cert_no: Optional[str] = None
+    issue_date: Optional[datetime] = None
+    valid_date: Optional[datetime] = None
+    last_endorse: Optional[datetime] = None
+    next_survey: Optional[datetime] = None
+    next_survey_type: Optional[str] = None
+    issued_by: Optional[str] = None
+    category: Optional[str] = "certificates"
+    sensitivity_level: Optional[str] = "public"
+    file_uploaded: Optional[bool] = False
+    google_drive_file_id: Optional[str] = None
+    google_drive_folder_path: Optional[str] = None
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+    notes: Optional[str] = None
+    ship_name: Optional[str] = None
     created_at: datetime
     cert_abbreviation: Optional[str] = None  # NEW: Certificate abbreviation
     status: Optional[str] = None  # NEW: Valid/Expired status
