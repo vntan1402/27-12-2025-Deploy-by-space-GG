@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the new Multi Certificate Upload functionality with 0.5s delay between files to verify the sequential processing works correctly"
+user_problem_statement: "Test the new Enhanced Survey Type Determination system that improves the 'Next Survey Type' determination logic by analyzing the ship's complete certificate portfolio instead of individual certificates"
 
 backend:
   - task: "Multi Certificate Upload API with Sequential Processing Support"
