@@ -11437,7 +11437,7 @@ const AddRecordModal = ({
                       const analysis = reviewData?.analysis || {};
                       
                       return (
-                        <div className="space-y-3">{/* ... rest of AI analysis content ... */}
+                        <div className="space-y-3">
                       {/* Classification Summary */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
