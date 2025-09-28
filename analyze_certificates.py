@@ -56,8 +56,8 @@ async def analyze_certificate_patterns():
             survey_type = cert.get('next_survey_type', 'Unknown')
             patterns['survey_types'][survey_type] = patterns['survey_types'].get(survey_type, 0) + 1
             
-            # Certificate name analysis
-            cert_name = cert.get('certificate_name', 'Unknown')
+            # Certificate name analysis (check both cert_name and certificate_name fields)
+            cert_name = cert.get('cert_name') or cert.get('certificate_name', 'Unknown')
             if cert_name not in patterns['certificate_names']:
                 patterns['certificate_names'][cert_name] = {
                     'count': 0,
