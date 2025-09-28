@@ -7935,9 +7935,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         # Format next survey date with window
         next_survey_formatted = next_survey_date.strftime('%d/%m/%Y')
         
-        # Add window information (±3M for English or ±3T for Vietnamese)
+        # Add window information (±3M for English)
         window_text_en = f'±{window_months}M'
-        window_text_vi = f'±{window_months}T'
         next_survey_with_window = f'{next_survey_formatted} ({window_text_en})'
         
         return {
