@@ -7895,6 +7895,154 @@ def update_certificates_survey_types():
         logger.error(f"Error updating certificates survey types: {e}")
         return 0
 
+@api_router.post("/certificates/manual-review-action")
+async def handle_manual_review_action(
+    action_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Handle user actions for manual review of non-marine certificate files
+    Actions: view, skip, confirm_marine
+    """
+    try:
+        action = action_data.get("action")  # "view", "skip", "confirm_marine"
+        temp_file_id = action_data.get("temp_file_id")
+        filename = action_data.get("filename")
+        file_content_b64 = action_data.get("file_content_b64")
+        ship_id = action_data.get("ship_id")
+        analysis_result = action_data.get("analysis_result")
+        
+        logger.info(f"🔄 Manual review action: {action} for file: {filename}")
+        
+        if action == "view":
+            # Return file content for viewing (frontend can display PDF/image)
+            return {
+                "success": True,
+                "action": "view",
+                "filename": filename,
+                "file_content_b64": file_content_b64,
+                "temp_file_id": temp_file_id,
+                "message": "File content ready for viewing"
+            }
+            
+        elif action == "skip":
+            # User chose to skip this file
+            logger.info(f"   User skipped file: {filename}")
+            return {
+                "success": True,
+                "action": "skip",
+                "filename": filename,
+                "message": f"File '{filename}' has been skipped as requested"
+            }
+            
+        elif action == "confirm_marine":
+            # User confirms this is a marine certificate - process it and update learning
+            logger.info(f"   User confirmed file as marine certificate: {filename}")
+            
+            if not ship_id or not analysis_result:
+                raise HTTPException(status_code=400, detail="Missing required data for certificate processing")
+            
+            # Update analysis result to mark as marine certificate
+            analysis_result["category"] = "certificates"
+            analysis_result["user_confirmed"] = True
+            analysis_result["confirmation_timestamp"] = datetime.now(timezone.utc).isoformat()
+            analysis_result["confirmed_by_user_id"] = current_user.id
+            
+            # Get ship data for processing
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            # Get Google Drive configuration
+            user_company_id = await resolve_company_id(current_user)
+            gdrive_config_doc = None
+            if user_company_id:
+                gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+            
+            if not gdrive_config_doc:
+                gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+            
+            # Decode file content
+            import base64
+            file_content = base64.b64decode(file_content_b64)
+            
+            # Process as marine certificate
+            try:
+                # Upload to Google Drive
+                ship_name = ship.get("name", "Unknown_Ship")
+                upload_result = await upload_file_to_existing_ship_folder(
+                    gdrive_config_doc, file_content, filename, ship_name, "Certificates"
+                )
+                
+                # Create certificate record
+                cert_data = {
+                    "id": str(uuid.uuid4()),
+                    "ship_id": ship_id,
+                    "google_drive_file_id": upload_result.get("file_id"),
+                    "google_drive_folder_id": upload_result.get("folder_id"),
+                    "certificate_name": analysis_result.get("cert_name") or filename,
+                    "cert_type": analysis_result.get("cert_type", "Full Term"),
+                    "cert_no": analysis_result.get("cert_no"),
+                    "issue_date": parse_date_string(analysis_result.get("issue_date")) if analysis_result.get("issue_date") else None,
+                    "expiry_date": parse_date_string(analysis_result.get("valid_date")) if analysis_result.get("valid_date") else None,
+                    "last_endorse": parse_date_string(analysis_result.get("last_endorse")) if analysis_result.get("last_endorse") else None,
+                    "issued_by": analysis_result.get("issued_by"),
+                    "notes": analysis_result.get("notes"),
+                    "created_at": datetime.now(timezone.utc),
+                    "user_confirmed_marine": True,
+                    "original_ai_category": action_data.get("original_category"),
+                    "ai_confidence": analysis_result.get("confidence")
+                }
+                
+                # Auto-determine survey type
+                auto_survey_type = determine_survey_type(cert_data, ship)
+                cert_data['next_survey_type'] = auto_survey_type
+                
+                # Save certificate
+                await mongo_db.create("certificates", cert_data)
+                
+                # Store learning data for future classification improvement
+                learning_data = {
+                    "id": str(uuid.uuid4()),
+                    "filename": filename,
+                    "original_ai_category": action_data.get("original_category"),
+                    "user_confirmed_category": "certificates",
+                    "analysis_result": analysis_result,
+                    "user_id": current_user.id,
+                    "ship_id": ship_id,
+                    "timestamp": datetime.now(timezone.utc),
+                    "learning_type": "manual_override_marine_certificate"
+                }
+                
+                await mongo_db.create("classification_learning_data", learning_data)
+                
+                logger.info(f"✅ Successfully processed user-confirmed marine certificate: {filename}")
+                logger.info(f"   Certificate ID: {cert_data['id']}")
+                logger.info(f"   Survey Type: {auto_survey_type}")
+                
+                return {
+                    "success": True,
+                    "action": "confirm_marine",
+                    "filename": filename,
+                    "certificate_id": cert_data["id"],
+                    "survey_type": auto_survey_type,
+                    "upload_result": upload_result,
+                    "message": f"Certificate '{filename}' has been successfully added and learning data stored"
+                }
+                
+            except Exception as processing_error:
+                logger.error(f"Error processing user-confirmed certificate: {processing_error}")
+                raise HTTPException(status_code=500, detail=f"Failed to process certificate: {str(processing_error)}")
+        
+        else:
+            raise HTTPException(status_code=400, detail=f"Invalid action: {action}")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error handling manual review action: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process manual review action")
+
 @api_router.post("/certificates/update-survey-types")
 async def update_all_survey_types(
     current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
