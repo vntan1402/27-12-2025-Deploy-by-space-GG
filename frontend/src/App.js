@@ -11266,6 +11266,139 @@ const AddRecordModal = ({
           </div>
         </div>
       )}
+
+      {/* File Viewer Modal for Manual Review */}
+      {showFileViewer && fileViewerData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-blue-600 flex items-center">
+                <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                {language === 'vi' ? 'Xem xét file' : 'Review File'}
+              </h3>
+              <button
+                onClick={() => {
+                  setShowFileViewer(false);
+                  setFileViewerData(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 flex-grow overflow-auto">
+              <div className="mb-4">
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">{fileViewerData.filename}</h4>
+                <div className="flex space-x-4 text-sm text-gray-600">
+                  <span>
+                    <strong>{language === 'vi' ? 'Phân loại hệ thống:' : 'System Classification:'}</strong> 
+                    <span className="ml-1 capitalize text-orange-600">{fileViewerData.detected_category}</span>
+                  </span>
+                  <span>
+                    <strong>{language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}</strong> 
+                    <span className="ml-1 capitalize text-orange-600">{fileViewerData.confidence}</span>
+                  </span>
+                </div>
+              </div>
+              
+              {/* File Content Display */}
+              <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-auto">
+                {fileViewerData.content_type && fileViewerData.content_type.includes('pdf') ? (
+                  <div className="text-center py-8">
+                    <svg className="w-16 h-16 mx-auto text-red-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                    </svg>
+                    <h5 className="text-lg font-medium text-gray-900 mb-2">PDF Document</h5>
+                    <p className="text-gray-600 mb-4">
+                      {language === 'vi' 
+                        ? 'Preview PDF không khả dụng trong modal này. Vui lòng download file để xem đầy đủ.'
+                        : 'PDF preview not available in this modal. Please download the file for full view.'}
+                    </p>
+                    <button
+                      onClick={() => {
+                        // Download the file
+                        const link = document.createElement('a');
+                        link.href = `data:application/pdf;base64,${fileViewerData.content_b64}`;
+                        link.download = fileViewerData.filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                    >
+                      {language === 'vi' ? 'Download PDF' : 'Download PDF'}
+                    </button>
+                  </div>
+                ) : fileViewerData.content_type && fileViewerData.content_type.includes('image') ? (
+                  <div className="text-center">
+                    <img 
+                      src={`data:${fileViewerData.content_type};base64,${fileViewerData.content_b64}`}
+                      alt={fileViewerData.filename}
+                      className="max-w-full max-h-80 mx-auto rounded-lg shadow-lg"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-gray-600">
+                      {language === 'vi' 
+                        ? 'Preview không khả dụng cho loại file này'
+                        : 'Preview not available for this file type'}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Action Instructions */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h6 className="font-medium text-blue-800 mb-2">
+                  {language === 'vi' ? 'Hướng dẫn:' : 'Instructions:'}
+                </h6>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• <strong>{language === 'vi' ? 'Bỏ qua:' : 'Skip:'}</strong> {language === 'vi' ? 'Không xử lý file này' : 'Do not process this file'}</li>
+                  <li>• <strong>{language === 'vi' ? 'Xác nhận Marine Cert:' : 'Confirm Marine Cert:'}</strong> {language === 'vi' ? 'Xác nhận đây là Marine Certificate và thêm vào hệ thống' : 'Confirm this is a Marine Certificate and add to system'}</li>
+                </ul>
+              </div>
+            </div>
+            
+            {/* Modal Action Buttons */}
+            <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  const reviewData = pendingManualReviews.find(r => r.filename === fileViewerData.filename);
+                  if (reviewData) {
+                    handleManualReviewAction('skip', reviewData);
+                    setShowFileViewer(false);
+                    setFileViewerData(null);
+                  }
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+              >
+                {language === 'vi' ? 'Bỏ qua' : 'Skip'}
+              </button>
+              <button
+                onClick={() => {
+                  const reviewData = pendingManualReviews.find(r => r.filename === fileViewerData.filename);
+                  if (reviewData) {
+                    handleManualReviewAction('confirm_marine', reviewData);
+                    setShowFileViewer(false);
+                    setFileViewerData(null);
+                  }
+                }}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all font-medium"
+              >
+                {language === 'vi' ? 'Xác nhận Marine Certificate' : 'Confirm Marine Certificate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
