@@ -10400,6 +10400,30 @@ const AddRecordModal = ({
               />
             </div>
 
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                <span className="flex items-center">
+                  {language === 'vi' ? 'Last Intermediate Survey' : 'Last Intermediate Survey'}
+                  <div className="group relative ml-1">
+                    <svg className="w-3 h-3 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute bottom-full left-0 mb-2 w-64 p-2 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      {language === 'vi' 
+                        ? 'Kiểm tra trung gian thực hiện giữa 2 Special Survey (thường 2.5-3 năm). Bắt buộc theo quy định IMO và Class Society.'
+                        : 'Intermediate inspection conducted between Special Surveys (typically 2.5-3 years). Required by IMO and Class Society regulations.'}
+                    </div>
+                  </div>
+                </span>
+              </label>
+              <input
+                type="date"
+                value={shipData.last_intermediate_survey || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, last_intermediate_survey: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+
             {/* Anniversary Date Section */}
             <div className="col-span-6 mt-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
