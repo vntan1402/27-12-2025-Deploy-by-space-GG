@@ -7952,62 +7952,8 @@ async def handle_manual_review_action(
 # ENHANCED SURVEY TYPE UPDATE ENDPOINT REMOVED
 # User will implement custom survey type logic
 
-@api_router.post("/certificates/{certificate_id}/determine-survey-type-enhanced")
-async def determine_certificate_survey_type_enhanced(
-    certificate_id: str,
-    current_user: UserResponse = Depends(get_current_user)
-):
-    """
-    Determine and update survey type for a specific certificate using enhanced logic
-    """
-    try:
-        # Get certificate
-        certificate = await mongo_db.find_one("certificates", {"id": certificate_id})
-        if not certificate:
-            raise HTTPException(status_code=404, detail="Certificate not found")
-            
-        # Get ship data and all ship certificates
-        ship_id = certificate.get('ship_id')
-        ship_data = {}
-        ship_certificates = []
-        
-        if ship_id:
-            ship_data = await mongo_db.find_one("ships", {"id": ship_id}) or {}
-            ship_certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
-            
-        # Initialize enhanced logic
-        enhanced_logic = EnhancedSurveyTypeDetermination()
-        
-        # Determine survey type with enhanced logic
-        survey_type, reasoning = enhanced_logic.determine_survey_type_enhanced(
-            certificate, ship_certificates, ship_data
-        )
-        
-        # Get current survey type for comparison
-        current_survey_type = certificate.get('next_survey_type', 'Unknown')
-        
-        # Update certificate
-        await mongo_db.update("certificates", 
-                             {"id": certificate_id}, 
-                             {"next_survey_type": survey_type})
-        
-        return {
-            "success": True,
-            "certificate_id": certificate_id,
-            "certificate_name": certificate.get('cert_name', 'Unknown'),
-            "ship_name": ship_data.get('name', 'Unknown'),
-            "previous_survey_type": current_survey_type,
-            "enhanced_survey_type": survey_type,
-            "reasoning": reasoning,
-            "changed": current_survey_type != survey_type,
-            "message": f"Survey type updated to: {survey_type}"
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error determining enhanced survey type for certificate {certificate_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to determine enhanced survey type")
+# ENHANCED INDIVIDUAL SURVEY TYPE DETERMINATION ENDPOINT REMOVED
+# User will implement custom survey type logic
 
 @api_router.get("/certificates/survey-type-analysis")
 async def get_survey_type_analysis(
