@@ -3066,7 +3066,7 @@ async def get_ship(ship_id: str, current_user: UserResponse = Depends(get_curren
 async def calculate_ship_anniversary_date(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     """
     Manually trigger anniversary date calculation from Full Term Class/Statutory certificates.
-    Follows Lloyd's maritime standards for anniversary date determination.
+    Follows IMO's maritime standards for anniversary date determination.
     """
     try:
         # Check if ship exists
@@ -3315,7 +3315,7 @@ async def create_certificate(cert_data: CertificateCreate, current_user: UserRes
         cert_dict["id"] = str(uuid.uuid4())
         cert_dict["created_at"] = datetime.now(timezone.utc)
         
-        # Auto-determine survey type based on ship and certificate data
+        # Auto-determine next survey type based on ship and certificate data
         if cert_dict.get('ship_id'):
             ship_data = await mongo_db.find_one("ships", {"id": cert_dict['ship_id']})
             if ship_data:
