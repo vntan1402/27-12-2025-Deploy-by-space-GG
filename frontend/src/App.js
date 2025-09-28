@@ -1293,13 +1293,14 @@ const HomePage = () => {
       };
 
       if (action === 'view') {
-        // Show file viewer modal
+        // Show file viewer modal with complete analysis data
         setFileViewerData({
           filename: reviewData.filename,
           content_b64: reviewData.file_content_b64,
           content_type: reviewData.content_type,
           detected_category: reviewData.detected_category,
-          confidence: reviewData.confidence
+          confidence: reviewData.confidence,
+          analysis: reviewData.analysis || {} // Include full analysis data
         });
         setShowFileViewer(true);
         return;
