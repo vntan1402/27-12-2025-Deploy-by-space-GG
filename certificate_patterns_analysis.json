@@ -1,0 +1,245 @@
+{
+  "cert_types": {
+    "Full Term": 6,
+    "Interim": 18
+  },
+  "survey_types": {
+    "Unknown": 15,
+    "Initial": 9
+  },
+  "certificate_names": {
+    "Unknown": {
+      "count": 24,
+      "cert_types": [
+        "Full Term",
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial",
+        "Unknown"
+      ]
+    }
+  },
+  "status_distribution": {
+    "Unknown": 24
+  },
+  "date_patterns": [
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Full Term",
+      "issue_date": "2025-01-24 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-03-10 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Full Term",
+      "issue_date": "2025-09-28 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2030-09-27 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Full Term",
+      "issue_date": "2025-09-28 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2030-09-27 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Initial"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Interim",
+      "issue_date": "2025-08-22 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2026-01-21 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Full Term",
+      "issue_date": "2025-09-28 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2030-09-27 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Full Term",
+      "issue_date": "2025-09-28 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2030-09-27 00:00:00",
+      "current_survey_type": "Unknown"
+    },
+    {
+      "cert_name": "Unknown",
+      "cert_type": "Full Term",
+      "issue_date": "2025-09-28 00:00:00",
+      "expiry_date": null,
+      "valid_date": "2030-09-27 00:00:00",
+      "current_survey_type": "Unknown"
+    }
+  ],
+  "ships_with_multiple_certs": {
+    "73319627-c53e-4901-9ee3-757e2b4a2a81": {
+      "cert_count": 6,
+      "cert_types": [
+        "Full Term"
+      ],
+      "survey_types": []
+    },
+    "26e7cc88-1999-4496-8d76-a2f46c07da3a": {
+      "cert_count": 9,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": [
+        "Initial"
+      ]
+    },
+    "27f2c006-e63f-47fa-b7d0-58d0327676da": {
+      "cert_count": 9,
+      "cert_types": [
+        "Interim"
+      ],
+      "survey_types": []
+    }
+  }
+}
