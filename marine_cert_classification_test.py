@@ -31,9 +31,9 @@ import tempfile
 from urllib.parse import urlparse
 import base64
 
-# Configuration - Use internal backend URL directly
-BACKEND_URL = 'http://0.0.0.0:8001/api'
-print("Using internal backend URL: http://0.0.0.0:8001/api")
+# Configuration - Use external backend URL
+BACKEND_URL = 'https://marinetrack-1.preview.emergentagent.com/api'
+print("Using external backend URL: https://marinetrack-1.preview.emergentagent.com/api")
 
 class MarineCertificateClassificationTester:
     def __init__(self):
