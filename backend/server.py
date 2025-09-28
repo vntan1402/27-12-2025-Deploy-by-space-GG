@@ -2417,6 +2417,7 @@ async def get_ship_form_fields_for_extraction() -> dict:
             "last_docking_2": "Second most recent dry docking date. Look for second-to-last docking inspection or dry dock survey date. CRITICAL: Extract EXACTLY as written in the certificate - if certificate shows 'DEC 2022' or 'DEC. 2022', return 'DEC 2022'. If certificate shows '20/12/2022', return '20/12/2022'. NEVER add artificial day numbers (like '01/12/2022') when only month/year is present. Do NOT assume or fabricate missing day information.",
             "next_docking": "Next scheduled dry docking date. Look for 'Next Docking', 'Next Dry Dock', scheduled docking dates. Return in DD/MM/YYYY format.",
             "last_special_survey": "Most recent special survey date. Look for 'Special Survey', 'Renewal Survey', 'Full Survey', or 5-year survey cycles. Return in DD/MM/YYYY format.",
+            "last_intermediate_survey": "Most recent intermediate survey date. Look for 'Intermediate Survey', 'Mid-term Survey', 'Intermediate Docking Survey', 'Class Intermediate', or surveys conducted between special surveys (typically 2.5-3 years after special survey). Return in DD/MM/YYYY format.",
             
             # Anniversary & Survey Cycle Information
             "anniversary_date_day": "Anniversary date - day only (1-31). Look for 'Anniversary Date', annual survey schedules, or due dates that repeat yearly. Extract only the DAY number.",
