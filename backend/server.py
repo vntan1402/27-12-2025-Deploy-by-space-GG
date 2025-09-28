@@ -4036,19 +4036,37 @@ async def multi_cert_upload_for_ship(
                 is_marine_certificate = analysis_result.get("category") == "certificates"
                 
                 if not is_marine_certificate:
-                    # Skip processing for non-marine certificates
-                    summary["non_marine_files"] += 1
-                    summary["non_marine_files_list"].append({
-                        "filename": file.filename,
-                        "category": analysis_result.get("category", "unknown"),
-                        "reason": "Not classified as a marine certificate"
-                    })
+                    # Instead of rejecting, provide user with manual override options
+                    logger.info(f"⚠️ File {file.filename} not auto-classified as marine certificate")
+                    logger.info(f"   Category detected: {analysis_result.get('category')}")
+                    logger.info(f"   Providing manual override options to user")
+                    
+                    # Create a temporary file reference for viewing
+                    temp_file_id = str(uuid.uuid4())
+                    
+                    # Store file temporarily for user review (you may want to implement file storage)
+                    # For now, we'll include base64 content for frontend viewing
+                    import base64
+                    file_content_b64 = base64.b64encode(file_content).decode('utf-8')
+                    
                     results.append({
                         "filename": file.filename,
-                        "status": "skipped",
-                        "message": "Not a marine certificate",
+                        "status": "requires_manual_review",
+                        "message": f"System did not auto-classify '{file.filename}' as a marine certificate. Please review and confirm.",
+                        "detected_category": analysis_result.get("category", "unknown"),
+                        "confidence": analysis_result.get("confidence", "unknown"),
                         "analysis": analysis_result,
-                        "is_marine": False
+                        "is_marine": False,
+                        "requires_user_action": True,
+                        "temp_file_id": temp_file_id,
+                        "file_content_b64": file_content_b64,  # For frontend viewing
+                        "file_size": len(file_content),
+                        "content_type": file.content_type,
+                        "manual_override_options": {
+                            "view": f"View file content",
+                            "skip": f"Skip this file",
+                            "confirm_marine": f"Confirm as Marine Certificate and proceed"
+                        }
                     })
                     continue
                 
