@@ -1133,44 +1133,65 @@ async def enhance_certificate_response(cert_dict: dict) -> dict:
 def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
     """
     Calculate similarity percentage between two certificates
-    - Certificate No (cert_no): must match exactly (100%)
-    - Certificate Name (cert_name): needs >75% similarity
+    Enhanced duplicate detection based on 5 fields:
+    - Certificate Name (cert_name): must match exactly
+    - Certificate Number (cert_no): must match exactly  
+    - Issue Date (issue_date): must match exactly
+    - Valid Date (valid_date): must match exactly
+    - Last Endorse (last_endorse): must match exactly
+    
+    Only when ALL 5 fields match exactly, consider as duplicate (100%)
     """
     try:
-        cert_no1 = cert1.get('cert_no')
-        cert_no2 = cert2.get('cert_no')
-        cert_name1 = cert1.get('cert_name')
-        cert_name2 = cert2.get('cert_name')
+        # Extract all 5 fields from both certificates
+        cert1_name = cert1.get('cert_name', '').strip()
+        cert2_name = cert2.get('cert_name', '').strip()
         
-        # Both certificates must have cert_no to compare
-        if not cert_no1 or not cert_no2:
+        cert1_no = cert1.get('cert_no', '').strip()
+        cert2_no = cert2.get('cert_no', '').strip()
+        
+        cert1_issue = str(cert1.get('issue_date', '')).strip()
+        cert2_issue = str(cert2.get('issue_date', '')).strip()
+        
+        cert1_valid = str(cert1.get('valid_date', '')).strip()
+        cert2_valid = str(cert2.get('valid_date', '')).strip()
+        
+        cert1_endorse = str(cert1.get('last_endorse', '')).strip()
+        cert2_endorse = str(cert2.get('last_endorse', '')).strip()
+        
+        logger.info(f"🔍 Enhanced Duplicate Check - Comparing 5 fields:")
+        logger.info(f"   Cert Name: '{cert1_name}' vs '{cert2_name}'")
+        logger.info(f"   Cert No: '{cert1_no}' vs '{cert2_no}'")
+        logger.info(f"   Issue Date: '{cert1_issue}' vs '{cert2_issue}'")
+        logger.info(f"   Valid Date: '{cert1_valid}' vs '{cert2_valid}'")
+        logger.info(f"   Last Endorse: '{cert1_endorse}' vs '{cert2_endorse}'")
+        
+        # All key fields must have values to compare (at minimum cert_name and cert_no)
+        if not cert1_name or not cert2_name or not cert1_no or not cert2_no:
+            logger.info(f"   ❌ Missing required fields - not duplicate")
             return 0.0
         
-        # Certificate Number must match exactly (case insensitive)
-        cert_no_match = str(cert_no1).lower().strip() == str(cert_no2).lower().strip()
+        # Check each field for exact match (case insensitive)
+        name_match = cert1_name.lower() == cert2_name.lower()
+        number_match = cert1_no.lower() == cert2_no.lower()
+        issue_match = cert1_issue.lower() == cert2_issue.lower()
+        valid_match = cert1_valid.lower() == cert2_valid.lower()
+        endorse_match = cert1_endorse.lower() == cert2_endorse.lower()
         
-        if not cert_no_match:
-            return 0.0  # If cert_no doesn't match, not a duplicate
+        logger.info(f"   Field matches:")
+        logger.info(f"     Name: {name_match}")
+        logger.info(f"     Number: {number_match}")
+        logger.info(f"     Issue Date: {issue_match}")
+        logger.info(f"     Valid Date: {valid_match}")
+        logger.info(f"     Last Endorse: {endorse_match}")
         
-        # If cert_no matches but no cert_name available, return 50%
-        if not cert_name1 or not cert_name2:
-            return 50.0
-        
-        # Calculate certificate name similarity using string similarity
-        name_similarity = calculate_string_similarity(
-            str(cert_name1).lower().strip(), 
-            str(cert_name2).lower().strip()
-        )
-        
-        # Convert to percentage (0-100)
-        name_similarity_percent = name_similarity * 100
-        
-        # Final similarity: cert_no must match (100%) + cert_name similarity
-        # If cert_no matches and cert_name >75%, consider as duplicate
-        if name_similarity_percent >= 75.0:
-            return 100.0  # Consider as duplicate
+        # ALL 5 fields must match exactly for duplicate detection
+        if name_match and number_match and issue_match and valid_match and endorse_match:
+            logger.info(f"   ✅ ALL 5 fields match - DUPLICATE DETECTED")
+            return 100.0  # Perfect duplicate
         else:
-            return name_similarity_percent  # Not enough similarity
+            logger.info(f"   ❌ Not all fields match - NOT duplicate")
+            return 0.0  # Not a duplicate
         
     except Exception as e:
         logger.error(f"Error calculating certificate similarity: {e}")
