@@ -11332,7 +11332,9 @@ const AddRecordModal = ({
                     fileName: ''
                   });
                   // Reset certificate analyzing state when modal is closed
-                  setIsCertificateAnalyzing(false);
+                  if (setIsCertificateAnalyzing) {
+                    setIsCertificateAnalyzing(false);
+                  }
                 }}
                 className="absolute top-0 right-0 text-gray-400 hover:text-gray-600 text-2xl font-bold"
               >
