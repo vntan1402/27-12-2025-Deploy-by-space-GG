@@ -9157,8 +9157,7 @@ const AddRecordModal = ({
   pendingManualReviews,
   handleManualReviewAction,
   duplicateResolutionModal,
-  handleDuplicateResolution,
-  setIsCertificateAnalyzing
+  handleDuplicateResolution
 }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user, token } = useAuth();
