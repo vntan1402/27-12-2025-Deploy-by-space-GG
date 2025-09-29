@@ -6561,8 +6561,9 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             'created_at': datetime.now(timezone.utc)
         }
         
-        # Remove None values
-        cert_data = {k: v for k, v in cert_data.items() if v is not None}
+        # Remove None values but preserve important fields for debugging
+        preserved_fields = ['extracted_ship_name', 'text_content']  # Always preserve these fields
+        cert_data = {k: v for k, v in cert_data.items() if v is not None or k in preserved_fields}
         
         await mongo_db.create("certificates", cert_data)
         
