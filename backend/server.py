@@ -4294,64 +4294,9 @@ async def multi_cert_upload_for_ship(
                     })
                     continue
                 
-                # IMO and Ship Name Validation Logic (FIRST PRIORITY)
-                # Extract IMO and ship name from AI analysis result
-                extracted_imo = analysis_result.get('imo_number', '').strip()
-                extracted_ship_name = analysis_result.get('ship_name', '').strip()
-                current_ship_imo = ship.get('imo', '').strip()
-                current_ship_name = ship.get('name', '').strip()
-                additional_note = None  # Initialize note variable
-                
-                logger.info(f"🔍 IMO/Ship Name Validation (PRIORITY 1) for {file.filename}:")
-                logger.info(f"   Extracted IMO: '{extracted_imo}'")
-                logger.info(f"   Current Ship IMO: '{current_ship_imo}'")
-                logger.info(f"   Extracted Ship Name: '{extracted_ship_name}'")
-                logger.info(f"   Current Ship Name: '{current_ship_name}'")
-                
-                # IMO and Ship Name validation - MUST PASS BEFORE OTHER CHECKS
-                if extracted_imo and current_ship_imo:
-                    # Compare IMO numbers (case-insensitive, remove spaces)
-                    extracted_imo_clean = extracted_imo.replace(' ', '').upper()
-                    current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
-                    
-                    if extracted_imo_clean != current_ship_imo_clean:
-                        # Different IMO numbers - block upload IMMEDIATELY
-                        logger.warning(f"❌ IMO mismatch for {file.filename}: extracted='{extracted_imo}', current='{current_ship_imo}' - BLOCKING UPLOAD")
-                        results.append({
-                            "filename": file.filename,
-                            "status": "error",
-                            "message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
-                            "analysis": analysis_result,
-                            "is_marine": True,
-                            "validation_error": {
-                                "type": "imo_mismatch",
-                                "extracted_imo": extracted_imo,
-                                "current_ship_imo": current_ship_imo,
-                                "extracted_ship_name": extracted_ship_name,
-                                "current_ship_name": current_ship_name
-                            }
-                        })
-                        summary["errors"] += 1
-                        summary["error_files"].append({
-                            "filename": file.filename,
-                            "error": "IMO number mismatch - certificate belongs to different ship"
-                        })
-                        continue  # Skip duplicate check and all other processing
-                    
-                    # Same IMO - check ship name for note
-                    if extracted_ship_name and current_ship_name:
-                        # Exact match comparison (case-insensitive)
-                        if extracted_ship_name.upper() != current_ship_name.upper():
-                            additional_note = "Giấy chứng nhận này chỉ để tham khảo do tên tàu khác tên hiện tại"
-                            logger.info(f"⚠️ Ship name mismatch for {file.filename}: extracted='{extracted_ship_name}', current='{current_ship_name}' - adding note")
-                        else:
-                            logger.info(f"✅ Ship name matches for {file.filename}")
-                
-                # IMO/Ship Name validation PASSED - now count as marine certificate
                 summary["marine_certificates"] += 1
-                logger.info(f"✅ IMO/Ship Name validation passed for {file.filename} - proceeding to duplicate check")
-                    
-                # Check for duplicates based on cert_no and cert_name (SECOND PRIORITY)
+                
+                # Check for duplicates based on cert_no and cert_name
                 duplicates = await check_certificate_duplicates(analysis_result, ship_id)
                 
                 if duplicates:
