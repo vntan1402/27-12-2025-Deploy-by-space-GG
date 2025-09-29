@@ -4302,6 +4302,7 @@ async def multi_cert_upload_for_ship(
                 extracted_ship_name = analysis_result.get('ship_name', '').strip()
                 current_ship_imo = ship.get('imo', '').strip()
                 current_ship_name = ship.get('name', '').strip()
+                additional_note = None  # Initialize note variable
                 
                 logger.info(f"🔍 IMO/Ship Name Validation for {file.filename}:")
                 logger.info(f"   Extracted IMO: '{extracted_imo}'")
@@ -4340,7 +4341,6 @@ async def multi_cert_upload_for_ship(
                         continue
                     
                     # Same IMO - check ship name for note
-                    additional_note = None
                     if extracted_ship_name and current_ship_name:
                         # Exact match comparison (case-insensitive)
                         if extracted_ship_name.upper() != current_ship_name.upper():
