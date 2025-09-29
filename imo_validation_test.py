@@ -295,20 +295,14 @@ Next Annual Survey due: 15/01/2025
                 self.log("   ❌ No SUNSHINE 01 ship ID available")
                 return False
             
-            # Prepare file for upload
+            # Prepare file for upload using the correct multi-upload endpoint
             with open(cert_file_path, 'rb') as f:
-                files = {
-                    'file': (f"test_certificate_{cert_description.replace(' ', '_')}.txt", f, 'text/plain')
-                }
+                files = [
+                    ('files', (f"test_certificate_{cert_description.replace(' ', '_')}.txt", f, 'text/plain'))
+                ]
                 
-                data = {
-                    'ship_id': self.sunshine_01_id,
-                    'cert_name': 'CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE',
-                    'cert_type': 'Full Term',
-                    'category': 'certificates'
-                }
-                
-                endpoint = f"{BACKEND_URL}/certificates/upload"
+                # Use query parameter for ship_id in multi-upload endpoint
+                endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={self.sunshine_01_id}"
                 self.log(f"   POST {endpoint}")
                 self.log(f"   Ship ID: {self.sunshine_01_id}")
                 self.log(f"   Certificate: {cert_description}")
@@ -316,7 +310,6 @@ Next Annual Survey due: 15/01/2025
                 response = requests.post(
                     endpoint,
                     files=files,
-                    data=data,
                     headers=self.get_headers(),
                     timeout=120  # Longer timeout for file upload and AI analysis
                 )
