@@ -6684,7 +6684,7 @@ const AccountControlPage = () => {
 
             <div className="flex gap-4">
               <button
-                onClick={() => handleDuplicateResolution('overwrite')}
+                onClick={() => handleLocalDuplicateResolution('overwrite')}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg transition-colors font-medium"
               >
                 {language === 'vi' 
@@ -6693,7 +6693,7 @@ const AccountControlPage = () => {
               </button>
               
               <button
-                onClick={() => handleDuplicateResolution('cancel')}
+                onClick={() => handleLocalDuplicateResolution('cancel')}
                 className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg transition-colors font-medium"
               >
                 {language === 'vi' 
