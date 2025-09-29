@@ -711,8 +711,8 @@ async def get_dynamic_class_society_mappings() -> dict:
         # Convert to dictionary format
         mappings = {}
         for mapping in dynamic_mappings:
-            full_name = mapping.get("full_name", "").strip()
-            abbreviation = mapping.get("abbreviation", "").strip()
+            full_name = (mapping.get("full_name") or "").strip()
+            abbreviation = (mapping.get("abbreviation") or "").strip()
             if full_name and abbreviation:
                 mappings[full_name.lower()] = abbreviation
         
@@ -8691,8 +8691,8 @@ async def get_class_society_mappings(
         dynamic_mappings = {}
         
         for mapping in dynamic_mappings_raw:
-            full_name = mapping.get("full_name", "").strip()
-            abbreviation = mapping.get("abbreviation", "").strip() 
+            full_name = (mapping.get("full_name") or "").strip()
+            abbreviation = (mapping.get("abbreviation") or "").strip() 
             if full_name and abbreviation:
                 # Capitalize for display
                 display_name = " ".join(word.capitalize() for word in full_name.split())
