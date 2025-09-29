@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 """
-IMO/Ship Name Validation Testing Script for Multi-Certificate Upload
-Testing the newly implemented validation logic in the multi-certificate upload endpoint.
+IMO/Ship Name Validation Logic Testing Script
+FOCUS: Testing the updated execution order of IMO/Ship Name validation logic in multi-certificate upload endpoint
 
-TEST REQUIREMENTS:
-1. Test API Endpoint: POST /api/certificates/multi-upload with ship_id parameter
-2. Authentication: Use admin1/123456 credentials
-3. Test Cases:
-   - Case 1: Different IMO Number (Should Block Upload)
-   - Case 2: Same IMO, Different Ship Name (Should Add Note)
-   - Case 3: Same IMO and Ship Name (Normal Flow)
-   - Case 4: Missing IMO Data
+UPDATED PRIORITY TESTING REQUIREMENTS:
+- Test Objective: Verify that IMO/Ship Name validation now executes as PRIORITY 1 before duplicate certificate check (PRIORITY 2)
+- Authentication: Use admin1/123456 credentials
+- Specific Validation Points:
+  1. Execution Order Verification
+  2. Priority 1: IMO Validation Blocking
+  3. Priority 2: Duplicate Check (Only After IMO Pass)
+  4. Log Message Sequence Testing
+  5. Counter Verification
 
-VALIDATION POINTS:
-- Check validation logic execution (log messages starting with "🔍 IMO/Ship Name Validation")
-- Verify extracted vs current ship data comparison
-- Confirm error handling and response structure
-- Test certificate creation with proper notes
+Expected New Behavior:
+1. IMO Validation First: All certificates must pass IMO validation before any other processing
+2. Immediate Blocking: Different IMO → immediate error, no further processing
+3. Counter Accuracy: Only valid certificates (passing IMO check) increment marine_certificates counter
+4. Duplicate Check Second: Only runs after IMO validation passes
 """
 
 import requests
