@@ -348,7 +348,7 @@ Authorized Representative
                 # Prepare file for upload
                 with open(test_file_path, 'rb') as f:
                     files = {
-                        'files': ('test_certificate.txt', f, 'text/plain')
+                        'files': ('test_certificate.pdf', f, 'application/pdf')
                     }
                     
                     self.log("   Uploading test certificate with ship information...")
