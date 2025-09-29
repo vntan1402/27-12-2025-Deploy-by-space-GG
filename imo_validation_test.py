@@ -1,5 +1,715 @@
 #!/usr/bin/env python3
 """
+IMO/Ship Name Validation Testing Script
+FOCUS: Debug why IMO/Ship Name validation isn't working for uploaded certificate files
+
+TEST OBJECTIVE: Debug why IMO/Ship Name validation isn't working for uploaded certificate files
+
+AUTHENTICATION: Use admin1/123456 credentials
+
+TEST SETUP:
+1. Find ship "SUNSHINE 01" in database and get its real IMO number and exact name
+2. Test upload of the 2 specific certificate files provided by user
+3. Analyze why validation isn't blocking incorrect IMO/ship name certificates
+
+CERTIFICATE ANALYSIS:
+The user provided 2 certificates with these extracted details:
+
+Certificate 1: "SUNSHINE_01_CSSC_PM25385_TEST IMO.pdf"
+- Ship Name: "SUNSHINE 01" (matches ship name)
+- IMO Number: "9524666" (may be incorrect)
+
+Certificate 2: "SUNSHINE_01_CSSC_PM25385_Test ShipName.pdf"  
+- Ship Name: "SUNSHINE TEST" (different from ship name)
+- IMO Number: "9415313" (may be incorrect)
+
+KEY TESTING REQUIREMENTS:
+1. Get SUNSHINE 01 Ship Details
+2. Test Certificate Upload
+3. Debug Validation Logic
+4. Expected Behavior Analysis
+
+EXPECTED LOG PATTERNS TO LOOK FOR:
+- "🔍 IMO/Ship Name Validation for [filename]"
+- "Extracted IMO: '[value]'" and "Current Ship IMO: '[value]'"
+- "❌ IMO mismatch" or "✅ IMO and Ship name match"
+"""
+
+import requests
+import json
+import os
+import sys
+import re
+from datetime import datetime, timedelta
+import time
+import traceback
+import tempfile
+from urllib.parse import urlparse
+
+# Configuration - Use environment variable for backend URL
+try:
+    # Test internal connection first
+    test_response = requests.get('http://0.0.0.0:8001/api/ships', timeout=5)
+    if test_response.status_code in [200, 401]:  # 401 is expected without auth
+        BACKEND_URL = 'http://0.0.0.0:8001/api'
+        print("Using internal backend URL: http://0.0.0.0:8001/api")
+    else:
+        raise Exception("Internal URL not working")
+except:
+    # Fallback to external URL
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://seacraft-portfolio.preview.emergentagent.com') + '/api'
+    print(f"Using external backend URL: {BACKEND_URL}")
+
+class IMOValidationTester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.auth_token = None
+        self.current_user = None
+        self.test_results = {}
+        self.backend_logs = []
+        
+        # Test tracking
+        self.test_status = {
+            'authentication_successful': False,
+            'sunshine_01_ship_found': False,
+            'ship_details_retrieved': False,
+            'certificate_upload_tested': False,
+            'validation_logic_analyzed': False,
+            'backend_logs_checked': False,
+            'validation_messages_found': False,
+            'imo_mismatch_detected': False,
+            'ship_name_mismatch_detected': False,
+            'expected_behavior_verified': False
+        }
+        
+        # Ship data
+        self.sunshine_01_ship = None
+        self.sunshine_01_id = None
+        self.sunshine_01_imo = None
+        self.sunshine_01_name = None
+        
+    def log(self, message, level="INFO"):
+        """Log messages with timestamp"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        formatted_message = f"[{timestamp}] [{level}] {message}"
+        print(formatted_message)
+        
+        # Also store in our log collection
+        self.backend_logs.append({
+            'timestamp': timestamp,
+            'level': level,
+            'message': message
+        })
+        
+    def authenticate(self):
+        """Authenticate with admin1/123456 credentials as specified in review request"""
+        try:
+            self.log("🔐 Authenticating with admin1/123456...")
+            
+            login_data = {
+                "username": "admin1",
+                "password": "123456",
+                "remember_me": False
+            }
+            
+            endpoint = f"{BACKEND_URL}/auth/login"
+            self.log(f"   POST {endpoint}")
+            
+            response = requests.post(endpoint, json=login_data, timeout=60)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.auth_token = data.get("access_token")
+                self.current_user = data.get("user", {})
+                
+                self.log("✅ Authentication successful")
+                self.log(f"   User ID: {self.current_user.get('id')}")
+                self.log(f"   User Role: {self.current_user.get('role')}")
+                self.log(f"   Company: {self.current_user.get('company')}")
+                
+                self.test_status['authentication_successful'] = True
+                return True
+            else:
+                self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
+                return False
+                            
+        except Exception as e:
+            self.log(f"❌ Authentication error: {str(e)}", "ERROR")
+            return False
+    
+    def get_headers(self):
+        """Get authentication headers"""
+        return {"Authorization": f"Bearer {self.auth_token}"}
+    
+    def find_sunshine_01_ship(self):
+        """Find ship "SUNSHINE 01" in database and get its real IMO number and exact name"""
+        try:
+            self.log("🚢 Finding ship 'SUNSHINE 01' in database...")
+            
+            endpoint = f"{BACKEND_URL}/ships"
+            self.log(f"   GET {endpoint}")
+            
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                ships = response.json()
+                self.log(f"   Found {len(ships)} ships in database")
+                
+                # Look for SUNSHINE 01 ship
+                sunshine_ships = []
+                for ship in ships:
+                    ship_name = ship.get('name', '').strip()
+                    if 'SUNSHINE' in ship_name.upper() and '01' in ship_name:
+                        sunshine_ships.append(ship)
+                        self.log(f"   Found potential match: {ship_name} (ID: {ship.get('id')})")
+                
+                if sunshine_ships:
+                    # Use the first match (or most exact match)
+                    self.sunshine_01_ship = sunshine_ships[0]
+                    self.sunshine_01_id = self.sunshine_01_ship.get('id')
+                    self.sunshine_01_imo = self.sunshine_01_ship.get('imo')
+                    self.sunshine_01_name = self.sunshine_01_ship.get('name')
+                    
+                    self.log("✅ SUNSHINE 01 ship found!")
+                    self.log(f"   Ship ID: {self.sunshine_01_id}")
+                    self.log(f"   Ship Name: '{self.sunshine_01_name}'")
+                    self.log(f"   IMO Number: '{self.sunshine_01_imo}'")
+                    self.log(f"   Flag: {self.sunshine_01_ship.get('flag')}")
+                    self.log(f"   Class Society: {self.sunshine_01_ship.get('ship_type')}")
+                    
+                    self.test_status['sunshine_01_ship_found'] = True
+                    self.test_status['ship_details_retrieved'] = True
+                    return True
+                else:
+                    self.log("❌ SUNSHINE 01 ship not found in database")
+                    self.log("   Available ships with 'SUNSHINE' in name:")
+                    for ship in ships:
+                        ship_name = ship.get('name', '').strip()
+                        if 'SUNSHINE' in ship_name.upper():
+                            self.log(f"      - {ship_name} (IMO: {ship.get('imo')})")
+                    return False
+            else:
+                self.log(f"   ❌ Failed to get ships: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"      Error: {response.text[:500]}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Ship search error: {str(e)}", "ERROR")
+            return False
+    
+    def create_test_certificate_files(self):
+        """Create test certificate files to simulate the user's uploaded files"""
+        try:
+            self.log("📄 Creating test certificate files...")
+            
+            # Certificate 1: SUNSHINE_01_CSSC_PM25385_TEST IMO.pdf
+            # Ship Name: "SUNSHINE 01" (matches ship name)
+            # IMO Number: "9524666" (may be incorrect)
+            cert1_content = f"""
+CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
+
+Certificate No: PM25385
+
+This is to certify that this ship has been surveyed in accordance with the provisions of regulation I/12 of the International Convention for the Safety of Life at Sea, 1974, as amended.
+
+Ship Name: SUNSHINE 01
+IMO Number: 9524666
+Port of Registry: PANAMA
+Flag: PANAMA
+
+This certificate is valid until: 10/03/2026
+
+Issued by: Panama Maritime Documentation Services
+Date of Issue: 10/03/2021
+
+ENDORSEMENTS:
+Annual Survey completed on: 15/01/2024
+Next Annual Survey due: 15/01/2025
+            """
+            
+            # Certificate 2: SUNSHINE_01_CSSC_PM25385_Test ShipName.pdf
+            # Ship Name: "SUNSHINE TEST" (different from ship name)
+            # IMO Number: "9415313" (may be incorrect)
+            cert2_content = f"""
+CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
+
+Certificate No: PM25385
+
+This is to certify that this ship has been surveyed in accordance with the provisions of regulation I/12 of the International Convention for the Safety of Life at Sea, 1974, as amended.
+
+Ship Name: SUNSHINE TEST
+IMO Number: 9415313
+Port of Registry: PANAMA
+Flag: PANAMA
+
+This certificate is valid until: 10/03/2026
+
+Issued by: Panama Maritime Documentation Services
+Date of Issue: 10/03/2021
+
+ENDORSEMENTS:
+Annual Survey completed on: 15/01/2024
+Next Annual Survey due: 15/01/2025
+            """
+            
+            # Create temporary files
+            self.cert1_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+            self.cert1_file.write(cert1_content)
+            self.cert1_file.close()
+            
+            self.cert2_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+            self.cert2_file.write(cert2_content)
+            self.cert2_file.close()
+            
+            self.log("✅ Test certificate files created")
+            self.log(f"   Certificate 1: {self.cert1_file.name}")
+            self.log(f"      Ship Name: 'SUNSHINE 01' (should match)")
+            self.log(f"      IMO: '9524666' (may be incorrect)")
+            self.log(f"   Certificate 2: {self.cert2_file.name}")
+            self.log(f"      Ship Name: 'SUNSHINE TEST' (different)")
+            self.log(f"      IMO: '9415313' (may be incorrect)")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Certificate file creation error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_upload_with_validation(self, cert_file_path, cert_description):
+        """Test certificate upload and check for IMO/Ship Name validation"""
+        try:
+            self.log(f"📤 Testing certificate upload: {cert_description}")
+            
+            if not self.sunshine_01_id:
+                self.log("   ❌ No SUNSHINE 01 ship ID available")
+                return False
+            
+            # Prepare file for upload
+            with open(cert_file_path, 'rb') as f:
+                files = {
+                    'file': (f"test_certificate_{cert_description.replace(' ', '_')}.txt", f, 'text/plain')
+                }
+                
+                data = {
+                    'ship_id': self.sunshine_01_id,
+                    'cert_name': 'CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE',
+                    'cert_type': 'Full Term',
+                    'category': 'certificates'
+                }
+                
+                endpoint = f"{BACKEND_URL}/certificates/upload"
+                self.log(f"   POST {endpoint}")
+                self.log(f"   Ship ID: {self.sunshine_01_id}")
+                self.log(f"   Certificate: {cert_description}")
+                
+                response = requests.post(
+                    endpoint,
+                    files=files,
+                    data=data,
+                    headers=self.get_headers(),
+                    timeout=120  # Longer timeout for file upload and AI analysis
+                )
+                
+                self.log(f"   Response status: {response.status_code}")
+                
+                if response.status_code == 200:
+                    response_data = response.json()
+                    self.log("✅ Certificate upload completed")
+                    
+                    # Log the full response to analyze validation behavior
+                    self.log("   Upload Response:")
+                    self.log(f"   {json.dumps(response_data, indent=2)}")
+                    
+                    # Check for validation messages in response
+                    validation_note = response_data.get('validation_note')
+                    progress_message = response_data.get('progress_message')
+                    
+                    if validation_note:
+                        self.log(f"   Validation Note: {validation_note}")
+                        self.test_status['validation_messages_found'] = True
+                        
+                        if "tàu khác" in validation_note or "không thể lưu" in validation_note:
+                            self.log("   ✅ IMO mismatch validation detected!")
+                            self.test_status['imo_mismatch_detected'] = True
+                        elif "tham khảo" in validation_note:
+                            self.log("   ✅ Ship name mismatch validation detected!")
+                            self.test_status['ship_name_mismatch_detected'] = True
+                    
+                    if progress_message:
+                        self.log(f"   Progress Message: {progress_message}")
+                    
+                    # Check if certificate was actually saved or blocked
+                    certificate_id = response_data.get('id')
+                    if certificate_id:
+                        self.log(f"   Certificate saved with ID: {certificate_id}")
+                        
+                        # If validation should have blocked it, this is an issue
+                        if cert_description == "Certificate 1 (IMO mismatch)" or cert_description == "Certificate 2 (Ship name mismatch)":
+                            self.log("   ⚠️ Certificate was saved despite validation issues")
+                    else:
+                        self.log("   Certificate was not saved (validation blocked)")
+                    
+                    return True
+                    
+                elif response.status_code == 400:
+                    # This might be expected if validation is working
+                    response_data = response.json()
+                    self.log("⚠️ Certificate upload rejected (400)")
+                    self.log(f"   Error: {response_data.get('detail', 'Unknown error')}")
+                    
+                    # Check if this is due to validation
+                    error_message = response_data.get('detail', '')
+                    if "IMO" in error_message or "ship name" in error_message or "tàu khác" in error_message:
+                        self.log("   ✅ Validation is working - certificate rejected due to IMO/Ship name mismatch")
+                        self.test_status['validation_messages_found'] = True
+                        return True
+                    else:
+                        self.log("   ❌ Certificate rejected for other reasons")
+                        return False
+                        
+                else:
+                    self.log(f"   ❌ Certificate upload failed: {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                    except:
+                        self.log(f"      Error: {response.text[:500]}")
+                    return False
+                    
+        except Exception as e:
+            self.log(f"❌ Certificate upload test error: {str(e)}", "ERROR")
+            return False
+    
+    def check_backend_logs_for_validation(self):
+        """Check backend logs for IMO/Ship Name validation messages"""
+        try:
+            self.log("🔍 Checking backend logs for validation messages...")
+            
+            # Try to get backend logs (this might not be available via API)
+            # We'll look for the expected log patterns in our test results
+            
+            expected_patterns = [
+                "🔍 IMO/Ship Name Validation for",
+                "Extracted IMO:",
+                "Current Ship IMO:",
+                "❌ IMO mismatch",
+                "✅ IMO and Ship name match",
+                "Giấy chứng nhận của tàu khác",
+                "Chỉ để tham khảo"
+            ]
+            
+            self.log("   Expected validation log patterns:")
+            for pattern in expected_patterns:
+                self.log(f"      - '{pattern}'")
+            
+            # Check if we found any validation messages in our tests
+            if self.test_status['validation_messages_found']:
+                self.log("✅ Validation messages were found in API responses")
+                self.test_status['backend_logs_checked'] = True
+                return True
+            else:
+                self.log("❌ No validation messages found in API responses")
+                self.log("   This suggests validation logic may not be running")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Backend log check error: {str(e)}", "ERROR")
+            return False
+    
+    def analyze_validation_logic(self):
+        """Analyze why validation logic might not be working"""
+        try:
+            self.log("🔬 Analyzing validation logic...")
+            
+            # Compare expected vs actual behavior
+            self.log("   Expected behavior analysis:")
+            self.log(f"   Current Ship: '{self.sunshine_01_name}' (IMO: '{self.sunshine_01_imo}')")
+            self.log("   ")
+            self.log("   Certificate 1: 'SUNSHINE_01_CSSC_PM25385_TEST IMO.pdf'")
+            self.log("      Ship Name: 'SUNSHINE 01' (matches ship name)")
+            self.log("      IMO Number: '9524666' (may be incorrect)")
+            if self.sunshine_01_imo != '9524666':
+                self.log(f"      ❌ IMO MISMATCH: Certificate IMO '9524666' != Ship IMO '{self.sunshine_01_imo}'")
+                self.log("      Expected: Should show error 'Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại'")
+            else:
+                self.log("      ✅ IMO MATCH: Certificate IMO matches ship IMO")
+            
+            self.log("   ")
+            self.log("   Certificate 2: 'SUNSHINE_01_CSSC_PM25385_Test ShipName.pdf'")
+            self.log("      Ship Name: 'SUNSHINE TEST' (different from ship name)")
+            self.log("      IMO Number: '9415313' (may be incorrect)")
+            if self.sunshine_01_imo != '9415313':
+                self.log(f"      ❌ IMO MISMATCH: Certificate IMO '9415313' != Ship IMO '{self.sunshine_01_imo}'")
+                self.log("      Expected: Should show error 'Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại'")
+            else:
+                self.log("      ⚠️ IMO MATCH but Ship Name differs")
+                self.log("      Expected: Should add with note 'Chỉ để tham khảo'")
+            
+            # Analyze what we found
+            if not self.test_status['validation_messages_found']:
+                self.log("   ")
+                self.log("❌ VALIDATION ISSUE IDENTIFIED:")
+                self.log("   No validation messages were found during certificate upload")
+                self.log("   Possible causes:")
+                self.log("   1. AI analysis is not extracting IMO/ship name correctly from certificates")
+                self.log("   2. Validation comparison logic is not running during upload")
+                self.log("   3. Validation logic has bugs in IMO/ship name comparison")
+                self.log("   4. Certificate text content is not being processed for validation")
+                
+                self.log("   ")
+                self.log("🔧 DEBUGGING RECOMMENDATIONS:")
+                self.log("   1. Check if AI analysis extracts correct IMO/ship name from PDF")
+                self.log("   2. Verify if validation logic actually runs during upload")
+                self.log("   3. Look for any errors in validation comparison logic")
+                self.log("   4. Ensure certificate text content is available for AI analysis")
+            
+            self.test_status['validation_logic_analyzed'] = True
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Validation logic analysis error: {str(e)}", "ERROR")
+            return False
+    
+    def test_expected_behavior(self):
+        """Test and verify expected behavior for both certificates"""
+        try:
+            self.log("🎯 Testing expected behavior for both certificates...")
+            
+            # Test Certificate 1
+            self.log("   Testing Certificate 1 (IMO mismatch scenario)...")
+            cert1_success = self.test_certificate_upload_with_validation(
+                self.cert1_file.name, 
+                "Certificate 1 (IMO mismatch)"
+            )
+            
+            # Test Certificate 2  
+            self.log("   Testing Certificate 2 (Ship name mismatch scenario)...")
+            cert2_success = self.test_certificate_upload_with_validation(
+                self.cert2_file.name,
+                "Certificate 2 (Ship name mismatch)"
+            )
+            
+            self.test_status['certificate_upload_tested'] = True
+            
+            # Analyze results
+            if cert1_success and cert2_success:
+                self.log("✅ Both certificate uploads completed")
+                
+                if self.test_status['imo_mismatch_detected'] or self.test_status['ship_name_mismatch_detected']:
+                    self.log("✅ Validation logic is working - mismatches detected")
+                    self.test_status['expected_behavior_verified'] = True
+                else:
+                    self.log("❌ Validation logic may not be working - no mismatches detected")
+                    
+                return True
+            else:
+                self.log("❌ Certificate upload tests failed")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Expected behavior test error: {str(e)}", "ERROR")
+            return False
+    
+    def cleanup_test_files(self):
+        """Clean up temporary test files"""
+        try:
+            if hasattr(self, 'cert1_file'):
+                os.unlink(self.cert1_file.name)
+                self.log(f"   Cleaned up: {self.cert1_file.name}")
+            
+            if hasattr(self, 'cert2_file'):
+                os.unlink(self.cert2_file.name)
+                self.log(f"   Cleaned up: {self.cert2_file.name}")
+                
+        except Exception as e:
+            self.log(f"⚠️ Cleanup error: {str(e)}", "WARNING")
+    
+    def run_imo_validation_debug_test(self):
+        """Main test function for IMO/Ship Name validation debugging"""
+        self.log("🎯 STARTING IMO/SHIP NAME VALIDATION DEBUG TEST")
+        self.log("🎯 OBJECTIVE: Debug why IMO/Ship Name validation isn't working for uploaded certificate files")
+        self.log("=" * 100)
+        
+        try:
+            # Step 1: Authenticate
+            self.log("\n🔐 STEP 1: AUTHENTICATION")
+            self.log("=" * 50)
+            if not self.authenticate():
+                self.log("❌ Authentication failed - cannot proceed with testing")
+                return False
+            
+            # Step 2: Find SUNSHINE 01 Ship
+            self.log("\n🚢 STEP 2: FIND SUNSHINE 01 SHIP")
+            self.log("=" * 50)
+            if not self.find_sunshine_01_ship():
+                self.log("❌ SUNSHINE 01 ship not found - cannot proceed with testing")
+                return False
+            
+            # Step 3: Create Test Certificate Files
+            self.log("\n📄 STEP 3: CREATE TEST CERTIFICATE FILES")
+            self.log("=" * 50)
+            if not self.create_test_certificate_files():
+                self.log("❌ Test certificate file creation failed")
+                return False
+            
+            # Step 4: Test Expected Behavior
+            self.log("\n🎯 STEP 4: TEST EXPECTED BEHAVIOR")
+            self.log("=" * 50)
+            behavior_success = self.test_expected_behavior()
+            
+            # Step 5: Check Backend Logs
+            self.log("\n🔍 STEP 5: CHECK BACKEND LOGS")
+            self.log("=" * 50)
+            self.check_backend_logs_for_validation()
+            
+            # Step 6: Analyze Validation Logic
+            self.log("\n🔬 STEP 6: ANALYZE VALIDATION LOGIC")
+            self.log("=" * 50)
+            self.analyze_validation_logic()
+            
+            # Step 7: Final Analysis
+            self.log("\n📊 STEP 7: FINAL ANALYSIS")
+            self.log("=" * 50)
+            self.provide_final_analysis()
+            
+            return behavior_success
+            
+        finally:
+            # Always cleanup
+            self.log("\n🧹 CLEANUP")
+            self.log("=" * 50)
+            self.cleanup_test_files()
+    
+    def provide_final_analysis(self):
+        """Provide final analysis of IMO/Ship Name validation testing"""
+        try:
+            self.log("🎯 IMO/SHIP NAME VALIDATION DEBUG TEST - RESULTS")
+            self.log("=" * 80)
+            
+            # Check which tests passed
+            passed_tests = []
+            failed_tests = []
+            
+            for test_name, passed in self.test_status.items():
+                if passed:
+                    passed_tests.append(test_name)
+                else:
+                    failed_tests.append(test_name)
+            
+            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.test_status)}):")
+            for test in passed_tests:
+                self.log(f"   ✅ {test.replace('_', ' ').title()}")
+            
+            if failed_tests:
+                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.test_status)}):")
+                for test in failed_tests:
+                    self.log(f"   ❌ {test.replace('_', ' ').title()}")
+            
+            # Calculate success rate
+            success_rate = (len(passed_tests) / len(self.test_status)) * 100
+            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.test_status)})")
+            
+            # Specific analysis
+            self.log("\n🔍 VALIDATION ANALYSIS:")
+            
+            if self.sunshine_01_ship:
+                self.log(f"✅ SUNSHINE 01 Ship Found:")
+                self.log(f"   Name: '{self.sunshine_01_name}'")
+                self.log(f"   IMO: '{self.sunshine_01_imo}'")
+                self.log(f"   ID: {self.sunshine_01_id}")
+            
+            self.log(f"\n📄 Certificate Analysis:")
+            self.log(f"   Certificate 1: Ship Name 'SUNSHINE 01', IMO '9524666'")
+            if self.sunshine_01_imo == '9524666':
+                self.log(f"      ✅ IMO matches ship IMO")
+            else:
+                self.log(f"      ❌ IMO mismatch: Certificate '9524666' vs Ship '{self.sunshine_01_imo}'")
+            
+            self.log(f"   Certificate 2: Ship Name 'SUNSHINE TEST', IMO '9415313'")
+            if self.sunshine_01_imo == '9415313':
+                self.log(f"      ✅ IMO matches ship IMO (but ship name differs)")
+            else:
+                self.log(f"      ❌ IMO mismatch: Certificate '9415313' vs Ship '{self.sunshine_01_imo}'")
+            
+            # Validation status
+            self.log(f"\n🔧 VALIDATION STATUS:")
+            if self.test_status['validation_messages_found']:
+                self.log("   ✅ Validation messages found - validation logic is running")
+                
+                if self.test_status['imo_mismatch_detected']:
+                    self.log("   ✅ IMO mismatch validation working")
+                else:
+                    self.log("   ❌ IMO mismatch validation not detected")
+                
+                if self.test_status['ship_name_mismatch_detected']:
+                    self.log("   ✅ Ship name mismatch validation working")
+                else:
+                    self.log("   ❌ Ship name mismatch validation not detected")
+            else:
+                self.log("   ❌ No validation messages found - validation logic may not be running")
+            
+            # Final conclusion
+            self.log(f"\n🎯 CONCLUSION:")
+            if self.test_status['validation_messages_found'] and (self.test_status['imo_mismatch_detected'] or self.test_status['ship_name_mismatch_detected']):
+                self.log("   ✅ IMO/Ship Name validation is WORKING")
+                self.log("   The validation logic is detecting mismatches and providing appropriate messages")
+            elif self.test_status['certificate_upload_tested']:
+                self.log("   ❌ IMO/Ship Name validation is NOT WORKING as expected")
+                self.log("   ISSUES IDENTIFIED:")
+                self.log("   1. Validation logic may not be running during certificate upload")
+                self.log("   2. AI analysis may not be extracting IMO/ship name correctly")
+                self.log("   3. Validation comparison logic may have bugs")
+                self.log("   ")
+                self.log("   RECOMMENDATIONS:")
+                self.log("   1. Check AI analysis logs for IMO/ship name extraction")
+                self.log("   2. Verify validation logic is called during multi-upload endpoint")
+                self.log("   3. Debug validation comparison function")
+                self.log("   4. Ensure certificate text content is available for analysis")
+            else:
+                self.log("   ❌ Testing incomplete - unable to determine validation status")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
+            return False
+
+
+def main():
+    """Main function to run IMO/Ship Name validation debug test"""
+    print("🎯 IMO/SHIP NAME VALIDATION DEBUG TEST STARTED")
+    print("=" * 80)
+    
+    try:
+        tester = IMOValidationTester()
+        success = tester.run_imo_validation_debug_test()
+        
+        if success:
+            print("\n✅ IMO/SHIP NAME VALIDATION DEBUG TEST COMPLETED")
+        else:
+            print("\n❌ IMO/SHIP NAME VALIDATION DEBUG TEST FAILED")
+            
+    except Exception as e:
+        print(f"\n❌ CRITICAL ERROR: {str(e)}")
+        traceback.print_exc()
+    
+    # Always exit with 0 for testing purposes - we want to capture the results
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+"""
 IMO/Ship Name Validation Logic Testing Script
 FOCUS: Testing the updated execution order of IMO/Ship Name validation logic in multi-certificate upload endpoint
 
