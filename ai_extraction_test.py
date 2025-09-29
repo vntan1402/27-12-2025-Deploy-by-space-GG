@@ -415,12 +415,12 @@ Authorized Representative
                 self.log(f"   📋 Analyzing Result {i+1}:")
                 
                 # Check if AI analysis was performed
-                if 'analysis_result' in result or 'ai_analysis' in result:
+                if 'analysis' in result:
                     ai_analysis_found = True
                     self.log("      ✅ AI analysis performed")
                     
                     # Get analysis result
-                    analysis = result.get('analysis_result') or result.get('ai_analysis', {})
+                    analysis = result.get('analysis', {})
                     
                     # Store for detailed analysis
                     self.ai_extraction_results.append(analysis)
