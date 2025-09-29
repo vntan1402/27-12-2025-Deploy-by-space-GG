@@ -9140,7 +9140,9 @@ const AddRecordModal = ({
   fileViewerData,
   setFileViewerData,
   pendingManualReviews,
-  handleManualReviewAction
+  handleManualReviewAction,
+  duplicateResolutionModal,
+  handleDuplicateResolution
 }) => {
   const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
   const { user, token } = useAuth();
