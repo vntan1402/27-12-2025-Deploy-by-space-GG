@@ -321,6 +321,7 @@ Authorized Representative
                     
                     # Add form data
                     data = {
+                        'ship_id': self.test_ship_id,
                         'category': 'certificates',
                         'sensitivity_level': 'public'
                     }
