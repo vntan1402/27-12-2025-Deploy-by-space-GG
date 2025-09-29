@@ -5611,6 +5611,7 @@ async def get_certificate_form_fields_for_extraction():
     try:
         # Get certificate fields from CertificateBase model
         cert_fields = {
+            # Certificate Information
             "cert_name": "Certificate name/title (look for main certificate title or heading)",
             "cert_type": "Certificate type - MUST be one of: Full Term, Interim, Provisional, Short term, Conditional,Ins Other (choose the most appropriate from these 6 options only)",
             "cert_no": "Certificate number/identification number",
@@ -5621,8 +5622,16 @@ async def get_certificate_form_fields_for_extraction():
             "next_survey_type": "Next survey type if applicable (Annual, Intermediate, Special, Renewal, Docking, etc.). Common survey types for maritime certificates: Annual Survey (yearly inspection), Intermediate Survey (mid-term inspection typically every 2-3 years), Special Survey (comprehensive inspection every 5 years), Renewal Survey (when certificate expires), Docking Survey (dry dock inspection), Class Survey (classification society inspection)",
             "issued_by": "Issued by organization/authority (full name of the certifying body)",
             "category": "Document category (should be 'certificates' for marine certificates)",
-            "ship_name": "Ship/vessel name mentioned in the certificate",
-            "notes": "Any additional notes or remarks on the certificate"
+            "notes": "Any additional notes or remarks on the certificate",
+            
+            # Basic Ship Information
+            "ship_name": "Ship/vessel name mentioned in the certificate (look for Ship Name, Vessel Name, M.V., S.S., etc.)",
+            "imo_number": "IMO number of the vessel (look for IMO No, IMO Number, IMO:, 7-digit number starting with 9)",
+            "flag": "Flag state/country of registration (look for Flag, Flag State, Port of Registry)",
+            "class_society": "Classification society (look for Class, Classification Society, Classed by, common ones: DNV GL, Lloyd's Register, ABS, BV, RINA, CCS, KR, NK, RS, etc.)",
+            "built_year": "Year the ship was built/constructed (look for Built, Year Built, Delivered, Construction Year)",
+            "gross_tonnage": "Gross tonnage of the vessel (look for Gross Tonnage, GT, numeric value with tonnes or tons)",
+            "deadweight": "Deadweight tonnage (look for Deadweight, DWT, Dead Weight Tonnage, numeric value with tonnes or tons)"
         }
         
         # Create prompt section for AI
