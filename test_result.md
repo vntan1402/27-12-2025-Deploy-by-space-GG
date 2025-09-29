@@ -52,17 +52,17 @@
 user_problem_statement: "Implement IMO/Ship Name validation logic in multi-certificate upload with progress bar messages and concise notes. Different IMO should skip upload with error message, same IMO but different ship name should add certificate with reference note."
 
 backend:
-  - task: "IMO/Ship Name Validation Logic Removal"
+  - task: "IMO/Ship Name Validation with Progress Bar Messages"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        -working: true
+        -working: false
         -agent: "main"
-        -comment: "✅ IMO/SHIP NAME VALIDATION COMPLETELY REMOVED: Successfully removed all IMO/Ship Name validation logic from multi-certificate upload endpoint as requested by user. Changes made: 1) Removed all IMO/ship name extraction and comparison logic, 2) Removed Vietnamese error messages for IMO mismatches, 3) Removed additional_note functionality for ship name mismatches, 4) Removed validation_error structures, 5) Cleaned up all related logging and validation_error structures. The multi-certificate upload system has been restored to its original state before validation implementation."
+        -comment: "🔧 IMPLEMENTED IMO/SHIP NAME VALIDATION WITH PROGRESS BAR MESSAGES: Added enhanced validation logic in multi-certificate upload endpoint around line 4299-4351. New features: 1) IMO validation - if extracted IMO differs from ship IMO, skip upload with progress bar message 'Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại', 2) Ship name validation - if IMO matches but ship names differ, add certificate normally with progress bar message 'Giấy chứng nhận này có tên tàu khác với tàu hiện tại, thông tin chỉ để tham khảo' and add concise note 'Chỉ để tham khảo' to certificate, 3) Enhanced response structure includes progress_message and validation_note fields for frontend display, 4) Validation runs before duplicate check. Implementation complete but needs testing to verify progress bar integration and note functionality."
 
   - task: "Special Survey From Date Calculation Bug Fix"
     implemented: true
