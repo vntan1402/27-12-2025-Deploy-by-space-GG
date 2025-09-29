@@ -20,7 +20,7 @@ import time
 import traceback
 
 # Configuration - Use external URL from frontend/.env
-BACKEND_URL = "https://seacraft-portfolio.preview.emergentagent.com/api"
+BACKEND_URL = "https://certflow-2.preview.emergentagent.com/api"
 
 class AnniversaryDateDebugTester:
     def __init__(self):
