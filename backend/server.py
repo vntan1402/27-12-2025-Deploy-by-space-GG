@@ -6134,6 +6134,7 @@ def classify_by_filename(filename: str) -> dict:
             "issued_by": "Maritime Authority (Filename-based classification)",
             "ship_name": "Unknown Ship",
             "confidence": 0.1,
+            "filename": filename,  # Add filename for certificate file_name field
             "extraction_error": "Classified by filename only - AI analysis failed"
         }
     else:
