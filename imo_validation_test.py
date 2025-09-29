@@ -263,24 +263,69 @@ Annual Survey completed on: 15/01/2024
 Next Annual Survey due: 15/01/2025
             """
             
-            # Create temporary files
-            self.cert1_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-            self.cert1_file.write(cert1_content)
-            self.cert1_file.close()
-            
-            self.cert2_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-            self.cert2_file.write(cert2_content)
-            self.cert2_file.close()
-            
-            self.log("✅ Test certificate files created")
-            self.log(f"   Certificate 1: {self.cert1_file.name}")
-            self.log(f"      Ship Name: 'SUNSHINE 01' (should match)")
-            self.log(f"      IMO: '9524666' (may be incorrect)")
-            self.log(f"   Certificate 2: {self.cert2_file.name}")
-            self.log(f"      Ship Name: 'SUNSHINE TEST' (different)")
-            self.log(f"      IMO: '9415313' (may be incorrect)")
-            
-            return True
+            # Create simple PDF files using reportlab
+            try:
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter
+                import tempfile
+                
+                # Create Certificate 1 PDF
+                self.cert1_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+                c1 = canvas.Canvas(self.cert1_file.name, pagesize=letter)
+                
+                # Add text to PDF
+                y_position = 750
+                for line in cert1_content.strip().split('\n'):
+                    if line.strip():
+                        c1.drawString(50, y_position, line.strip())
+                        y_position -= 20
+                c1.save()
+                self.cert1_file.close()
+                
+                # Create Certificate 2 PDF
+                self.cert2_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+                c2 = canvas.Canvas(self.cert2_file.name, pagesize=letter)
+                
+                # Add text to PDF
+                y_position = 750
+                for line in cert2_content.strip().split('\n'):
+                    if line.strip():
+                        c2.drawString(50, y_position, line.strip())
+                        y_position -= 20
+                c2.save()
+                self.cert2_file.close()
+                
+                self.log("✅ Test certificate PDF files created")
+                self.log(f"   Certificate 1: {self.cert1_file.name}")
+                self.log(f"      Ship Name: 'SUNSHINE 01' (should match)")
+                self.log(f"      IMO: '9524666' (may be incorrect)")
+                self.log(f"   Certificate 2: {self.cert2_file.name}")
+                self.log(f"      Ship Name: 'SUNSHINE TEST' (different)")
+                self.log(f"      IMO: '9415313' (may be incorrect)")
+                
+                return True
+                
+            except ImportError:
+                self.log("⚠️ reportlab not available, creating simple text files with PDF extension")
+                
+                # Fallback: Create text files with PDF extension
+                self.cert1_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
+                self.cert1_file.write(cert1_content)
+                self.cert1_file.close()
+                
+                self.cert2_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
+                self.cert2_file.write(cert2_content)
+                self.cert2_file.close()
+                
+                self.log("✅ Test certificate files created (text with PDF extension)")
+                self.log(f"   Certificate 1: {self.cert1_file.name}")
+                self.log(f"      Ship Name: 'SUNSHINE 01' (should match)")
+                self.log(f"      IMO: '9524666' (may be incorrect)")
+                self.log(f"   Certificate 2: {self.cert2_file.name}")
+                self.log(f"      Ship Name: 'SUNSHINE TEST' (different)")
+                self.log(f"      IMO: '9415313' (may be incorrect)")
+                
+                return True
             
         except Exception as e:
             self.log(f"❌ Certificate file creation error: {str(e)}", "ERROR")
