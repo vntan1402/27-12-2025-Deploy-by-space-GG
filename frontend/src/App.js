@@ -1953,9 +1953,99 @@ const HomePage = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [contextMenu.show]);
 
-  // Multi-file upload duplicate resolution functions
-  const handleDuplicateResolution = (action) => {
-    toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
+  // Handle duplicate resolution
+  const handleDuplicateResolution = async (action) => {
+    const { fileData, analysisResult, duplicateInfo, shipId, fileIndex, fileName } = duplicateResolutionModal;
+    
+    try {
+      // Call resolve duplicate API
+      const response = await fetch(`${API}/certificates/resolve-duplicate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: action, // "skip" or "continue"
+          file_data: fileData,
+          analysis_result: analysisResult,
+          ship_id: shipId,
+          duplicate_info: duplicateInfo
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        
+        if (action === 'skip') {
+          // Update upload status to skipped
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === fileIndex 
+              ? {
+                  ...upload,
+                  status: 'skipped',
+                  progress: 100,
+                  stage: language === 'vi' ? 'Đã bỏ qua' : 'Skipped'
+                }
+              : upload
+          ));
+          
+          toast.info(language === 'vi' 
+            ? `⏩ Đã bỏ qua: ${fileName} (trùng lặp)`
+            : `⏩ Skipped: ${fileName} (duplicate)`
+          );
+          
+        } else if (action === 'continue') {
+          // Update upload status to completed
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === fileIndex 
+              ? {
+                  ...upload,
+                  status: 'completed',
+                  progress: 100,
+                  stage: language === 'vi' ? 'Hoàn thành' : 'Completed',
+                  certificate: result.certificate
+                }
+              : upload
+          ));
+          
+          toast.success(language === 'vi' 
+            ? `✅ Đã tạo: ${fileName} (bất chấp trùng lặp)`
+            : `✅ Created: ${fileName} (despite duplicate)`
+          );
+        }
+        
+        // Close modal
+        setDuplicateResolutionModal({
+          show: false,
+          fileData: null,
+          analysisResult: null,
+          duplicateInfo: null,
+          shipId: null,
+          fileIndex: -1,
+          fileName: ''
+        });
+        
+        // Refresh certificates list
+        if (selectedShip) {
+          await fetchCertificates(selectedShip.id);
+        }
+        
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(language === 'vi' 
+          ? `Lỗi xử lý trùng lặp: ${errorData.detail || response.statusText}`
+          : `Error resolving duplicate: ${errorData.detail || response.statusText}`
+        );
+      }
+      
+    } catch (error) {
+      console.error('Duplicate resolution error:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi xử lý trùng lặp'
+        : 'Error resolving duplicate'
+      );
+    }
   };
 
   // Update resolution for a specific file
