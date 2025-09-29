@@ -9316,7 +9316,7 @@ const AddRecordModal = ({
     return allowedRoles.includes(user?.role);
   };
   // Multi-file upload functions will be rebuilt from scratch
-  const handleDuplicateResolution = (action) => {
+  const handleLocalDuplicateResolution = (action) => {
     toast.info(language === 'vi' ? 'Chức năng đang được xây dựng lại' : 'Feature is being rebuilt');
   };
 
