@@ -11331,9 +11331,9 @@ const AddRecordModal = ({
                     fileIndex: -1,
                     fileName: ''
                   });
-                  // Reset certificate analyzing state when modal is closed
-                  if (setIsCertificateAnalyzing) {
-                    setIsCertificateAnalyzing(false);
+                  // Reset multi cert processing state when modal is closed
+                  if (setIsMultiCertProcessing) {
+                    setIsMultiCertProcessing(false);
                   }
                 }}
                 className="absolute top-0 right-0 text-gray-400 hover:text-gray-600 text-2xl font-bold"
