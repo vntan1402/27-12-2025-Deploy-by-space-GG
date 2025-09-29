@@ -2401,10 +2401,12 @@ async def check_certificate_duplicates(analysis_result: dict, ship_id: str) -> l
         for existing_cert in all_certificates:
             similarity = calculate_certificate_similarity(analysis_result, existing_cert)
             
-            if similarity >= 100.0:  # 100% exact match - all fields must be identical
+            if similarity >= 100.0:  # Duplicate detected: cert_no exact match + cert_name >75% similarity
                 duplicates.append({
                     'certificate': existing_cert,
-                    'similarity': similarity
+                    'similarity': similarity,
+                    'cert_no_match': True,
+                    'cert_name_similarity': similarity
                 })
         
         # Sort by similarity descending
