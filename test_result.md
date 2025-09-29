@@ -52,17 +52,17 @@
 user_problem_statement: "Implement and test IMO/Ship name validation logic during multi-certificate uploads. The system should validate extracted IMO numbers and ship names from certificates against the current ship data, blocking uploads for different IMO numbers and adding notes for ship name mismatches."
 
 backend:
-  - task: "Multi Certificate Upload API with Sequential Processing Support"
+  - task: "IMO/Ship Name Validation Logic in Multi Certificate Upload"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
-        -working: true
-        -agent: "testing"
-        -comment: "✅ MULTI CERTIFICATE UPLOAD API BACKEND SUPPORT VERIFIED: Backend API endpoint POST /api/certificates/multi-upload successfully supports the sequential processing functionality. NETWORK ACTIVITY CONFIRMED: Console logs show successful API calls to https://seacraft-portfolio.preview.emergentagent.com/api/certificates/multi-upload?ship_id=repo-pickup with proper request handling. INTEGRATION WORKING: Frontend successfully communicates with backend for multi-certificate upload processing, with proper response handling and error management. The backend correctly processes individual files and returns appropriate responses for the sequential upload workflow."
+        -working: false
+        -agent: "main"
+        -comment: "🔧 IMPLEMENTING IMO/SHIP NAME VALIDATION LOGIC: Added validation logic in multi-certificate upload endpoint around line 4297. Logic includes: 1) Extract IMO and ship name from AI analysis, 2) Compare extracted IMO with current ship IMO - block upload if different, 3) Compare extracted ship name with current ship name - add note if different but same IMO, 4) Pass additional note to certificate creation function. Implementation complete but needs testing to verify functionality."
 
   - task: "Special Survey From Date Calculation Bug Fix"
     implemented: true
