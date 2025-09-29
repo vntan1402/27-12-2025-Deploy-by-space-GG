@@ -2348,23 +2348,29 @@ const HomePage = () => {
               
             } else {
               const errorMsg = result?.error || result?.message || 'Unknown error';
+              const progressMessage = result?.progress_message || errorMsg;
+              
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
                       ...upload,
                       status: 'error',
                       progress: 100,
-                      stage: language === 'vi' ? 'Lỗi xử lý' : 'Processing error',
-                      error: errorMsg
+                      stage: progressMessage, // Use progress_message from backend for display
+                      error: errorMsg,
+                      progress_message: progressMessage // Store progress message
                     }
                   : upload
               ));
               
-              // Show individual error message
-              toast.error(language === 'vi' 
-                ? `❌ Lỗi upload: ${file.name} - ${errorMsg}`
-                : `❌ Upload error: ${file.name} - ${errorMsg}`
-              );
+              // Don't show toast for progress messages, let progress bar display it
+              // Only show toast for unexpected errors without progress_message
+              if (!result?.progress_message) {
+                toast.error(language === 'vi' 
+                  ? `❌ Lỗi upload: ${file.name} - ${errorMsg}`
+                  : `❌ Upload error: ${file.name} - ${errorMsg}`
+                );
+              }
               
               resolve({ status: 'error', file: file.name, error: errorMsg });
             }
