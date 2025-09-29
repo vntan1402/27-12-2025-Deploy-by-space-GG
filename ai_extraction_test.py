@@ -310,7 +310,7 @@ Authorized Representative
                 return False
             
             try:
-                endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+                endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={self.test_ship_id}"
                 self.log(f"   POST {endpoint}")
                 
                 # Prepare file for upload
@@ -319,18 +319,10 @@ Authorized Representative
                         'files': ('test_certificate.txt', f, 'text/plain')
                     }
                     
-                    # Add form data
-                    data = {
-                        'ship_id': self.test_ship_id,
-                        'category': 'certificates',
-                        'sensitivity_level': 'public'
-                    }
-                    
                     self.log("   Uploading test certificate with ship information...")
                     response = requests.post(
                         endpoint,
                         files=files,
-                        data=data,
                         headers=self.get_headers(),
                         timeout=120  # Longer timeout for AI processing
                     )
