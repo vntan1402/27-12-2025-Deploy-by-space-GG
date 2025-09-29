@@ -929,8 +929,12 @@ const HomePage = () => {
   // Duplicate resolution modal for multi-cert upload
   const [duplicateResolutionModal, setDuplicateResolutionModal] = useState({
     show: false,
-    files: [],
-    shipId: null
+    fileData: null,
+    analysisResult: null,
+    duplicateInfo: null,
+    shipId: null,
+    fileIndex: -1,
+    fileName: ''
   });
   const navigate = useNavigate();
   
