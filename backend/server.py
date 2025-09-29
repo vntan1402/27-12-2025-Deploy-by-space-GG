@@ -5029,8 +5029,17 @@ async def analyze_with_emergent_gemini(file_content: bytes, prompt: str, api_key
             if json_match:
                 try:
                     analysis_result = json.loads(json_match.group())
-                    # Normalize the response structure to handle nested format
-                    normalized_result = normalize_ai_analysis_response(analysis_result)
+                    
+                    # Check if this is certificate analysis (has certificate fields) or ship analysis
+                    has_cert_fields = any(key in analysis_result for key in ['CERT_NAME', 'cert_name', 'CERTIFICATE_INFORMATION'])
+                    
+                    if has_cert_fields:
+                        # This is certificate analysis - normalize certificate response
+                        normalized_result = normalize_certificate_analysis_response(analysis_result)
+                    else:
+                        # This is ship analysis - normalize ship response
+                        normalized_result = normalize_ai_analysis_response(analysis_result)
+                    
                     return normalized_result
                 except json.JSONDecodeError:
                     pass
