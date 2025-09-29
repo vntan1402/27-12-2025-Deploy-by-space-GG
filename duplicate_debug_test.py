@@ -232,7 +232,7 @@ Date: {self.test_cert_data['issue_date']}
                 self.log("   ❌ No SUNSHINE 01 ship ID available")
                 return False
             
-            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={self.sunshine_ship_id}"
             self.log(f"   POST {endpoint}")
             
             # Prepare file for upload
@@ -241,14 +241,9 @@ Date: {self.test_cert_data['issue_date']}
                     'files': (f'test_certificate_{upload_number}.txt', f, 'text/plain')
                 }
                 
-                data = {
-                    'ship_id': self.sunshine_ship_id
-                }
-                
                 response = requests.post(
                     endpoint,
                     files=files,
-                    data=data,
                     headers=self.get_headers(),
                     timeout=120  # Longer timeout for AI analysis
                 )
