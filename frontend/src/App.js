@@ -11492,6 +11492,146 @@ const AddRecordModal = ({
         </div>
       )}
 
+      {/* Duplicate Resolution Modal */}
+      {duplicateResolutionModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-orange-600 mb-2">
+                ⚠️ {language === 'vi' ? 'Phát hiện chứng chỉ trùng lặp' : 'Duplicate Certificate Detected'}
+              </h3>
+              <p className="text-gray-600">
+                {language === 'vi' 
+                  ? 'Hệ thống phát hiện chứng chỉ có thể trùng lặp. Vui lòng xem xét thông tin bên dưới và quyết định:'
+                  : 'System detected a potential duplicate certificate. Please review the information below and decide:'
+                }
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {/* Existing Certificate */}
+              <div className="border border-red-200 rounded-lg p-4 bg-red-50">
+                <h4 className="font-bold text-red-800 mb-3">
+                  📋 {language === 'vi' ? 'Chứng chỉ đã tồn tại' : 'Existing Certificate'}
+                </h4>
+                {duplicateResolutionModal.duplicateInfo?.existing_certificate && (
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Tên:' : 'Name:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.existing_certificate.cert_name}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Số chứng chỉ:' : 'Certificate No:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.existing_certificate.cert_no}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Loại:' : 'Type:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.existing_certificate.cert_type}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}</span>
+                      <p className="text-gray-900">{formatDate(duplicateResolutionModal.duplicateInfo.existing_certificate.issue_date)}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span>
+                      <p className="text-gray-900">{formatDate(duplicateResolutionModal.duplicateInfo.existing_certificate.valid_date)}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.existing_certificate.issued_by || 'N/A'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* New Certificate */}
+              <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                <h4 className="font-bold text-blue-800 mb-3">
+                  📄 {language === 'vi' ? 'Chứng chỉ mới (đang upload)' : 'New Certificate (uploading)'}
+                </h4>
+                {duplicateResolutionModal.duplicateInfo?.new_certificate && (
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Tên:' : 'Name:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.new_certificate.cert_name}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Số chứng chỉ:' : 'Certificate No:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.new_certificate.cert_no}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Loại:' : 'Type:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.new_certificate.cert_type}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}</span>
+                      <p className="text-gray-900">{formatDate(duplicateResolutionModal.duplicateInfo.new_certificate.issue_date)}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span>
+                      <p className="text-gray-900">{formatDate(duplicateResolutionModal.duplicateInfo.new_certificate.valid_date)}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">{language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}</span>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.new_certificate.issued_by || 'N/A'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Similarity Info */}
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-bold text-yellow-800 mb-2">
+                📊 {language === 'vi' ? 'Thông tin trùng lặp' : 'Duplicate Information'}
+              </h4>
+              <p className="text-sm text-yellow-700">
+                {language === 'vi' ? 'Độ tương đồng:' : 'Similarity:'} 
+                <span className="font-bold ml-1">{duplicateResolutionModal.duplicateInfo?.similarity || 0}%</span>
+              </p>
+              <p className="text-xs text-yellow-600 mt-1">
+                {language === 'vi' 
+                  ? 'Số chứng chỉ khớp chính xác, tên chứng chỉ có độ tương đồng >75%'
+                  : 'Certificate number matches exactly, certificate name similarity >75%'
+                }
+              </p>
+            </div>
+
+            {/* File Info */}
+            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 className="font-bold text-gray-800 mb-2">
+                📁 {language === 'vi' ? 'Thông tin file' : 'File Information'}
+              </h4>
+              <p className="text-sm text-gray-700">
+                <span className="font-medium">{language === 'vi' ? 'Tên file:' : 'Filename:'}</span> {duplicateResolutionModal.fileName}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-end">
+              <button
+                onClick={() => handleDuplicateResolution('skip')}
+                className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 font-medium"
+              >
+                ⏩ {language === 'vi' ? 'Skip (Bỏ qua)' : 'Skip'}
+                <div className="text-xs opacity-75 mt-1">
+                  {language === 'vi' ? 'Không upload, không tạo record' : 'Don\'t upload, don\'t create record'}
+                </div>
+              </button>
+              <button
+                onClick={() => handleDuplicateResolution('continue')}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 font-medium"
+              >
+                ✅ {language === 'vi' ? 'Continue (Tiếp tục)' : 'Continue'}
+                <div className="text-xs opacity-75 mt-1">
+                  {language === 'vi' ? 'Tiếp tục tạo record' : 'Continue creating record'}
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ship Confirmation Modal */}
       {showShipConfirmModal && pendingShipData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
