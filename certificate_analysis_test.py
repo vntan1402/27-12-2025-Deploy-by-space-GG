@@ -45,7 +45,7 @@ try:
         raise Exception("Internal URL not working")
 except:
     # Fallback to external URL
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fleetops-7.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://seacraft-portfolio.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
 class CertificateAnalysisTester:

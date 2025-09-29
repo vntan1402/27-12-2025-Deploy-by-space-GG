@@ -1,0 +1,100 @@
+<analysis>
+The previous AI engineer's work primarily focused on iteratively building and refining the Ship Management System. Initial efforts included environment setup, AI integration with Google Gemini for certificate analysis, and resolving various bugs related to Google Drive, company management, and multi-certificate uploads. A significant phase involved implementing and then removing an enhanced survey type determination logic, as per user request to restart that functionality. Subsequently, the engineer embarked on a complex task of implementing a new Next Survey and Next Survey Type logic, adhering to detailed IMO regulations. This also involved extensive debugging of frontend runtime errors, state management issues related to certificate uploads, duplicate detection, and incorrect AI classification of marine certificates. The work is currently focused on enhancing multi-certificate upload logic based on IMO number and ship name comparisons.
+</analysis>
+
+<product_requirements>
+The application is a Ship Management System for maritime operations, managing document portfolios, crew records, and compliance. Its main goal is efficient management and AI-powered analysis of ship certificates.
+
+Key features implemented or requested:
+- **Core Functionality**: React frontend, FastAPI backend, MongoDB, supporting multi-certificate uploads, survey cycle calculations, docking date extraction, and compliance.
+- **AI-Powered Data Extraction**: Auto-filling ship details from PDF certificates using Google Gemini.
+- **Google Drive Integration**: Automatic folder creation for companies/ships (with issues to be resolved).
+- **Company Management**: Delete companies with validation, improved error reporting.
+- **Asynchronous Ship Creation**: Immediate ship creation, background Google Drive folder creation with polling.
+- **Multi-Certificate Upload**: Staggered, concurrent uploads; improved error reporting.
+- **Smart Certificate Review**: UI for non-marine certificate review with view/skip/confirm actions and side-by-side AI analysis.
+- **Last Intermediate Survey**: Added field to backend models, AI extraction, and frontend.
+- **Next Survey Logic (New Implementation)**: Define Next Survey (nearest upcoming Annual Survey date, dd/MM/yyyy, with ±3M window/±3T for Vietnamese, or valid date for Condition certs) and Next Survey Type (1st, 2nd, 3rd, 4th Annual Survey, or Special Survey, with Intermediate Survey considerations). Special Survey window is -3M. Certificates without valid dates have no Next Survey.
+- **Duplicate Certificate Handling**: Improve  matching (75% similarity). Display a dialog with duplicate info and Skip/Continue options during multi-upload.
+- **Multi-Cert Upload (IMO/Ship Name Check)**: If IMO numbers are identical, add certificate, adding a note Giấy chứng nhận này chỉ để tham khảo do tên tàu khác tên hiện tại if ship names differ. If IMO numbers are different, prevent upload with message Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại.
+</product_requirements>
+
+<key_technical_concepts>
+- **Full-stack Architecture**: React, FastAPI, MongoDB.
+- **AI/LLM Integration**: Google Gemini via Emergent LLM Key for OCR and data extraction.
+- **Asynchronous Processing**: FastAPI  for non-blocking operations.
+- **Data Modeling**: Pydantic models for FastAPI, BaseModel for MongoDB.
+- **Frontend State Management**: , ,  for UI logic.
+- **Date/Time Handling**: Timezone-aware operations in Python (, ).
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a standard full-stack architecture with a React frontend, a FastAPI backend, and a MongoDB database.
+
+
+
+-   **/app/backend/server.py**:
+    -   **Summary**: Core backend logic, FastAPI setup, API routes, Pydantic models, MongoDB interaction, authentication, AI integration, Google Drive integration.
+    -   **Changes Made**:
+        -   Enhanced  logic (later removed).
+        -   Removed  and all associated endpoints as requested.
+        -   Added new API endpoint  for the new Next Survey logic.
+        -   Updated  to handle  window as .
+        -   Added custom Pydantic  for  to handle  and  string formats.
+        -   Updated  to return .
+        -   Modified  to use 75% match for .
+        -   Updated  logic to  status.
+        -   Added  endpoint.
+        -   Added  to correctly extract certificate fields from AI response.
+        -   Modified  (called by ) to handle certificate analysis correctly by using a specific certificate prompt.
+        -   Systematically fixed  object has no attribute  errors by ensuring  calls return empty strings instead of  where  is applied.
+        -   Ongoing: Implementing IMO/Ship name validation logic within multi-cert upload.
+
+-   **/app/frontend/src/App.js**:
+    -   **Summary**: Main React component for UI, state, routing, and API calls.
+    -   **Changes Made**:
+        -   Updated  to production preview endpoint.
+        -   Changed Update Survey Types button text to Update Next Survey, including comments and tooltips.
+        -   Updated  to call the new  endpoint.
+        -   Modified Certificate List display to show  with window info.
+        -   Added new color styling for various  values.
+        -   Changed display for empty  to - instead of Not specified.
+        -   Added state (, ) and UI for duplicate resolution dialog.
+        -   Resolved  by passing  and  as props to  and removing internal duplicate state definitions.
+        -   Resolved  by renaming internal placeholder function in  to .
+        -   Resolved  by creating inline  function within .
+        -   Fixed Add Certificate button stuck in Processing state by ensuring  is called after duplicate resolution, and correctly passing  as a prop to .
+
+-   **/app/backend/.env**:
+    -   **Summary**: Environment variables for backend.
+    -   **Changes Made**: Included , , .
+
+-   **/app/frontend/.env**:
+    -   **Summary**: Environment variables for frontend.
+    -   **Changes Made**:  updated to production preview URL.
+
+-   **/app/tests/ (various scripts)**:
+    -   **Summary**: Temporary scripts created for debugging and testing backend logic.
+    -   **Changes Made**: Created , , , , , , , , , , , . These were primarily for local testing and often removed or cleaned up.
+</code_architecture>
+
+<pending_tasks>
+-   Fix the Google Apps Script URL issue for Google Drive folder creation.
+-   Complete the full frontend testing of the background task notification flow for Google Drive folder creation after a ship is added.
+-   Address the remaining frontend issue where clicking the delete company button from the UI does not trigger the API call.
+-   Implement the IMO/Ship name validation logic during multi-certificate upload.
+</pending_tasks>
+
+<current_work>
+Immediately before this summary request, the previous AI engineer was working on implementing a new feature for multi-certificate uploads. The user requested to add logic to check the IMO number and Ship Name during the upload process.
+
+Specifically:
+1.  If the extracted IMO number from the certificate is the same as the ship's existing IMO number, the certificate should be added normally. However, if the ship name extracted from the certificate is *different* from the ship's current name, a note should be added to the certificate's Note field: Giấy chứng nhận này chỉ để tham khảo do tên tàu khác tên hiện tại (This certificate is for reference only as the ship name is different from the current name).
+2.  If the extracted IMO number is *different* from the ship's existing IMO number, the upload should be stopped, and the user should be notified with the message: Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại (Certificate of another ship, cannot be saved to current ship's data).
+
+The engineer has located the  endpoint in  (line 4152) and is currently examining the section that handles AI analysis and certificate creation for each file within this multi-upload process. The next step is to integrate the IMO and Ship Name comparison logic at this point in the backend.
+</current_work>
+
+<optional_next_step>
+Integrate IMO and Ship Name validation logic into the  backend endpoint.
+</optional_next_step>
