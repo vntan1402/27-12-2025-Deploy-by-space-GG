@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Ship Management System
-FOCUS: Testing the two specific fixes for "Add Ship from Certificate" functionality
+Duplicate Certificate Detection Debug Test
+FOCUS: Debug duplicate check logic for certificate uploads
 
-FIX 1: ENHANCED NEXT DOCKING CALCULATION IN AI ANALYSIS
-- Updated post-processing logic to handle "null" string values properly
-- Added better null checking for last_docking and special_survey_to_date
-- Test the /api/analyze-ship-certificate endpoint to see if Next Docking is now being calculated
+REVIEW REQUEST REQUIREMENTS:
+1. Test upload same certificate twice to SUNSHINE 01 ship
+2. Monitor AI analysis extraction of 5 fields: cert_name, cert_no, issue_date, valid_date, last_endorse
+3. Monitor backend logs for enhanced duplicate check patterns
+4. Debug why duplicate check is not detecting duplicates
+5. Verify 5-field comparison logic execution
+6. Use admin1/123456 authentication
 
-FIX 2: ENHANCED DATE PARSING FOR MONTH/YEAR FORMATS  
-- Updated parse_date_string to handle formats like "NOV 2020", "NOV. 2020", "DEC 2020"
-- Test if Last Docking dates are now properly parsed from month/year only formats
+EXPECTED BEHAVIOR:
+- Upload 1: Success, certificate created
+- Upload 2: Should return "pending_duplicate_resolution" status
 
-TEST SCENARIOS:
-1. Upload a test certificate with month/year docking dates like "NOV 2020", "DEC 2022"
-2. Verify Last Docking dates are parsed correctly without adding artificial days
-3. Verify Next Docking is now being auto-calculated during AI analysis
-4. Verify Special Survey From Date is being auto-calculated (should already work)
+DEBUG FOCUS:
+- AI data extraction quality
+- 5-field comparison logic execution
+- Missing data causing false negatives
 """
 
 import requests
