@@ -159,6 +159,8 @@ class AIExtractionTester:
     
     def get_headers(self):
         """Get authentication headers"""
+        if not self.auth_token:
+            return {}
         return {"Authorization": f"Bearer {self.auth_token}"}
     
     def test_ai_config_accessibility(self):
