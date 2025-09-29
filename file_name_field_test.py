@@ -402,7 +402,7 @@ class FileNameFieldTester:
                 self.log("   ❌ No SUNSHINE 01 ship ID available")
                 return False
             
-            # Create a test PDF file
+            # Create a test PDF file with marine certificate content
             test_content = b"""
             %PDF-1.4
             1 0 obj
@@ -428,13 +428,25 @@ class FileNameFieldTester:
             endobj
             4 0 obj
             <<
-            /Length 44
+            /Length 200
             >>
             stream
             BT
             /F1 12 Tf
             100 700 Td
-            (Test Certificate for File Name Field) Tj
+            (CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE) Tj
+            0 -20 Td
+            (Certificate No: CSSC-2025-001) Tj
+            0 -20 Td
+            (Ship Name: SUNSHINE 01) Tj
+            0 -20 Td
+            (IMO Number: 9415313) Tj
+            0 -20 Td
+            (Issue Date: 15/01/2025) Tj
+            0 -20 Td
+            (Valid Until: 15/01/2030) Tj
+            0 -20 Td
+            (Issued by: Panama Maritime Documentation Services) Tj
             ET
             endstream
             endobj
@@ -451,7 +463,7 @@ class FileNameFieldTester:
             /Root 1 0 R
             >>
             startxref
-            299
+            456
             %%EOF
             """
             
