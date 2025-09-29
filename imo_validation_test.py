@@ -343,7 +343,7 @@ Next Annual Survey due: 15/01/2025
             # Prepare file for upload using the correct multi-upload endpoint
             with open(cert_file_path, 'rb') as f:
                 files = [
-                    ('files', (f"test_certificate_{cert_description.replace(' ', '_')}.txt", f, 'text/plain'))
+                    ('files', (f"test_certificate_{cert_description.replace(' ', '_')}.pdf", f, 'application/pdf'))
                 ]
                 
                 # Use query parameter for ship_id in multi-upload endpoint
