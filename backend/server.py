@@ -4475,9 +4475,9 @@ async def analyze_ship_certificate(
             "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
         }
         
-        # Process PDF with enhanced OCR support
+        # Process PDF with enhanced OCR support for CERTIFICATE analysis
         try:
-            analysis_result = await analyze_ship_document_with_ai(file_content, file.filename, file.content_type, ai_config)
+            analysis_result = await analyze_document_with_ai(file_content, file.filename, file.content_type, ai_config)
                     
         except Exception as processing_error:
             logger.error(f"❌ PDF processing failed: {str(processing_error)}")
