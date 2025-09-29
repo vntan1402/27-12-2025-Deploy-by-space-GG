@@ -1130,37 +1130,46 @@ async def enhance_certificate_response(cert_dict: dict) -> dict:
         return cert_dict
 
 def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
-    """Calculate similarity percentage between two certificates - checks only Certificate No and Cert Name"""
+    """
+    Calculate similarity percentage between two certificates
+    - Certificate No (cert_no): must match exactly (100%)
+    - Certificate Name (cert_name): needs >75% similarity
+    """
     try:
-        # Define the TWO key fields that must match for duplicate detection
-        key_fields = ['cert_no', 'cert_name']
+        cert_no1 = cert1.get('cert_no')
+        cert_no2 = cert2.get('cert_no')
+        cert_name1 = cert1.get('cert_name')
+        cert_name2 = cert2.get('cert_name')
         
-        fields_matched = 0
-        fields_checked = 0
-        
-        for field in key_fields:
-            val1 = cert1.get(field)
-            val2 = cert2.get(field)
-            
-            # Skip if either value is None or empty
-            if not val1 or not val2:
-                continue
-                
-            fields_checked += 1
-            
-            # String comparison - must be exactly identical (case insensitive)
-            if str(val1).lower().strip() == str(val2).lower().strip():
-                fields_matched += 1
-        
-        # Need both Certificate No and Cert Name to be checked
-        if fields_checked < 2:
+        # Both certificates must have cert_no to compare
+        if not cert_no1 or not cert_no2:
             return 0.0
         
-        # Return 100% only if BOTH cert_no and cert_name match exactly
-        if fields_matched == 2:
-            return 100.0
+        # Certificate Number must match exactly (case insensitive)
+        cert_no_match = str(cert_no1).lower().strip() == str(cert_no2).lower().strip()
+        
+        if not cert_no_match:
+            return 0.0  # If cert_no doesn't match, not a duplicate
+        
+        # If cert_no matches but no cert_name available, return 50%
+        if not cert_name1 or not cert_name2:
+            return 50.0
+        
+        # Calculate certificate name similarity using string similarity
+        name_similarity = calculate_string_similarity(
+            str(cert_name1).lower().strip(), 
+            str(cert_name2).lower().strip()
+        )
+        
+        # Convert to percentage (0-100)
+        name_similarity_percent = name_similarity * 100
+        
+        # Final similarity: cert_no must match (100%) + cert_name similarity
+        # If cert_no matches and cert_name >75%, consider as duplicate
+        if name_similarity_percent >= 75.0:
+            return 100.0  # Consider as duplicate
         else:
-            return 0.0
+            return name_similarity_percent  # Not enough similarity
         
     except Exception as e:
         logger.error(f"Error calculating certificate similarity: {e}")
