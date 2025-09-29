@@ -3754,7 +3754,21 @@ const HomePage = () => {
                                       {cert.cert_type || 'Unknown'}
                                     </span>
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2 font-mono">{cert.cert_no}</td>
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 font-mono relative group cursor-help"
+                                    title={cert.extracted_ship_name ? `Ship Name: ${cert.extracted_ship_name}` : 'No ship name extracted'}
+                                  >
+                                    {cert.cert_no}
+                                    {/* Tooltip */}
+                                    {cert.extracted_ship_name && (
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                                        <div className="font-medium">Ship Name from Certificate:</div>
+                                        <div className="text-blue-200">{cert.extracted_ship_name}</div>
+                                        {/* Arrow */}
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                      </div>
+                                    )}
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.issue_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">{formatDate(cert.valid_date)}</td>
                                   <td className="border border-gray-300 px-4 py-2">
