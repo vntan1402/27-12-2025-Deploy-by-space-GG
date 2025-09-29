@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Update frontend to display IMO validation error messages in Progress bar instead of toast notifications. When uploading certificate with different IMO, show 'Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại' message in the progress bar stage."
+user_problem_statement: "Add hover tooltip to Certificate No column showing extracted ship name from AI analysis. When hovering over Certificate No, display ship name that was extracted from the certificate PDF by AI."
 
 backend:
   - task: "IMO/Ship Name Validation with Progress Bar Messages"
