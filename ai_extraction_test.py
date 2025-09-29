@@ -233,7 +233,7 @@ class AIExtractionTester:
             return False
     
     def create_test_certificate_file(self):
-        """Create a test certificate file with ship information for AI extraction"""
+        """Create a test certificate PDF file with ship information for AI extraction"""
         try:
             # Create a realistic certificate content with ship information
             certificate_content = f"""
@@ -275,12 +275,42 @@ PANAMA MARITIME DOCUMENTATION SERVICES
 Authorized Representative
 """
             
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-            temp_file.write(certificate_content)
-            temp_file.close()
+            # Try to create a simple PDF using reportlab if available, otherwise create a simple text file with PDF extension
+            try:
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter
+                
+                # Create temporary PDF file
+                temp_file = tempfile.NamedTemporaryFile(mode='w+b', suffix='.pdf', delete=False)
+                temp_file.close()
+                
+                # Create PDF
+                c = canvas.Canvas(temp_file.name, pagesize=letter)
+                width, height = letter
+                
+                # Add content to PDF
+                y_position = height - 50
+                for line in certificate_content.strip().split('\n'):
+                    if line.strip():
+                        c.drawString(50, y_position, line.strip())
+                        y_position -= 20
+                        if y_position < 50:
+                            c.showPage()
+                            y_position = height - 50
+                
+                c.save()
+                
+                self.log(f"✅ Created test certificate PDF file: {temp_file.name}")
+                
+            except ImportError:
+                # Fallback: create a simple text file with PDF extension (for testing purposes)
+                temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
+                temp_file.write(certificate_content)
+                temp_file.close()
+                
+                self.log(f"✅ Created test certificate file (text with PDF extension): {temp_file.name}")
+                self.log("   ⚠️ Note: Using text file with PDF extension due to missing reportlab")
             
-            self.log(f"✅ Created test certificate file: {temp_file.name}")
             self.log("   Certificate contains ship information:")
             self.log(f"      Ship Name: {self.test_ship_name}")
             self.log("      IMO Number: 9415313")
