@@ -11271,19 +11271,19 @@ const AddRecordModal = ({
             {/* Action buttons */}
             <div className="flex justify-end space-x-3">
               <button
-                onClick={() => handleDuplicateResolution('cancel')}
+                onClick={() => handleLocalDuplicateResolution('cancel')}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
               >
                 {language === 'vi' ? 'Hủy' : 'Cancel'}
               </button>
               <button
-                onClick={() => handleDuplicateResolution('overwrite')}
+                onClick={() => handleLocalDuplicateResolution('overwrite')}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all"
               >
                 {language === 'vi' ? 'Ghi đè' : 'Overwrite'}
               </button>
               <button
-                onClick={() => handleDuplicateResolution('keep_both')}
+                onClick={() => handleLocalDuplicateResolution('keep_both')}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
               >
                 {language === 'vi' ? 'Giữ cả hai' : 'Keep Both'}
