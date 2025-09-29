@@ -182,6 +182,8 @@ class DuplicateCheckDebugTester:
             self.log("📄 Creating test certificate file...")
             
             # Create a simple PDF-like content for testing
+            # Since we can't create a real PDF easily, let's create a fake PDF file
+            # that might pass the file type check
             certificate_content = f"""
 CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
 
@@ -209,8 +211,8 @@ Date: {self.test_cert_data['issue_date']}
 {self.test_cert_data['issued_by']}
 """
             
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+            # Create temporary file with PDF extension
+            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
             temp_file.write(certificate_content)
             temp_file.close()
             
