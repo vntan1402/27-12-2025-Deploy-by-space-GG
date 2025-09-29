@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Enhanced AI extraction prompt to include Basic Ship Information fields: Ship Name, Class Society, Flag, IMO, Built Year, Gross Tonnage, Deadweight. Also maintain enhanced 5-field duplicate detection and IMO/Ship Name validation functionality."
+user_problem_statement: "Update frontend to display IMO validation error messages in Progress bar instead of toast notifications. When uploading certificate with different IMO, show 'Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại' message in the progress bar stage."
 
 backend:
   - task: "IMO/Ship Name Validation with Progress Bar Messages"
