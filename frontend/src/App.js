@@ -11335,7 +11335,7 @@ const AddRecordModal = ({
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span>
-                      <p className="text-gray-900">{formatDate(duplicateResolutionModal.duplicateInfo.existing_certificate.valid_date)}</p>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.existing_certificate.valid_date ? new Date(duplicateResolutionModal.duplicateInfo.existing_certificate.valid_date).toLocaleDateString('vi-VN') : '-'}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">{language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}</span>
