@@ -381,6 +381,8 @@ class CertificateResponse(BaseModel):
     issued_by_abbreviation: Optional[str] = None  # NEW: Organization abbreviation
     has_notes: Optional[bool] = None  # NEW: Flag to indicate if certificate has notes
     next_survey_display: Optional[str] = None  # NEW: Display format for next survey with window
+    extracted_ship_name: Optional[str] = None  # NEW: Ship name extracted from certificate by AI
+    text_content: Optional[str] = None  # NEW: Text content extracted from certificate for re-analysis
     
     @field_validator('next_survey', mode='before')
     @classmethod
