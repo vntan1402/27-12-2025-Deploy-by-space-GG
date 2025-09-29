@@ -4296,6 +4296,59 @@ async def multi_cert_upload_for_ship(
                 
                 summary["marine_certificates"] += 1
                 
+                # IMO and Ship Name Validation Logic
+                # Extract IMO and ship name from AI analysis result
+                extracted_imo = analysis_result.get('imo_number', '').strip()
+                extracted_ship_name = analysis_result.get('ship_name', '').strip()
+                current_ship_imo = ship.get('imo', '').strip()
+                current_ship_name = ship.get('name', '').strip()
+                
+                logger.info(f"🔍 IMO/Ship Name Validation for {file.filename}:")
+                logger.info(f"   Extracted IMO: '{extracted_imo}'")
+                logger.info(f"   Current Ship IMO: '{current_ship_imo}'")
+                logger.info(f"   Extracted Ship Name: '{extracted_ship_name}'")
+                logger.info(f"   Current Ship Name: '{current_ship_name}'")
+                
+                # IMO and Ship Name validation
+                if extracted_imo and current_ship_imo:
+                    # Compare IMO numbers (case-insensitive, remove spaces)
+                    extracted_imo_clean = extracted_imo.replace(' ', '').upper()
+                    current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
+                    
+                    if extracted_imo_clean != current_ship_imo_clean:
+                        # Different IMO numbers - block upload
+                        logger.warning(f"❌ IMO mismatch for {file.filename}: extracted='{extracted_imo}', current='{current_ship_imo}'")
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
+                            "analysis": analysis_result,
+                            "is_marine": True,
+                            "validation_error": {
+                                "type": "imo_mismatch",
+                                "extracted_imo": extracted_imo,
+                                "current_ship_imo": current_ship_imo,
+                                "extracted_ship_name": extracted_ship_name,
+                                "current_ship_name": current_ship_name
+                            }
+                        })
+                        summary["errors"] += 1
+                        summary["error_files"].append({
+                            "filename": file.filename,
+                            "error": "IMO number mismatch - certificate belongs to different ship"
+                        })
+                        continue
+                    
+                    # Same IMO - check ship name for note
+                    additional_note = None
+                    if extracted_ship_name and current_ship_name:
+                        # Exact match comparison (case-insensitive)
+                        if extracted_ship_name.upper() != current_ship_name.upper():
+                            additional_note = "Giấy chứng nhận này chỉ để tham khảo do tên tàu khác tên hiện tại"
+                            logger.info(f"⚠️ Ship name mismatch for {file.filename}: extracted='{extracted_ship_name}', current='{current_ship_name}' - adding note")
+                        else:
+                            logger.info(f"✅ Ship name matches for {file.filename}")
+                    
                 # Check for duplicates based on cert_no and cert_name
                 duplicates = await check_certificate_duplicates(analysis_result, ship_id)
                 
@@ -4330,7 +4383,8 @@ async def multi_cert_upload_for_ship(
                             },
                             "similarity": duplicates[0]['similarity']
                         },
-                        "upload_result": None
+                        "upload_result": None,
+                        "additional_note": additional_note  # Pass the note for later use
                     })
                     continue
                 
