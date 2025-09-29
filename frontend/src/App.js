@@ -2250,30 +2250,36 @@ const HomePage = () => {
             const result = results[0]; // Should be only one result
             
             if (result && (result.status === 'completed' || result.status === 'success' || result.status === 'duplicate')) {
+              const progressMessage = result?.progress_message;
+              const defaultStage = language === 'vi' ? 'Hoàn thành' : 'Completed';
+              
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
                       ...upload,
                       status: 'completed',
                       progress: 100,
-                      stage: language === 'vi' ? 'Hoàn thành' : 'Completed',
+                      stage: progressMessage || defaultStage, // Use progress_message if available
                       analysis: result.analysis,
                       upload: result.upload,
                       certificate: result.certificate,
-                      isMarine: result.is_marine
+                      isMarine: result.is_marine,
+                      progress_message: progressMessage // Store progress message
                     }
                   : upload
               ));
               
-              // Show individual success message for each file with status context
-              const statusMessage = result.status === 'duplicate' 
-                ? (language === 'vi' ? ' (Đã tồn tại)' : ' (Already exists)')
-                : '';
-              
-              toast.success(language === 'vi' 
-                ? `✅ Upload thành công: ${file.name}${statusMessage} (${i + 1}/${totalFiles})`
-                : `✅ Upload successful: ${file.name}${statusMessage} (${i + 1}/${totalFiles})`
-              );
+              // Show success toast only if no progress_message (normal success case)
+              if (!progressMessage) {
+                const statusMessage = result.status === 'duplicate' 
+                  ? (language === 'vi' ? ' (Đã tồn tại)' : ' (Already exists)')
+                  : '';
+                
+                toast.success(language === 'vi' 
+                  ? `✅ Upload thành công: ${file.name}${statusMessage} (${i + 1}/${totalFiles})`
+                  : `✅ Upload successful: ${file.name}${statusMessage} (${i + 1}/${totalFiles})`
+                );
+              }
               
               resolve({ status: 'success', file: file.name });
               
