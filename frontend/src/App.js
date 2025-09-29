@@ -4239,6 +4239,7 @@ const HomePage = () => {
           handleManualReviewAction={handleManualReviewAction}
           duplicateResolutionModal={duplicateResolutionModal}
           handleDuplicateResolution={handleDuplicateResolution}
+          setIsMultiCertProcessing={setIsMultiCertProcessing}
         />
       )}
 
