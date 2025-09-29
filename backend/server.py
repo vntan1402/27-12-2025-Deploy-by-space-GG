@@ -2422,7 +2422,7 @@ async def check_certificate_duplicates(analysis_result: dict, ship_id: str) -> l
 async def check_ship_name_mismatch(analysis_result: dict, current_ship_id: str) -> dict:
     """Check if AI-detected ship name matches current selected ship"""
     try:
-        ai_ship_name = analysis_result.get('ship_name', '').strip()
+        ai_ship_name = (analysis_result.get('ship_name') or '').strip()
         if not ai_ship_name or ai_ship_name.upper() in ['UNKNOWN_SHIP', 'UNKNOWN SHIP', '']:
             return {"mismatch": False}
         
