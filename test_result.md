@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the updated 'Update Next Survey' functionality in the Certificate List. I have just implemented a new Next Survey calculation system based on IMO regulations and 5-year survey cycles."
+user_problem_statement: "Implement and test IMO/Ship name validation logic during multi-certificate uploads. The system should validate extracted IMO numbers and ship names from certificates against the current ship data, blocking uploads for different IMO numbers and adding notes for ship name mismatches."
 
 backend:
   - task: "Multi Certificate Upload API with Sequential Processing Support"
