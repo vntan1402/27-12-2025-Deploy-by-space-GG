@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Add hover tooltip to Certificate No column showing extracted ship name from AI analysis. When hovering over Certificate No, display ship name that was extracted from the certificate PDF by AI."
+user_problem_statement: "Add hover tooltip to No. column (first column) showing original file name. When hovering over the No. column in certificate table, display the original file name that was uploaded."
 
 frontend:
   - task: "Certificate No Hover Tooltip Functionality"
