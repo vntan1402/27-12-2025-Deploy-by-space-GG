@@ -6549,6 +6549,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             'google_drive_folder_path': upload_result.get('folder_path'),
             'file_name': analysis_result.get('filename'),
             'ship_name': ship.get('name'),
+            'extracted_ship_name': analysis_result.get('ship_name'),  # Ship name extracted from certificate by AI
             'notes': notes,  # Add notes field
             'created_at': datetime.now(timezone.utc)
         }
