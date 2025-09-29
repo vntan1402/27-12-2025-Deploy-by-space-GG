@@ -6530,6 +6530,12 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             logger.warning(f"Ship not found with ID: {ship_id}")
             return {"success": False, "error": f"Ship with ID '{ship_id}' not found"}
         
+        # Debug logging for extracted_ship_name
+        extracted_ship_name = analysis_result.get('ship_name')
+        logger.info(f"🔍 AI Analysis Debug - Certificate Creation:")
+        logger.info(f"   analysis_result.get('ship_name'): {extracted_ship_name}")
+        logger.info(f"   analysis_result keys: {list(analysis_result.keys())}")
+        
         # Create certificate data
         cert_data = {
             'id': str(uuid.uuid4()),
@@ -6549,7 +6555,8 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             'google_drive_folder_path': upload_result.get('folder_path'),
             'file_name': analysis_result.get('filename'),
             'ship_name': ship.get('name'),
-            'extracted_ship_name': analysis_result.get('ship_name'),  # Ship name extracted from certificate by AI
+            'extracted_ship_name': extracted_ship_name,  # Ship name extracted from certificate by AI
+            'text_content': analysis_result.get('text_content'),  # Save text content for future re-analysis
             'notes': notes,  # Add notes field
             'created_at': datetime.now(timezone.utc)
         }
