@@ -2032,7 +2032,9 @@ const HomePage = () => {
         }
         
         // Reset certificate analyzing state to unlock the Add Certificate button
-        setIsCertificateAnalyzing(false);
+        if (typeof resetAnalyzingState === 'function') {
+          resetAnalyzingState(false);
+        }
         
       } else {
         const errorData = await response.json().catch(() => ({}));
