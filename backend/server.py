@@ -5861,6 +5861,12 @@ Analyze this maritime document ({filename}) and extract the following informatio
 
 2. SHIP INFORMATION - Extract ship details:
    - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+   - imo_number: IMO number of the vessel (look for "IMO No", "IMO Number", "IMO:", 7-digit number starting with 9)
+   - flag: Flag state/country of registration (look for "Flag", "Flag State", "Port of Registry")
+   - class_society: Classification society (look for "Class", "Classification Society", "Classed by", common ones: DNV GL, Lloyd's Register, ABS, BV, RINA, CCS, KR, NK, RS, etc.)
+   - built_year: Year the ship was built/constructed (look for "Built", "Year Built", "Delivered", "Construction Year")
+   - gross_tonnage: Gross tonnage of the vessel (look for "Gross Tonnage", "GT", numeric value with "tonnes" or "tons")
+   - deadweight: Deadweight tonnage (look for "Deadweight", "DWT", "Dead Weight Tonnage", numeric value with "tonnes" or "tons")
    
 3. CERTIFICATE INFORMATION (if category is 'certificates'):
 {cert_field_info['prompt_section']}
