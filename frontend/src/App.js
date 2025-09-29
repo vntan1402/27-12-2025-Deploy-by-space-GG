@@ -2031,6 +2031,9 @@ const HomePage = () => {
           await fetchCertificates(selectedShip.id);
         }
         
+        // Reset certificate analyzing state to unlock the Add Certificate button
+        setIsCertificateAnalyzing(false);
+        
       } else {
         const errorData = await response.json().catch(() => ({}));
         toast.error(language === 'vi' 
