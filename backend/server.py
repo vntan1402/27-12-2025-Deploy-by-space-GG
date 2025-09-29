@@ -4358,7 +4358,7 @@ async def multi_cert_upload_for_ship(
                 if duplicates:
                     # Return duplicate status requiring user choice
                     existing_cert = duplicates[0]['certificate']
-                    results.append({
+                    duplicate_result = {
                         "filename": file.filename,
                         "status": "pending_duplicate_resolution",
                         "message": f"Duplicate certificate detected: {existing_cert.get('cert_name', 'Unknown')} (Certificate No: {existing_cert.get('cert_no', 'N/A')})",
@@ -4387,7 +4387,14 @@ async def multi_cert_upload_for_ship(
                             "similarity": duplicates[0]['similarity']
                         },
                         "upload_result": None
-                    })
+                    }
+                    
+                    # Add validation info if present
+                    if progress_message:
+                        duplicate_result["progress_message"] = progress_message
+                        duplicate_result["validation_note"] = validation_note
+                    
+                    results.append(duplicate_result)
                     continue
                 
                 # Get ship name for folder operations
