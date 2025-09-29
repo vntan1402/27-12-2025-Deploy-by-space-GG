@@ -2172,6 +2172,34 @@ const HomePage = () => {
               
               resolve({ status: 'success', file: file.name });
               
+            } else if (result && result.status === 'pending_duplicate_resolution') {
+              // File requires duplicate resolution - pause and show dialog
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? {
+                      ...upload,
+                      status: 'pending_duplicate',
+                      progress: 90,
+                      stage: language === 'vi' ? 'Chờ quyết định trùng lặp' : 'Awaiting duplicate resolution',
+                      duplicateInfo: result.duplicate_info
+                    }
+                  : upload
+              ));
+              
+              // Show duplicate resolution modal
+              setDuplicateResolutionModal({
+                show: true,
+                fileData: file,
+                analysisResult: result.analysis,
+                duplicateInfo: result.duplicate_info,
+                shipId: selectedShip?.id,
+                fileIndex: i,
+                fileName: file.name
+              });
+              
+              // Pause the upload process - don't resolve the promise yet
+              return; // Don't resolve, wait for user decision
+              
             } else if (result && result.status === 'requires_manual_review') {
               // File requires manual review - add to pending reviews
               const reviewData = {
