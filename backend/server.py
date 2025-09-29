@@ -4424,14 +4424,22 @@ async def multi_cert_upload_for_ship(
                             "certificate_id": cert_result.get("id")
                         })
                     
-                    results.append({
+                    success_result = {
                         "filename": file.filename,
                         "status": "success",
                         "analysis": analysis_result,
                         "upload": upload_result,
                         "certificate": cert_result,
                         "is_marine": True
-                    })
+                    }
+                    
+                    # Add progress message if validation note was added
+                    if progress_message:
+                        success_result["progress_message"] = progress_message
+                        success_result["validation_note"] = validation_note
+                        logger.info(f"✅ Certificate created with validation note: {validation_note}")
+                    
+                    results.append(success_result)
                     
                 else:
                     # Non-certificate files - provide user choice options
