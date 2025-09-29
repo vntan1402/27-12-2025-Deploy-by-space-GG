@@ -4212,16 +4212,36 @@ async def multi_cert_upload_for_ship(
                 duplicates = await check_certificate_duplicates(analysis_result, ship_id)
                 
                 if duplicates:
-                    # Return duplicate status requiring user choice instead of skipping
+                    # Return duplicate status requiring user choice
+                    existing_cert = duplicates[0]['certificate']
                     results.append({
                         "filename": file.filename,
-                        "status": "duplicate",
-                        "message": f"Duplicate certificate detected: {duplicates[0]['certificate'].get('cert_name', 'Unknown')} (Certificate No: {duplicates[0]['certificate'].get('cert_no', 'N/A')})",
+                        "status": "pending_duplicate_resolution",
+                        "message": f"Duplicate certificate detected: {existing_cert.get('cert_name', 'Unknown')} (Certificate No: {existing_cert.get('cert_no', 'N/A')})",
                         "analysis": analysis_result,
-                        "duplicates": duplicates,  # Include duplicate details for user choice
+                        "duplicates": duplicates,
                         "is_marine": True,
-                        "requires_user_choice": True,  # Flag indicating user choice is needed
-                        "duplicate_certificate": duplicates[0]['certificate'],  # The existing certificate
+                        "requires_user_choice": True,
+                        "duplicate_info": {
+                            "existing_certificate": {
+                                "cert_name": existing_cert.get('cert_name'),
+                                "cert_no": existing_cert.get('cert_no'),
+                                "cert_type": existing_cert.get('cert_type'),
+                                "issue_date": existing_cert.get('issue_date'),
+                                "valid_date": existing_cert.get('valid_date'),
+                                "issued_by": existing_cert.get('issued_by'),
+                                "created_at": existing_cert.get('created_at')
+                            },
+                            "new_certificate": {
+                                "cert_name": analysis_result.get('cert_name'),
+                                "cert_no": analysis_result.get('cert_no'),  
+                                "cert_type": analysis_result.get('cert_type'),
+                                "issue_date": analysis_result.get('issue_date'),
+                                "valid_date": analysis_result.get('valid_date'),
+                                "issued_by": analysis_result.get('issued_by')
+                            },
+                            "similarity": duplicates[0]['similarity']
+                        },
                         "upload_result": None
                     })
                     continue
