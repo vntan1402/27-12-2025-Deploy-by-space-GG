@@ -2044,7 +2044,9 @@ const HomePage = () => {
         );
         
         // Reset certificate analyzing state on error
-        setIsCertificateAnalyzing(false);
+        if (typeof resetAnalyzingState === 'function') {
+          resetAnalyzingState(false);
+        }
       }
       
     } catch (error) {
