@@ -4294,6 +4294,62 @@ async def multi_cert_upload_for_ship(
                     })
                     continue
                 
+                # IMO and Ship Name Validation Logic
+                # Extract IMO and ship name from AI analysis result
+                extracted_imo = analysis_result.get('imo_number', '').strip()
+                extracted_ship_name = analysis_result.get('ship_name', '').strip()
+                current_ship_imo = ship.get('imo', '').strip()
+                current_ship_name = ship.get('name', '').strip()
+                validation_note = None  # Initialize note for validation
+                progress_message = None  # Initialize progress bar message
+                
+                logger.info(f"🔍 IMO/Ship Name Validation for {file.filename}:")
+                logger.info(f"   Extracted IMO: '{extracted_imo}'")
+                logger.info(f"   Current Ship IMO: '{current_ship_imo}'")
+                logger.info(f"   Extracted Ship Name: '{extracted_ship_name}'")
+                logger.info(f"   Current Ship Name: '{current_ship_name}'")
+                
+                # 1. Check IMO validation first
+                if extracted_imo and current_ship_imo:
+                    # Compare IMO numbers (case-insensitive, remove spaces)
+                    extracted_imo_clean = extracted_imo.replace(' ', '').upper()
+                    current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
+                    
+                    if extracted_imo_clean != current_ship_imo_clean:
+                        # Different IMO numbers - skip upload with progress bar message
+                        logger.warning(f"❌ IMO mismatch for {file.filename}: extracted='{extracted_imo}', current='{current_ship_imo}' - SKIPPING")
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
+                            "progress_message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
+                            "analysis": analysis_result,
+                            "is_marine": True,
+                            "validation_error": {
+                                "type": "imo_mismatch",
+                                "extracted_imo": extracted_imo,
+                                "current_ship_imo": current_ship_imo,
+                                "extracted_ship_name": extracted_ship_name,
+                                "current_ship_name": current_ship_name
+                            }
+                        })
+                        summary["errors"] += 1
+                        summary["error_files"].append({
+                            "filename": file.filename,
+                            "error": "IMO number mismatch - certificate belongs to different ship"
+                        })
+                        continue  # Skip this certificate
+                    
+                    # 2. IMO matches - check ship name for note
+                    if extracted_ship_name and current_ship_name:
+                        # Exact match comparison (case-insensitive)
+                        if extracted_ship_name.upper() != current_ship_name.upper():
+                            validation_note = "Chỉ để tham khảo"
+                            progress_message = "Giấy chứng nhận này có tên tàu khác với tàu hiện tại, thông tin chỉ để tham khảo"
+                            logger.info(f"⚠️ Ship name mismatch for {file.filename}: extracted='{extracted_ship_name}', current='{current_ship_name}' - adding reference note")
+                        else:
+                            logger.info(f"✅ IMO and Ship name match for {file.filename}")
+                
                 summary["marine_certificates"] += 1
                 
                 # Check for duplicates based on cert_no and cert_name
