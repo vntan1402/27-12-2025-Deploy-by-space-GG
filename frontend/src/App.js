@@ -2056,7 +2056,7 @@ const HomePage = () => {
         : 'Error resolving duplicate'
       );
       
-      // Reset certificate analyzing state on error
+      // Reset multi cert processing state on error
       if (typeof resetAnalyzingState === 'function') {
         resetAnalyzingState(false);
       }
