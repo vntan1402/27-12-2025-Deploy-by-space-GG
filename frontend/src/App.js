@@ -3722,7 +3722,10 @@ const HomePage = () => {
                                     : (language === 'vi' ? 'Chưa có file đính kèm | Chuột phải để Edit/Delete' : 'No file attached | Right-click for Edit/Delete')
                                   }
                                 >
-                                  <td className="border border-gray-300 px-4 py-2 text-center w-20">
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 text-center w-20 relative group cursor-help"
+                                    title={cert.file_name ? `File: ${cert.file_name}` : 'No file name available'}
+                                  >
                                     <div className="flex items-center space-x-2">
                                       <input
                                         type="checkbox"
@@ -3733,6 +3736,15 @@ const HomePage = () => {
                                       />
                                       <span className="font-bold">{index + 1}</span>
                                     </div>
+                                    {/* File Name Tooltip */}
+                                    {cert.file_name && (
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                                        <div className="font-medium">Original File Name:</div>
+                                        <div className="text-blue-200">{cert.file_name}</div>
+                                        {/* Arrow */}
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                      </div>
+                                    )}
                                   </td>
                                   <td 
                                     className="border border-gray-300 px-4 py-2 font-mono font-bold text-blue-600"
