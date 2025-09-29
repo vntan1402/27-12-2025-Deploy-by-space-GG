@@ -309,6 +309,7 @@ Next Annual Survey due: 15/01/2025
                 self.log("⚠️ reportlab not available, creating simple text files with PDF extension")
                 
                 # Fallback: Create text files with PDF extension
+                import tempfile
                 self.cert1_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
                 self.cert1_file.write(cert1_content)
                 self.cert1_file.close()
