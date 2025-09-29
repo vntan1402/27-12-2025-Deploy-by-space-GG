@@ -4330,8 +4330,7 @@ async def multi_cert_upload_for_ship(
                             },
                             "similarity": duplicates[0]['similarity']
                         },
-                        "upload_result": None,
-                        "additional_note": additional_note  # Pass the note for later use
+                        "upload_result": None
                     })
                     continue
                 
