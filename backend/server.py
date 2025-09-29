@@ -1286,7 +1286,7 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
         ]
         
         for cert in certificates:
-            cert_type = cert.get('cert_type', '').strip()
+            cert_type = (cert.get('cert_type') or '').strip()
             cert_name = cert.get('cert_name', '').lower()
             
             # Only Full Term certificates
@@ -1433,7 +1433,7 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
         ]
         
         for cert in certificates:
-            cert_type = cert.get('cert_type', '').strip()
+            cert_type = (cert.get('cert_type') or '').strip()
             cert_name = cert.get('cert_name', '').lower()
             
             # Only Full Term certificates for Special Survey calculation
@@ -1893,7 +1893,7 @@ async def extract_last_docking_dates_from_certificates(ship_id: str) -> Dict[str
         
         for cert in certificates:
             cert_name = cert.get('cert_name', '').lower()
-            cert_type = cert.get('cert_type', '').strip()
+            cert_type = (cert.get('cert_type') or '').strip()
             
             # Check if it's a docking-related certificate
             is_docking_cert = any(keyword in cert_name for keyword in docking_keywords)
