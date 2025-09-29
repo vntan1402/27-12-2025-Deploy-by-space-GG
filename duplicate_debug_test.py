@@ -240,7 +240,7 @@ Date: {self.test_cert_data['issue_date']}
             # Prepare file for upload
             with open(self.test_cert_file_path, 'rb') as f:
                 files = {
-                    'files': (f'test_certificate_{upload_number}.txt', f, 'text/plain')
+                    'files': (f'test_certificate_{upload_number}.pdf', f, 'application/pdf')
                 }
                 
                 response = requests.post(
