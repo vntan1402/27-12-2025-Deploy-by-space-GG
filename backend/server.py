@@ -1027,7 +1027,8 @@ def get_enhanced_last_endorse(analysis_result: dict) -> datetime:
     Interim, Provisional, Short term, and Conditional certificates do not have endorsements.
     """
     # First check certificate type - only Full Term certificates have endorsements
-    cert_type = analysis_result.get('cert_type', '').strip()
+    cert_type = analysis_result.get('cert_type') or ''
+    cert_type = cert_type.strip() if cert_type else ''
     if cert_type and cert_type != 'Full Term':
         logger.info(f"Certificate type '{cert_type}' does not require endorsement - skipping endorsement extraction")
         return None
