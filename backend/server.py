@@ -4377,7 +4377,7 @@ async def multi_cert_upload_for_ship(
                 
                 summary["marine_certificates"] += 1
                 
-                # Check for duplicates based on cert_no and cert_name
+                # Check for duplicates based on 5 fields: cert_name, cert_no, issue_date, valid_date, last_endorse
                 duplicates = await check_certificate_duplicates(analysis_result, ship_id)
                 
                 if duplicates:
