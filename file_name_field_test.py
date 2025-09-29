@@ -474,7 +474,7 @@ class FileNameFieldTester:
             
             try:
                 # Test file name for verification
-                test_file_name = "TEST_FILE_NAME_VERIFICATION_CERTIFICATE.pdf"
+                test_file_name = "CARGO_SHIP_SAFETY_CONSTRUCTION_CERTIFICATE_FILE_NAME_TEST.pdf"
                 
                 self.log(f"   Uploading test certificate: {test_file_name}")
                 
