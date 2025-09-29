@@ -1954,7 +1954,7 @@ const HomePage = () => {
   }, [contextMenu.show]);
 
   // Handle duplicate resolution
-  const handleDuplicateResolution = async (action) => {
+  const handleDuplicateResolution = async (action, resetAnalyzingState) => {
     const { fileData, analysisResult, duplicateInfo, shipId, fileIndex, fileName } = duplicateResolutionModal;
     
     try {
