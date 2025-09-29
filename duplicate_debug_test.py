@@ -273,6 +273,15 @@ Date: {self.test_cert_data['issue_date']}
                             # Check AI extraction
                             self.analyze_ai_extraction(result)
                             return True
+                        elif status == 'requires_manual_review':
+                            self.log("⚠️ First upload requires manual review - AI classification failed")
+                            self.log("   This is the ROOT CAUSE of duplicate check failure!")
+                            
+                            # Analyze the AI extraction failure
+                            self.analyze_ai_extraction_failure(result)
+                            
+                            # For testing purposes, let's try to confirm as marine certificate
+                            return self.confirm_as_marine_certificate(result)
                         else:
                             self.log(f"❌ First upload failed with status: {status}")
                             return False
