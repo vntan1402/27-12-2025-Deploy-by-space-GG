@@ -8618,8 +8618,8 @@ async def create_class_society_mapping(
 ):
     """Create or update a class society mapping"""
     try:
-        full_name = mapping_data.get('full_name', '').strip()
-        abbreviation = mapping_data.get('abbreviation', '').strip()
+        full_name = (mapping_data.get('full_name') or '').strip()
+        abbreviation = (mapping_data.get('abbreviation') or '').strip()
         
         if not full_name or not abbreviation:
             raise HTTPException(status_code=400, detail="Both full_name and abbreviation are required")
