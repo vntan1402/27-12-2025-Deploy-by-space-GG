@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Enhance duplicate certificate detection logic from 2 fields to 5 fields: Certificate Name, Certificate Number, Issue Date, Valid Date, Last Endorse. Only when ALL 5 fields match exactly should it be considered a duplicate. Also maintain IMO/Ship Name validation with progress bar messages."
+user_problem_statement: "Enhanced AI extraction prompt to include Basic Ship Information fields: Ship Name, Class Society, Flag, IMO, Built Year, Gross Tonnage, Deadweight. Also maintain enhanced 5-field duplicate detection and IMO/Ship Name validation functionality."
 
 backend:
   - task: "IMO/Ship Name Validation with Progress Bar Messages"
