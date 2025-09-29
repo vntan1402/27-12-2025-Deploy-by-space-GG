@@ -6565,6 +6565,12 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         preserved_fields = ['extracted_ship_name', 'text_content']  # Always preserve these fields
         cert_data = {k: v for k, v in cert_data.items() if v is not None or k in preserved_fields}
         
+        # Debug logging for what's being saved
+        logger.info(f"🔍 Certificate data being saved:")
+        logger.info(f"   extracted_ship_name in cert_data: {cert_data.get('extracted_ship_name')}")
+        logger.info(f"   text_content in cert_data: {bool(cert_data.get('text_content'))}")
+        logger.info(f"   cert_data keys: {list(cert_data.keys())}")
+        
         await mongo_db.create("certificates", cert_data)
         
         logger.info(f"Certificate created successfully: {cert_data.get('cert_name')} for ship {ship.get('name')} with notes: {bool(notes)}")
