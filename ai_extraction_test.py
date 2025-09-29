@@ -310,7 +310,7 @@ Authorized Representative
                 return False
             
             try:
-                endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/certificates/multi-upload"
+                endpoint = f"{BACKEND_URL}/certificates/multi-upload"
                 self.log(f"   POST {endpoint}")
                 
                 # Prepare file for upload
