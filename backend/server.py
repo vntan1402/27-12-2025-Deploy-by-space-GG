@@ -3886,6 +3886,93 @@ async def check_duplicates_and_mismatch(
             "has_issues": len(duplicates) > 0 or ship_mismatch.get("mismatch", False)
         }
         
+    except Exception as e:
+        logger.error(f"Error checking duplicates and mismatch: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check duplicates and mismatch")
+
+@api_router.post("/certificates/resolve-duplicate")
+async def resolve_duplicate_certificate(
+    resolution_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Resolve duplicate certificate based on user choice
+    Expected data: {
+        "action": "skip" | "continue",
+        "file_data": {...},
+        "analysis_result": {...},
+        "ship_id": "...",
+        "duplicate_info": {...}
+    }
+    """
+    try:
+        action = resolution_data.get('action')  # "skip" or "continue"
+        file_data = resolution_data.get('file_data', {})
+        analysis_result = resolution_data.get('analysis_result', {})
+        ship_id = resolution_data.get('ship_id')
+        duplicate_info = resolution_data.get('duplicate_info', {})
+        
+        if not action or not ship_id or not analysis_result:
+            raise HTTPException(status_code=400, detail="Missing required data")
+        
+        if action == "skip":
+            # User chose to skip - don't create certificate
+            return {
+                "success": True,
+                "action": "skipped",
+                "message": "Duplicate certificate skipped by user choice",
+                "certificate": None
+            }
+        
+        elif action == "continue":
+            # User chose to continue - create certificate despite duplicate
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            # Get ship name for folder operations
+            ship_name = ship.get("name", "Unknown_Ship")
+            
+            # Create certificate record
+            cert_dict = analysis_result.copy()
+            cert_dict["id"] = str(uuid.uuid4())
+            cert_dict["ship_id"] = ship_id
+            cert_dict["created_at"] = datetime.now(timezone.utc)
+            cert_dict["file_uploaded"] = True
+            cert_dict["category"] = "certificates"
+            cert_dict["sensitivity_level"] = "public"
+            
+            # Add duplicate resolution info
+            cert_dict["duplicate_resolution"] = {
+                "user_choice": "continue",
+                "resolved_by": current_user.id,
+                "resolved_at": datetime.now(timezone.utc).isoformat(),
+                "duplicate_info": duplicate_info
+            }
+            
+            # Survey type auto-determination disabled - user will implement custom logic
+            cert_dict['next_survey_type'] = None
+            
+            await mongo_db.create("certificates", cert_dict)
+            
+            logger.info(f"Certificate created despite duplicate by user choice: {cert_dict.get('cert_name')} for ship {ship_name}")
+            
+            return {
+                "success": True,
+                "action": "created",
+                "message": "Certificate created despite duplicate detection",
+                "certificate": CertificateResponse(**cert_dict).dict()
+            }
+        
+        else:
+            raise HTTPException(status_code=400, detail="Invalid action. Must be 'skip' or 'continue'")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error resolving duplicate certificate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to resolve duplicate certificate")
+        
     except HTTPException:
         raise
     except Exception as e:
