@@ -4410,7 +4410,7 @@ async def multi_cert_upload_for_ship(
                     
                     # Create certificate record
                     cert_result = await create_certificate_from_analysis_with_notes(
-                        analysis_result, upload_result, current_user, ship_id, None
+                        analysis_result, upload_result, current_user, ship_id, additional_note
                     )
                     
                     if cert_result.get("success", True):
