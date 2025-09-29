@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Implement IMO/Ship Name validation logic in multi-certificate upload with progress bar messages and concise notes. Different IMO should skip upload with error message, same IMO but different ship name should add certificate with reference note."
+user_problem_statement: "Enhance duplicate certificate detection logic from 2 fields to 5 fields: Certificate Name, Certificate Number, Issue Date, Valid Date, Last Endorse. Only when ALL 5 fields match exactly should it be considered a duplicate. Also maintain IMO/Ship Name validation with progress bar messages."
 
 backend:
   - task: "IMO/Ship Name Validation with Progress Bar Messages"
