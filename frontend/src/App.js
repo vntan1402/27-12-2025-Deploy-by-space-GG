@@ -4222,6 +4222,8 @@ const HomePage = () => {
           setFileViewerData={setFileViewerData}
           pendingManualReviews={pendingManualReviews}
           handleManualReviewAction={handleManualReviewAction}
+          duplicateResolutionModal={duplicateResolutionModal}
+          handleDuplicateResolution={handleDuplicateResolution}
         />
       )}
 
