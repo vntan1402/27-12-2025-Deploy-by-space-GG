@@ -11450,7 +11450,7 @@ const AddRecordModal = ({
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-end">
               <button
-                onClick={() => handleDuplicateResolution('skip', setIsCertificateAnalyzing)}
+                onClick={() => handleDuplicateResolution('skip', setIsMultiCertProcessing)}
                 className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 font-medium"
               >
                 ⏩ {language === 'vi' ? 'Skip (Bỏ qua)' : 'Skip'}
