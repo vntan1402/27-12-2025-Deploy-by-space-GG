@@ -6147,7 +6147,8 @@ def classify_by_filename(filename: str) -> dict:
             "cert_no": None,
             "issue_date": None,
             "valid_date": None,
-            "issued_by": None
+            "issued_by": None,
+            "filename": filename  # Add filename for certificate file_name field
         }
 
 async def create_google_drive_folder_background(ship_dict: dict, current_user):
