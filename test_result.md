@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Implement and test IMO/Ship name validation logic during multi-certificate uploads. The system should validate extracted IMO numbers and ship names from certificates against the current ship data, blocking uploads for different IMO numbers and adding notes for ship name mismatches."
+user_problem_statement: "Clean up and remove all IMO/Ship Name validation functionality from multi-certificate upload system. User requested complete removal of the validation logic."
 
 backend:
   - task: "IMO/Ship Name Validation Logic in Multi Certificate Upload"
