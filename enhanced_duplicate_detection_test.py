@@ -242,6 +242,7 @@ class EnhancedDuplicateDetectionTester:
             # Prepare files for upload (create temporary files)
             files = []
             temp_files = []
+            file_handles = []
             
             for i, cert_data in enumerate(certificates_data):
                 # Create a temporary file for each certificate
@@ -250,7 +251,10 @@ class EnhancedDuplicateDetectionTester:
                 temp_file.close()
                 temp_files.append(temp_file.name)
                 
-                files.append(('files', (f'test_cert_{i+1}.txt', open(temp_file.name, 'rb'), 'text/plain')))
+                # Open file handle for upload
+                file_handle = open(temp_file.name, 'rb')
+                file_handles.append(file_handle)
+                files.append(('files', (f'test_cert_{i+1}.txt', file_handle, 'text/plain')))
             
             # Prepare form data
             form_data = {
@@ -263,52 +267,59 @@ class EnhancedDuplicateDetectionTester:
             endpoint = f"{BACKEND_URL}/certificates/multi-upload"
             self.log(f"   POST {endpoint}")
             
-            response = requests.post(
-                endpoint,
-                data=form_data,
-                files=files,
-                headers=self.get_headers(),
-                timeout=60
-            )
-            
-            # Close and cleanup temp files
-            for file_tuple in files:
-                file_tuple[1].close()
-            for temp_file_path in temp_files:
-                try:
-                    os.unlink(temp_file_path)
-                except:
-                    pass
-            
-            self.log(f"   Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                self.log("   API Response:")
-                self.log(f"   {json.dumps(response_data, indent=2)}")
+            try:
+                response = requests.post(
+                    endpoint,
+                    data=form_data,
+                    files=files,
+                    headers=self.get_headers(),
+                    timeout=60
+                )
                 
-                # Check for duplicate detection results
-                duplicates_found = response_data.get('duplicates_found', 0)
-                certificates_uploaded = response_data.get('certificates_uploaded', 0)
+                self.log(f"   Response status: {response.status_code}")
                 
-                self.log(f"   Duplicates found: {duplicates_found}")
-                self.log(f"   Certificates uploaded: {certificates_uploaded}")
-                
-                # Verify expected duplicates
-                if duplicates_found == expected_duplicates:
-                    self.log(f"   ✅ Expected duplicate count matched: {expected_duplicates}")
-                    return True, response_data
+                if response.status_code == 200:
+                    response_data = response.json()
+                    self.log("   API Response:")
+                    self.log(f"   {json.dumps(response_data, indent=2)}")
+                    
+                    # Check for duplicate detection results
+                    duplicates_found = response_data.get('duplicates_found', 0)
+                    certificates_uploaded = response_data.get('certificates_uploaded', 0)
+                    
+                    self.log(f"   Duplicates found: {duplicates_found}")
+                    self.log(f"   Certificates uploaded: {certificates_uploaded}")
+                    
+                    # Verify expected duplicates
+                    if duplicates_found == expected_duplicates:
+                        self.log(f"   ✅ Expected duplicate count matched: {expected_duplicates}")
+                        return True, response_data
+                    else:
+                        self.log(f"   ❌ Duplicate count mismatch - Expected: {expected_duplicates}, Found: {duplicates_found}")
+                        return False, response_data
                 else:
-                    self.log(f"   ❌ Duplicate count mismatch - Expected: {expected_duplicates}, Found: {duplicates_found}")
-                    return False, response_data
-            else:
-                self.log(f"   ❌ Multi-certificate upload failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"      Error: {response.text[:500]}")
-                return False, None
+                    self.log(f"   ❌ Multi-certificate upload failed: {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                    except:
+                        self.log(f"      Error: {response.text[:500]}")
+                    return False, None
+                    
+            finally:
+                # Close all file handles
+                for file_handle in file_handles:
+                    try:
+                        file_handle.close()
+                    except:
+                        pass
+                
+                # Cleanup temp files
+                for temp_file_path in temp_files:
+                    try:
+                        os.unlink(temp_file_path)
+                    except:
+                        pass
                 
         except Exception as e:
             self.log(f"❌ Multi-certificate upload error: {str(e)}", "ERROR")
