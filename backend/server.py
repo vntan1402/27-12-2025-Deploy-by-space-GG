@@ -2413,7 +2413,11 @@ def calculate_string_similarity(str1: str, str2: str) -> float:
         return 0.0
 
 async def check_certificate_duplicates(analysis_result: dict, ship_id: str) -> list:
-    """Check for duplicate certificates in the database"""
+    """
+    Check for duplicate certificates in the database
+    Enhanced duplicate detection based on 5 fields:
+    - Certificate Name, Certificate Number, Issue Date, Valid Date, Last Endorse
+    """
     try:
         # Get all certificates for comparison
         all_certificates = await mongo_db.find_all("certificates", {"ship_id": ship_id})
