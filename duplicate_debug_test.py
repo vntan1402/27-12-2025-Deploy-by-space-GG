@@ -369,10 +369,9 @@ Date: {self.test_cert_data['issue_date']}
                 return False
             
             # Try to confirm as marine certificate
-            endpoint = f"{BACKEND_URL}/certificates/confirm-marine"
+            endpoint = f"{BACKEND_URL}/certificates/manual-review-action"
             confirm_data = {
                 'temp_file_id': temp_file_id,
-                'ship_id': self.sunshine_ship_id,
                 'action': 'confirm_marine'
             }
             
