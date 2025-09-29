@@ -2040,6 +2040,9 @@ const HomePage = () => {
           ? `Lỗi xử lý trùng lặp: ${errorData.detail || response.statusText}`
           : `Error resolving duplicate: ${errorData.detail || response.statusText}`
         );
+        
+        // Reset certificate analyzing state on error
+        setIsCertificateAnalyzing(false);
       }
       
     } catch (error) {
