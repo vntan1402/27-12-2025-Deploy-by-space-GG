@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Clean up and remove all IMO/Ship Name validation functionality from multi-certificate upload system. User requested complete removal of the validation logic."
+user_problem_statement: "Implement IMO/Ship Name validation logic in multi-certificate upload with progress bar messages and concise notes. Different IMO should skip upload with error message, same IMO but different ship name should add certificate with reference note."
 
 backend:
   - task: "IMO/Ship Name Validation Logic Removal"
