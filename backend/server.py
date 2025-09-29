@@ -3340,7 +3340,7 @@ async def update_ship(ship_id: str, ship_data: ShipUpdate, current_user: UserRes
         
         # Check for new class society and suggest mapping (if class_society is being updated)
         if 'class_society' in update_data:
-            class_society_input = update_data.get('class_society', '').strip()
+            class_society_input = (update_data.get('class_society') or '').strip()
             if class_society_input:
                 try:
                     detection_result = await detect_and_suggest_new_class_society(class_society_input)
