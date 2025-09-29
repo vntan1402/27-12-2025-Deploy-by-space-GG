@@ -5835,6 +5835,104 @@ DOCUMENT TEXT CONTENT:
         logger.error(f"AI analysis error details - Provider: {provider}, Model: {model}, File: {filename}")
         return classify_by_filename(filename)
 
+def normalize_certificate_analysis_response(ai_response: dict) -> dict:
+    """
+    Normalize certificate analysis response from AI to standard format
+    Handles nested JSON structures and various field name formats
+    """
+    try:
+        normalized = {}
+        
+        # Handle nested structure - look for certificate information
+        cert_info = ai_response.get('CERTIFICATE_INFORMATION', ai_response)
+        
+        # Extract certificate fields with fallback names
+        normalized['category'] = (
+            cert_info.get('CATEGORY') or 
+            cert_info.get('category') or 
+            ai_response.get('CATEGORY') or 
+            ai_response.get('category')
+        )
+        
+        normalized['cert_name'] = (
+            cert_info.get('CERT_NAME') or 
+            cert_info.get('cert_name') or 
+            cert_info.get('certificate_name')
+        )
+        
+        normalized['cert_type'] = (
+            cert_info.get('CERT_TYPE') or 
+            cert_info.get('cert_type') or 
+            cert_info.get('certificate_type')
+        )
+        
+        normalized['cert_no'] = (
+            cert_info.get('CERT_NO') or 
+            cert_info.get('cert_no') or 
+            cert_info.get('certificate_number')
+        )
+        
+        normalized['issue_date'] = (
+            cert_info.get('ISSUE_DATE') or 
+            cert_info.get('issue_date')
+        )
+        
+        normalized['valid_date'] = (
+            cert_info.get('VALID_DATE') or 
+            cert_info.get('valid_date') or 
+            cert_info.get('expiry_date')
+        )
+        
+        normalized['last_endorse'] = (
+            cert_info.get('LAST_ENDORSE') or 
+            cert_info.get('last_endorse')
+        )
+        
+        normalized['issued_by'] = (
+            cert_info.get('ISSUED_BY') or 
+            cert_info.get('issued_by')
+        )
+        
+        normalized['notes'] = (
+            cert_info.get('NOTES') or 
+            cert_info.get('notes')
+        )
+        
+        # Extract ship fields if present
+        ship_info = ai_response.get('SHIP_INFORMATION', ai_response)
+        
+        normalized['ship_name'] = (
+            ship_info.get('SHIP_NAME') or 
+            ship_info.get('ship_name') or 
+            ai_response.get('SHIP_NAME') or 
+            ai_response.get('ship_name')
+        )
+        
+        normalized['imo_number'] = (
+            ship_info.get('IMO_NUMBER') or 
+            ship_info.get('imo_number') or 
+            ai_response.get('IMO_NUMBER') or 
+            ai_response.get('imo_number')
+        )
+        
+        # Extract confidence
+        confidence_info = ai_response.get('CONFIDENCE_ASSESSMENT', ai_response)
+        normalized['confidence'] = (
+            confidence_info.get('confidence') or 
+            ai_response.get('confidence')
+        )
+        
+        logger.info(f"📋 Normalized certificate analysis:")
+        logger.info(f"   Category: {normalized.get('category')}")
+        logger.info(f"   Cert Name: {normalized.get('cert_name')}")
+        logger.info(f"   Cert No: {normalized.get('cert_no')}")
+        
+        return normalized
+        
+    except Exception as e:
+        logger.error(f"Error normalizing certificate analysis response: {e}")
+        return ai_response
+
 def normalize_ai_analysis_response(analysis_result: dict) -> dict:
     """Normalize AI analysis response to handle different response formats"""
     try:
