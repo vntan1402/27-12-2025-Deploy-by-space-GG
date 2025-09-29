@@ -469,18 +469,17 @@ class FileNameFieldTester:
                 endpoint = f"{BACKEND_URL}/certificates/multi-upload"
                 self.log(f"   POST {endpoint}")
                 
-                # Prepare multipart form data
+                # Prepare multipart form data with ship_id as query parameter
                 files = {
                     'files': (test_file_name, open(temp_file_path, 'rb'), 'application/pdf')
                 }
-                data = {
-                    'ship_id': self.sunshine_01_ship_id
-                }
+                
+                # Add ship_id as query parameter
+                endpoint_with_params = f"{endpoint}?ship_id={self.sunshine_01_ship_id}"
                 
                 response = requests.post(
-                    endpoint,
+                    endpoint_with_params,
                     files=files,
-                    data=data,
                     headers=self.get_headers(),
                     timeout=120  # Longer timeout for upload
                 )
