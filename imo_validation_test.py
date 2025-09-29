@@ -325,33 +325,54 @@ Next Annual Survey due: 15/01/2025
                     self.log(f"   {json.dumps(response_data, indent=2)}")
                     
                     # Check for validation messages in response
-                    validation_note = response_data.get('validation_note')
-                    progress_message = response_data.get('progress_message')
+                    # The multi-upload endpoint returns a list of results
+                    results = response_data.get('results', [])
+                    summary = response_data.get('summary', {})
                     
-                    if validation_note:
-                        self.log(f"   Validation Note: {validation_note}")
-                        self.test_status['validation_messages_found'] = True
+                    self.log(f"   Summary: {summary}")
+                    
+                    for result in results:
+                        filename = result.get('filename')
+                        status = result.get('status')
+                        message = result.get('message')
+                        progress_message = result.get('progress_message')
+                        validation_error = result.get('validation_error')
                         
-                        if "tàu khác" in validation_note or "không thể lưu" in validation_note:
-                            self.log("   ✅ IMO mismatch validation detected!")
-                            self.test_status['imo_mismatch_detected'] = True
-                        elif "tham khảo" in validation_note:
-                            self.log("   ✅ Ship name mismatch validation detected!")
-                            self.test_status['ship_name_mismatch_detected'] = True
-                    
-                    if progress_message:
-                        self.log(f"   Progress Message: {progress_message}")
-                    
-                    # Check if certificate was actually saved or blocked
-                    certificate_id = response_data.get('id')
-                    if certificate_id:
-                        self.log(f"   Certificate saved with ID: {certificate_id}")
+                        self.log(f"   Result for {filename}:")
+                        self.log(f"      Status: {status}")
+                        self.log(f"      Message: {message}")
                         
-                        # If validation should have blocked it, this is an issue
-                        if cert_description == "Certificate 1 (IMO mismatch)" or cert_description == "Certificate 2 (Ship name mismatch)":
-                            self.log("   ⚠️ Certificate was saved despite validation issues")
-                    else:
-                        self.log("   Certificate was not saved (validation blocked)")
+                        if progress_message:
+                            self.log(f"      Progress Message: {progress_message}")
+                            self.test_status['validation_messages_found'] = True
+                        
+                        if validation_error:
+                            self.log(f"      Validation Error: {validation_error}")
+                            self.test_status['validation_messages_found'] = True
+                            
+                            if validation_error.get('type') == 'imo_mismatch':
+                                self.log("   ✅ IMO mismatch validation detected!")
+                                self.test_status['imo_mismatch_detected'] = True
+                        
+                        # Check for Vietnamese validation messages
+                        if message:
+                            if "tàu khác" in message or "không thể lưu" in message:
+                                self.log("   ✅ IMO mismatch validation detected!")
+                                self.test_status['imo_mismatch_detected'] = True
+                                self.test_status['validation_messages_found'] = True
+                            elif "tham khảo" in message:
+                                self.log("   ✅ Ship name mismatch validation detected!")
+                                self.test_status['ship_name_mismatch_detected'] = True
+                                self.test_status['validation_messages_found'] = True
+                        
+                        # Check if certificate was actually saved or blocked
+                        if status == "error":
+                            self.log(f"   Certificate was blocked due to validation")
+                        elif status == "success":
+                            self.log(f"   Certificate was saved successfully")
+                            # If validation should have blocked it, this is an issue
+                            if cert_description == "Certificate 1 (IMO mismatch)":
+                                self.log("   ⚠️ Certificate was saved despite IMO mismatch")
                     
                     return True
                     
