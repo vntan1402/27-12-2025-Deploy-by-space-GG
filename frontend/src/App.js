@@ -2051,6 +2051,9 @@ const HomePage = () => {
         ? 'Lỗi khi xử lý trùng lặp'
         : 'Error resolving duplicate'
       );
+      
+      // Reset certificate analyzing state on error
+      setIsCertificateAnalyzing(false);
     }
   };
 
