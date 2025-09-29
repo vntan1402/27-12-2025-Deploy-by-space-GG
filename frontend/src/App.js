@@ -11306,10 +11306,30 @@ const AddRecordModal = ({
       {duplicateResolutionModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
           <div className="bg-white rounded-xl shadow-2xl p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="mb-6">
+            <div className="mb-6 relative">
               <h3 className="text-xl font-bold text-orange-600 mb-2">
                 ⚠️ {language === 'vi' ? 'Phát hiện chứng chỉ trùng lặp' : 'Duplicate Certificate Detected'}
               </h3>
+              
+              {/* Close button */}
+              <button
+                onClick={() => {
+                  setDuplicateResolutionModal({
+                    show: false,
+                    fileData: null,
+                    analysisResult: null,
+                    duplicateInfo: null,
+                    shipId: null,
+                    fileIndex: -1,
+                    fileName: ''
+                  });
+                  // Reset certificate analyzing state when modal is closed
+                  setIsCertificateAnalyzing(false);
+                }}
+                className="absolute top-0 right-0 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
               <p className="text-gray-600">
                 {language === 'vi' 
                   ? 'Hệ thống phát hiện chứng chỉ có thể trùng lặp. Vui lòng xem xét thông tin bên dưới và quyết định:'
