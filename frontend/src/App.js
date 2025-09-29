@@ -2031,7 +2031,7 @@ const HomePage = () => {
           await fetchCertificates(selectedShip.id);
         }
         
-        // Reset certificate analyzing state to unlock the Add Certificate button
+        // Reset multi cert processing state to unlock the Add Certificate button
         if (typeof resetAnalyzingState === 'function') {
           resetAnalyzingState(false);
         }
