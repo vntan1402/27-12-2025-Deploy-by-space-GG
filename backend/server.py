@@ -2431,7 +2431,7 @@ async def check_ship_name_mismatch(analysis_result: dict, current_ship_id: str) 
         if not current_ship:
             return {"mismatch": False}
         
-        current_ship_name = current_ship.get('name', '').strip()
+        current_ship_name = (current_ship.get('name') or '').strip()
         
         # Compare ship names (case insensitive)
         if ai_ship_name.upper() == current_ship_name.upper():
