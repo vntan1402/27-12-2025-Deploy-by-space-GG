@@ -312,12 +312,11 @@ The ship SUNSHINE 01 complies with the relevant requirements of the Convention.
                 self.log(f"   Ship name in content: SUNSHINE 01")
                 self.log(f"   Expected extracted_ship_name: SUNSHINE 01")
                 
-                endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+                endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={ship_id}"
                 
                 with open(temp_file_path, 'rb') as file:
                     files = {'files': ('test_certificate.txt', file, 'text/plain')}
                     data = {
-                        'ship_id': ship_id,
                         'category': 'certificates',
                         'sensitivity_level': 'public'
                     }
