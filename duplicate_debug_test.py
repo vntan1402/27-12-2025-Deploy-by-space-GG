@@ -316,7 +316,102 @@ Date: {self.test_cert_data['issue_date']}
             self.log(f"❌ Upload {upload_number} error: {str(e)}", "ERROR")
             return False
     
-    def analyze_ai_extraction(self, upload_result):
+    def analyze_ai_extraction_failure(self, upload_result):
+        """Analyze why AI extraction failed"""
+        try:
+            self.log("🤖 ANALYZING AI EXTRACTION FAILURE...")
+            
+            analysis = upload_result.get('analysis', {})
+            
+            self.log("   AI Analysis Results:")
+            self.log(f"   - Category: {analysis.get('category')} (Expected: 'certificates')")
+            self.log(f"   - Ship Name: {analysis.get('ship_name')} (Expected: 'SUNSHINE 01')")
+            self.log(f"   - Confidence: {analysis.get('confidence')} (Expected: 'high')")
+            
+            # Check the 5 critical fields
+            required_fields = ['cert_name', 'cert_no', 'issue_date', 'valid_date', 'last_endorse']
+            missing_fields = []
+            
+            self.log("   Critical Fields Extraction:")
+            for field in required_fields:
+                value = analysis.get(field)
+                if value:
+                    self.log(f"   ✅ {field}: '{value}'")
+                else:
+                    self.log(f"   ❌ {field}: NULL (MISSING)")
+                    missing_fields.append(field)
+            
+            self.log(f"\n   ROOT CAUSE IDENTIFIED:")
+            self.log(f"   ❌ AI classified as '{analysis.get('category')}' instead of 'certificates'")
+            self.log(f"   ❌ AI extracted ship name as '{analysis.get('ship_name')}' instead of 'SUNSHINE 01'")
+            self.log(f"   ❌ ALL certificate fields are NULL - no data extracted for duplicate comparison")
+            self.log(f"   ❌ Confidence level is '{analysis.get('confidence')}' indicating poor text extraction")
+            
+            self.log(f"\n   IMPACT ON DUPLICATE CHECK:")
+            self.log(f"   - Certificate requires manual review instead of automatic processing")
+            self.log(f"   - Duplicate check logic never executes because certificate is not classified as marine")
+            self.log(f"   - Even if duplicate check ran, all fields are NULL so comparison would fail")
+            
+            return len(missing_fields) == len(required_fields)  # True if all fields missing
+            
+        except Exception as e:
+            self.log(f"❌ AI extraction failure analysis error: {str(e)}", "ERROR")
+            return False
+    
+    def confirm_as_marine_certificate(self, upload_result):
+        """Try to confirm the certificate as marine to proceed with duplicate test"""
+        try:
+            self.log("🔄 Attempting to confirm certificate as marine for duplicate testing...")
+            
+            temp_file_id = upload_result.get('temp_file_id')
+            if not temp_file_id:
+                self.log("   ❌ No temp_file_id found for manual confirmation")
+                return False
+            
+            # Try to confirm as marine certificate
+            endpoint = f"{BACKEND_URL}/certificates/confirm-marine"
+            confirm_data = {
+                'temp_file_id': temp_file_id,
+                'ship_id': self.sunshine_ship_id,
+                'action': 'confirm_marine'
+            }
+            
+            self.log(f"   POST {endpoint}")
+            self.log(f"   Confirming temp_file_id: {temp_file_id}")
+            
+            response = requests.post(
+                endpoint,
+                json=confirm_data,
+                headers=self.get_headers(),
+                timeout=120
+            )
+            
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                self.log("   Manual confirmation response:")
+                self.log(f"   {json.dumps(response_data, indent=2)}")
+                
+                if response_data.get('success'):
+                    self.log("✅ Certificate confirmed as marine - proceeding with duplicate test")
+                    self.debug_tests['first_upload_successful'] = True
+                    return True
+                else:
+                    self.log(f"❌ Manual confirmation failed: {response_data.get('message')}")
+                    return False
+            else:
+                self.log(f"   ❌ Manual confirmation failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"      Error: {response.text[:500]}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Manual confirmation error: {str(e)}", "ERROR")
+            return False
         """Analyze AI extraction results for the 5 required fields"""
         try:
             self.log("🤖 Analyzing AI extraction results...")
