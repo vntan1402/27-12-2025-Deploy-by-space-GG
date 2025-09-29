@@ -8649,7 +8649,7 @@ async def detect_new_class_society(
 ):
     """Detect if a class society input is new and suggest abbreviation"""
     try:
-        class_society_input = data.get('class_society', '').strip()
+        class_society_input = (data.get('class_society') or '').strip()
         
         if not class_society_input:
             return {"is_new": False, "reason": "Empty input"}
