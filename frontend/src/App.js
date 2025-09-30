@@ -4078,94 +4078,248 @@ const HomePage = () => {
                           </p>
                         </div>
 
-                        <form className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
-                            </label>
-                            <input
-                              type="text"
-                              value={editingCertificate.cert_name || ''}
-                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_name: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              required
-                            />
-                          </div>
-                          
-                          {/* Certificate Abbreviation Field */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Tên viết tắt' : 'Cert. Name (Abbreviation)'}
-                            </label>
-                            <input
-                              type="text"
-                              value={editingCertificate.cert_abbreviation || ''}
-                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_abbreviation: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder={language === 'vi' ? 'VD: CSSE, IAPP, ISM...' : 'e.g.: CSSE, IAPP, ISM...'}
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'} *
-                            </label>
-                            <input
-                              type="text"
-                              value={editingCertificate.cert_no || ''}
-                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_no: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'}
-                            </label>
-                            <input
-                              type="text"
-                              value={editingCertificate.cert_type || ''}
-                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_type: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
+                        <form className="space-y-3">
+                          {/* Row 1: Certificate Name + Abbreviation + Number */}
+                          <div className="grid grid-cols-3 gap-3">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={editingCertificate.cert_name || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_name: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'Safety Management Cert' : 'Safety Management Cert'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
+                              </label>
+                              <input
+                                type="text"
+                                value={editingCertificate.cert_abbreviation || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_abbreviation: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'SMC' : 'SMC'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={editingCertificate.cert_no || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_no: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'Số chứng chỉ' : 'Cert Number'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Row 2: Type + Issue Date + Valid Date */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Loại' : 'Type'} *
+                              </label>
+                              <select
+                                required
+                                value={editingCertificate.cert_type || 'Full Term'}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_type: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="Full Term">Full Term</option>
+                                <option value="Interim">Interim</option>
+                                <option value="Provisional">Provisional</option>
+                                <option value="Short term">Short term</option>
+                                <option value="Conditional">Conditional</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày cấp' : 'Issue Date'} *
                               </label>
                               <input
                                 type="date"
+                                required
                                 value={editingCertificate.issue_date?.split('T')[0] || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, issue_date: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+                              </label>
+                              <select
+                                value={editingCertificate.valid_date_type || (editingCertificate.valid_date ? 'custom-date' : '')}
+                                onChange={(e) => {
+                                  setEditingCertificate(prev => ({ 
+                                    ...prev, 
+                                    valid_date_type: e.target.value,
+                                    valid_date: e.target.value !== 'custom-date' ? '' : prev.valid_date
+                                  }));
+                                }}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="">{language === 'vi' ? 'Chọn ngày hết hạn' : 'Select valid date'}</option>
+                                <option value="permanent">{language === 'vi' ? 'Vĩnh viễn' : 'Permanent'}</option>
+                                <option value="1-year">{language === 'vi' ? '1 năm từ ngày cấp' : '1 year from issue'}</option>
+                                <option value="2-years">{language === 'vi' ? '2 năm từ ngày cấp' : '2 years from issue'}</option>
+                                <option value="3-years">{language === 'vi' ? '3 năm từ ngày cấp' : '3 years from issue'}</option>
+                                <option value="5-years">{language === 'vi' ? '5 năm từ ngày cấp' : '5 years from issue'}</option>
+                                <option value="custom-date">{language === 'vi' ? 'Ngày tự chọn' : 'Custom date'}</option>
+                              </select>
+                              
+                              {/* Custom date input for edit mode */}
+                              {(editingCertificate.valid_date_type === 'custom-date' || (!editingCertificate.valid_date_type && editingCertificate.valid_date)) && (
+                                <input
+                                  type="date"
+                                  value={editingCertificate.valid_date?.split('T')[0] || ''}
+                                  onChange={(e) => setEditingCertificate(prev => ({ ...prev, valid_date: e.target.value }))}
+                                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent mt-1"
+                                  placeholder={language === 'vi' ? 'Chọn ngày hết hạn' : 'Select expiry date'}
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Row 3: Last Endorse + Next Survey + Next Survey Type */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                                {editingCertificate.cert_type !== 'Full Term' && (
+                                  <span className="text-xs text-gray-400 ml-1">(Full Term only)</span>
+                                )}
                               </label>
                               <input
                                 type="date"
-                                value={editingCertificate.valid_date?.split('T')[0] || ''}
-                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, valid_date: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                value={editingCertificate.last_endorse?.split('T')[0] || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, last_endorse: e.target.value }))}
+                                disabled={editingCertificate.cert_type !== 'Full Term'}
+                                className={`w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500 ${
+                                  editingCertificate.cert_type !== 'Full Term' 
+                                    ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                                    : 'border-gray-300 focus:border-transparent'
+                                }`}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Kiểm tra tiếp theo' : 'Next Survey'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingCertificate.next_survey?.split('T')[0] || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, next_survey: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Loại kiểm tra' : 'Survey Type'}
+                              </label>
+                              <select
+                                value={editingCertificate.next_survey_type || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, next_survey_type: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="">{language === 'vi' ? 'Chọn loại kiểm tra' : 'Select survey type'}</option>
+                                <option value="Initial">{language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial Survey'}</option>
+                                <option value="Annual">{language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual Survey'}</option>
+                                <option value="Intermediate">{language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate Survey'}</option>
+                                <option value="Special">{language === 'vi' ? 'Kiểm tra định kỳ' : 'Special Survey'}</option>
+                                <option value="Renewal">{language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal Survey'}</option>
+                                <option value="Docking">{language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey'}</option>
+                                <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Row 4: Issued By + Status + Category */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={editingCertificate.issued_by || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, issued_by: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'DNV GL, Lloyd\'s...' : 'DNV GL, Lloyd\'s...'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Trạng thái' : 'Status'} *
+                              </label>
+                              <select
+                                required
+                                value={editingCertificate.status || 'valid'}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="valid">{language === 'vi' ? 'Có hiệu lực' : 'Valid'}</option>
+                                <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="suspended">{language === 'vi' ? 'Tạm ngừng' : 'Suspended'}</option>
+                                <option value="withdrawn">{language === 'vi' ? 'Thu hồi' : 'Withdrawn'}</option>
+                                <option value="pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Danh mục' : 'Category'} *
+                              </label>
+                              <input
+                                type="text"
+                                value={language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}
+                                readOnly
+                                className="w-full px-2 py-1.5 text-sm border border-gray-200 bg-gray-50 rounded text-gray-600 cursor-not-allowed"
                               />
                             </div>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
-                            </label>
-                            <input
-                              type="text"
-                              value={editingCertificate.issued_by || ''}
-                              onChange={(e) => setEditingCertificate(prev => ({ ...prev, issued_by: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
+                          {/* Row 5: Sensitivity Level + Notes */}
+                          <div className="grid grid-cols-4 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Mức bảo mật' : 'Sensitivity'} *
+                              </label>
+                              <select
+                                required
+                                value={editingCertificate.sensitivity_level || 'internal'}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, sensitivity_level: e.target.value }))}
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="public">{language === 'vi' ? 'Công khai' : 'Public'}</option>
+                                <option value="internal">{language === 'vi' ? 'Nội bộ' : 'Internal'}</option>
+                                <option value="confidential">{language === 'vi' ? 'Bí mật' : 'Confidential'}</option>
+                                <option value="restricted">{language === 'vi' ? 'Hạn chế' : 'Restricted'}</option>
+                              </select>
+                            </div>
+                            <div className="col-span-3">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ghi chú' : 'Notes'}
+                              </label>
+                              <textarea
+                                value={editingCertificate.notes || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, notes: e.target.value }))}
+                                rows="2"
+                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent resize-none"
+                                placeholder={language === 'vi' 
+                                  ? 'Ghi chú bổ sung (tùy chọn)...' 
+                                  : 'Additional notes (optional)...'}
+                              />
+                            </div>
                           </div>
                         </form>
 
