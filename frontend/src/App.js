@@ -10777,7 +10777,7 @@ const AddRecordModal = ({
 
         {/* Certificate Form */}
         {recordType === 'certificate' && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {!selectedShip && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-center">
