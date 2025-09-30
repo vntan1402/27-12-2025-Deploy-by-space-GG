@@ -955,6 +955,20 @@ const HomePage = () => {
     fetchAiConfig(); // Fetch AI config when component mounts
   }, []);
 
+  // Close quick edit menu when pressing Escape key
+  useEffect(() => {
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && quickEditMenu.show) {
+        closeQuickEditMenu();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [quickEditMenu.show]);
+
   useEffect(() => {
     if (selectedShip && selectedSubMenu === 'certificates') {
       fetchCertificates(selectedShip.id);
