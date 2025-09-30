@@ -426,96 +426,199 @@ class CertificateBackfillTester:
             self.log(f"❌ Error testing tooltip functionality: {str(e)}", "ERROR")
             return False
     
-    def test_priority_1_special_survey_from_date_fix(self):
-        """
-        PRIORITY 1: Test Special Survey From Date calculation fix
-        Expected: if special_survey_to_date = "10/03/2026", then special_survey_from_date should be "10/03/2021"
-        """
+    def run_comprehensive_backfill_tests(self):
+        """Main test function for backfill functionality"""
+        self.log("🔄 STARTING CERTIFICATE BACKFILL SHIP INFORMATION TESTING")
+        self.log("🎯 FOCUS: Test backfill functionality to help existing certificates")
+        self.log("=" * 100)
+        
         try:
-            self.log("🎯 PRIORITY 1: Testing Special Survey From Date Fix...")
-            self.log("   Expected: if to_date = '10/03/2026', then from_date should be '10/03/2021'")
-            
-            if not self.test_ship_id:
-                self.log("   ❌ No test ship available")
+            # Step 1: Authenticate
+            self.log("\n🔐 STEP 1: AUTHENTICATION")
+            self.log("=" * 50)
+            if not self.authenticate():
+                self.log("❌ Authentication failed - cannot proceed with testing")
                 return False
             
-            endpoint = f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-special-survey-cycle"
-            self.log(f"   POST {endpoint}")
+            # Step 2: Analyze certificates before backfill
+            self.log("\n📋 STEP 2: ANALYZE CERTIFICATES BEFORE BACKFILL")
+            self.log("=" * 50)
+            certificates_need_backfill = self.get_certificates_before_backfill()
             
-            response = requests.post(
-                endpoint,
-                headers=self.get_headers(),
-                timeout=30
-            )
+            # Step 3: Run backfill with reasonable limit
+            self.log("\n🔄 STEP 3: RUN BACKFILL JOB")
+            self.log("=" * 50)
+            backfill_success = self.test_backfill_endpoint(limit=20)
             
-            self.log(f"   Response status: {response.status_code}")
+            # Step 4: Verify backfill results
+            self.log("\n🔍 STEP 4: VERIFY BACKFILL RESULTS")
+            self.log("=" * 50)
+            verification_success = self.verify_backfill_results()
             
-            if response.status_code == 200:
-                response_data = response.json()
-                self.log("✅ Special Survey endpoint accessible")
-                self.priority_tests['special_survey_endpoint_accessible'] = True
-                
-                # Log full response for analysis
-                self.log("   API Response:")
-                self.log(f"   {json.dumps(response_data, indent=2)}")
-                
-                if response_data.get('success'):
-                    special_survey_cycle = response_data.get('special_survey_cycle', {})
-                    from_date = special_survey_cycle.get('from_date')
-                    to_date = special_survey_cycle.get('to_date')
-                    
-                    self.log(f"   From Date: {from_date}")
-                    self.log(f"   To Date: {to_date}")
-                    
-                    # Verify the specific fix: to_date = "10/03/2026" should give from_date = "10/03/2021"
-                    if to_date == "10/03/2026" and from_date == "10/03/2021":
-                        self.log("✅ PRIORITY 1 FIX VERIFIED: Special Survey From Date calculation is CORRECT")
-                        self.log("   ✅ To Date: 10/03/2026")
-                        self.log("   ✅ From Date: 10/03/2021 (5 years prior, same day/month)")
-                        self.priority_tests['special_survey_from_date_calculation_correct'] = True
-                        self.priority_tests['special_survey_same_day_month_verified'] = True
-                        self.priority_tests['special_survey_5_year_calculation_verified'] = True
-                        return True
-                    else:
-                        self.log("❌ PRIORITY 1 FIX NOT WORKING: Special Survey From Date calculation is INCORRECT")
-                        self.log(f"   Expected: from_date = '10/03/2021', to_date = '10/03/2026'")
-                        self.log(f"   Actual: from_date = '{from_date}', to_date = '{to_date}'")
-                        
-                        # Check if at least the 5-year calculation is working
-                        if from_date and to_date:
-                            try:
-                                from_parts = from_date.split('/')
-                                to_parts = to_date.split('/')
-                                if len(from_parts) == 3 and len(to_parts) == 3:
-                                    from_year = int(from_parts[2])
-                                    to_year = int(to_parts[2])
-                                    year_diff = to_year - from_year
-                                    
-                                    if year_diff == 5:
-                                        self.log("✅ 5-year calculation is working")
-                                        self.priority_tests['special_survey_5_year_calculation_verified'] = True
-                                    
-                                    if from_parts[0] == to_parts[0] and from_parts[1] == to_parts[1]:
-                                        self.log("✅ Same day/month logic is working")
-                                        self.priority_tests['special_survey_same_day_month_verified'] = True
-                            except:
-                                pass
-                        
-                        return False
-                else:
-                    self.log(f"   ❌ Special Survey calculation failed: {response_data.get('message')}")
-                    return False
-            else:
-                self.log(f"   ❌ Special Survey endpoint failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"      Error: {response.text[:500]}")
-                return False
-                
+            # Step 5: Test tooltip functionality
+            self.log("\n🏷️ STEP 5: TEST TOOLTIP FUNCTIONALITY")
+            self.log("=" * 50)
+            tooltip_success = self.test_tooltip_functionality()
+            
+            # Step 6: Final Analysis
+            self.log("\n📊 STEP 6: FINAL ANALYSIS")
+            self.log("=" * 50)
+            self.provide_final_analysis()
+            
+            return backfill_success and verification_success
+            
         except Exception as e:
-            self.log(f"❌ Priority 1 testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive backfill testing error: {str(e)}", "ERROR")
+            return False
+    
+    def provide_final_analysis(self):
+        """Provide final analysis of backfill testing"""
+        try:
+            self.log("🔄 CERTIFICATE BACKFILL SHIP INFORMATION TESTING - RESULTS")
+            self.log("=" * 80)
+            
+            # Check which tests passed
+            passed_tests = []
+            failed_tests = []
+            
+            for test_name, passed in self.backfill_tests.items():
+                if passed:
+                    passed_tests.append(test_name)
+                else:
+                    failed_tests.append(test_name)
+            
+            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.backfill_tests)}):")
+            for test in passed_tests:
+                self.log(f"   ✅ {test.replace('_', ' ').title()}")
+            
+            if failed_tests:
+                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.backfill_tests)}):")
+                for test in failed_tests:
+                    self.log(f"   ❌ {test.replace('_', ' ').title()}")
+            
+            # Calculate success rate
+            success_rate = (len(passed_tests) / len(self.backfill_tests)) * 100
+            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.backfill_tests)})")
+            
+            # Backfill-specific analysis
+            self.log("\n🔄 BACKFILL FUNCTIONALITY ANALYSIS:")
+            
+            # Core functionality tests
+            core_tests = [
+                'backfill_endpoint_accessible',
+                'backfill_processing_successful',
+                'certificates_updated_with_ship_info',
+                'extracted_ship_name_populated'
+            ]
+            core_passed = sum(1 for test in core_tests if self.backfill_tests.get(test, False))
+            core_rate = (core_passed / len(core_tests)) * 100
+            
+            self.log(f"\n🎯 CORE BACKFILL FUNCTIONALITY: {core_rate:.1f}% ({core_passed}/{len(core_tests)})")
+            
+            if self.backfill_tests['backfill_processing_successful']:
+                self.log("   ✅ CONFIRMED: Backfill job is WORKING")
+                self.log("   ✅ Endpoint processes existing certificates successfully")
+                
+                if self.backfill_results:
+                    processed = self.backfill_results.get('processed', 0)
+                    updated = self.backfill_results.get('updated', 0)
+                    errors = self.backfill_results.get('errors', 0)
+                    
+                    self.log(f"   📊 Processing Statistics:")
+                    self.log(f"      Processed: {processed} certificates")
+                    self.log(f"      Updated: {updated} certificates")
+                    self.log(f"      Errors: {errors} certificates")
+                    
+                    if updated > 0:
+                        self.log(f"   ✅ SUCCESS: {updated} certificates updated with ship information")
+                    else:
+                        self.log("   ℹ️ INFO: No certificates needed updating (may be expected)")
+            else:
+                self.log("   ❌ ISSUE: Backfill job needs fixing")
+            
+            # Tooltip functionality tests
+            tooltip_tests = [
+                'extracted_ship_name_populated',
+                'tooltip_data_available'
+            ]
+            tooltip_passed = sum(1 for test in tooltip_tests if self.backfill_tests.get(test, False))
+            tooltip_rate = (tooltip_passed / len(tooltip_tests)) * 100
+            
+            self.log(f"\n🏷️ TOOLTIP FUNCTIONALITY: {tooltip_rate:.1f}% ({tooltip_passed}/{len(tooltip_tests)})")
+            
+            if self.backfill_tests['tooltip_data_available']:
+                self.log("   ✅ CONFIRMED: Tooltip functionality is READY")
+                self.log("   ✅ Certificates now have extracted_ship_name for tooltips")
+                self.log("   ✅ Previously processed certificates will show ship names")
+            else:
+                self.log("   ⚠️ ISSUE: Tooltip data may not be available yet")
+            
+            # Data quality tests
+            data_tests = [
+                'ship_info_fields_populated',
+                'backfill_response_format_correct',
+                'processing_statistics_provided'
+            ]
+            data_passed = sum(1 for test in data_tests if self.backfill_tests.get(test, False))
+            data_rate = (data_passed / len(data_tests)) * 100
+            
+            self.log(f"\n📊 DATA QUALITY & API RESPONSE: {data_rate:.1f}% ({data_passed}/{len(data_tests)})")
+            
+            # Review request requirements analysis
+            self.log("\n📋 REVIEW REQUEST REQUIREMENTS ANALYSIS:")
+            
+            req1_met = self.backfill_tests['backfill_endpoint_accessible'] and self.backfill_tests['backfill_processing_successful']
+            req2_met = self.backfill_tests['certificates_updated_with_ship_info'] and self.backfill_tests['ship_info_fields_populated']
+            req3_met = self.backfill_tests['extracted_ship_name_populated'] and self.backfill_tests['tooltip_data_available']
+            
+            self.log(f"   1. Run Backfill Job: {'✅ MET' if req1_met else '❌ NOT MET'}")
+            self.log(f"      - Endpoint accessible and processing certificates")
+            
+            self.log(f"   2. Verify Processing: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - Certificates updated with missing ship information")
+            
+            self.log(f"   3. Check Results: {'✅ MET' if req3_met else '❌ NOT MET'}")
+            self.log(f"      - Tooltips will show ship names for processed certificates")
+            
+            requirements_met = sum([req1_met, req2_met, req3_met])
+            
+            # Final conclusion
+            if success_rate >= 80 and requirements_met >= 2:
+                self.log(f"\n🎉 CONCLUSION: BACKFILL FUNCTIONALITY IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Backfill job successfully implemented!")
+                self.log(f"   ✅ Requirements met: {requirements_met}/3")
+                self.log(f"   ✅ Existing certificates can now be processed for ship information")
+                self.log(f"   ✅ Tooltips will show ship names for previously processed certificates")
+                self.log(f"   ✅ System ready for production use with reasonable limits")
+            elif success_rate >= 60:
+                self.log(f"\n⚠️ CONCLUSION: BACKFILL FUNCTIONALITY PARTIALLY WORKING")
+                self.log(f"   Success rate: {success_rate:.1f}% - Some functionality working, improvements needed")
+                self.log(f"   ⚠️ Requirements met: {requirements_met}/3")
+                
+                if req1_met:
+                    self.log(f"   ✅ Backfill job is accessible and processing")
+                else:
+                    self.log(f"   ❌ Backfill job needs attention")
+                    
+                if req2_met:
+                    self.log(f"   ✅ Certificate processing is working")
+                else:
+                    self.log(f"   ❌ Certificate processing needs attention")
+                    
+                if req3_met:
+                    self.log(f"   ✅ Tooltip functionality is ready")
+                else:
+                    self.log(f"   ❌ Tooltip functionality needs attention")
+            else:
+                self.log(f"\n❌ CONCLUSION: BACKFILL FUNCTIONALITY HAS CRITICAL ISSUES")
+                self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
+                self.log(f"   ❌ Requirements met: {requirements_met}/3")
+                self.log(f"   ❌ Backfill job needs major fixes before production use")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
             return False
     
     def test_priority_2_next_docking_logic(self):
