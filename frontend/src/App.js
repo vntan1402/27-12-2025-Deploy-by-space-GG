@@ -12628,6 +12628,61 @@ const AddRecordModal = ({
           </div>
         </div>
       )}
+      {/* Quick Edit Survey Type Context Menu */}
+      {quickEditMenu.show && (
+        <>
+          {/* Background overlay to close menu when clicking outside */}
+          <div 
+            className="fixed inset-0 z-40"
+            onClick={closeQuickEditMenu}
+          />
+          
+          {/* Context Menu */}
+          <div
+            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-48"
+            style={{
+              left: `${quickEditMenu.position.x}px`,
+              top: `${quickEditMenu.position.y}px`,
+              transform: quickEditMenu.position.x > window.innerWidth - 200 
+                ? 'translateX(-100%)' 
+                : 'translateX(0)',
+            }}
+          >
+            <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+              {language === 'vi' ? 'Chọn loại kiểm tra' : 'Select Survey Type'}
+            </div>
+            
+            {/* Survey Type Options */}
+            {[
+              { value: '', label: language === 'vi' ? 'Không có' : 'None', color: 'text-gray-600' },
+              { value: 'Initial', label: language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial Survey', color: 'text-indigo-600' },
+              { value: 'Annual', label: language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual Survey', color: 'text-blue-600' },
+              { value: 'Intermediate', label: language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate Survey', color: 'text-yellow-600' },
+              { value: 'Special', label: language === 'vi' ? 'Kiểm tra định kỳ' : 'Special Survey', color: 'text-purple-600' },
+              { value: 'Renewal', label: language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal Survey', color: 'text-green-600' },
+              { value: 'Docking', label: language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey', color: 'text-orange-600' },
+              { value: 'Other', label: language === 'vi' ? 'Khác' : 'Other', color: 'text-gray-600' }
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleQuickUpdateSurveyType(option.value)}
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                  quickEditMenu.currentValue === option.value ? 'bg-blue-50 text-blue-700 font-medium' : option.color
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{option.label}</span>
+                  {quickEditMenu.currentValue === option.value && (
+                    <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };
