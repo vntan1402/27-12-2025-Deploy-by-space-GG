@@ -6385,6 +6385,127 @@ const AccountControlPage = () => {
             </div>
           )}
 
+          {/* Admin Tools - Admin & Super Admin Only */}
+          {(user?.role === 'admin' || user?.role === 'super_admin') && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                🛠️ {language === 'vi' ? 'Công cụ Admin' : 'Admin Tools'}
+              </h3>
+              
+              {/* Certificate Backfill Processing */}
+              <div className="mb-6">
+                <h4 className="font-medium mb-3 text-gray-700">
+                  {language === 'vi' ? 'Cập nhật thông tin Certificate cũ' : 'Legacy Certificate Information Update'}
+                </h4>
+                
+                {/* Current Progress */}
+                {backfillProgress && (
+                  <div className={`mb-4 p-3 rounded-lg ${
+                    backfillProgress.status === 'completed' ? 'bg-green-50 border-green-200' :
+                    backfillProgress.status === 'error' ? 'bg-red-50 border-red-200' :
+                    'bg-blue-50 border-blue-200'
+                  } border`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`font-medium ${
+                        backfillProgress.status === 'completed' ? 'text-green-700' :
+                        backfillProgress.status === 'error' ? 'text-red-700' :
+                        'text-blue-700'
+                      }`}>
+                        {backfillProgress.status === 'starting' ? '⏳' :
+                         backfillProgress.status === 'completed' ? '✅' :
+                         backfillProgress.status === 'error' ? '❌' : '🔄'}
+                        {' '}
+                        {backfillProgress.status === 'starting' ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...') :
+                         backfillProgress.status === 'completed' ? (language === 'vi' ? 'Hoàn thành' : 'Completed') :
+                         backfillProgress.status === 'error' ? (language === 'vi' ? 'Lỗi' : 'Error') :
+                         (language === 'vi' ? 'Đang xử lý' : 'Processing')}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        {backfillProgress.processed || 0} {language === 'vi' ? 'đã xử lý' : 'processed'}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm mb-2">
+                      <div className="flex justify-between">
+                        <span>{language === 'vi' ? 'Cập nhật:' : 'Updated:'}</span>
+                        <span className="font-medium text-green-600">{backfillProgress.updated || 0}</span>
+                      </div>
+                      {backfillProgress.errors > 0 && (
+                        <div className="flex justify-between">
+                          <span>{language === 'vi' ? 'Lỗi:' : 'Errors:'}</span>
+                          <span className="font-medium text-red-600">{backfillProgress.errors}</span>
+                        </div>
+                      )}
+                      {backfillProgress.remaining > 0 && (
+                        <div className="flex justify-between">
+                          <span>{language === 'vi' ? 'Còn lại:' : 'Remaining:'}</span>
+                          <span className="font-medium text-orange-600">{backfillProgress.remaining}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-gray-600 mt-2">
+                      {backfillProgress.message}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Backfill History */}
+                {backfillHistory.length > 0 && (
+                  <div className="mb-4 p-3 rounded-lg bg-gray-50 border">
+                    <h5 className="font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Lịch sử xử lý gần đây' : 'Recent Processing History'}
+                    </h5>
+                    <div className="space-y-2">
+                      {backfillHistory.slice(0, 3).map((item, index) => (
+                        <div key={index} className="flex justify-between text-xs">
+                          <span className="text-gray-600">
+                            {new Date(item.timestamp).toLocaleDateString()} {new Date(item.timestamp).toLocaleTimeString()}
+                          </span>
+                          <span className="font-medium">
+                            {item.updated}/{item.processed} {language === 'vi' ? 'thành công' : 'success'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <button
+                    onClick={handleBackfillProcessing}
+                    disabled={backfillProcessing}
+                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-2 rounded-lg transition-all font-medium"
+                  >
+                    {backfillProcessing ? '⏳' : '🔄'} 
+                    {' '}
+                    {backfillProcessing 
+                      ? (language === 'vi' ? 'Đang xử lý...' : 'Processing...')
+                      : (language === 'vi' ? 'Chạy Backfill Processing' : 'Run Backfill Processing')
+                    }
+                  </button>
+                  
+                  <p className="text-xs text-gray-600">
+                    {language === 'vi' 
+                      ? 'Cập nhật thông tin tàu (extracted_ship_name, flag, class_society, v.v.) cho các certificates cũ thiếu dữ liệu. Xử lý 20 certificates mỗi lần.'
+                      : 'Updates ship information (extracted_ship_name, flag, class_society, etc.) for legacy certificates missing data. Processes 20 certificates at a time.'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              {/* Future Admin Tools */}
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500 italic">
+                  {language === 'vi' 
+                    ? 'Các công cụ admin khác sẽ được thêm trong tương lai...'
+                    : 'Additional admin tools will be added in the future...'
+                  }
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Usage Tracking - Admin+ Only */}
           {(user?.role === 'admin' || user?.role === 'super_admin') && (
             <div className="bg-white rounded-xl shadow-lg p-6">
