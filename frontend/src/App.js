@@ -5702,54 +5702,7 @@ const AccountControlPage = () => {
     }
   };
 
-  // Quick Edit Survey Type functions
-  const handleSurveyTypeRightClick = (e, certificateId, currentValue) => {
-    e.preventDefault();
-    setQuickEditMenu({
-      show: true,
-      certificateId,
-      position: { x: e.clientX, y: e.clientY },
-      currentValue: currentValue || ''
-    });
-  };
-
-  const handleQuickUpdateSurveyType = async (newSurveyType) => {
-    try {
-      const response = await axios.put(`${API}/certificates/${quickEditMenu.certificateId}`, {
-        next_survey_type: newSurveyType
-      }, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`
-        }
-      });
-
-      if (response.data.success) {
-        // Update the certificate list
-        setCertificates(prev => prev.map(cert => 
-          cert.id === quickEditMenu.certificateId 
-            ? { ...cert, next_survey_type: newSurveyType }
-            : cert
-        ));
-
-        toast.success(language === 'vi' 
-          ? `✅ Đã cập nhật loại kiểm tra thành "${newSurveyType}"`
-          : `✅ Survey type updated to "${newSurveyType}"`
-        );
-      }
-    } catch (error) {
-      console.error('Error updating survey type:', error);
-      toast.error(language === 'vi' 
-        ? '❌ Lỗi cập nhật loại kiểm tra'
-        : '❌ Failed to update survey type'
-      );
-    } finally {
-      setQuickEditMenu({ show: false, certificateId: null, position: { x: 0, y: 0 }, currentValue: '' });
-    }
-  };
-
-  const closeQuickEditMenu = () => {
-    setQuickEditMenu({ show: false, certificateId: null, position: { x: 0, y: 0 }, currentValue: '' });
-  };
+  // Removed duplicate functions - will be defined earlier
 
   // Admin Tools Functions
   const handleBackfillProcessing = async () => {
