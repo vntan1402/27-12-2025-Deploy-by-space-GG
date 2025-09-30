@@ -4060,10 +4060,16 @@ const HomePage = () => {
                       <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
                         <div className="mb-6">
                           <h3 className="text-xl font-bold text-gray-800 mb-2">
-                            {language === 'vi' ? 'Chỉnh sửa chứng chỉ' : 'Edit Certificate'}
+                            {editingCertificate?.manual_input_mode
+                              ? (language === 'vi' ? 'Nhập thủ công chứng chỉ' : 'Manual Certificate Input')
+                              : (language === 'vi' ? 'Chỉnh sửa chứng chỉ' : 'Edit Certificate')
+                            }
                           </h3>
                           <p className="text-gray-600 text-sm">
-                            {language === 'vi' ? 'Cập nhật thông tin chứng chỉ' : 'Update certificate information'}
+                            {editingCertificate?.manual_input_mode
+                              ? (language === 'vi' ? 'AI không thể trích xuất đủ thông tin, vui lòng nhập thủ công' : 'AI could not extract sufficient information, please input manually')
+                              : (language === 'vi' ? 'Cập nhật thông tin chứng chỉ' : 'Update certificate information')
+                            }
                           </p>
                         </div>
 
