@@ -2249,22 +2249,29 @@ const HomePage = () => {
             const results = response.data.results || [];
             const result = results[0]; // Should be only one result
             
-            if (result && (result.status === 'completed' || result.status === 'success' || result.status === 'duplicate')) {
+            if (result && (result.status === 'completed' || result.status === 'success' || result.status === 'success_with_reference_note' || result.status === 'duplicate')) {
               const progressMessage = result?.progress_message;
               const defaultStage = language === 'vi' ? 'Hoàn thành' : 'Completed';
+              
+              // Determine the final status for display
+              let finalStatus = 'completed';
+              if (result.status === 'success_with_reference_note') {
+                finalStatus = 'success_with_reference_note';
+              }
               
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
                       ...upload,
-                      status: 'completed',
+                      status: finalStatus,
                       progress: 100,
                       stage: progressMessage || defaultStage, // Use progress_message if available
                       analysis: result.analysis,
                       upload: result.upload,
                       certificate: result.certificate,
                       isMarine: result.is_marine,
-                      progress_message: progressMessage // Store progress message
+                      progress_message: progressMessage, // Store progress message
+                      validation_note: result.validation_note // Store validation note
                     }
                   : upload
               ));
