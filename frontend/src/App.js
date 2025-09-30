@@ -5518,6 +5518,81 @@ const AccountControlPage = () => {
     }
   };
 
+  // Admin Tools Functions
+  const handleBackfillProcessing = async () => {
+    if (backfillProcessing) return;
+    
+    setBackfillProcessing(true);
+    setBackfillProgress({
+      status: 'starting',
+      processed: 0,
+      updated: 0,
+      errors: 0,
+      message: language === 'vi' ? 'Bắt đầu xử lý backfill...' : 'Starting backfill processing...'
+    });
+    
+    try {
+      const response = await axios.post(`${API}/certificates/backfill-ship-info`, 
+        { limit: 20 }, // Process 20 certificates at a time
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        const result = response.data;
+        setBackfillProgress({
+          status: 'completed',
+          processed: result.processed,
+          updated: result.updated,
+          errors: result.errors,
+          remaining: result.remaining || 0,
+          message: language === 'vi' 
+            ? `Hoàn thành: ${result.updated}/${result.processed} certificates được cập nhật`
+            : `Completed: ${result.updated}/${result.processed} certificates updated`
+        });
+        
+        // Add to history
+        const historyItem = {
+          timestamp: new Date().toISOString(),
+          processed: result.processed,
+          updated: result.updated,
+          errors: result.errors,
+          remaining: result.remaining || 0
+        };
+        setBackfillHistory(prev => [historyItem, ...prev.slice(0, 4)]); // Keep last 5 records
+        
+        toast.success(language === 'vi' 
+          ? `✅ Backfill hoàn thành: ${result.updated} certificates được cập nhật`
+          : `✅ Backfill completed: ${result.updated} certificates updated`
+        );
+      } else {
+        throw new Error(response.data.error || 'Backfill failed');
+      }
+    } catch (error) {
+      console.error('Backfill processing error:', error);
+      setBackfillProgress({
+        status: 'error',
+        processed: 0,
+        updated: 0,
+        errors: 1,
+        message: language === 'vi' 
+          ? `Lỗi: ${error.response?.data?.detail || error.message}`
+          : `Error: ${error.response?.data?.detail || error.message}`
+      });
+      
+      toast.error(language === 'vi' 
+        ? `❌ Backfill thất bại: ${error.response?.data?.detail || error.message}`
+        : `❌ Backfill failed: ${error.response?.data?.detail || error.message}`
+      );
+    } finally {
+      setBackfillProcessing(false);
+    }
+  };
+
   const handlePdfAnalysis = async () => {
     if (!pdfFile) {
       toast.error(language === 'vi' ? 'Vui lòng chọn file PDF!' : 'Please select a PDF file!');
