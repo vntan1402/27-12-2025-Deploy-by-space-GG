@@ -10782,6 +10782,97 @@ const AddRecordModal = ({
                         </div>
                       )}
                       
+                      {/* Manual Input Required - AI Extraction Failed */}
+                      {fileUpload.status === 'requires_manual_input' && (
+                        <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                          <h5 className="text-sm font-semibold text-purple-700 mb-2">
+                            🤖❌ {language === 'vi' ? 'AI không thể trích xuất đủ thông tin - Cần nhập thủ công' : 'AI Extraction Failed - Manual Input Required'}
+                          </h5>
+                          <div className="text-sm space-y-2">
+                            <div className="flex justify-between">
+                              <span className="font-medium text-purple-600">
+                                {language === 'vi' ? 'Lý do:' : 'Reason:'}
+                              </span>
+                              <span className="text-purple-800 text-xs">{fileUpload.manual_input_reason || 'Unknown'}</span>
+                            </div>
+                            {fileUpload.extraction_quality && (
+                              <div className="bg-white p-2 rounded border">
+                                <p className="text-xs text-purple-600 font-medium mb-1">
+                                  {language === 'vi' ? 'Chất lượng trích xuất:' : 'Extraction Quality:'}
+                                </p>
+                                <div className="text-xs space-y-1">
+                                  <div className="flex justify-between">
+                                    <span>{language === 'vi' ? 'Độ tin cậy:' : 'Confidence:'}</span>
+                                    <span>{(fileUpload.extraction_quality.confidence_score * 100).toFixed(0)}%</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>{language === 'vi' ? 'Trường quan trọng:' : 'Critical fields:'}</span>
+                                    <span>{fileUpload.extraction_quality.extracted_critical_fields}/{fileUpload.extraction_quality.total_critical_fields}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>{language === 'vi' ? 'Độ dài văn bản:' : 'Text length:'}</span>
+                                    <span>{fileUpload.extraction_quality.text_length} chars</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            {fileUpload.manual_input_data && (
+                              <div className="bg-white p-2 rounded border">
+                                <p className="text-xs text-purple-600 font-medium mb-1">
+                                  {language === 'vi' ? 'Dữ liệu AI đã trích xuất:' : 'AI Extracted Data:'}
+                                </p>
+                                <div className="text-xs space-y-1">
+                                  {Object.entries(fileUpload.manual_input_data.extracted_data).map(([key, value]) => (
+                                    value && <div key={key} className="flex justify-between">
+                                      <span className="capitalize">{key.replace('_', ' ')}:</span>
+                                      <span className="text-purple-800 truncate max-w-32">{String(value).substring(0, 30)}{String(value).length > 30 ? '...' : ''}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            <p className="text-xs text-purple-600 mt-2 p-2 bg-purple-100 rounded">
+                              {language === 'vi' 
+                                ? 'Hệ thống AI không thể trích xuất đủ thông tin từ file này. Vui lòng nhập thông tin Certificate thủ công hoặc bỏ qua file này.' 
+                                : 'AI system could not extract sufficient information from this file. Please input certificate information manually or skip this file.'}
+                            </p>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex justify-end space-x-2 mt-3 pt-2 border-t border-purple-200">
+                            <button
+                              onClick={() => {
+                                // Skip this file - mark as skipped
+                                setMultiCertUploads(prev => prev.map((upload, idx) => 
+                                  upload.name === fileUpload.name
+                                    ? { ...upload, status: 'skipped', stage: language === 'vi' ? 'Đã bỏ qua' : 'Skipped' }
+                                    : upload
+                                ));
+                              }}
+                              className="px-3 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors"
+                            >
+                              {language === 'vi' ? 'Bỏ qua' : 'Skip'}
+                            </button>
+                            <button
+                              onClick={() => {
+                                // Open manual certificate input modal
+                                setShowManualCertModal(true);
+                                setManualCertData({
+                                  ship_id: selectedShip?.id,
+                                  ship_name: selectedShip?.name,
+                                  extracted_data: fileUpload.manual_input_data?.extracted_data || {},
+                                  filename: fileUpload.name,
+                                  upload_index: multiCertUploads.findIndex(u => u.name === fileUpload.name)
+                                });
+                              }}
+                              className="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+                            >
+                              {language === 'vi' ? 'Nhập thủ công' : 'Manual Input'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* Manual Review Required */}
                       {fileUpload.status === 'requires_manual_review' && (
                         <div className="mt-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
