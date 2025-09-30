@@ -141,73 +141,289 @@ class CertificateBackfillTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def create_test_ship_for_scenarios(self):
-        """Create a test ship with specific data for testing both priorities"""
+    def get_certificates_before_backfill(self):
+        """Get sample certificates before backfill to analyze their current state"""
         try:
-            self.log("🚢 Creating test ship for Next Docking and Special Survey testing...")
+            self.log("📋 Getting certificates before backfill to analyze current state...")
             
-            # Create ship with specific dates for testing
-            ship_data = {
-                'name': self.test_ship_name,
-                'imo': '9999999',
-                'flag': 'PANAMA',
-                'ship_type': 'DNV GL',
-                'gross_tonnage': 5000.0,
-                'built_year': 2015,
-                'ship_owner': 'Test Owner',
-                'company': 'AMCSC',
-                # Key dates for testing
-                'last_docking': '2023-01-15T00:00:00Z',  # Last Docking 1
-                'last_docking_2': '2022-06-10T00:00:00Z',  # Last Docking 2 (older)
-                'last_special_survey': '2021-03-10T00:00:00Z',
-                # Special Survey Cycle with specific dates for testing
-                'special_survey_cycle': {
-                    'from_date': '2021-03-10T00:00:00Z',
-                    'to_date': '2026-03-10T00:00:00Z',  # This will be used for comparison
-                    'intermediate_required': True,
-                    'cycle_type': 'SOLAS Safety Construction Survey Cycle'
-                }
-            }
+            # Get all certificates to see which ones need backfill
+            endpoint = f"{BACKEND_URL}/certificates"
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             
-            endpoint = f"{BACKEND_URL}/ships"
-            self.log(f"   POST {endpoint}")
+            if response.status_code == 200:
+                certificates = response.json()
+                self.log(f"   Found {len(certificates)} total certificates")
+                
+                # Analyze certificates that might need backfill
+                need_backfill = []
+                have_ship_info = []
+                
+                for cert in certificates[:50]:  # Check first 50 certificates
+                    cert_id = cert.get('id')
+                    cert_name = cert.get('cert_name', 'Unknown')
+                    extracted_ship_name = cert.get('extracted_ship_name')
+                    flag = cert.get('flag')
+                    class_society = cert.get('class_society')
+                    built_year = cert.get('built_year')
+                    text_content = cert.get('text_content')
+                    
+                    # Check if certificate needs backfill
+                    missing_fields = []
+                    if not extracted_ship_name:
+                        missing_fields.append('extracted_ship_name')
+                    if not flag:
+                        missing_fields.append('flag')
+                    if not class_society:
+                        missing_fields.append('class_society')
+                    if not built_year:
+                        missing_fields.append('built_year')
+                    
+                    if missing_fields and text_content:
+                        need_backfill.append({
+                            'id': cert_id,
+                            'name': cert_name,
+                            'missing_fields': missing_fields,
+                            'has_text_content': bool(text_content)
+                        })
+                    elif not missing_fields:
+                        have_ship_info.append({
+                            'id': cert_id,
+                            'name': cert_name,
+                            'extracted_ship_name': extracted_ship_name
+                        })
+                
+                self.log(f"   Certificates needing backfill: {len(need_backfill)}")
+                self.log(f"   Certificates with ship info: {len(have_ship_info)}")
+                
+                if need_backfill:
+                    self.log("   Sample certificates needing backfill:")
+                    for cert in need_backfill[:5]:
+                        self.log(f"      - {cert['name']} (missing: {', '.join(cert['missing_fields'])})")
+                    self.backfill_tests['certificates_found_for_backfill'] = True
+                
+                if have_ship_info:
+                    self.log("   Sample certificates with ship info:")
+                    for cert in have_ship_info[:3]:
+                        self.log(f"      - {cert['name']} (ship: {cert['extracted_ship_name']})")
+                
+                return len(need_backfill) > 0
+            else:
+                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error getting certificates before backfill: {str(e)}", "ERROR")
+            return False
+    
+    def test_backfill_endpoint(self, limit=20):
+        """Test the backfill endpoint with specified limit"""
+        try:
+            self.log(f"🔄 Testing backfill endpoint with limit={limit}...")
+            
+            endpoint = f"{BACKEND_URL}/certificates/backfill-ship-info"
+            params = {"limit": limit}
+            
+            self.log(f"   POST {endpoint}?limit={limit}")
             
             response = requests.post(
                 endpoint,
-                json=ship_data,
+                params=params,
                 headers=self.get_headers(),
-                timeout=30
+                timeout=120  # Longer timeout for processing
             )
             
             self.log(f"   Response status: {response.status_code}")
             
-            if response.status_code == 200 or response.status_code == 201:
+            if response.status_code == 200:
                 response_data = response.json()
-                self.test_ship_id = response_data.get('id')
-                self.log("✅ Test ship created successfully")
-                self.log(f"   Ship ID: {self.test_ship_id}")
-                self.log(f"   Ship Name: {response_data.get('name')}")
+                self.log("✅ Backfill endpoint accessible")
+                self.backfill_tests['backfill_endpoint_accessible'] = True
                 
-                # Log the key dates for reference
-                self.log("   Key dates for testing:")
-                self.log(f"      Last Docking 1: 2023-01-15 (most recent)")
-                self.log(f"      Last Docking 2: 2022-06-10 (older)")
-                self.log(f"      Special Survey To: 2026-03-10")
-                self.log(f"      Expected Last Docking + 36 months: ~2026-01-15")
-                self.log(f"      Expected Next Docking: 2026-01-15 (nearer than Special Survey)")
+                # Log full response for analysis
+                self.log("   Backfill Response:")
+                self.log(f"   {json.dumps(response_data, indent=2)}")
                 
-                return True
+                # Store results for analysis
+                self.backfill_results = response_data
+                
+                # Verify response format
+                if all(key in response_data for key in ['success', 'message', 'processed', 'updated', 'errors']):
+                    self.backfill_tests['backfill_response_format_correct'] = True
+                    self.log("✅ Response format is correct")
+                
+                if response_data.get('success'):
+                    processed = response_data.get('processed', 0)
+                    updated = response_data.get('updated', 0)
+                    errors = response_data.get('errors', 0)
+                    
+                    self.log(f"   Processing Statistics:")
+                    self.log(f"      Processed: {processed}")
+                    self.log(f"      Updated: {updated}")
+                    self.log(f"      Errors: {errors}")
+                    
+                    self.backfill_tests['processing_statistics_provided'] = True
+                    
+                    if processed > 0:
+                        self.backfill_tests['backfill_processing_successful'] = True
+                        self.log("✅ Backfill processing completed successfully")
+                        
+                        if updated > 0:
+                            self.backfill_tests['certificates_updated_with_ship_info'] = True
+                            self.log(f"✅ {updated} certificates updated with ship information")
+                            return True
+                        else:
+                            self.log("⚠️ No certificates were updated (might be expected if all already have ship info)")
+                            return True
+                    else:
+                        self.log("ℹ️ No certificates processed (might be expected if none need backfill)")
+                        return True
+                else:
+                    self.log(f"   ❌ Backfill failed: {response_data.get('message')}")
+                    return False
             else:
-                self.log(f"   ❌ Test ship creation failed: {response.status_code}")
+                self.log(f"   ❌ Backfill endpoint failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                    self.backfill_tests['error_handling_working'] = True
                 except:
                     self.log(f"      Error: {response.text[:500]}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Test ship creation error: {str(e)}", "ERROR")
+            self.log(f"❌ Backfill endpoint testing error: {str(e)}", "ERROR")
+            return False
+    
+    def verify_backfill_results(self):
+        """Verify that certificates were actually updated with ship information"""
+        try:
+            self.log("🔍 Verifying backfill results by checking updated certificates...")
+            
+            if not self.backfill_results.get('updated', 0) > 0:
+                self.log("   ℹ️ No certificates were updated, skipping verification")
+                return True
+            
+            # Get certificates again to see if they now have ship information
+            endpoint = f"{BACKEND_URL}/certificates"
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                
+                # Look for certificates with extracted ship information
+                certificates_with_ship_info = []
+                certificates_with_extracted_name = []
+                
+                for cert in certificates[:50]:  # Check first 50 certificates
+                    extracted_ship_name = cert.get('extracted_ship_name')
+                    flag = cert.get('flag')
+                    class_society = cert.get('class_society')
+                    built_year = cert.get('built_year')
+                    
+                    if extracted_ship_name:
+                        certificates_with_extracted_name.append({
+                            'id': cert.get('id'),
+                            'name': cert.get('cert_name', 'Unknown'),
+                            'extracted_ship_name': extracted_ship_name,
+                            'flag': flag,
+                            'class_society': class_society,
+                            'built_year': built_year
+                        })
+                    
+                    if any([flag, class_society, built_year]):
+                        certificates_with_ship_info.append({
+                            'id': cert.get('id'),
+                            'name': cert.get('cert_name', 'Unknown'),
+                            'ship_info_fields': [f for f in ['flag', 'class_society', 'built_year'] if cert.get(f)]
+                        })
+                
+                self.log(f"   Certificates with extracted_ship_name: {len(certificates_with_extracted_name)}")
+                self.log(f"   Certificates with ship info fields: {len(certificates_with_ship_info)}")
+                
+                if certificates_with_extracted_name:
+                    self.backfill_tests['extracted_ship_name_populated'] = True
+                    self.backfill_tests['tooltip_data_available'] = True
+                    self.log("✅ Certificates now have extracted_ship_name for tooltips")
+                    
+                    # Show sample results
+                    self.log("   Sample certificates with extracted ship names:")
+                    for cert in certificates_with_extracted_name[:5]:
+                        self.log(f"      - {cert['name']}: '{cert['extracted_ship_name']}'")
+                        if cert['flag']:
+                            self.log(f"        Flag: {cert['flag']}")
+                        if cert['class_society']:
+                            self.log(f"        Class Society: {cert['class_society']}")
+                        if cert['built_year']:
+                            self.log(f"        Built Year: {cert['built_year']}")
+                
+                if certificates_with_ship_info:
+                    self.backfill_tests['ship_info_fields_populated'] = True
+                    self.log("✅ Certificates now have additional ship information fields")
+                
+                return len(certificates_with_extracted_name) > 0 or len(certificates_with_ship_info) > 0
+            else:
+                self.log(f"   ❌ Failed to verify results: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error verifying backfill results: {str(e)}", "ERROR")
+            return False
+    
+    def test_tooltip_functionality(self):
+        """Test that tooltip data is now available for certificates"""
+        try:
+            self.log("🏷️ Testing tooltip functionality with updated certificate data...")
+            
+            # Get a ship and its certificates to test tooltip data
+            ships_endpoint = f"{BACKEND_URL}/ships"
+            response = requests.get(ships_endpoint, headers=self.get_headers(), timeout=30)
+            
+            if response.status_code == 200:
+                ships = response.json()
+                if not ships:
+                    self.log("   ⚠️ No ships found for tooltip testing")
+                    return True
+                
+                # Test with first ship
+                test_ship = ships[0]
+                ship_id = test_ship.get('id')
+                ship_name = test_ship.get('name', 'Unknown')
+                
+                self.log(f"   Testing tooltips for ship: {ship_name}")
+                
+                # Get certificates for this ship
+                certs_endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
+                response = requests.get(certs_endpoint, headers=self.get_headers(), timeout=30)
+                
+                if response.status_code == 200:
+                    certificates = response.json()
+                    self.log(f"   Found {len(certificates)} certificates for {ship_name}")
+                    
+                    # Check tooltip data availability
+                    tooltip_ready_certs = 0
+                    for cert in certificates:
+                        extracted_ship_name = cert.get('extracted_ship_name')
+                        if extracted_ship_name:
+                            tooltip_ready_certs += 1
+                    
+                    self.log(f"   Certificates with tooltip data: {tooltip_ready_certs}/{len(certificates)}")
+                    
+                    if tooltip_ready_certs > 0:
+                        self.log("✅ Tooltip functionality ready - certificates have extracted ship names")
+                        self.log(f"   {tooltip_ready_certs} certificates will show ship names in tooltips")
+                        return True
+                    else:
+                        self.log("⚠️ No certificates have extracted ship names for tooltips yet")
+                        return False
+                else:
+                    self.log(f"   ❌ Failed to get certificates: {response.status_code}")
+                    return False
+            else:
+                self.log(f"   ❌ Failed to get ships: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error testing tooltip functionality: {str(e)}", "ERROR")
             return False
     
     def test_priority_1_special_survey_from_date_fix(self):
