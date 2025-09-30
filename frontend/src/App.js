@@ -11056,8 +11056,8 @@ const AddRecordModal = ({
                                   </p>
                                   <p className="font-medium text-purple-700">
                                     {language === 'vi' 
-                                      ? '👆 Sử dụng nút "📋 Add Certificate" phía trên để nhập thủ công thông tin certificate.' 
-                                      : '👆 Use the "📋 Add Certificate" button above to manually input certificate information.'}
+                                      ? '👇 Sử dụng nút "📋 Add Certificate" phía dưới để nhập thủ công thông tin certificate.' 
+                                      : '👇 Use the "📋 Add Certificate" button below to manually input certificate information.'}
                                   </p>
                                 </div>
                               </div>
