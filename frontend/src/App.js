@@ -11431,7 +11431,7 @@ const AddRecordModal = ({
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}
+                  {language === 'vi' ? 'Kiểm tra tiếp theo' : 'Next Survey'}
                 </label>
                 <input
                   type="date"
