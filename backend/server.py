@@ -14,6 +14,7 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
 from enum import Enum
+from dataclasses import dataclass, asdict
 import requests
 import re
 import base64
