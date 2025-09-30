@@ -4078,11 +4078,11 @@ const HomePage = () => {
                           </p>
                         </div>
 
-                        <form className="space-y-3">
-                          {/* Row 1: Certificate Name + Abbreviation + Number */}
-                          <div className="grid grid-cols-3 gap-3">
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                        <form className="space-y-4">
+                          {/* Row 1: Certificate Name (span 2) + Abbreviation + Number + Type */}
+                          <div className="grid grid-cols-6 gap-4">
+                            <div className="col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
                               </label>
                               <input
@@ -4090,24 +4090,24 @@ const HomePage = () => {
                                 required
                                 value={editingCertificate.cert_name || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_name: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                placeholder={language === 'vi' ? 'Safety Management Cert' : 'Safety Management Cert'}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'VD: Safety Management Certificate' : 'e.g. Safety Management Certificate'}
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
                               </label>
                               <input
                                 type="text"
                                 value={editingCertificate.cert_abbreviation || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_abbreviation: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder={language === 'vi' ? 'SMC' : 'SMC'}
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'} *
                               </label>
                               <input
@@ -4115,14 +4115,32 @@ const HomePage = () => {
                                 required
                                 value={editingCertificate.cert_no || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_no: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                placeholder={language === 'vi' ? 'Số chứng chỉ' : 'Cert Number'}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter cert number'}
                               />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Loại chứng chỉ' : 'Type'} *
+                              </label>
+                              <select
+                                required
+                                value={editingCertificate.cert_type || 'Full Term'}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_type: e.target.value }))}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="Full Term">Full Term</option>
+                                <option value="Interim">Interim</option>
+                                <option value="Provisional">Provisional</option>
+                                <option value="Short term">Short term</option>
+                                <option value="Conditional">Conditional</option>
+                                <option value="Other">Other</option>
+                              </select>
                             </div>
                           </div>
 
-                          {/* Row 2: Type + Issue Date + Valid Date */}
-                          <div className="grid grid-cols-3 gap-3">
+                          {/* Row 2: Issue Date + Valid Date + Status + Issued By */}
+                          <div className="grid grid-cols-4 gap-4">
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Loại' : 'Type'} *
