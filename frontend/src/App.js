@@ -5536,7 +5536,7 @@ const AccountControlPage = () => {
         { limit: 20 }, // Process 20 certificates at a time
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           }
         }
