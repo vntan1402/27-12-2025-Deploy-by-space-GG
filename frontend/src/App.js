@@ -5051,6 +5051,12 @@ const AccountControlPage = () => {
   const [showPermissions, setShowPermissions] = useState(false);
   const [showGoogleDrive, setShowGoogleDrive] = useState(false);
   const [showAIConfig, setShowAIConfig] = useState(false);
+  
+  // Admin Tools States
+  const [backfillProcessing, setBackfillProcessing] = useState(false);
+  const [backfillProgress, setBackfillProgress] = useState(null);
+  const [backfillHistory, setBackfillHistory] = useState([]);
+  
   const [showCompanyForm, setShowCompanyForm] = useState(false);
   const [showEditCompany, setShowEditCompany] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
