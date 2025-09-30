@@ -11360,7 +11360,9 @@ const AddRecordModal = ({
                   <option value="Full Term">Full Term</option>
                   <option value="Interim">Interim</option>
                   <option value="Provisional">Provisional</option>
-                  <option value="Short Term">Short Term</option>
+                  <option value="Short term">Short term</option>
+                  <option value="Conditional">Conditional</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
               <div>
