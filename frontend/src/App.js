@@ -11054,7 +11054,7 @@ const AddRecordModal = ({
                                       ? 'AI không thể trích xuất đủ thông tin từ file này.' 
                                       : 'AI could not extract sufficient information from this file.'}
                                   </p>
-                                  <p className="font-medium text-purple-700">
+                                  <p className="font-bold text-purple-800 text-sm animate-pulse bg-purple-200 px-2 py-1 rounded border border-purple-300">
                                     {language === 'vi' 
                                       ? '👇 Sử dụng nút "📋 Add Certificate" phía dưới để nhập thủ công thông tin certificate.' 
                                       : '👇 Use the "📋 Add Certificate" button below to manually input certificate information.'}
