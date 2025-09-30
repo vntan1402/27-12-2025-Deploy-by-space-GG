@@ -388,7 +388,7 @@ startxref
                     results = response_data.get('results', [])
                     if results:
                         result = results[0]  # First result
-                        analysis_result = result.get('analysis_result', {})
+                        analysis_result = result.get('analysis', {})  # Changed from 'analysis_result' to 'analysis'
                         
                         if analysis_result:
                             self.log("✅ AI analysis was triggered")
@@ -399,7 +399,8 @@ startxref
                             self.examine_analysis_result(analysis_result)
                             
                             # Store certificate ID for cleanup
-                            self.test_certificate_id = result.get('certificate_id')
+                            certificate_info = result.get('certificate', {})
+                            self.test_certificate_id = certificate_info.get('id')
                             
                             return True
                         else:
