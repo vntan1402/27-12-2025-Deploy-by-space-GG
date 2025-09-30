@@ -10920,6 +10920,7 @@ const AddRecordModal = ({
                         <div className="flex items-center">
                           <div className={`w-3 h-3 rounded-full mr-3 ${
                             fileUpload.status === 'completed' ? 'bg-green-500' :
+                            fileUpload.status === 'success_with_reference_note' ? 'bg-teal-500' :
                             fileUpload.status === 'failed' ? 'bg-red-500' :
                             fileUpload.status === 'skipped' ? 'bg-yellow-500' :
                             fileUpload.status === 'pending_duplicate' ? 'bg-orange-500' :
