@@ -1,0 +1,5 @@
+This is a test certificate file with poor quality content for manual input testing.
+It contains minimal information that should trigger AI extraction failure.
+No proper certificate fields are present.
+This should result in requires_manual_input status.
+Test file created for AI extraction failure detection testing.
