@@ -4284,62 +4284,17 @@ const HomePage = () => {
                             </div>
                           </div>
 
-                          {/* Row 4: Issued By + Status + Category */}
-                          <div className="grid grid-cols-3 gap-3">
+                          {/* Row 4: Sensitivity Level + Notes (span 3) */}
+                          <div className="grid grid-cols-4 gap-4">
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'} *
-                              </label>
-                              <input
-                                type="text"
-                                required
-                                value={editingCertificate.issued_by || ''}
-                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, issued_by: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                                placeholder={language === 'vi' ? 'DNV GL, Lloyd\'s...' : 'DNV GL, Lloyd\'s...'}
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Trạng thái' : 'Status'} *
-                              </label>
-                              <select
-                                required
-                                value={editingCertificate.status || 'valid'}
-                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, status: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="valid">{language === 'vi' ? 'Có hiệu lực' : 'Valid'}</option>
-                                <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
-                                <option value="suspended">{language === 'vi' ? 'Tạm ngừng' : 'Suspended'}</option>
-                                <option value="withdrawn">{language === 'vi' ? 'Thu hồi' : 'Withdrawn'}</option>
-                                <option value="pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Danh mục' : 'Category'} *
-                              </label>
-                              <input
-                                type="text"
-                                value={language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}
-                                readOnly
-                                className="w-full px-2 py-1.5 text-sm border border-gray-200 bg-gray-50 rounded text-gray-600 cursor-not-allowed"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Row 5: Sensitivity Level + Notes */}
-                          <div className="grid grid-cols-4 gap-3">
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Mức bảo mật' : 'Sensitivity'} *
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Mức bảo mật' : 'Sensitivity Level'} *
                               </label>
                               <select
                                 required
                                 value={editingCertificate.sensitivity_level || 'internal'}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, sensitivity_level: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
                                 <option value="public">{language === 'vi' ? 'Công khai' : 'Public'}</option>
                                 <option value="internal">{language === 'vi' ? 'Nội bộ' : 'Internal'}</option>
@@ -4348,17 +4303,17 @@ const HomePage = () => {
                               </select>
                             </div>
                             <div className="col-span-3">
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Ghi chú' : 'Notes'}
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ghi chú bổ sung' : 'Additional Notes'}
                               </label>
                               <textarea
                                 value={editingCertificate.notes || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, notes: e.target.value }))}
-                                rows="2"
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent resize-none"
+                                rows="3"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                                 placeholder={language === 'vi' 
-                                  ? 'Ghi chú bổ sung (tùy chọn)...' 
-                                  : 'Additional notes (optional)...'}
+                                  ? 'Nhập ghi chú bổ sung về chứng chỉ (tùy chọn)...' 
+                                  : 'Enter additional notes about the certificate (optional)...'}
                               />
                             </div>
                           </div>
