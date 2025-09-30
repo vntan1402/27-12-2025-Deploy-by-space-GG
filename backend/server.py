@@ -7023,7 +7023,7 @@ CERTIFICATE TEXT:
                 # Only update if we extracted some information
                 if update_data:
                     logger.info(f"   ✅ Extracted {len(update_data)} fields: {list(update_data.keys())}")
-                    await mongo_db.update("certificates", {"id": cert_id}, {"$set": update_data})
+                    await mongo_db.update("certificates", {"id": cert_id}, update_data)
                     updated += 1
                 else:
                     logger.warning(f"   ⚠️ No ship information could be extracted")
