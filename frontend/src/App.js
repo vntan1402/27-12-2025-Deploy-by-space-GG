@@ -10796,38 +10796,41 @@ const AddRecordModal = ({
             {/* Multi Cert Upload */}
             <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                  📋 {language === 'vi' ? 'Multi Cert Upload' : 'Multi Cert Upload'}
-                </h3>
-                
-                {/* AI Model Display */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center">
-                    <span className="text-sm text-blue-700 mr-2">
-                      {language === 'vi' ? 'Model AI đang sử dụng:' : 'AI Model in use:'}
-                    </span>
-                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-                      </svg>
-                      {aiConfig 
-                        ? `${aiConfig.provider === 'emergent' ? 'Emergent LLM' : aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1)} - ${aiConfig.model}`
-                        : (language === 'vi' ? 'AI Model: Đang tải...' : 'AI Model: Loading...')
-                      }
+                {/* Title và Upload Guidelines trên cùng một hàng */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                      📋 {language === 'vi' ? 'Multi Cert Upload' : 'Multi Cert Upload'}
+                    </h3>
+                    
+                    {/* AI Model Display */}
+                    <div className="flex items-center mb-2">
+                      <span className="text-sm text-blue-700 mr-2">
+                        {language === 'vi' ? 'Model AI đang sử dụng:' : 'AI Model in use:'}
+                      </span>
+                      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                        </svg>
+                        {aiConfig 
+                          ? `${aiConfig.provider === 'emergent' ? 'Emergent LLM' : aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1)} - ${aiConfig.model}`
+                          : (language === 'vi' ? 'AI Model: Đang tải...' : 'AI Model: Loading...')
+                        }
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Upload Instructions */}
-                <div className="bg-blue-100 rounded-lg p-3 mb-4">
-                  <h4 className="text-sm font-medium text-blue-800 mb-2">
-                    📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
-                  </h4>
-                  <ul className="text-xs text-blue-700 space-y-1">
-                    <li>• {language === 'vi' ? 'Format: PDF, JPG, PNG' : 'Format: PDF, JPG, PNG files'}</li>
-                    <li>• {language === 'vi' ? 'Kích thước: Tối đa 50MB mỗi file' : 'Size: Maximum 50MB per file'}</li>
-                    <li>• {language === 'vi' ? 'AI sẽ tự động phân tích và xác định Marine Certificate' : 'AI will automatically analyze and identify Marine Certificates'}</li>
-                  </ul>
+                  {/* Upload Guidelines - Thu hẹp và đặt bên phải */}
+                  <div className="w-80 ml-6 bg-blue-100 rounded-lg p-3">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
+                      📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
+                    </h4>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• {language === 'vi' ? 'PDF, JPG, PNG' : 'PDF, JPG, PNG files'}</li>
+                      <li>• {language === 'vi' ? 'Max 50MB/file' : 'Max 50MB per file'}</li>
+                      <li>• {language === 'vi' ? 'AI tự động phân tích' : 'AI auto-analysis'}</li>
+                    </ul>
+                  </div>
                 </div>
 
                 {/* Upload Button */}
