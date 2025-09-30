@@ -11527,6 +11527,22 @@ const AddRecordModal = ({
                 </select>
               </div>
             </div>
+
+            {/* Notes Field - Full Width */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Ghi chú' : 'Notes'}
+              </label>
+              <textarea
+                value={certificateData.notes}
+                onChange={(e) => setCertificateData(prev => ({ ...prev, notes: e.target.value }))}
+                rows="3"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' 
+                  ? 'Ghi chú bổ sung về chứng chỉ (tùy chọn)...' 
+                  : 'Additional notes about the certificate (optional)...'}
+              />
+            </div>
           </div>
         )}
 
