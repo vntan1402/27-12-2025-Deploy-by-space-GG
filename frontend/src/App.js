@@ -2311,6 +2311,30 @@ const HomePage = () => {
               // Pause the upload process - don't resolve the promise yet
               return; // Don't resolve, wait for user decision
               
+            } else if (result && result.status === 'requires_manual_input') {
+              // AI extraction failed - pause upload for manual input
+              const progressMessage = result?.progress_message || (language === 'vi' ? 'AI không thể trích xuất đủ thông tin - Cần nhập thủ công' : 'AI extraction insufficient - Manual input required');
+              
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? {
+                      ...upload,
+                      status: 'requires_manual_input',
+                      progress: 100,
+                      stage: progressMessage,
+                      analysis: result.analysis,
+                      extraction_quality: result.extraction_quality,
+                      manual_input_reason: result.manual_input_reason,
+                      manual_input_data: result.manual_input_data,
+                      requires_manual_input: true,
+                      progress_message: progressMessage
+                    }
+                  : upload
+              ));
+              
+              // Don't show toast - let progress bar display the message
+              resolve({ status: 'requires_manual_input', file: file.name, reason: result.manual_input_reason });
+              
             } else if (result && result.status === 'requires_manual_review') {
               // File requires manual review - add to pending reviews
               const reviewData = {
