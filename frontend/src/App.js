@@ -4845,7 +4845,10 @@ const HomePage = () => {
                       type="submit"
                       className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
                     >
-                      {language === 'vi' ? 'Lưu thay đổi' : 'Save Changes'}
+                      {editingCertificate?.manual_input_mode
+                        ? (language === 'vi' ? 'Tạo Certificate' : 'Create Certificate')
+                        : (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes')
+                      }
                     </button>
                   </div>
                 </div>
