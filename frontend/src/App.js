@@ -4062,7 +4062,7 @@ const HomePage = () => {
                   {/* Edit Certificate Modal */}
                   {showEditCertModal && editingCertificate && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="mb-6">
                           <h3 className="text-xl font-bold text-gray-800 mb-2">
                             {editingCertificate?.manual_input_mode
