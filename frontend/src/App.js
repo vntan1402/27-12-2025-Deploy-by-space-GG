@@ -11449,13 +11449,15 @@ const AddRecordModal = ({
                   onChange={(e) => setCertificateData(prev => ({ ...prev, next_survey_type: e.target.value }))}
                   className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">{language === 'vi' ? 'Chọn loại' : 'Select type'}</option>
-                  <option value="Annual">Annual</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Special">Special</option>
-                  <option value="Renewal">Renewal</option>
-                  <option value="Docking">Docking</option>
-                  <option value="Class">Class</option>
+                  <option value="">{language === 'vi' ? 'Chọn loại khảo sát' : 'Select survey type'}</option>
+                  <option value="Annual">{language === 'vi' ? 'Khảo sát hàng năm' : 'Annual Survey'}</option>
+                  <option value="Intermediate">{language === 'vi' ? 'Khảo sát trung gian' : 'Intermediate Survey'}</option>
+                  <option value="Special">{language === 'vi' ? 'Khảo sát đặc biệt' : 'Special Survey'}</option>
+                  <option value="Renewal">{language === 'vi' ? 'Khảo sát gia hạn' : 'Renewal Survey'}</option>
+                  <option value="Docking">{language === 'vi' ? 'Khảo sát neo đậu' : 'Docking Survey'}</option>
+                  <option value="Class">{language === 'vi' ? 'Khảo sát phân cấp' : 'Class Survey'}</option>
+                  <option value="Bottom">{language === 'vi' ? 'Khảo sát đáy tàu' : 'Bottom Survey'}</option>
+                  <option value="Radio">{language === 'vi' ? 'Khảo sát vô tuyến' : 'Radio Survey'}</option>
                   <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                 </select>
               </div>
