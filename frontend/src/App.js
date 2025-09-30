@@ -11388,79 +11388,63 @@ const AddRecordModal = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* Last Endorse - Only show for Full Term certificates */}
-              {certificateData.cert_type === 'Full Term' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
-                    <span className="text-xs text-gray-500 ml-1">
-                      ({language === 'vi' ? 'Chỉ cho chứng chỉ Full Term' : 'Full Term certificates only'})
-                    </span>
-                  </label>
-                  <input
-                    type="date"
-                    value={certificateData.last_endorse}
-                    onChange={(e) => setCertificateData(prev => ({ ...prev, last_endorse: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              )}
-              
-              {/* Placeholder div for grid alignment when Last Endorse is hidden */}
-              {certificateData.cert_type !== 'Full Term' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
-                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
-                    <span className="text-xs text-gray-400 ml-1">
-                      ({language === 'vi' ? 'Không áp dụng cho loại chứng chỉ này' : 'Not applicable for this certificate type'})
-                    </span>
-                  </label>
-                  <input
-                    type="date"
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-400 cursor-not-allowed"
-                    placeholder={language === 'vi' ? 'Chỉ Full Term mới có endorsement' : 'Full Term certificates only'}
-                  />
-                </div>
-              )}
+            {/* Row 3: Last Endorse + Next Survey + Next Survey Type */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                  {certificateData.cert_type !== 'Full Term' && (
+                    <span className="text-xs text-gray-400 ml-1">(Full Term only)</span>
+                  )}
+                </label>
+                <input
+                  type="date"
+                  value={certificateData.last_endorse}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, last_endorse: e.target.value }))}
+                  disabled={certificateData.cert_type !== 'Full Term'}
+                  className={`w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500 ${
+                    certificateData.cert_type !== 'Full Term' 
+                      ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                      : 'border-gray-300 focus:border-transparent'
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Khảo sát tiếp theo' : 'Next Survey'}
                 </label>
                 <input
                   type="date"
                   value={certificateData.next_survey}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, next_survey: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              
-              {/* Next Survey Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Loại khảo sát tiếp theo' : 'Next Survey Type'}
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại khảo sát' : 'Survey Type'}
                 </label>
                 <select
                   value={certificateData.next_survey_type || ''}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, next_survey_type: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="">{language === 'vi' ? 'Chọn loại khảo sát tiếp theo' : 'Select next survey type'}</option>
-                  <option value="Annual">{language === 'vi' ? 'Khảo sát hàng năm' : 'Annual Survey'}</option>
-                  <option value="Intermediate">{language === 'vi' ? 'Khảo sát trung gian' : 'Intermediate Survey'}</option>
-                  <option value="Special">{language === 'vi' ? 'Khảo sát đặc biệt' : 'Special Survey'}</option>
-                  <option value="Renewal">{language === 'vi' ? 'Khảo sát gia hạn' : 'Renewal Survey'}</option>
-                  <option value="Docking">{language === 'vi' ? 'Khảo sát neo đậu' : 'Docking Survey'}</option>
-                  <option value="Class">{language === 'vi' ? 'Khảo sát phân cấp' : 'Class Survey'}</option>
+                  <option value="">{language === 'vi' ? 'Chọn loại' : 'Select type'}</option>
+                  <option value="Annual">Annual</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Special">Special</option>
+                  <option value="Renewal">Renewal</option>
+                  <option value="Docking">Docking</option>
+                  <option value="Class">Class</option>
                   <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                 </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 4: Issued By + Status + Category */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Cấp bởi' : 'Issued By'} *
                 </label>
                 <input
@@ -11468,19 +11452,19 @@ const AddRecordModal = ({
                   required
                   value={certificateData.issued_by}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, issued_by: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'VD: DNV GL, Lloyd\'s Register, Bureau Veritas' : 'e.g. DNV GL, Lloyd\'s Register, Bureau Veritas'}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'DNV GL, Lloyd\'s...' : 'DNV GL, Lloyd\'s...'}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Trạng thái' : 'Status'} *
                 </label>
                 <select
                   required
                   value={certificateData.status}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="valid">{language === 'vi' ? 'Có hiệu lực' : 'Valid'}</option>
                   <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
@@ -11489,18 +11473,15 @@ const AddRecordModal = ({
                   <option value="pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
                 </select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Danh mục' : 'Category'} *
                 </label>
                 <select
                   required
                   value={certificateData.category}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="certificates">{language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}</option>
                   <option value="inspection_records">{language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}</option>
@@ -11509,15 +11490,19 @@ const AddRecordModal = ({
                   <option value="other_documents">{language === 'vi' ? 'Hồ sơ khác' : 'Other Documents'}</option>
                 </select>
               </div>
+            </div>
+
+            {/* Row 5: Sensitivity Level + Notes (2/3 width for notes) */}
+            <div className="grid grid-cols-4 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Mức độ bảo mật' : 'Sensitivity Level'} *
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Mức bảo mật' : 'Sensitivity'} *
                 </label>
                 <select
                   required
                   value={certificateData.sensitivity_level}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, sensitivity_level: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="public">{language === 'vi' ? 'Công khai' : 'Public'}</option>
                   <option value="internal">{language === 'vi' ? 'Nội bộ' : 'Internal'}</option>
@@ -11525,22 +11510,20 @@ const AddRecordModal = ({
                   <option value="restricted">{language === 'vi' ? 'Hạn chế' : 'Restricted'}</option>
                 </select>
               </div>
-            </div>
-
-            {/* Notes Field - Full Width */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Ghi chú' : 'Notes'}
-              </label>
-              <textarea
-                value={certificateData.notes}
-                onChange={(e) => setCertificateData(prev => ({ ...prev, notes: e.target.value }))}
-                rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'vi' 
-                  ? 'Ghi chú bổ sung về chứng chỉ (tùy chọn)...' 
-                  : 'Additional notes about the certificate (optional)...'}
-              />
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ghi chú' : 'Notes'}
+                </label>
+                <textarea
+                  value={certificateData.notes}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, notes: e.target.value }))}
+                  rows="2"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder={language === 'vi' 
+                    ? 'Ghi chú bổ sung (tùy chọn)...' 
+                    : 'Additional notes (optional)...'}
+                />
+              </div>
             </div>
           </div>
         )}
