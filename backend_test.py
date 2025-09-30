@@ -47,7 +47,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://certflow-2.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class SpecialSurveyAndNextDockingTester:
+class CertificateBackfillTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -55,31 +55,32 @@ class SpecialSurveyAndNextDockingTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for both priorities
-        self.priority_tests = {
-            # Priority 1: Special Survey From Date Fix
+        # Test tracking for backfill functionality
+        self.backfill_tests = {
+            # Authentication and setup
             'authentication_successful': False,
-            'special_survey_endpoint_accessible': False,
-            'special_survey_from_date_calculation_correct': False,
-            'special_survey_same_day_month_verified': False,
-            'special_survey_5_year_calculation_verified': False,
+            'backfill_endpoint_accessible': False,
             
-            # Priority 2: Next Docking Logic
-            'next_docking_endpoint_accessible': False,
-            'next_docking_36_month_logic_working': False,
-            'next_docking_special_survey_comparison_working': False,
-            'next_docking_nearer_date_selection_working': False,
-            'next_docking_calculation_method_reported': False,
+            # Backfill processing
+            'certificates_found_for_backfill': False,
+            'backfill_processing_successful': False,
+            'certificates_updated_with_ship_info': False,
             
-            # Test scenarios
-            'test_scenario_1_completed': False,  # Ship with Last Docking and Special Survey
-            'test_scenario_2_completed': False,  # Verify correct method selection
-            'test_scenario_3_completed': False,  # Test endpoint response format
+            # Data verification
+            'extracted_ship_name_populated': False,
+            'ship_info_fields_populated': False,
+            'tooltip_data_available': False,
+            
+            # API response verification
+            'backfill_response_format_correct': False,
+            'processing_statistics_provided': False,
+            'error_handling_working': False,
         }
         
-        # Test ship data for scenarios
-        self.test_ship_id = None
-        self.test_ship_name = "NEXT DOCKING TEST SHIP 2025"
+        # Store backfill results for analysis
+        self.backfill_results = {}
+        self.processed_certificates = []
+        self.updated_certificates = []
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
