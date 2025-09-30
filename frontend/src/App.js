@@ -10943,6 +10943,7 @@ const AddRecordModal = ({
                         <div 
                           className={`h-2 rounded-full transition-all duration-300 ${
                             fileUpload.status === 'completed' ? 'bg-green-500' :
+                            fileUpload.status === 'success_with_reference_note' ? 'bg-teal-500' :
                             fileUpload.status === 'failed' ? 'bg-red-500' :
                             fileUpload.status === 'skipped' ? 'bg-yellow-500' :
                             fileUpload.status === 'pending_duplicate' ? 'bg-orange-500' :
