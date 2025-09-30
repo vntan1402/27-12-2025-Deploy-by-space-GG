@@ -10885,65 +10885,17 @@ const AddRecordModal = ({
                   </div>
                 </div>
 
-                {/* Upload Button */}
-                <div className="text-center">
-                  <label
-                    htmlFor="multi-cert-upload"
-                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md transition-colors cursor-pointer ${
-                      selectedShip && !isMultiCertProcessing
-                        ? 'text-white bg-blue-600 hover:bg-blue-700'
-                        : 'text-gray-400 bg-gray-300 cursor-not-allowed'
-                    }`}
-                  >
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    {isMultiCertProcessing 
-                      ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
-                      : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
-                    }
-                    <input
-                      id="multi-cert-upload"
-                      name="multi-cert-upload"
-                      type="file"
-                      multiple
-                      className="sr-only"
-                      onChange={(e) => {
-                        if (selectedShip && !isMultiCertProcessing) {
-                          // Create auto-fill callback for AddRecordModal context
-                          const autoFillCallback = (data, fieldCount) => {
-                            console.log('🔄 Auto-filling certificate form with data:', data);
-                            setCertificateData(prev => ({
-                              ...prev,
-                              ...data
-                            }));
-                            
-                            // Show auto-fill success message
-                            toast.success(
-                              language === 'vi' 
-                                ? `✅ Đã auto-fill ${fieldCount} trường thông tin certificate!`
-                                : `✅ Auto-filled ${fieldCount} certificate fields!`
-                            );
-                          };
-                          
-                          // Call handleMultiCertUpload with auto-fill callback
-                          handleMultiCertUpload(e.target.files, autoFillCallback);
-                        }
-                      }}
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      disabled={!selectedShip || isMultiCertProcessing}
-                    />
-                  </label>
-                  
-                  {!selectedShip && (
-                    <p className="text-sm text-orange-600 mt-2">
+                {/* Warning message for no ship selected */}
+                {!selectedShip && (
+                  <div className="text-center mt-2">
+                    <p className="text-sm text-orange-600">
                       ⚠️ {language === 'vi' 
                         ? 'Vui lòng chọn tàu trước khi upload certificates'
                         : 'Please select a ship before uploading certificates'
                       }
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Upload Progress */}
