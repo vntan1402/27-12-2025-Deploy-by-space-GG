@@ -913,6 +913,8 @@ const HomePage = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
+  const [showManualCertModal, setShowManualCertModal] = useState(false);
+  const [manualCertData, setManualCertData] = useState(null);
   
   // Multi Cert Upload States
   const [multiCertUploads, setMultiCertUploads] = useState([]);
