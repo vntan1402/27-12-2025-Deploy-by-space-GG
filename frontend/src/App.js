@@ -11302,9 +11302,10 @@ const AddRecordModal = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 1: Certificate Name + Abbreviation + Number */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
                 </label>
                 <input
@@ -11312,59 +11313,57 @@ const AddRecordModal = ({
                   required
                   value={certificateData.cert_name}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, cert_name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'VD: Safety Management Certificate' : 'e.g. Safety Management Certificate'}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Safety Management Cert' : 'Safety Management Cert'}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tên viết tắt' : 'Certificate Abbreviation'}
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
                 </label>
                 <input
                   type="text"
                   value={certificateData.cert_abbreviation}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, cert_abbreviation: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'VD: SMC, DOC, SSC' : 'e.g. SMC, DOC, SSC'}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'SMC' : 'SMC'}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'} *
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'} *
                 </label>
                 <input
                   type="text"
                   required
                   value={certificateData.cert_no}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, cert_no: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter certificate number'}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Số chứng chỉ' : 'Cert Number'}
                 />
               </div>
+            </div>
+
+            {/* Row 2: Type + Issue Date + Valid Date */}
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'} *
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại' : 'Type'} *
                 </label>
                 <select
                   required
                   value={certificateData.cert_type}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, cert_type: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="Full Term">{language === 'vi' ? 'Full Term' : 'Full Term'}</option>
-                  <option value="Interim">{language === 'vi' ? 'Interim' : 'Interim'}</option>
-                  <option value="Provisional">{language === 'vi' ? 'Provisional' : 'Provisional'}</option>
-                  <option value="Short Term">{language === 'vi' ? 'Short Term' : 'Short Term'}</option>
+                  <option value="Full Term">Full Term</option>
+                  <option value="Interim">Interim</option>
+                  <option value="Provisional">Provisional</option>
+                  <option value="Short Term">Short Term</option>
                 </select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày cấp' : 'Issue Date'} *
                 </label>
                 <input
@@ -11372,11 +11371,11 @@ const AddRecordModal = ({
                   required
                   value={certificateData.issue_date}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, issue_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'} *
                 </label>
                 <input
@@ -11384,7 +11383,7 @@ const AddRecordModal = ({
                   required
                   value={certificateData.valid_date}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, valid_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
