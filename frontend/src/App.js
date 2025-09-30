@@ -10796,9 +10796,10 @@ const AddRecordModal = ({
             {/* Multi Cert Upload */}
             <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
               <div className="mb-4">
-                {/* Title và Upload Guidelines trên cùng một hàng */}
+                {/* Layout 3 cột: Title + Guidelines + Upload Button */}
                 <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
+                  {/* Cột 1: Title và AI Model */}
+                  <div className="flex-1 pr-4">
                     <h3 className="text-lg font-semibold text-blue-900 mb-2">
                       📋 {language === 'vi' ? 'Multi Cert Upload' : 'Multi Cert Upload'}
                     </h3>
@@ -10820,8 +10821,8 @@ const AddRecordModal = ({
                     </div>
                   </div>
 
-                  {/* Upload Guidelines - Thu hẹp và đặt bên phải */}
-                  <div className="w-80 ml-6 bg-blue-100 rounded-lg p-3">
+                  {/* Cột 2: Upload Guidelines - Thu hẹp */}
+                  <div className="w-72 mx-4 bg-blue-100 rounded-lg p-3">
                     <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
                       📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
                     </h4>
@@ -10831,7 +10832,24 @@ const AddRecordModal = ({
                       <li>• {language === 'vi' ? 'AI tự động phân tích' : 'AI auto-analysis'}</li>
                     </ul>
                   </div>
-                </div>
+
+                  {/* Cột 3: Upload Button - Ngoài cùng bên phải */}
+                  <div className="flex-shrink-0">
+                    <label
+                      htmlFor="multi-cert-upload"
+                      className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                        selectedShip && !isMultiCertProcessing
+                          ? 'text-white bg-blue-600 hover:bg-blue-700 shadow-md'
+                          : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      {isMultiCertProcessing 
+                        ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
+                        : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
+                      }
 
                 {/* Upload Button */}
                 <div className="text-center">
