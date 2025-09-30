@@ -11450,11 +11450,11 @@ const AddRecordModal = ({
                   className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">{language === 'vi' ? 'Chọn loại kiểm tra' : 'Select survey type'}</option>
-                  <option value="Initial">{language === 'vi' ? 'Kiểm tra ban đầu' : 'Initial Survey'}</option>
+                  <option value="Initial">{language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial Survey'}</option>
                   <option value="Annual">{language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual Survey'}</option>
                   <option value="Intermediate">{language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate Survey'}</option>
-                  <option value="Special">{language === 'vi' ? 'Kiểm tra đặc biệt' : 'Special Survey'}</option>
-                  <option value="Renewal">{language === 'vi' ? 'Kiểm tra gia hạn' : 'Renewal Survey'}</option>
+                  <option value="Special">{language === 'vi' ? 'Kiểm tra định kỳ' : 'Special Survey'}</option>
+                  <option value="Renewal">{language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal Survey'}</option>
                   <option value="Docking">{language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey'}</option>
                   <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                 </select>
