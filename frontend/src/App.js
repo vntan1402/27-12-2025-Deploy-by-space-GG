@@ -11318,6 +11318,21 @@ const AddRecordModal = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên viết tắt' : 'Certificate Abbreviation'}
+                </label>
+                <input
+                  type="text"
+                  value={certificateData.cert_abbreviation}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, cert_abbreviation: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'VD: SMC, DOC, SSC' : 'e.g. SMC, DOC, SSC'}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'} *
                 </label>
                 <input
@@ -11328,6 +11343,22 @@ const AddRecordModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter certificate number'}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'} *
+                </label>
+                <select
+                  required
+                  value={certificateData.cert_type}
+                  onChange={(e) => setCertificateData(prev => ({ ...prev, cert_type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Full Term">{language === 'vi' ? 'Full Term' : 'Full Term'}</option>
+                  <option value="Interim">{language === 'vi' ? 'Interim' : 'Interim'}</option>
+                  <option value="Provisional">{language === 'vi' ? 'Provisional' : 'Provisional'}</option>
+                  <option value="Short Term">{language === 'vi' ? 'Short Term' : 'Short Term'}</option>
+                </select>
               </div>
             </div>
 
