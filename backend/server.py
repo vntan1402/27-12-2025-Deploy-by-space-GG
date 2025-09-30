@@ -4585,20 +4585,30 @@ async def multi_cert_upload_for_ship(
                             "certificate_id": cert_result.get("id")
                         })
                     
-                    success_result = {
-                        "filename": file.filename,
-                        "status": "success",
-                        "analysis": analysis_result,
-                        "upload": upload_result,
-                        "certificate": cert_result,
-                        "is_marine": True
-                    }
-                    
-                    # Add progress message if validation note was added
-                    if progress_message:
-                        success_result["progress_message"] = progress_message
-                        success_result["validation_note"] = validation_note
-                        logger.info(f"✅ Certificate created with validation note: {validation_note}")
+                    # Determine status based on validation
+                    if validation_note and progress_message:
+                        # IMO match but ship name different - use special status
+                        success_result = {
+                            "filename": file.filename,
+                            "status": "success_with_reference_note",
+                            "analysis": analysis_result,
+                            "upload": upload_result,
+                            "certificate": cert_result,
+                            "is_marine": True,
+                            "progress_message": progress_message,
+                            "validation_note": validation_note
+                        }
+                        logger.info(f"✅ Certificate created with reference note: {validation_note}")
+                    else:
+                        # Normal success
+                        success_result = {
+                            "filename": file.filename,
+                            "status": "success",
+                            "analysis": analysis_result,
+                            "upload": upload_result,
+                            "certificate": cert_result,
+                            "is_marine": True
+                        }
                     
                     results.append(success_result)
                     
