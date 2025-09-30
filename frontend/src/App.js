@@ -10857,15 +10857,22 @@ const AddRecordModal = ({
                             </button>
                             <button
                               onClick={() => {
-                                // Open manual certificate input modal
-                                setShowManualCertModal(true);
-                                setManualCertData({
+                                // For now, use existing certificate modal with pre-filled data
+                                const extractedData = fileUpload.manual_input_data?.extracted_data || {};
+                                setEditingCertificate({
                                   ship_id: selectedShip?.id,
                                   ship_name: selectedShip?.name,
-                                  extracted_data: fileUpload.manual_input_data?.extracted_data || {},
-                                  filename: fileUpload.name,
+                                  cert_name: extractedData.cert_name || '',
+                                  cert_no: extractedData.cert_no || '',
+                                  cert_type: 'Full Term',
+                                  issue_date: extractedData.issue_date || '',
+                                  valid_date: extractedData.valid_date || '',
+                                  issued_by: extractedData.issued_by || '',
+                                  notes: `Manual input from ${fileUpload.name} - AI extraction insufficient`,
+                                  manual_input_mode: true,
                                   upload_index: multiCertUploads.findIndex(u => u.name === fileUpload.name)
                                 });
+                                setShowEditCertModal(true);
                               }}
                               className="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
                             >
