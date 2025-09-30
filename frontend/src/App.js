@@ -10864,30 +10864,11 @@ const AddRecordModal = ({
                             </button>
                             <button
                               onClick={() => {
-                                // Open manual certificate input using existing pattern
-                                const extractedData = fileUpload.manual_input_data?.extracted_data || {};
-                                const manualCertData = {
-                                  ship_id: selectedShip?.id,
-                                  ship_name: selectedShip?.name,
-                                  cert_name: extractedData.cert_name || '',
-                                  cert_no: extractedData.cert_no || '',
-                                  cert_type: 'Full Term',
-                                  issue_date: extractedData.issue_date || '',
-                                  valid_date: extractedData.valid_date || '',
-                                  issued_by: extractedData.issued_by || '',
-                                  notes: `Manual input from ${fileUpload.name} - AI extraction insufficient`,
-                                  manual_input_mode: true,
-                                  upload_index: multiCertUploads.findIndex(u => u.name === fileUpload.name)
-                                };
-                                
-                                // Use the handleEditCertificate pattern
-                                try {
-                                  setEditingCertificate(manualCertData);
-                                  setShowEditCertModal(true);
-                                } catch (error) {
-                                  console.error('Error opening manual input modal:', error);
-                                  alert(language === 'vi' ? 'Lỗi mở form nhập thủ công' : 'Error opening manual input form');
-                                }
+                                // Simple alert for now to test if onClick works
+                                alert(language === 'vi' 
+                                  ? 'Chức năng nhập thủ công đang được phát triển. Vui lòng sử dụng form "Add Certificate" để nhập thủ công.'
+                                  : 'Manual input feature is under development. Please use the "Add Certificate" form for manual input.'
+                                );
                               }}
                               className="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
                             >
