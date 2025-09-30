@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Duplicate Certificate Detection Debug Test
-FOCUS: Debug duplicate check logic for certificate uploads
+Certificate Backfill Ship Information Test
+FOCUS: Test the backfill functionality to help existing certificates
 
 REVIEW REQUEST REQUIREMENTS:
-1. Test upload same certificate twice to SUNSHINE 01 ship
-2. Monitor AI analysis extraction of 5 fields: cert_name, cert_no, issue_date, valid_date, last_endorse
-3. Monitor backend logs for enhanced duplicate check patterns
-4. Debug why duplicate check is not detecting duplicates
-5. Verify 5-field comparison logic execution
-6. Use admin1/123456 authentication
+1. Run the Backfill Job: Call the `/api/certificates/backfill-ship-info` endpoint
+2. Verify Processing: Check if certificates are being updated with missing ship information
+3. Check Results: Verify that tooltips will now show ship names for previously processed certificates
+4. Test with reasonable limit (like 20 certificates) to avoid overloading the system
 
 EXPECTED BEHAVIOR:
-- Upload 1: Success, certificate created
-- Upload 2: Should return "pending_duplicate_resolution" status
+- Backfill endpoint should process existing certificates missing ship information
+- Certificates should be updated with extracted_ship_name, flag, class_society, built_year, etc.
+- Previously processed certificates should now show ship names in tooltips
 
-DEBUG FOCUS:
-- AI data extraction quality
-- 5-field comparison logic execution
-- Missing data causing false negatives
+TEST FOCUS:
+- Backfill endpoint accessibility and functionality
+- Certificate processing and field extraction
+- Database updates with ship information
+- Verification of extracted data quality
 """
 
 import requests
