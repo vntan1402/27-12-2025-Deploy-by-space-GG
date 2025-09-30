@@ -4286,6 +4286,132 @@ async def multi_cert_upload_for_ship(
                 # Check if it's a Marine Certificate
                 is_marine_certificate = analysis_result.get("category") == "certificates"
                 
+                # AI EXTRACTION QUALITY CHECK - Check if AI failed to extract sufficient information
+                def check_ai_extraction_quality(analysis_result):
+                    """Check if AI extraction is sufficient for automatic processing"""
+                    confidence = analysis_result.get("confidence", "")
+                    
+                    # Convert confidence to numeric for comparison
+                    confidence_score = 0.0
+                    if isinstance(confidence, str):
+                        if confidence.lower() == 'high':
+                            confidence_score = 0.8
+                        elif confidence.lower() == 'medium':
+                            confidence_score = 0.6
+                        elif confidence.lower() == 'low':
+                            confidence_score = 0.3
+                        else:
+                            try:
+                                confidence_score = float(confidence)
+                            except:
+                                confidence_score = 0.0
+                    elif isinstance(confidence, (int, float)):
+                        confidence_score = float(confidence)
+                    
+                    # Critical fields for certificate processing
+                    critical_fields = ['ship_name', 'cert_name', 'cert_no']
+                    extracted_critical_fields = 0
+                    
+                    for field in critical_fields:
+                        value = analysis_result.get(field, '').strip() if analysis_result.get(field) else ''
+                        if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                            extracted_critical_fields += 1
+                    
+                    critical_extraction_rate = extracted_critical_fields / len(critical_fields)
+                    
+                    # All fields for overall assessment
+                    all_expected_fields = [
+                        'ship_name', 'imo_number', 'cert_name', 'cert_no', 
+                        'issue_date', 'valid_date', 'issued_by'
+                    ]
+                    extracted_all_fields = 0
+                    
+                    for field in all_expected_fields:
+                        value = analysis_result.get(field, '').strip() if analysis_result.get(field) else ''
+                        if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                            extracted_all_fields += 1
+                    
+                    overall_extraction_rate = extracted_all_fields / len(all_expected_fields)
+                    
+                    # Check text content quality
+                    text_content = analysis_result.get('text_content', '')
+                    text_quality_sufficient = len(text_content) >= 100 if text_content else False
+                    
+                    # Determine if extraction is sufficient
+                    extraction_sufficient = (
+                        confidence_score >= 0.5 and  # Medium confidence or higher
+                        critical_extraction_rate >= 0.67 and  # At least 2/3 critical fields
+                        overall_extraction_rate >= 0.4 and  # At least 40% of all fields
+                        text_quality_sufficient and  # Sufficient text content
+                        is_marine_certificate  # Properly classified as certificate
+                    )
+                    
+                    return {
+                        'sufficient': extraction_sufficient,
+                        'confidence_score': confidence_score,
+                        'critical_extraction_rate': critical_extraction_rate,
+                        'overall_extraction_rate': overall_extraction_rate,
+                        'text_quality_sufficient': text_quality_sufficient,
+                        'extracted_critical_fields': extracted_critical_fields,
+                        'total_critical_fields': len(critical_fields),
+                        'extracted_all_fields': extracted_all_fields,
+                        'total_all_fields': len(all_expected_fields),
+                        'text_length': len(text_content) if text_content else 0
+                    }
+                
+                # Check AI extraction quality
+                extraction_quality = check_ai_extraction_quality(analysis_result)
+                logger.info(f"🤖 AI Extraction Quality Check for {file.filename}:")
+                logger.info(f"   Confidence Score: {extraction_quality['confidence_score']}")
+                logger.info(f"   Critical Fields: {extraction_quality['extracted_critical_fields']}/{extraction_quality['total_critical_fields']} ({extraction_quality['critical_extraction_rate']:.2%})")
+                logger.info(f"   All Fields: {extraction_quality['extracted_all_fields']}/{extraction_quality['total_all_fields']} ({extraction_quality['overall_extraction_rate']:.2%})")
+                logger.info(f"   Text Length: {extraction_quality['text_length']} characters")
+                logger.info(f"   Extraction Sufficient: {extraction_quality['sufficient']}")
+                
+                # If AI extraction is insufficient, pause upload and request manual input
+                if not extraction_quality['sufficient']:
+                    logger.warning(f"⚠️ AI extraction insufficient for {file.filename} - requesting manual input")
+                    
+                    # Determine specific reason for manual input
+                    reasons = []
+                    if extraction_quality['confidence_score'] < 0.5:
+                        reasons.append(f"Low confidence ({extraction_quality['confidence_score']:.1f})")
+                    if extraction_quality['critical_extraction_rate'] < 0.67:
+                        reasons.append(f"Missing critical fields ({extraction_quality['extracted_critical_fields']}/{extraction_quality['total_critical_fields']})")
+                    if not extraction_quality['text_quality_sufficient']:
+                        reasons.append(f"Poor text extraction ({extraction_quality['text_length']} chars)")
+                    if not is_marine_certificate:
+                        reasons.append(f"Not classified as certificate ({analysis_result.get('category', 'unknown')})")
+                    
+                    reason_text = ", ".join(reasons)
+                    
+                    results.append({
+                        "filename": file.filename,
+                        "status": "requires_manual_input",
+                        "message": f"AI không thể trích xuất đủ thông tin từ '{file.filename}'. Vui lòng nhập thủ công.",
+                        "progress_message": f"AI không thể trích xuất đủ thông tin - Cần nhập thủ công ({reason_text})",
+                        "analysis": analysis_result,
+                        "extraction_quality": extraction_quality,
+                        "is_marine": is_marine_certificate,
+                        "requires_manual_input": True,
+                        "manual_input_reason": reason_text,
+                        "manual_input_data": {
+                            "extracted_data": {
+                                "ship_name": analysis_result.get('ship_name', ''),
+                                "imo_number": analysis_result.get('imo_number', ''),
+                                "cert_name": analysis_result.get('cert_name', ''),
+                                "cert_no": analysis_result.get('cert_no', ''),
+                                "issue_date": analysis_result.get('issue_date', ''),
+                                "valid_date": analysis_result.get('valid_date', ''),
+                                "issued_by": analysis_result.get('issued_by', '')
+                            },
+                            "confidence": analysis_result.get("confidence", "unknown"),
+                            "text_content": analysis_result.get('text_content', '')[:500] + "..." if analysis_result.get('text_content', '') else ""
+                        }
+                    })
+                    continue  # Skip automatic processing for this file
+                
+                # If not marine certificate but extraction quality is good, still offer manual review
                 if not is_marine_certificate:
                     # Instead of rejecting, provide user with manual override options
                     logger.info(f"⚠️ File {file.filename} not auto-classified as marine certificate")
