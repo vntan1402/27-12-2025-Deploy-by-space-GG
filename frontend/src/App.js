@@ -9472,11 +9472,17 @@ const AddRecordModal = ({
   const [certificateData, setCertificateData] = useState({
     ship_id: selectedShip?.id || '',
     cert_name: '',
+    cert_abbreviation: '', // Tên viết tắt
     cert_no: '',
+    cert_type: 'Full Term', // Loại chứng chỉ
     issue_date: '',
     valid_date: '',
     last_endorse: '',
     next_survey: '',
+    next_survey_type: '', // Đã có nhưng thêm vào state
+    issued_by: '', // Cấp bởi
+    status: 'valid', // Trạng thái
+    notes: '', // Ghi chú
     category: 'certificates',
     sensitivity_level: 'internal'
   });
