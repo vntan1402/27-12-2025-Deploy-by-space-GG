@@ -4079,9 +4079,9 @@ const HomePage = () => {
                         </div>
 
                         <form className="space-y-4">
-                          {/* Row 1: Certificate Name (span 2) + Abbreviation + Number + Type */}
+                          {/* Row 1: Certificate Name (span 3) + Abbreviation + Number + Type */}
                           <div className="grid grid-cols-6 gap-4">
-                            <div className="col-span-2">
+                            <div className="col-span-3">
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} *
                               </label>
