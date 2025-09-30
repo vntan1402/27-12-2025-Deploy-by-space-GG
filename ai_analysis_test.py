@@ -354,7 +354,7 @@ startxref
             
             try:
                 # Upload certificate using multi-upload endpoint
-                endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+                endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={self.sunshine_01_ship_id}"
                 self.log(f"   POST {endpoint}")
                 
                 with open(test_file_path, 'rb') as f:
@@ -362,7 +362,6 @@ startxref
                         'files': ('test_certificate.pdf', f, 'application/pdf')
                     }
                     data = {
-                        'ship_id': self.sunshine_01_ship_id,
                         'notes': 'AI Analysis Test Certificate'
                     }
                     
