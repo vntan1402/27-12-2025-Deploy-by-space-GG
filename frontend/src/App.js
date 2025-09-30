@@ -11455,7 +11455,7 @@ const AddRecordModal = ({
                   <option value="Intermediate">{language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate Survey'}</option>
                   <option value="Special">{language === 'vi' ? 'Kiểm tra đặc biệt' : 'Special Survey'}</option>
                   <option value="Renewal">{language === 'vi' ? 'Kiểm tra gia hạn' : 'Renewal Survey'}</option>
-                  <option value="Docking">{language === 'vi' ? 'Kiểm tra neo đậu' : 'Docking Survey'}</option>
+                  <option value="Docking">{language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey'}</option>
                   <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                 </select>
               </div>
