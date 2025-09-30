@@ -11477,18 +11477,17 @@ const AddRecordModal = ({
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Danh mục' : 'Category'} *
                 </label>
-                <select
-                  required
-                  value={certificateData.category}
-                  onChange={(e) => setCertificateData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="certificates">{language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}</option>
-                  <option value="inspection_records">{language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}</option>
-                  <option value="survey_reports">{language === 'vi' ? 'Báo cáo kiểm tra' : 'Test Report'}</option>
-                  <option value="drawings_manuals">{language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals'}</option>
-                  <option value="other_documents">{language === 'vi' ? 'Hồ sơ khác' : 'Other Documents'}</option>
-                </select>
+                <input
+                  type="text"
+                  value={language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}
+                  readOnly
+                  className="w-full px-2 py-1.5 text-sm border border-gray-200 bg-gray-50 rounded text-gray-600 cursor-not-allowed"
+                />
+                <input
+                  type="hidden"
+                  value="certificates"
+                  onChange={() => {}} // Keep certificates value for form submission
+                />
               </div>
             </div>
 
