@@ -10850,6 +10850,40 @@ const AddRecordModal = ({
                         ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
                         : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
                       }
+                      <input
+                        id="multi-cert-upload"
+                        name="multi-cert-upload"
+                        type="file"
+                        multiple
+                        className="sr-only"
+                        onChange={(e) => {
+                          if (selectedShip && !isMultiCertProcessing) {
+                            // Create auto-fill callback for AddRecordModal context
+                            const autoFillCallback = (data, fieldCount) => {
+                              console.log('🔄 Auto-filling certificate form with data:', data);
+                              setCertificateData(prev => ({
+                                ...prev,
+                                ...data
+                              }));
+                              
+                              // Show auto-fill success message
+                              toast.success(
+                                language === 'vi' 
+                                  ? `✅ Đã tự động điền ${fieldCount} trường từ Certificate AI`
+                                  : `✅ Auto-filled ${fieldCount} fields from Certificate AI`
+                              );
+                            };
+                            
+                            handleMultiCertUpload(e.target.files, autoFillCallback);
+                            e.target.value = ''; // Reset input
+                          }
+                        }}
+                        disabled={!selectedShip || isMultiCertProcessing}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                      />
+                    </label>
+                  </div>
+                </div>
 
                 {/* Upload Button */}
                 <div className="text-center">
