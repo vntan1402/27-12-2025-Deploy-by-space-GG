@@ -615,7 +615,7 @@ startxref
             temp_file.close()
             
             try:
-                endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+                endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={self.sunshine_01_ship_id}"
                 self.log(f"   POST {endpoint} (with problematic file)")
                 
                 with open(temp_file.name, 'rb') as f:
@@ -623,7 +623,6 @@ startxref
                         'files': ('problematic_certificate.pdf', f, 'application/pdf')
                     }
                     data = {
-                        'ship_id': self.sunshine_01_ship_id,
                         'notes': 'AI Failure Test Certificate'
                     }
                     
