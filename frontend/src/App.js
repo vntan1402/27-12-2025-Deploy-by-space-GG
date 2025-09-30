@@ -4142,25 +4142,7 @@ const HomePage = () => {
                           {/* Row 2: Issue Date + Valid Date + Status + Issued By */}
                           <div className="grid grid-cols-4 gap-4">
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Loại' : 'Type'} *
-                              </label>
-                              <select
-                                required
-                                value={editingCertificate.cert_type || 'Full Term'}
-                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, cert_type: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                              >
-                                <option value="Full Term">Full Term</option>
-                                <option value="Interim">Interim</option>
-                                <option value="Provisional">Provisional</option>
-                                <option value="Short term">Short term</option>
-                                <option value="Conditional">Conditional</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày cấp' : 'Issue Date'} *
                               </label>
                               <input
@@ -4168,11 +4150,11 @@ const HomePage = () => {
                                 required
                                 value={editingCertificate.issue_date?.split('T')[0] || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, issue_date: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
                               </label>
                               <select
@@ -4184,7 +4166,7 @@ const HomePage = () => {
                                     valid_date: e.target.value !== 'custom-date' ? '' : prev.valid_date
                                   }));
                                 }}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
                                 <option value="">{language === 'vi' ? 'Chọn ngày hết hạn' : 'Select valid date'}</option>
                                 <option value="permanent">{language === 'vi' ? 'Vĩnh viễn' : 'Permanent'}</option>
@@ -4201,10 +4183,40 @@ const HomePage = () => {
                                   type="date"
                                   value={editingCertificate.valid_date?.split('T')[0] || ''}
                                   onChange={(e) => setEditingCertificate(prev => ({ ...prev, valid_date: e.target.value }))}
-                                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent mt-1"
+                                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mt-2"
                                   placeholder={language === 'vi' ? 'Chọn ngày hết hạn' : 'Select expiry date'}
                                 />
                               )}
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Trạng thái' : 'Status'} *
+                              </label>
+                              <select
+                                required
+                                value={editingCertificate.status || 'valid'}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="valid">{language === 'vi' ? 'Có hiệu lực' : 'Valid'}</option>
+                                <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="suspended">{language === 'vi' ? 'Tạm ngừng' : 'Suspended'}</option>
+                                <option value="withdrawn">{language === 'vi' ? 'Thu hồi' : 'Withdrawn'}</option>
+                                <option value="pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Cấp bởi' : 'Issued By'} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={editingCertificate.issued_by || ''}
+                                onChange={(e) => setEditingCertificate(prev => ({ ...prev, issued_by: e.target.value }))}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={language === 'vi' ? 'DNV GL, Lloyd\'s Register, Bureau Veritas...' : 'DNV GL, Lloyd\'s Register, Bureau Veritas...'}
+                              />
                             </div>
                           </div>
 
