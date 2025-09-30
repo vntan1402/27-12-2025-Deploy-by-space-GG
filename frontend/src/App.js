@@ -9476,7 +9476,8 @@ const AddRecordModal = ({
     cert_no: '',
     cert_type: 'Full Term', // Loại chứng chỉ
     issue_date: '',
-    valid_date: '',
+    valid_date: '', // Bây giờ là dropdown option
+    custom_valid_date: '', // Cho trường hợp chọn custom date
     last_endorse: '',
     next_survey: '',
     next_survey_type: '', // Đã có nhưng thêm vào state
