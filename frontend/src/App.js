@@ -10864,9 +10864,9 @@ const AddRecordModal = ({
                             </button>
                             <button
                               onClick={() => {
-                                // For now, use existing certificate modal with pre-filled data
+                                // Open manual certificate input using existing pattern
                                 const extractedData = fileUpload.manual_input_data?.extracted_data || {};
-                                setEditingCertificate({
+                                const manualCertData = {
                                   ship_id: selectedShip?.id,
                                   ship_name: selectedShip?.name,
                                   cert_name: extractedData.cert_name || '',
@@ -10878,8 +10878,16 @@ const AddRecordModal = ({
                                   notes: `Manual input from ${fileUpload.name} - AI extraction insufficient`,
                                   manual_input_mode: true,
                                   upload_index: multiCertUploads.findIndex(u => u.name === fileUpload.name)
-                                });
-                                setShowEditCertModal(true);
+                                };
+                                
+                                // Use the handleEditCertificate pattern
+                                try {
+                                  setEditingCertificate(manualCertData);
+                                  setShowEditCertModal(true);
+                                } catch (error) {
+                                  console.error('Error opening manual input modal:', error);
+                                  alert(language === 'vi' ? 'Lỗi mở form nhập thủ công' : 'Error opening manual input form');
+                                }
                               }}
                               className="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
                             >
