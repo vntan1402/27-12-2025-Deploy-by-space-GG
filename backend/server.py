@@ -6923,8 +6923,17 @@ async def backfill_certificate_ship_information(
         
         logger.info(f"📋 Found {len(certificates)} certificates to process for ship information backfill")
         
-        # Get AI configuration
-        ai_config = await get_ai_config()
+        # Get AI configuration directly from database
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            ai_config = {"provider": "google", "model": "gemini-2.0-flash", "use_emergent_key": True}
+        else:
+            ai_config = {
+                "provider": ai_config_doc.get("provider", "google"),
+                "model": ai_config_doc.get("model", "gemini-2.0-flash"),
+                "api_key": ai_config_doc.get("api_key"),
+                "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+            }
         
         processed = 0
         updated = 0
