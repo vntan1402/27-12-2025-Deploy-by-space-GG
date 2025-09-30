@@ -10712,6 +10712,8 @@ const AddRecordModal = ({
                             fileUpload.status === 'failed' ? 'bg-red-500' :
                             fileUpload.status === 'skipped' ? 'bg-yellow-500' :
                             fileUpload.status === 'pending_duplicate' ? 'bg-orange-500' :
+                            fileUpload.status === 'requires_manual_input' ? 'bg-purple-500' :
+                            fileUpload.status === 'requires_manual_review' ? 'bg-indigo-500' :
                             'bg-blue-500'
                           }`}></div>
                           <span className="font-medium text-gray-900">{fileUpload.name}</span>
