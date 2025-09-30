@@ -4220,10 +4220,10 @@ const HomePage = () => {
                             </div>
                           </div>
 
-                          {/* Row 3: Last Endorse + Next Survey + Next Survey Type */}
-                          <div className="grid grid-cols-3 gap-3">
+                          {/* Row 3: Last Endorse + Next Survey + Survey Type + Category */}
+                          <div className="grid grid-cols-4 gap-4">
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
                                 {editingCertificate.cert_type !== 'Full Term' && (
                                   <span className="text-xs text-gray-400 ml-1">(Full Term only)</span>
@@ -4234,7 +4234,7 @@ const HomePage = () => {
                                 value={editingCertificate.last_endorse?.split('T')[0] || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, last_endorse: e.target.value }))}
                                 disabled={editingCertificate.cert_type !== 'Full Term'}
-                                className={`w-full px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-blue-500 ${
+                                className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                                   editingCertificate.cert_type !== 'Full Term' 
                                     ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
                                     : 'border-gray-300 focus:border-transparent'
@@ -4242,24 +4242,24 @@ const HomePage = () => {
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Kiểm tra tiếp theo' : 'Next Survey'}
                               </label>
                               <input
                                 type="date"
                                 value={editingCertificate.next_survey?.split('T')[0] || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, next_survey: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Loại kiểm tra' : 'Survey Type'}
                               </label>
                               <select
                                 value={editingCertificate.next_survey_type || ''}
                                 onChange={(e) => setEditingCertificate(prev => ({ ...prev, next_survey_type: e.target.value }))}
-                                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
                                 <option value="">{language === 'vi' ? 'Chọn loại kiểm tra' : 'Select survey type'}</option>
                                 <option value="Initial">{language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial Survey'}</option>
@@ -4270,6 +4270,17 @@ const HomePage = () => {
                                 <option value="Docking">{language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey'}</option>
                                 <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                               </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Danh mục' : 'Category'} *
+                              </label>
+                              <input
+                                type="text"
+                                value={language === 'vi' ? 'Giấy chứng nhận' : 'Certificates'}
+                                readOnly
+                                className="w-full px-3 py-2 text-sm border border-gray-200 bg-gray-50 rounded-lg text-gray-600 cursor-not-allowed"
+                              />
                             </div>
                           </div>
 
