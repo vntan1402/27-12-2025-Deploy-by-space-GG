@@ -914,6 +914,14 @@ const HomePage = () => {
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
   
+  // Quick Edit Survey Type states
+  const [quickEditMenu, setQuickEditMenu] = useState({
+    show: false,
+    certificateId: null,
+    position: { x: 0, y: 0 },
+    currentValue: ''
+  });
+  
   // Multi Cert Upload States
   const [multiCertUploads, setMultiCertUploads] = useState([]);
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
