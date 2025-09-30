@@ -11376,15 +11376,32 @@ const AddRecordModal = ({
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'} *
+                  {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
                 </label>
-                <input
-                  type="date"
-                  required
+                <select
                   value={certificateData.valid_date}
                   onChange={(e) => setCertificateData(prev => ({ ...prev, valid_date: e.target.value }))}
                   className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
+                  <option value="">{language === 'vi' ? 'Chọn ngày hết hạn' : 'Select valid date'}</option>
+                  <option value="permanent">{language === 'vi' ? 'Vĩnh viễn' : 'Permanent'}</option>
+                  <option value="1-year">{language === 'vi' ? '1 năm từ ngày cấp' : '1 year from issue'}</option>
+                  <option value="2-years">{language === 'vi' ? '2 năm từ ngày cấp' : '2 years from issue'}</option>
+                  <option value="3-years">{language === 'vi' ? '3 năm từ ngày cấp' : '3 years from issue'}</option>
+                  <option value="5-years">{language === 'vi' ? '5 năm từ ngày cấp' : '5 years from issue'}</option>
+                  <option value="custom-date">{language === 'vi' ? 'Ngày tự chọn' : 'Custom date'}</option>
+                </select>
+                
+                {/* Custom date input - hiển thị khi chọn "custom-date" */}
+                {certificateData.valid_date === 'custom-date' && (
+                  <input
+                    type="date"
+                    value={certificateData.custom_valid_date || ''}
+                    onChange={(e) => setCertificateData(prev => ({ ...prev, custom_valid_date: e.target.value }))}
+                    className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent mt-1"
+                    placeholder={language === 'vi' ? 'Chọn ngày hết hạn' : 'Select expiry date'}
+                  />
+                )}
               </div>
             </div>
 
