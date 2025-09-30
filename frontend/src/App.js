@@ -11042,15 +11042,30 @@ const AddRecordModal = ({
                                 </div>
                               </div>
                             )}
-                            <p className="text-xs text-purple-600 mt-2 p-2 bg-purple-100 rounded">
-                              {language === 'vi' 
-                                ? 'Hệ thống AI không thể trích xuất đủ thông tin từ file này. Vui lòng nhập thông tin Certificate thủ công hoặc bỏ qua file này.' 
-                                : 'AI system could not extract sufficient information from this file. Please input certificate information manually or skip this file.'}
-                            </p>
+                            <div className="text-xs text-purple-600 mt-2 p-3 bg-purple-100 rounded border-l-4 border-purple-400">
+                              <div className="flex items-start space-x-2">
+                                <span className="text-purple-500 mt-0.5">💡</span>
+                                <div>
+                                  <p className="font-medium mb-1">
+                                    {language === 'vi' ? 'Hướng dẫn nhập thủ công:' : 'Manual Input Instructions:'}
+                                  </p>
+                                  <p className="mb-2">
+                                    {language === 'vi' 
+                                      ? 'AI không thể trích xuất đủ thông tin từ file này.' 
+                                      : 'AI could not extract sufficient information from this file.'}
+                                  </p>
+                                  <p className="font-medium text-purple-700">
+                                    {language === 'vi' 
+                                      ? '👆 Sử dụng nút "📋 Add Certificate" phía trên để nhập thủ công thông tin certificate.' 
+                                      : '👆 Use the "📋 Add Certificate" button above to manually input certificate information.'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           
-                          {/* Action Buttons */}
-                          <div className="flex justify-end space-x-2 mt-3 pt-2 border-t border-purple-200">
+                          {/* Action Buttons - Chỉ có Skip */}
+                          <div className="flex justify-end mt-3 pt-2 border-t border-purple-200">
                             <button
                               onClick={() => {
                                 // Skip this file - mark as skipped
@@ -11060,21 +11075,9 @@ const AddRecordModal = ({
                                     : upload
                                 ));
                               }}
-                              className="px-3 py-1 text-xs bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors"
+                              className="px-4 py-2 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded-md transition-colors"
                             >
-                              {language === 'vi' ? 'Bỏ qua' : 'Skip'}
-                            </button>
-                            <button
-                              onClick={() => {
-                                // Simple alert for now to test if onClick works
-                                alert(language === 'vi' 
-                                  ? 'Chức năng nhập thủ công đang được phát triển. Vui lòng sử dụng form "Add Certificate" để nhập thủ công.'
-                                  : 'Manual input feature is under development. Please use the "Add Certificate" form for manual input.'
-                                );
-                              }}
-                              className="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
-                            >
-                              {language === 'vi' ? 'Nhập thủ công' : 'Manual Input'}
+                              {language === 'vi' ? '⏭️ Bỏ qua file này' : '⏭️ Skip this file'}
                             </button>
                           </div>
                         </div>
