@@ -6885,6 +6885,226 @@ async def analyze_with_emergent_llm(file_content: bytes, filename: str, content_
         logger.error(f"Emergent LLM analysis failed: {e}")
         return classify_by_filename(filename)
 
+@api_router.post("/certificates/backfill-ship-info")
+async def backfill_certificate_ship_information(
+    limit: int = 10,  # Process 10 certificates at a time to avoid overload
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Background job to re-process older certificates and extract missing ship information"""
+    try:
+        logger.info("🔄 Starting certificate ship information backfill process...")
+        
+        # Find certificates without extracted_ship_name or other ship info fields
+        query = {
+            "$or": [
+                {"extracted_ship_name": {"$exists": False}},
+                {"extracted_ship_name": None},
+                {"extracted_ship_name": ""},
+                {"flag": {"$exists": False}},
+                {"class_society": {"$exists": False}},
+                {"built_year": {"$exists": False}}
+            ],
+            "text_content": {"$exists": True, "$ne": None, "$ne": ""}  # Only process if text content exists
+        }
+        
+        # Get certificates that need backfill
+        certificates = await mongo_db.find("certificates", query, limit=limit)
+        
+        if not certificates:
+            logger.info("✅ No certificates found that need ship information backfill")
+            return {
+                "success": True,
+                "message": "No certificates need backfill processing",
+                "processed": 0,
+                "updated": 0,
+                "errors": 0
+            }
+        
+        logger.info(f"📋 Found {len(certificates)} certificates to process for ship information backfill")
+        
+        # Get AI configuration
+        ai_config = await get_ai_config()
+        
+        processed = 0
+        updated = 0
+        errors = 0
+        
+        for cert in certificates:
+            try:
+                processed += 1
+                cert_id = cert.get('id')
+                cert_name = cert.get('cert_name', 'Unknown')
+                ship_id = cert.get('ship_id')
+                text_content = cert.get('text_content', '')
+                
+                logger.info(f"🔄 Processing certificate {processed}/{len(certificates)}: {cert_name} (ID: {cert_id})")
+                
+                if not text_content or len(text_content) < 50:
+                    logger.warning(f"   ⚠️ Insufficient text content ({len(text_content)} chars) - skipping")
+                    continue
+                
+                # Create analysis prompt specifically for ship information extraction
+                ship_info_prompt = f"""
+Extract ship information from this maritime certificate text. Focus on finding:
+
+1. SHIP INFORMATION:
+   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+   - imo_number: IMO number of the vessel (look for "IMO No", "IMO Number", "IMO:", 7-digit number starting with 9)
+   - flag: Flag state/country of registration (look for "Flag", "Flag State", "Port of Registry")
+   - class_society: Classification society (look for "Class", "Classification Society", "Classed by", common ones: DNV GL, Lloyd's Register, ABS, BV, RINA, CCS, KR, NK, RS, etc.)
+   - built_year: Year the ship was built/constructed (look for "Built", "Year Built", "Delivered", "Construction Year")
+   - gross_tonnage: Gross tonnage of the vessel (look for "Gross Tonnage", "GT", numeric value with "tonnes" or "tons")
+   - deadweight: Deadweight tonnage (look for "Deadweight", "DWT", "Dead Weight Tonnage", numeric value with "tonnes" or "tons")
+
+Return ONLY the ship information as JSON. If information is not found, return null for that field.
+
+EXAMPLE OUTPUT:
+{{
+  "ship_name": "SUNSHINE 01",
+  "imo_number": "9415313",
+  "flag": "BELIZE",
+  "class_society": "PANAMA MARITIME DOCUMENTATION SERVICES (PMDS)",
+  "built_year": "2010",
+  "gross_tonnage": "2959",
+  "deadweight": "4850"
+}}
+
+CERTIFICATE TEXT:
+{text_content[:3000]}  # Limit to first 3000 characters
+"""
+                
+                # Use AI to extract ship information
+                result = None
+                use_emergent_key = ai_config.get("use_emergent_key", True)
+                provider = ai_config.get("provider", "google").lower()
+                api_key = ai_config.get("api_key")
+                model = ai_config.get("model", "gemini-2.0-flash")
+                
+                if use_emergent_key or api_key == "EMERGENT_LLM_KEY":
+                    api_key = EMERGENT_LLM_KEY
+                
+                if use_emergent_key and provider == "google":
+                    result = await analyze_with_emergent_llm_text_enhanced(text_content, cert.get('file_name', 'unknown.pdf'), api_key, ship_info_prompt)
+                elif provider == "openai":
+                    result = await analyze_with_openai_text_enhanced(text_content, cert.get('file_name', 'unknown.pdf'), api_key, model, ship_info_prompt)
+                else:
+                    # Fallback extraction using text patterns
+                    result = extract_ship_info_from_text_patterns(text_content)
+                
+                if not result:
+                    logger.warning(f"   ❌ AI analysis failed for certificate {cert_id}")
+                    errors += 1
+                    continue
+                
+                # Prepare update data
+                update_data = {}
+                ship_info_fields = ['ship_name', 'imo_number', 'flag', 'class_society', 'built_year', 'gross_tonnage', 'deadweight']
+                
+                for field in ship_info_fields:
+                    value = result.get(field)
+                    if value and str(value).strip() and str(value).lower() not in ['unknown', 'null', 'none', '']:
+                        if field == 'extracted_ship_name':
+                            update_data['extracted_ship_name'] = str(value).strip()
+                        elif field == 'ship_name':
+                            update_data['extracted_ship_name'] = str(value).strip()
+                        else:
+                            update_data[field] = str(value).strip()
+                
+                # Only update if we extracted some information
+                if update_data:
+                    logger.info(f"   ✅ Extracted {len(update_data)} fields: {list(update_data.keys())}")
+                    await mongo_db.update("certificates", {"id": cert_id}, {"$set": update_data})
+                    updated += 1
+                else:
+                    logger.warning(f"   ⚠️ No ship information could be extracted")
+                    
+            except Exception as e:
+                logger.error(f"   ❌ Error processing certificate {cert.get('id', 'unknown')}: {e}")
+                errors += 1
+                continue
+        
+        logger.info(f"🏁 Backfill process completed: {processed} processed, {updated} updated, {errors} errors")
+        
+        return {
+            "success": True,
+            "message": f"Backfill process completed successfully",
+            "processed": processed,
+            "updated": updated,
+            "errors": errors,
+            "remaining": max(0, len(certificates) - processed) if len(certificates) == limit else 0
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Certificate ship information backfill failed: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "processed": 0,
+            "updated": 0,
+            "errors": 1
+        }
+
+def extract_ship_info_from_text_patterns(text_content: str) -> dict:
+    """Fallback method to extract ship information using text patterns"""
+    import re
+    
+    result = {}
+    text = text_content.upper()
+    
+    # Ship name patterns
+    ship_name_patterns = [
+        r'SHIP\s+NAME[:\s]+([A-Z0-9\s\-\.]+?)(?:\n|IMO|FLAG)',
+        r'VESSEL\s+NAME[:\s]+([A-Z0-9\s\-\.]+?)(?:\n|IMO|FLAG)',
+        r'M\.V\.?\s+([A-Z0-9\s\-\.]+?)(?:\n|IMO|FLAG)',
+        r'S\.S\.?\s+([A-Z0-9\s\-\.]+?)(?:\n|IMO|FLAG)'
+    ]
+    
+    for pattern in ship_name_patterns:
+        match = re.search(pattern, text)
+        if match:
+            result['ship_name'] = match.group(1).strip()
+            break
+    
+    # IMO number pattern
+    imo_match = re.search(r'IMO\s*(?:NO|NUMBER)?[:\s]*(\d{7})', text)
+    if imo_match:
+        result['imo_number'] = imo_match.group(1)
+    
+    # Flag pattern
+    flag_match = re.search(r'FLAG\s*(?:STATE)?[:\s]*([A-Z\s]+?)(?:\n|CLASS|IMO)', text)
+    if flag_match:
+        result['flag'] = flag_match.group(1).strip()
+    
+    # Class society pattern
+    class_patterns = [
+        r'CLASSIFICATION\s+SOCIETY[:\s]*([A-Z\s\(\)]+?)(?:\n|BUILT|GROSS)',
+        r'CLASS[:\s]*([A-Z\s\(\)]+?)(?:\n|BUILT|GROSS)',
+        r'CLASSED\s+BY[:\s]*([A-Z\s\(\)]+?)(?:\n|BUILT|GROSS)'
+    ]
+    
+    for pattern in class_patterns:
+        match = re.search(pattern, text)
+        if match:
+            result['class_society'] = match.group(1).strip()
+            break
+    
+    # Built year pattern
+    built_match = re.search(r'BUILT\s*(?:YEAR)?[:\s]*(\d{4})', text)
+    if built_match:
+        result['built_year'] = built_match.group(1)
+    
+    # Gross tonnage pattern
+    gt_match = re.search(r'GROSS\s+TONNAGE[:\s]*(\d+(?:\.\d+)?)', text)
+    if gt_match:
+        result['gross_tonnage'] = gt_match.group(1)
+    
+    # Deadweight pattern
+    dwt_match = re.search(r'DEADWEIGHT[:\s]*(\d+(?:\.\d+)?)', text)
+    if dwt_match:
+        result['deadweight'] = dwt_match.group(1)
+    
+    return result
+
 @api_router.post("/certificates/upload-to-folder")
 async def upload_file_to_specific_folder(
     ship_id: str,
