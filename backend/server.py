@@ -6908,7 +6908,8 @@ async def backfill_certificate_ship_information(
         }
         
         # Get certificates that need backfill
-        certificates = await mongo_db.find_all("certificates", query, limit=limit)
+        all_certificates = await mongo_db.find_all("certificates", query)
+        certificates = all_certificates[:limit] if all_certificates else []
         
         if not certificates:
             logger.info("✅ No certificates found that need ship information backfill")
