@@ -5787,7 +5787,7 @@ async def get_certificate_form_fields_for_extraction():
             "built_year": "Year the ship was built/constructed (look for Built, Year Built, Delivered, Construction Year)",
             "keel_laid": "Date on which keel was laid (look for 'Date on which keel was laid or ship was at similar stage of construction', 'keel was laid', 'keel laying', 'construction commenced', format as YYYY-MM-DD, example: MAY 04, 2018 → 2018-05-04)",
             "delivery_date": "Date of delivery (look for 'Date of delivery', format as YYYY-MM-DD, example: JANUARY 15, 2019 → 2019-01-15)",
-            "last_docking": "Last docking/bottom inspection date (look for 'last two inspections of the outside of the ship's bottom took place on', format as YYYY-MM-DD, example: MAY 05, 2022 → 2022-05-05)",
+            "last_docking": "Last docking/bottom inspection date (look for 'last two inspections of the outside of the ship's bottom took place on', 'last inspection', 'bottom inspection', 'dry dock', 'docking inspection', format as YYYY-MM-DD, example: MAY 05, 2022 → 2022-05-05)",
             "gross_tonnage": "Gross tonnage of the vessel (look for Gross Tonnage, GT, numeric value with tonnes or tons)",
             "deadweight": "Deadweight tonnage (look for Deadweight, DWT, Dead Weight Tonnage, numeric value with tonnes or tons)"
         }
