@@ -12670,7 +12670,7 @@ const AddRecordModal = ({
           
           {/* Context Menu */}
           <div
-            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-2 min-w-48"
+            className="fixed z-[9999] bg-white border border-gray-200 rounded-lg shadow-xl py-2 min-w-48"
             style={{
               left: `${quickEditMenu.position.x}px`,
               top: `${quickEditMenu.position.y}px`,
