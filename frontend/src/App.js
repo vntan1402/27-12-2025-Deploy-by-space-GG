@@ -4875,7 +4875,7 @@ const HomePage = () => {
                   {/* Survey & Maintenance Section */}
                   <div className="col-span-12 mt-4">
                     <h4 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b">
-                      {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng' : 'Survey & Maintenance Information'}
+                      {language === 'vi' ? 'Thông tin Chi tiết Tàu' : 'Detailed Ship Information'}
                     </h4>
                   </div>
 
