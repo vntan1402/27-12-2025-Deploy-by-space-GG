@@ -6029,7 +6029,9 @@ Analyze this maritime document ({filename}) and extract the following informatio
    - flag: Flag state/country of registration (look for "Port of Registry", "Flag", "Flag State", "Government of", "Authority of the Government of", country names like "PANAMA", "REPUBLIC OF PANAMA", etc.)
    - class_society: Organization that issued this certificate (look for "By:", issuing authority, "Panama Maritime Documentation Services", "Lloyd's Register", "DNV GL", "ABS", "BV", "RINA", "CCS", "KR", "NK", "RS", etc. - return the FULL organization name, not abbreviation)
    - built_year: Year the ship was built/constructed (look for "Date of building contract", "Date on which keel was laid", "Built", "Year Built", extract YEAR only from dates like "MAY 04, 2018" → 2018)
+   - keel_laid: Date on which keel was laid (look for "Date on which keel was laid", "keel laying", format as YYYY-MM-DD from text like "MAY 04, 2018" → "2018-05-04")
    - delivery_date: Date of delivery (look for "Date of delivery", format as YYYY-MM-DD from text like "JANUARY 15, 2019" → "2019-01-15")
+   - last_docking: Last docking/bottom inspection date (look for "last two inspections of the outside of the ship's bottom", "dry docking", "docking inspection", format as YYYY-MM-DD from text like "MAY 05, 2022" → "2022-05-05")
    - gross_tonnage: Gross tonnage of the vessel (look for "GROSS TONNAGE", "GT", numeric value, may appear in table format)
    - deadweight: Deadweight tonnage (look for "Deadweight of ship", "DWT", "Dead Weight Tonnage", numeric value with "metric tons" or "tonnes")
    
