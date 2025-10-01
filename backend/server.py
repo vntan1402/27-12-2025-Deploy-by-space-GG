@@ -6215,6 +6215,20 @@ def normalize_certificate_analysis_response(ai_response: dict) -> dict:
             ai_response.get('delivery_date')
         )
         
+        normalized['keel_laid'] = (
+            ship_info.get('KEEL_LAID') or 
+            ship_info.get('keel_laid') or 
+            ai_response.get('KEEL_LAID') or 
+            ai_response.get('keel_laid')
+        )
+        
+        normalized['last_docking'] = (
+            ship_info.get('LAST_DOCKING') or 
+            ship_info.get('last_docking') or 
+            ai_response.get('LAST_DOCKING') or 
+            ai_response.get('last_docking')
+        )
+        
         normalized['gross_tonnage'] = (
             ship_info.get('GROSS_TONNAGE') or 
             ship_info.get('gross_tonnage') or 
