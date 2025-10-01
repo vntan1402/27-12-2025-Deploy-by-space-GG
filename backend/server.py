@@ -5271,7 +5271,7 @@ async def analyze_with_emergent_gemini(file_content: bytes, prompt: str, api_key
                     
                     # For "Add Ship from Certificate" - always do BOTH certificate and ship normalization
                     has_cert_fields = any(key in analysis_result for key in ['CERT_NAME', 'cert_name', 'CERTIFICATE_INFORMATION', 'cert_type'])
-                    has_ship_fields = any(key in analysis_result for key in ['SHIP INFORMATION', 'ship_information'])
+                    has_ship_fields = any(key in analysis_result for key in ['SHIP INFORMATION', 'ship_information']) or 'ship_information' in analysis_result
                     
                     if has_cert_fields and has_ship_fields:
                         # This is full certificate+ship analysis - do BOTH normalizations
