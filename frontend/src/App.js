@@ -3372,9 +3372,7 @@ const HomePage = () => {
                                     setEditingShipData(initData);
                                     setShowEditShipModal(true);
                                   } catch (error) {
-                                    console.error('❌ Failed to fetch full ship details:', error);
-                                    console.error('Error details:', error.response?.data);
-                                    console.error('Error status:', error.response?.status);
+                                    console.error('Failed to fetch full ship details:', error);
                                     toast.error(language === 'vi' 
                                       ? 'Không thể tải thông tin chi tiết tàu'
                                       : 'Failed to load ship details'
