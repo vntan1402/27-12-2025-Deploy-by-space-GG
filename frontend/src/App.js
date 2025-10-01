@@ -3306,6 +3306,7 @@ const HomePage = () => {
                             <button
                               onClick={() => {
                                 // Initialize enhanced fields for editing
+                                console.log('🔧 Initializing Edit Ship with selectedShip data:', selectedShip);
                                 const initData = {
                                   ...selectedShip,
                                   // Ensure enhanced anniversary date structure
