@@ -12454,7 +12454,13 @@ const AddRecordModal = ({
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}</span>
-                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.new_certificate.issue_date ? new Date(duplicateResolutionModal.duplicateInfo.new_certificate.issue_date).toLocaleDateString('vi-VN') : '-'}</p>
+                      <p className="text-gray-900">{duplicateResolutionModal.duplicateInfo.new_certificate.issue_date ? (() => {
+                        const date = new Date(duplicateResolutionModal.duplicateInfo.new_certificate.issue_date);
+                        const day = String(date.getUTCDate()).padStart(2, '0');
+                        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                        const year = date.getUTCFullYear();
+                        return `${day}/${month}/${year}`;
+                      })() : '-'}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span>
