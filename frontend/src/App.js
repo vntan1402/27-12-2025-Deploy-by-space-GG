@@ -955,16 +955,14 @@ const HomePage = () => {
       });
 
       if (response.data.success) {
-        // Update the certificate list
-        setCertificates(prev => prev.map(cert => 
-          cert.id === quickEditMenu.certificateId 
-            ? { ...cert, next_survey_type: newSurveyType }
-            : cert
-        ));
+        // Refresh certificate list from server to ensure data synchronization
+        if (selectedShip && selectedShip.id) {
+          await fetchCertificates(selectedShip.id);
+        }
 
         toast.success(language === 'vi' 
-          ? `✅ Đã cập nhật loại kiểm tra thành "${newSurveyType}"`
-          : `✅ Survey type updated to "${newSurveyType}"`
+          ? `✅ Đã cập nhật loại kiểm tra thành "${formatSurveyTypeForDisplay(newSurveyType)}"`
+          : `✅ Survey type updated to "${formatSurveyTypeForDisplay(newSurveyType)}"`
         );
       }
     } catch (error) {
