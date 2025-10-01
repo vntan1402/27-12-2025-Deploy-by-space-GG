@@ -3559,7 +3559,7 @@ const HomePage = () => {
                                 : 'bg-gray-400 cursor-not-allowed text-white'
                             }`}
                             title={selectedShip 
-                              ? (language === 'vi' ? 'Cập nhật loại khảo sát tiếp theo' : 'Update next survey types')
+                              ? (language === 'vi' ? 'Cập nhật loại kiểm tra tới' : 'Update next survey types')
                               : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
                             }
                           >
