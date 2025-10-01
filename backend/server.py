@@ -5269,10 +5269,18 @@ async def analyze_with_emergent_gemini(file_content: bytes, prompt: str, api_key
                     # DEBUG: Log raw AI response
                     logger.info(f"🤖 RAW AI RESPONSE: {json.dumps(analysis_result, indent=2)[:500]}...")
                     
-                    # Check if this is certificate analysis (has certificate fields) or ship analysis
-                    has_cert_fields = any(key in analysis_result for key in ['CERT_NAME', 'cert_name', 'CERTIFICATE_INFORMATION'])
+                    # For "Add Ship from Certificate" - always do BOTH certificate and ship normalization
+                    has_cert_fields = any(key in analysis_result for key in ['CERT_NAME', 'cert_name', 'CERTIFICATE_INFORMATION', 'cert_type'])
+                    has_ship_fields = any(key in analysis_result for key in ['SHIP INFORMATION', 'ship_information'])
                     
-                    if has_cert_fields:
+                    if has_cert_fields and has_ship_fields:
+                        # This is full certificate+ship analysis - do BOTH normalizations
+                        logger.info("🔄 Using COMBINED certificate+ship normalization")
+                        normalized_result = normalize_certificate_analysis_response(analysis_result)
+                        # Also extract ship fields
+                        ship_fields = normalize_ai_analysis_response(analysis_result)
+                        normalized_result.update(ship_fields)
+                    elif has_cert_fields:
                         # This is certificate analysis - normalize certificate response
                         logger.info("🔄 Using certificate normalization")
                         normalized_result = normalize_certificate_analysis_response(analysis_result)
