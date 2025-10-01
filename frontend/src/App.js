@@ -924,8 +924,14 @@ const HomePage = () => {
 
   // Quick Edit Survey Type functions
   const handleSurveyTypeRightClick = (e, certificateId, currentValue) => {
-    console.log('🖱️ Right-click detected:', { certificateId, currentValue, x: e.clientX, y: e.clientY });
+    console.log('🖱️ Survey Type right-click detected:', { certificateId, currentValue, x: e.clientX, y: e.clientY });
     e.preventDefault();
+    e.stopPropagation(); // Prevent row context menu from showing
+    
+    // Close existing context menus
+    if (contextMenu.show) {
+      setContextMenu({ show: false, x: 0, y: 0, certificate: null });
+    }
     
     const menuState = {
       show: true,
