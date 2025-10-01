@@ -6200,10 +6200,20 @@ def normalize_ai_analysis_response(analysis_result: dict) -> dict:
         if "DOCUMENT CLASSIFICATION" in analysis_result:
             normalized["category"] = analysis_result["DOCUMENT CLASSIFICATION"]
         
-        # Extract ship information
+        # Extract ship information - ALL FIELDS
         ship_info = analysis_result.get("SHIP INFORMATION", {})
         if isinstance(ship_info, dict):
+            # Extract all ship-related fields
             normalized["ship_name"] = ship_info.get("ship_name")
+            normalized["imo_number"] = ship_info.get("imo_number")
+            normalized["flag"] = ship_info.get("flag")
+            normalized["class_society"] = ship_info.get("class_society")
+            normalized["built_year"] = ship_info.get("built_year")
+            normalized["delivery_date"] = ship_info.get("delivery_date")
+            normalized["gross_tonnage"] = ship_info.get("gross_tonnage")
+            normalized["deadweight"] = ship_info.get("deadweight")
+            normalized["ship_owner"] = ship_info.get("ship_owner")
+            normalized["ship_type"] = ship_info.get("ship_type")
         
         # Extract certificate information
         cert_info = analysis_result.get("CERTIFICATE INFORMATION", {})
