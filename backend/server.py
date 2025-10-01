@@ -7076,6 +7076,9 @@ Extract ship information from this maritime certificate text. Focus on finding:
    - flag: Flag state/country of registration (look for "Flag", "Flag State", "Port of Registry")
    - class_society: Classification society (look for "Class", "Classification Society", "Classed by", common ones: DNV GL, Lloyd's Register, ABS, BV, RINA, CCS, KR, NK, RS, etc.)
    - built_year: Year the ship was built/constructed (look for "Built", "Year Built", "Delivered", "Construction Year")
+   - keel_laid: Date on which keel was laid (look for "Date on which keel was laid", format as "2018-05-04" from "MAY 04, 2018")
+   - delivery_date: Date of delivery (look for "Date of delivery", format as "2019-01-15" from "JANUARY 15, 2019")  
+   - last_docking: Last bottom inspection (look for "last two inspections of the outside of the ship's bottom", format as "2022-05-05" from "MAY 05, 2022")
    - gross_tonnage: Gross tonnage of the vessel (look for "Gross Tonnage", "GT", numeric value with "tonnes" or "tons")
    - deadweight: Deadweight tonnage (look for "Deadweight", "DWT", "Dead Weight Tonnage", numeric value with "tonnes" or "tons")
 
