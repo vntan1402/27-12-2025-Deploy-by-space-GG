@@ -279,7 +279,7 @@ const translations = {
     issueDate: "Ngày cấp",
     validDate: "Ngày hết hạn",
     lastEndorse: "Xác nhận cuối",
-    nextSurvey: "Khảo sát tiếp theo",
+    nextSurvey: "Kiểm tra tới",
     
     // Permissions
     viewer: "Thuyền viên",
