@@ -7088,6 +7088,9 @@ EXAMPLE OUTPUT:
   "flag": "BELIZE",
   "class_society": "PANAMA MARITIME DOCUMENTATION SERVICES (PMDS)",
   "built_year": "2010",
+  "keel_laid": "2018-05-04",
+  "delivery_date": "2019-01-15",
+  "last_docking": "2022-05-05",
   "gross_tonnage": "2959",
   "deadweight": "4850"
 }}
