@@ -10540,8 +10540,8 @@ const AddRecordModal = ({
       // Add Special Survey Cycle if provided
       if (shipData.special_survey_from_date && shipData.special_survey_to_date) {
         shipPayload.special_survey_cycle = {
-          from_date: shipData.special_survey_from_date,
-          to_date: shipData.special_survey_to_date,
+          from_date: convertDateInputToUTC(shipData.special_survey_from_date),
+          to_date: convertDateInputToUTC(shipData.special_survey_to_date),
           cycle_type: "IMO 5-year Standard",
           manual_override: true,
           auto_calculated: false
