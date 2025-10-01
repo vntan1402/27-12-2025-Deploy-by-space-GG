@@ -945,6 +945,9 @@ const HomePage = () => {
   };
 
   const handleQuickUpdateSurveyType = async (newSurveyType) => {
+    console.log('🎯 handleQuickUpdateSurveyType called with:', newSurveyType);
+    console.log('quickEditMenu.certificateId:', quickEditMenu.certificateId);
+    
     try {
       const response = await axios.put(`${API}/certificates/${quickEditMenu.certificateId}`, {
         next_survey_type: newSurveyType
