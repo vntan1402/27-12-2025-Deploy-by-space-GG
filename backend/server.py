@@ -6204,9 +6204,11 @@ def normalize_ai_analysis_response(analysis_result: dict) -> dict:
         # Handle nested format with sections
         normalized = {}
         
-        # Extract category from DOCUMENT CLASSIFICATION
+        # Extract category from DOCUMENT CLASSIFICATION (support both formats)
         if "DOCUMENT CLASSIFICATION" in analysis_result:
             normalized["category"] = analysis_result["DOCUMENT CLASSIFICATION"]
+        elif "document_classification" in analysis_result:
+            normalized["category"] = analysis_result["document_classification"]
         
         # Extract ship information - ALL FIELDS (support both formats)
         ship_info = analysis_result.get("SHIP INFORMATION", {}) or analysis_result.get("ship_information", {})
