@@ -3905,7 +3905,10 @@ const HomePage = () => {
                                   </td>
                                   <td 
                                     className="border border-gray-300 px-4 py-2 text-center cursor-context-menu hover:bg-gray-50"
-                                    onContextMenu={(e) => handleSurveyTypeRightClick(e, cert.id, cert.next_survey_type)}
+                                    onContextMenu={(e) => {
+                                      e.stopPropagation(); // Prevent row context menu
+                                      handleSurveyTypeRightClick(e, cert.id, cert.next_survey_type);
+                                    }}
                                     title={language === 'vi' ? 'Right-click để thay đổi nhanh loại kiểm tra' : 'Right-click to quick edit survey type'}
                                   >
                                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
