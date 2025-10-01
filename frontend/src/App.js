@@ -2918,6 +2918,18 @@ const HomePage = () => {
     return '-';
   };
   
+  // Format survey type to remove "Survey" suffix for display
+  const formatSurveyTypeForDisplay = (surveyType) => {
+    if (!surveyType) return '-';
+    
+    // Remove "Survey" suffix from common survey types for consistent display
+    const formattedType = surveyType
+      .replace(/\s+Survey$/i, '') // Remove " Survey" at the end (case insensitive)
+      .trim();
+    
+    return formattedType || surveyType; // Return original if formatting results in empty string
+  };
+  
   // Anniversary date management functions
   const handleRecalculateAnniversaryDate = async (shipId) => {
     if (!shipId) return;
