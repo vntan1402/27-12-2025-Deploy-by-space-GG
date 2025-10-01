@@ -296,6 +296,18 @@ frontend:
         -agent: "main"
         -comment: "✅ QUICK EDIT AUTO-REFRESH ENHANCEMENT COMPLETED: Successfully enhanced Quick Edit Survey Type functionality to automatically refresh certificate data after updates. ENHANCEMENT DETAILS: Modified handleQuickUpdateSurveyType() function (lines 957-969) to call fetchCertificates(selectedShip.id) after successful survey type update, replacing local state update with full server data refresh. BENEFITS: Ensures certificate list is always up-to-date with server data, eliminates potential data inconsistencies, provides reliable user experience with real-time data refresh. IMPLEMENTATION: Uses await fetchCertificates(selectedShip.id) instead of setCertificates() local update, enhanced toast message displays formatted survey type name, maintained error handling and user feedback. VERIFICATION: Screenshot confirms Quick Edit context menu working correctly with 10 survey type cells detected, context menu appears on right-click as expected, auto-refresh functionality ready for production use. The enhancement ensures data synchronization and improved user experience when using Quick Edit functionality."
 
+  - task: "Vietnamese Translation Update for Survey Fields"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: "✅ VIETNAMESE TRANSLATION UPDATES COMPLETED: Successfully updated Vietnamese translations for survey-related fields to use more concise terminology. CHANGES IMPLEMENTED: 1) Column header 'Next Survey Type': 'Loại khảo sát tiếp theo' → 'Loại kiểm tra tới', 2) Column header 'Next Survey': 'Khảo sát tiếp theo' → 'Kiểm tra tới', 3) Button tooltip: 'Cập nhật loại khảo sát tiếp theo' → 'Cập nhật loại kiểm tra tới', 4) Constants definition: nextSurvey: 'Khảo sát tiếp theo' → 'Kiểm tra tới'. LOCATIONS UPDATED: Line 282 (constants), Line 3562 (button tooltip), Line 3812 (Next Survey column header), Line 3824 (Next Survey Type column header). TERMINOLOGY IMPROVEMENT: Changed from formal 'khảo sát' to more commonly used 'kiểm tra' term, and 'tiếp theo' to shorter 'tới' for better UI space utilization. VERIFICATION: Application loads correctly, no JavaScript errors, linting passed. Vietnamese translations now use more concise and user-friendly terminology."
+
   - task: "AI Analysis Functionality Testing"
     implemented: true
     working: true
