@@ -1126,6 +1126,15 @@ const HomePage = () => {
         delivery_date: updatedShipData.delivery_date || null,
         keel_laid: updatedShipData.keel_laid || null,
         ship_owner: updatedShipData.ship_owner?.trim() || '',
+        // Detailed Ship Information fields
+        last_docking: updatedShipData.last_docking || null,
+        last_docking_2: updatedShipData.last_docking_2 || null,
+        next_docking: updatedShipData.next_docking || null,
+        last_special_survey: updatedShipData.last_special_survey || null,
+        last_intermediate_survey: updatedShipData.last_intermediate_survey || null,
+        anniversary_date: updatedShipData.anniversary_date || null,
+        special_survey_cycle: updatedShipData.special_survey_cycle || null,
+        dry_dock_cycle: updatedShipData.dry_dock_cycle || null,
         company: user?.company || '' // Always use user's company
       };
       
