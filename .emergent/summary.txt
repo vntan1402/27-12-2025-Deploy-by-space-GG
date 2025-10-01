@@ -1,100 +1,65 @@
 <analysis>
-The previous AI engineer's work primarily focused on iteratively building and refining the Ship Management System. Initial efforts included environment setup, AI integration with Google Gemini for certificate analysis, and resolving various bugs related to Google Drive, company management, and multi-certificate uploads. A significant phase involved implementing and then removing an enhanced survey type determination logic, as per user request to restart that functionality. Subsequently, the engineer embarked on a complex task of implementing a new Next Survey and Next Survey Type logic, adhering to detailed IMO regulations. This also involved extensive debugging of frontend runtime errors, state management issues related to certificate uploads, duplicate detection, and incorrect AI classification of marine certificates. The work is currently focused on enhancing multi-certificate upload logic based on IMO number and ship name comparisons.
+The trajectory details an intensive, iterative development cycle for a Ship Management System, driven by highly specific user feedback. The work began by addressing inconsistencies in the AI's data extraction from certificate PDFs. A major feature was implemented to handle AI extraction failures during multi-certificate uploads: instead of creating a flawed record, the system now pauses the upload for that specific file and prompts the user for manual input.
+
+Subsequently, a significant effort was dedicated to building an Admin Tools section within the application's System Settings. This new section houses a manually triggered backfill process to re-analyze older certificates and populate missing ship information, a feature the user later requested to be simplified by removing automated scheduling and background queueing.
+
+The latter half of the trajectory focuses heavily on UI/UX refinements. This includes extensive refactoring of the Manual Input and Edit Certificate forms to include all database fields, arranging them in a compact, multi-column layout. Dropdown options for Certificate Type and Survey Type were synchronized across all input methods (AI extraction, manual forms, and a new Quick Edit feature) based on precise user specifications, including specific Vietnamese translations. A Quick Edit context menu for the Survey Type field was implemented and rigorously debugged, resolving complex issues related to React component scope and conflicting  event handlers. The final task involved starting to synchronize the text of these dropdown options.
 </analysis>
 
 <product_requirements>
-The application is a Ship Management System for maritime operations, managing document portfolios, crew records, and compliance. Its main goal is efficient management and AI-powered analysis of ship certificates.
+The application is an AI-powered Ship Management System for managing maritime certificates.
 
-Key features implemented or requested:
-- **Core Functionality**: React frontend, FastAPI backend, MongoDB, supporting multi-certificate uploads, survey cycle calculations, docking date extraction, and compliance.
-- **AI-Powered Data Extraction**: Auto-filling ship details from PDF certificates using Google Gemini.
-- **Google Drive Integration**: Automatic folder creation for companies/ships (with issues to be resolved).
-- **Company Management**: Delete companies with validation, improved error reporting.
-- **Asynchronous Ship Creation**: Immediate ship creation, background Google Drive folder creation with polling.
-- **Multi-Certificate Upload**: Staggered, concurrent uploads; improved error reporting.
-- **Smart Certificate Review**: UI for non-marine certificate review with view/skip/confirm actions and side-by-side AI analysis.
-- **Last Intermediate Survey**: Added field to backend models, AI extraction, and frontend.
-- **Next Survey Logic (New Implementation)**: Define Next Survey (nearest upcoming Annual Survey date, dd/MM/yyyy, with ±3M window/±3T for Vietnamese, or valid date for Condition certs) and Next Survey Type (1st, 2nd, 3rd, 4th Annual Survey, or Special Survey, with Intermediate Survey considerations). Special Survey window is -3M. Certificates without valid dates have no Next Survey.
-- **Duplicate Certificate Handling**: Improve  matching (75% similarity). Display a dialog with duplicate info and Skip/Continue options during multi-upload.
-- **Multi-Cert Upload (IMO/Ship Name Check)**: If IMO numbers are identical, add certificate, adding a note Giấy chứng nhận này chỉ để tham khảo do tên tàu khác tên hiện tại if ship names differ. If IMO numbers are different, prevent upload with message Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại.
+**Core Functionality:**
+1.  **AI-Powered Certificate Processing:** The system uses AI to extract data from uploaded PDF/image certificates during a multi-file upload process.
+2.  **AI Extraction Failure Handling:** If the AI fails to extract critical information (e.g., ship name, certificate name, number), the upload for that specific file must be paused. The UI's progress bar should display a message guiding the user to use the Add Certificate form for manual entry, and the Manual Input button should be removed.
+3.  **Admin Tools:** The System Settings page must contain an Admin Tools section, visible only to Admin/Super Admin roles, which includes a button to manually trigger a backfill process for enriching older certificate records with AI-extracted data.
+4.  **Form Parity:** The Edit Certificate modal and the Add Certificate (manual input) form must contain all fields stored in the database for a certificate. This includes fields like Abbreviation, Type, Issued By, Status, and Notes. The layouts must be compact and optimized to fit on a single screen without scrolling, using a multi-column grid.
+5.  **Dropdown Synchronization:** The options within the Certificate Type and Survey Type dropdowns must be consistent across the Manual Input form, Edit Certificate form, and the Quick Edit context menu. The specific options and their Vietnamese translations are dictated by the user.
+6.  **Quick Edit Feature:** Users must be able to right-click on the Survey Type cell within the main certificate table to open a custom context menu, allowing for immediate selection and updating of the survey type without opening the full edit modal.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack Architecture**: React, FastAPI, MongoDB.
-- **AI/LLM Integration**: Google Gemini via Emergent LLM Key for OCR and data extraction.
-- **Asynchronous Processing**: FastAPI  for non-blocking operations.
-- **Data Modeling**: Pydantic models for FastAPI, BaseModel for MongoDB.
-- **Frontend State Management**: , ,  for UI logic.
-- **Date/Time Handling**: Timezone-aware operations in Python (, ).
+- **Full-stack Architecture**: React frontend ( as a single large component), FastAPI (Python) backend (), and MongoDB database.
+- **AI/LLM Integration**: Google Gemini for OCR and structured data extraction from PDFs. The AI prompt in the backend is dynamically updated to refine extraction requirements.
+- **Frontend State Management**: Extensive use of React hooks (, ) to manage UI state, including modals, context menus, and asynchronous data.
+- **Event Handling**: Advanced JavaScript event handling, including , , and  to manage conflicting context menus and prevent event bubbling.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture with a React frontend, a FastAPI backend, and a MongoDB database.
+The application follows a monorepo structure with a backend and frontend directory.
 
 
 
--   **/app/backend/server.py**:
-    -   **Summary**: Core backend logic, FastAPI setup, API routes, Pydantic models, MongoDB interaction, authentication, AI integration, Google Drive integration.
-    -   **Changes Made**:
-        -   Enhanced  logic (later removed).
-        -   Removed  and all associated endpoints as requested.
-        -   Added new API endpoint  for the new Next Survey logic.
-        -   Updated  to handle  window as .
-        -   Added custom Pydantic  for  to handle  and  string formats.
-        -   Updated  to return .
-        -   Modified  to use 75% match for .
-        -   Updated  logic to  status.
-        -   Added  endpoint.
-        -   Added  to correctly extract certificate fields from AI response.
-        -   Modified  (called by ) to handle certificate analysis correctly by using a specific certificate prompt.
-        -   Systematically fixed  object has no attribute  errors by ensuring  calls return empty strings instead of  where  is applied.
-        -   Ongoing: Implementing IMO/Ship name validation logic within multi-cert upload.
+-   ****
+    -   **Summary**: This file is the complete FastAPI backend. It handles all API endpoints, database interactions with MongoDB, Pydantic data models, and the core business logic, including the AI analysis prompts for Google Gemini.
+    -   **Summary of Changes**:
+        -   The  endpoint was modified to return a new status, , when AI extraction fails predetermined criteria. Another status, , was added for cases where the ship's IMO number matches but the name differs.
+        -   A new endpoint, , was created to handle the manual backfill process for older certificates.
+        -   The AI prompt for  was updated to reflect user-requested changes in survey terminology.
 
--   **/app/frontend/src/App.js**:
-    -   **Summary**: Main React component for UI, state, routing, and API calls.
-    -   **Changes Made**:
-        -   Updated  to production preview endpoint.
-        -   Changed Update Survey Types button text to Update Next Survey, including comments and tooltips.
-        -   Updated  to call the new  endpoint.
-        -   Modified Certificate List display to show  with window info.
-        -   Added new color styling for various  values.
-        -   Changed display for empty  to - instead of Not specified.
-        -   Added state (, ) and UI for duplicate resolution dialog.
-        -   Resolved  by passing  and  as props to  and removing internal duplicate state definitions.
-        -   Resolved  by renaming internal placeholder function in  to .
-        -   Resolved  by creating inline  function within .
-        -   Fixed Add Certificate button stuck in Processing state by ensuring  is called after duplicate resolution, and correctly passing  as a prop to .
-
--   **/app/backend/.env**:
-    -   **Summary**: Environment variables for backend.
-    -   **Changes Made**: Included , , .
-
--   **/app/frontend/.env**:
-    -   **Summary**: Environment variables for frontend.
-    -   **Changes Made**:  updated to production preview URL.
-
--   **/app/tests/ (various scripts)**:
-    -   **Summary**: Temporary scripts created for debugging and testing backend logic.
-    -   **Changes Made**: Created , , , , , , , , , , , . These were primarily for local testing and often removed or cleaned up.
+-   ****
+    -   **Summary**: This monolithic React file contains the entire frontend application, managing state, rendering all UI components (tables, modals, forms), and handling all API communication with the backend.
+    -   **Summary of Changes**:
+        -   The multi-upload progress bar logic was updated to handle the  status (showing a guidance message) and the  status (using a distinct color).
+        -   The Add Certificate (manual input) and Edit Certificate forms were significantly refactored. They now include all database fields, use a compact multi-column grid layout, and have synchronized dropdown options for  and . The  field was made read-only. The  was converted into a dropdown with a custom date option.
+        -   An Admin Tools section was added to the System Settings view, with state and functions () to trigger the backfill API and display its progress. A bug fix was applied to correctly retrieve the auth token for this API call.
+        -   A Quick Edit feature was implemented for the Survey Type field in the certificate table. This involved adding state for a context menu (), creating event handlers (), and rendering the custom context menu. Debugging this feature required moving the menu's render location to fix a component scope issue and adding  to the  handler to prevent conflicts with a pre-existing row-level context menu.
 </code_architecture>
 
 <pending_tasks>
--   Fix the Google Apps Script URL issue for Google Drive folder creation.
--   Complete the full frontend testing of the background task notification flow for Google Drive folder creation after a ship is added.
--   Address the remaining frontend issue where clicking the delete company button from the UI does not trigger the API call.
--   Implement the IMO/Ship name validation logic during multi-certificate upload.
+- There are no major pending features that were discussed and not implemented. The user explicitly requested to discard the Scheduled Job and Background Queue tasks. The current work is a minor text synchronization task.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the previous AI engineer was working on implementing a new feature for multi-certificate uploads. The user requested to add logic to check the IMO number and Ship Name during the upload process.
+Immediately before this summary request, the task was to synchronize the display text for survey types across different UI components. The user pointed out an inconsistency: the new Quick Edit Survey Type context menu displays options like Special, while the existing Update Next Survey Type modal (part of the Edit Certificate form) displays Special Survey. The user requested that both places should display the shorter version (e.g., Special), removing the word Survey.
 
-Specifically:
-1.  If the extracted IMO number from the certificate is the same as the ship's existing IMO number, the certificate should be added normally. However, if the ship name extracted from the certificate is *different* from the ship's current name, a note should be added to the certificate's Note field: Giấy chứng nhận này chỉ để tham khảo do tên tàu khác tên hiện tại (This certificate is for reference only as the ship name is different from the current name).
-2.  If the extracted IMO number is *different* from the ship's existing IMO number, the upload should be stopped, and the user should be notified with the message: Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại (Certificate of another ship, cannot be saved to current ship's data).
+The AI engineer had correctly identified the two locations in  where these options are defined:
+1.  The Quick Edit context menu rendering logic.
+2.  The Survey Type dropdown options within the Edit Certificate modal form.
 
-The engineer has located the  endpoint in  (line 4152) and is currently examining the section that handles AI analysis and certificate creation for each file within this multi-upload process. The next step is to integrate the IMO and Ship Name comparison logic at this point in the backend.
+The work was paused just before modifying the code in  to make these text values consistent.
 </current_work>
 
 <optional_next_step>
-Integrate IMO and Ship Name validation logic into the  backend endpoint.
+I will proceed with editing  to remove the word Survey from the options in both the Quick Edit context menu and the Edit Certificate modal's Survey Type dropdown to ensure consistency as requested.
 </optional_next_step>
