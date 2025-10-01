@@ -979,7 +979,10 @@ const HomePage = () => {
         );
       }
     } catch (error) {
-      console.error('Error updating survey type:', error);
+      console.error('❌ Error updating survey type:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      
       toast.error(language === 'vi' 
         ? '❌ Lỗi cập nhật loại kiểm tra'
         : '❌ Failed to update survey type'
