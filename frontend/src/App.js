@@ -5289,12 +5289,12 @@ const HomePage = () => {
             {/* Survey Type Options */}
             {[
               { value: '', label: language === 'vi' ? 'Không có' : 'None', color: 'text-gray-600' },
-              { value: 'Initial', label: language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial Survey', color: 'text-indigo-600' },
-              { value: 'Annual', label: language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual Survey', color: 'text-blue-600' },
-              { value: 'Intermediate', label: language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate Survey', color: 'text-yellow-600' },
-              { value: 'Special', label: language === 'vi' ? 'Kiểm tra định kỳ' : 'Special Survey', color: 'text-purple-600' },
-              { value: 'Renewal', label: language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal Survey', color: 'text-green-600' },
-              { value: 'Docking', label: language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey', color: 'text-orange-600' },
+              { value: 'Initial', label: language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial', color: 'text-indigo-600' },
+              { value: 'Annual', label: language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual', color: 'text-blue-600' },
+              { value: 'Intermediate', label: language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate', color: 'text-yellow-600' },
+              { value: 'Special', label: language === 'vi' ? 'Kiểm tra định kỳ' : 'Special', color: 'text-purple-600' },
+              { value: 'Renewal', label: language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal', color: 'text-green-600' },
+              { value: 'Docking', label: language === 'vi' ? 'Kiểm tra trên đà' : 'Docking', color: 'text-orange-600' },
               { value: 'Other', label: language === 'vi' ? 'Khác' : 'Other', color: 'text-gray-600' }
             ].map((option) => (
               <button
