@@ -3025,9 +3025,52 @@ const HomePage = () => {
         // Show success message with calculated cycle
         alert(`Special Survey cycle calculated: ${result.special_survey_cycle.display}\nCycle Type: ${result.special_survey_cycle.cycle_type}\nIntermediate Survey Required: ${result.special_survey_cycle.intermediate_required ? 'Yes' : 'No'}`);
         
-        // Refresh the ship data
+        // Refresh the ship data and update edit modal if open
         if (selectedShip?.id === shipId) {
           fetchShips(); // Refresh the ship list
+          
+          // If edit modal is open, refresh the form data
+          if (showEditShipModal && editingShipData?.id === shipId) {
+            try {
+              const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+              });
+              
+              const updatedShipData = shipResponse.data;
+              
+              // Format date fields for form inputs
+              const formatDateForInput = (isoDate) => {
+                if (!isoDate) return '';
+                try {
+                  return new Date(isoDate).toISOString().split('T')[0];
+                } catch (e) {
+                  return '';
+                }
+              };
+              
+              // Update editing ship data with formatted dates
+              setEditingShipData(prev => ({
+                ...prev,
+                ...updatedShipData,
+                last_docking: formatDateForInput(updatedShipData.last_docking),
+                last_docking_2: formatDateForInput(updatedShipData.last_docking_2),
+                next_docking: formatDateForInput(updatedShipData.next_docking),
+                last_special_survey: formatDateForInput(updatedShipData.last_special_survey),
+                last_intermediate_survey: formatDateForInput(updatedShipData.last_intermediate_survey),
+                keel_laid: formatDateForInput(updatedShipData.keel_laid),
+                delivery_date: formatDateForInput(updatedShipData.delivery_date),
+                special_survey_cycle: updatedShipData.special_survey_cycle && typeof updatedShipData.special_survey_cycle === 'object'
+                  ? {
+                      ...updatedShipData.special_survey_cycle,
+                      from_date: formatDateForInput(updatedShipData.special_survey_cycle.from_date),
+                      to_date: formatDateForInput(updatedShipData.special_survey_cycle.to_date)
+                    }
+                  : updatedShipData.special_survey_cycle
+              }));
+            } catch (error) {
+              console.error('Error refreshing edit modal data:', error);
+            }
+          }
         }
       } else {
         alert(result.message || 'Unable to calculate Special Survey cycle from certificates');
