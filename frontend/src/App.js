@@ -10158,7 +10158,7 @@ const AddRecordModal = ({
           keel_laid: formatDateForInput(analysisData.keel_laid) || '',
           ship_owner: analysisData.ship_owner || '',
           
-          // Survey & Maintenance Information Section (NEW fields from enhanced extraction)
+          // Detailed Ship Information Section (NEW fields from enhanced extraction)
           last_docking: formatLastDockingForDisplay(analysisData.last_docking) || '',
           last_docking_2: formatLastDockingForDisplay(analysisData.last_docking_2) || '', 
           next_docking: formatDateForInput(analysisData.next_docking) || '',
