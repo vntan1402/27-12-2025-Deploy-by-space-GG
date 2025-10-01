@@ -3313,6 +3313,17 @@ const HomePage = () => {
                                   
                                   // Use full ship details from API instead of selectedShip
                                   const fullShipData = response.data;
+                                  
+                                  // Helper function to format ISO datetime to YYYY-MM-DD for date inputs
+                                  const formatDateForInput = (isoDate) => {
+                                    if (!isoDate) return '';
+                                    try {
+                                      return new Date(isoDate).toISOString().split('T')[0];
+                                    } catch (e) {
+                                      return '';
+                                    }
+                                  };
+                                  
                                   const initData = {
                                     ...fullShipData,
                                     // Ensure enhanced anniversary date structure
