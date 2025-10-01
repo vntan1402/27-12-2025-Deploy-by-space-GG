@@ -3307,12 +3307,10 @@ const HomePage = () => {
                             <button
                               onClick={async () => {
                                 // Fetch full ship details from server before editing
-                                console.log('🔧 Fetching full ship details for editing...');
                                 try {
                                   const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                   });
-                                  console.log('📋 Full ship details fetched:', response.data);
                                   
                                   // Use full ship details from API instead of selectedShip
                                   const fullShipData = response.data;
