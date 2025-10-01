@@ -955,9 +955,16 @@ const HomePage = () => {
       });
 
       if (response.data.success) {
+        console.log('🔄 Quick Edit successful, attempting auto-refresh...');
+        console.log('selectedShip:', selectedShip);
+        
         // Refresh certificate list from server to ensure data synchronization
         if (selectedShip && selectedShip.id) {
+          console.log('📡 Calling fetchCertificates with shipId:', selectedShip.id);
           await fetchCertificates(selectedShip.id);
+          console.log('✅ fetchCertificates completed');
+        } else {
+          console.warn('⚠️ selectedShip or selectedShip.id not available:', selectedShip);
         }
 
         toast.success(language === 'vi' 
