@@ -10960,7 +10960,7 @@ const AddRecordModal = ({
             {/* Survey & Maintenance Section */}
             <div className="col-span-12 mt-4">
               <h4 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b">
-                {language === 'vi' ? 'Thông tin Khảo sát & Bảo dưỡng (Tùy chọn)' : 'Survey & Maintenance Information (Optional)'}
+                {language === 'vi' ? 'Thông tin Chi tiết Tàu (Tùy chọn)' : 'Detailed Ship Information (Optional)'}
               </h4>
             </div>
 
