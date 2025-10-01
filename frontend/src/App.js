@@ -924,13 +924,18 @@ const HomePage = () => {
 
   // Quick Edit Survey Type functions
   const handleSurveyTypeRightClick = (e, certificateId, currentValue) => {
+    console.log('🖱️ Right-click detected:', { certificateId, currentValue, x: e.clientX, y: e.clientY });
     e.preventDefault();
-    setQuickEditMenu({
+    
+    const menuState = {
       show: true,
       certificateId,
       position: { x: e.clientX, y: e.clientY },
       currentValue: currentValue || ''
-    });
+    };
+    
+    console.log('📋 Setting quickEditMenu state:', menuState);
+    setQuickEditMenu(menuState);
   };
 
   const handleQuickUpdateSurveyType = async (newSurveyType) => {
