@@ -3310,8 +3310,13 @@ const HomePage = () => {
                                   try {
                                     console.log('🔧 Starting fetchAndEditShip...');
                                     console.log('selectedShip:', selectedShip);
+                                    console.log('selectedShip.id:', selectedShip.id);
                                     console.log('API URL:', `${API}/ships/${selectedShip.id}`);
                                     console.log('Token:', token ? 'Present' : 'Missing');
+                                    
+                                    if (!selectedShip.id) {
+                                      throw new Error('Selected ship has no ID!');
+                                    }
                                     
                                     const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
                                       headers: { 'Authorization': `Bearer ${token}` }
