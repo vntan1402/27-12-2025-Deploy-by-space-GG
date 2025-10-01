@@ -12652,6 +12652,7 @@ const AddRecordModal = ({
       {/* Quick Edit Survey Type Context Menu */}
       {quickEditMenu.show && (
         <>
+          {console.log('🎯 Rendering context menu:', quickEditMenu)}
           {/* Background overlay to close menu when clicking outside */}
           <div 
             className="fixed inset-0 z-40"
