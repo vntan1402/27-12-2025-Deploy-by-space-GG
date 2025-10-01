@@ -3333,7 +3333,6 @@ const HomePage = () => {
                                       ? fullShipData.special_survey_cycle
                                       : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
                                   };
-                                  console.log('📝 Setting editingShipData:', initData);
                                   setEditingShipData(initData);
                                   setShowEditShipModal(true);
                                 } catch (error) {
