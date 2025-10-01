@@ -3369,9 +3369,7 @@ const HomePage = () => {
                                           }
                                         : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
                                     };
-                                    console.log('✅ Setting editingShipData with keys:', Object.keys(initData));
                                     setEditingShipData(initData);
-                                    console.log('✅ Opening modal...');
                                     setShowEditShipModal(true);
                                   } catch (error) {
                                     console.error('❌ Failed to fetch full ship details:', error);
