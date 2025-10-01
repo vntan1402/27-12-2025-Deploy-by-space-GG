@@ -6184,6 +6184,63 @@ def normalize_certificate_analysis_response(ai_response: dict) -> dict:
             ai_response.get('imo_number')
         )
         
+        # Extract ALL ship fields for "Add Ship from Certificate" functionality
+        normalized['flag'] = (
+            ship_info.get('FLAG') or 
+            ship_info.get('flag') or 
+            ai_response.get('FLAG') or 
+            ai_response.get('flag')
+        )
+        
+        normalized['class_society'] = (
+            ship_info.get('CLASS_SOCIETY') or 
+            ship_info.get('class_society') or 
+            ai_response.get('CLASS_SOCIETY') or 
+            ai_response.get('class_society')
+        )
+        
+        normalized['built_year'] = (
+            ship_info.get('BUILT_YEAR') or 
+            ship_info.get('built_year') or 
+            ai_response.get('BUILT_YEAR') or 
+            ai_response.get('built_year')
+        )
+        
+        normalized['delivery_date'] = (
+            ship_info.get('DELIVERY_DATE') or 
+            ship_info.get('delivery_date') or 
+            ai_response.get('DELIVERY_DATE') or 
+            ai_response.get('delivery_date')
+        )
+        
+        normalized['gross_tonnage'] = (
+            ship_info.get('GROSS_TONNAGE') or 
+            ship_info.get('gross_tonnage') or 
+            ai_response.get('GROSS_TONNAGE') or 
+            ai_response.get('gross_tonnage')
+        )
+        
+        normalized['deadweight'] = (
+            ship_info.get('DEADWEIGHT') or 
+            ship_info.get('deadweight') or 
+            ai_response.get('DEADWEIGHT') or 
+            ai_response.get('deadweight')
+        )
+        
+        normalized['ship_owner'] = (
+            ship_info.get('SHIP_OWNER') or 
+            ship_info.get('ship_owner') or 
+            ai_response.get('SHIP_OWNER') or 
+            ai_response.get('ship_owner')
+        )
+        
+        normalized['ship_type'] = (
+            ship_info.get('SHIP_TYPE') or 
+            ship_info.get('ship_type') or 
+            ai_response.get('SHIP_TYPE') or 
+            ai_response.get('ship_type')
+        )
+        
         # Extract confidence
         confidence_info = ai_response.get('CONFIDENCE_ASSESSMENT', ai_response)
         normalized['confidence'] = (
