@@ -10124,7 +10124,13 @@ const AddRecordModal = ({
         });
         
         console.log('📊 Valid extracted fields:', validFields);
-        console.log('📊 Analysis data:', analysisData);
+        console.log('📊 Analysis data structure:', JSON.stringify(analysisData, null, 2));
+        
+        // Debug specific expected fields
+        const expectedFields = ['ship_name', 'imo_number', 'flag', 'class_society', 'gross_tonnage'];
+        expectedFields.forEach(field => {
+          console.log(`🔍 ${field}: "${analysisData[field]}" (type: ${typeof analysisData[field]})`);
+        });
         
         if (validFields.length === 0) {
           toast.warning(language === 'vi' 
