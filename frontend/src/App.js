@@ -2823,7 +2823,12 @@ const HomePage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
-      return new Date(dateString).toLocaleDateString('vi-VN');
+      const date = new Date(dateString);
+      // Format consistently as DD/MM/YYYY to avoid locale differences
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const year = date.getUTCFullYear();
+      return `${day}/${month}/${year}`;
     } catch (error) {
       return '-';
     }
