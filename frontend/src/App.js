@@ -3946,7 +3946,7 @@ const HomePage = () => {
                                       cert.next_survey_type?.includes('Intermediate') ? 'bg-yellow-100 text-yellow-800' :
                                       'bg-gray-100 text-gray-800'
                                     }`}>
-                                      {cert.next_survey_type || '-'}
+                                      {formatSurveyTypeForDisplay(cert.next_survey_type)}
                                     </span>
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" title={cert.issued_by}>
