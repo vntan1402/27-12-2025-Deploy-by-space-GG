@@ -2930,6 +2930,38 @@ const HomePage = () => {
     return formattedType || surveyType; // Return original if formatting results in empty string
   };
   
+  // Get CSS class for survey type badge
+  const getSurveyTypeCssClass = (surveyType) => {
+    if (!surveyType) return 'bg-gray-100 text-gray-800';
+    
+    const type = surveyType.toLowerCase();
+    
+    // Check for specific survey types (both with and without "Survey" suffix)
+    if (type === 'annual' || type === 'annual survey' || type.includes('annual')) {
+      return 'bg-blue-100 text-blue-800';
+    }
+    if (type === 'intermediate' || type === 'intermediate survey' || type.includes('intermediate')) {
+      return 'bg-yellow-100 text-yellow-800';
+    }
+    if (type === 'renewal' || type === 'renewal survey') {
+      return 'bg-green-100 text-green-800';
+    }
+    if (type === 'special' || type === 'special survey') {
+      return 'bg-purple-100 text-purple-800';
+    }
+    if (type === 'docking' || type === 'docking survey') {
+      return 'bg-orange-100 text-orange-800';
+    }
+    if (type === 'initial' || type === 'initial survey') {
+      return 'bg-indigo-100 text-indigo-800';
+    }
+    if (type === 'condition certificate expiry') {
+      return 'bg-red-100 text-red-800';
+    }
+    
+    return 'bg-gray-100 text-gray-800';
+  };
+  
   // Anniversary date management functions
   const handleRecalculateAnniversaryDate = async (shipId) => {
     if (!shipId) return;
