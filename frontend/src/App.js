@@ -959,8 +959,10 @@ const HomePage = () => {
       });
 
       console.log('📥 API response received:', response.data);
+      console.log('📊 Response status:', response.status);
       
-      if (response.data.success) {
+      // Check for successful response (200 status) instead of success field
+      if (response.status === 200 && response.data) {
         console.log('🔄 Quick Edit successful, attempting auto-refresh...');
         console.log('selectedShip:', selectedShip);
         
