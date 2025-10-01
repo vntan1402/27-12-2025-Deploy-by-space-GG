@@ -945,11 +945,7 @@ const HomePage = () => {
   };
 
   const handleQuickUpdateSurveyType = async (newSurveyType) => {
-    console.log('🎯 handleQuickUpdateSurveyType called with:', newSurveyType);
-    console.log('quickEditMenu.certificateId:', quickEditMenu.certificateId);
-    
     try {
-      console.log('📡 Making API call to update survey type...');
       const response = await axios.put(`${API}/certificates/${quickEditMenu.certificateId}`, {
         next_survey_type: newSurveyType
       }, {
@@ -958,21 +954,11 @@ const HomePage = () => {
         }
       });
 
-      console.log('📥 API response received:', response.data);
-      console.log('📊 Response status:', response.status);
-      
       // Check for successful response (200 status) instead of success field
       if (response.status === 200 && response.data) {
-        console.log('🔄 Quick Edit successful, attempting auto-refresh...');
-        console.log('selectedShip:', selectedShip);
-        
         // Refresh certificate list from server to ensure data synchronization
         if (selectedShip && selectedShip.id) {
-          console.log('📡 Calling fetchCertificates with shipId:', selectedShip.id);
           await fetchCertificates(selectedShip.id);
-          console.log('✅ fetchCertificates completed');
-        } else {
-          console.warn('⚠️ selectedShip or selectedShip.id not available:', selectedShip);
         }
 
         toast.success(language === 'vi' 
@@ -981,9 +967,7 @@ const HomePage = () => {
         );
       }
     } catch (error) {
-      console.error('❌ Error updating survey type:', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
+      console.error('Error updating survey type:', error);
       
       toast.error(language === 'vi' 
         ? '❌ Lỗi cập nhật loại kiểm tra'
