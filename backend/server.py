@@ -6208,8 +6208,8 @@ def normalize_ai_analysis_response(analysis_result: dict) -> dict:
         if "DOCUMENT CLASSIFICATION" in analysis_result:
             normalized["category"] = analysis_result["DOCUMENT CLASSIFICATION"]
         
-        # Extract ship information - ALL FIELDS
-        ship_info = analysis_result.get("SHIP INFORMATION", {})
+        # Extract ship information - ALL FIELDS (support both formats)
+        ship_info = analysis_result.get("SHIP INFORMATION", {}) or analysis_result.get("ship_information", {})
         if isinstance(ship_info, dict):
             # Extract all ship-related fields
             normalized["ship_name"] = ship_info.get("ship_name")
