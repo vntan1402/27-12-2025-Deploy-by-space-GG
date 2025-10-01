@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Add hover tooltip to No. column (first column) showing original file name. When hovering over the No. column in certificate table, display the original file name that was uploaded."
+user_problem_statement: "Debug the Quick Edit Survey Type context menu functionality: Navigate to certificate table (login with admin1/123456, go to Document Portfolio, select SUNSHINE 01 ship, navigate to Certificates tab), test right-click functionality on Survey Type cells, check if context menu appears, check browser console for JavaScript errors, inspect element for onContextMenu handler attachment, debug handleSurveyTypeRightClick function existence and accessibility, verify quickEditMenu state updates, test context menu HTML rendering, and check CSS positioning/z-index issues."
 
 frontend:
   - task: "Certificate No Hover Tooltip Functionality"
