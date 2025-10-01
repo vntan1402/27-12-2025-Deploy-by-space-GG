@@ -10519,9 +10519,9 @@ const AddRecordModal = ({
         // Convert Last Docking MM/YYYY format to datetime for backend
         last_docking: convertLastDockingToDateTime(shipData.last_docking),
         last_docking_2: convertLastDockingToDateTime(shipData.last_docking_2),
-        next_docking: shipData.next_docking || null,
-        last_special_survey: shipData.last_special_survey || null,
-        last_intermediate_survey: shipData.last_intermediate_survey || null,
+        next_docking: convertDateInputToUTC(shipData.next_docking),
+        last_special_survey: convertDateInputToUTC(shipData.last_special_survey),
+        last_intermediate_survey: convertDateInputToUTC(shipData.last_intermediate_survey),
         ship_owner: shipData.ship_owner?.trim() || '',
         company: shipData.company?.trim() || user?.company || ''
       };
