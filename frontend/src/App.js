@@ -3308,9 +3308,17 @@ const HomePage = () => {
                                 // Fetch full ship details from server before editing
                                 const fetchAndEditShip = async () => {
                                   try {
+                                    console.log('🔧 Starting fetchAndEditShip...');
+                                    console.log('selectedShip:', selectedShip);
+                                    console.log('API URL:', `${API}/ships/${selectedShip.id}`);
+                                    console.log('Token:', token ? 'Present' : 'Missing');
+                                    
                                     const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
                                       headers: { 'Authorization': `Bearer ${token}` }
                                     });
+                                    
+                                    console.log('📥 API Response status:', response.status);
+                                    console.log('📦 API Response data keys:', Object.keys(response.data));
                                     
                                     // Use full ship details from API instead of selectedShip
                                     const fullShipData = response.data;
