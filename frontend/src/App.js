@@ -4352,12 +4352,12 @@ const HomePage = () => {
                                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               >
                                 <option value="">{language === 'vi' ? 'Chọn loại kiểm tra' : 'Select survey type'}</option>
-                                <option value="Initial">{language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial Survey'}</option>
-                                <option value="Annual">{language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual Survey'}</option>
-                                <option value="Intermediate">{language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate Survey'}</option>
-                                <option value="Special">{language === 'vi' ? 'Kiểm tra định kỳ' : 'Special Survey'}</option>
-                                <option value="Renewal">{language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal Survey'}</option>
-                                <option value="Docking">{language === 'vi' ? 'Kiểm tra trên đà' : 'Docking Survey'}</option>
+                                <option value="Initial">{language === 'vi' ? 'Kiểm tra lần đầu' : 'Initial'}</option>
+                                <option value="Annual">{language === 'vi' ? 'Kiểm tra hàng năm' : 'Annual'}</option>
+                                <option value="Intermediate">{language === 'vi' ? 'Kiểm tra trung gian' : 'Intermediate'}</option>
+                                <option value="Special">{language === 'vi' ? 'Kiểm tra định kỳ' : 'Special'}</option>
+                                <option value="Renewal">{language === 'vi' ? 'Kiểm tra cấp mới' : 'Renewal'}</option>
+                                <option value="Docking">{language === 'vi' ? 'Kiểm tra trên đà' : 'Docking'}</option>
                                 <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                               </select>
                             </div>
