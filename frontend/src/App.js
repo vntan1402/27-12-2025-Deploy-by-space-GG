@@ -2994,7 +2994,49 @@ const HomePage = () => {
         // Refresh the ship data
         if (selectedShip?.id === shipId) {
           fetchShips(); // Refresh the ship list
-          // Optionally refresh ship details if in detail view
+          
+          // If edit modal is open, refresh the form data
+          if (showEditShipModal && editingShipData?.id === shipId) {
+            try {
+              const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+              });
+              
+              const updatedShipData = shipResponse.data;
+              
+              // Format date fields for form inputs
+              const formatDateForInput = (isoDate) => {
+                if (!isoDate) return '';
+                try {
+                  return new Date(isoDate).toISOString().split('T')[0];
+                } catch (e) {
+                  return '';
+                }
+              };
+              
+              // Update editing ship data with formatted dates
+              setEditingShipData(prev => ({
+                ...prev,
+                ...updatedShipData,
+                last_docking: formatDateForInput(updatedShipData.last_docking),
+                last_docking_2: formatDateForInput(updatedShipData.last_docking_2),
+                next_docking: formatDateForInput(updatedShipData.next_docking),
+                last_special_survey: formatDateForInput(updatedShipData.last_special_survey),
+                last_intermediate_survey: formatDateForInput(updatedShipData.last_intermediate_survey),
+                keel_laid: formatDateForInput(updatedShipData.keel_laid),
+                delivery_date: formatDateForInput(updatedShipData.delivery_date),
+                special_survey_cycle: updatedShipData.special_survey_cycle && typeof updatedShipData.special_survey_cycle === 'object'
+                  ? {
+                      ...updatedShipData.special_survey_cycle,
+                      from_date: formatDateForInput(updatedShipData.special_survey_cycle.from_date),
+                      to_date: formatDateForInput(updatedShipData.special_survey_cycle.to_date)
+                    }
+                  : updatedShipData.special_survey_cycle
+              }));
+            } catch (error) {
+              console.error('Error refreshing edit modal data:', error);
+            }
+          }
         }
       } else {
         alert(result.message || 'Unable to calculate anniversary date from certificates');
