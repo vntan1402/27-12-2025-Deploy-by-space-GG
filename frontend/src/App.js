@@ -949,6 +949,7 @@ const HomePage = () => {
     console.log('quickEditMenu.certificateId:', quickEditMenu.certificateId);
     
     try {
+      console.log('📡 Making API call to update survey type...');
       const response = await axios.put(`${API}/certificates/${quickEditMenu.certificateId}`, {
         next_survey_type: newSurveyType
       }, {
@@ -957,6 +958,8 @@ const HomePage = () => {
         }
       });
 
+      console.log('📥 API response received:', response.data);
+      
       if (response.data.success) {
         console.log('🔄 Quick Edit successful, attempting auto-refresh...');
         console.log('selectedShip:', selectedShip);
