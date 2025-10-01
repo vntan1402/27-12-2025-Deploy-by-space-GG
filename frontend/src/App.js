@@ -2717,6 +2717,7 @@ const HomePage = () => {
     }
     
     // Set ship details persistently
+    console.log('🚢 Setting selectedShip with data:', ship);
     setSelectedShip(ship);
     setSelectedCategory(categoryKey);
     setHoveredCategory(null); // Hide dropdown after selection
