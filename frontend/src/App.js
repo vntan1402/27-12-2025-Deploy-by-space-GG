@@ -10514,8 +10514,8 @@ const AddRecordModal = ({
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
         deadweight: shipData.deadweight ? parseFloat(shipData.deadweight) : null,
         year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
-        delivery_date: shipData.delivery_date || null,
-        keel_laid: shipData.keel_laid || null,
+        delivery_date: convertDateInputToUTC(shipData.delivery_date),
+        keel_laid: convertDateInputToUTC(shipData.keel_laid),
         // Convert Last Docking MM/YYYY format to datetime for backend
         last_docking: convertLastDockingToDateTime(shipData.last_docking),
         last_docking_2: convertLastDockingToDateTime(shipData.last_docking_2),
