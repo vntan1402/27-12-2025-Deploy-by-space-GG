@@ -320,6 +320,18 @@ frontend:
         -agent: "main"
         -comment: "✅ VIETNAMESE TRANSLATION UPDATES COMPLETED: Successfully updated Vietnamese translations for survey-related fields to use more concise terminology. CHANGES IMPLEMENTED: 1) Column header 'Next Survey Type': 'Loại khảo sát tiếp theo' → 'Loại kiểm tra tới', 2) Column header 'Next Survey': 'Khảo sát tiếp theo' → 'Kiểm tra tới', 3) Button tooltip: 'Cập nhật loại khảo sát tiếp theo' → 'Cập nhật loại kiểm tra tới', 4) Constants definition: nextSurvey: 'Khảo sát tiếp theo' → 'Kiểm tra tới'. LOCATIONS UPDATED: Line 282 (constants), Line 3562 (button tooltip), Line 3812 (Next Survey column header), Line 3824 (Next Survey Type column header). TERMINOLOGY IMPROVEMENT: Changed from formal 'khảo sát' to more commonly used 'kiểm tra' term, and 'tiếp theo' to shorter 'tới' for better UI space utilization. VERIFICATION: Application loads correctly, no JavaScript errors, linting passed. Vietnamese translations now use more concise and user-friendly terminology."
 
+  - task: "Section Name Update: Survey & Maintenance → Detailed Ship Information"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+        -working: true
+        -agent: "main"
+        -comment: "✅ SECTION NAME UPDATE COMPLETED: Successfully changed section name from 'Survey & Maintenance Information' to 'Detailed Ship Information' in ship forms. CHANGES IMPLEMENTED: 1) Edit Ship Information form: 'Survey & Maintenance Information' → 'Detailed Ship Information' (English), 'Thông tin Khảo sát & Bảo dưỡng' → 'Thông tin Chi tiết Tàu' (Vietnamese), 2) Add Ship form: 'Survey & Maintenance Information (Optional)' → 'Detailed Ship Information (Optional)' (English), 'Thông tin Khảo sát & Bảo dưỡng (Tùy chọn)' → 'Thông tin Chi tiết Tàu (Tùy chọn)' (Vietnamese), 3) Code comments updated for consistency. LOCATIONS UPDATED: Line 4878 (Edit Ship form), Line 10963 (Add Ship form), Line 10161 (code comment). VERIFICATION: Screenshot confirms section name successfully changed to 'Detailed Ship Information (Optional)' in Add Ship form, section contains correct fields (Last Docking 1, Last Docking 2, Next Docking, Last Special Survey, etc.), application loads correctly, no JavaScript errors, linting passed. The section name now better reflects the content which includes detailed ship information beyond just survey and maintenance data."
+
   - task: "AI Analysis Functionality Testing"
     implemented: true
     working: true
