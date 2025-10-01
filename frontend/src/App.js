@@ -3304,62 +3304,69 @@ const HomePage = () => {
                             </button>
                             {/* Edit Ship Button */}
                             <button
-                              onClick={async () => {
+                              onClick={() => {
                                 // Fetch full ship details from server before editing
-                                try {
-                                  const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
-                                    headers: { 'Authorization': `Bearer ${token}` }
-                                  });
-                                  
-                                  // Use full ship details from API instead of selectedShip
-                                  const fullShipData = response.data;
-                                  
-                                  // Helper function to format ISO datetime to YYYY-MM-DD for date inputs
-                                  const formatDateForInput = (isoDate) => {
-                                    if (!isoDate) return '';
-                                    try {
-                                      return new Date(isoDate).toISOString().split('T')[0];
-                                    } catch (e) {
-                                      return '';
-                                    }
-                                  };
-                                  
-                                  const initData = {
-                                    ...fullShipData,
-                                    // Format date fields for HTML date inputs
-                                    last_docking: formatDateForInput(fullShipData.last_docking),
-                                    last_docking_2: formatDateForInput(fullShipData.last_docking_2),
-                                    next_docking: formatDateForInput(fullShipData.next_docking),
-                                    last_special_survey: formatDateForInput(fullShipData.last_special_survey),
-                                    last_intermediate_survey: formatDateForInput(fullShipData.last_intermediate_survey),
-                                    keel_laid: formatDateForInput(fullShipData.keel_laid),
-                                    delivery_date: formatDateForInput(fullShipData.delivery_date),
-                                    // Ensure enhanced anniversary date structure
-                                    anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
-                                      ? fullShipData.anniversary_date 
-                                      : fullShipData.anniversary_date 
-                                        ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
-                                        : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
-                                    // Ensure enhanced dry dock cycle structure
-                                    dry_dock_cycle: fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'object'
-                                      ? fullShipData.dry_dock_cycle
-                                      : fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'number'
-                                        ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
-                                        : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
-                                    // Ensure enhanced special survey cycle structure
-                                    special_survey_cycle: fullShipData.special_survey_cycle && typeof fullShipData.special_survey_cycle === 'object'
-                                      ? fullShipData.special_survey_cycle
-                                      : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
-                                  };
-                                  setEditingShipData(initData);
-                                  setShowEditShipModal(true);
-                                } catch (error) {
-                                  console.error('❌ Failed to fetch full ship details:', error);
-                                  toast.error(language === 'vi' 
-                                    ? 'Không thể tải thông tin chi tiết tàu'
-                                    : 'Failed to load ship details'
-                                  );
-                                }
+                                const fetchAndEditShip = async () => {
+                                  try {
+                                    const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
+                                      headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    
+                                    // Use full ship details from API instead of selectedShip
+                                    const fullShipData = response.data;
+                                    
+                                    // Helper function to format ISO datetime to YYYY-MM-DD for date inputs
+                                    const formatDateForInput = (isoDate) => {
+                                      if (!isoDate) return '';
+                                      try {
+                                        return new Date(isoDate).toISOString().split('T')[0];
+                                      } catch (e) {
+                                        return '';
+                                      }
+                                    };
+                                    
+                                    const initData = {
+                                      ...fullShipData,
+                                      // Format date fields for HTML date inputs
+                                      last_docking: formatDateForInput(fullShipData.last_docking),
+                                      last_docking_2: formatDateForInput(fullShipData.last_docking_2),
+                                      next_docking: formatDateForInput(fullShipData.next_docking),
+                                      last_special_survey: formatDateForInput(fullShipData.last_special_survey),
+                                      last_intermediate_survey: formatDateForInput(fullShipData.last_intermediate_survey),
+                                      keel_laid: formatDateForInput(fullShipData.keel_laid),
+                                      delivery_date: formatDateForInput(fullShipData.delivery_date),
+                                      // Ensure enhanced anniversary date structure
+                                      anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
+                                        ? fullShipData.anniversary_date 
+                                        : fullShipData.anniversary_date 
+                                          ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
+                                          : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
+                                      // Ensure enhanced dry dock cycle structure
+                                      dry_dock_cycle: fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'object'
+                                        ? fullShipData.dry_dock_cycle
+                                        : fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'number'
+                                          ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
+                                          : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
+                                      // Ensure enhanced special survey cycle structure
+                                      special_survey_cycle: fullShipData.special_survey_cycle && typeof fullShipData.special_survey_cycle === 'object'
+                                        ? {
+                                            ...fullShipData.special_survey_cycle,
+                                            from_date: formatDateForInput(fullShipData.special_survey_cycle.from_date),
+                                            to_date: formatDateForInput(fullShipData.special_survey_cycle.to_date)
+                                          }
+                                        : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
+                                    };
+                                    setEditingShipData(initData);
+                                    setShowEditShipModal(true);
+                                  } catch (error) {
+                                    console.error('❌ Failed to fetch full ship details:', error);
+                                    toast.error(language === 'vi' 
+                                      ? 'Không thể tải thông tin chi tiết tàu'
+                                      : 'Failed to load ship details'
+                                    );
+                                  }
+                                };
+                                fetchAndEditShip();
                               }}
                               className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
                             >
