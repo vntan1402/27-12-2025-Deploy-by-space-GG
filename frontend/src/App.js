@@ -3335,9 +3335,16 @@ const HomePage = () => {
                                       ? fullShipData.special_survey_cycle
                                       : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
                                   };
-                                console.log('📝 Setting editingShipData:', initData);
-                                setEditingShipData(initData);
-                                setShowEditShipModal(true);
+                                  console.log('📝 Setting editingShipData:', initData);
+                                  setEditingShipData(initData);
+                                  setShowEditShipModal(true);
+                                } catch (error) {
+                                  console.error('❌ Failed to fetch full ship details:', error);
+                                  toast.error(language === 'vi' 
+                                    ? 'Không thể tải thông tin chi tiết tàu'
+                                    : 'Failed to load ship details'
+                                  );
+                                }
                               }}
                               className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
                             >
