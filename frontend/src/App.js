@@ -10244,6 +10244,25 @@ const AddRecordModal = ({
     }
   };
 
+  // Helper function to convert date input (YYYY-MM-DD) to UTC ISO datetime
+  const convertDateInputToUTC = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return null;
+    
+    try {
+      // Handle YYYY-MM-DD format from HTML date inputs
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (datePattern.test(dateString.trim())) {
+        // Convert to UTC ISO datetime to avoid timezone shifts
+        return `${dateString.trim()}T00:00:00Z`;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error converting date input to UTC:', error);
+      return null;
+    }
+  };
+
   const formatLastDockingForDisplay = (dateString) => {
     if (!dateString || typeof dateString !== 'string') return '';
     
