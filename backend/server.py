@@ -6007,14 +6007,15 @@ Analyze this maritime document ({filename}) and extract the following informatio
    🔴 IF issued by Flag State/Classification Society with validity → ALWAYS "certificates"
    🔴 IF document title contains "Certificate" → ALWAYS "certificates" (unless clearly test report)
 
-2. SHIP INFORMATION - Extract ship details:
-   - ship_name: Full name of the vessel (look for "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
-   - imo_number: IMO number of the vessel (look for "IMO No", "IMO Number", "IMO:", 7-digit number starting with 9)
-   - flag: Flag state/country of registration (look for "Flag", "Flag State", "Port of Registry")
-   - class_society: Classification society (look for "Class", "Classification Society", "Classed by", common ones: DNV GL, Lloyd's Register, ABS, BV, RINA, CCS, KR, NK, RS, etc.)
-   - built_year: Year the ship was built/constructed (look for "Built", "Year Built", "Delivered", "Construction Year")
-   - gross_tonnage: Gross tonnage of the vessel (look for "Gross Tonnage", "GT", numeric value with "tonnes" or "tons")
-   - deadweight: Deadweight tonnage (look for "Deadweight", "DWT", "Dead Weight Tonnage", numeric value with "tonnes" or "tons")
+2. SHIP INFORMATION - Extract ship details (CRITICAL - ALL fields must be extracted):
+   - ship_name: Full name of the vessel (look for "NAME OF SHIP", "Ship Name", "Vessel Name", "M.V.", "S.S.", etc.)
+   - imo_number: IMO number of the vessel (look for "IMO NUMBER", "IMO No", "IMO Number", "IMO:", 7-digit number, may start with 8 or 9)
+   - flag: Flag state/country of registration (look for "Port of Registry", "Flag", "Flag State", "Government of", "Authority of the Government of", country names like "PANAMA", "REPUBLIC OF PANAMA", etc.)
+   - class_society: Organization that issued this certificate (look for "By:", issuing authority, "Panama Maritime Documentation Services", "Lloyd's Register", "DNV GL", "ABS", "BV", "RINA", "CCS", "KR", "NK", "RS", etc. - return the FULL organization name, not abbreviation)
+   - built_year: Year the ship was built/constructed (look for "Date of building contract", "Date on which keel was laid", "Built", "Year Built", extract YEAR only from dates like "MAY 04, 2018" → 2018)
+   - delivery_date: Date of delivery (look for "Date of delivery", format as YYYY-MM-DD from text like "JANUARY 15, 2019" → "2019-01-15")
+   - gross_tonnage: Gross tonnage of the vessel (look for "GROSS TONNAGE", "GT", numeric value, may appear in table format)
+   - deadweight: Deadweight tonnage (look for "Deadweight of ship", "DWT", "Dead Weight Tonnage", numeric value with "metric tons" or "tonnes")
    
 3. CERTIFICATE INFORMATION (if category is 'certificates'):
 {cert_field_info['prompt_section']}
