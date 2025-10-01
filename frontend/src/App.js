@@ -3317,24 +3317,24 @@ const HomePage = () => {
                                   // Use full ship details from API instead of selectedShip
                                   const fullShipData = response.data;
                                   const initData = {
-                                  ...selectedShip,
-                                  // Ensure enhanced anniversary date structure
-                                  anniversary_date: selectedShip.anniversary_date && typeof selectedShip.anniversary_date === 'object' 
-                                    ? selectedShip.anniversary_date 
-                                    : selectedShip.anniversary_date 
-                                      ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
-                                      : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
-                                  // Ensure enhanced dry dock cycle structure
-                                  dry_dock_cycle: selectedShip.dry_dock_cycle && typeof selectedShip.dry_dock_cycle === 'object'
-                                    ? selectedShip.dry_dock_cycle
-                                    : selectedShip.dry_dock_cycle && typeof selectedShip.dry_dock_cycle === 'number'
-                                      ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
-                                      : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
-                                  // Ensure enhanced special survey cycle structure
-                                  special_survey_cycle: selectedShip.special_survey_cycle && typeof selectedShip.special_survey_cycle === 'object'
-                                    ? selectedShip.special_survey_cycle
-                                    : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
-                                };
+                                    ...fullShipData,
+                                    // Ensure enhanced anniversary date structure
+                                    anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
+                                      ? fullShipData.anniversary_date 
+                                      : fullShipData.anniversary_date 
+                                        ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
+                                        : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
+                                    // Ensure enhanced dry dock cycle structure
+                                    dry_dock_cycle: fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'object'
+                                      ? fullShipData.dry_dock_cycle
+                                      : fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'number'
+                                        ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
+                                        : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
+                                    // Ensure enhanced special survey cycle structure
+                                    special_survey_cycle: fullShipData.special_survey_cycle && typeof fullShipData.special_survey_cycle === 'object'
+                                      ? fullShipData.special_survey_cycle
+                                      : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
+                                  };
                                 console.log('📝 Setting editingShipData:', initData);
                                 setEditingShipData(initData);
                                 setShowEditShipModal(true);
