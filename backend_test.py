@@ -766,18 +766,18 @@ class TimezoneFixTester:
             return False
 
 def main():
-    """Main function to run Certificate Backfill Ship Information tests"""
-    print("🔄 CERTIFICATE BACKFILL SHIP INFORMATION TESTING STARTED")
+    """Main function to run Ship Management System Timezone Fix tests"""
+    print("🔄 SHIP MANAGEMENT SYSTEM - TIMEZONE FIX TESTING STARTED")
     print("=" * 80)
     
     try:
-        tester = CertificateBackfillTester()
-        success = tester.run_comprehensive_backfill_tests()
+        tester = TimezoneFixTester()
+        success = tester.run_comprehensive_timezone_tests()
         
         if success:
-            print("\n✅ CERTIFICATE BACKFILL TESTING COMPLETED SUCCESSFULLY")
+            print("\n✅ TIMEZONE FIX TESTING COMPLETED SUCCESSFULLY")
         else:
-            print("\n❌ CERTIFICATE BACKFILL TESTING COMPLETED WITH ISSUES")
+            print("\n❌ TIMEZONE FIX TESTING COMPLETED WITH ISSUES")
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
