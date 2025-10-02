@@ -1727,12 +1727,20 @@ Certificate content to analyze:
             
             try:
                 # Use AI to analyze the certificate text
+                logger.info(f"🔍 Calling AI for docking date extraction from {cert_name}")
+                logger.info(f"   Text content length: {len(text_content)} chars")
+                logger.info(f"   Using key: {'Emergent' if ai_config['use_emergent_key'] else 'Custom'}")
+                
                 ai_result = await analyze_with_emergent_llm_text_enhanced(
                     text_content=text_content,
                     filename=cert_name,
                     api_key=ai_config['api_key'] if not ai_config['use_emergent_key'] else EMERGENT_LLM_KEY,
                     analysis_prompt=docking_analysis_prompt
                 )
+                
+                logger.info(f"🤖 AI Response received:")
+                logger.info(f"   Success: {ai_result.get('success')}")
+                logger.info(f"   Has analysis_result: {bool(ai_result.get('analysis_result'))}")
                 
                 # Parse AI response for docking dates
                 if ai_result.get('success') and ai_result.get('analysis_result'):
