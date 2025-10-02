@@ -127,7 +127,7 @@ class TimezoneFixTester:
                 self.log(f"   User Role: {self.current_user.get('role')}")
                 self.log(f"   Company: {self.current_user.get('company')}")
                 
-                self.backfill_tests['authentication_successful'] = True
+                self.timezone_tests['authentication_successful'] = True
                 return True
             else:
                 self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
