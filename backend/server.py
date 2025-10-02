@@ -1739,12 +1739,23 @@ Certificate content to analyze:
                 )
                 
                 logger.info(f"🤖 AI Response received:")
-                logger.info(f"   Success: {ai_result.get('success')}")
-                logger.info(f"   Has analysis_result: {bool(ai_result.get('analysis_result'))}")
+                logger.info(f"   Type: {type(ai_result)}")
+                logger.info(f"   Is dict: {isinstance(ai_result, dict)}")
+                if isinstance(ai_result, dict):
+                    logger.info(f"   Keys: {list(ai_result.keys())}")
                 
-                # Parse AI response for docking dates
-                if ai_result.get('success') and ai_result.get('analysis_result'):
-                    analysis_data = ai_result.get('analysis_result', {})
+                # FIX: analyze_with_emergent_llm_text_enhanced returns direct JSON, not wrapped
+                # Check if ai_result has 'success' key (old format) or is direct data (new format)
+                if isinstance(ai_result, dict):
+                    # If ai_result has 'docking_dates' key directly, use it
+                    if 'docking_dates' in ai_result:
+                        analysis_data = ai_result
+                    # Otherwise, check for wrapped format
+                    elif ai_result.get('success') and ai_result.get('analysis_result'):
+                        analysis_data = ai_result.get('analysis_result', {})
+                    else:
+                        # Fallback - treat entire response as analysis data
+                        analysis_data = ai_result
                     
                     # DEBUG: Log AI response structure
                     logger.info(f"AI Analysis Result for {cert_name}:")
