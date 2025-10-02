@@ -19,7 +19,7 @@ try:
     else:
         raise Exception("Internal URL not working")
 except:
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fleet-tracker-104.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vesseldocs.preview.emergentagent.com') + '/api'
 
 def create_test_pdf():
     """Create a simple PDF with ship certificate content"""
