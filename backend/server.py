@@ -1101,6 +1101,13 @@ def calculate_certificate_status(valid_date: datetime, cert_type: str = None) ->
 async def enhance_certificate_response(cert_dict: dict) -> dict:
     """Enhance certificate response with abbreviation and status"""
     try:
+        # FIX: Add UTC timezone to naive datetime objects
+        for date_field in ['issue_date', 'valid_date', 'last_endorse', 'next_survey', 'created_at', 'updated_at']:
+            if date_field in cert_dict and isinstance(cert_dict[date_field], datetime):
+                if cert_dict[date_field].tzinfo is None:
+                    # Naive datetime - treat as UTC
+                    cert_dict[date_field] = cert_dict[date_field].replace(tzinfo=timezone.utc)
+        
         # Generate certificate abbreviation (check user-defined mappings first)
         cert_dict['cert_abbreviation'] = await generate_certificate_abbreviation(cert_dict.get('cert_name', ''))
         
