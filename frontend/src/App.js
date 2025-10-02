@@ -2853,16 +2853,43 @@ const HomePage = () => {
     }
   };
 
-  // Helper function to format ISO date string to YYYY-MM-DD for HTML date inputs (UTC-safe)
-  const formatDateForInput = (isoDate) => {
-    if (!isoDate) return '';
+  // Helper function to format date string to YYYY-MM-DD for HTML date inputs (UTC-safe)
+  // Handles: DD/MM/YYYY, YYYY-MM-DD, ISO datetime formats
+  const formatDateForInput = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return '';
+    
     try {
-      const date = new Date(isoDate);
-      // Use UTC methods to prevent timezone shifts
-      const year = date.getUTCFullYear();
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(date.getUTCDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      // Handle DD/MM/YYYY format (from AI extraction)
+      if (dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          const [day, month, year] = parts;
+          if (day && month && year && year.length === 4) {
+            const paddedDay = day.padStart(2, '0');
+            const paddedMonth = month.padStart(2, '0');
+            return `${year}-${paddedMonth}-${paddedDay}`;
+          }
+        }
+      }
+      
+      // Handle YYYY-MM-DD format directly (perfect for HTML input)
+      const isoPattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (isoPattern.test(dateString.trim())) {
+        return dateString.trim();
+      }
+      
+      // Handle ISO datetime format (YYYY-MM-DDTHH:mm:ss or with Z/timezone)
+      if (dateString.includes('T') || dateString.includes('Z')) {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+          const year = date.getUTCFullYear();
+          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(date.getUTCDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      
+      return '';
     } catch (e) {
       return '';
     }
