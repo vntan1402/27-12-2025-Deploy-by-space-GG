@@ -3552,11 +3552,16 @@ const HomePage = () => {
                                     // Use full ship details from API instead of selectedShip
                                     const fullShipData = response.data;
                                     
-                                    // Helper function to format ISO datetime to YYYY-MM-DD for date inputs
-                                    const formatDateForInput = (isoDate) => {
+                                    // Helper function to format ISO datetime to YYYY-MM-DD for date inputs (UTC-safe)
+                                    const formatDateForEditModal = (isoDate) => {
                                       if (!isoDate) return '';
                                       try {
-                                        return new Date(isoDate).toISOString().split('T')[0];
+                                        const date = new Date(isoDate);
+                                        // Use UTC methods to prevent timezone shifts
+                                        const year = date.getUTCFullYear();
+                                        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getUTCDate()).padStart(2, '0');
+                                        return `${year}-${month}-${day}`;
                                       } catch (e) {
                                         return '';
                                       }
