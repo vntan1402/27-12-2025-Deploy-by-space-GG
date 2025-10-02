@@ -1143,7 +1143,7 @@ const HomePage = () => {
         if (shipPayload[key] === null || shipPayload[key] === '') {
           if (key === 'imo') {
             delete shipPayload[key];
-          } else if (['gross_tonnage', 'year_built'].includes(key)) {
+          } else if (['gross_tonnage', 'built_year'].includes(key)) {
             delete shipPayload[key];
           }
         }
