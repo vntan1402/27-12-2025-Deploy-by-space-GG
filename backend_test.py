@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 """
-Certificate Backfill Ship Information Test
-FOCUS: Test the backfill functionality to help existing certificates
+Ship Management System - Timezone Fix Testing
+FOCUS: Test timezone fix for date handling consistency
 
 REVIEW REQUEST REQUIREMENTS:
-1. Run the Backfill Job: Call the `/api/certificates/backfill-ship-info` endpoint
-2. Verify Processing: Check if certificates are being updated with missing ship information
-3. Check Results: Verify that tooltips will now show ship names for previously processed certificates
-4. Test with reasonable limit (like 20 certificates) to avoid overloading the system
+1. Ship Data Retrieval: Login with admin1/123456, retrieve SUNSHINE 01 ship data, verify date fields
+2. Ship Update Operations: Test updating ship's date fields via PUT /api/ships/{ship_id}
+3. Recalculation Endpoints: Test all recalculation endpoints for date consistency
 
 EXPECTED BEHAVIOR:
-- Backfill endpoint should process existing certificates missing ship information
-- Certificates should be updated with extracted_ship_name, flag, class_society, built_year, etc.
-- Previously processed certificates should now show ship names in tooltips
+- All date fields should remain consistent with no timezone shifts
+- Dates saved and retrieved should be identical
+- Recalculation endpoints should return proper date formats
 
 TEST FOCUS:
-- Backfill endpoint accessibility and functionality
-- Certificate processing and field extraction
-- Database updates with ship information
-- Verification of extracted data quality
+- Date field consistency in ship data retrieval
+- Date preservation during ship updates
+- Recalculation endpoint date format consistency
+- Timezone handling verification
 """
 
 import requests
