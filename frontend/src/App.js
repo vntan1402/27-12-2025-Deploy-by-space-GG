@@ -10811,7 +10811,7 @@ const AddRecordModal = ({
         flag: extractedInfo?.flag || '',
         gross_tonnage: extractedInfo?.gross_tonnage || '',
         deadweight: extractedInfo?.deadweight || '',
-        year_built: extractedInfo?.built_year || '',
+        built_year: extractedInfo?.built_year || '',
         ship_owner: extractedInfo?.ship_owner || '',
         company: user?.company || ''
       });
