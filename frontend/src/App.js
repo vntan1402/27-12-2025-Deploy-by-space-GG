@@ -3596,8 +3596,14 @@ const HomePage = () => {
                                             from_date: formatDateForEditModal(fullShipData.special_survey_cycle.from_date),
                                             to_date: formatDateForEditModal(fullShipData.special_survey_cycle.to_date)
                                           }
-                                        : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
+                                        : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null },
+                                      // Convert numeric fields to strings for HTML inputs (MUST be after ...fullShipData)
+                                      built_year: fullShipData.built_year ? String(fullShipData.built_year) : '',
+                                      gross_tonnage: fullShipData.gross_tonnage ? String(fullShipData.gross_tonnage) : '',
+                                      deadweight: fullShipData.deadweight ? String(fullShipData.deadweight) : ''
                                     };
+                                    
+                                    console.log('🔍 Edit Modal Data - Built Year:', initData.built_year, 'Type:', typeof initData.built_year);
                                     setEditingShipData(initData);
                                     setShowEditShipModal(true);
                                   } catch (error) {
