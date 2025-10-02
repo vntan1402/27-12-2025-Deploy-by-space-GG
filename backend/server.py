@@ -2790,7 +2790,7 @@ async def calculate_ship_next_docking(ship_id: str, current_user: UserResponse =
         
         # Determine calculation method used
         if reference_date:
-            docking_plus_36 = reference_date + timedelta(days=36 * 30.44)
+            docking_plus_36 = reference_date + relativedelta(months=36)
             special_survey_to = None
             
             if special_survey_cycle and isinstance(special_survey_cycle, dict):
