@@ -1738,6 +1738,12 @@ Certificate content to analyze:
                 if ai_result.get('success') and ai_result.get('analysis_result'):
                     analysis_data = ai_result.get('analysis_result', {})
                     
+                    # DEBUG: Log AI response structure
+                    logger.info(f"AI Analysis Result for {cert_name}:")
+                    logger.info(f"  Type: {type(analysis_data)}")
+                    logger.info(f"  Keys: {list(analysis_data.keys()) if isinstance(analysis_data, dict) else 'Not a dict'}")
+                    logger.info(f"  Full data: {json.dumps(analysis_data, indent=2, default=str) if isinstance(analysis_data, dict) else str(analysis_data)[:500]}")
+                    
                     # Extract docking dates from AI response
                     ai_docking_dates = analysis_data.get('docking_dates', [])
                     
