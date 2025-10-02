@@ -54,32 +54,38 @@ class TimezoneFixTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for backfill functionality
-        self.backfill_tests = {
+        # Test tracking for timezone fix functionality
+        self.timezone_tests = {
             # Authentication and setup
             'authentication_successful': False,
-            'backfill_endpoint_accessible': False,
+            'sunshine_01_ship_found': False,
             
-            # Backfill processing
-            'certificates_found_for_backfill': False,
-            'backfill_processing_successful': False,
-            'certificates_updated_with_ship_info': False,
+            # Ship data retrieval tests
+            'ship_data_retrieved_successfully': False,
+            'date_fields_present': False,
+            'date_formats_consistent': False,
             
-            # Data verification
-            'extracted_ship_name_populated': False,
-            'ship_info_fields_populated': False,
-            'tooltip_data_available': False,
+            # Ship update tests
+            'ship_update_successful': False,
+            'dates_preserved_after_update': False,
+            'no_timezone_shifts_detected': False,
             
-            # API response verification
-            'backfill_response_format_correct': False,
-            'processing_statistics_provided': False,
-            'error_handling_working': False,
+            # Recalculation endpoint tests
+            'special_survey_cycle_working': False,
+            'docking_dates_calculation_working': False,
+            'next_docking_calculation_working': False,
+            'anniversary_date_calculation_working': False,
+            
+            # Date consistency verification
+            'recalculation_dates_consistent': False,
+            'all_endpoints_return_proper_formats': False,
         }
         
-        # Store backfill results for analysis
-        self.backfill_results = {}
-        self.processed_certificates = []
-        self.updated_certificates = []
+        # Store test results for analysis
+        self.ship_data = {}
+        self.original_dates = {}
+        self.updated_dates = {}
+        self.recalculation_results = {}
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
