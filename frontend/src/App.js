@@ -10115,11 +10115,47 @@ const AddRecordModal = ({
           
           // Map analysis data to certificate form fields
           const analysisData = result.analysis;
+          
+          // Helper function to format dates for certificate form (inside AddRecordModal)
+          const formatCertDate = (dateStr) => {
+            if (!dateStr || typeof dateStr !== 'string') return '';
+            
+            // Handle DD/MM/YYYY format
+            if (dateStr.includes('/')) {
+              const parts = dateStr.split('/');
+              if (parts.length === 3) {
+                const [day, month, year] = parts;
+                if (day && month && year && year.length === 4) {
+                  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                }
+              }
+            }
+            
+            // Handle YYYY-MM-DD format
+            const isoPattern = /^\d{4}-\d{2}-\d{2}$/;
+            if (isoPattern.test(dateStr.trim())) {
+              return dateStr.trim();
+            }
+            
+            // Handle ISO datetime
+            if (dateStr.includes('T') || dateStr.includes('Z')) {
+              const date = new Date(dateStr);
+              if (!isNaN(date.getTime())) {
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(date.getUTCDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+              }
+            }
+            
+            return '';
+          };
+          
           const autoFillData = {
             cert_name: analysisData.cert_name || analysisData.certificate_name || '',
             cert_no: analysisData.cert_no || analysisData.certificate_number || '',
-            issue_date: formatDateForInputCertificate(analysisData.issue_date) || '',
-            valid_date: formatDateForInputCertificate(analysisData.valid_date || analysisData.expiry_date) || '',
+            issue_date: formatCertDate(analysisData.issue_date),
+            valid_date: formatCertDate(analysisData.valid_date || analysisData.expiry_date),
             issued_by: analysisData.issued_by || '',
             ship_id: selectedShip.id,
             category: 'certificates',
