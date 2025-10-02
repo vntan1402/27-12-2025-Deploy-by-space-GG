@@ -1122,7 +1122,7 @@ const HomePage = () => {
         class_society: updatedShipData.class_society?.trim() || '',
         gross_tonnage: updatedShipData.gross_tonnage ? parseFloat(updatedShipData.gross_tonnage) : null,
         deadweight: updatedShipData.deadweight ? parseFloat(updatedShipData.deadweight) : null,
-        year_built: updatedShipData.year_built ? parseInt(updatedShipData.year_built) : null,
+        built_year: updatedShipData.built_year ? parseInt(updatedShipData.built_year) : null,
         delivery_date: convertDateInputToUTC(updatedShipData.delivery_date),
         keel_laid: convertDateInputToUTC(updatedShipData.keel_laid),
         ship_owner: updatedShipData.ship_owner?.trim() || '',
