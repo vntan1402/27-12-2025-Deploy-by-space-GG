@@ -11,6 +11,7 @@ from pydantic import BaseModel, field_validator, EmailStr
 from typing import List, Optional, Dict, Any, Union
 import uuid
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
 import bcrypt
 import jwt
 from enum import Enum
