@@ -552,10 +552,10 @@ class TimezoneFixTester:
             self.log(f"         Error verifying date formats: {str(e)}")
             return False
     
-    def run_comprehensive_backfill_tests(self):
-        """Main test function for backfill functionality"""
-        self.log("🔄 STARTING CERTIFICATE BACKFILL SHIP INFORMATION TESTING")
-        self.log("🎯 FOCUS: Test backfill functionality to help existing certificates")
+    def run_comprehensive_timezone_tests(self):
+        """Main test function for timezone fix functionality"""
+        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - TIMEZONE FIX TESTING")
+        self.log("🎯 FOCUS: Test timezone fix for date handling consistency")
         self.log("=" * 100)
         
         try:
@@ -566,35 +566,38 @@ class TimezoneFixTester:
                 self.log("❌ Authentication failed - cannot proceed with testing")
                 return False
             
-            # Step 2: Analyze certificates before backfill
-            self.log("\n📋 STEP 2: ANALYZE CERTIFICATES BEFORE BACKFILL")
+            # Step 2: Find SUNSHINE 01 ship
+            self.log("\n🚢 STEP 2: FIND SUNSHINE 01 SHIP")
             self.log("=" * 50)
-            certificates_need_backfill = self.get_certificates_before_backfill()
+            ship_found = self.find_sunshine_01_ship()
+            if not ship_found:
+                self.log("❌ SUNSHINE 01 ship not found - cannot proceed with testing")
+                return False
             
-            # Step 3: Run backfill with reasonable limit
-            self.log("\n🔄 STEP 3: RUN BACKFILL JOB")
+            # Step 3: Test ship data retrieval
+            self.log("\n📊 STEP 3: SHIP DATA RETRIEVAL")
             self.log("=" * 50)
-            backfill_success = self.test_backfill_endpoint(limit=20)
+            retrieval_success = self.test_ship_data_retrieval()
             
-            # Step 4: Verify backfill results
-            self.log("\n🔍 STEP 4: VERIFY BACKFILL RESULTS")
+            # Step 4: Test ship update operations
+            self.log("\n🔄 STEP 4: SHIP UPDATE OPERATIONS")
             self.log("=" * 50)
-            verification_success = self.verify_backfill_results()
+            update_success = self.test_ship_update_operations()
             
-            # Step 5: Test tooltip functionality
-            self.log("\n🏷️ STEP 5: TEST TOOLTIP FUNCTIONALITY")
+            # Step 5: Test recalculation endpoints
+            self.log("\n🔄 STEP 5: RECALCULATION ENDPOINTS")
             self.log("=" * 50)
-            tooltip_success = self.test_tooltip_functionality()
+            recalc_success = self.test_recalculation_endpoints()
             
             # Step 6: Final Analysis
             self.log("\n📊 STEP 6: FINAL ANALYSIS")
             self.log("=" * 50)
             self.provide_final_analysis()
             
-            return backfill_success and verification_success
+            return retrieval_success and update_success and recalc_success
             
         except Exception as e:
-            self.log(f"❌ Comprehensive backfill testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive timezone testing error: {str(e)}", "ERROR")
             return False
     
     def provide_final_analysis(self):
