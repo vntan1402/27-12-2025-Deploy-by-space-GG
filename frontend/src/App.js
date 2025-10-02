@@ -3593,8 +3593,8 @@ const HomePage = () => {
                                       special_survey_cycle: fullShipData.special_survey_cycle && typeof fullShipData.special_survey_cycle === 'object'
                                         ? {
                                             ...fullShipData.special_survey_cycle,
-                                            from_date: formatDateForInput(fullShipData.special_survey_cycle.from_date),
-                                            to_date: formatDateForInput(fullShipData.special_survey_cycle.to_date)
+                                            from_date: formatDateForEditModal(fullShipData.special_survey_cycle.from_date),
+                                            to_date: formatDateForEditModal(fullShipData.special_survey_cycle.to_date)
                                           }
                                         : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null }
                                     };
