@@ -1672,21 +1672,42 @@ You are a maritime certificate analysis expert specializing in docking date extr
 
 Please analyze this CSSC certificate and extract ALL docking-related dates with high precision.
 
-**CRITICAL FOCUS AREAS:**
-1. **"Inspections of the outside of the ship's bottom"** - This is the PRIMARY indicator of dry docking dates
-2. **Bottom inspection dates** - Key for identifying actual docking events
-3. **Dry dock dates or docking survey dates** - Direct indicators
-4. **Hull inspection dates** - Secondary indicators
-5. **Construction survey dates** - May indicate docking for repairs/modifications
+**CRITICAL MARITIME TERMINOLOGY:**
+"Inspections of the outside of the ship's bottom" = DRY DOCKING
+"Bottom inspection" = DRY DOCKING
+"Hull inspection in dry dock" = DRY DOCKING
+These phrases ALWAYS indicate when the ship was in dry dock for inspection/maintenance.
 
-**DATE EXTRACTION PRIORITY:**
-- Look for patterns like: "DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"
-- Context phrases: "inspected on", "docked on", "bottom inspection", "dry dock", "hull survey"
-- Recent dates (within last 10 years) are more relevant
+**PRIMARY EXTRACTION TARGETS (HIGHEST PRIORITY):**
+1. **"last two inspections of the outside of the ship's bottom took place on [DATE]"**
+   → Extract BOTH dates mentioned (these are the 2 most recent dockings)
+2. **"bottom inspected on [DATE]"** or **"bottom inspection [DATE]"**
+   → Extract as docking date
+3. **"outside of ship's bottom inspected [DATE]"**
+   → Extract as docking date
+4. **"dry dock [DATE]"** or **"docking survey [DATE]"**
+   → Extract as docking date
 
-**IMPORTANT:** 
-- Extract ONLY actual docking dates (when ship was in dry dock)
-- Ignore issue dates, valid dates, or general survey dates unless they specifically mention docking/bottom inspection
+**EXAMPLE PATTERNS TO MATCH:**
+- "last two inspections of the outside of the ship's bottom took place on MAY 05, 2022 and NOVEMBER 01, 2020"
+  → Extract: MAY 05, 2022 (Last Docking 1) and NOVEMBER 01, 2020 (Last Docking 2)
+- "bottom inspection: 15/03/2021"
+  → Extract: 15/03/2021
+- "inspected on 2022-05-05"
+  → Extract: 2022-05-05
+
+**DATE FORMATS TO RECOGNIZE:**
+- "MAY 05, 2022" → 05/05/2022
+- "NOVEMBER 01, 2020" → 01/11/2020
+- "15/03/2021" → 15/03/2021
+- "2022-05-05" → 05/05/2022
+- "05.05.2022" → 05/05/2022
+
+**IMPORTANT RULES:** 
+- ALWAYS extract dates mentioned with "inspections of the outside of the ship's bottom"
+- These are CONFIRMED dry docking dates (confidence: high)
+- Extract ALL dates found in bottom inspection contexts
+- Ignore certificate issue/valid dates UNLESS they're mentioned in bottom inspection context
 - Return dates in chronological order (most recent first)
 
 Please return a JSON response with:
@@ -1694,8 +1715,8 @@ Please return a JSON response with:
   "docking_dates": [
     {
       "date": "DD/MM/YYYY",
-      "context": "Brief description of what indicates this was a docking date",
-      "confidence": "high/medium/low"
+      "context": "Brief description of extraction source (e.g., 'inspections of outside of ship bottom')",
+      "confidence": "high"
     }
   ],
   "analysis_notes": "Brief explanation of extraction logic used"
