@@ -3716,11 +3716,6 @@ const HomePage = () => {
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chu kỳ Special Survey:' : 'Special Survey Cycle:'}</span>
                                   <div className="mt-1 flex items-center space-x-2">
                                     <span>{formatSpecialSurveyCycle(selectedShip.special_survey_cycle) || '-'}</span>
-                                    {selectedShip.special_survey_cycle?.cycle_type && (
-                                      <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded" title={selectedShip.special_survey_cycle.cycle_type}>
-                                        IMO
-                                      </span>
-                                    )}
                                     <button
                                       onClick={() => handleRecalculateSpecialSurveyCycle(selectedShip.id)}
                                       className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
