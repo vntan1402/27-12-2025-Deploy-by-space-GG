@@ -291,79 +291,143 @@ class TimezoneFixTester:
             self.log(f"❌ Error testing ship data retrieval: {str(e)}", "ERROR")
             return False
     
-    def verify_backfill_results(self):
-        """Verify that certificates were actually updated with ship information"""
+    def test_ship_update_operations(self):
+        """Test updating ship's date fields and verify no timezone shifts"""
         try:
-            self.log("🔍 Verifying backfill results by checking updated certificates...")
+            self.log("🔄 Testing ship update operations and date preservation...")
             
-            if not self.backfill_results.get('updated', 0) > 0:
-                self.log("   ℹ️ No certificates were updated, skipping verification")
-                return True
+            if not self.ship_data.get('id'):
+                self.log("❌ No ship data available for testing")
+                return False
             
-            # Get certificates again to see if they now have ship information
-            endpoint = f"{BACKEND_URL}/certificates"
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            ship_id = self.ship_data.get('id')
+            
+            # Prepare update data with current dates to test preservation
+            update_data = {}
+            
+            # Use existing dates if available, or set test dates
+            if self.original_dates:
+                # Use a subset of existing dates for update test
+                test_date = "2024-02-10T00:00:00"  # Known test date
+                update_data = {
+                    "last_docking": test_date,
+                    "name": self.ship_data.get('name'),  # Required field
+                    "flag": self.ship_data.get('flag', 'BELIZE'),  # Required field
+                    "ship_type": self.ship_data.get('ship_type', 'PMDS')  # Required field
+                }
+            else:
+                self.log("   No original dates found, using test dates")
+                update_data = {
+                    "last_docking": "2024-02-10T00:00:00",
+                    "last_docking_2": "2023-08-15T00:00:00",
+                    "name": self.ship_data.get('name'),
+                    "flag": self.ship_data.get('flag', 'BELIZE'),
+                    "ship_type": self.ship_data.get('ship_type', 'PMDS')
+                }
+            
+            self.log(f"   Updating ship with date fields:")
+            for field, value in update_data.items():
+                if 'docking' in field or 'date' in field:
+                    self.log(f"      {field}: {value}")
+            
+            # Perform ship update
+            endpoint = f"{BACKEND_URL}/ships/{ship_id}"
+            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=30)
             
             if response.status_code == 200:
-                certificates = response.json()
+                updated_ship = response.json()
+                self.log("✅ Ship update successful")
+                self.timezone_tests['ship_update_successful'] = True
                 
-                # Look for certificates with extracted ship information
-                certificates_with_ship_info = []
-                certificates_with_extracted_name = []
+                # Verify dates were preserved
+                dates_preserved = True
+                timezone_shifts_detected = False
                 
-                for cert in certificates[:50]:  # Check first 50 certificates
-                    extracted_ship_name = cert.get('extracted_ship_name')
-                    flag = cert.get('flag')
-                    class_society = cert.get('class_society')
-                    built_year = cert.get('built_year')
-                    
-                    if extracted_ship_name:
-                        certificates_with_extracted_name.append({
-                            'id': cert.get('id'),
-                            'name': cert.get('cert_name', 'Unknown'),
-                            'extracted_ship_name': extracted_ship_name,
-                            'flag': flag,
-                            'class_society': class_society,
-                            'built_year': built_year
-                        })
-                    
-                    if any([flag, class_society, built_year]):
-                        certificates_with_ship_info.append({
-                            'id': cert.get('id'),
-                            'name': cert.get('cert_name', 'Unknown'),
-                            'ship_info_fields': [f for f in ['flag', 'class_society', 'built_year'] if cert.get(f)]
-                        })
+                self.log("   Verifying date preservation:")
+                for field, original_value in update_data.items():
+                    if 'docking' in field or 'date' in field:
+                        updated_value = updated_ship.get(field)
+                        self.updated_dates[field] = updated_value
+                        
+                        self.log(f"      {field}:")
+                        self.log(f"         Sent: {original_value}")
+                        self.log(f"         Received: {updated_value}")
+                        
+                        # Check for timezone shifts
+                        if original_value and updated_value:
+                            if self.detect_timezone_shift(original_value, updated_value):
+                                self.log(f"         ⚠️ Timezone shift detected!")
+                                timezone_shifts_detected = True
+                                dates_preserved = False
+                            else:
+                                self.log(f"         ✅ Date preserved correctly")
+                        elif original_value != updated_value:
+                            self.log(f"         ⚠️ Date value changed unexpectedly")
+                            dates_preserved = False
                 
-                self.log(f"   Certificates with extracted_ship_name: {len(certificates_with_extracted_name)}")
-                self.log(f"   Certificates with ship info fields: {len(certificates_with_ship_info)}")
+                if dates_preserved:
+                    self.timezone_tests['dates_preserved_after_update'] = True
+                    self.log("✅ All dates preserved correctly after update")
                 
-                if certificates_with_extracted_name:
-                    self.backfill_tests['extracted_ship_name_populated'] = True
-                    self.backfill_tests['tooltip_data_available'] = True
-                    self.log("✅ Certificates now have extracted_ship_name for tooltips")
-                    
-                    # Show sample results
-                    self.log("   Sample certificates with extracted ship names:")
-                    for cert in certificates_with_extracted_name[:5]:
-                        self.log(f"      - {cert['name']}: '{cert['extracted_ship_name']}'")
-                        if cert['flag']:
-                            self.log(f"        Flag: {cert['flag']}")
-                        if cert['class_society']:
-                            self.log(f"        Class Society: {cert['class_society']}")
-                        if cert['built_year']:
-                            self.log(f"        Built Year: {cert['built_year']}")
+                if not timezone_shifts_detected:
+                    self.timezone_tests['no_timezone_shifts_detected'] = True
+                    self.log("✅ No timezone shifts detected")
                 
-                if certificates_with_ship_info:
-                    self.backfill_tests['ship_info_fields_populated'] = True
-                    self.log("✅ Certificates now have additional ship information fields")
-                
-                return len(certificates_with_extracted_name) > 0 or len(certificates_with_ship_info) > 0
+                return True
             else:
-                self.log(f"   ❌ Failed to verify results: {response.status_code}")
+                self.log(f"   ❌ Ship update failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"      Error: {response.text[:500]}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error verifying backfill results: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing ship update operations: {str(e)}", "ERROR")
+            return False
+    
+    def detect_timezone_shift(self, original_date, updated_date):
+        """Detect if there's a timezone shift between original and updated dates"""
+        try:
+            if not original_date or not updated_date:
+                return False
+            
+            # Parse dates and compare
+            from datetime import datetime
+            
+            # Handle different date formats
+            def parse_date(date_str):
+                if isinstance(date_str, str):
+                    # Try ISO format
+                    try:
+                        if date_str.endswith('Z'):
+                            date_str = date_str[:-1] + '+00:00'
+                        return datetime.fromisoformat(date_str)
+                    except:
+                        pass
+                    
+                    # Try other formats
+                    try:
+                        return datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S')
+                    except:
+                        pass
+                
+                return None
+            
+            orig_dt = parse_date(original_date)
+            upd_dt = parse_date(updated_date)
+            
+            if orig_dt and upd_dt:
+                # Check if dates differ by more than expected (timezone shift)
+                diff = abs((orig_dt - upd_dt).total_seconds())
+                # Allow small differences (seconds), but flag hour-level differences
+                return diff > 3600  # More than 1 hour difference suggests timezone shift
+            
+            return False
+            
+        except Exception as e:
+            self.log(f"   Error detecting timezone shift: {str(e)}")
             return False
     
     def test_tooltip_functionality(self):
