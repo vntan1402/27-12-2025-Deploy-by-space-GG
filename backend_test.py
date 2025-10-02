@@ -195,83 +195,79 @@ class TimezoneFixTester:
             self.log(f"❌ Error finding SUNSHINE 01 ship: {str(e)}", "ERROR")
             return False
     
-    def test_backfill_endpoint(self, limit=20):
-        """Test the backfill endpoint with specified limit"""
+    def test_ship_data_retrieval(self):
+        """Test ship data retrieval and verify date fields"""
         try:
-            self.log(f"🔄 Testing backfill endpoint with limit={limit}...")
+            self.log("📊 Testing ship data retrieval and date field verification...")
             
-            endpoint = f"{BACKEND_URL}/certificates/backfill-ship-info"
-            params = {"limit": limit}
+            if not self.ship_data.get('id'):
+                self.log("❌ No ship data available for testing")
+                return False
             
-            self.log(f"   POST {endpoint}?limit={limit}")
+            ship_id = self.ship_data.get('id')
             
-            response = requests.post(
-                endpoint,
-                params=params,
-                headers=self.get_headers(),
-                timeout=120  # Longer timeout for processing
-            )
-            
-            self.log(f"   Response status: {response.status_code}")
+            # Get individual ship data
+            endpoint = f"{BACKEND_URL}/ships/{ship_id}"
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             
             if response.status_code == 200:
-                response_data = response.json()
-                self.log("✅ Backfill endpoint accessible")
-                self.backfill_tests['backfill_endpoint_accessible'] = True
+                ship_data = response.json()
+                self.log("✅ Ship data retrieved successfully")
+                self.timezone_tests['ship_data_retrieved_successfully'] = True
                 
-                # Log full response for analysis
-                self.log("   Backfill Response:")
-                self.log(f"   {json.dumps(response_data, indent=2)}")
+                # Store original dates for comparison
+                date_fields = [
+                    'last_docking', 'last_docking_2', 'next_docking',
+                    'last_special_survey', 'last_intermediate_survey',
+                    'keel_laid', 'delivery_date'
+                ]
                 
-                # Store results for analysis
-                self.backfill_results = response_data
-                
-                # Verify response format
-                if all(key in response_data for key in ['success', 'message', 'processed', 'updated', 'errors']):
-                    self.backfill_tests['backfill_response_format_correct'] = True
-                    self.log("✅ Response format is correct")
-                
-                if response_data.get('success'):
-                    processed = response_data.get('processed', 0)
-                    updated = response_data.get('updated', 0)
-                    errors = response_data.get('errors', 0)
-                    
-                    self.log(f"   Processing Statistics:")
-                    self.log(f"      Processed: {processed}")
-                    self.log(f"      Updated: {updated}")
-                    self.log(f"      Errors: {errors}")
-                    
-                    self.backfill_tests['processing_statistics_provided'] = True
-                    
-                    if processed > 0:
-                        self.backfill_tests['backfill_processing_successful'] = True
-                        self.log("✅ Backfill processing completed successfully")
-                        
-                        if updated > 0:
-                            self.backfill_tests['certificates_updated_with_ship_info'] = True
-                            self.log(f"✅ {updated} certificates updated with ship information")
-                            return True
-                        else:
-                            self.log("⚠️ No certificates were updated (might be expected if all already have ship info)")
-                            return True
+                self.log("   Date fields in ship data:")
+                dates_found = 0
+                for field in date_fields:
+                    value = ship_data.get(field)
+                    if value:
+                        self.original_dates[field] = value
+                        self.log(f"      {field}: {value}")
+                        dates_found += 1
                     else:
-                        self.log("ℹ️ No certificates processed (might be expected if none need backfill)")
-                        return True
-                else:
-                    self.log(f"   ❌ Backfill failed: {response_data.get('message')}")
-                    return False
+                        self.log(f"      {field}: None")
+                
+                if dates_found > 0:
+                    self.timezone_tests['date_fields_present'] = True
+                    self.log(f"✅ Found {dates_found} date fields")
+                
+                # Check special_survey_cycle dates
+                special_survey_cycle = ship_data.get('special_survey_cycle')
+                if special_survey_cycle:
+                    self.log("   Special Survey Cycle dates:")
+                    from_date = special_survey_cycle.get('from_date')
+                    to_date = special_survey_cycle.get('to_date')
+                    if from_date:
+                        self.original_dates['special_survey_from_date'] = from_date
+                        self.log(f"      from_date: {from_date}")
+                    if to_date:
+                        self.original_dates['special_survey_to_date'] = to_date
+                        self.log(f"      to_date: {to_date}")
+                
+                # Verify date format consistency
+                consistent_formats = True
+                for field, date_value in self.original_dates.items():
+                    if not self.is_valid_date_format(date_value):
+                        self.log(f"   ⚠️ Inconsistent date format in {field}: {date_value}")
+                        consistent_formats = False
+                
+                if consistent_formats:
+                    self.timezone_tests['date_formats_consistent'] = True
+                    self.log("✅ All date formats are consistent")
+                
+                return True
             else:
-                self.log(f"   ❌ Backfill endpoint failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
-                    self.backfill_tests['error_handling_working'] = True
-                except:
-                    self.log(f"      Error: {response.text[:500]}")
+                self.log(f"   ❌ Failed to retrieve ship data: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Backfill endpoint testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing ship data retrieval: {str(e)}", "ERROR")
             return False
     
     def verify_backfill_results(self):
