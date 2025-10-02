@@ -10636,7 +10636,7 @@ const AddRecordModal = ({
         ship_type: shipData.class_society?.trim() || '', // Frontend uses class_society, backend expects ship_type
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
         deadweight: shipData.deadweight ? parseFloat(shipData.deadweight) : null,
-        year_built: shipData.built_year ? parseInt(shipData.built_year) : null,
+        built_year: shipData.built_year ? parseInt(shipData.built_year) : null,
         delivery_date: convertDateInputToUTC(shipData.delivery_date),
         keel_laid: convertDateInputToUTC(shipData.keel_laid),
         // Convert Last Docking MM/YYYY format to datetime for backend
