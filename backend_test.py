@@ -146,78 +146,53 @@ class TimezoneFixTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def get_certificates_before_backfill(self):
-        """Get sample certificates before backfill to analyze their current state"""
+    def find_sunshine_01_ship(self):
+        """Find SUNSHINE 01 ship as specified in review request"""
         try:
-            self.log("📋 Getting certificates before backfill to analyze current state...")
+            self.log("🚢 Finding SUNSHINE 01 ship...")
             
-            # Get all certificates to see which ones need backfill
-            endpoint = f"{BACKEND_URL}/certificates"
+            # Get all ships to find SUNSHINE 01
+            endpoint = f"{BACKEND_URL}/ships"
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             
             if response.status_code == 200:
-                certificates = response.json()
-                self.log(f"   Found {len(certificates)} total certificates")
+                ships = response.json()
+                self.log(f"   Found {len(ships)} total ships")
                 
-                # Analyze certificates that might need backfill
-                need_backfill = []
-                have_ship_info = []
+                # Look for SUNSHINE 01
+                sunshine_ship = None
+                for ship in ships:
+                    ship_name = ship.get('name', '').upper()
+                    if 'SUNSHINE' in ship_name and '01' in ship_name:
+                        sunshine_ship = ship
+                        break
                 
-                for cert in certificates[:50]:  # Check first 50 certificates
-                    cert_id = cert.get('id')
-                    cert_name = cert.get('cert_name', 'Unknown')
-                    extracted_ship_name = cert.get('extracted_ship_name')
-                    flag = cert.get('flag')
-                    class_society = cert.get('class_society')
-                    built_year = cert.get('built_year')
-                    text_content = cert.get('text_content')
+                if sunshine_ship:
+                    self.ship_data = sunshine_ship
+                    ship_id = sunshine_ship.get('id')
+                    ship_name = sunshine_ship.get('name')
+                    imo = sunshine_ship.get('imo')
                     
-                    # Check if certificate needs backfill
-                    missing_fields = []
-                    if not extracted_ship_name:
-                        missing_fields.append('extracted_ship_name')
-                    if not flag:
-                        missing_fields.append('flag')
-                    if not class_society:
-                        missing_fields.append('class_society')
-                    if not built_year:
-                        missing_fields.append('built_year')
+                    self.log(f"✅ Found SUNSHINE 01 ship:")
+                    self.log(f"   Ship ID: {ship_id}")
+                    self.log(f"   Ship Name: {ship_name}")
+                    self.log(f"   IMO: {imo}")
                     
-                    if missing_fields and text_content:
-                        need_backfill.append({
-                            'id': cert_id,
-                            'name': cert_name,
-                            'missing_fields': missing_fields,
-                            'has_text_content': bool(text_content)
-                        })
-                    elif not missing_fields:
-                        have_ship_info.append({
-                            'id': cert_id,
-                            'name': cert_name,
-                            'extracted_ship_name': extracted_ship_name
-                        })
-                
-                self.log(f"   Certificates needing backfill: {len(need_backfill)}")
-                self.log(f"   Certificates with ship info: {len(have_ship_info)}")
-                
-                if need_backfill:
-                    self.log("   Sample certificates needing backfill:")
-                    for cert in need_backfill[:5]:
-                        self.log(f"      - {cert['name']} (missing: {', '.join(cert['missing_fields'])})")
-                    self.backfill_tests['certificates_found_for_backfill'] = True
-                
-                if have_ship_info:
-                    self.log("   Sample certificates with ship info:")
-                    for cert in have_ship_info[:3]:
-                        self.log(f"      - {cert['name']} (ship: {cert['extracted_ship_name']})")
-                
-                return len(need_backfill) > 0
+                    self.timezone_tests['sunshine_01_ship_found'] = True
+                    return True
+                else:
+                    self.log("❌ SUNSHINE 01 ship not found")
+                    # List available ships for debugging
+                    self.log("   Available ships:")
+                    for ship in ships[:10]:
+                        self.log(f"      - {ship.get('name', 'Unknown')}")
+                    return False
             else:
-                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
+                self.log(f"   ❌ Failed to get ships: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error getting certificates before backfill: {str(e)}", "ERROR")
+            self.log(f"❌ Error finding SUNSHINE 01 ship: {str(e)}", "ERROR")
             return False
     
     def test_backfill_endpoint(self, limit=20):
