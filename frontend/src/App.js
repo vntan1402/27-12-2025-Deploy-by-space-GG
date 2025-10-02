@@ -10293,24 +10293,28 @@ const AddRecordModal = ({
         return `${paddedMonth}/${year}`;
       }
       
-      // If it's a full date (DD/MM/YYYY or ISO format), convert to MM/YYYY
+      // If it's a full date (DD/MM/YYYY), preserve the full date format
       if (dateString.includes('/')) {
         const parts = dateString.split('/');
         if (parts.length === 3) {
           const [day, month, year] = parts;
           if (year && year.length === 4) {
+            // Preserve full date format DD/MM/YYYY
+            const paddedDay = day.padStart(2, '0');
             const paddedMonth = month.padStart(2, '0');
-            return `${paddedMonth}/${year}`;
+            return `${paddedDay}/${paddedMonth}/${year}`;
           }
         }
       }
       
-      // Handle ISO date format
+      // Handle ISO date format - preserve full date
       const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${month}/${year}`;
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+        const year = date.getUTCFullYear();
+        // Return full date format DD/MM/YYYY instead of MM/YYYY
+        return `${day}/${month}/${year}`;
       }
       
       return dateString; // Return as is if cannot parse
