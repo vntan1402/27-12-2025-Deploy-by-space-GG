@@ -3699,11 +3699,6 @@ const HomePage = () => {
                                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Next Docking:' : 'Next Docking:'}</span>
                                   <div className="mt-1 flex items-center space-x-2">
                                     <span>{formatDate(selectedShip.next_docking) || '-'}</span>
-                                    {selectedShip.next_docking && (
-                                      <span className="px-2 py-1 text-xs bg-orange-100 text-orange-800 rounded" title="IMO SOLAS 30-month requirement">
-                                        IMO
-                                      </span>
-                                    )}
                                     <button
                                       onClick={() => handleRecalculateNextDocking(selectedShip.id)}
                                       className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
