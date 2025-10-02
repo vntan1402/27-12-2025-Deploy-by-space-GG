@@ -1,28 +1,32 @@
 <analysis>
-The trajectory details an intensive, iterative development cycle for a Ship Management System, driven by highly specific user feedback. The work began by addressing inconsistencies in the AI's data extraction from certificate PDFs. A major feature was implemented to handle AI extraction failures during multi-certificate uploads: instead of creating a flawed record, the system now pauses the upload for that specific file and prompts the user for manual input.
+The trajectory documents an intensive, iterative development process for a Ship Management System, primarily focused on UI/UX refinement, bug fixing, and enhancing a core AI data extraction feature. The work began with UI consistency tasks, such as synchronizing text in dropdown menus and ensuring data in the main table matched the edit forms. A significant feature was added to auto-refresh data in modals and lists after user actions like Quick Edit or Recalculate, which involved deep debugging of asynchronous state updates and API response handling.
 
-Subsequently, a significant effort was dedicated to building an Admin Tools section within the application's System Settings. This new section houses a manually triggered backfill process to re-analyze older certificates and populate missing ship information, a feature the user later requested to be simplified by removing automated scheduling and background queueing.
+The most substantial effort was dedicated to improving the AI's ability to extract data from uploaded certificate PDFs. The user reported that the AI failed to populate most fields when adding a new ship from a certificate. The debugging process was complex, starting from verifying the backend extraction logic, which was initially correct, to identifying the root cause in the backend's  function. This function was failing to map most of the extracted ship details. The AI prompt and the normalization logic were iteratively refined to successfully extract and map all required fields, including complex date formats for Keel Laid and Last Docking.
 
-The latter half of the trajectory focuses heavily on UI/UX refinements. This includes extensive refactoring of the Manual Input and Edit Certificate forms to include all database fields, arranging them in a compact, multi-column layout. Dropdown options for Certificate Type and Survey Type were synchronized across all input methods (AI extraction, manual forms, and a new Quick Edit feature) based on precise user specifications, including specific Vietnamese translations. A Quick Edit context menu for the Survey Type field was implemented and rigorously debugged, resolving complex issues related to React component scope and conflicting  event handlers. The final task involved starting to synchronize the text of these dropdown options.
+The final phase of work tackled persistent and subtle bugs related to data binding in the Edit Ship form and timezone-related date shifts. The Edit Ship form was not displaying detailed data because it was relying on an incomplete data object; this was fixed by fetching the full object details upon opening the modal. A recurring one-day date shift was traced to inconsistent date handling, which was addressed by creating and applying a universal UTC conversion function across the application. The last task involved debugging why this date shift was still occurring in some scenarios, identifying that the auto-refresh logic was not yet using the new universal UTC function.
 </analysis>
 
 <product_requirements>
-The application is an AI-powered Ship Management System for managing maritime certificates.
+The application is an AI-powered Ship Management System for maritime certificates.
 
-**Core Functionality:**
-1.  **AI-Powered Certificate Processing:** The system uses AI to extract data from uploaded PDF/image certificates during a multi-file upload process.
-2.  **AI Extraction Failure Handling:** If the AI fails to extract critical information (e.g., ship name, certificate name, number), the upload for that specific file must be paused. The UI's progress bar should display a message guiding the user to use the Add Certificate form for manual entry, and the Manual Input button should be removed.
-3.  **Admin Tools:** The System Settings page must contain an Admin Tools section, visible only to Admin/Super Admin roles, which includes a button to manually trigger a backfill process for enriching older certificate records with AI-extracted data.
-4.  **Form Parity:** The Edit Certificate modal and the Add Certificate (manual input) form must contain all fields stored in the database for a certificate. This includes fields like Abbreviation, Type, Issued By, Status, and Notes. The layouts must be compact and optimized to fit on a single screen without scrolling, using a multi-column grid.
-5.  **Dropdown Synchronization:** The options within the Certificate Type and Survey Type dropdowns must be consistent across the Manual Input form, Edit Certificate form, and the Quick Edit context menu. The specific options and their Vietnamese translations are dictated by the user.
-6.  **Quick Edit Feature:** Users must be able to right-click on the Survey Type cell within the main certificate table to open a custom context menu, allowing for immediate selection and updating of the survey type without opening the full edit modal.
+**Core Requirements Implemented:**
+1.  **AI Certificate Processing**: The system uses Google Gemini to extract data from PDF certificates to auto-populate forms for adding new ships. The AI logic has been significantly enhanced to extract a wide range of fields, including ship name, IMO, flag, class society, gross tonnage, and specific dates like Keel Laid, Delivery Date, and Last Docking.
+2.  **UI/UX Consistency**:
+    *   All UI text, including dropdown options (Survey Type) and labels (Next Survey Type), must be consistent and support Vietnamese translations as specified.
+    *   The Edit Ship form must correctly display all existing data for a selected ship, including detailed information and correctly formatted dates.
+3.  **Interactive UI**:
+    *   A Quick Edit context menu allows users to change the Survey Type directly from the main certificate list.
+    *   The certificate list must auto-refresh after a successful Quick Edit to reflect the latest data from the server.
+    *   The Detailed Ship Information form must auto-refresh its fields immediately after a user triggers a Recalculate action (e.g., for Next Docking Date).
+4.  **Data Integrity**: All date fields entered manually or extracted by AI must be handled consistently to avoid timezone-related date shifts. Data must be stored and retrieved reliably from the database.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack Architecture**: React frontend ( as a single large component), FastAPI (Python) backend (), and MongoDB database.
-- **AI/LLM Integration**: Google Gemini for OCR and structured data extraction from PDFs. The AI prompt in the backend is dynamically updated to refine extraction requirements.
-- **Frontend State Management**: Extensive use of React hooks (, ) to manage UI state, including modals, context menus, and asynchronous data.
-- **Event Handling**: Advanced JavaScript event handling, including , , and  to manage conflicting context menus and prevent event bubbling.
+- **Full-stack Monoliths**: A monolithic React frontend () and a monolithic FastAPI backend ().
+- **AI Integration**: Google Gemini is used for data extraction from PDFs. The backend contains complex logic for building dynamic prompts, calling the AI, and normalizing the JSON response.
+- **React State Management**: Extensive use of  and  for managing complex UI state, including modals, context menus, and form data.
+- **Asynchronous Operations**: Heavy use of  for API calls, with debugging focused on race conditions and state updates post-fetch.
+- **Date & Timezone Handling**: Critical focus on resolving date shift bugs by consistently converting all date inputs to UTC () before sending them to the backend.
 </key_technical_concepts>
 
 <code_architecture>
@@ -31,35 +35,35 @@ The application follows a monorepo structure with a backend and frontend directo
 
 
 -   ****
-    -   **Summary**: This file is the complete FastAPI backend. It handles all API endpoints, database interactions with MongoDB, Pydantic data models, and the core business logic, including the AI analysis prompts for Google Gemini.
+    -   **Summary**: This single file contains the entire FastAPI backend, managing all API endpoints, database interactions with MongoDB (via Motor), Pydantic models, and the core business logic, including the AI data extraction prompts for Google Gemini.
     -   **Summary of Changes**:
-        -   The  endpoint was modified to return a new status, , when AI extraction fails predetermined criteria. Another status, , was added for cases where the ship's IMO number matches but the name differs.
-        -   A new endpoint, , was created to handle the manual backfill process for older certificates.
-        -   The AI prompt for  was updated to reflect user-requested changes in survey terminology.
+        -   The AI extraction logic was heavily modified. The  function was updated to include more fields (, , ), which dynamically builds a more comprehensive AI prompt.
+        -   The  function was significantly expanded to correctly parse and map the full, flat JSON response from the AI, resolving the critical bug where only a few fields were being auto-filled.
+        -   The  endpoint's corresponding handler function ( in the frontend) was implicitly fixed by ensuring the frontend payload now includes all detailed ship information fields, which the backend was already capable of processing.
 
 -   ****
-    -   **Summary**: This monolithic React file contains the entire frontend application, managing state, rendering all UI components (tables, modals, forms), and handling all API communication with the backend.
+    -   **Summary**: This monolithic React file contains the entire frontend application. It manages all application state, renders all UI components (tables, modals, forms), and handles API communication.
     -   **Summary of Changes**:
-        -   The multi-upload progress bar logic was updated to handle the  status (showing a guidance message) and the  status (using a distinct color).
-        -   The Add Certificate (manual input) and Edit Certificate forms were significantly refactored. They now include all database fields, use a compact multi-column grid layout, and have synchronized dropdown options for  and . The  field was made read-only. The  was converted into a dropdown with a custom date option.
-        -   An Admin Tools section was added to the System Settings view, with state and functions () to trigger the backfill API and display its progress. A bug fix was applied to correctly retrieve the auth token for this API call.
-        -   A Quick Edit feature was implemented for the Survey Type field in the certificate table. This involved adding state for a context menu (), creating event handlers (), and rendering the custom context menu. Debugging this feature required moving the menu's render location to fix a component scope issue and adding  to the  handler to prevent conflicts with a pre-existing row-level context menu.
+        -   **Text & Translation**: Numerous text labels and dropdown options were updated for consistency and to meet user's Vietnamese translation requests (e.g., Next Survey Type).
+        -   **Auto-Refresh Logic**: The  function was modified to call  on success. Similarly, recalculation functions (, etc.) were updated to fetch the latest ship data and update the  state, refreshing the edit form in place.
+        -   **Data Binding Fix**: The  handler for the Edit Ship button () was created to fetch the full ship details via a new API call () before opening the modal. This fixed the bug where the form appeared empty because it was previously using an incomplete  object.
+        -   **Date & Timezone Fix**: A universal date conversion function, , was created and applied to all date fields in both the Add Ship and Edit Ship submission payloads to prevent timezone-related date shifts. A scope issue with this function was also fixed by defining it within the Add Ship modal component.
+        -   **AI Auto-fill Formatting**: The  function was modified to preserve the full date (DD/MM/YYYY) if extracted by the AI, instead of always converting it to MM/YYYY.
+
 </code_architecture>
 
 <pending_tasks>
-- There are no major pending features that were discussed and not implemented. The user explicitly requested to discard the Scheduled Job and Background Queue tasks. The current work is a minor text synchronization task.
+- The user canceled the request to modify the Next Survey calculation logic by comparing it against the Valid Date. No other major feature requests are pending. The primary pending work is a bug fix.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the task was to synchronize the display text for survey types across different UI components. The user pointed out an inconsistency: the new Quick Edit Survey Type context menu displays options like Special, while the existing Update Next Survey Type modal (part of the Edit Certificate form) displays Special Survey. The user requested that both places should display the shorter version (e.g., Special), removing the word Survey.
+The most recent task was to investigate and fix a recurring date shift issue. The user reported that dates were off by one day, indicating a timezone problem.
 
-The AI engineer had correctly identified the two locations in  where these options are defined:
-1.  The Quick Edit context menu rendering logic.
-2.  The Survey Type dropdown options within the Edit Certificate modal form.
+The previous engineer correctly identified that different parts of the application were handling date conversions inconsistently. A robust solution was partially implemented by creating a universal function, , to standardize dates to UTC format before sending them to the backend. This fix was successfully applied to the Add Ship and Edit Ship form submission logic.
 
-The work was paused just before modifying the code in  to make these text values consistent.
+However, the work was paused right after discovering that this fix was not yet applied everywhere. Specifically, the auto-refresh logic within the recalculation functions (e.g., ) was still using a simple , which is susceptible to local timezone variations and was the likely cause of the recurring date shift bug. The immediate task is to refactor these remaining functions to use the new, consistent UTC conversion method.
 </current_work>
 
 <optional_next_step>
-I will proceed with editing  to remove the word Survey from the options in both the Quick Edit context menu and the Edit Certificate modal's Survey Type dropdown to ensure consistency as requested.
+I will now fix the remaining timezone inconsistency by updating the auto-refresh logic in the recalculation functions to use the standardized  and  helper functions, ensuring all date handling is timezone-safe.
 </optional_next_step>
