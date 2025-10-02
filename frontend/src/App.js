@@ -3203,48 +3203,58 @@ const HomePage = () => {
         if (result.docking_dates.last_docking_2) {
           message += `Last Docking 2: ${result.docking_dates.last_docking_2}`;
         }
-        alert(message);
         
-        // Refresh the ship data and update both ship list and detail view
-        if (selectedShip?.id === shipId) {
-          try {
-            // Fetch updated ship data
-            const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
-              headers: { 'Authorization': `Bearer ${currentToken}` }
-            });
-            
-            const updatedShipData = shipResponse.data;
-            
-            // Update selectedShip for Ship Detail Panel
-            setSelectedShip(updatedShipData);
-            
-            // Also refresh the ship list
-            fetchShips();
-            
-            // If edit modal is open, update editing ship data with formatted dates
-            if (showEditShipModal && editingShipData?.id === shipId) {
-              setEditingShipData(prev => ({
-                ...prev,
-                ...updatedShipData,
-                last_docking: formatDateForInput(updatedShipData.last_docking),
-                last_docking_2: formatDateForInput(updatedShipData.last_docking_2),
-                next_docking: formatDateForInput(updatedShipData.next_docking),
-                last_special_survey: formatDateForInput(updatedShipData.last_special_survey),
-                last_intermediate_survey: formatDateForInput(updatedShipData.last_intermediate_survey),
-                keel_laid: formatDateForInput(updatedShipData.keel_laid),
-                delivery_date: formatDateForInput(updatedShipData.delivery_date),
-                special_survey_cycle: updatedShipData.special_survey_cycle && typeof updatedShipData.special_survey_cycle === 'object'
-                  ? {
-                      ...updatedShipData.special_survey_cycle,
-                      from_date: formatDateForInput(updatedShipData.special_survey_cycle.from_date),
-                      to_date: formatDateForInput(updatedShipData.special_survey_cycle.to_date)
-                    }
-                  : updatedShipData.special_survey_cycle
-              }));
-            }
-          } catch (error) {
-            console.error('Error refreshing ship data:', error);
+        // Refresh ship data BEFORE showing alert to ensure UI updates
+        try {
+          console.log('🔄 Refreshing ship data after docking calculation...');
+          console.log('   Ship ID:', shipId);
+          console.log('   Selected Ship ID:', selectedShip?.id);
+          
+          // Fetch updated ship data
+          const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+          });
+          
+          const updatedShipData = shipResponse.data;
+          console.log('✅ Updated ship data received:', updatedShipData.last_docking);
+          
+          // ALWAYS update selectedShip (remove condition check)
+          setSelectedShip(updatedShipData);
+          console.log('✅ setSelectedShip called');
+          
+          // Also refresh the ship list
+          fetchShips();
+          console.log('✅ fetchShips called');
+          
+          // If edit modal is open, update editing ship data with formatted dates
+          if (showEditShipModal && editingShipData?.id === shipId) {
+            setEditingShipData(prev => ({
+              ...prev,
+              ...updatedShipData,
+              last_docking: formatDateForInput(updatedShipData.last_docking),
+              last_docking_2: formatDateForInput(updatedShipData.last_docking_2),
+              next_docking: formatDateForInput(updatedShipData.next_docking),
+              last_special_survey: formatDateForInput(updatedShipData.last_special_survey),
+              last_intermediate_survey: formatDateForInput(updatedShipData.last_intermediate_survey),
+              keel_laid: formatDateForInput(updatedShipData.keel_laid),
+              delivery_date: formatDateForInput(updatedShipData.delivery_date),
+              special_survey_cycle: updatedShipData.special_survey_cycle && typeof updatedShipData.special_survey_cycle === 'object'
+                ? {
+                    ...updatedShipData.special_survey_cycle,
+                    from_date: formatDateForInput(updatedShipData.special_survey_cycle.from_date),
+                    to_date: formatDateForInput(updatedShipData.special_survey_cycle.to_date)
+                  }
+                : updatedShipData.special_survey_cycle
+            }));
+            console.log('✅ setEditingShipData called');
           }
+          
+          // Show alert AFTER refresh
+          alert(message);
+        } catch (error) {
+          console.error('❌ Error refreshing ship data:', error);
+          // Still show alert even if refresh fails
+          alert(message);
         }
       } else {
         alert(result.message || 'Unable to extract docking dates from CSSC/DD certificates');
