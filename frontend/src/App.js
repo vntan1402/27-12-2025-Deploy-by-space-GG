@@ -3567,10 +3567,6 @@ const HomePage = () => {
                                       }
                                     };
                                     
-                                    // DEBUG: Log backend data
-                                    console.log('🔍 Backend fullShipData.built_year:', fullShipData.built_year);
-                                    console.log('🔍 Backend fullShipData.gross_tonnage:', fullShipData.gross_tonnage);
-                                    
                                     const initData = {
                                       ...fullShipData,
                                       // Format date fields for HTML date inputs (UTC-safe)
@@ -3581,15 +3577,6 @@ const HomePage = () => {
                                       last_intermediate_survey: formatDateForEditModal(fullShipData.last_intermediate_survey),
                                       keel_laid: formatDateForEditModal(fullShipData.keel_laid),
                                       delivery_date: formatDateForEditModal(fullShipData.delivery_date),
-                                      // Convert numeric fields to strings for HTML inputs
-                                      built_year: fullShipData.built_year ? String(fullShipData.built_year) : '',
-                                      gross_tonnage: fullShipData.gross_tonnage ? String(fullShipData.gross_tonnage) : '',
-                                      deadweight: fullShipData.deadweight ? String(fullShipData.deadweight) : '',
-                                    };
-                                    
-                                    // DEBUG: Log converted data
-                                    console.log('✅ initData.built_year:', initData.built_year);
-                                    console.log('✅ initData.gross_tonnage:', initData.gross_tonnage);
                                       // Ensure enhanced anniversary date structure
                                       anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
                                         ? fullShipData.anniversary_date 
