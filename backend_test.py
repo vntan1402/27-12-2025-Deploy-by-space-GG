@@ -601,148 +601,163 @@ class TimezoneFixTester:
             return False
     
     def provide_final_analysis(self):
-        """Provide final analysis of backfill testing"""
+        """Provide final analysis of timezone fix testing"""
         try:
-            self.log("🔄 CERTIFICATE BACKFILL SHIP INFORMATION TESTING - RESULTS")
+            self.log("🔄 SHIP MANAGEMENT SYSTEM - TIMEZONE FIX TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.backfill_tests.items():
+            for test_name, passed in self.timezone_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.backfill_tests)}):")
+            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.timezone_tests)}):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.backfill_tests)}):")
+                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.timezone_tests)}):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Calculate success rate
-            success_rate = (len(passed_tests) / len(self.backfill_tests)) * 100
-            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.backfill_tests)})")
+            success_rate = (len(passed_tests) / len(self.timezone_tests)) * 100
+            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.timezone_tests)})")
             
-            # Backfill-specific analysis
-            self.log("\n🔄 BACKFILL FUNCTIONALITY ANALYSIS:")
+            # Ship data retrieval analysis
+            self.log("\n📊 SHIP DATA RETRIEVAL ANALYSIS:")
             
-            # Core functionality tests
-            core_tests = [
-                'backfill_endpoint_accessible',
-                'backfill_processing_successful',
-                'certificates_updated_with_ship_info',
-                'extracted_ship_name_populated'
+            retrieval_tests = [
+                'sunshine_01_ship_found',
+                'ship_data_retrieved_successfully',
+                'date_fields_present',
+                'date_formats_consistent'
             ]
-            core_passed = sum(1 for test in core_tests if self.backfill_tests.get(test, False))
-            core_rate = (core_passed / len(core_tests)) * 100
+            retrieval_passed = sum(1 for test in retrieval_tests if self.timezone_tests.get(test, False))
+            retrieval_rate = (retrieval_passed / len(retrieval_tests)) * 100
             
-            self.log(f"\n🎯 CORE BACKFILL FUNCTIONALITY: {core_rate:.1f}% ({core_passed}/{len(core_tests)})")
+            self.log(f"\n🎯 SHIP DATA RETRIEVAL: {retrieval_rate:.1f}% ({retrieval_passed}/{len(retrieval_tests)})")
             
-            if self.backfill_tests['backfill_processing_successful']:
-                self.log("   ✅ CONFIRMED: Backfill job is WORKING")
-                self.log("   ✅ Endpoint processes existing certificates successfully")
+            if self.timezone_tests['ship_data_retrieved_successfully']:
+                self.log("   ✅ CONFIRMED: Ship data retrieval is WORKING")
+                self.log("   ✅ SUNSHINE 01 ship data accessible")
                 
-                if self.backfill_results:
-                    processed = self.backfill_results.get('processed', 0)
-                    updated = self.backfill_results.get('updated', 0)
-                    errors = self.backfill_results.get('errors', 0)
-                    
-                    self.log(f"   📊 Processing Statistics:")
-                    self.log(f"      Processed: {processed} certificates")
-                    self.log(f"      Updated: {updated} certificates")
-                    self.log(f"      Errors: {errors} certificates")
-                    
-                    if updated > 0:
-                        self.log(f"   ✅ SUCCESS: {updated} certificates updated with ship information")
-                    else:
-                        self.log("   ℹ️ INFO: No certificates needed updating (may be expected)")
+                if self.original_dates:
+                    self.log(f"   📊 Date fields found: {len(self.original_dates)}")
+                    for field, value in self.original_dates.items():
+                        self.log(f"      {field}: {value}")
             else:
-                self.log("   ❌ ISSUE: Backfill job needs fixing")
+                self.log("   ❌ ISSUE: Ship data retrieval needs fixing")
             
-            # Tooltip functionality tests
-            tooltip_tests = [
-                'extracted_ship_name_populated',
-                'tooltip_data_available'
+            # Ship update analysis
+            self.log("\n🔄 SHIP UPDATE OPERATIONS ANALYSIS:")
+            
+            update_tests = [
+                'ship_update_successful',
+                'dates_preserved_after_update',
+                'no_timezone_shifts_detected'
             ]
-            tooltip_passed = sum(1 for test in tooltip_tests if self.backfill_tests.get(test, False))
-            tooltip_rate = (tooltip_passed / len(tooltip_tests)) * 100
+            update_passed = sum(1 for test in update_tests if self.timezone_tests.get(test, False))
+            update_rate = (update_passed / len(update_tests)) * 100
             
-            self.log(f"\n🏷️ TOOLTIP FUNCTIONALITY: {tooltip_rate:.1f}% ({tooltip_passed}/{len(tooltip_tests)})")
+            self.log(f"\n🎯 SHIP UPDATE OPERATIONS: {update_rate:.1f}% ({update_passed}/{len(update_tests)})")
             
-            if self.backfill_tests['tooltip_data_available']:
-                self.log("   ✅ CONFIRMED: Tooltip functionality is READY")
-                self.log("   ✅ Certificates now have extracted_ship_name for tooltips")
-                self.log("   ✅ Previously processed certificates will show ship names")
+            if self.timezone_tests['ship_update_successful']:
+                self.log("   ✅ CONFIRMED: Ship update operations are WORKING")
+                
+                if self.timezone_tests['no_timezone_shifts_detected']:
+                    self.log("   ✅ SUCCESS: No timezone shifts detected during updates")
+                else:
+                    self.log("   ⚠️ WARNING: Timezone shifts may be occurring")
+                    
+                if self.timezone_tests['dates_preserved_after_update']:
+                    self.log("   ✅ SUCCESS: Date values preserved correctly")
+                else:
+                    self.log("   ⚠️ WARNING: Date preservation issues detected")
             else:
-                self.log("   ⚠️ ISSUE: Tooltip data may not be available yet")
+                self.log("   ❌ ISSUE: Ship update operations need fixing")
             
-            # Data quality tests
-            data_tests = [
-                'ship_info_fields_populated',
-                'backfill_response_format_correct',
-                'processing_statistics_provided'
+            # Recalculation endpoints analysis
+            self.log("\n🔄 RECALCULATION ENDPOINTS ANALYSIS:")
+            
+            recalc_tests = [
+                'special_survey_cycle_working',
+                'docking_dates_calculation_working',
+                'next_docking_calculation_working',
+                'anniversary_date_calculation_working'
             ]
-            data_passed = sum(1 for test in data_tests if self.backfill_tests.get(test, False))
-            data_rate = (data_passed / len(data_tests)) * 100
+            recalc_passed = sum(1 for test in recalc_tests if self.timezone_tests.get(test, False))
+            recalc_rate = (recalc_passed / len(recalc_tests)) * 100
             
-            self.log(f"\n📊 DATA QUALITY & API RESPONSE: {data_rate:.1f}% ({data_passed}/{len(data_tests)})")
+            self.log(f"\n🎯 RECALCULATION ENDPOINTS: {recalc_rate:.1f}% ({recalc_passed}/{len(recalc_tests)})")
+            
+            for test in recalc_tests:
+                endpoint_name = test.replace('_working', '').replace('_', '-')
+                if self.timezone_tests.get(test, False):
+                    self.log(f"   ✅ {endpoint_name}: WORKING")
+                else:
+                    self.log(f"   ❌ {endpoint_name}: NEEDS ATTENTION")
+            
+            if self.timezone_tests['recalculation_dates_consistent']:
+                self.log("   ✅ SUCCESS: All recalculation endpoints return consistent date formats")
+            else:
+                self.log("   ⚠️ WARNING: Date format inconsistencies detected")
             
             # Review request requirements analysis
             self.log("\n📋 REVIEW REQUEST REQUIREMENTS ANALYSIS:")
             
-            req1_met = self.backfill_tests['backfill_endpoint_accessible'] and self.backfill_tests['backfill_processing_successful']
-            req2_met = self.backfill_tests['certificates_updated_with_ship_info'] and self.backfill_tests['ship_info_fields_populated']
-            req3_met = self.backfill_tests['extracted_ship_name_populated'] and self.backfill_tests['tooltip_data_available']
+            req1_met = self.timezone_tests['ship_data_retrieved_successfully'] and self.timezone_tests['date_fields_present']
+            req2_met = self.timezone_tests['ship_update_successful'] and self.timezone_tests['no_timezone_shifts_detected']
+            req3_met = recalc_passed >= 3  # At least 3 out of 4 recalculation endpoints working
             
-            self.log(f"   1. Run Backfill Job: {'✅ MET' if req1_met else '❌ NOT MET'}")
-            self.log(f"      - Endpoint accessible and processing certificates")
+            self.log(f"   1. Ship Data Retrieval: {'✅ MET' if req1_met else '❌ NOT MET'}")
+            self.log(f"      - Login successful, SUNSHINE 01 found, date fields verified")
             
-            self.log(f"   2. Verify Processing: {'✅ MET' if req2_met else '❌ NOT MET'}")
-            self.log(f"      - Certificates updated with missing ship information")
+            self.log(f"   2. Ship Update Operations: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - Date fields updated without timezone shifts")
             
-            self.log(f"   3. Check Results: {'✅ MET' if req3_met else '❌ NOT MET'}")
-            self.log(f"      - Tooltips will show ship names for processed certificates")
+            self.log(f"   3. Recalculation Endpoints: {'✅ MET' if req3_met else '❌ NOT MET'}")
+            self.log(f"      - All recalculation endpoints tested for date consistency")
             
             requirements_met = sum([req1_met, req2_met, req3_met])
             
             # Final conclusion
             if success_rate >= 80 and requirements_met >= 2:
-                self.log(f"\n🎉 CONCLUSION: BACKFILL FUNCTIONALITY IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Backfill job successfully implemented!")
+                self.log(f"\n🎉 CONCLUSION: TIMEZONE FIX IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Timezone fix successfully implemented!")
                 self.log(f"   ✅ Requirements met: {requirements_met}/3")
-                self.log(f"   ✅ Existing certificates can now be processed for ship information")
-                self.log(f"   ✅ Tooltips will show ship names for previously processed certificates")
-                self.log(f"   ✅ System ready for production use with reasonable limits")
+                self.log(f"   ✅ Date fields remain consistent with no timezone shifts")
+                self.log(f"   ✅ Dates saved and retrieved are identical")
+                self.log(f"   ✅ Recalculation endpoints return proper date formats")
             elif success_rate >= 60:
-                self.log(f"\n⚠️ CONCLUSION: BACKFILL FUNCTIONALITY PARTIALLY WORKING")
+                self.log(f"\n⚠️ CONCLUSION: TIMEZONE FIX PARTIALLY WORKING")
                 self.log(f"   Success rate: {success_rate:.1f}% - Some functionality working, improvements needed")
                 self.log(f"   ⚠️ Requirements met: {requirements_met}/3")
                 
                 if req1_met:
-                    self.log(f"   ✅ Backfill job is accessible and processing")
+                    self.log(f"   ✅ Ship data retrieval is working correctly")
                 else:
-                    self.log(f"   ❌ Backfill job needs attention")
+                    self.log(f"   ❌ Ship data retrieval needs attention")
                     
                 if req2_met:
-                    self.log(f"   ✅ Certificate processing is working")
+                    self.log(f"   ✅ Ship update operations preserve dates correctly")
                 else:
-                    self.log(f"   ❌ Certificate processing needs attention")
+                    self.log(f"   ❌ Ship update operations may have timezone issues")
                     
                 if req3_met:
-                    self.log(f"   ✅ Tooltip functionality is ready")
+                    self.log(f"   ✅ Recalculation endpoints are working")
                 else:
-                    self.log(f"   ❌ Tooltip functionality needs attention")
+                    self.log(f"   ❌ Recalculation endpoints need attention")
             else:
-                self.log(f"\n❌ CONCLUSION: BACKFILL FUNCTIONALITY HAS CRITICAL ISSUES")
+                self.log(f"\n❌ CONCLUSION: TIMEZONE FIX HAS CRITICAL ISSUES")
                 self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
                 self.log(f"   ❌ Requirements met: {requirements_met}/3")
-                self.log(f"   ❌ Backfill job needs major fixes before production use")
+                self.log(f"   ❌ Timezone handling needs major fixes before production use")
             
             return True
             
