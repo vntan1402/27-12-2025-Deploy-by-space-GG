@@ -3058,20 +3058,24 @@ const HomePage = () => {
         // Show success message with calculated date
         alert(`Anniversary date calculated: ${result.anniversary_date.display}\nSource: ${result.anniversary_date.source}`);
         
-        // Refresh the ship data
+        // Refresh the ship data and update both ship list and detail view
         if (selectedShip?.id === shipId) {
-          fetchShips(); // Refresh the ship list
-          
-          // If edit modal is open, refresh the form data
-          if (showEditShipModal && editingShipData?.id === shipId) {
-            try {
-              const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
-                headers: { 'Authorization': `Bearer ${currentToken}` }
-              });
-              
-              const updatedShipData = shipResponse.data;
-              
-              // Update editing ship data with formatted dates (using global formatDateForInput)
+          try {
+            // Fetch updated ship data
+            const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
+              headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            
+            const updatedShipData = shipResponse.data;
+            
+            // Update selectedShip for Ship Detail Panel
+            setSelectedShip(updatedShipData);
+            
+            // Also refresh the ship list
+            fetchShips();
+            
+            // If edit modal is open, update editing ship data with formatted dates
+            if (showEditShipModal && editingShipData?.id === shipId) {
               setEditingShipData(prev => ({
                 ...prev,
                 ...updatedShipData,
@@ -3090,9 +3094,9 @@ const HomePage = () => {
                     }
                   : updatedShipData.special_survey_cycle
               }));
-            } catch (error) {
-              console.error('Error refreshing edit modal data:', error);
             }
+          } catch (error) {
+            console.error('Error refreshing ship data:', error);
           }
         }
       } else {
