@@ -2106,8 +2106,9 @@ def calculate_next_docking_from_last_docking(last_docking: Optional[datetime], s
         return None
         
     try:
-        # NEW LOGIC: Calculate Last Docking + 36 months
-        docking_plus_36_months = last_docking + timedelta(days=36 * 30.44)  # 36 months from last docking
+        # NEW LOGIC: Calculate Last Docking + 36 months using relativedelta for accurate month arithmetic
+        # This preserves the day of the month and handles month boundaries correctly
+        docking_plus_36_months = last_docking + relativedelta(months=36)
         
         logger.info(f"Last Docking + 36 months: {last_docking.strftime('%d/%m/%Y')} + 36 months = {docking_plus_36_months.strftime('%d/%m/%Y')}")
         
