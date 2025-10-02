@@ -2853,6 +2853,21 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to format ISO date string to YYYY-MM-DD for HTML date inputs (UTC-safe)
+  const formatDateForInput = (isoDate) => {
+    if (!isoDate) return '';
+    try {
+      const date = new Date(isoDate);
+      // Use UTC methods to prevent timezone shifts
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch (e) {
+      return '';
+    }
+  };
+
   // Enhanced formatting functions for Anniversary Date and Dry Dock Cycle
   const formatAnniversaryDate = (anniversaryDate) => {
     if (!anniversaryDate) return '-';
