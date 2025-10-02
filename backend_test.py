@@ -430,61 +430,126 @@ class TimezoneFixTester:
             self.log(f"   Error detecting timezone shift: {str(e)}")
             return False
     
-    def test_tooltip_functionality(self):
-        """Test that tooltip data is now available for certificates"""
+    def test_recalculation_endpoints(self):
+        """Test all recalculation endpoints for date consistency"""
         try:
-            self.log("🏷️ Testing tooltip functionality with updated certificate data...")
+            self.log("🔄 Testing recalculation endpoints for date consistency...")
             
-            # Get a ship and its certificates to test tooltip data
-            ships_endpoint = f"{BACKEND_URL}/ships"
-            response = requests.get(ships_endpoint, headers=self.get_headers(), timeout=30)
+            if not self.ship_data.get('id'):
+                self.log("❌ No ship data available for testing")
+                return False
             
-            if response.status_code == 200:
-                ships = response.json()
-                if not ships:
-                    self.log("   ⚠️ No ships found for tooltip testing")
-                    return True
+            ship_id = self.ship_data.get('id')
+            
+            # Test endpoints as specified in review request
+            endpoints_to_test = [
+                ('calculate-special-survey-cycle', 'special_survey_cycle_working'),
+                ('calculate-docking-dates', 'docking_dates_calculation_working'),
+                ('calculate-next-docking', 'next_docking_calculation_working'),
+                ('calculate-anniversary-date', 'anniversary_date_calculation_working')
+            ]
+            
+            all_endpoints_working = True
+            consistent_dates = True
+            
+            for endpoint_name, test_flag in endpoints_to_test:
+                self.log(f"   Testing {endpoint_name}...")
                 
-                # Test with first ship
-                test_ship = ships[0]
-                ship_id = test_ship.get('id')
-                ship_name = test_ship.get('name', 'Unknown')
+                endpoint = f"{BACKEND_URL}/ships/{ship_id}/{endpoint_name}"
+                response = requests.post(endpoint, headers=self.get_headers(), timeout=30)
                 
-                self.log(f"   Testing tooltips for ship: {ship_name}")
-                
-                # Get certificates for this ship
-                certs_endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
-                response = requests.get(certs_endpoint, headers=self.get_headers(), timeout=30)
+                self.log(f"      POST {endpoint}")
+                self.log(f"      Response status: {response.status_code}")
                 
                 if response.status_code == 200:
-                    certificates = response.json()
-                    self.log(f"   Found {len(certificates)} certificates for {ship_name}")
+                    response_data = response.json()
+                    self.log(f"      ✅ {endpoint_name} endpoint working")
+                    self.timezone_tests[test_flag] = True
                     
-                    # Check tooltip data availability
-                    tooltip_ready_certs = 0
-                    for cert in certificates:
-                        extracted_ship_name = cert.get('extracted_ship_name')
-                        if extracted_ship_name:
-                            tooltip_ready_certs += 1
+                    # Store results for analysis
+                    self.recalculation_results[endpoint_name] = response_data
                     
-                    self.log(f"   Certificates with tooltip data: {tooltip_ready_certs}/{len(certificates)}")
+                    # Log response for analysis
+                    self.log(f"      Response: {json.dumps(response_data, indent=8)}")
                     
-                    if tooltip_ready_certs > 0:
-                        self.log("✅ Tooltip functionality ready - certificates have extracted ship names")
-                        self.log(f"   {tooltip_ready_certs} certificates will show ship names in tooltips")
-                        return True
-                    else:
-                        self.log("⚠️ No certificates have extracted ship names for tooltips yet")
-                        return False
+                    # Check date formats in response
+                    if not self.verify_response_date_formats(response_data, endpoint_name):
+                        consistent_dates = False
+                        
                 else:
-                    self.log(f"   ❌ Failed to get certificates: {response.status_code}")
-                    return False
-            else:
-                self.log(f"   ❌ Failed to get ships: {response.status_code}")
-                return False
+                    self.log(f"      ❌ {endpoint_name} endpoint failed: {response.status_code}")
+                    all_endpoints_working = False
+                    try:
+                        error_data = response.json()
+                        self.log(f"         Error: {error_data.get('detail', 'Unknown error')}")
+                    except:
+                        self.log(f"         Error: {response.text[:200]}")
+            
+            if all_endpoints_working:
+                self.timezone_tests['all_endpoints_return_proper_formats'] = True
+                self.log("✅ All recalculation endpoints are working")
+            
+            if consistent_dates:
+                self.timezone_tests['recalculation_dates_consistent'] = True
+                self.log("✅ All recalculation endpoints return consistent date formats")
+            
+            return all_endpoints_working
                 
         except Exception as e:
-            self.log(f"❌ Error testing tooltip functionality: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing recalculation endpoints: {str(e)}", "ERROR")
+            return False
+    
+    def verify_response_date_formats(self, response_data, endpoint_name):
+        """Verify that response contains properly formatted dates"""
+        try:
+            consistent = True
+            
+            # Check different response structures based on endpoint
+            if endpoint_name == 'calculate-special-survey-cycle':
+                cycle_data = response_data.get('special_survey_cycle', {})
+                from_date = cycle_data.get('from_date')
+                to_date = cycle_data.get('to_date')
+                
+                if from_date and not self.is_valid_date_format(from_date):
+                    self.log(f"         ⚠️ Invalid from_date format: {from_date}")
+                    consistent = False
+                if to_date and not self.is_valid_date_format(to_date):
+                    self.log(f"         ⚠️ Invalid to_date format: {to_date}")
+                    consistent = False
+                    
+            elif endpoint_name == 'calculate-docking-dates':
+                docking_dates = response_data.get('docking_dates', {})
+                for field in ['last_docking_1', 'last_docking_2']:
+                    date_value = docking_dates.get(field)
+                    if date_value and not self.is_valid_date_format(date_value):
+                        self.log(f"         ⚠️ Invalid {field} format: {date_value}")
+                        consistent = False
+                        
+            elif endpoint_name == 'calculate-next-docking':
+                next_docking = response_data.get('next_docking')
+                if next_docking and not self.is_valid_date_format(next_docking):
+                    self.log(f"         ⚠️ Invalid next_docking format: {next_docking}")
+                    consistent = False
+                    
+            elif endpoint_name == 'calculate-anniversary-date':
+                anniversary_data = response_data.get('anniversary_date', {})
+                # Anniversary date typically has day/month, not full date
+                day = anniversary_data.get('day')
+                month = anniversary_data.get('month')
+                if day and (not isinstance(day, int) or day < 1 or day > 31):
+                    self.log(f"         ⚠️ Invalid day value: {day}")
+                    consistent = False
+                if month and (not isinstance(month, int) or month < 1 or month > 12):
+                    self.log(f"         ⚠️ Invalid month value: {month}")
+                    consistent = False
+            
+            if consistent:
+                self.log(f"         ✅ Date formats are consistent in {endpoint_name}")
+            
+            return consistent
+            
+        except Exception as e:
+            self.log(f"         Error verifying date formats: {str(e)}")
             return False
     
     def run_comprehensive_backfill_tests(self):
