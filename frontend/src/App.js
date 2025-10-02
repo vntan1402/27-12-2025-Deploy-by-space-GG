@@ -5117,8 +5117,8 @@ const HomePage = () => {
                     </label>
                     <input
                       type="number"
-                      value={editingShipData.year_built || ''}
-                      onChange={(e) => setEditingShipData(prev => ({ ...prev, year_built: e.target.value }))}
+                      value={editingShipData.built_year || ''}
+                      onChange={(e) => setEditingShipData(prev => ({ ...prev, built_year: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       placeholder="2020"
                     />
