@@ -3044,22 +3044,7 @@ const HomePage = () => {
               
               const updatedShipData = shipResponse.data;
               
-              // Format date fields for form inputs (UTC-safe)
-              const formatDateForInput = (isoDate) => {
-                if (!isoDate) return '';
-                try {
-                  const date = new Date(isoDate);
-                  // Use UTC methods to prevent timezone shifts
-                  const year = date.getUTCFullYear();
-                  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                  const day = String(date.getUTCDate()).padStart(2, '0');
-                  return `${year}-${month}-${day}`;
-                } catch (e) {
-                  return '';
-                }
-              };
-              
-              // Update editing ship data with formatted dates
+              // Update editing ship data with formatted dates (using global formatDateForInput)
               setEditingShipData(prev => ({
                 ...prev,
                 ...updatedShipData,
@@ -3125,22 +3110,7 @@ const HomePage = () => {
               
               const updatedShipData = shipResponse.data;
               
-              // Format date fields for form inputs (UTC-safe)
-              const formatDateForInput = (isoDate) => {
-                if (!isoDate) return '';
-                try {
-                  const date = new Date(isoDate);
-                  // Use UTC methods to prevent timezone shifts
-                  const year = date.getUTCFullYear();
-                  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                  const day = String(date.getUTCDate()).padStart(2, '0');
-                  return `${year}-${month}-${day}`;
-                } catch (e) {
-                  return '';
-                }
-              };
-              
-              // Update editing ship data with formatted dates
+              // Update editing ship data with formatted dates (using global formatDateForInput)
               setEditingShipData(prev => ({
                 ...prev,
                 ...updatedShipData,
@@ -3213,22 +3183,7 @@ const HomePage = () => {
               
               const updatedShipData = shipResponse.data;
               
-              // Format date fields for form inputs (UTC-safe)
-              const formatDateForInput = (isoDate) => {
-                if (!isoDate) return '';
-                try {
-                  const date = new Date(isoDate);
-                  // Use UTC methods to prevent timezone shifts
-                  const year = date.getUTCFullYear();
-                  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                  const day = String(date.getUTCDate()).padStart(2, '0');
-                  return `${year}-${month}-${day}`;
-                } catch (e) {
-                  return '';
-                }
-              };
-              
-              // Update editing ship data with formatted dates
+              // Update editing ship data with formatted dates (using global formatDateForInput)
               setEditingShipData(prev => ({
                 ...prev,
                 ...updatedShipData,
@@ -3302,22 +3257,7 @@ const HomePage = () => {
               
               const updatedShipData = shipResponse.data;
               
-              // Format date fields for form inputs (UTC-safe)
-              const formatDateForInput = (isoDate) => {
-                if (!isoDate) return '';
-                try {
-                  const date = new Date(isoDate);
-                  // Use UTC methods to prevent timezone shifts
-                  const year = date.getUTCFullYear();
-                  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                  const day = String(date.getUTCDate()).padStart(2, '0');
-                  return `${year}-${month}-${day}`;
-                } catch (e) {
-                  return '';
-                }
-              };
-              
-              // Update editing ship data with formatted dates
+              // Update editing ship data with formatted dates (using global formatDateForInput)
               setEditingShipData(prev => ({
                 ...prev,
                 ...updatedShipData,
