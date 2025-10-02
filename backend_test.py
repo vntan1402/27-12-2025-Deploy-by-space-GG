@@ -146,6 +146,27 @@ class TimezoneFixTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
+    def is_valid_date_format(self, date_value):
+        """Check if date value has a valid format"""
+        if not date_value:
+            return True  # None/empty is valid
+        
+        # Check for ISO format with timezone
+        if isinstance(date_value, str):
+            # Common valid formats: ISO with timezone, ISO without timezone
+            valid_patterns = [
+                r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$',
+                r'^\d{4}-\d{2}-\d{2}$',
+                r'^\d{2}/\d{2}/\d{4}$'
+            ]
+            
+            for pattern in valid_patterns:
+                if re.match(pattern, date_value):
+                    return True
+            return False
+        
+        return True  # Non-string values are considered valid
+    
     def find_sunshine_01_ship(self):
         """Find SUNSHINE 01 ship as specified in review request"""
         try:
