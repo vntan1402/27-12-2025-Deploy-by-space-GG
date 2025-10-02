@@ -10764,14 +10764,14 @@ const AddRecordModal = ({
     try {
       setIsSubmitting(true);
       
-      // Submit certificate metadata only
+      // Prepare certificate payload with UTC-safe date conversion
       const certPayload = {
         ...certificateData,
         ship_id: selectedShip?.id || '',
-        issue_date: new Date(certificateData.issue_date).toISOString(),
-        valid_date: new Date(certificateData.valid_date).toISOString(),
-        last_endorse: certificateData.last_endorse ? new Date(certificateData.last_endorse).toISOString() : null,
-        next_survey: certificateData.next_survey ? new Date(certificateData.next_survey).toISOString() : null
+        issue_date: convertDateInputToUTC(certificateData.issue_date),
+        valid_date: convertDateInputToUTC(certificateData.valid_date),
+        last_endorse: certificateData.last_endorse ? convertDateInputToUTC(certificateData.last_endorse) : null,
+        next_survey: certificateData.next_survey ? convertDateInputToUTC(certificateData.next_survey) : null
       };
       
       const response = await axios.post(`${API}/certificates`, certPayload);
