@@ -4795,8 +4795,8 @@ async def analyze_ship_certificate(
                             reference_docking = parsed_ld2
                         
                         if reference_docking:
-                            # Calculate Last Docking + 36 months
-                            docking_plus_36 = reference_docking + timedelta(days=36 * 30.44)
+                            # Calculate Last Docking + 36 months using relativedelta for accurate month arithmetic
+                            docking_plus_36 = reference_docking + relativedelta(months=36)
                             
                             # Parse Special Survey To Date for comparison
                             parsed_special_survey_to = None
