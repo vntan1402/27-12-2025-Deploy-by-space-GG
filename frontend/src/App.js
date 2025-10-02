@@ -4787,6 +4787,7 @@ const HomePage = () => {
           selectedShip={selectedShip}
           availableCompanies={availableCompanies}
           ships={ships}
+          setShips={setShips}
           parentAiConfig={aiConfig}
           isMultiCertProcessing={isMultiCertProcessing}
           multiCertUploads={multiCertUploads}
