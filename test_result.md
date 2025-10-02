@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Debug the Quick Edit Survey Type context menu functionality: Navigate to certificate table (login with admin1/123456, go to Document Portfolio, select SUNSHINE 01 ship, navigate to Certificates tab), test right-click functionality on Survey Type cells, check if context menu appears, check browser console for JavaScript errors, inspect element for onContextMenu handler attachment, debug handleSurveyTypeRightClick function existence and accessibility, verify quickEditMenu state updates, test context menu HTML rendering, and check CSS positioning/z-index issues."
+user_problem_statement: "Test the UPDATED 'Recalculate Last Docking' functionality for MINH ANH 09 with enhanced AI prompt that now recognizes 'inspections of the outside of the ship's bottom' = dry docking. PM242308 CSSC certificate contains: 'last two inspections of the outside of the ship's bottom took place on MAY 05, 2022'. Expected Result: Last Docking 1: 05/05/2022 (MAY 05, 2022). Test credentials: admin1/123456."
 
 frontend:
   - task: "Quick Edit Survey Type Context Menu Functionality Debug"
