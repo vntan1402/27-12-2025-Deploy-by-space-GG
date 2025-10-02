@@ -10475,18 +10475,55 @@ const AddRecordModal = ({
         // Convert extracted data to match frontend form field names
         // Enhanced to support ALL Ship Creation Form fields
         
-        // SPECIAL LOGIC: For Full Term CSSC certificates, use valid_date as special_survey_to_date
+        // SPECIAL LOGIC: For Full Term Class/Statutory certificates, use valid_date as special_survey_to_date
         // if special_survey_to_date is not explicitly provided by AI
+        // Applies to: CSSC, CSSE, CSSR, IOPP, IAPP, ISPP, LL, CL, IMSBC, IMDG, and other statutory certificates
         let specialSurveyToDate = analysisData.special_survey_to_date;
         if (!specialSurveyToDate && analysisData.valid_date) {
-          // Check if this is likely a Full Term certificate (has valid_date and cert_name includes CSSC or similar)
           const certName = (analysisData.cert_name || '').toLowerCase();
-          const isFullTermCSCC = certName.includes('cargo ship safety construction') || 
-                                 certName.includes('cssc') ||
-                                 certName.includes('safety construction');
           
-          if (isFullTermCSCC) {
-            console.log('🔍 Detected Full Term CSSC certificate - using valid_date as special_survey_to_date');
+          // List of Full Term Class/Statutory Certificate keywords
+          const fullTermCertificates = [
+            // Safety Certificates
+            'cargo ship safety construction', 'cssc',
+            'cargo ship safety equipment', 'csse',
+            'cargo ship safety radio', 'cssr',
+            'passenger ship safety', 
+            
+            // Pollution Prevention Certificates
+            'international oil pollution prevention', 'iopp',
+            'international air pollution prevention', 'iapp',
+            'international sewage pollution prevention', 'ispp',
+            'anti-fouling', 'afs',
+            
+            // Load Line & Tonnage
+            'load line', 'll certificate',
+            'international tonnage', 'itc',
+            
+            // Class Certificates
+            'class certificate', 'classification certificate',
+            
+            // Cargo Certificates
+            'international maritime solid bulk', 'imsbc',
+            'international maritime dangerous goods', 'imdg',
+            'document of compliance', 'doc',
+            
+            // Other Statutory
+            'minimum safe manning', 'msm',
+            'certificate of registry',
+            'safety management certificate', 'smc',
+            'ship security certificate', 'issc'
+          ];
+          
+          // Check if certificate name matches any Full Term certificate type
+          const isFullTermCertificate = fullTermCertificates.some(keyword => 
+            certName.includes(keyword)
+          );
+          
+          if (isFullTermCertificate) {
+            console.log('🔍 Detected Full Term Class/Statutory certificate - using valid_date as special_survey_to_date');
+            console.log('   Certificate:', analysisData.cert_name);
+            console.log('   Valid Date:', analysisData.valid_date);
             specialSurveyToDate = analysisData.valid_date;
           }
         }
