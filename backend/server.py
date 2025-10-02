@@ -3212,6 +3212,25 @@ async def delete_company(company_id: str, current_user: UserResponse = Depends(c
 async def get_ships(current_user: UserResponse = Depends(get_current_user)):
     try:
         ships = await mongo_db.find_all("ships")
+        
+        # FIX: Add UTC timezone to naive datetime objects for each ship
+        for ship in ships:
+            date_fields = ['last_docking', 'last_docking_2', 'next_docking', 
+                          'last_special_survey', 'last_intermediate_survey',
+                          'keel_laid', 'delivery_date', 'created_at', 'updated_at']
+            
+            for field in date_fields:
+                if field in ship and isinstance(ship[field], datetime):
+                    if ship[field].tzinfo is None:
+                        ship[field] = ship[field].replace(tzinfo=timezone.utc)
+            
+            # Also fix dates in special_survey_cycle if present
+            if 'special_survey_cycle' in ship and isinstance(ship['special_survey_cycle'], dict):
+                for date_field in ['from_date', 'to_date']:
+                    if date_field in ship['special_survey_cycle'] and isinstance(ship['special_survey_cycle'][date_field], datetime):
+                        if ship['special_survey_cycle'][date_field].tzinfo is None:
+                            ship['special_survey_cycle'][date_field] = ship['special_survey_cycle'][date_field].replace(tzinfo=timezone.utc)
+        
         return [ShipResponse(**ship) for ship in ships]
     except Exception as e:
         logger.error(f"Error fetching ships: {e}")
