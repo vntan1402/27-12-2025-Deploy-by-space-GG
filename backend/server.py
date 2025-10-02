@@ -1413,7 +1413,7 @@ def create_dry_dock_cycle_from_legacy(legacy_months: Optional[int], last_special
             # Use current date as cycle start if no reference point
             from_date = datetime.now(timezone.utc)
             
-        to_date = from_date + timedelta(days=cycle_months * 30.44)  # Average month length
+        to_date = from_date + relativedelta(months=cycle_months)  # Use relativedelta for accurate month arithmetic
         
         return DryDockCycle(
             from_date=from_date,
