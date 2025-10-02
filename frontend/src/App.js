@@ -3569,14 +3569,14 @@ const HomePage = () => {
                                     
                                     const initData = {
                                       ...fullShipData,
-                                      // Format date fields for HTML date inputs
-                                      last_docking: formatDateForInput(fullShipData.last_docking),
-                                      last_docking_2: formatDateForInput(fullShipData.last_docking_2),
-                                      next_docking: formatDateForInput(fullShipData.next_docking),
-                                      last_special_survey: formatDateForInput(fullShipData.last_special_survey),
-                                      last_intermediate_survey: formatDateForInput(fullShipData.last_intermediate_survey),
-                                      keel_laid: formatDateForInput(fullShipData.keel_laid),
-                                      delivery_date: formatDateForInput(fullShipData.delivery_date),
+                                      // Format date fields for HTML date inputs (UTC-safe)
+                                      last_docking: formatDateForEditModal(fullShipData.last_docking),
+                                      last_docking_2: formatDateForEditModal(fullShipData.last_docking_2),
+                                      next_docking: formatDateForEditModal(fullShipData.next_docking),
+                                      last_special_survey: formatDateForEditModal(fullShipData.last_special_survey),
+                                      last_intermediate_survey: formatDateForEditModal(fullShipData.last_intermediate_survey),
+                                      keel_laid: formatDateForEditModal(fullShipData.keel_laid),
+                                      delivery_date: formatDateForEditModal(fullShipData.delivery_date),
                                       // Ensure enhanced anniversary date structure
                                       anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
                                         ? fullShipData.anniversary_date 
