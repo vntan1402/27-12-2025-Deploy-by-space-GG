@@ -2988,7 +2988,19 @@ async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse 
             update_data["last_docking_2"] = docking_dates["last_docking_2"]
         
         if update_data:
-            await mongo_db.update("ships", {"id": ship_id}, update_data)
+            logger.info(f"💾 Updating ship {ship_id} with docking dates:")
+            logger.info(f"   Last Docking: {update_data.get('last_docking')}")
+            logger.info(f"   Last Docking 2: {update_data.get('last_docking_2')}")
+            
+            update_result = await mongo_db.update("ships", {"id": ship_id}, update_data)
+            logger.info(f"   Update result: {update_result}")
+            
+            # Verify update
+            updated_ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if updated_ship:
+                logger.info(f"✅ Verified - Last Docking in DB: {updated_ship.get('last_docking')}")
+            else:
+                logger.error(f"❌ Ship not found after update!")
         
         # Format response
         response_data = {}
