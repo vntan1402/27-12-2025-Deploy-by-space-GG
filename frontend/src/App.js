@@ -10091,8 +10091,8 @@ const AddRecordModal = ({
           const autoFillData = {
             cert_name: analysisData.cert_name || analysisData.certificate_name || '',
             cert_no: analysisData.cert_no || analysisData.certificate_number || '',
-            issue_date: analysisData.issue_date || '',
-            valid_date: analysisData.valid_date || analysisData.expiry_date || '',
+            issue_date: formatDateForInputCertificate(analysisData.issue_date) || '',
+            valid_date: formatDateForInputCertificate(analysisData.valid_date || analysisData.expiry_date) || '',
             issued_by: analysisData.issued_by || '',
             ship_id: selectedShip.id,
             category: 'certificates',
