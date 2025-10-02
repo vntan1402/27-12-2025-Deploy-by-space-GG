@@ -10568,13 +10568,17 @@ const AddRecordModal = ({
       const response = await axios.post(`${API}/ships`, shipPayload);
       const createdShip = response.data;
       
-      // Show initial success message and close modal immediately
+      // Show initial success message
       toast.success(language === 'vi' ? '🚢 Tàu đã được thêm thành công vào database!' : '🚢 Ship added to database successfully!');
       
-      // Close modal immediately after ship creation
+      // Immediately add the new ship to the ships list (optimistic update)
+      // This makes the ship appear instantly in the Ship List without waiting for API fetch
+      setShips(prevShips => [...prevShips, createdShip]);
+      
+      // Close modal immediately after ship creation and UI update
       onSuccess('ship');
       
-      // Start polling for Google Drive folder creation status
+      // Start polling for Google Drive folder creation status (runs in background)
       if (createdShip.id) {
         toast.info(language === 'vi' ? '📁 Đang tạo folder structure trên Google Drive...' : '📁 Creating folder structure on Google Drive...');
         startGoogleDriveFolderPolling(createdShip.id, createdShip.name);
