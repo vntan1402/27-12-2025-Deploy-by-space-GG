@@ -10474,6 +10474,23 @@ const AddRecordModal = ({
         
         // Convert extracted data to match frontend form field names
         // Enhanced to support ALL Ship Creation Form fields
+        
+        // SPECIAL LOGIC: For Full Term CSSC certificates, use valid_date as special_survey_to_date
+        // if special_survey_to_date is not explicitly provided by AI
+        let specialSurveyToDate = analysisData.special_survey_to_date;
+        if (!specialSurveyToDate && analysisData.valid_date) {
+          // Check if this is likely a Full Term certificate (has valid_date and cert_name includes CSSC or similar)
+          const certName = (analysisData.cert_name || '').toLowerCase();
+          const isFullTermCSCC = certName.includes('cargo ship safety construction') || 
+                                 certName.includes('cssc') ||
+                                 certName.includes('safety construction');
+          
+          if (isFullTermCSCC) {
+            console.log('🔍 Detected Full Term CSSC certificate - using valid_date as special_survey_to_date');
+            specialSurveyToDate = analysisData.valid_date;
+          }
+        }
+        
         const processedData = {
           // Basic Information Section (original fields)
           name: analysisData.ship_name || '', 
@@ -10498,7 +10515,7 @@ const AddRecordModal = ({
           anniversary_date_day: analysisData.anniversary_date_day ? String(analysisData.anniversary_date_day) : '',
           anniversary_date_month: analysisData.anniversary_date_month ? String(analysisData.anniversary_date_month) : '',
           special_survey_from_date: formatDateForInput(analysisData.special_survey_from_date) || '',
-          special_survey_to_date: formatDateForInput(analysisData.special_survey_to_date) || ''
+          special_survey_to_date: formatDateForInput(specialSurveyToDate) || '' // Use computed value
         };
         
         console.log('📝 Processed data for form:', processedData);
