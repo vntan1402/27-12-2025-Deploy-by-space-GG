@@ -10483,36 +10483,28 @@ const AddRecordModal = ({
           const certName = (analysisData.cert_name || '').toLowerCase();
           
           // List of Full Term Class/Statutory Certificate keywords
+          // Only certificates with 5-year Special Survey Cycle validity
           const fullTermCertificates = [
-            // Safety Certificates
+            // Safety Certificates (SOLAS) - 5-year validity
             'cargo ship safety construction', 'cssc',
             'cargo ship safety equipment', 'csse',
             'cargo ship safety radio', 'cssr',
             'passenger ship safety', 
             
-            // Pollution Prevention Certificates
+            // Pollution Prevention Certificates (MARPOL) - 5-year validity
             'international oil pollution prevention', 'iopp',
             'international air pollution prevention', 'iapp',
             'international sewage pollution prevention', 'ispp',
-            'anti-fouling', 'afs',
             
-            // Load Line & Tonnage
+            // Load Line - 5-year validity
             'load line', 'll certificate',
-            'international tonnage', 'itc',
             
-            // Class Certificates
+            // Class Certificates - typically 5-year validity
             'class certificate', 'classification certificate',
             
-            // Cargo Certificates
+            // Cargo Certificates - 5-year validity
             'international maritime solid bulk', 'imsbc',
-            'international maritime dangerous goods', 'imdg',
-            'document of compliance', 'doc',
-            
-            // Other Statutory
-            'minimum safe manning', 'msm',
-            'certificate of registry',
-            'safety management certificate', 'smc',
-            'ship security certificate', 'issc'
+            'international maritime dangerous goods', 'imdg'
           ];
           
           // Check if certificate name matches any Full Term certificate type
