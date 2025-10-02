@@ -10368,8 +10368,6 @@ const AddRecordModal = ({
     if (!dateString || typeof dateString !== 'string') return '';
     
     try {
-      console.log('🔍 formatDateForInput - Input:', dateString);
-      
       // Handle DD/MM/YYYY format (from AI extraction)
       if (dateString.includes('/')) {
         const parts = dateString.split('/');
@@ -10379,9 +10377,7 @@ const AddRecordModal = ({
           if (day && month && year && year.length === 4) {
             const paddedDay = day.padStart(2, '0');
             const paddedMonth = month.padStart(2, '0');
-            const result = `${year}-${paddedMonth}-${paddedDay}`;
-            console.log('✅ formatDateForInput - DD/MM/YYYY Output:', result);
-            return result;
+            return `${year}-${paddedMonth}-${paddedDay}`;
           }
         }
       }
@@ -10389,7 +10385,6 @@ const AddRecordModal = ({
       // Handle YYYY-MM-DD format directly (from AI ISO format) - NO timezone conversion needed
       const isoPattern = /^\d{4}-\d{2}-\d{2}$/;
       if (isoPattern.test(dateString.trim())) {
-        console.log('✅ formatDateForInput - ISO YYYY-MM-DD Output (direct):', dateString.trim());
         return dateString.trim(); // Return as-is, perfect for HTML date input
       }
       
@@ -10401,13 +10396,10 @@ const AddRecordModal = ({
           const year = date.getUTCFullYear();
           const month = String(date.getUTCMonth() + 1).padStart(2, '0');
           const day = String(date.getUTCDate()).padStart(2, '0');
-          const result = `${year}-${month}-${day}`;
-          console.log('✅ formatDateForInput - ISO Datetime Output:', result);
-          return result;
+          return `${year}-${month}-${day}`;
         }
       }
       
-      console.warn('⚠️ formatDateForInput - Unhandled format:', dateString);
       return '';
     } catch (error) {
       console.warn('Date formatting error:', error, 'for date:', dateString);
