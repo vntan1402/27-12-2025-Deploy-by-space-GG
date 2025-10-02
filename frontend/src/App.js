@@ -4717,7 +4717,16 @@ const HomePage = () => {
                           <button
                             onClick={async () => {
                               try {
-                                await axios.put(`${API}/certificates/${editingCertificate.id}`, editingCertificate, {
+                                // Prepare update payload with UTC-safe date conversion
+                                const updatePayload = {
+                                  ...editingCertificate,
+                                  issue_date: editingCertificate.issue_date ? convertDateInputToUTC(editingCertificate.issue_date.split('T')[0]) : null,
+                                  valid_date: editingCertificate.valid_date ? convertDateInputToUTC(editingCertificate.valid_date.split('T')[0]) : null,
+                                  last_endorse: editingCertificate.last_endorse ? convertDateInputToUTC(editingCertificate.last_endorse.split('T')[0]) : null,
+                                  next_survey: editingCertificate.next_survey ? convertDateInputToUTC(editingCertificate.next_survey.split('T')[0]) : null
+                                };
+                                
+                                await axios.put(`${API}/certificates/${editingCertificate.id}`, updatePayload, {
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
                                 
