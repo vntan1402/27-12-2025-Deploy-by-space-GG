@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Debug and fix the Auto Rename File functionality that causes frontend redirect to login page when accessed via right-click context menu. The issue occurs when user right-clicks on a certificate and selects 'Auto Rename File' from the context menu - instead of showing the confirmation dialog, the frontend redirects to the login page. I have identified and fixed a potential recursive call issue in the handleBatchAutoRename function by splitting it into separate functions: handleShowAutoRenameDialog (shows dialog) and handleExecuteBatchAutoRename (executes rename logic). Need to test: 1. Auto Rename File API endpoints are working correctly, 2. Context menu shows properly and doesn't cause crashes, 3. Dialog appears when 'Auto Rename File' is clicked, 4. Dialog execution works without redirect, 5. Both single certificate (right-click) and multiple certificate scenarios work. Use admin1/123456 credentials."
+user_problem_statement: "Changed cert_abbreviation priority to: Mappings (HIGHEST) → AI Analysis → Auto-generation. Updated both certificate creation and auto-rename functions to prioritize user-defined abbreviation mappings over AI extraction. Test: 1. Certificate creation uses mapping first, then AI abbreviation, then auto-generation, 2. Auto-rename function uses same priority order, 3. Verify existing mappings (CSSC, LL, CL, ITC, etc.) take precedence over AI results, 4. Test that certificates with mappings get correct abbreviations in filenames. Use admin1/123456 credentials. The goal is to ensure consistent abbreviations from predefined mappings rather than relying on AI which may vary."
 
 frontend:
   - task: "Quick Edit Survey Type Context Menu Functionality Debug"
