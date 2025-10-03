@@ -11586,7 +11586,9 @@ const AddRecordModal = ({
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() => setActiveTab('certificate')}
+                onClick={() => {
+                  setActiveTab('certificate');
+                }}
                 className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
               >
                 <div className="text-2xl mb-2">📄</div>
@@ -11594,7 +11596,9 @@ const AddRecordModal = ({
                 <div className="text-sm text-gray-600">{language === 'vi' ? 'Thêm chứng chỉ tàu' : 'Add ship certificate'}</div>
               </button>
               <button
-                onClick={() => setActiveTab('survey_report')}
+                onClick={() => {
+                  setActiveTab('survey_report');
+                }}
                 className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
               >
                 <div className="text-2xl mb-2">📋</div>
