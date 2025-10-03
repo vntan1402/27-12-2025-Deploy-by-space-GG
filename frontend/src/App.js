@@ -11684,9 +11684,9 @@ const AddRecordModal = ({
               <div className="border-t pt-6">
                 <h4 className="text-md font-medium text-gray-700 mb-4">
                   {selectedDocumentType === 'certificate' 
-                    ? (language === 'vi' ? '📄 Tạo Chứng chỉ mới' : '📄 Create New Certificate')
+                    ? (language === 'vi' ? 'Tạo Chứng chỉ mới' : 'Create New Certificate')
                     : selectedDocumentType === 'survey_report' 
-                    ? (language === 'vi' ? '📋 Tạo Hồ sơ Đăng kiểm mới' : '📋 Create New Class Survey Report')
+                    ? (language === 'vi' ? 'Tạo Hồ sơ Đăng kiểm mới' : 'Create New Class Survey Report')
                     : ''
                   }
                 </h4>
