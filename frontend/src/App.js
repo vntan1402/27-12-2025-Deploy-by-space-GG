@@ -12896,7 +12896,12 @@ const AddRecordModal = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || (recordType === 'certificate' && !selectedShip)}
+            disabled={
+              isSubmitting || 
+              (recordType === 'certificate' && !selectedShip) ||
+              activeTab === 'documents' ||
+              ['crew', 'ism', 'isps', 'mlc', 'supplies'].includes(activeTab)
+            }
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
           >
             {isSubmitting && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
