@@ -217,91 +217,69 @@ class MultiCertUploadAbbreviationTester:
             self.log(f"❌ Error finding test ship: {str(e)}", "ERROR")
             return False
     
-    def find_cl_certificate_pm242309(self):
-        """Find CL certificate PM242309 for MINH ANH 09 as specified in review request"""
+    def create_test_certificate_files(self):
+        """Create test certificate files for multi-upload testing"""
         try:
-            self.log("📋 Finding CL certificate PM242309 for MINH ANH 09...")
+            self.log("📄 Creating test certificate files for multi-upload...")
             
-            if not self.ship_data.get('id'):
-                self.log("❌ No ship data available for certificate search")
-                return False
+            # Create temporary test files that simulate certificate PDFs
+            test_certificates = [
+                {
+                    'filename': 'test_classification_certificate.txt',
+                    'content': '''CLASSIFICATION CERTIFICATE
+Ship Name: TEST SHIP 01
+IMO Number: 1234567
+Certificate Number: CL-TEST-001
+Issue Date: 15/01/2024
+Valid Date: 15/01/2029
+Last Endorse: 15/01/2024
+Issued by: Panama Maritime Documentation Services
+Classification Society: PMDS
+This is to certify that the ship has been surveyed and classified.''',
+                    'expected_abbreviation': 'CL'
+                },
+                {
+                    'filename': 'test_safety_construction_certificate.txt',
+                    'content': '''CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE
+Ship Name: TEST SHIP 01
+IMO Number: 1234567
+Certificate Number: CSSC-TEST-001
+Issue Date: 20/02/2024
+Valid Date: 20/02/2029
+Last Endorse: 20/02/2024
+Issued by: Panama Maritime Authority
+This certificate is issued under the provisions of SOLAS.''',
+                    'expected_abbreviation': 'CSSC'
+                }
+            ]
             
-            ship_id = self.ship_data.get('id')
+            for cert_info in test_certificates:
+                # Create temporary file
+                temp_file = tempfile.NamedTemporaryFile(
+                    mode='w', 
+                    suffix='.txt', 
+                    delete=False,
+                    prefix=cert_info['filename'].replace('.txt', '_')
+                )
+                temp_file.write(cert_info['content'])
+                temp_file.close()
+                
+                self.test_files.append({
+                    'path': temp_file.name,
+                    'filename': cert_info['filename'],
+                    'expected_abbreviation': cert_info['expected_abbreviation'],
+                    'content': cert_info['content']
+                })
+                
+                self.log(f"   Created test file: {cert_info['filename']}")
+                self.log(f"      Path: {temp_file.name}")
+                self.log(f"      Expected abbreviation: {cert_info['expected_abbreviation']}")
             
-            # Get all certificates for MINH ANH 09
-            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"✅ Created {len(self.test_files)} test certificate files")
+            return True
             
-            if response.status_code == 200:
-                certificates = response.json()
-                self.log(f"   Found {len(certificates)} total certificates for MINH ANH 09")
-                
-                # Look for CL certificate with PM242309
-                cl_certificate = None
-                pm242309_certificate = None
-                
-                for cert in certificates:
-                    cert_name = cert.get('cert_name', '').upper()
-                    cert_no = cert.get('cert_no', '')
-                    cert_abbreviation = cert.get('cert_abbreviation', '')
-                    
-                    # Check for CL certificate (Classification Certificate)
-                    if 'CLASSIFICATION' in cert_name and not cl_certificate:
-                        cl_certificate = cert
-                        self.log(f"   Found CL certificate:")
-                        self.log(f"      ID: {cert.get('id')}")
-                        self.log(f"      Name: {cert.get('cert_name')}")
-                        self.log(f"      Number: {cert_no}")
-                        self.log(f"      Abbreviation: {cert_abbreviation}")
-                    
-                    # Check for PM242309 specifically
-                    if cert_no == 'PM242309':
-                        pm242309_certificate = cert
-                        self.log(f"   Found PM242309 certificate:")
-                        self.log(f"      ID: {cert.get('id')}")
-                        self.log(f"      Name: {cert.get('cert_name')}")
-                        self.log(f"      Number: {cert_no}")
-                        self.log(f"      Abbreviation: {cert_abbreviation}")
-                
-                # Prefer PM242309 if found, otherwise use any CL certificate
-                target_certificate = pm242309_certificate or cl_certificate
-                
-                if target_certificate:
-                    self.certificate_data = target_certificate
-                    self.original_abbreviation = target_certificate.get('cert_abbreviation')
-                    
-                    self.log(f"✅ Target certificate selected:")
-                    self.log(f"   Certificate ID: {target_certificate.get('id')}")
-                    self.log(f"   Certificate Name: {target_certificate.get('cert_name')}")
-                    self.log(f"   Certificate Number: {target_certificate.get('cert_no')}")
-                    self.log(f"   Current Abbreviation: {self.original_abbreviation}")
-                    
-                    if pm242309_certificate:
-                        self.cert_tests['pm242309_certificate_found'] = True
-                        self.log("✅ PM242309 certificate found (exact match)")
-                    else:
-                        self.cert_tests['cl_certificate_found'] = True
-                        self.log("✅ CL certificate found (classification certificate)")
-                    
-                    # Check if certificate has abbreviation field
-                    if 'cert_abbreviation' in target_certificate:
-                        self.cert_tests['certificate_has_abbreviation_field'] = True
-                        self.log("✅ Certificate has cert_abbreviation field")
-                    
-                    return True
-                else:
-                    self.log("❌ No CL certificate or PM242309 certificate found")
-                    # List available certificates for debugging
-                    self.log("   Available certificates:")
-                    for cert in certificates[:10]:
-                        self.log(f"      - {cert.get('cert_name', 'Unknown')} ({cert.get('cert_no', 'No number')})")
-                    return False
-            else:
-                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
-                return False
-                
         except Exception as e:
-            self.log(f"❌ Error finding CL certificate: {str(e)}", "ERROR")
+            self.log(f"❌ Error creating test certificate files: {str(e)}", "ERROR")
             return False
 
     def test_certificate_abbreviation_update(self):
