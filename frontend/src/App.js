@@ -12595,7 +12595,7 @@ const AddRecordModal = ({
         )}
 
         {/* Survey Report Form */}
-        {(activeTab === 'survey_report' || selectedDocumentType === 'survey_report') && (
+        {activeTab === 'documents' && selectedDocumentType === 'survey_report' && (
           <div className="space-y-4">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <div className="flex items-center">
