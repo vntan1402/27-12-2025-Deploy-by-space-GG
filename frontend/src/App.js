@@ -2035,8 +2035,14 @@ const HomePage = () => {
     setContextMenu({ show: false, x: 0, y: 0, certificate: null });
   };
 
-  // Handle batch auto rename for multiple certificates
-  const handleBatchAutoRename = async () => {
+  // Show the auto rename dialog
+  const handleShowAutoRenameDialog = () => {
+    setShowAutoRenameDialog(true);
+    handleCloseContextMenu();
+  };
+
+  // Execute the actual batch auto rename logic
+  const handleExecuteBatchAutoRename = async () => {
     try {
       // Get certificates to rename
       let certificatesToRename = [];
@@ -2153,8 +2159,8 @@ const HomePage = () => {
         console.log('❌ Rename errors:', errors);
       }
 
-      // Refresh certificate list
-      if (successCount > 0) {
+      // Refresh certificate list - Add safety check
+      if (successCount > 0 && selectedShip?.id) {
         await fetchCertificates(selectedShip.id);
       }
 
@@ -2175,6 +2181,9 @@ const HomePage = () => {
       setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
     }
   };
+
+  // Legacy function for backward compatibility
+  const handleBatchAutoRename = handleShowAutoRenameDialog;
 
   const handleEditCertificate = () => {
     setEditingCertificate(contextMenu.certificate);
