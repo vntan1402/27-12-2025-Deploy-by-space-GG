@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Timezone Fix Testing
-FOCUS: Test timezone fix for date handling consistency
+Ship Management System - Certificate Abbreviation Saving Testing
+FOCUS: Test certificate abbreviation saving functionality when editing certificates
 
 REVIEW REQUEST REQUIREMENTS:
-1. Ship Data Retrieval: Login with admin1/123456, retrieve SUNSHINE 01 ship data, verify date fields
-2. Ship Update Operations: Test updating ship's date fields via PUT /api/ships/{ship_id}
-3. Recalculation Endpoints: Test all recalculation endpoints for date consistency
+1. Find a CL certificate for MINH ANH 09 (should be PM242309)
+2. Test the PUT /api/certificates/{cert_id} endpoint with cert_abbreviation update
+3. Verify the abbreviation is saved to database
+4. Check the enhanced logging shows cert_abbreviation processing
+5. Use admin1/123456 credentials
+
+TEST SCENARIOS:
+- Update cert_abbreviation from "CL" to "CLASSIFICATION" 
+- Update it back to "CL"
+- Verify database record changes
+- Check if abbreviation mappings are also created/updated
 
 EXPECTED BEHAVIOR:
-- All date fields should remain consistent with no timezone shifts
-- Dates saved and retrieved should be identical
-- Recalculation endpoints should return proper date formats
-
-TEST FOCUS:
-- Date field consistency in ship data retrieval
-- Date preservation during ship updates
-- Recalculation endpoint date format consistency
-- Timezone handling verification
+- Edit Certificate > Save properly saves abbreviation data to database
+- Database records should reflect the changes
+- Enhanced logging should show cert_abbreviation processing
 """
 
 import requests
