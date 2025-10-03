@@ -10456,8 +10456,11 @@ const AddRecordModal = ({
     return allowedRoles.includes(user?.role) ? 'ship' : 'documents';
   });
 
+  // Document type selection state
+  const [selectedDocumentType, setSelectedDocumentType] = useState('');
+  
   // For backward compatibility, map activeTab to recordType
-  const recordType = activeTab === 'documents' ? 'certificate' : activeTab;
+  const recordType = selectedDocumentType || (activeTab === 'documents' ? 'certificate' : activeTab);
   // PDF Analysis state
   const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
