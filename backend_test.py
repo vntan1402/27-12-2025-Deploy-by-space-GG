@@ -1130,18 +1130,18 @@ This certificate is issued under the provisions of SOLAS.''',
             return False
 
 def main():
-    """Main function to run Ship Management System Certificate Abbreviation tests"""
-    print("🔄 SHIP MANAGEMENT SYSTEM - CERTIFICATE ABBREVIATION TESTING STARTED")
+    """Main function to run Ship Management System Multi Cert Upload Abbreviation tests"""
+    print("🔄 SHIP MANAGEMENT SYSTEM - MULTI CERT UPLOAD ABBREVIATION TESTING STARTED")
     print("=" * 80)
     
     try:
-        tester = CertificateAbbreviationTester()
-        success = tester.run_comprehensive_certificate_tests()
+        tester = MultiCertUploadAbbreviationTester()
+        success = tester.run_comprehensive_multi_upload_tests()
         
         if success:
-            print("\n✅ CERTIFICATE ABBREVIATION TESTING COMPLETED SUCCESSFULLY")
+            print("\n✅ MULTI CERT UPLOAD ABBREVIATION TESTING COMPLETED SUCCESSFULLY")
         else:
-            print("\n❌ CERTIFICATE ABBREVIATION TESTING COMPLETED WITH ISSUES")
+            print("\n❌ MULTI CERT UPLOAD ABBREVIATION TESTING COMPLETED WITH ISSUES")
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
