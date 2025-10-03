@@ -12976,7 +12976,7 @@ const AddRecordModal = ({
             </div>
 
             {/* Row 2 - Survey Information */}
-            <div className="col-span-2">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Last Special Survey' : 'Last Special Survey'}
               </label>
@@ -12988,7 +12988,7 @@ const AddRecordModal = ({
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 <span className="flex items-center">
                   {language === 'vi' ? 'Last Intermediate Survey' : 'Last Intermediate Survey'}
@@ -13012,26 +13012,28 @@ const AddRecordModal = ({
               />
             </div>
 
-            <div className="col-span-8">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Special Survey Cycle (IMO 5-year)' : 'Special Survey Cycle (IMO 5-year)'}
+                {language === 'vi' ? 'Special Survey From Date' : 'Special Survey From Date'}
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="date"
-                  value={shipData.special_survey_from_date || ''}
-                  onChange={(e) => setShipData(prev => ({ ...prev, special_survey_from_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  placeholder="From Date"
-                />
-                <input
-                  type="date"
-                  value={shipData.special_survey_to_date || ''}
-                  onChange={(e) => setShipData(prev => ({ ...prev, special_survey_to_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  placeholder="To Date"
-                />
-              </div>
+              <input
+                type="date"
+                value={shipData.special_survey_from_date || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, special_survey_from_date: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Special Survey To Date' : 'Special Survey To Date'}
+              </label>
+              <input
+                type="date"
+                value={shipData.special_survey_to_date || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, special_survey_to_date: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
             </div>
           </div>
         )}
