@@ -12745,6 +12745,10 @@ const AddRecordModal = ({
             {isSubmitting && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
             {recordType === 'ship' 
               ? (language === 'vi' ? '🚢 Thêm tàu mới' : '🚢 Add New Ship')
+              : recordType === 'certificate'
+              ? (language === 'vi' ? '📄 Thêm Certificate' : '📄 Add Certificate')
+              : recordType === 'survey_report'
+              ? (language === 'vi' ? '📋 Thêm Hồ sơ Đăng kiểm' : '📋 Add Class Survey Report')
               : (language === 'vi' ? 'Thêm hồ sơ' : 'Add Record')
             }
           </button>
