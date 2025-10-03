@@ -8837,9 +8837,9 @@ async def auto_rename_certificate_file(
                     
                     if result.get("success"):
                         # Update certificate record with new filename
-                        await certificates_collection.update_one(
+                        await mongo_db.update("certificates", 
                             {"id": certificate_id},
-                            {"$set": {"file_name": new_filename}}
+                            {"file_name": new_filename}
                         )
                         
                         logger.info(f"✅ Successfully auto-renamed certificate file to '{new_filename}'")
