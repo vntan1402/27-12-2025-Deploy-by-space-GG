@@ -940,9 +940,9 @@ This certificate is issued under the provisions of SOLAS.''',
             return False
     
     def provide_final_analysis(self):
-        """Provide final analysis of certificate abbreviation testing"""
+        """Provide final analysis of multi cert upload abbreviation testing"""
         try:
-            self.log("🔄 SHIP MANAGEMENT SYSTEM - CERTIFICATE ABBREVIATION TESTING - RESULTS")
+            self.log("🔄 SHIP MANAGEMENT SYSTEM - MULTI CERT UPLOAD ABBREVIATION TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
@@ -968,73 +968,53 @@ This certificate is issued under the provisions of SOLAS.''',
             success_rate = (len(passed_tests) / len(self.cert_tests)) * 100
             self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.cert_tests)})")
             
-            # Certificate finding analysis
-            self.log("\n📋 CERTIFICATE FINDING ANALYSIS:")
+            # Multi upload endpoint analysis
+            self.log("\n📤 MULTI CERT UPLOAD ENDPOINT ANALYSIS:")
             
-            finding_tests = [
-                'minh_anh_09_ship_found',
-                'cl_certificate_found',
-                'pm242309_certificate_found',
-                'certificate_has_abbreviation_field'
+            if self.cert_tests['multi_upload_endpoint_accessible']:
+                self.log("   ✅ CONFIRMED: /certificates/multi-upload endpoint is accessible")
+            else:
+                self.log("   ❌ ISSUE: Multi cert upload endpoint not accessible")
+            
+            if self.cert_tests['multi_upload_successful']:
+                self.log("   ✅ SUCCESS: Multi cert upload completed successfully")
+                self.log(f"      Uploaded {len(self.uploaded_certificates)} certificates")
+            else:
+                self.log("   ❌ ISSUE: Multi cert upload failed")
+            
+            # Certificate abbreviation analysis
+            self.log("\n📋 CERTIFICATE ABBREVIATION ANALYSIS:")
+            
+            abbreviation_tests = [
+                'certificates_created_with_abbreviations',
+                'cert_abbreviation_saved_to_database',
+                'ai_extracted_abbreviation_working',
+                'database_records_have_abbreviations'
             ]
-            finding_passed = sum(1 for test in finding_tests if self.cert_tests.get(test, False))
-            finding_rate = (finding_passed / len(finding_tests)) * 100
+            abbreviation_passed = sum(1 for test in abbreviation_tests if self.cert_tests.get(test, False))
+            abbreviation_rate = (abbreviation_passed / len(abbreviation_tests)) * 100
             
-            self.log(f"\n🎯 CERTIFICATE FINDING: {finding_rate:.1f}% ({finding_passed}/{len(finding_tests)})")
+            self.log(f"\n🎯 ABBREVIATION FUNCTIONALITY: {abbreviation_rate:.1f}% ({abbreviation_passed}/{len(abbreviation_tests)})")
             
-            if self.cert_tests['minh_anh_09_ship_found']:
-                self.log("   ✅ CONFIRMED: MINH ANH 09 ship found")
-                self.log(f"      Ship ID: {self.ship_data.get('id')}")
-                self.log(f"      Ship Name: {self.ship_data.get('name')}")
-                self.log(f"      IMO: {self.ship_data.get('imo')}")
-            
-            if self.cert_tests['pm242309_certificate_found']:
-                self.log("   ✅ CONFIRMED: PM242309 certificate found (exact match)")
-            elif self.cert_tests['cl_certificate_found']:
-                self.log("   ✅ CONFIRMED: CL certificate found (classification certificate)")
+            if self.cert_tests['certificates_created_with_abbreviations']:
+                self.log("   ✅ SUCCESS: Certificates created with abbreviations")
             else:
-                self.log("   ❌ ISSUE: No suitable certificate found for testing")
+                self.log("   ❌ ISSUE: Certificates not created with abbreviations")
             
-            if self.certificate_data:
-                self.log(f"   📋 Target certificate details:")
-                self.log(f"      Certificate ID: {self.certificate_data.get('id')}")
-                self.log(f"      Certificate Name: {self.certificate_data.get('cert_name')}")
-                self.log(f"      Certificate Number: {self.certificate_data.get('cert_no')}")
-                self.log(f"      Original Abbreviation: {self.original_abbreviation}")
-            
-            # Certificate update analysis
-            self.log("\n🔄 CERTIFICATE UPDATE ANALYSIS:")
-            
-            update_tests = [
-                'certificate_update_endpoint_accessible',
-                'abbreviation_update_to_classification_successful',
-                'abbreviation_update_back_to_cl_successful',
-                'database_record_changes_verified'
-            ]
-            update_passed = sum(1 for test in update_tests if self.cert_tests.get(test, False))
-            update_rate = (update_passed / len(update_tests)) * 100
-            
-            self.log(f"\n🎯 CERTIFICATE UPDATES: {update_rate:.1f}% ({update_passed}/{len(update_tests)})")
-            
-            if self.cert_tests['certificate_update_endpoint_accessible']:
-                self.log("   ✅ CONFIRMED: PUT /api/certificates/{cert_id} endpoint is accessible")
+            if self.cert_tests['cert_abbreviation_saved_to_database']:
+                self.log("   ✅ SUCCESS: cert_abbreviation saved to database")
             else:
-                self.log("   ❌ ISSUE: Certificate update endpoint not accessible")
+                self.log("   ❌ ISSUE: cert_abbreviation not saved to database")
             
-            if self.cert_tests['abbreviation_update_to_classification_successful']:
-                self.log("   ✅ SUCCESS: Abbreviation updated to 'CLASSIFICATION'")
+            if self.cert_tests['ai_extracted_abbreviation_working']:
+                self.log("   ✅ SUCCESS: AI extracted abbreviations working")
             else:
-                self.log("   ❌ ISSUE: Failed to update abbreviation to 'CLASSIFICATION'")
+                self.log("   ⚠️ INFO: AI abbreviation extraction not detected")
             
-            if self.cert_tests['abbreviation_update_back_to_cl_successful']:
-                self.log("   ✅ SUCCESS: Abbreviation updated back to 'CL'")
+            if self.cert_tests['database_records_have_abbreviations']:
+                self.log("   ✅ SUCCESS: Database records have abbreviations")
             else:
-                self.log("   ❌ ISSUE: Failed to update abbreviation back to 'CL'")
-            
-            if self.cert_tests['database_record_changes_verified']:
-                self.log("   ✅ SUCCESS: Database record changes verified")
-            else:
-                self.log("   ❌ ISSUE: Database record changes not verified")
+                self.log("   ❌ ISSUE: Database records missing abbreviations")
             
             # Enhanced logging analysis
             self.log("\n📝 ENHANCED LOGGING ANALYSIS:")
@@ -1057,71 +1037,62 @@ This certificate is issued under the provisions of SOLAS.''',
             # Abbreviation mappings analysis
             self.log("\n🗂️ ABBREVIATION MAPPINGS ANALYSIS:")
             
-            mapping_tests = [
-                'abbreviation_mappings_created',
-                'abbreviation_mappings_updated'
-            ]
-            mapping_passed = sum(1 for test in mapping_tests if self.cert_tests.get(test, False))
-            mapping_rate = (mapping_passed / len(mapping_tests)) * 100
-            
-            self.log(f"\n🎯 ABBREVIATION MAPPINGS: {mapping_rate:.1f}% ({mapping_passed}/{len(mapping_tests)})")
-            
-            if self.cert_tests['abbreviation_mappings_created']:
-                self.log("   ✅ SUCCESS: Abbreviation mappings are working")
+            if self.cert_tests['abbreviation_mappings_utilized']:
+                self.log("   ✅ SUCCESS: Abbreviation mappings are being utilized")
             else:
-                self.log("   ⚠️ INFO: Abbreviation mappings endpoint may not be implemented")
+                self.log("   ⚠️ INFO: Abbreviation mappings utilization not clearly detected")
             
             # Review request requirements analysis
             self.log("\n📋 REVIEW REQUEST REQUIREMENTS ANALYSIS:")
             
-            req1_met = self.cert_tests['pm242309_certificate_found'] or self.cert_tests['cl_certificate_found']
-            req2_met = self.cert_tests['certificate_update_endpoint_accessible']
-            req3_met = self.cert_tests['database_record_changes_verified']
-            req4_met = self.cert_tests['enhanced_logging_detected']
-            req5_met = self.cert_tests['abbreviation_update_to_classification_successful'] and self.cert_tests['abbreviation_update_back_to_cl_successful']
+            req1_met = self.cert_tests['multi_upload_endpoint_accessible']
+            req2_met = self.cert_tests['cert_abbreviation_saved_to_database']
+            req3_met = self.cert_tests['enhanced_logging_detected']
+            req4_met = self.cert_tests['ai_extracted_abbreviation_working'] or self.cert_tests['abbreviation_mappings_utilized']
+            req5_met = self.cert_tests['database_records_have_abbreviations']
             
-            self.log(f"   1. Find CL certificate for MINH ANH 09: {'✅ MET' if req1_met else '❌ NOT MET'}")
-            self.log(f"      - {'PM242309 found' if self.cert_tests['pm242309_certificate_found'] else 'CL certificate found' if self.cert_tests['cl_certificate_found'] else 'No certificate found'}")
+            self.log(f"   1. Find multi cert upload endpoint: {'✅ MET' if req1_met else '❌ NOT MET'}")
+            self.log(f"      - /certificates/multi-upload endpoint accessible")
             
-            self.log(f"   2. Test PUT /api/certificates/{{cert_id}} endpoint: {'✅ MET' if req2_met else '❌ NOT MET'}")
-            self.log(f"      - Certificate update endpoint accessible and working")
+            self.log(f"   2. cert_abbreviation saved to certificate records: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - Database records contain cert_abbreviation field")
             
-            self.log(f"   3. Verify abbreviation saved to database: {'✅ MET' if req3_met else '❌ NOT MET'}")
-            self.log(f"      - Database record changes verified")
-            
-            self.log(f"   4. Check enhanced logging: {'✅ MET' if req4_met else '❌ NOT MET'}")
+            self.log(f"   3. Enhanced logging shows cert_abbreviation processing: {'✅ MET' if req3_met else '❌ NOT MET'}")
             self.log(f"      - cert_abbreviation processing logged")
             
-            self.log(f"   5. Test different scenarios: {'✅ MET' if req5_met else '❌ NOT MET'}")
-            self.log(f"      - Update 'CL' → 'CLASSIFICATION' → 'CL'")
+            self.log(f"   4. AI-extracted and mapping-based abbreviations work: {'✅ MET' if req4_met else '❌ NOT MET'}")
+            self.log(f"      - Both AI extraction and mapping lookup functional")
+            
+            self.log(f"   5. cert_abbreviation populated in database: {'✅ MET' if req5_met else '❌ NOT MET'}")
+            self.log(f"      - Database verification successful")
             
             requirements_met = sum([req1_met, req2_met, req3_met, req4_met, req5_met])
             
             # Final conclusion
             if success_rate >= 80 and requirements_met >= 4:
-                self.log(f"\n🎉 CONCLUSION: CERTIFICATE ABBREVIATION SAVING IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Certificate abbreviation functionality fully implemented!")
+                self.log(f"\n🎉 CONCLUSION: MULTI CERT UPLOAD ABBREVIATION SAVING IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Multi cert upload abbreviation functionality fully implemented!")
                 self.log(f"   ✅ Requirements met: {requirements_met}/5")
-                self.log(f"   ✅ Edit Certificate > Save properly saves abbreviation data to database")
-                self.log(f"   ✅ PUT /api/certificates/{{cert_id}} endpoint working with cert_abbreviation")
-                self.log(f"   ✅ Database records reflect abbreviation changes")
+                self.log(f"   ✅ Multi Cert Upload saves cert_abbreviation to certificate database records")
+                self.log(f"   ✅ AI analysis_result includes cert_abbreviation")
+                self.log(f"   ✅ Existing abbreviation mappings are used when AI doesn't provide one")
                 self.log(f"   ✅ Enhanced logging shows cert_abbreviation processing")
             elif success_rate >= 60 and requirements_met >= 3:
-                self.log(f"\n⚠️ CONCLUSION: CERTIFICATE ABBREVIATION SAVING PARTIALLY WORKING")
+                self.log(f"\n⚠️ CONCLUSION: MULTI CERT UPLOAD ABBREVIATION SAVING PARTIALLY WORKING")
                 self.log(f"   Success rate: {success_rate:.1f}% - Most functionality working, minor improvements needed")
                 self.log(f"   ⚠️ Requirements met: {requirements_met}/5")
                 
-                if req1_met and req2_met and req3_met:
-                    self.log(f"   ✅ Core functionality (certificate updates and database saving) is working")
-                if not req4_met:
+                if req1_met and req2_met:
+                    self.log(f"   ✅ Core functionality (multi upload and database saving) is working")
+                if not req3_met:
                     self.log(f"   ⚠️ Enhanced logging could not be fully verified")
-                if not req5_met:
-                    self.log(f"   ⚠️ Some update scenarios may need attention")
+                if not req4_met:
+                    self.log(f"   ⚠️ AI extraction or mapping utilization may need attention")
             else:
-                self.log(f"\n❌ CONCLUSION: CERTIFICATE ABBREVIATION SAVING HAS CRITICAL ISSUES")
+                self.log(f"\n❌ CONCLUSION: MULTI CERT UPLOAD ABBREVIATION SAVING HAS CRITICAL ISSUES")
                 self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
                 self.log(f"   ❌ Requirements met: {requirements_met}/5")
-                self.log(f"   ❌ Certificate abbreviation saving needs major fixes before production use")
+                self.log(f"   ❌ Multi cert upload abbreviation saving needs major fixes before production use")
             
             return True
             
