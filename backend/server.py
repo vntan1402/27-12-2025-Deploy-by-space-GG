@@ -8796,15 +8796,36 @@ async def auto_rename_certificate_file(
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found for certificate")
         
-        # Build new filename using naming convention
+        # Build new filename using naming convention with priority: Mappings → Database → Cert Name
         ship_name = ship.get("name", "Unknown Ship").replace(" ", "_")
         cert_type = certificate.get("cert_type", "Unknown Type").replace(" ", "_")
+        cert_name = certificate.get("cert_name", "Unknown Certificate")
         cert_abbreviation = certificate.get("cert_abbreviation", "")
-        cert_name = certificate.get("cert_name", "Unknown Certificate").replace(" ", "_")
         issue_date = certificate.get("issue_date")
         
-        # Use abbreviation if available, otherwise use cert name
-        cert_identifier = cert_abbreviation if cert_abbreviation else cert_name
+        # Priority 1: Check abbreviation mappings FIRST
+        final_abbreviation = None
+        if cert_name and cert_name != "Unknown Certificate":
+            try:
+                mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"cert_name": cert_name})
+                if mapping:
+                    final_abbreviation = mapping.get('abbreviation')
+                    logger.info(f"🔄 AUTO-RENAME - PRIORITY 1: Using mapping '{cert_name}' → '{final_abbreviation}'")
+            except Exception as e:
+                logger.warning(f"⚠️ Error looking up abbreviation mapping: {e}")
+        
+        # Priority 2: Use database cert_abbreviation if no mapping found
+        if not final_abbreviation and cert_abbreviation:
+            final_abbreviation = cert_abbreviation
+            logger.info(f"🔄 AUTO-RENAME - PRIORITY 2: Using database abbreviation '{final_abbreviation}'")
+        
+        # Priority 3: Fallback to cert name
+        if not final_abbreviation:
+            final_abbreviation = cert_name
+            logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Using full cert name '{final_abbreviation}'")
+        
+        # Use final abbreviation for filename
+        cert_identifier = final_abbreviation.replace(" ", "_")
         cert_identifier = cert_identifier.replace(" ", "_")
         
         # Format issue date
