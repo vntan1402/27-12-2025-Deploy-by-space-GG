@@ -904,163 +904,188 @@ class CertificateAbbreviationTester:
             return False
     
     def provide_final_analysis(self):
-        """Provide final analysis of timezone fix testing"""
+        """Provide final analysis of certificate abbreviation testing"""
         try:
-            self.log("🔄 SHIP MANAGEMENT SYSTEM - TIMEZONE FIX TESTING - RESULTS")
+            self.log("🔄 SHIP MANAGEMENT SYSTEM - CERTIFICATE ABBREVIATION TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.timezone_tests.items():
+            for test_name, passed in self.cert_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.timezone_tests)}):")
+            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.cert_tests)}):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.timezone_tests)}):")
+                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.cert_tests)}):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Calculate success rate
-            success_rate = (len(passed_tests) / len(self.timezone_tests)) * 100
-            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.timezone_tests)})")
+            success_rate = (len(passed_tests) / len(self.cert_tests)) * 100
+            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.cert_tests)})")
             
-            # Ship data retrieval analysis
-            self.log("\n📊 SHIP DATA RETRIEVAL ANALYSIS:")
+            # Certificate finding analysis
+            self.log("\n📋 CERTIFICATE FINDING ANALYSIS:")
             
-            retrieval_tests = [
-                'sunshine_01_ship_found',
-                'ship_data_retrieved_successfully',
-                'date_fields_present',
-                'date_formats_consistent'
+            finding_tests = [
+                'minh_anh_09_ship_found',
+                'cl_certificate_found',
+                'pm242309_certificate_found',
+                'certificate_has_abbreviation_field'
             ]
-            retrieval_passed = sum(1 for test in retrieval_tests if self.timezone_tests.get(test, False))
-            retrieval_rate = (retrieval_passed / len(retrieval_tests)) * 100
+            finding_passed = sum(1 for test in finding_tests if self.cert_tests.get(test, False))
+            finding_rate = (finding_passed / len(finding_tests)) * 100
             
-            self.log(f"\n🎯 SHIP DATA RETRIEVAL: {retrieval_rate:.1f}% ({retrieval_passed}/{len(retrieval_tests)})")
+            self.log(f"\n🎯 CERTIFICATE FINDING: {finding_rate:.1f}% ({finding_passed}/{len(finding_tests)})")
             
-            if self.timezone_tests['ship_data_retrieved_successfully']:
-                self.log("   ✅ CONFIRMED: Ship data retrieval is WORKING")
-                self.log("   ✅ SUNSHINE 01 ship data accessible")
-                
-                if self.original_dates:
-                    self.log(f"   📊 Date fields found: {len(self.original_dates)}")
-                    for field, value in self.original_dates.items():
-                        self.log(f"      {field}: {value}")
+            if self.cert_tests['minh_anh_09_ship_found']:
+                self.log("   ✅ CONFIRMED: MINH ANH 09 ship found")
+                self.log(f"      Ship ID: {self.ship_data.get('id')}")
+                self.log(f"      Ship Name: {self.ship_data.get('name')}")
+                self.log(f"      IMO: {self.ship_data.get('imo')}")
+            
+            if self.cert_tests['pm242309_certificate_found']:
+                self.log("   ✅ CONFIRMED: PM242309 certificate found (exact match)")
+            elif self.cert_tests['cl_certificate_found']:
+                self.log("   ✅ CONFIRMED: CL certificate found (classification certificate)")
             else:
-                self.log("   ❌ ISSUE: Ship data retrieval needs fixing")
+                self.log("   ❌ ISSUE: No suitable certificate found for testing")
             
-            # Ship update analysis
-            self.log("\n🔄 SHIP UPDATE OPERATIONS ANALYSIS:")
+            if self.certificate_data:
+                self.log(f"   📋 Target certificate details:")
+                self.log(f"      Certificate ID: {self.certificate_data.get('id')}")
+                self.log(f"      Certificate Name: {self.certificate_data.get('cert_name')}")
+                self.log(f"      Certificate Number: {self.certificate_data.get('cert_no')}")
+                self.log(f"      Original Abbreviation: {self.original_abbreviation}")
+            
+            # Certificate update analysis
+            self.log("\n🔄 CERTIFICATE UPDATE ANALYSIS:")
             
             update_tests = [
-                'ship_update_successful',
-                'dates_preserved_after_update',
-                'no_timezone_shifts_detected'
+                'certificate_update_endpoint_accessible',
+                'abbreviation_update_to_classification_successful',
+                'abbreviation_update_back_to_cl_successful',
+                'database_record_changes_verified'
             ]
-            update_passed = sum(1 for test in update_tests if self.timezone_tests.get(test, False))
+            update_passed = sum(1 for test in update_tests if self.cert_tests.get(test, False))
             update_rate = (update_passed / len(update_tests)) * 100
             
-            self.log(f"\n🎯 SHIP UPDATE OPERATIONS: {update_rate:.1f}% ({update_passed}/{len(update_tests)})")
+            self.log(f"\n🎯 CERTIFICATE UPDATES: {update_rate:.1f}% ({update_passed}/{len(update_tests)})")
             
-            if self.timezone_tests['ship_update_successful']:
-                self.log("   ✅ CONFIRMED: Ship update operations are WORKING")
-                
-                if self.timezone_tests['no_timezone_shifts_detected']:
-                    self.log("   ✅ SUCCESS: No timezone shifts detected during updates")
-                else:
-                    self.log("   ⚠️ WARNING: Timezone shifts may be occurring")
-                    
-                if self.timezone_tests['dates_preserved_after_update']:
-                    self.log("   ✅ SUCCESS: Date values preserved correctly")
-                else:
-                    self.log("   ⚠️ WARNING: Date preservation issues detected")
+            if self.cert_tests['certificate_update_endpoint_accessible']:
+                self.log("   ✅ CONFIRMED: PUT /api/certificates/{cert_id} endpoint is accessible")
             else:
-                self.log("   ❌ ISSUE: Ship update operations need fixing")
+                self.log("   ❌ ISSUE: Certificate update endpoint not accessible")
             
-            # Recalculation endpoints analysis
-            self.log("\n🔄 RECALCULATION ENDPOINTS ANALYSIS:")
+            if self.cert_tests['abbreviation_update_to_classification_successful']:
+                self.log("   ✅ SUCCESS: Abbreviation updated to 'CLASSIFICATION'")
+            else:
+                self.log("   ❌ ISSUE: Failed to update abbreviation to 'CLASSIFICATION'")
             
-            recalc_tests = [
-                'special_survey_cycle_working',
-                'docking_dates_calculation_working',
-                'next_docking_calculation_working',
-                'anniversary_date_calculation_working'
+            if self.cert_tests['abbreviation_update_back_to_cl_successful']:
+                self.log("   ✅ SUCCESS: Abbreviation updated back to 'CL'")
+            else:
+                self.log("   ❌ ISSUE: Failed to update abbreviation back to 'CL'")
+            
+            if self.cert_tests['database_record_changes_verified']:
+                self.log("   ✅ SUCCESS: Database record changes verified")
+            else:
+                self.log("   ❌ ISSUE: Database record changes not verified")
+            
+            # Enhanced logging analysis
+            self.log("\n📝 ENHANCED LOGGING ANALYSIS:")
+            
+            logging_tests = [
+                'enhanced_logging_detected',
+                'cert_abbreviation_processing_logged'
             ]
-            recalc_passed = sum(1 for test in recalc_tests if self.timezone_tests.get(test, False))
-            recalc_rate = (recalc_passed / len(recalc_tests)) * 100
+            logging_passed = sum(1 for test in logging_tests if self.cert_tests.get(test, False))
+            logging_rate = (logging_passed / len(logging_tests)) * 100
             
-            self.log(f"\n🎯 RECALCULATION ENDPOINTS: {recalc_rate:.1f}% ({recalc_passed}/{len(recalc_tests)})")
+            self.log(f"\n🎯 ENHANCED LOGGING: {logging_rate:.1f}% ({logging_passed}/{len(logging_tests)})")
             
-            for test in recalc_tests:
-                endpoint_name = test.replace('_working', '').replace('_', '-')
-                if self.timezone_tests.get(test, False):
-                    self.log(f"   ✅ {endpoint_name}: WORKING")
-                else:
-                    self.log(f"   ❌ {endpoint_name}: NEEDS ATTENTION")
-            
-            if self.timezone_tests['recalculation_dates_consistent']:
-                self.log("   ✅ SUCCESS: All recalculation endpoints return consistent date formats")
+            if self.cert_tests['enhanced_logging_detected']:
+                self.log("   ✅ SUCCESS: Enhanced logging detected and working")
+                self.log("   ✅ cert_abbreviation processing is being logged")
             else:
-                self.log("   ⚠️ WARNING: Date format inconsistencies detected")
+                self.log("   ⚠️ WARNING: Enhanced logging could not be verified")
+            
+            # Abbreviation mappings analysis
+            self.log("\n🗂️ ABBREVIATION MAPPINGS ANALYSIS:")
+            
+            mapping_tests = [
+                'abbreviation_mappings_created',
+                'abbreviation_mappings_updated'
+            ]
+            mapping_passed = sum(1 for test in mapping_tests if self.cert_tests.get(test, False))
+            mapping_rate = (mapping_passed / len(mapping_tests)) * 100
+            
+            self.log(f"\n🎯 ABBREVIATION MAPPINGS: {mapping_rate:.1f}% ({mapping_passed}/{len(mapping_tests)})")
+            
+            if self.cert_tests['abbreviation_mappings_created']:
+                self.log("   ✅ SUCCESS: Abbreviation mappings are working")
+            else:
+                self.log("   ⚠️ INFO: Abbreviation mappings endpoint may not be implemented")
             
             # Review request requirements analysis
             self.log("\n📋 REVIEW REQUEST REQUIREMENTS ANALYSIS:")
             
-            req1_met = self.timezone_tests['ship_data_retrieved_successfully'] and self.timezone_tests['date_fields_present']
-            req2_met = self.timezone_tests['ship_update_successful'] and self.timezone_tests['no_timezone_shifts_detected']
-            req3_met = recalc_passed >= 3  # At least 3 out of 4 recalculation endpoints working
+            req1_met = self.cert_tests['pm242309_certificate_found'] or self.cert_tests['cl_certificate_found']
+            req2_met = self.cert_tests['certificate_update_endpoint_accessible']
+            req3_met = self.cert_tests['database_record_changes_verified']
+            req4_met = self.cert_tests['enhanced_logging_detected']
+            req5_met = self.cert_tests['abbreviation_update_to_classification_successful'] and self.cert_tests['abbreviation_update_back_to_cl_successful']
             
-            self.log(f"   1. Ship Data Retrieval: {'✅ MET' if req1_met else '❌ NOT MET'}")
-            self.log(f"      - Login successful, SUNSHINE 01 found, date fields verified")
+            self.log(f"   1. Find CL certificate for MINH ANH 09: {'✅ MET' if req1_met else '❌ NOT MET'}")
+            self.log(f"      - {'PM242309 found' if self.cert_tests['pm242309_certificate_found'] else 'CL certificate found' if self.cert_tests['cl_certificate_found'] else 'No certificate found'}")
             
-            self.log(f"   2. Ship Update Operations: {'✅ MET' if req2_met else '❌ NOT MET'}")
-            self.log(f"      - Date fields updated without timezone shifts")
+            self.log(f"   2. Test PUT /api/certificates/{{cert_id}} endpoint: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - Certificate update endpoint accessible and working")
             
-            self.log(f"   3. Recalculation Endpoints: {'✅ MET' if req3_met else '❌ NOT MET'}")
-            self.log(f"      - All recalculation endpoints tested for date consistency")
+            self.log(f"   3. Verify abbreviation saved to database: {'✅ MET' if req3_met else '❌ NOT MET'}")
+            self.log(f"      - Database record changes verified")
             
-            requirements_met = sum([req1_met, req2_met, req3_met])
+            self.log(f"   4. Check enhanced logging: {'✅ MET' if req4_met else '❌ NOT MET'}")
+            self.log(f"      - cert_abbreviation processing logged")
+            
+            self.log(f"   5. Test different scenarios: {'✅ MET' if req5_met else '❌ NOT MET'}")
+            self.log(f"      - Update 'CL' → 'CLASSIFICATION' → 'CL'")
+            
+            requirements_met = sum([req1_met, req2_met, req3_met, req4_met, req5_met])
             
             # Final conclusion
-            if success_rate >= 80 and requirements_met >= 2:
-                self.log(f"\n🎉 CONCLUSION: TIMEZONE FIX IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Timezone fix successfully implemented!")
-                self.log(f"   ✅ Requirements met: {requirements_met}/3")
-                self.log(f"   ✅ Date fields remain consistent with no timezone shifts")
-                self.log(f"   ✅ Dates saved and retrieved are identical")
-                self.log(f"   ✅ Recalculation endpoints return proper date formats")
-            elif success_rate >= 60:
-                self.log(f"\n⚠️ CONCLUSION: TIMEZONE FIX PARTIALLY WORKING")
-                self.log(f"   Success rate: {success_rate:.1f}% - Some functionality working, improvements needed")
-                self.log(f"   ⚠️ Requirements met: {requirements_met}/3")
+            if success_rate >= 80 and requirements_met >= 4:
+                self.log(f"\n🎉 CONCLUSION: CERTIFICATE ABBREVIATION SAVING IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Certificate abbreviation functionality fully implemented!")
+                self.log(f"   ✅ Requirements met: {requirements_met}/5")
+                self.log(f"   ✅ Edit Certificate > Save properly saves abbreviation data to database")
+                self.log(f"   ✅ PUT /api/certificates/{{cert_id}} endpoint working with cert_abbreviation")
+                self.log(f"   ✅ Database records reflect abbreviation changes")
+                self.log(f"   ✅ Enhanced logging shows cert_abbreviation processing")
+            elif success_rate >= 60 and requirements_met >= 3:
+                self.log(f"\n⚠️ CONCLUSION: CERTIFICATE ABBREVIATION SAVING PARTIALLY WORKING")
+                self.log(f"   Success rate: {success_rate:.1f}% - Most functionality working, minor improvements needed")
+                self.log(f"   ⚠️ Requirements met: {requirements_met}/5")
                 
-                if req1_met:
-                    self.log(f"   ✅ Ship data retrieval is working correctly")
-                else:
-                    self.log(f"   ❌ Ship data retrieval needs attention")
-                    
-                if req2_met:
-                    self.log(f"   ✅ Ship update operations preserve dates correctly")
-                else:
-                    self.log(f"   ❌ Ship update operations may have timezone issues")
-                    
-                if req3_met:
-                    self.log(f"   ✅ Recalculation endpoints are working")
-                else:
-                    self.log(f"   ❌ Recalculation endpoints need attention")
+                if req1_met and req2_met and req3_met:
+                    self.log(f"   ✅ Core functionality (certificate updates and database saving) is working")
+                if not req4_met:
+                    self.log(f"   ⚠️ Enhanced logging could not be fully verified")
+                if not req5_met:
+                    self.log(f"   ⚠️ Some update scenarios may need attention")
             else:
-                self.log(f"\n❌ CONCLUSION: TIMEZONE FIX HAS CRITICAL ISSUES")
+                self.log(f"\n❌ CONCLUSION: CERTIFICATE ABBREVIATION SAVING HAS CRITICAL ISSUES")
                 self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
-                self.log(f"   ❌ Requirements met: {requirements_met}/3")
-                self.log(f"   ❌ Timezone handling needs major fixes before production use")
+                self.log(f"   ❌ Requirements met: {requirements_met}/5")
+                self.log(f"   ❌ Certificate abbreviation saving needs major fixes before production use")
             
             return True
             
