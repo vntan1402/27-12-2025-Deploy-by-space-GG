@@ -8735,8 +8735,7 @@ async def auto_rename_certificate_file(
     Ship name + Cert type + Certificate Name (Abbreviation) + Issue Date"""
     try:
         # Get certificate data
-        certificates_collection = mongo_db["certificates"]
-        certificate = await certificates_collection.find_one({"id": certificate_id})
+        certificate = await mongo_db.find_one("certificates", {"id": certificate_id})
         
         if not certificate:
             raise HTTPException(status_code=404, detail="Certificate not found")
@@ -8747,8 +8746,7 @@ async def auto_rename_certificate_file(
             raise HTTPException(status_code=400, detail="Certificate has no associated Google Drive file")
         
         # Get ship data
-        ships_collection = mongo_db["ships"]
-        ship = await ships_collection.find_one({"id": certificate.get("ship_id")})
+        ship = await mongo_db.find_one("ships", {"id": certificate.get("ship_id")})
         
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found for certificate")
