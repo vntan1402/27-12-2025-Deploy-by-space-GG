@@ -82,6 +82,7 @@ const statusMatch = certificateFilters.status === 'all' ||
 - **All:** Shows all certificates regardless of status
 - **Valid:** Shows only certificates with Valid status
 - **Expired:** Shows only certificates with Expired status
+- **Over Due:** Shows only Full Term certificates that are past Anniversary Date + 3 months
 
 ## 5. Backend Data Structure
 
