@@ -11584,27 +11584,111 @@ const AddRecordModal = ({
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               {language === 'vi' ? 'Chọn loại tài liệu' : 'Select document type'}
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() => {
-                  setActiveTab('certificate');
-                }}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
-              >
-                <div className="text-2xl mb-2">📄</div>
-                <div className="font-medium text-gray-900">{language === 'vi' ? 'Chứng chỉ' : 'Certificate'}</div>
-                <div className="text-sm text-gray-600">{language === 'vi' ? 'Thêm chứng chỉ tàu' : 'Add ship certificate'}</div>
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab('survey_report');
-                }}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
-              >
-                <div className="text-2xl mb-2">📋</div>
-                <div className="font-medium text-gray-900">{language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}</div>
-                <div className="text-sm text-gray-600">{language === 'vi' ? 'Thêm hồ sơ đăng kiểm' : 'Add class survey report'}</div>
-              </button>
+            <div className="space-y-3">
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="certificate"
+                  onChange={() => setActiveTab('certificate')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-3 flex items-center">
+                  <span className="text-lg mr-3">📄</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {language === 'vi' ? 'Chứng chỉ' : 'Certificate'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {language === 'vi' ? 'Thêm chứng chỉ tàu' : 'Add ship certificate'}
+                    </div>
+                  </div>
+                </div>
+              </label>
+              
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="survey_report"
+                  onChange={() => setActiveTab('survey_report')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-3 flex items-center">
+                  <span className="text-lg mr-3">📋</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {language === 'vi' ? 'Thêm hồ sơ đăng kiểm' : 'Add class survey report'}
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors opacity-60">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="test_report"
+                  disabled
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-3 flex items-center">
+                  <span className="text-lg mr-3">🧪</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {language === 'vi' ? 'Báo cáo kiểm tra' : 'Test Report'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {language === 'vi' ? 'Đang phát triển' : 'Under development'}
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors opacity-60">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="drawings_manuals"
+                  disabled
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-3 flex items-center">
+                  <span className="text-lg mr-3">📐</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {language === 'vi' ? 'Bản vẽ & Sổ tay' : 'Drawings & Manuals'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {language === 'vi' ? 'Đang phát triển' : 'Under development'}
+                    </div>
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors opacity-60">
+                <input
+                  type="radio"
+                  name="documentType"
+                  value="other_documents"
+                  disabled
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <div className="ml-3 flex items-center">
+                  <span className="text-lg mr-3">📁</span>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {language === 'vi' ? 'Tài liệu khác' : 'Other Documents'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {language === 'vi' ? 'Đang phát triển' : 'Under development'}
+                    </div>
+                  </div>
+                </div>
+              </label>
             </div>
           </div>
         )}
