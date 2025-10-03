@@ -987,7 +987,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Marine Certificate Classification Debug - Multi Cert Upload Issues"
+    - "Certificate Over Due Status API Endpoints Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
