@@ -11599,9 +11599,8 @@ const AddRecordModal = ({
                   value="certificate"
                   checked={selectedDocumentType === 'certificate'}
                   onChange={() => setSelectedDocumentType('certificate')}
-                  className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="mb-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="text-2xl mb-2">📄</span>
                 <div className="font-medium text-gray-900 text-sm mb-1">
                   {language === 'vi' ? 'Chứng chỉ' : 'Certificate'}
                 </div>
@@ -11621,14 +11620,13 @@ const AddRecordModal = ({
                   value="survey_report"
                   checked={selectedDocumentType === 'survey_report'}
                   onChange={() => setSelectedDocumentType('survey_report')}
-                  className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="mb-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="text-2xl mb-2">📋</span>
                 <div className="font-medium text-gray-900 text-sm mb-1">
-                  {language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey'}
+                  {language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}
                 </div>
                 <div className="text-xs text-gray-600">
-                  {language === 'vi' ? 'Thêm đăng kiểm' : 'Add survey'}
+                  {language === 'vi' ? 'Thêm đăng kiểm' : 'Add survey report'}
                 </div>
               </label>
 
@@ -11638,9 +11636,8 @@ const AddRecordModal = ({
                   name="documentType"
                   value="test_report"
                   disabled
-                  className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="mb-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="text-2xl mb-2">🧪</span>
                 <div className="font-medium text-gray-900 text-sm mb-1">
                   {language === 'vi' ? 'Test Report' : 'Test Report'}
                 </div>
@@ -11655,11 +11652,10 @@ const AddRecordModal = ({
                   name="documentType"
                   value="drawings_manuals"
                   disabled
-                  className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="mb-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="text-2xl mb-2">📐</span>
                 <div className="font-medium text-gray-900 text-sm mb-1">
-                  {language === 'vi' ? 'Bản vẽ & Sổ tay' : 'Drawings'}
+                  {language === 'vi' ? 'Bản vẽ & Sổ tay' : 'Drawing & Manual'}
                 </div>
                 <div className="text-xs text-gray-600">
                   {language === 'vi' ? 'Đang phát triển' : 'Development'}
@@ -11672,11 +11668,10 @@ const AddRecordModal = ({
                   name="documentType"
                   value="other_documents"
                   disabled
-                  className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="mb-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
-                <span className="text-2xl mb-2">📁</span>
                 <div className="font-medium text-gray-900 text-sm mb-1">
-                  {language === 'vi' ? 'Tài liệu khác' : 'Other Docs'}
+                  {language === 'vi' ? 'Tài liệu khác' : 'Other Documents'}
                 </div>
                 <div className="text-xs text-gray-600">
                   {language === 'vi' ? 'Đang phát triển' : 'Development'}
