@@ -392,46 +392,55 @@ This certificate is issued under the provisions of SOLAS.''',
             self.log(f"❌ Error testing multi cert upload: {str(e)}", "ERROR")
             return False
 
-    def verify_database_record_changes(self):
-        """Verify that database record changes are reflected"""
+    def verify_database_abbreviation_records(self):
+        """Verify that uploaded certificates have abbreviations saved in database"""
         try:
-            self.log("🔍 Verifying database record changes...")
+            self.log("🔍 Verifying database abbreviation records...")
             
-            if not self.certificate_data.get('id'):
-                self.log("❌ No certificate data available for verification")
+            if not self.uploaded_certificates:
+                self.log("❌ No uploaded certificates to verify")
                 return False
             
-            cert_id = self.certificate_data.get('id')
+            abbreviations_verified = 0
+            total_certificates = len(self.uploaded_certificates)
             
-            # Get current certificate data to verify changes
-            endpoint = f"{BACKEND_URL}/certificates/{cert_id}"
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            
-            if response.status_code == 200:
-                current_cert = response.json()
-                current_abbreviation = current_cert.get('cert_abbreviation')
+            for cert in self.uploaded_certificates:
+                cert_id = cert.get('id')
+                cert_name = cert.get('cert_name', 'Unknown')
                 
-                self.log(f"   Current certificate data:")
-                self.log(f"      ID: {current_cert.get('id')}")
-                self.log(f"      Name: {current_cert.get('cert_name')}")
-                self.log(f"      Number: {current_cert.get('cert_no')}")
-                self.log(f"      Current Abbreviation: {current_abbreviation}")
-                self.log(f"      Original Abbreviation: {self.original_abbreviation}")
+                if not cert_id:
+                    continue
                 
-                # Verify that the abbreviation has been updated
-                if current_abbreviation == "CL":
-                    self.cert_tests['database_record_changes_verified'] = True
-                    self.log("✅ Database record changes verified - abbreviation is 'CL'")
-                    return True
+                # Get current certificate data from database
+                endpoint = f"{BACKEND_URL}/certificates/{cert_id}"
+                response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+                
+                if response.status_code == 200:
+                    current_cert = response.json()
+                    current_abbreviation = current_cert.get('cert_abbreviation')
+                    
+                    self.log(f"   Certificate: {cert_name}")
+                    self.log(f"      ID: {cert_id}")
+                    self.log(f"      Database Abbreviation: {current_abbreviation}")
+                    
+                    if current_abbreviation:
+                        abbreviations_verified += 1
+                        self.log(f"      ✅ Abbreviation found in database: {current_abbreviation}")
+                    else:
+                        self.log(f"      ❌ No abbreviation found in database")
                 else:
-                    self.log(f"❌ Database record not updated correctly. Expected: 'CL', Got: {current_abbreviation}")
-                    return False
+                    self.log(f"   ❌ Failed to get certificate {cert_id}: {response.status_code}")
+            
+            if abbreviations_verified > 0:
+                self.cert_tests['database_records_have_abbreviations'] = True
+                self.log(f"✅ Database verification successful: {abbreviations_verified}/{total_certificates} certificates have abbreviations")
+                return True
             else:
-                self.log(f"   ❌ Failed to get current certificate data: {response.status_code}")
+                self.log(f"❌ Database verification failed: No certificates have abbreviations saved")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error verifying database record changes: {str(e)}", "ERROR")
+            self.log(f"❌ Error verifying database abbreviation records: {str(e)}", "ERROR")
             return False
 
     def check_enhanced_logging(self):
