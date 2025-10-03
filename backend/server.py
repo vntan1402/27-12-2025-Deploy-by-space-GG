@@ -6909,14 +6909,30 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         logger.info(f"   analysis_result.get('cert_abbreviation'): {extracted_cert_abbreviation}")
         logger.info(f"   analysis_result keys: {list(analysis_result.keys())}")
         
+        # Get cert_abbreviation from AI or try to find from mapping
+        cert_name = analysis_result.get('cert_name', 'Unknown Certificate')
+        cert_abbreviation = analysis_result.get('cert_abbreviation')
+        
+        # If AI didn't extract cert_abbreviation, try to get it from existing mappings
+        if not cert_abbreviation and cert_name and cert_name != 'Unknown Certificate':
+            try:
+                mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"cert_name": cert_name})
+                if mapping:
+                    cert_abbreviation = mapping.get('abbreviation')
+                    logger.info(f"📋 Found existing abbreviation mapping: '{cert_name}' -> '{cert_abbreviation}'")
+                else:
+                    logger.info(f"📋 No existing abbreviation mapping found for: '{cert_name}'")
+            except Exception as e:
+                logger.warning(f"⚠️ Error looking up abbreviation mapping: {e}")
+        
         # Create certificate data
         cert_data = {
             'id': str(uuid.uuid4()),
             'ship_id': ship_id,
-            'cert_name': analysis_result.get('cert_name', 'Unknown Certificate'),
+            'cert_name': cert_name,
             'cert_type': validate_certificate_type(analysis_result.get('cert_type', 'Full Term')),
             'cert_no': analysis_result.get('cert_no', 'Unknown'),
-            'cert_abbreviation': analysis_result.get('cert_abbreviation'),  # ✅ ADDED: Include cert_abbreviation from AI analysis
+            'cert_abbreviation': cert_abbreviation,  # ✅ ENHANCED: Include cert_abbreviation from AI or mapping
             'issue_date': parse_date_string(analysis_result.get('issue_date')),
             'valid_date': parse_date_string(analysis_result.get('valid_date')),
             'last_endorse': get_enhanced_last_endorse(analysis_result),
