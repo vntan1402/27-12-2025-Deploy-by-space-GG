@@ -6942,6 +6942,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         # Debug logging for what's being saved
         logger.info(f"🔍 Certificate data being saved:")
         logger.info(f"   extracted_ship_name in cert_data: {cert_data.get('extracted_ship_name')}")
+        logger.info(f"   cert_abbreviation in cert_data: {cert_data.get('cert_abbreviation')}")
         logger.info(f"   text_content in cert_data: {bool(cert_data.get('text_content'))}")
         logger.info(f"   cert_data keys: {list(cert_data.keys())}")
         
