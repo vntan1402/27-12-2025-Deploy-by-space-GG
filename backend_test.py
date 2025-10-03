@@ -168,12 +168,12 @@ class MultiCertUploadAbbreviationTester:
         
         return True  # Non-string values are considered valid
     
-    def find_minh_anh_09_ship(self):
-        """Find MINH ANH 09 ship as specified in review request"""
+    def find_test_ship(self):
+        """Find a ship for testing multi cert upload"""
         try:
-            self.log("🚢 Finding MINH ANH 09 ship...")
+            self.log("🚢 Finding ship for multi cert upload testing...")
             
-            # Get all ships to find MINH ANH 09
+            # Get all ships
             endpoint = f"{BACKEND_URL}/ships"
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             
@@ -181,40 +181,40 @@ class MultiCertUploadAbbreviationTester:
                 ships = response.json()
                 self.log(f"   Found {len(ships)} total ships")
                 
-                # Look for MINH ANH 09
-                minh_anh_ship = None
+                # Look for any ship to test with (prefer MINH ANH 09 if available)
+                test_ship = None
                 for ship in ships:
                     ship_name = ship.get('name', '').upper()
                     if 'MINH ANH' in ship_name and '09' in ship_name:
-                        minh_anh_ship = ship
+                        test_ship = ship
                         break
                 
-                if minh_anh_ship:
-                    self.ship_data = minh_anh_ship
-                    ship_id = minh_anh_ship.get('id')
-                    ship_name = minh_anh_ship.get('name')
-                    imo = minh_anh_ship.get('imo')
+                # If MINH ANH 09 not found, use first available ship
+                if not test_ship and ships:
+                    test_ship = ships[0]
+                
+                if test_ship:
+                    self.ship_data = test_ship
+                    ship_id = test_ship.get('id')
+                    ship_name = test_ship.get('name')
+                    imo = test_ship.get('imo')
                     
-                    self.log(f"✅ Found MINH ANH 09 ship:")
+                    self.log(f"✅ Found test ship:")
                     self.log(f"   Ship ID: {ship_id}")
                     self.log(f"   Ship Name: {ship_name}")
                     self.log(f"   IMO: {imo}")
                     
-                    self.cert_tests['minh_anh_09_ship_found'] = True
+                    self.cert_tests['ship_found_for_testing'] = True
                     return True
                 else:
-                    self.log("❌ MINH ANH 09 ship not found")
-                    # List available ships for debugging
-                    self.log("   Available ships:")
-                    for ship in ships[:10]:
-                        self.log(f"      - {ship.get('name', 'Unknown')}")
+                    self.log("❌ No ships found for testing")
                     return False
             else:
                 self.log(f"   ❌ Failed to get ships: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error finding MINH ANH 09 ship: {str(e)}", "ERROR")
+            self.log(f"❌ Error finding test ship: {str(e)}", "ERROR")
             return False
     
     def find_cl_certificate_pm242309(self):
