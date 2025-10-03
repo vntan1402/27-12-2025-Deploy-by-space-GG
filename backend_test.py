@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Certificate Abbreviation Saving Testing
-FOCUS: Test certificate abbreviation saving functionality when editing certificates
+Ship Management System - Multi Cert Upload cert_abbreviation Saving Testing
+FOCUS: Test Multi Cert Upload fix for cert_abbreviation saving
 
 REVIEW REQUEST REQUIREMENTS:
-1. Find a CL certificate for MINH ANH 09 (should be PM242309)
-2. Test the PUT /api/certificates/{cert_id} endpoint with cert_abbreviation update
-3. Verify the abbreviation is saved to database
-4. Check the enhanced logging shows cert_abbreviation processing
+1. Find the multi cert upload endpoint /certificates/multi-upload
+2. Test if cert_abbreviation is now properly saved to certificate records
+3. Check if the enhanced logging shows cert_abbreviation processing
+4. Verify both AI-extracted and mapping-based abbreviations work
 5. Use admin1/123456 credentials
 
 TEST SCENARIOS:
-- Update cert_abbreviation from "CL" to "CLASSIFICATION" 
-- Update it back to "CL"
-- Verify database record changes
-- Check if abbreviation mappings are also created/updated
+- Certificate where AI extracts cert_abbreviation directly
+- Certificate where abbreviation comes from existing mappings
+- Verify cert_abbreviation field is populated in database after multi upload
 
 EXPECTED BEHAVIOR:
-- Edit Certificate > Save properly saves abbreviation data to database
-- Database records should reflect the changes
+- Multi Cert Upload should save cert_abbreviation to certificate database records
+- AI analysis_result should include cert_abbreviation
+- Existing abbreviation mappings should be used when AI doesn't provide one
 - Enhanced logging should show cert_abbreviation processing
 """
 
