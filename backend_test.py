@@ -282,94 +282,114 @@ This certificate is issued under the provisions of SOLAS.''',
             self.log(f"❌ Error creating test certificate files: {str(e)}", "ERROR")
             return False
 
-    def test_certificate_abbreviation_update(self):
-        """Test updating certificate abbreviation via PUT endpoint"""
+    def test_multi_cert_upload_with_abbreviations(self):
+        """Test multi cert upload endpoint with cert_abbreviation saving"""
         try:
-            self.log("🔄 Testing certificate abbreviation update functionality...")
+            self.log("📤 Testing multi cert upload with cert_abbreviation saving...")
             
-            if not self.certificate_data.get('id'):
-                self.log("❌ No certificate data available for testing")
+            if not self.ship_data.get('id'):
+                self.log("❌ No ship data available for testing")
                 return False
             
-            cert_id = self.certificate_data.get('id')
-            
-            # Test 1: Update abbreviation from current value to "CLASSIFICATION"
-            self.log("   Test 1: Updating cert_abbreviation to 'CLASSIFICATION'...")
-            
-            update_data = {
-                "cert_abbreviation": "CLASSIFICATION"
-            }
-            
-            endpoint = f"{BACKEND_URL}/certificates/{cert_id}"
-            self.log(f"      PUT {endpoint}")
-            self.log(f"      Data: {json.dumps(update_data)}")
-            
-            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=30)
-            self.log(f"      Response status: {response.status_code}")
-            
-            if response.status_code == 200:
-                updated_cert = response.json()
-                new_abbreviation = updated_cert.get('cert_abbreviation')
-                
-                self.log(f"      ✅ Update successful")
-                self.log(f"      New abbreviation: {new_abbreviation}")
-                
-                if new_abbreviation == "CLASSIFICATION":
-                    self.cert_tests['abbreviation_update_to_classification_successful'] = True
-                    self.log("      ✅ Abbreviation correctly updated to 'CLASSIFICATION'")
-                    self.update_results['classification_update'] = updated_cert
-                else:
-                    self.log(f"      ❌ Abbreviation not updated correctly. Expected: 'CLASSIFICATION', Got: {new_abbreviation}")
-                    
-            else:
-                self.log(f"      ❌ Update failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"         Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"         Error: {response.text[:200]}")
+            if not self.test_files:
+                self.log("❌ No test files available for upload")
                 return False
             
-            # Test 2: Update abbreviation back to "CL"
-            self.log("   Test 2: Updating cert_abbreviation back to 'CL'...")
+            ship_id = self.ship_data.get('id')
             
-            update_data = {
-                "cert_abbreviation": "CL"
+            # Test multi-upload endpoint
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            self.log(f"   POST {endpoint}")
+            
+            # Prepare files for upload
+            files = []
+            for test_file in self.test_files:
+                with open(test_file['path'], 'rb') as f:
+                    files.append(('files', (test_file['filename'], f.read(), 'text/plain')))
+            
+            # Prepare form data
+            data = {
+                'ship_id': ship_id,
+                'category': 'certificates',
+                'sensitivity_level': 'public'
             }
             
-            self.log(f"      PUT {endpoint}")
-            self.log(f"      Data: {json.dumps(update_data)}")
+            self.log(f"   Uploading {len(files)} test certificate files...")
+            self.log(f"   Ship ID: {ship_id}")
             
-            response = requests.put(endpoint, json=update_data, headers=self.get_headers(), timeout=30)
-            self.log(f"      Response status: {response.status_code}")
+            # Make the multi-upload request
+            response = requests.post(
+                endpoint, 
+                files=files, 
+                data=data, 
+                headers=self.get_headers(), 
+                timeout=120  # Longer timeout for file upload and AI processing
+            )
+            
+            self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                updated_cert = response.json()
-                new_abbreviation = updated_cert.get('cert_abbreviation')
+                upload_result = response.json()
+                self.log("✅ Multi cert upload successful")
+                self.cert_tests['multi_upload_endpoint_accessible'] = True
+                self.cert_tests['multi_upload_successful'] = True
                 
-                self.log(f"      ✅ Update successful")
-                self.log(f"      New abbreviation: {new_abbreviation}")
+                # Analyze upload results
+                self.log("   Upload results analysis:")
+                self.log(f"      Response keys: {list(upload_result.keys())}")
                 
-                if new_abbreviation == "CL":
-                    self.cert_tests['abbreviation_update_back_to_cl_successful'] = True
-                    self.log("      ✅ Abbreviation correctly updated back to 'CL'")
-                    self.update_results['cl_update'] = updated_cert
-                else:
-                    self.log(f"      ❌ Abbreviation not updated correctly. Expected: 'CL', Got: {new_abbreviation}")
+                # Check for created certificates
+                created_certificates = upload_result.get('certificates', [])
+                if created_certificates:
+                    self.log(f"      Created {len(created_certificates)} certificates")
+                    self.uploaded_certificates = created_certificates
                     
-                self.cert_tests['certificate_update_endpoint_accessible'] = True
+                    # Check each certificate for abbreviation
+                    abbreviations_found = 0
+                    for cert in created_certificates:
+                        cert_name = cert.get('cert_name', 'Unknown')
+                        cert_abbreviation = cert.get('cert_abbreviation')
+                        
+                        self.log(f"         Certificate: {cert_name}")
+                        self.log(f"            ID: {cert.get('id')}")
+                        self.log(f"            Abbreviation: {cert_abbreviation}")
+                        
+                        if cert_abbreviation:
+                            abbreviations_found += 1
+                    
+                    if abbreviations_found > 0:
+                        self.cert_tests['certificates_created_with_abbreviations'] = True
+                        self.cert_tests['cert_abbreviation_saved_to_database'] = True
+                        self.log(f"      ✅ {abbreviations_found}/{len(created_certificates)} certificates have abbreviations")
+                    else:
+                        self.log(f"      ❌ No certificates have abbreviations saved")
+                
+                # Check for AI analysis results
+                ai_results = upload_result.get('ai_analysis', {})
+                if ai_results:
+                    self.ai_analysis_results = ai_results
+                    self.log("      AI analysis results found")
+                    
+                    # Check if AI extracted abbreviations
+                    for file_name, analysis in ai_results.items():
+                        cert_abbreviation = analysis.get('cert_abbreviation')
+                        if cert_abbreviation:
+                            self.cert_tests['ai_extracted_abbreviation_working'] = True
+                            self.log(f"         AI extracted abbreviation for {file_name}: {cert_abbreviation}")
+                
                 return True
             else:
-                self.log(f"      ❌ Update failed: {response.status_code}")
+                self.log(f"   ❌ Multi cert upload failed: {response.status_code}")
+                self.cert_tests['multi_upload_endpoint_accessible'] = (response.status_code != 404)
                 try:
                     error_data = response.json()
-                    self.log(f"         Error: {error_data.get('detail', 'Unknown error')}")
+                    self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
                 except:
-                    self.log(f"         Error: {response.text[:200]}")
+                    self.log(f"      Error: {response.text[:500]}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error testing certificate abbreviation update: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing multi cert upload: {str(e)}", "ERROR")
             return False
 
     def verify_database_record_changes(self):
