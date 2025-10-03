@@ -731,7 +731,7 @@ const HomePage = () => {
   };
 
   const getCertificateStatus = (certificate) => {
-    // Rule 4: Certificates without Valid Date always have Valid status
+    // Rule 1: Certificates without Valid Date always have Valid status
     if (!certificate.valid_date) {
       return 'Valid';
     }
@@ -740,7 +740,31 @@ const HomePage = () => {
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0); // Reset time for date-only comparison
     
-    return validDate >= currentDate ? 'Valid' : 'Expired';
+    // Rule 2: Check if expired first (basic expiry logic)
+    if (validDate < currentDate) {
+      return 'Expired';
+    }
+    
+    // Rule 3: Enhanced Over Due logic for Full Term Certificates based on Anniversary Date
+    if (certificate.cert_type === 'Full Term' && selectedShip?.anniversary_date?.day && selectedShip?.anniversary_date?.month) {
+      const currentYear = currentDate.getFullYear();
+      
+      // Create Anniversary Date for current year
+      const anniversaryDate = new Date(currentYear, selectedShip.anniversary_date.month - 1, selectedShip.anniversary_date.day);
+      anniversaryDate.setHours(0, 0, 0, 0);
+      
+      // Add 3-month window after Anniversary Date
+      const overdueThreshold = new Date(anniversaryDate);
+      overdueThreshold.setMonth(overdueThreshold.getMonth() + 3);
+      
+      // If current date is past Anniversary Date + 3 months, mark as Over Due
+      if (currentDate > overdueThreshold) {
+        return 'Over Due';
+      }
+    }
+    
+    // Rule 4: Default to Valid if certificate is within valid_date and not over due
+    return 'Valid';
   };
 
   // Certificate selection functions
