@@ -12967,7 +12967,7 @@ const AddRecordModal = ({
                 type="date"
                 value={shipData.keel_laid || ''}
                 onChange={(e) => setShipData(prev => ({ ...prev, keel_laid: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 force:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
 
