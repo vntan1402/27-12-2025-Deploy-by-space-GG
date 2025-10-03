@@ -4734,16 +4734,75 @@ const HomePage = () => {
                           </div>
                         </form>
 
-                        <div className="flex justify-end space-x-3 mt-6">
-                          <button
-                            onClick={() => {
-                              setShowEditCertModal(false);
-                              setEditingCertificate(null);
-                            }}
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
-                          >
-                            {language === 'vi' ? 'Hủy' : 'Cancel'}
-                          </button>
+                        <div className="flex justify-between items-center mt-6">
+                          {/* Auto Rename File Button - Left side */}
+                          {editingCertificate?.google_drive_file_id && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  setIsRenaming(true);
+                                  
+                                  const response = await axios.post(`${API}/certificates/${editingCertificate.id}/auto-rename-file`, {}, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                  });
+                                  
+                                  if (response.data.success) {
+                                    toast.success(
+                                      language === 'vi' 
+                                        ? `Đã đổi tên file thành: ${response.data.new_name}` 
+                                        : `File renamed to: ${response.data.new_name}`
+                                    );
+                                    
+                                    // Update the certificate with new filename
+                                    setEditingCertificate(prev => ({
+                                      ...prev,
+                                      file_name: response.data.new_name
+                                    }));
+                                    
+                                    // Refresh certificate list
+                                    await fetchCertificates(selectedShip.id);
+                                  }
+                                } catch (error) {
+                                  console.error('Error renaming file:', error);
+                                  toast.error(
+                                    language === 'vi' 
+                                      ? 'Lỗi khi đổi tên file!' 
+                                      : 'Error renaming file!'
+                                  );
+                                } finally {
+                                  setIsRenaming(false);
+                                }
+                              }}
+                              disabled={isRenaming}
+                              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-300 text-white rounded-lg transition-all flex items-center"
+                            >
+                              {isRenaming ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                  {language === 'vi' ? 'Đang đổi tên...' : 'Renaming...'}
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  </svg>
+                                  {language === 'vi' ? 'Đổi tên file' : 'Auto Rename file'}
+                                </>
+                              )}
+                            </button>
+                          )}
+                          
+                          {/* Cancel and Save Buttons - Right side */}
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={() => {
+                                setShowEditCertModal(false);
+                                setEditingCertificate(null);
+                              }}
+                              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                            >
+                              {language === 'vi' ? 'Hủy' : 'Cancel'}
+                            </button>
                           <button
                             onClick={async () => {
                               try {
