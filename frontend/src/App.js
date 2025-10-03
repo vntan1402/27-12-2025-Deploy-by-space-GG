@@ -12904,6 +12904,101 @@ const AddRecordModal = ({
           </div>
         )}
 
+        {/* File Upload Section for Certificate */}
+        {showFileUpload && selectedDocumentType === 'certificate' && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {language === 'vi' ? 'Upload File Certificate' : 'Upload Certificate File'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowFileUpload(false);
+                    setSelectedFile(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {/* File Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {language === 'vi' ? 'Chọn file Certificate' : 'Select Certificate File'}
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    onChange={(e) => setSelectedFile(e.target.files[0])}
+                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  {selectedFile && (
+                    <p className="mt-2 text-sm text-gray-600">
+                      {language === 'vi' ? 'Đã chọn:' : 'Selected:'} {selectedFile.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Upload Destination Info */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex">
+                    <div className="text-blue-600 mr-3">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-blue-800 mb-1">
+                        {language === 'vi' ? 'Thông tin Upload' : 'Upload Information'}
+                      </h4>
+                      <p className="text-xs text-blue-700">
+                        {language === 'vi' 
+                          ? 'File sẽ được upload lên Google Drive folder "Certificate" của công ty.'
+                          : 'File will be uploaded to company\'s Google Drive "Certificate" folder.'}
+                      </p>
+                      {selectedShip && (
+                        <p className="text-xs text-blue-700 mt-1">
+                          {language === 'vi' ? 'Tàu:' : 'Ship:'} <strong>{selectedShip.name}</strong>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowFileUpload(false);
+                      setSelectedFile(null);
+                    }}
+                    disabled={uploadingFile}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
+                  >
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Handle file upload logic here
+                      handleFileUpload();
+                    }}
+                    disabled={!selectedFile || uploadingFile}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
+                  >
+                    {uploadingFile && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
+                    {language === 'vi' ? 'Upload File' : 'Upload File'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end space-x-4 mt-8">
           <button
             onClick={onClose}
