@@ -3627,7 +3627,14 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
             logger.info(f"💾 Saving cert_abbreviation = '{cert_abbreviation_value}' to certificate {cert_id}")
         
         if update_data:  # Only update if there's data to update
+            logger.info(f"💾 Updating certificate {cert_id} with data: {list(update_data.keys())}")
+            
+            # Log cert_abbreviation specifically
+            if 'cert_abbreviation' in update_data:
+                logger.info(f"🔤 Certificate abbreviation being saved: '{update_data['cert_abbreviation']}'")
+                
             await mongo_db.update("certificates", {"id": cert_id}, update_data)
+            logger.info(f"✅ Successfully updated certificate {cert_id}")
         
         # Get updated certificate
         updated_cert = await mongo_db.find_one("certificates", {"id": cert_id})
