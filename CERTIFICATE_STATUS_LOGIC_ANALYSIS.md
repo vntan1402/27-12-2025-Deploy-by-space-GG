@@ -64,6 +64,7 @@ const getCertificateStatus = (certificate) => {
 ### Visual Indicators:
 - **Valid:** Green background (`bg-green-100 text-green-800`)
 - **Expired:** Red background (`bg-red-100 text-red-800`)
+- **Over Due:** Orange background (`bg-orange-100 text-orange-800`)
 - **Unknown:** Gray background (`bg-gray-100 text-gray-800`)
 
 ## 4. Status Filtering
