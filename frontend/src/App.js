@@ -10464,6 +10464,9 @@ const AddRecordModal = ({
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   
+  // Ship selection dropdown state
+  const [showShipDropdown, setShowShipDropdown] = useState(false);
+  
   // For backward compatibility, map activeTab to recordType
   const recordType = selectedDocumentType || (activeTab === 'documents' ? 'certificate' : activeTab);
   // PDF Analysis state
