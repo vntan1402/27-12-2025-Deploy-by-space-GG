@@ -297,8 +297,8 @@ This certificate is issued under the provisions of SOLAS.''',
             
             ship_id = self.ship_data.get('id')
             
-            # Test multi-upload endpoint
-            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            # Test multi-upload endpoint with ship_id as query parameter
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={ship_id}"
             self.log(f"   POST {endpoint}")
             
             # Prepare files for upload
@@ -307,9 +307,8 @@ This certificate is issued under the provisions of SOLAS.''',
                 with open(test_file['path'], 'rb') as f:
                     files.append(('files', (test_file['filename'], f.read(), 'text/plain')))
             
-            # Prepare form data
+            # Prepare form data (without ship_id since it's in query params)
             data = {
-                'ship_id': ship_id,
                 'category': 'certificates',
                 'sensitivity_level': 'public'
             }
