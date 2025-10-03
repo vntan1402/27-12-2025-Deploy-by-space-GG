@@ -385,6 +385,31 @@ class GoogleDriveManager:
             logger.error(f"Failed to update file on Google Drive: {e}")
             return False
 
+    def rename_file(self, file_id: str, new_name: str) -> bool:
+        """Rename a file on Google Drive"""
+        if not self.is_configured:
+            logger.error("Google Drive not configured")
+            return False
+        
+        try:
+            # Update file metadata with new name
+            file_metadata = {
+                'name': new_name
+            }
+            
+            updated_file = self.service.files().update(
+                fileId=file_id,
+                body=file_metadata,
+                fields='id,name'
+            ).execute()
+            
+            logger.info(f"Successfully renamed file {file_id} to '{new_name}'")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to rename file {file_id}: {e}")
+            return False
+
     def get_sync_status(self) -> Dict[str, Any]:
         """Get synchronization status"""
         if not self.is_configured:
