@@ -11531,7 +11531,7 @@ const AddRecordModal = ({
                 onChange={(e) => setRecordType(e.target.value)}
                 className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
               />
-              <span>{language === 'vi' ? 'Báo cáo khảo sát' : 'Class Survey Report'}</span>
+              <span>{language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}</span>
             </label>
           </div>
           
