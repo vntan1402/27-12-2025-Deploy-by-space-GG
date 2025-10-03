@@ -12912,6 +12912,19 @@ const AddRecordModal = ({
           >
             {language === 'vi' ? 'Hủy' : 'Cancel'}
           </button>
+          
+          {/* Add File button - only show for Certificate */}
+          {selectedDocumentType === 'certificate' && (
+            <button
+              onClick={() => setShowFileUpload(true)}
+              disabled={isSubmitting || uploadingFile}
+              className="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
+            >
+              {uploadingFile && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
+              {language === 'vi' ? '📁 Thêm File' : '📁 Add File'}
+            </button>
+          )}
+          
           <button
             onClick={handleSubmit}
             disabled={
