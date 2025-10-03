@@ -11587,13 +11587,18 @@ const AddRecordModal = ({
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               {language === 'vi' ? 'Chọn loại tài liệu' : 'Select document type'}
             </h3>
-            <div className="grid grid-cols-5 gap-3">
-              <label className="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-center">
+            <div className="grid grid-cols-5 gap-3 mb-6">
+              <label className={`flex flex-col items-center p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
+                selectedDocumentType === 'certificate' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:bg-gray-50'
+              }`}>
                 <input
                   type="radio"
                   name="documentType"
                   value="certificate"
-                  onChange={() => setActiveTab('certificate')}
+                  checked={selectedDocumentType === 'certificate'}
+                  onChange={() => setSelectedDocumentType('certificate')}
                   className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
                 <span className="text-2xl mb-2">📄</span>
@@ -11605,12 +11610,17 @@ const AddRecordModal = ({
                 </div>
               </label>
               
-              <label className="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors text-center">
+              <label className={`flex flex-col items-center p-3 border-2 rounded-lg cursor-pointer transition-all text-center ${
+                selectedDocumentType === 'survey_report' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:bg-gray-50'
+              }`}>
                 <input
                   type="radio"
                   name="documentType"
                   value="survey_report"
-                  onChange={() => setActiveTab('survey_report')}
+                  checked={selectedDocumentType === 'survey_report'}
+                  onChange={() => setSelectedDocumentType('survey_report')}
                   className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                 />
                 <span className="text-2xl mb-2">📋</span>
@@ -11622,7 +11632,7 @@ const AddRecordModal = ({
                 </div>
               </label>
 
-              <label className="flex flex-col items-center p-3 border border-gray-200 rounded-lg cursor-not-allowed transition-colors text-center opacity-50">
+              <label className="flex flex-col items-center p-3 border-2 border-gray-200 rounded-lg cursor-not-allowed transition-all text-center opacity-50">
                 <input
                   type="radio"
                   name="documentType"
@@ -11639,7 +11649,7 @@ const AddRecordModal = ({
                 </div>
               </label>
 
-              <label className="flex flex-col items-center p-3 border border-gray-200 rounded-lg cursor-not-allowed transition-colors text-center opacity-50">
+              <label className="flex flex-col items-center p-3 border-2 border-gray-200 rounded-lg cursor-not-allowed transition-all text-center opacity-50">
                 <input
                   type="radio"
                   name="documentType"
@@ -11656,7 +11666,7 @@ const AddRecordModal = ({
                 </div>
               </label>
 
-              <label className="flex flex-col items-center p-3 border border-gray-200 rounded-lg cursor-not-allowed transition-colors text-center opacity-50">
+              <label className="flex flex-col items-center p-3 border-2 border-gray-200 rounded-lg cursor-not-allowed transition-all text-center opacity-50">
                 <input
                   type="radio"
                   name="documentType"
@@ -11673,6 +11683,20 @@ const AddRecordModal = ({
                 </div>
               </label>
             </div>
+
+            {/* Show selected form below the selection */}
+            {selectedDocumentType && (
+              <div className="border-t pt-6">
+                <h4 className="text-md font-medium text-gray-700 mb-4">
+                  {selectedDocumentType === 'certificate' 
+                    ? (language === 'vi' ? '📄 Tạo Chứng chỉ mới' : '📄 Create New Certificate')
+                    : selectedDocumentType === 'survey_report' 
+                    ? (language === 'vi' ? '📋 Tạo Hồ sơ Đăng kiểm mới' : '📋 Create New Class Survey Report')
+                    : ''
+                  }
+                </h4>
+              </div>
+            )}
           </div>
         )}
 
