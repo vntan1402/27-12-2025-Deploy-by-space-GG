@@ -8671,7 +8671,7 @@ async def rename_gdrive_file(
         
         # Get company Google Drive configuration
         # Use proper MongoDB access pattern
-        gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"company_id": company_id})
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
         
         if not gdrive_config_doc:
             raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
