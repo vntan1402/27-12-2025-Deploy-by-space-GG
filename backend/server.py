@@ -6914,6 +6914,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
             'cert_name': analysis_result.get('cert_name', 'Unknown Certificate'),
             'cert_type': validate_certificate_type(analysis_result.get('cert_type', 'Full Term')),
             'cert_no': analysis_result.get('cert_no', 'Unknown'),
+            'cert_abbreviation': analysis_result.get('cert_abbreviation'),  # ✅ ADDED: Include cert_abbreviation from AI analysis
             'issue_date': parse_date_string(analysis_result.get('issue_date')),
             'valid_date': parse_date_string(analysis_result.get('valid_date')),
             'last_endorse': get_enhanced_last_endorse(analysis_result),
