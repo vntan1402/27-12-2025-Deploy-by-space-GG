@@ -8726,6 +8726,154 @@ async def rename_gdrive_file(
         logger.error(f"❌ Error renaming file on Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to rename file: {str(e)}")
 
+@api_router.post("/certificates/{certificate_id}/auto-rename-file")
+async def auto_rename_certificate_file(
+    certificate_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Auto rename certificate file on Google Drive using naming convention:
+    Ship name + Cert type + Certificate Name (Abbreviation) + Issue Date"""
+    try:
+        # Get certificate data
+        certificates_collection = mongo_db["certificates"]
+        certificate = await certificates_collection.find_one({"id": certificate_id})
+        
+        if not certificate:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # Check if certificate has Google Drive file
+        file_id = certificate.get("google_drive_file_id")
+        if not file_id:
+            raise HTTPException(status_code=400, detail="Certificate has no associated Google Drive file")
+        
+        # Get ship data
+        ships_collection = mongo_db["ships"]
+        ship = await ships_collection.find_one({"id": certificate.get("ship_id")})
+        
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found for certificate")
+        
+        # Build new filename using naming convention
+        ship_name = ship.get("name", "Unknown Ship").replace(" ", "_")
+        cert_type = certificate.get("cert_type", "Unknown Type").replace(" ", "_")
+        cert_abbreviation = certificate.get("cert_abbreviation", "")
+        cert_name = certificate.get("cert_name", "Unknown Certificate").replace(" ", "_")
+        issue_date = certificate.get("issue_date")
+        
+        # Use abbreviation if available, otherwise use cert name
+        cert_identifier = cert_abbreviation if cert_abbreviation else cert_name
+        cert_identifier = cert_identifier.replace(" ", "_")
+        
+        # Format issue date
+        date_str = ""
+        if issue_date:
+            try:
+                if isinstance(issue_date, str):
+                    # Parse ISO date string
+                    from datetime import datetime
+                    date_obj = datetime.fromisoformat(issue_date.replace('Z', '+00:00'))
+                    date_str = date_obj.strftime("%Y%m%d")
+                else:
+                    # Assume it's already a datetime object
+                    date_str = issue_date.strftime("%Y%m%d")
+            except:
+                date_str = "NoDate"
+        else:
+            date_str = "NoDate"
+        
+        # Build new filename: Ship_name_Cert_type_Cert_identifier_Issue_date.pdf
+        original_filename = certificate.get("file_name", "")
+        file_extension = ""
+        if original_filename and "." in original_filename:
+            file_extension = "." + original_filename.split(".")[-1]
+        else:
+            file_extension = ".pdf"  # Default extension
+        
+        new_filename = f"{ship_name}_{cert_type}_{cert_identifier}_{date_str}{file_extension}"
+        
+        # Clean up filename (remove special characters except underscores and dots)
+        import re
+        new_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', new_filename)
+        
+        # Get company ID from current user
+        company_id = current_user.company_id
+        
+        # Call the rename endpoint
+        rename_data = {
+            "file_id": file_id,
+            "new_name": new_filename
+        }
+        
+        # Get company Google Drive configuration
+        gdrive_config_collection = mongo_db["gdrive_config"]
+        gdrive_config_doc = await gdrive_config_collection.find_one({"company_id": company_id})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        # Get the Apps Script URL
+        apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        
+        if not apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Call Apps Script to rename file
+        payload = {
+            "action": "rename_file",
+            "file_id": file_id,
+            "new_name": new_filename
+        }
+        
+        logger.info(f"🔄 Auto-renaming certificate file {file_id} to '{new_filename}' for certificate {certificate_id}")
+        
+        # Make request to Apps Script
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                apps_script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    
+                    if result.get("success"):
+                        # Update certificate record with new filename
+                        await certificates_collection.update_one(
+                            {"id": certificate_id},
+                            {"$set": {"file_name": new_filename}}
+                        )
+                        
+                        logger.info(f"✅ Successfully auto-renamed certificate file to '{new_filename}'")
+                        return {
+                            "success": True,
+                            "message": "Certificate file renamed successfully",
+                            "certificate_id": certificate_id,
+                            "file_id": file_id,
+                            "old_name": result.get("old_name"),
+                            "new_name": new_filename,
+                            "naming_convention": {
+                                "ship_name": ship_name,
+                                "cert_type": cert_type,
+                                "cert_identifier": cert_identifier,
+                                "issue_date": date_str
+                            },
+                            "renamed_timestamp": result.get("renamed_timestamp")
+                        }
+                    else:
+                        error_msg = result.get("error", "Unknown error occurred")
+                        logger.error(f"❌ Apps Script auto-rename failed: {error_msg}")
+                        raise HTTPException(status_code=500, detail=f"Failed to auto-rename file: {error_msg}")
+                else:
+                    logger.error(f"❌ Apps Script request failed with status {response.status}")
+                    raise HTTPException(status_code=500, detail=f"Google Drive API request failed: {response.status}")
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error auto-renaming certificate file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to auto-rename certificate file: {str(e)}")
+
 @api_router.post("/companies/{company_id}/gdrive/delete-ship-folder")
 async def delete_ship_folder_from_gdrive(
     company_id: str,
