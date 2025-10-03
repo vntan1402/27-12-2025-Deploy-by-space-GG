@@ -13149,8 +13149,8 @@ const AddRecordModal = ({
             {language === 'vi' ? 'Hủy' : 'Cancel'}
           </button>
           
-          {/* Add File button - only show for Certificate */}
-          {selectedDocumentType === 'certificate' && (
+          {/* Add File button - only show for Certificate in Documents tab */}
+          {activeTab === 'documents' && selectedDocumentType === 'certificate' && (
             <button
               onClick={() => setShowFileUpload(true)}
               disabled={isSubmitting || uploadingFile}
