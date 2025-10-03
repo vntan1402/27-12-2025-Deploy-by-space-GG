@@ -8670,7 +8670,7 @@ async def rename_gdrive_file(
             raise HTTPException(status_code=400, detail="Missing file_id or new_name")
         
         # Get company Google Drive configuration
-        gdrive_config_collection = mongo_db["gdrive_config"]
+        # Use proper MongoDB access pattern
         gdrive_config_doc = await gdrive_config_collection.find_one({"company_id": company_id})
         
         if not gdrive_config_doc:
@@ -8803,7 +8803,7 @@ async def auto_rename_certificate_file(
         }
         
         # Get company Google Drive configuration
-        gdrive_config_collection = mongo_db["gdrive_config"]
+        # Use proper MongoDB access pattern
         gdrive_config_doc = await gdrive_config_collection.find_one({"company_id": company_id})
         
         if not gdrive_config_doc:
