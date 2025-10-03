@@ -1141,15 +1141,36 @@ async def enhance_certificate_response(cert_dict: dict) -> dict:
         cert_dict['has_notes'] = False
         return cert_dict
 
+def normalize_date_string(date_str: str) -> str:
+    """
+    Normalize date string to consistent format for comparison.
+    Handles various date formats and removes time components.
+    """
+    if not date_str or date_str.strip() == '':
+        return ''
+    
+    date_str = str(date_str).strip()
+    
+    # Remove time components (anything after space or 'T')
+    if ' ' in date_str:
+        date_str = date_str.split(' ')[0]
+    elif 'T' in date_str:
+        date_str = date_str.split('T')[0]
+    
+    # Remove 'Z' or timezone info
+    date_str = date_str.rstrip('Z').strip()
+    
+    return date_str
+
 def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
     """
     Calculate similarity percentage between two certificates
     Enhanced duplicate detection based on 5 fields:
     - Certificate Name (cert_name): must match exactly
     - Certificate Number (cert_no): must match exactly  
-    - Issue Date (issue_date): must match exactly
-    - Valid Date (valid_date): must match exactly
-    - Last Endorse (last_endorse): must match exactly
+    - Issue Date (issue_date): must match exactly (normalized)
+    - Valid Date (valid_date): must match exactly (normalized)
+    - Last Endorse (last_endorse): must match exactly (normalized)
     
     Only when ALL 5 fields match exactly, consider as duplicate (100%)
     """
@@ -1161,33 +1182,34 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
         cert1_no = cert1.get('cert_no', '').strip()
         cert2_no = cert2.get('cert_no', '').strip()
         
-        cert1_issue = str(cert1.get('issue_date', '')).strip()
-        cert2_issue = str(cert2.get('issue_date', '')).strip()
+        # Normalize date fields to handle format inconsistencies
+        cert1_issue = normalize_date_string(cert1.get('issue_date', ''))
+        cert2_issue = normalize_date_string(cert2.get('issue_date', ''))
         
-        cert1_valid = str(cert1.get('valid_date', '')).strip()
-        cert2_valid = str(cert2.get('valid_date', '')).strip()
+        cert1_valid = normalize_date_string(cert1.get('valid_date', ''))
+        cert2_valid = normalize_date_string(cert2.get('valid_date', ''))
         
-        cert1_endorse = str(cert1.get('last_endorse', '')).strip()
-        cert2_endorse = str(cert2.get('last_endorse', '')).strip()
+        cert1_endorse = normalize_date_string(cert1.get('last_endorse', ''))
+        cert2_endorse = normalize_date_string(cert2.get('last_endorse', ''))
         
         logger.info(f"🔍 Enhanced Duplicate Check - Comparing 5 fields:")
         logger.info(f"   Cert Name: '{cert1_name}' vs '{cert2_name}'")
         logger.info(f"   Cert No: '{cert1_no}' vs '{cert2_no}'")
-        logger.info(f"   Issue Date: '{cert1_issue}' vs '{cert2_issue}'")
-        logger.info(f"   Valid Date: '{cert1_valid}' vs '{cert2_valid}'")
-        logger.info(f"   Last Endorse: '{cert1_endorse}' vs '{cert2_endorse}'")
+        logger.info(f"   Issue Date: '{cert1_issue}' vs '{cert2_issue}' (normalized)")
+        logger.info(f"   Valid Date: '{cert1_valid}' vs '{cert2_valid}' (normalized)")
+        logger.info(f"   Last Endorse: '{cert1_endorse}' vs '{cert2_endorse}' (normalized)")
         
         # All key fields must have values to compare (at minimum cert_name and cert_no)
         if not cert1_name or not cert2_name or not cert1_no or not cert2_no:
             logger.info(f"   ❌ Missing required fields - not duplicate")
             return 0.0
         
-        # Check each field for exact match (case insensitive)
+        # Check each field for exact match (case insensitive for text, exact for dates)
         name_match = cert1_name.lower() == cert2_name.lower()
         number_match = cert1_no.lower() == cert2_no.lower()
-        issue_match = cert1_issue.lower() == cert2_issue.lower()
-        valid_match = cert1_valid.lower() == cert2_valid.lower()
-        endorse_match = cert1_endorse.lower() == cert2_endorse.lower()
+        issue_match = cert1_issue == cert2_issue  # Exact date match after normalization
+        valid_match = cert1_valid == cert2_valid  # Exact date match after normalization
+        endorse_match = cert1_endorse == cert2_endorse  # Exact date match after normalization
         
         logger.info(f"   Field matches:")
         logger.info(f"     Name: {name_match}")
