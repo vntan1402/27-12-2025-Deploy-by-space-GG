@@ -1094,18 +1094,18 @@ class CertificateAbbreviationTester:
             return False
 
 def main():
-    """Main function to run Ship Management System Timezone Fix tests"""
-    print("🔄 SHIP MANAGEMENT SYSTEM - TIMEZONE FIX TESTING STARTED")
+    """Main function to run Ship Management System Certificate Abbreviation tests"""
+    print("🔄 SHIP MANAGEMENT SYSTEM - CERTIFICATE ABBREVIATION TESTING STARTED")
     print("=" * 80)
     
     try:
-        tester = TimezoneFixTester()
-        success = tester.run_comprehensive_timezone_tests()
+        tester = CertificateAbbreviationTester()
+        success = tester.run_comprehensive_certificate_tests()
         
         if success:
-            print("\n✅ TIMEZONE FIX TESTING COMPLETED SUCCESSFULLY")
+            print("\n✅ CERTIFICATE ABBREVIATION TESTING COMPLETED SUCCESSFULLY")
         else:
-            print("\n❌ TIMEZONE FIX TESTING COMPLETED WITH ISSUES")
+            print("\n❌ CERTIFICATE ABBREVIATION TESTING COMPLETED WITH ISSUES")
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
