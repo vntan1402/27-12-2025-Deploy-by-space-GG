@@ -96,6 +96,20 @@ def test_other_mappings():
                     else:
                         print(f"         ⚠️ Mapping not used or incorrect: {cert_abbreviation} vs {expected_abbrev}")
                     break
+            
+            # Also check for exact certificate name matches
+            if 'CLASSIFICATION CERTIFICATE' in cert_name and cert_abbreviation == 'CL':
+                print(f"      📋 Certificate: {cert_name}")
+                print(f"         ✅ CL mapping used correctly: {cert_abbreviation}")
+                mapping_usage_found['CLASSIFICATION CERTIFICATE'] = True
+            elif 'INTERNATIONAL TONNAGE CERTIFICATE' in cert_name and cert_abbreviation == 'ITC':
+                print(f"      📋 Certificate: {cert_name}")
+                print(f"         ✅ ITC mapping used correctly: {cert_abbreviation}")
+                mapping_usage_found['INTERNATIONAL TONNAGE CERTIFICATE'] = True
+            elif 'CERTIFICADO INTERNACIONAL DE ARQUEO' in cert_name and cert_abbreviation == 'ITC':
+                print(f"      📋 Certificate: {cert_name}")
+                print(f"         ✅ ITC mapping used correctly: {cert_abbreviation}")
+                mapping_usage_found['CERTIFICADO INTERNACIONAL DE ARQUEO'] = True
     
     print(f"\n📊 MAPPING USAGE SUMMARY:")
     for target_name, expected_abbrev in target_mappings.items():
