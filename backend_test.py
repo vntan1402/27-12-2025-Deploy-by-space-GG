@@ -848,10 +848,10 @@ This certificate is issued under the provisions of SOLAS.''',
             self.log(f"         Error verifying date formats: {str(e)}")
             return False
     
-    def run_comprehensive_certificate_tests(self):
-        """Main test function for certificate abbreviation functionality"""
-        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - CERTIFICATE ABBREVIATION TESTING")
-        self.log("🎯 FOCUS: Test certificate abbreviation saving functionality when editing certificates")
+    def run_comprehensive_multi_upload_tests(self):
+        """Main test function for multi cert upload abbreviation functionality"""
+        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - MULTI CERT UPLOAD ABBREVIATION TESTING")
+        self.log("🎯 FOCUS: Test Multi Cert Upload fix for cert_abbreviation saving")
         self.log("=" * 100)
         
         try:
@@ -862,31 +862,31 @@ This certificate is issued under the provisions of SOLAS.''',
                 self.log("❌ Authentication failed - cannot proceed with testing")
                 return False
             
-            # Step 2: Find MINH ANH 09 ship
-            self.log("\n🚢 STEP 2: FIND MINH ANH 09 SHIP")
+            # Step 2: Find test ship
+            self.log("\n🚢 STEP 2: FIND TEST SHIP")
             self.log("=" * 50)
-            ship_found = self.find_minh_anh_09_ship()
+            ship_found = self.find_test_ship()
             if not ship_found:
-                self.log("❌ MINH ANH 09 ship not found - cannot proceed with testing")
+                self.log("❌ No ship found for testing - cannot proceed")
                 return False
             
-            # Step 3: Find CL certificate PM242309
-            self.log("\n📋 STEP 3: FIND CL CERTIFICATE PM242309")
+            # Step 3: Create test certificate files
+            self.log("\n📄 STEP 3: CREATE TEST CERTIFICATE FILES")
             self.log("=" * 50)
-            cert_found = self.find_cl_certificate_pm242309()
-            if not cert_found:
-                self.log("❌ CL certificate not found - cannot proceed with testing")
+            files_created = self.create_test_certificate_files()
+            if not files_created:
+                self.log("❌ Failed to create test files - cannot proceed")
                 return False
             
-            # Step 4: Test certificate abbreviation updates
-            self.log("\n🔄 STEP 4: TEST CERTIFICATE ABBREVIATION UPDATES")
+            # Step 4: Test multi cert upload with abbreviations
+            self.log("\n📤 STEP 4: TEST MULTI CERT UPLOAD WITH ABBREVIATIONS")
             self.log("=" * 50)
-            update_success = self.test_certificate_abbreviation_update()
+            upload_success = self.test_multi_cert_upload_with_abbreviations()
             
-            # Step 5: Verify database record changes
-            self.log("\n🔍 STEP 5: VERIFY DATABASE RECORD CHANGES")
+            # Step 5: Verify database abbreviation records
+            self.log("\n🔍 STEP 5: VERIFY DATABASE ABBREVIATION RECORDS")
             self.log("=" * 50)
-            db_verification = self.verify_database_record_changes()
+            db_verification = self.verify_database_abbreviation_records()
             
             # Step 6: Check enhanced logging
             self.log("\n📝 STEP 6: CHECK ENHANCED LOGGING")
@@ -903,10 +903,13 @@ This certificate is issued under the provisions of SOLAS.''',
             self.log("=" * 50)
             self.provide_final_analysis()
             
-            return update_success and db_verification and logging_check
+            # Cleanup test files
+            self.cleanup_test_files()
+            
+            return upload_success and db_verification and logging_check
             
         except Exception as e:
-            self.log(f"❌ Comprehensive certificate testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive multi upload testing error: {str(e)}", "ERROR")
             return False
     
     def provide_final_analysis(self):
