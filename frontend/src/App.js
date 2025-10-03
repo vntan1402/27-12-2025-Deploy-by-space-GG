@@ -5904,10 +5904,7 @@ const HomePage = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  console.log('Auto rename clicked');
-                  setShowAutoRenameDialog(false);
-                }}
+                onClick={() => setShowAutoRenameDialog(false)}
                 className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg"
               >
                 Continue
