@@ -83,10 +83,10 @@ class MultiCertUploadAbbreviationTester:
         
         # Store test results for analysis
         self.ship_data = {}
-        self.certificate_data = {}
-        self.original_abbreviation = None
-        self.update_results = {}
-        self.mapping_results = {}
+        self.uploaded_certificates = []
+        self.ai_analysis_results = {}
+        self.abbreviation_mappings = {}
+        self.test_files = []
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
