@@ -154,9 +154,10 @@ class CertificateOverDueTester:
             endpoint = f"{BACKEND_URL}/ships"
             response = requests.get(endpoint, timeout=10)
             
-            # We expect 401 without auth, which means backend is running
-            if response.status_code in [200, 401]:
+            # We expect 401 or 403 without auth, which means backend is running
+            if response.status_code in [200, 401, 403]:
                 self.log("✅ Backend is running correctly")
+                self.log(f"   Response status: {response.status_code} (expected for unauthenticated request)")
                 self.certificate_tests['backend_running_correctly'] = True
                 return True
             else:
