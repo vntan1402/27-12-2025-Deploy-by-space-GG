@@ -4765,11 +4765,28 @@ const HomePage = () => {
                                   }
                                 } catch (error) {
                                   console.error('Error renaming file:', error);
-                                  toast.error(
-                                    language === 'vi' 
-                                      ? 'Lỗi khi đổi tên file!' 
-                                      : 'Error renaming file!'
-                                  );
+                                  
+                                  // Check if it's the "not supported" error with suggested filename
+                                  if (error.response && error.response.status === 501) {
+                                    const errorMessage = error.response.data.detail;
+                                    
+                                    // Extract suggested filename from error message
+                                    const suggestedMatch = errorMessage.match(/Suggested filename: (.+)/);
+                                    const suggestedFilename = suggestedMatch ? suggestedMatch[1] : '';
+                                    
+                                    toast.error(
+                                      language === 'vi' 
+                                        ? `Tính năng đổi tên tự động chưa được hỗ trợ. Tên file gợi ý: ${suggestedFilename}`
+                                        : `Auto-rename feature not yet supported. Suggested filename: ${suggestedFilename}`,
+                                      { duration: 8000 }
+                                    );
+                                  } else {
+                                    toast.error(
+                                      language === 'vi' 
+                                        ? 'Lỗi khi đổi tên file!' 
+                                        : 'Error renaming file!'
+                                    );
+                                  }
                                 } finally {
                                   setIsRenaming(false);
                                 }
