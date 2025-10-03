@@ -12255,6 +12255,7 @@ const AddRecordModal = ({
                 >
                   <option value="valid">{language === 'vi' ? 'Có hiệu lực' : 'Valid'}</option>
                   <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                  <option value="over_due">{language === 'vi' ? 'Quá hạn' : 'Over Due'}</option>
                   <option value="suspended">{language === 'vi' ? 'Tạm ngừng' : 'Suspended'}</option>
                   <option value="withdrawn">{language === 'vi' ? 'Thu hồi' : 'Withdrawn'}</option>
                   <option value="pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
