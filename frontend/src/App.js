@@ -11760,7 +11760,7 @@ const AddRecordModal = ({
         {/* Ship form moved to Ship tab - Certificate form remains clean */}
 
         {/* Certificate Form */}
-        {selectedDocumentType === 'certificate' && (
+        {activeTab === 'documents' && selectedDocumentType === 'certificate' && (
           <div className="space-y-3">
             {!selectedShip && (
               <div className="relative">
