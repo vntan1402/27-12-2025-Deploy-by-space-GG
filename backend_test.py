@@ -48,7 +48,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vesseldocs.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class TimezoneFixTester:
+class CertificateAbbreviationTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -56,38 +56,38 @@ class TimezoneFixTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for timezone fix functionality
-        self.timezone_tests = {
+        # Test tracking for certificate abbreviation functionality
+        self.cert_tests = {
             # Authentication and setup
             'authentication_successful': False,
-            'sunshine_01_ship_found': False,
+            'minh_anh_09_ship_found': False,
             
-            # Ship data retrieval tests
-            'ship_data_retrieved_successfully': False,
-            'date_fields_present': False,
-            'date_formats_consistent': False,
+            # Certificate finding tests
+            'cl_certificate_found': False,
+            'pm242309_certificate_found': False,
+            'certificate_has_abbreviation_field': False,
             
-            # Ship update tests
-            'ship_update_successful': False,
-            'dates_preserved_after_update': False,
-            'no_timezone_shifts_detected': False,
+            # Certificate update tests
+            'certificate_update_endpoint_accessible': False,
+            'abbreviation_update_to_classification_successful': False,
+            'abbreviation_update_back_to_cl_successful': False,
+            'database_record_changes_verified': False,
             
-            # Recalculation endpoint tests
-            'special_survey_cycle_working': False,
-            'docking_dates_calculation_working': False,
-            'next_docking_calculation_working': False,
-            'anniversary_date_calculation_working': False,
+            # Enhanced logging verification
+            'enhanced_logging_detected': False,
+            'cert_abbreviation_processing_logged': False,
             
-            # Date consistency verification
-            'recalculation_dates_consistent': False,
-            'all_endpoints_return_proper_formats': False,
+            # Abbreviation mapping tests
+            'abbreviation_mappings_created': False,
+            'abbreviation_mappings_updated': False,
         }
         
         # Store test results for analysis
         self.ship_data = {}
-        self.original_dates = {}
-        self.updated_dates = {}
-        self.recalculation_results = {}
+        self.certificate_data = {}
+        self.original_abbreviation = None
+        self.update_results = {}
+        self.mapping_results = {}
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
