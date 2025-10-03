@@ -169,12 +169,12 @@ class CertificateAbbreviationTester:
         
         return True  # Non-string values are considered valid
     
-    def find_sunshine_01_ship(self):
-        """Find SUNSHINE 01 ship as specified in review request"""
+    def find_minh_anh_09_ship(self):
+        """Find MINH ANH 09 ship as specified in review request"""
         try:
-            self.log("🚢 Finding SUNSHINE 01 ship...")
+            self.log("🚢 Finding MINH ANH 09 ship...")
             
-            # Get all ships to find SUNSHINE 01
+            # Get all ships to find MINH ANH 09
             endpoint = f"{BACKEND_URL}/ships"
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             
@@ -182,29 +182,29 @@ class CertificateAbbreviationTester:
                 ships = response.json()
                 self.log(f"   Found {len(ships)} total ships")
                 
-                # Look for SUNSHINE 01
-                sunshine_ship = None
+                # Look for MINH ANH 09
+                minh_anh_ship = None
                 for ship in ships:
                     ship_name = ship.get('name', '').upper()
-                    if 'SUNSHINE' in ship_name and '01' in ship_name:
-                        sunshine_ship = ship
+                    if 'MINH ANH' in ship_name and '09' in ship_name:
+                        minh_anh_ship = ship
                         break
                 
-                if sunshine_ship:
-                    self.ship_data = sunshine_ship
-                    ship_id = sunshine_ship.get('id')
-                    ship_name = sunshine_ship.get('name')
-                    imo = sunshine_ship.get('imo')
+                if minh_anh_ship:
+                    self.ship_data = minh_anh_ship
+                    ship_id = minh_anh_ship.get('id')
+                    ship_name = minh_anh_ship.get('name')
+                    imo = minh_anh_ship.get('imo')
                     
-                    self.log(f"✅ Found SUNSHINE 01 ship:")
+                    self.log(f"✅ Found MINH ANH 09 ship:")
                     self.log(f"   Ship ID: {ship_id}")
                     self.log(f"   Ship Name: {ship_name}")
                     self.log(f"   IMO: {imo}")
                     
-                    self.timezone_tests['sunshine_01_ship_found'] = True
+                    self.cert_tests['minh_anh_09_ship_found'] = True
                     return True
                 else:
-                    self.log("❌ SUNSHINE 01 ship not found")
+                    self.log("❌ MINH ANH 09 ship not found")
                     # List available ships for debugging
                     self.log("   Available ships:")
                     for ship in ships[:10]:
@@ -215,7 +215,7 @@ class CertificateAbbreviationTester:
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error finding SUNSHINE 01 ship: {str(e)}", "ERROR")
+            self.log(f"❌ Error finding MINH ANH 09 ship: {str(e)}", "ERROR")
             return False
     
     def test_ship_data_retrieval(self):
