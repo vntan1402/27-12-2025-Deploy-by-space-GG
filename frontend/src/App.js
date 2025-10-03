@@ -12828,67 +12828,6 @@ const AddRecordModal = ({
 
         {/* Ship Form */}
         {activeTab === 'ship' && (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tiêu đề tài liệu' : 'Document Title'} *
-              </label>
-              <input
-                type="text"
-                required
-                value={documentData.title}
-                onChange={(e) => setDocumentData(prev => ({ ...prev, title: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'vi' ? 'Nhập tiêu đề tài liệu' : 'Enter document title'}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Danh mục' : 'Category'} *
-              </label>
-              <select
-                required
-                value={documentData.category}
-                onChange={(e) => setDocumentData(prev => ({ ...prev, category: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="other_documents">{language === 'vi' ? 'Hồ sơ khác' : 'Other Documents'}</option>
-                <option value="drawings_manuals">{language === 'vi' ? 'Bản vẽ - Sổ tay' : 'Drawings & Manuals'}</option>
-                <option value="inspection_records">{language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}</option>
-                <option value="survey_reports">{language === 'vi' ? 'Báo cáo kiểm tra' : 'Test Report'}</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Mô tả' : 'Description'}
-              </label>
-              <textarea
-                value={documentData.description}
-                onChange={(e) => setDocumentData(prev => ({ ...prev, description: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                rows="3"
-                placeholder={language === 'vi' ? 'Nhập mô tả tài liệu (tùy chọn)' : 'Enter document description (optional)'}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tệp tài liệu' : 'Document File'}
-              </label>
-              <input
-                type="file"
-                onChange={(e) => setDocumentData(prev => ({ ...prev, file: e.target.files[0] }))}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                {language === 'vi' ? 'Hỗ trợ: PDF, DOC, DOCX, JPG, PNG' : 'Supported: PDF, DOC, DOCX, JPG, PNG'}
-              </p>
-            </div>
-          </div>
-        )}
 
         <div className="flex justify-end space-x-4 mt-8">
           <button
