@@ -5114,6 +5114,7 @@ const HomePage = () => {
           }}
           language={language}
           selectedShip={selectedShip}
+          setSelectedShip={setSelectedShip}
           availableCompanies={availableCompanies}
           ships={ships}
           setShips={setShips}
