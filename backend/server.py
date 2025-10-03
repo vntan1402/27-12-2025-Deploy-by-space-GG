@@ -6909,21 +6909,27 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         logger.info(f"   analysis_result.get('cert_abbreviation'): {extracted_cert_abbreviation}")
         logger.info(f"   analysis_result keys: {list(analysis_result.keys())}")
         
-        # Get cert_abbreviation from AI or try to find from mapping
+        # Get cert_abbreviation with priority: Mappings → AI → Fallback
         cert_name = analysis_result.get('cert_name', 'Unknown Certificate')
-        cert_abbreviation = analysis_result.get('cert_abbreviation')
+        cert_abbreviation = None
         
-        # If AI didn't extract cert_abbreviation, try to get it from existing mappings
-        if not cert_abbreviation and cert_name and cert_name != 'Unknown Certificate':
+        # Priority 1: Check existing abbreviation mappings FIRST
+        if cert_name and cert_name != 'Unknown Certificate':
             try:
                 mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"cert_name": cert_name})
                 if mapping:
                     cert_abbreviation = mapping.get('abbreviation')
-                    logger.info(f"📋 Found existing abbreviation mapping: '{cert_name}' -> '{cert_abbreviation}'")
+                    logger.info(f"📋 PRIORITY 1 - Found abbreviation mapping: '{cert_name}' -> '{cert_abbreviation}'")
                 else:
-                    logger.info(f"📋 No existing abbreviation mapping found for: '{cert_name}'")
+                    logger.info(f"📋 No abbreviation mapping found for: '{cert_name}'")
             except Exception as e:
                 logger.warning(f"⚠️ Error looking up abbreviation mapping: {e}")
+        
+        # Priority 2: Use AI analysis if no mapping found
+        if not cert_abbreviation:
+            cert_abbreviation = analysis_result.get('cert_abbreviation')
+            if cert_abbreviation:
+                logger.info(f"🤖 PRIORITY 2 - Using AI extracted abbreviation: '{cert_abbreviation}'")
         
         # Create certificate data
         cert_data = {
