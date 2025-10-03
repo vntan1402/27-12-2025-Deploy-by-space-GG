@@ -12901,7 +12901,7 @@ const AddRecordModal = ({
             </div>
 
             {/* Row 1 - Docking Information */}
-            <div className="col-span-2">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
               </label>
@@ -12914,7 +12914,7 @@ const AddRecordModal = ({
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Last Docking 2' : 'Last Docking 2'}
               </label>
@@ -12939,9 +12939,9 @@ const AddRecordModal = ({
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Anniversary Day' : 'Anniversary Day'}
+                {language === 'vi' ? 'Day' : 'Day'}
               </label>
               <input
                 type="number"
@@ -12950,13 +12950,13 @@ const AddRecordModal = ({
                 value={shipData.anniversary_date_day || ''}
                 onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_day: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="Day"
+                placeholder="15"
               />
             </div>
 
-            <div className="col-span-3">
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Anniversary Month' : 'Anniversary Month'}
+                {language === 'vi' ? 'Month' : 'Month'}
               </label>
               <select
                 value={shipData.anniversary_date_month || ''}
