@@ -8798,26 +8798,19 @@ async def auto_rename_certificate_file(
         cert_abbreviation = certificate.get("cert_abbreviation", "")
         issue_date = certificate.get("issue_date")
         
-        # Priority 1: Check abbreviation mappings FIRST
-        final_abbreviation = None
-        if cert_name and cert_name != "Unknown Certificate":
-            try:
-                mapping = await mongo_db.find_one("certificate_abbreviation_mappings", {"cert_name": cert_name})
-                if mapping:
-                    final_abbreviation = mapping.get('abbreviation')
-                    logger.info(f"🔄 AUTO-RENAME - PRIORITY 1: Using mapping '{cert_name}' → '{final_abbreviation}'")
-            except Exception as e:
-                logger.warning(f"⚠️ Error looking up abbreviation mapping: {e}")
-        
-        # Priority 2: Use database cert_abbreviation if no mapping found
-        if not final_abbreviation and cert_abbreviation:
-            final_abbreviation = cert_abbreviation
-            logger.info(f"🔄 AUTO-RENAME - PRIORITY 2: Using database abbreviation '{final_abbreviation}'")
-        
-        # Priority 3: Fallback to cert name
-        if not final_abbreviation:
-            final_abbreviation = cert_name
-            logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Using full cert name '{final_abbreviation}'")
+        # Priority 1: Check user-defined abbreviation mappings FIRST
+        final_abbreviation = await get_user_defined_abbreviation(cert_name)
+        if final_abbreviation:
+            logger.info(f"🔄 AUTO-RENAME - PRIORITY 1: Using user-defined mapping '{cert_name}' → '{final_abbreviation}'")
+        else:
+            # Priority 2: Use database cert_abbreviation if no mapping found
+            if cert_abbreviation:
+                final_abbreviation = cert_abbreviation
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 2: Using database abbreviation '{final_abbreviation}'")
+            else:
+                # Priority 3: Generate abbreviation as fallback
+                final_abbreviation = await generate_certificate_abbreviation(cert_name)
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Generated abbreviation '{cert_name}' → '{final_abbreviation}'")
         
         # Use final abbreviation for filename
         cert_identifier = final_abbreviation.replace(" ", "_")
