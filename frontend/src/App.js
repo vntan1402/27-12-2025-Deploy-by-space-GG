@@ -5118,6 +5118,7 @@ const HomePage = () => {
           availableCompanies={availableCompanies}
           ships={ships}
           setShips={setShips}
+          fetchCertificates={fetchCertificates}
           parentAiConfig={aiConfig}
           isMultiCertProcessing={isMultiCertProcessing}
           multiCertUploads={multiCertUploads}
