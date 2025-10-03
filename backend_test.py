@@ -337,10 +337,46 @@ This certificate is issued under the provisions of SOLAS.''',
                 self.log("   Upload results analysis:")
                 self.log(f"      Response keys: {list(upload_result.keys())}")
                 
-                # Check for created certificates
-                created_certificates = upload_result.get('certificates', [])
+                # Check different possible response structures
+                created_certificates = []
+                
+                # Check for 'results' key (common in multi-upload responses)
+                if 'results' in upload_result:
+                    results = upload_result['results']
+                    self.log(f"      Results structure: {type(results)}")
+                    
+                    if isinstance(results, list):
+                        for result in results:
+                            if isinstance(result, dict) and 'certificate' in result:
+                                created_certificates.append(result['certificate'])
+                            elif isinstance(result, dict) and result.get('status') == 'success':
+                                # Check if certificate data is directly in result
+                                if 'cert_name' in result or 'id' in result:
+                                    created_certificates.append(result)
+                    elif isinstance(results, dict):
+                        # Results might be a single certificate or contain certificates
+                        if 'certificates' in results:
+                            created_certificates = results['certificates']
+                        elif 'cert_name' in results or 'id' in results:
+                            created_certificates = [results]
+                
+                # Also check direct 'certificates' key
+                if 'certificates' in upload_result:
+                    created_certificates.extend(upload_result['certificates'])
+                
+                # Check summary for certificate info
+                if 'summary' in upload_result:
+                    summary = upload_result['summary']
+                    self.log(f"      Summary: {summary}")
+                    
+                    # Extract certificate count from summary
+                    if isinstance(summary, dict):
+                        cert_count = summary.get('certificates_created', 0)
+                        if cert_count > 0:
+                            self.log(f"      Summary indicates {cert_count} certificates created")
+                
                 if created_certificates:
-                    self.log(f"      Created {len(created_certificates)} certificates")
+                    self.log(f"      Found {len(created_certificates)} certificates in response")
                     self.uploaded_certificates = created_certificates
                     
                     # Check each certificate for abbreviation
@@ -362,6 +398,10 @@ This certificate is issued under the provisions of SOLAS.''',
                         self.log(f"      ✅ {abbreviations_found}/{len(created_certificates)} certificates have abbreviations")
                     else:
                         self.log(f"      ❌ No certificates have abbreviations saved")
+                else:
+                    self.log("      ❌ No certificates found in response")
+                    # Log the full response for debugging
+                    self.log(f"      Full response: {json.dumps(upload_result, indent=2)}")
                 
                 # Check for AI analysis results
                 ai_results = upload_result.get('ai_analysis', {})
@@ -375,6 +415,8 @@ This certificate is issued under the provisions of SOLAS.''',
                         if cert_abbreviation:
                             self.cert_tests['ai_extracted_abbreviation_working'] = True
                             self.log(f"         AI extracted abbreviation for {file_name}: {cert_abbreviation}")
+                else:
+                    self.log("      No AI analysis results found in response")
                 
                 return True
             else:
