@@ -10435,15 +10435,29 @@ const AddRecordModal = ({
   const { user, token } = useAuth();
   
   
-  const [recordType, setRecordType] = useState(() => {
-    // Use defaultTab if provided, otherwise use role-based logic
+  // Tab structure for Add New Record
+  const tabs = [
+    { key: 'ship', name: language === 'vi' ? 'Tàu' : 'Ship', icon: '🚢' },
+    { key: 'documents', name: language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio', icon: '📁' },
+    { key: 'crew', name: language === 'vi' ? 'Thuyền viên' : 'Crew Records', icon: '👥' },
+    { key: 'ism', name: language === 'vi' ? 'Hồ sơ ISM' : 'ISM Records', icon: '📋' },
+    { key: 'isps', name: language === 'vi' ? 'Hồ sơ ISPS' : 'ISPS Records', icon: '🛡️' },
+    { key: 'mlc', name: language === 'vi' ? 'Hồ sơ MLC' : 'MLC Records', icon: '⚖️' },
+    { key: 'supplies', name: language === 'vi' ? 'Vật tư' : 'Supplies', icon: '📦' }
+  ];
+
+  const [activeTab, setActiveTab] = useState(() => {
+    // Use defaultTab if provided, otherwise use role-based logic  
     if (defaultTab) {
       return defaultTab;
     }
-    // Default to 'certificate' if user can't create ships
+    // Default to 'documents' if user can't create ships
     const allowedRoles = ['manager', 'admin', 'super_admin'];
-    return allowedRoles.includes(user?.role) ? 'ship' : 'certificate';
+    return allowedRoles.includes(user?.role) ? 'ship' : 'documents';
   });
+
+  // For backward compatibility, map activeTab to recordType
+  const recordType = activeTab === 'documents' ? 'certificate' : activeTab;
   // PDF Analysis state
   const [showPdfAnalysis, setShowPdfAnalysis] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
