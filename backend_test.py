@@ -48,7 +48,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vesseldocs.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class CertificateAbbreviationTester:
+class MultiCertUploadAbbreviationTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -56,30 +56,29 @@ class CertificateAbbreviationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for certificate abbreviation functionality
+        # Test tracking for multi cert upload abbreviation functionality
         self.cert_tests = {
             # Authentication and setup
             'authentication_successful': False,
-            'minh_anh_09_ship_found': False,
+            'ship_found_for_testing': False,
             
-            # Certificate finding tests
-            'cl_certificate_found': False,
-            'pm242309_certificate_found': False,
-            'certificate_has_abbreviation_field': False,
+            # Multi upload endpoint tests
+            'multi_upload_endpoint_accessible': False,
+            'multi_upload_successful': False,
+            'certificates_created_with_abbreviations': False,
             
-            # Certificate update tests
-            'certificate_update_endpoint_accessible': False,
-            'abbreviation_update_to_classification_successful': False,
-            'abbreviation_update_back_to_cl_successful': False,
-            'database_record_changes_verified': False,
+            # AI analysis tests
+            'ai_extracted_abbreviation_working': False,
+            'mapping_based_abbreviation_working': False,
+            'cert_abbreviation_saved_to_database': False,
             
             # Enhanced logging verification
             'enhanced_logging_detected': False,
             'cert_abbreviation_processing_logged': False,
             
-            # Abbreviation mapping tests
-            'abbreviation_mappings_created': False,
-            'abbreviation_mappings_updated': False,
+            # Database verification tests
+            'database_records_have_abbreviations': False,
+            'abbreviation_mappings_utilized': False,
         }
         
         # Store test results for analysis
