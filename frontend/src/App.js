@@ -938,6 +938,14 @@ const HomePage = () => {
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [showAutoRenameDialog, setShowAutoRenameDialog] = useState(false);
+  const [batchRenameProgress, setBatchRenameProgress] = useState({
+    isRunning: false,
+    completed: 0,
+    total: 0,
+    current: '',
+    errors: []
+  });
   
   // Quick Edit Survey Type states
   const [quickEditMenu, setQuickEditMenu] = useState({
