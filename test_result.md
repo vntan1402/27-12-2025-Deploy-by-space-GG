@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the UPDATED 'Recalculate Last Docking' functionality for MINH ANH 09 with enhanced AI prompt that now recognizes 'inspections of the outside of the ship's bottom' = dry docking. PM242308 CSSC certificate contains: 'last two inspections of the outside of the ship's bottom took place on MAY 05, 2022'. Expected Result: Last Docking 1: 05/05/2022 (MAY 05, 2022). Test credentials: admin1/123456."
+user_problem_statement: "Test the new Auto Rename File functionality that was just implemented. Specifically test: 1. POST /api/certificates/{certificate_id}/auto-rename-file endpoint, 2. Use a certificate from SUNSHINE 01 ship that has a google_drive_file_id, 3. Verify the naming convention: Ship name + Cert type + Certificate Name (Abbreviation) + Issue Date, 4. Test with admin1/123456 credentials, 5. Check if the backend properly generates the new filename and calls the Google Drive API, 6. Verify that the certificate record is updated with the new filename. Test all components of the auto-rename functionality to ensure it's working as designed."
 
 frontend:
   - task: "Quick Edit Survey Type Context Menu Functionality Debug"
