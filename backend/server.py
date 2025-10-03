@@ -8794,7 +8794,7 @@ async def auto_rename_certificate_file(
         new_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', new_filename)
         
         # Get company ID from current user
-        company_id = current_user.company_id
+        company_id = await resolve_company_id(current_user)
         
         # Call the rename endpoint
         rename_data = {
