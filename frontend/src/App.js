@@ -12900,12 +12900,24 @@ const AddRecordModal = ({
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
           >
             {isSubmitting && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>}
-            {recordType === 'ship' 
+            {activeTab === 'ship' 
               ? (language === 'vi' ? '🚢 Thêm tàu mới' : '🚢 Add New Ship')
-              : recordType === 'certificate'
+              : activeTab === 'certificate' || recordType === 'certificate'
               ? (language === 'vi' ? '📄 Thêm Certificate' : '📄 Add Certificate')
-              : recordType === 'survey_report'
+              : activeTab === 'survey_report' || recordType === 'survey_report'
               ? (language === 'vi' ? '📋 Thêm Hồ sơ Đăng kiểm' : '📋 Add Class Survey Report')
+              : activeTab === 'documents'
+              ? (language === 'vi' ? 'Chọn loại tài liệu' : 'Select document type')
+              : activeTab === 'crew'
+              ? (language === 'vi' ? '👥 Thêm Thuyền viên' : '👥 Add Crew Record')
+              : activeTab === 'ism'
+              ? (language === 'vi' ? '📋 Thêm ISM' : '📋 Add ISM Record')
+              : activeTab === 'isps'
+              ? (language === 'vi' ? '🛡️ Thêm ISPS' : '🛡️ Add ISPS Record')
+              : activeTab === 'mlc'
+              ? (language === 'vi' ? '⚖️ Thêm MLC' : '⚖️ Add MLC Record')
+              : activeTab === 'supplies'
+              ? (language === 'vi' ? '📦 Thêm Vật tư' : '📦 Add Supplies')
               : (language === 'vi' ? 'Thêm hồ sơ' : 'Add Record')
             }
           </button>
