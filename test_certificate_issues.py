@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Configuration
-BACKEND_URL = 'https://vessel-cert.preview.emergentagent.com/api'
+BACKEND_URL = 'https://vesseltrack.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""

@@ -9,7 +9,7 @@ import json
 import os
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vessel-cert.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vesseltrack.preview.emergentagent.com') + '/api'
 
 def authenticate():
     """Authenticate and get token"""
