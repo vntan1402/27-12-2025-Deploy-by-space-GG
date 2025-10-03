@@ -4804,35 +4804,36 @@ const HomePage = () => {
                             >
                               {language === 'vi' ? 'Hủy' : 'Cancel'}
                             </button>
-                          <button
-                            onClick={async () => {
-                              try {
-                                // Prepare update payload with UTC-safe date conversion
-                                const updatePayload = {
-                                  ...editingCertificate,
-                                  issue_date: editingCertificate.issue_date ? convertDateInputToUTC(editingCertificate.issue_date.split('T')[0]) : null,
-                                  valid_date: editingCertificate.valid_date ? convertDateInputToUTC(editingCertificate.valid_date.split('T')[0]) : null,
-                                  last_endorse: editingCertificate.last_endorse ? convertDateInputToUTC(editingCertificate.last_endorse.split('T')[0]) : null,
-                                  next_survey: editingCertificate.next_survey ? convertDateInputToUTC(editingCertificate.next_survey.split('T')[0]) : null
-                                };
-                                
-                                await axios.put(`${API}/certificates/${editingCertificate.id}`, updatePayload, {
-                                  headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                
-                                toast.success(language === 'vi' ? 'Cập nhật chứng chỉ thành công!' : 'Certificate updated successfully!');
-                                setShowEditCertModal(false);
-                                setEditingCertificate(null);
-                                await fetchCertificates(selectedShip.id); // Refresh list
-                              } catch (error) {
-                                console.error('Error updating certificate:', error);
-                                toast.error(language === 'vi' ? 'Lỗi khi cập nhật chứng chỉ!' : 'Error updating certificate!');
-                              }
-                            }}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
-                          >
-                            {language === 'vi' ? 'Lưu' : 'Save'}
-                          </button>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  // Prepare update payload with UTC-safe date conversion
+                                  const updatePayload = {
+                                    ...editingCertificate,
+                                    issue_date: editingCertificate.issue_date ? convertDateInputToUTC(editingCertificate.issue_date.split('T')[0]) : null,
+                                    valid_date: editingCertificate.valid_date ? convertDateInputToUTC(editingCertificate.valid_date.split('T')[0]) : null,
+                                    last_endorse: editingCertificate.last_endorse ? convertDateInputToUTC(editingCertificate.last_endorse.split('T')[0]) : null,
+                                    next_survey: editingCertificate.next_survey ? convertDateInputToUTC(editingCertificate.next_survey.split('T')[0]) : null
+                                  };
+                                  
+                                  await axios.put(`${API}/certificates/${editingCertificate.id}`, updatePayload, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                  });
+                                  
+                                  toast.success(language === 'vi' ? 'Cập nhật chứng chỉ thành công!' : 'Certificate updated successfully!');
+                                  setShowEditCertModal(false);
+                                  setEditingCertificate(null);
+                                  await fetchCertificates(selectedShip.id); // Refresh list
+                                } catch (error) {
+                                  console.error('Error updating certificate:', error);
+                                  toast.error(language === 'vi' ? 'Lỗi khi cập nhật chứng chỉ!' : 'Error updating certificate!');
+                                }
+                              }}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Lưu' : 'Save'}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
