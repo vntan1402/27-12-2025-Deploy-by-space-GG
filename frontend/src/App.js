@@ -4523,10 +4523,7 @@ const HomePage = () => {
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                           </svg>
-                          {selectedCertificates.size > 1 
-                            ? (language === 'vi' ? `Auto Rename ${selectedCertificates.size} files` : `Auto Rename ${selectedCertificates.size} files`)
-                            : (language === 'vi' ? 'Auto Rename File' : 'Auto Rename File')
-                          }
+                          Auto Rename File
                         </button>
                         
                         <div className="border-t border-gray-200 my-1"></div>
