@@ -12696,8 +12696,134 @@ const AddRecordModal = ({
           </div>
         )}
 
-        {/* Document Form */}
-        {recordType === 'document' && (
+        {/* Survey Report Form */}
+        {(activeTab === 'survey_report' || recordType === 'survey_report') && (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="text-yellow-600 mr-3">🚧</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">
+                    {language === 'vi' ? 'Đang phát triển' : 'Under Development'}
+                  </h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {language === 'vi' 
+                      ? 'Chức năng thêm Hồ sơ Đăng kiểm đang được phát triển.' 
+                      : 'Class Survey Report creation feature is under development.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Crew Records Tab */}
+        {activeTab === 'crew' && (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="text-yellow-600 mr-3">🚧</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">
+                    {language === 'vi' ? 'Đang phát triển' : 'Under Development'}
+                  </h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {language === 'vi' 
+                      ? 'Chức năng quản lý hồ sơ thuyền viên đang được phát triển.' 
+                      : 'Crew Records management feature is under development.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ISM Records Tab */}
+        {activeTab === 'ism' && (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="text-yellow-600 mr-3">🚧</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">
+                    {language === 'vi' ? 'Đang phát triển' : 'Under Development'}
+                  </h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {language === 'vi' 
+                      ? 'Chức năng quản lý hồ sơ ISM đang được phát triển.' 
+                      : 'ISM Records management feature is under development.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ISPS Records Tab */}
+        {activeTab === 'isps' && (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="text-yellow-600 mr-3">🚧</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">
+                    {language === 'vi' ? 'Đang phát triển' : 'Under Development'}
+                  </h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {language === 'vi' 
+                      ? 'Chức năng quản lý hồ sơ ISPS đang được phát triển.' 
+                      : 'ISPS Records management feature is under development.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MLC Records Tab */}
+        {activeTab === 'mlc' && (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="text-yellow-600 mr-3">🚧</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">
+                    {language === 'vi' ? 'Đang phát triển' : 'Under Development'}
+                  </h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {language === 'vi' 
+                      ? 'Chức năng quản lý hồ sơ MLC đang được phát triển.' 
+                      : 'MLC Records management feature is under development.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Supplies Tab */}
+        {activeTab === 'supplies' && (
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="text-yellow-600 mr-3">🚧</div>
+                <div>
+                  <h4 className="text-sm font-medium text-yellow-800">
+                    {language === 'vi' ? 'Đang phát triển' : 'Under Development'}
+                  </h4>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {language === 'vi' 
+                      ? 'Chức năng quản lý vật tư đang được phát triển.' 
+                      : 'Supplies management feature is under development.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Ship Form */}
+        {activeTab === 'ship' && (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
