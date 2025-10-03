@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Test the new Auto Rename File functionality that was just implemented. Specifically test: 1. POST /api/certificates/{certificate_id}/auto-rename-file endpoint, 2. Use a certificate from SUNSHINE 01 ship that has a google_drive_file_id, 3. Verify the naming convention: Ship name + Cert type + Certificate Name (Abbreviation) + Issue Date, 4. Test with admin1/123456 credentials, 5. Check if the backend properly generates the new filename and calls the Google Drive API, 6. Verify that the certificate record is updated with the new filename. Test all components of the auto-rename functionality to ensure it's working as designed."
+user_problem_statement: "Test the certificate abbreviation saving functionality when editing certificates. I enhanced the backend logic to ensure cert_abbreviation is always saved to database. Please test: 1. Find a CL certificate for MINH ANH 09 (should be PM242309), 2. Test the PUT /api/certificates/{cert_id} endpoint with cert_abbreviation update, 3. Verify the abbreviation is saved to database, 4. Check the enhanced logging I added shows cert_abbreviation processing, 5. Use admin1/123456 credentials. Test with different scenarios: Update cert_abbreviation from 'CL' to 'CLASSIFICATION', Update it back to 'CL', Verify database record changes, Check if abbreviation mappings are also created/updated. This will verify that Edit Certificate > Save properly saves abbreviation data to database as requested by the user."
 
 frontend:
   - task: "Quick Edit Survey Type Context Menu Functionality Debug"
