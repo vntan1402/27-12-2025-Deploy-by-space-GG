@@ -1,69 +1,85 @@
 <analysis>
-The trajectory documents an intensive, iterative development process for a Ship Management System, primarily focused on UI/UX refinement, bug fixing, and enhancing a core AI data extraction feature. The work began with UI consistency tasks, such as synchronizing text in dropdown menus and ensuring data in the main table matched the edit forms. A significant feature was added to auto-refresh data in modals and lists after user actions like Quick Edit or Recalculate, which involved deep debugging of asynchronous state updates and API response handling.
+The AI engineer's trajectory chronicles an intricate development and debugging journey for the Ship Management System. Initial efforts centered on resolving date-timezone inconsistencies, leading to the establishment of universal UTC handling and documentation. Subsequently, the focus shifted to enhancing AI-driven PDF data extraction, particularly refining prompts for  and , and correcting AI JSON response parsing.
 
-The most substantial effort was dedicated to improving the AI's ability to extract data from uploaded certificate PDFs. The user reported that the AI failed to populate most fields when adding a new ship from a certificate. The debugging process was complex, starting from verifying the backend extraction logic, which was initially correct, to identifying the root cause in the backend's  function. This function was failing to map most of the extracted ship details. The AI prompt and the normalization logic were iteratively refined to successfully extract and map all required fields, including complex date formats for Keel Laid and Last Docking.
+Significant UI/UX improvements included optimistic updates for ship additions and various data refresh fixes. A notable bug involved the Built Year field in the Edit Ship modal, where field name inconsistencies ( vs ) prevented data display and saving.
 
-The final phase of work tackled persistent and subtle bugs related to data binding in the Edit Ship form and timezone-related date shifts. The Edit Ship form was not displaying detailed data because it was relying on an incomplete data object; this was fixed by fetching the full object details upon opening the modal. A recurring one-day date shift was traced to inconsistent date handling, which was addressed by creating and applying a universal UTC conversion function across the application. The last task involved debugging why this date shift was still occurring in some scenarios, identifying that the auto-refresh logic was not yet using the new universal UTC function.
+More recently, the engineer added an Over Due status for certificates based on anniversary dates, updating frontend logic and UI. The most substantial new feature is the Auto Rename File functionality for certificates, involving Google Drive Apps Script integration, new backend endpoints, and frontend UI. This feature required extensive debugging to resolve backend collection name mismatches, Apps Script capability check issues, and inconsistent  data for specific certificates, leading to targeted database fixes. The current task involves debugging the Auto Rename File option when invoked from the context menu for a single selected certificate, which is causing unexpected UI reloads.
 </analysis>
 
 <product_requirements>
-The application is an AI-powered Ship Management System for maritime certificates.
-
-**Core Requirements Implemented:**
-1.  **AI Certificate Processing**: The system uses Google Gemini to extract data from PDF certificates to auto-populate forms for adding new ships. The AI logic has been significantly enhanced to extract a wide range of fields, including ship name, IMO, flag, class society, gross tonnage, and specific dates like Keel Laid, Delivery Date, and Last Docking.
-2.  **UI/UX Consistency**:
-    *   All UI text, including dropdown options (Survey Type) and labels (Next Survey Type), must be consistent and support Vietnamese translations as specified.
-    *   The Edit Ship form must correctly display all existing data for a selected ship, including detailed information and correctly formatted dates.
-3.  **Interactive UI**:
-    *   A Quick Edit context menu allows users to change the Survey Type directly from the main certificate list.
-    *   The certificate list must auto-refresh after a successful Quick Edit to reflect the latest data from the server.
-    *   The Detailed Ship Information form must auto-refresh its fields immediately after a user triggers a Recalculate action (e.g., for Next Docking Date).
-4.  **Data Integrity**: All date fields entered manually or extracted by AI must be handled consistently to avoid timezone-related date shifts. Data must be stored and retrieved reliably from the database.
+The AI-powered Ship Management System aims to manage maritime certificates efficiently. Key requirements include:
+1.  **AI-Powered Certificate Data Extraction:** Utilize Google Gemini to parse PDF certificates, auto-populating ship and certificate forms with details like ship name, IMO, dates, and certificate types.
+2.  **Data Integrity and Consistency:** Ensure all date/time data is consistently handled in UTC to prevent timezone shifts, and that UI data (lists, forms) synchronizes with the database.
+3.  **Responsive User Interface:** Provide immediate feedback through optimistic updates and instant UI refreshes post-actions.
+4.  **Full CRUD Operations:** Enable users to add, view, edit, and delete ships and certificates, with edit forms pre-populated with correct data.
+The core system is functional. AI extraction is continually refined. Date-shifting bugs are addressed. UI responsiveness is improved. Recent work focuses on Built Year bug, Over Due certificate status, and Auto Rename File integration for Google Drive, which is currently being debugged for UI stability.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack Monoliths**: A monolithic React frontend () and a monolithic FastAPI backend ().
-- **AI Integration**: Google Gemini is used for data extraction from PDFs. The backend contains complex logic for building dynamic prompts, calling the AI, and normalizing the JSON response.
-- **React State Management**: Extensive use of  and  for managing complex UI state, including modals, context menus, and form data.
-- **Asynchronous Operations**: Heavy use of  for API calls, with debugging focused on race conditions and state updates post-fetch.
-- **Date & Timezone Handling**: Critical focus on resolving date shift bugs by consistently converting all date inputs to UTC () before sending them to the backend.
+-   **Full-stack Monorepo:** React frontend () and FastAPI backend () architecture.
+-   **AI Integration (Google Gemini):** Backend uses Gemini for PDF data extraction, requiring dynamic prompt engineering and JSON parsing.
+-   **Asynchronous UI Updates:** Optimistic updates and state management (, ) for immediate UI feedback.
+-   **System-Wide UTC Date Handling:** Critical architectural principle to prevent timezone bugs.
+-   **Google Apps Script Integration:** Utilized for Google Drive file operations (e.g., folder creation, file renaming).
+-   **MongoDB:** NoSQL database for data persistence.
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a monorepo structure with a backend and frontend directory.
-
 
 
 -   ****
-    -   **Summary**: This single file contains the entire FastAPI backend, managing all API endpoints, database interactions with MongoDB (via Motor), Pydantic models, and the core business logic, including the AI data extraction prompts for Google Gemini.
-    -   **Summary of Changes**:
-        -   The AI extraction logic was heavily modified. The  function was updated to include more fields (, , ), which dynamically builds a more comprehensive AI prompt.
-        -   The  function was significantly expanded to correctly parse and map the full, flat JSON response from the AI, resolving the critical bug where only a few fields were being auto-filled.
-        -   The  endpoint's corresponding handler function ( in the frontend) was implicitly fixed by ensuring the frontend payload now includes all detailed ship information fields, which the backend was already capable of processing.
+    -   **Summary:** FastAPI application handling API endpoints, MongoDB interactions, Pydantic models, and AI logic.
+    -   **Summary of Changes:**
+        -   **AI Prompts:** Enhanced for  and .
+        -   **Date Handling:** Added , .
+        -   **AI Response Parsing:** Fixed  logic.
+        -   **Certificate Status:** Backend models (, ) were implicitly used for status determination and the PUT endpoint () was enhanced to handle  saving and mapping.
+        -   **Google Drive Integration:** New endpoints added, including  to trigger Apps Script file renaming.
+        -   **Bug Fixes:** Corrected  to  collection name, improved Apps Script capability check by passing  to .
+        -   **Multi Cert Upload:**  function was updated to explicitly include and save  from AI analysis or existing mappings.
+        -   **Logging:** Added extensive logging for  updates.
 
 -   ****
-    -   **Summary**: This monolithic React file contains the entire frontend application. It manages all application state, renders all UI components (tables, modals, forms), and handles API communication.
-    -   **Summary of Changes**:
-        -   **Text & Translation**: Numerous text labels and dropdown options were updated for consistency and to meet user's Vietnamese translation requests (e.g., Next Survey Type).
-        -   **Auto-Refresh Logic**: The  function was modified to call  on success. Similarly, recalculation functions (, etc.) were updated to fetch the latest ship data and update the  state, refreshing the edit form in place.
-        -   **Data Binding Fix**: The  handler for the Edit Ship button () was created to fetch the full ship details via a new API call () before opening the modal. This fixed the bug where the form appeared empty because it was previously using an incomplete  object.
-        -   **Date & Timezone Fix**: A universal date conversion function, , was created and applied to all date fields in both the Add Ship and Edit Ship submission payloads to prevent timezone-related date shifts. A scope issue with this function was also fixed by defining it within the Add Ship modal component.
-        -   **AI Auto-fill Formatting**: The  function was modified to preserve the full date (DD/MM/YYYY) if extracted by the AI, instead of always converting it to MM/YYYY.
+    -   **Summary:** Manages Google Drive interactions through Apps Script calls.
+    -   **Summary of Changes:**
+        -   ** function:** Added a new function  to abstract the Apps Script call for renaming a file by  to a . This function is invoked by the backend API.
 
+-   ****
+    -   **Summary:** Monolithic React file for the entire frontend application.
+    -   **Summary of Changes:**
+        -   **Date Handling:**  and  for consistent date management.
+        -   **Data Refresh:** Recalculation functions () updated to refresh  and .
+        -   **Optimistic Updates:** Immediate UI updates for ship additions.
+        -   ** Bug Fix:** Corrected  attribute and  handler from  to  in Edit Ship modal (lines ~5120-5121). Also fixed  submission payload and cleanup logic (lines 1125, 1146) for .
+        -   **Certificate Status:**  function enhanced to include Over Due status logic based on anniversary dates (lines 733-744). UI rendering updated to display Over Due with orange badge (lines 4243-4255) and status filter dropdown updated (lines 4614-4620, 12254-12259).
+        -   **Auto Rename File Feature:**
+            -   Added an Auto Rename file button to the Edit Certificate modal (around lines 4737-4740).
+            -   Added state variables  for UI feedback.
+            -   Added Auto Rename File option to the right-click context menu in the certificate list.
+            -   Implemented  function for processing multiple selected certificates.
+            -   Created a  for user confirmation.
+            -   Frontend error handling for API responses (e.g., 501 Not Implemented) was improved to show user-friendly messages.
+        -   **Context Menu Bug Fix:** Logic for handling single right-click on a certificate was adjusted in  to ensure the correct certificate ID is used when  is 0 but  exists (lines 2042-2044). Simplified dialog to isolate crash, then re-integrated full dialog with null checks for  (lines 5906-5920).
+
+-   ****
+    -   **Summary:** Documents principles for consistent UTC date handling across the application.
+    -   **Summary of Changes:** Updated to include the new Over Due status logic.
+
+-   ****
+    -   **Summary:** A new documentation file created to detail the certificate status determination logic.
 </code_architecture>
 
 <pending_tasks>
-- The user canceled the request to modify the Next Survey calculation logic by comparing it against the Valid Date. No other major feature requests are pending. The primary pending work is a bug fix.
+-   The primary pending task is to debug why clicking the Auto Rename File option from the right-click context menu (when only one certificate is selected) causes the frontend to redirect to the login page.
 </pending_tasks>
 
 <current_work>
-The most recent task was to investigate and fix a recurring date shift issue. The user reported that dates were off by one day, indicating a timezone problem.
+The immediate work involved debugging the Auto Rename File functionality, specifically when initiated from the certificate list's right-click context menu. Previously, clicking this option led to a No certificates selected! error. The AI engineer addressed this by modifying the  function in  (around lines 2042-2044) to correctly handle cases where a single certificate is right-clicked and added to the  set.
 
-The previous engineer correctly identified that different parts of the application were handling date conversions inconsistently. A robust solution was partially implemented by creating a universal function, , to standardize dates to UTC format before sending them to the backend. This fix was successfully applied to the Add Ship and Edit Ship form submission logic.
-
-However, the work was paused right after discovering that this fix was not yet applied everywhere. Specifically, the auto-refresh logic within the recalculation functions (e.g., ) was still using a simple , which is susceptible to local timezone variations and was the likely cause of the recurring date shift bug. The immediate task is to refactor these remaining functions to use the new, consistent UTC conversion method.
+However, after fixing this and re-implementing the full  (which was temporarily simplified for debugging), the application started redirecting to the login page upon clicking the Auto Rename File option. This indicates a JavaScript error or state management issue within the confirmation dialog or its click handler. The current state is that the context menu successfully shows the Auto Rename File option, and clicking it is expected to display the confirmation dialog, but instead causes a crash and redirection. The debugging process is focused on identifying the specific JavaScript error causing this behavior, possibly related to  or other state access within the dialog's JSX or functions.
 </current_work>
 
 <optional_next_step>
-I will now fix the remaining timezone inconsistency by updating the auto-refresh logic in the recalculation functions to use the standardized  and  helper functions, ensuring all date handling is timezone-safe.
+I will investigate the JavaScript console logs to pinpoint the exact error causing the redirect when clicking Auto Rename File from the context menu.
 </optional_next_step>
+
