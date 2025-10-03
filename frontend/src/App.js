@@ -5983,7 +5983,7 @@ const HomePage = () => {
                 {language === 'vi' ? 'Không' : 'No'}
               </button>
               <button
-                onClick={handleBatchAutoRename}
+                onClick={handleExecuteBatchAutoRename}
                 disabled={batchRenameProgress.isRunning}
                 className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
