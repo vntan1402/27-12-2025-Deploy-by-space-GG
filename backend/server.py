@@ -8815,6 +8815,35 @@ async def auto_rename_certificate_file(
         if not apps_script_url:
             raise HTTPException(status_code=400, detail="Apps Script URL not configured")
         
+        # First check if Apps Script supports rename_file action
+        test_payload = {
+            "action": "test_connection"
+        }
+        
+        logger.info(f"🔍 Checking Apps Script capabilities for auto-rename functionality...")
+        
+        # Make request to Apps Script to check available actions
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                apps_script_url,
+                json=test_payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    test_result = await response.json()
+                    available_actions = test_result.get("available_actions", [])
+                    
+                    if "rename_file" not in available_actions:
+                        logger.warning(f"⚠️ Apps Script does not support 'rename_file' action")
+                        logger.warning(f"   Available actions: {available_actions}")
+                        
+                        # Return informative error with the suggested filename
+                        raise HTTPException(
+                            status_code=501, 
+                            detail=f"Auto-rename feature not yet supported by Google Drive integration. Suggested filename: {new_filename}"
+                        )
+        
         # Call Apps Script to rename file
         payload = {
             "action": "rename_file",
@@ -8825,7 +8854,6 @@ async def auto_rename_certificate_file(
         logger.info(f"🔄 Auto-renaming certificate file {file_id} to '{new_filename}' for certificate {certificate_id}")
         
         # Make request to Apps Script
-        import aiohttp
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 apps_script_url,
