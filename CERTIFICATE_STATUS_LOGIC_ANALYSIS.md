@@ -139,13 +139,18 @@ class CertificateBase(BaseModel):
 - **Vietnamese:** "Còn hiệu lực" / "Hết hiệu lực"
 - Language switching is dynamic based on `language` state
 
-## 10. Current Limitations
+## 10. Current Implementation Status
 
-1. **No Advanced Status:** Only Valid/Expired, no "Expiring Soon" or "Due for Survey"
-2. **No Grace Periods:** Hard cutoff at expiry date
-3. **Client-Side Only:** Status not stored or indexed in database
-4. **No Status History:** No tracking of when certificates changed status
-5. **Simple Logic:** Doesn't consider certificate types or regulatory requirements
+### **ENHANCED FEATURES (New):**
+1. **Over Due Status:** Full Term certificates with Anniversary Date + 3 months logic
+2. **Certificate Type Awareness:** Different logic for Full Term vs other types
+3. **Anniversary Date Integration:** Uses ship's anniversary date for regulatory compliance
+
+### **Remaining Limitations:**
+1. **No "Expiring Soon" Status:** Could add certificates expiring within 30-90 days
+2. **Client-Side Only:** Status not stored or indexed in database
+3. **No Status History:** No tracking of when certificates changed status
+4. **Simple Grace Period:** Fixed 3-month window, could be customizable per certificate type
 
 ## Recommendations for Enhancement
 
