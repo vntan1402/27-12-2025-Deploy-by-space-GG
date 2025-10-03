@@ -13135,7 +13135,7 @@ const AddRecordModal = ({
                   <input
                     type="date"
                     value={shipData.special_survey_to_date || ''}
-                    onChange={(e) => setShipData(prev => ({ ...pred, special_survey_to_date: e.target.value }))}
+                    onChange={(e) => setShipData(prev => ({ ...prev, special_survey_to_date: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     placeholder="To Date"
                   />
