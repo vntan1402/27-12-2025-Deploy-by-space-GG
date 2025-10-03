@@ -1034,7 +1034,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Auto Rename File Functionality"
+    - "Certificate Abbreviation Saving Functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
