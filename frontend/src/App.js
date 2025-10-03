@@ -2039,9 +2039,19 @@ const HomePage = () => {
   const handleBatchAutoRename = async () => {
     try {
       // Get certificates to rename
-      const certificatesToRename = selectedCertificates.size > 1 
-        ? Array.from(selectedCertificates) 
-        : [contextMenu.certificate?.id].filter(Boolean);
+      let certificatesToRename = [];
+      
+      if (selectedCertificates.size > 0) {
+        // Use selected certificates if any are checked
+        certificatesToRename = Array.from(selectedCertificates);
+      } else if (contextMenu.certificate?.id) {
+        // Use the right-clicked certificate if no checkboxes are selected
+        certificatesToRename = [contextMenu.certificate.id];
+      }
+      
+      console.log('🔍 Certificates to rename:', certificatesToRename);
+      console.log('🔍 Selected certificates size:', selectedCertificates.size);
+      console.log('🔍 Context menu certificate:', contextMenu.certificate?.id);
       
       if (certificatesToRename.length === 0) {
         toast.error(language === 'vi' ? 'Không có chứng chỉ nào được chọn!' : 'No certificates selected!');
