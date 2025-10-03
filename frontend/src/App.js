@@ -10459,6 +10459,11 @@ const AddRecordModal = ({
   // Document type selection state
   const [selectedDocumentType, setSelectedDocumentType] = useState('');
   
+  // File upload state for Certificate
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  
   // For backward compatibility, map activeTab to recordType
   const recordType = selectedDocumentType || (activeTab === 'documents' ? 'certificate' : activeTab);
   // PDF Analysis state
