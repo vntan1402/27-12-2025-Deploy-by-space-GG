@@ -152,11 +152,45 @@ class CertificateBase(BaseModel):
 3. **No Status History:** No tracking of when certificates changed status
 4. **Simple Grace Period:** Fixed 3-month window, could be customizable per certificate type
 
-## Recommendations for Enhancement
+## 11. **NEW - Over Due Status Implementation Details**
+
+### **Algorithm Flow:**
+```javascript
+1. Check if certificate has valid_date → If NO: return "Valid"
+2. Check if expired (valid_date < current_date) → If YES: return "Expired" 
+3. Check if Full Term AND ship has Anniversary Date → If NO: return "Valid"
+4. Calculate Anniversary Date + 3 months for current year
+5. Check if current_date > anniversary_threshold → If YES: return "Over Due"
+6. Default: return "Valid"
+```
+
+### **Anniversary Date Calculation:**
+```javascript
+// Create Anniversary Date for current year
+const anniversaryDate = new Date(currentYear, selectedShip.anniversary_date.month - 1, selectedShip.anniversary_date.day);
+
+// Add 3-month grace period
+const overdueThreshold = new Date(anniversaryDate);
+overdueThreshold.setMonth(overdueThreshold.getMonth() + 3);
+```
+
+### **Business Logic:**
+- **Target Certificates:** Only `cert_type === 'Full Term'`
+- **Dependency:** Requires ship's Anniversary Date (day/month format)
+- **Grace Period:** 3 months after Anniversary Date
+- **Priority:** Expired > Over Due > Valid
+
+### **Visual Implementation:**
+- **Color:** Orange badge (`bg-orange-100 text-orange-800`)
+- **Text:** "Over Due" (English) / "Quá hạn" (Vietnamese)
+- **Filter:** Available in status dropdown
+
+## Recommendations for Future Enhancement
 
 1. **Add "Expiring Soon" Status:** Certificates expiring within 30-90 days
 2. **Backend Status Calculation:** Move logic to backend for consistency
 3. **Status Caching:** Cache computed status with TTL
-4. **Advanced Rules:** Different expiry logic for different certificate types
+4. **Configurable Grace Periods:** Different windows per certificate type
 5. **Survey Status Integration:** Consider next_survey dates for more accurate status
 6. **Timezone Standardization:** Use UTC for all date comparisons
+7. **Anniversary Date Validation:** Ensure anniversary dates are properly set for all ships
