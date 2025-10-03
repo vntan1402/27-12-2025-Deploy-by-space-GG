@@ -8654,6 +8654,78 @@ async def delete_gdrive_file(
         logger.error(f"❌ Error deleting file from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete file: {str(e)}")
 
+@api_router.post("/companies/{company_id}/gdrive/rename-file")
+async def rename_gdrive_file(
+    company_id: str,
+    rename_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Rename file on Google Drive"""
+    try:
+        # Validate request data
+        file_id = rename_data.get("file_id")
+        new_name = rename_data.get("new_name")
+        
+        if not file_id or not new_name:
+            raise HTTPException(status_code=400, detail="Missing file_id or new_name")
+        
+        # Get company Google Drive configuration
+        gdrive_config_collection = mongo_db["gdrive_config"]
+        gdrive_config_doc = await gdrive_config_collection.find_one({"company_id": company_id})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        # Get the Apps Script URL
+        apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        
+        if not apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Call Apps Script to rename file
+        payload = {
+            "action": "rename_file",
+            "file_id": file_id,
+            "new_name": new_name
+        }
+        
+        logger.info(f"🔄 Renaming file {file_id} to '{new_name}' on Google Drive for company {company_id}")
+        
+        # Make request to Apps Script
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                apps_script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    
+                    if result.get("success"):
+                        logger.info(f"✅ Successfully renamed file {file_id} to '{new_name}'")
+                        return {
+                            "success": True,
+                            "message": "File renamed successfully on Google Drive",
+                            "file_id": file_id,
+                            "old_name": result.get("old_name"),
+                            "new_name": new_name,
+                            "renamed_timestamp": result.get("renamed_timestamp")
+                        }
+                    else:
+                        error_msg = result.get("error", "Unknown error occurred")
+                        logger.error(f"❌ Apps Script rename failed: {error_msg}")
+                        raise HTTPException(status_code=500, detail=f"Failed to rename file: {error_msg}")
+                else:
+                    logger.error(f"❌ Apps Script request failed with status {response.status}")
+                    raise HTTPException(status_code=500, detail=f"Google Drive API request failed: {response.status}")
+                
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error renaming file on Google Drive: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to rename file: {str(e)}")
+
 @api_router.post("/companies/{company_id}/gdrive/delete-ship-folder")
 async def delete_ship_folder_from_gdrive(
     company_id: str,
