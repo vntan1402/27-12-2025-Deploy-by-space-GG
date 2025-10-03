@@ -11487,6 +11487,71 @@ const AddRecordModal = ({
       setIsSubmitting(false);
     }
   };
+  // Handle file upload to Google Drive Certificate folder
+  const handleFileUpload = async () => {
+    if (!selectedFile || !selectedShip) {
+      toast.error(language === 'vi' 
+        ? 'Vui lòng chọn file và tàu trước khi upload!' 
+        : 'Please select a file and ship before uploading!');
+      return;
+    }
+
+    setUploadingFile(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('folder_type', 'Certificate');
+
+      const response = await axios.post(`${API}/upload-to-gdrive`, formData, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        toast.success(language === 'vi' 
+          ? `✅ Đã upload ${selectedFile.name} thành công lên Google Drive!` 
+          : `✅ Successfully uploaded ${selectedFile.name} to Google Drive!`);
+        
+        // Close modal and reset state
+        setShowFileUpload(false);
+        setSelectedFile(null);
+        
+        // Optionally refresh certificates list if needed
+        if (selectedShip?.id) {
+          await fetchCertificates(selectedShip.id);
+        }
+      } else {
+        throw new Error(response.data.message || 'Upload failed');
+      }
+      
+    } catch (error) {
+      console.error('❌ File upload error:', error);
+      
+      let errorMessage = language === 'vi' 
+        ? 'Lỗi khi upload file lên Google Drive!' 
+        : 'Error uploading file to Google Drive!';
+        
+      if (error.response?.status === 404) {
+        errorMessage = language === 'vi' 
+          ? 'Không tìm thấy Google Drive configuration cho công ty!' 
+          : 'Google Drive configuration not found for company!';
+      } else if (error.response?.status === 403) {
+        errorMessage = language === 'vi' 
+          ? 'Không có quyền upload file lên Google Drive!' 
+          : 'No permission to upload file to Google Drive!';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setUploadingFile(false);
+    }
+  };
 
   const handleSubmit = () => {
     if (recordType === 'ship') {
