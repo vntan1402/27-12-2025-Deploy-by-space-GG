@@ -12927,7 +12927,7 @@ const AddRecordModal = ({
               />
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Next Docking' : 'Next Docking'}
               </label>
@@ -12939,40 +12939,44 @@ const AddRecordModal = ({
               />
             </div>
 
-            <div className="col-span-6">
+            <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Anniversary Date' : 'Anniversary Date'}
+                {language === 'vi' ? 'Anniversary Day' : 'Anniversary Day'}
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="31"
-                  value={shipData.anniversary_date_day || ''}
-                  onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_day: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                  placeholder="Day"
-                />
-                <select
-                  value={shipData.anniversary_date_month || ''}
-                  onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_month: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                >
-                  <option value="">Month</option>
-                  <option value="1">Jan</option>
-                  <option value="2">Feb</option>
-                  <option value="3">Mar</option>
-                  <option value="4">Apr</option>
-                  <option value="5">May</option>
-                  <option value="6">Jun</option>
-                  <option value="7">Jul</option>
-                  <option value="8">Aug</option>
-                  <option value="9">Sep</option>
-                  <option value="10">Oct</option>
-                  <option value="11">Nov</option>
-                  <option value="12">Dec</option>
-                </select>
-              </div>
+              <input
+                type="number"
+                min="1"
+                max="31"
+                value={shipData.anniversary_date_day || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_day: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Day"
+              />
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Anniversary Month' : 'Anniversary Month'}
+              </label>
+              <select
+                value={shipData.anniversary_date_month || ''}
+                onChange={(e) => setShipData(prev => ({ ...prev, anniversary_date_month: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="">Month</option>
+                <option value="1">Jan</option>
+                <option value="2">Feb</option>
+                <option value="3">Mar</option>
+                <option value="4">Apr</option>
+                <option value="5">May</option>
+                <option value="6">Jun</option>
+                <option value="7">Jul</option>
+                <option value="8">Aug</option>
+                <option value="9">Sep</option>
+                <option value="10">Oct</option>
+                <option value="11">Nov</option>
+                <option value="12">Dec</option>
+              </select>
             </div>
 
             {/* Row 2 - Survey Information */}
