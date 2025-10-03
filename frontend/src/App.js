@@ -4533,10 +4533,7 @@ const HomePage = () => {
                         
                         {/* Auto Rename File Button */}
                         <button
-                          onClick={() => {
-                            setShowAutoRenameDialog(true);
-                            handleCloseContextMenu();
-                          }}
+                          onClick={handleShowAutoRenameDialog}
                           className="w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 flex items-center"
                         >
                           <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
