@@ -288,7 +288,7 @@ Generated at: {datetime.now().isoformat()}
                 return False
             
             ship_id = self.ship_data.get('id')
-            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={ship_id}"
             
             # Prepare file for upload
             file_path = self.test_certificate_data['file_path']
@@ -298,9 +298,6 @@ Generated at: {datetime.now().isoformat()}
                 files = {
                     'files': (file_name, file, 'text/plain')
                 }
-                data = {
-                    'ship_id': ship_id
-                }
                 
                 self.log(f"   POST {endpoint}")
                 self.log(f"   Ship ID: {ship_id}")
@@ -309,7 +306,6 @@ Generated at: {datetime.now().isoformat()}
                 response = requests.post(
                     endpoint, 
                     files=files, 
-                    data=data, 
                     headers=self.get_headers(), 
                     timeout=120
                 )
