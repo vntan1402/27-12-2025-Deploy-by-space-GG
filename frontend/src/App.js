@@ -5887,103 +5887,33 @@ const HomePage = () => {
         </>
       )}
 
-      {/* Auto Rename Confirmation Dialog */}
+      {/* Auto Rename Confirmation Dialog - Simplified */}
       {showAutoRenameDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center mb-4">
-              <div className="flex-shrink-0 w-10 h-10 mx-auto bg-orange-100 rounded-full flex items-center justify-center">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </div>
-            </div>
-            
-            <h3 className="text-lg leading-6 font-medium text-gray-900 text-center mb-4">
-              {language === 'vi' ? 'Auto Rename Files' : 'Auto Rename Files'}
+            <h3 className="text-lg font-medium text-gray-900 text-center mb-4">
+              Auto Rename Files
             </h3>
             
-            <div className="text-sm text-gray-500 mb-6">
-              <p className="mb-3">
-                {language === 'vi' 
-                  ? 'Chức năng này sẽ tự động đổi tên các files trên Google Drive theo định dạng:' 
-                  : 'This feature will automatically rename files on Google Drive using the format:'}
-              </p>
-              <div className="bg-gray-100 p-3 rounded-md mb-3">
-                <code className="text-xs text-gray-800">
-                  {language === 'vi' 
-                    ? 'Tên_Tàu + Loại_Chứng_Chỉ + Tên_Viết_Tắt + Ngày_Cấp' 
-                    : 'Ship_Name + Cert_Type + Certificate_Abbreviation + Issue_Date'}
-                </code>
-              </div>
-              <p className="mb-3">
-                {selectedCertificates.size > 1 
-                  ? (language === 'vi' 
-                      ? `Sẽ xử lý ${selectedCertificates.size} chứng chỉ được chọn.` 
-                      : `Will process ${selectedCertificates.size} selected certificates.`)
-                  : (language === 'vi' 
-                      ? 'Sẽ xử lý 1 chứng chỉ.' 
-                      : 'Will process 1 certificate.')
-                }
-              </p>
-              <p className="text-orange-600 font-medium">
-                {language === 'vi' 
-                  ? '⚠️ Quá trình sẽ chạy trong background và không thể hoàn tác.' 
-                  : '⚠️ Process will run in background and cannot be undone.'}
-              </p>
-            </div>
-            
-            {/* Progress Display */}
-            {batchRenameProgress.isRunning && (
-              <div className="mb-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>
-                    {language === 'vi' ? 'Đang xử lý...' : 'Processing...'}
-                  </span>
-                  <span>
-                    {batchRenameProgress.completed}/{batchRenameProgress.total}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(batchRenameProgress.completed / batchRenameProgress.total) * 100}%` }}
-                  ></div>
-                </div>
-                {batchRenameProgress.current && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    {language === 'vi' ? 'Hiện tại: ' : 'Current: '}{batchRenameProgress.current}
-                  </p>
-                )}
-              </div>
-            )}
+            <p className="text-sm text-gray-500 mb-4 text-center">
+              This feature will automatically rename files on Google Drive.
+            </p>
             
             <div className="flex space-x-3">
               <button
-                onClick={() => {
-                  setShowAutoRenameDialog(false);
-                  setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
-                }}
-                disabled={batchRenameProgress.isRunning}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setShowAutoRenameDialog(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                {language === 'vi' ? 'Không' : 'No'}
+                Cancel
               </button>
               <button
-                onClick={handleBatchAutoRename}
-                disabled={batchRenameProgress.isRunning}
-                className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                onClick={() => {
+                  console.log('Auto rename clicked');
+                  setShowAutoRenameDialog(false);
+                }}
+                className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg"
               >
-                {batchRenameProgress.isRunning ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {language === 'vi' ? 'Đang xử lý...' : 'Processing...'}
-                  </>
-                ) : (
-                  <>
-                    {language === 'vi' ? 'Có, tiếp tục' : 'Yes, Continue'}
-                  </>
-                )}
+                Continue
               </button>
             </div>
           </div>
