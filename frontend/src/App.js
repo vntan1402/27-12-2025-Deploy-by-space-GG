@@ -11602,7 +11602,13 @@ const AddRecordModal = ({
                 return (
                   <button
                     key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
+                    onClick={() => {
+                      setActiveTab(tab.key);
+                      // Reset document type selection when switching away from documents tab
+                      if (tab.key !== 'documents') {
+                        setSelectedDocumentType('');
+                      }
+                    }}
                     className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                       isActive
                         ? 'border-blue-500 text-blue-600'
