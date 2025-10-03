@@ -11508,50 +11508,38 @@ const AddRecordModal = ({
           </button>
         </div>
 
-        {/* Record Type Selection */}
+        {/* Tab Navigation */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            {language === 'vi' ? 'Loại hồ sơ' : 'Record Type'}
-          </label>
-          <div className="flex space-x-4">
-            {/* Ship option - only for Company Officer and above */}
-            {canCreateShip() && (
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  value="ship"
-                  checked={recordType === 'ship'}
-                  onChange={(e) => setRecordType(e.target.value)}
-                  className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <span>{language === 'vi' ? 'Tàu' : 'Ship'}</span>
-              </label>
-            )}
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="certificate"
-                checked={recordType === 'certificate'}
-                onChange={(e) => setRecordType(e.target.value)}
-                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span>{language === 'vi' ? 'Chứng chỉ' : 'Certificate'}</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                value="survey_report"
-                checked={recordType === 'survey_report'}
-                onChange={(e) => setRecordType(e.target.value)}
-                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500"
-              />
-              <span>{language === 'vi' ? 'Hồ sơ Đăng kiểm' : 'Class Survey Report'}</span>
-            </label>
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              {tabs.map((tab) => {
+                // Hide ship tab if user doesn't have permission
+                if (tab.key === 'ship' && !canCreateShip()) {
+                  return null;
+                }
+                
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
+                      isActive
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-lg">{tab.icon}</span>
+                    <span>{tab.name}</span>
+                  </button>
+                );
+              })}
+            </nav>
           </div>
           
           {/* Permission message for non-eligible users */}
           {!canCreateShip() && (
-            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
                 <span className="font-medium">ℹ️ {language === 'vi' ? 'Lưu ý:' : 'Note:'}</span>
                 {' '}
