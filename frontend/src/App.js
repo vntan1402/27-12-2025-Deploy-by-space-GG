@@ -12932,7 +12932,7 @@ const AddRecordModal = ({
             disabled={
               isSubmitting || 
               (recordType === 'certificate' && !selectedShip) ||
-              activeTab === 'documents' ||
+              (activeTab === 'documents' && !selectedDocumentType) ||
               ['crew', 'ism', 'isps', 'mlc', 'supplies'].includes(activeTab)
             }
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
