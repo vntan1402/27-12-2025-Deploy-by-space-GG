@@ -937,6 +937,7 @@ const HomePage = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showEditCertModal, setShowEditCertModal] = useState(false);
   const [editingCertificate, setEditingCertificate] = useState(null);
+  const [isRenaming, setIsRenaming] = useState(false);
   
   // Quick Edit Survey Type states
   const [quickEditMenu, setQuickEditMenu] = useState({
