@@ -3595,24 +3595,36 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
                 logger.info(f"Clearing last_endorse for {update_data['cert_type']} certificate (only Full Term certificates have endorsements)")
                 update_data['last_endorse'] = None
         
-        # Handle certificate abbreviation mapping if it was manually edited
-        if 'cert_abbreviation' in update_data and update_data['cert_abbreviation']:
-            cert_name = update_data.get('cert_name') or existing_cert.get('cert_name')
-            if cert_name:
-                # Check if user has permission to create/update abbreviation mappings
-                if current_user.role in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
-                    # Save the user-defined abbreviation mapping
-                    abbreviation_saved = await save_user_defined_abbreviation(
-                        cert_name, 
-                        update_data['cert_abbreviation'], 
-                        current_user.id
-                    )
-                    if abbreviation_saved:
-                        logger.info(f"Saved user-defined abbreviation mapping: {cert_name} -> {update_data['cert_abbreviation']}")
+        # Handle certificate abbreviation - Always save to certificate, optionally to mappings
+        if 'cert_abbreviation' in update_data:
+            cert_abbreviation_value = update_data.get('cert_abbreviation')
+            logger.info(f"📝 Processing cert_abbreviation update: '{cert_abbreviation_value}' for certificate {cert_id}")
+            
+            # If abbreviation is provided and not empty, try to save mapping
+            if cert_abbreviation_value and cert_abbreviation_value.strip():
+                cert_name = update_data.get('cert_name') or existing_cert.get('cert_name')
+                if cert_name:
+                    # Check if user has permission to create/update abbreviation mappings
+                    if current_user.role in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+                        # Save the user-defined abbreviation mapping
+                        abbreviation_saved = await save_user_defined_abbreviation(
+                            cert_name, 
+                            cert_abbreviation_value.strip(), 
+                            current_user.id
+                        )
+                        if abbreviation_saved:
+                            logger.info(f"✅ Saved user-defined abbreviation mapping: {cert_name} -> {cert_abbreviation_value}")
+                        else:
+                            logger.warning(f"⚠️ Failed to save abbreviation mapping for certificate: {cert_name}")
                     else:
-                        logger.warning(f"Failed to save abbreviation mapping for certificate: {cert_name}")
+                        logger.warning(f"⚠️ User {current_user.username} (role: {current_user.role}) does not have permission to create abbreviation mappings")
                 else:
-                    logger.warning(f"User {current_user.username} (role: {current_user.role}) does not have permission to create abbreviation mappings")
+                    logger.warning(f"⚠️ No cert_name available for abbreviation mapping")
+            else:
+                logger.info(f"📝 cert_abbreviation is empty or null - will be saved as provided to certificate record")
+            
+            # Always ensure cert_abbreviation is included in update (even if empty/null)
+            logger.info(f"💾 Saving cert_abbreviation = '{cert_abbreviation_value}' to certificate {cert_id}")
         
         if update_data:  # Only update if there's data to update
             await mongo_db.update("certificates", {"id": cert_id}, update_data)
