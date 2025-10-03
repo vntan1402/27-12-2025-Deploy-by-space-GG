@@ -29,13 +29,18 @@ const getCertificateStatus = (certificate) => {
 - Certificates without a `valid_date` are automatically considered **"Valid"**
 - This handles legacy certificates or certificates that don't have expiry dates
 
-### Rule 2: Date-Only Comparison
-- Uses date-only comparison (time is reset to 00:00:00)
-- Current date's time is normalized to midnight for accurate daily comparison
-
-### Rule 3: Simple Expiry Logic
-- If `valid_date >= current_date` → **"Valid"**
+### Rule 2: Basic Expiry Logic
 - If `valid_date < current_date` → **"Expired"**
+- Uses date-only comparison (time is reset to 00:00:00)
+
+### Rule 3: **NEW - Over Due Logic for Full Term Certificates**
+- Applies only to certificates with `cert_type === 'Full Term'`
+- Requires ship to have Anniversary Date (`selectedShip.anniversary_date.day` and `selectedShip.anniversary_date.month`)
+- Logic: If current date > Anniversary Date of current year + 3 months → **"Over Due"**
+- Takes priority over Valid status but not over Expired status
+
+### Rule 4: Default Valid Status
+- If certificate passes all above checks → **"Valid"**
 
 ## 3. Status Display and Styling
 
