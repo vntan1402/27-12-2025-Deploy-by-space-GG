@@ -11703,7 +11703,7 @@ const AddRecordModal = ({
         {/* Ship form moved to Ship tab - Certificate form remains clean */}
 
         {/* Certificate Form */}
-        {recordType === 'certificate' && (
+        {selectedDocumentType === 'certificate' && (
           <div className="space-y-3">
             {!selectedShip && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
