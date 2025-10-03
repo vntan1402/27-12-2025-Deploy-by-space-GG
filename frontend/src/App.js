@@ -11759,23 +11759,86 @@ const AddRecordModal = ({
         {selectedDocumentType === 'certificate' && (
           <div className="space-y-3">
             {!selectedShip && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <div>
-                    <p className="text-yellow-800 text-sm font-medium">
-                      {language === 'vi' ? '⚠️ Chưa chọn tàu' : '⚠️ No Ship Selected'}
-                    </p>
-                    <p className="text-yellow-700 text-xs mt-1">
-                      {language === 'vi' 
-                        ? 'Bạn cần chọn một tàu từ danh sách bên trái trước khi có thể upload chứng chỉ. Certificate sẽ được gán vào tàu đã chọn.'
-                        : 'You need to select a ship from the left sidebar before uploading certificates. Certificates will be assigned to the selected ship.'
-                      }
-                    </p>
+              <div className="relative">
+                <div 
+                  className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 cursor-pointer hover:bg-yellow-100 transition-colors"
+                  onMouseEnter={() => setShowShipDropdown(true)}
+                  onMouseLeave={() => setShowShipDropdown(false)}
+                >
+                  <div className="flex items-center">
+                    <svg className="w-5 h-5 text-yellow-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-yellow-800 text-sm font-medium">
+                          {language === 'vi' ? '⚠️ Chưa chọn tàu' : '⚠️ No Ship Selected'}
+                        </p>
+                        <div className="text-yellow-600">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <p className="text-yellow-700 text-xs mt-1">
+                        {language === 'vi' 
+                          ? 'Hover để chọn tàu hoặc chọn từ danh sách bên trái. Certificate sẽ được gán vào tàu đã chọn.'
+                          : 'Hover to select a ship or choose from left sidebar. Certificates will be assigned to the selected ship.'
+                        }
+                      </p>
+                    </div>
                   </div>
                 </div>
+
+                {/* Ship Selection Dropdown */}
+                {showShipDropdown && (
+                  <div 
+                    className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto"
+                    onMouseEnter={() => setShowShipDropdown(true)}
+                    onMouseLeave={() => setShowShipDropdown(false)}
+                  >
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-gray-500 px-3 py-2 border-b">
+                        {language === 'vi' ? 'Chọn tàu:' : 'Select Ship:'}
+                      </div>
+                      {ships && ships.length > 0 ? (
+                        <div className="max-h-48 overflow-y-auto">
+                          {ships.map((ship) => (
+                            <button
+                              key={ship.id}
+                              onClick={() => {
+                                setSelectedShip(ship);
+                                setShowShipDropdown(false);
+                                toast.success(language === 'vi' 
+                                  ? `✅ Đã chọn tàu: ${ship.name}`
+                                  : `✅ Selected ship: ${ship.name}`);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-blue-50 rounded transition-colors flex items-center justify-between group"
+                            >
+                              <div>
+                                <div className="font-medium text-gray-900 text-sm">{ship.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  IMO: {ship.imo_number} • {ship.flag}
+                                </div>
+                              </div>
+                              <div className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="px-3 py-4 text-center text-gray-500 text-sm">
+                          {language === 'vi' 
+                            ? 'Không có tàu nào. Hãy thêm tàu mới trước.'
+                            : 'No ships available. Please add a new ship first.'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
