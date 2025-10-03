@@ -842,10 +842,10 @@ class CertificateAbbreviationTester:
             self.log(f"         Error verifying date formats: {str(e)}")
             return False
     
-    def run_comprehensive_timezone_tests(self):
-        """Main test function for timezone fix functionality"""
-        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - TIMEZONE FIX TESTING")
-        self.log("🎯 FOCUS: Test timezone fix for date handling consistency")
+    def run_comprehensive_certificate_tests(self):
+        """Main test function for certificate abbreviation functionality"""
+        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - CERTIFICATE ABBREVIATION TESTING")
+        self.log("🎯 FOCUS: Test certificate abbreviation saving functionality when editing certificates")
         self.log("=" * 100)
         
         try:
@@ -856,38 +856,51 @@ class CertificateAbbreviationTester:
                 self.log("❌ Authentication failed - cannot proceed with testing")
                 return False
             
-            # Step 2: Find SUNSHINE 01 ship
-            self.log("\n🚢 STEP 2: FIND SUNSHINE 01 SHIP")
+            # Step 2: Find MINH ANH 09 ship
+            self.log("\n🚢 STEP 2: FIND MINH ANH 09 SHIP")
             self.log("=" * 50)
-            ship_found = self.find_sunshine_01_ship()
+            ship_found = self.find_minh_anh_09_ship()
             if not ship_found:
-                self.log("❌ SUNSHINE 01 ship not found - cannot proceed with testing")
+                self.log("❌ MINH ANH 09 ship not found - cannot proceed with testing")
                 return False
             
-            # Step 3: Test ship data retrieval
-            self.log("\n📊 STEP 3: SHIP DATA RETRIEVAL")
+            # Step 3: Find CL certificate PM242309
+            self.log("\n📋 STEP 3: FIND CL CERTIFICATE PM242309")
             self.log("=" * 50)
-            retrieval_success = self.test_ship_data_retrieval()
+            cert_found = self.find_cl_certificate_pm242309()
+            if not cert_found:
+                self.log("❌ CL certificate not found - cannot proceed with testing")
+                return False
             
-            # Step 4: Test ship update operations
-            self.log("\n🔄 STEP 4: SHIP UPDATE OPERATIONS")
+            # Step 4: Test certificate abbreviation updates
+            self.log("\n🔄 STEP 4: TEST CERTIFICATE ABBREVIATION UPDATES")
             self.log("=" * 50)
-            update_success = self.test_ship_update_operations()
+            update_success = self.test_certificate_abbreviation_update()
             
-            # Step 5: Test recalculation endpoints
-            self.log("\n🔄 STEP 5: RECALCULATION ENDPOINTS")
+            # Step 5: Verify database record changes
+            self.log("\n🔍 STEP 5: VERIFY DATABASE RECORD CHANGES")
             self.log("=" * 50)
-            recalc_success = self.test_recalculation_endpoints()
+            db_verification = self.verify_database_record_changes()
             
-            # Step 6: Final Analysis
-            self.log("\n📊 STEP 6: FINAL ANALYSIS")
+            # Step 6: Check enhanced logging
+            self.log("\n📝 STEP 6: CHECK ENHANCED LOGGING")
+            self.log("=" * 50)
+            logging_check = self.check_enhanced_logging()
+            
+            # Step 7: Test abbreviation mappings
+            self.log("\n🗂️ STEP 7: TEST ABBREVIATION MAPPINGS")
+            self.log("=" * 50)
+            mapping_success = self.test_abbreviation_mappings()
+            
+            # Step 8: Final Analysis
+            self.log("\n📊 STEP 8: FINAL ANALYSIS")
             self.log("=" * 50)
             self.provide_final_analysis()
             
-            return retrieval_success and update_success and recalc_success
+            return update_success and db_verification and logging_check
             
         except Exception as e:
-            self.log(f"❌ Comprehensive timezone testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive certificate testing error: {str(e)}", "ERROR")
             return False
     
     def provide_final_analysis(self):
