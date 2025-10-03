@@ -10407,6 +10407,7 @@ const AddRecordModal = ({
   onSuccess, 
   language, 
   selectedShip, 
+  setSelectedShip,
   availableCompanies, 
   ships,
   setShips, 
