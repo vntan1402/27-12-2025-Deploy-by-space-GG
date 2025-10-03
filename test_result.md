@@ -1007,7 +1007,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Certificate Over Due Status API Endpoints Testing"
+    - "Auto Rename File Functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
