@@ -54,7 +54,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vesseltrack.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class UpcomingSurveysNotificationTester:
+class InitialSurveyBugFixTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -62,8 +62,8 @@ class UpcomingSurveysNotificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for Initial survey type rules for SMC, ISSC, MLC certificates
-        self.survey_tests = {
+        # Test tracking for Initial survey type rules bug fix verification
+        self.bug_fix_tests = {
             # Authentication and setup
             'authentication_successful': False,
             'user_company_identified': False,
@@ -73,53 +73,39 @@ class UpcomingSurveysNotificationTester:
             'upcoming_surveys_response_valid': False,
             'response_structure_correct': False,
             
-            # Initial Certificate Detection Tests
-            'initial_certificate_detection_working': False,
-            'smc_issc_mlc_certificates_identified': False,
-            'initial_survey_type_recognized': False,
+            # BUG FIX VERIFICATION - Certificate Name Matching
+            'full_name_safety_management_matched': False,
+            'full_name_ship_security_matched': False,
+            'full_name_maritime_labour_matched': False,
+            'initial_certificates_now_appearing': False,
+            'name_matching_bug_fixed': False,
             
-            # Initial Certificate Window Logic Tests
+            # Initial Certificate Window Logic Tests (Post-Fix)
             'initial_certificate_window_correct': False,
-            'valid_date_window_calculation_working': False,
-            'initial_certificate_filter_working': False,
+            'valid_date_minus_90_days_calculation': False,
+            'window_close_equals_valid_date': False,
+            'current_date_within_window_filter': False,
             
-            # Window Rule Types Tests
-            'condition_certificate_expiry_window': False,
-            'initial_smc_issc_mlc_window': False,
-            'special_survey_window': False,
-            'other_surveys_window': False,
+            # Initial Certificate Status Classification (Post-Fix)
+            'initial_overdue_logic_working': False,
+            'initial_due_soon_logic_working': False,
+            'initial_critical_logic_working': False,
+            'status_based_on_valid_date': False,
             
-            # Initial Certificate Status Tests
-            'initial_certificate_overdue_logic': False,
-            'initial_certificate_due_soon_logic': False,
-            'initial_certificate_critical_logic': False,
+            # Window Type Display (Post-Fix)
+            'window_type_valid_3m_to_valid': False,
+            'survey_window_rule_correct': False,
+            'initial_smc_issc_mlc_rule_displayed': False,
             
-            # Window Type Display Tests
-            'window_type_display_correct': False,
-            'valid_3m_to_valid_display': False,
-            'survey_window_rule_display': False,
-            
-            # Updated Logic Info Tests
+            # Response Structure Verification
+            'initial_certificates_in_upcoming_surveys': False,
+            'window_calculation_fields_present': False,
             'logic_info_includes_initial_rules': False,
-            'all_window_rule_types_documented': False,
             
-            # Company filtering tests
-            'company_filtering_working': False,
-            'only_user_company_ships_returned': False,
-            
-            # Response structure tests
-            'required_fields_present': False,
-            'status_indicators_calculated': False,
-            'days_until_survey_accurate': False,
-            
-            # Data validation tests
-            'ship_names_present': False,
-            'cert_display_names_present': False,
-            'next_survey_dates_valid': False,
-            
-            # Test certificate verification
-            'test_certificate_found': False,
-            'test_certificate_in_window': False,
+            # Test Certificate Creation and Verification
+            'test_initial_certificates_created': False,
+            'created_certificates_appear_in_results': False,
+            'window_calculations_accurate': False,
         }
         
         # Store test results for analysis
