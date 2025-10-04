@@ -3893,6 +3893,114 @@ async def delete_certificate_abbreviation_mapping(
         raise HTTPException(status_code=500, detail="Failed to delete certificate abbreviation mapping")
 
 # General certificates endpoint
+@api_router.get("/certificates/upcoming-surveys")
+async def get_upcoming_surveys(current_user: dict = Depends(get_current_user)):
+    """
+    Get all certificates with upcoming surveys (within ±3 months window)
+    Returns certificates from all ships belonging to user's company
+    """
+    try:
+        user_company = current_user.get('company')
+        logger.info(f"Checking upcoming surveys for company: {user_company}")
+        
+        # Get all ships belonging to user's company
+        ships = await mongo_db.find_all("ships", {"company": user_company})
+        ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+        
+        if not ship_ids:
+            logger.info(f"No ships found for company: {user_company}")
+            return {"upcoming_surveys": []}
+        
+        # Get all certificates from these ships
+        all_certificates = []
+        for ship_id in ship_ids:
+            certs = await mongo_db.find_all("certificates", {"ship_id": ship_id})
+            all_certificates.extend(certs)
+        
+        logger.info(f"Found {len(all_certificates)} total certificates to check")
+        
+        # Get current date
+        from datetime import datetime, timedelta
+        current_date = datetime.now().date()
+        
+        # Define 3-month window (±3 months)
+        three_months_ago = current_date - timedelta(days=90)
+        three_months_later = current_date + timedelta(days=90)
+        
+        upcoming_surveys = []
+        
+        for cert in all_certificates:
+            # Skip certificates without next survey date
+            next_survey_str = cert.get('next_survey')
+            if not next_survey_str:
+                continue
+                
+            try:
+                # Parse next survey date
+                if isinstance(next_survey_str, str):
+                    # Handle different date formats
+                    if 'T' in next_survey_str:
+                        next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
+                    else:
+                        next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d').date()
+                else:
+                    # If it's already a date object
+                    next_survey_date = next_survey_str
+                
+                # Check if next survey date is within ±3 months window
+                if three_months_ago <= next_survey_date <= three_months_later:
+                    # Find ship information
+                    ship_info = next((ship for ship in ships if ship.get('id') == cert.get('ship_id')), {})
+                    
+                    # Get cert abbreviation (prefer cert_abbreviation field, fallback to abbreviation)
+                    cert_abbreviation = cert.get('cert_abbreviation') or cert.get('abbreviation', '')
+                    cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                    
+                    upcoming_survey = {
+                        'certificate_id': cert.get('id'),
+                        'ship_id': cert.get('ship_id'),
+                        'ship_name': ship_info.get('name', ''),
+                        'cert_name': cert.get('cert_name', ''),
+                        'cert_abbreviation': cert_abbreviation,
+                        'cert_name_display': cert_name_display,
+                        'next_survey': next_survey_str,
+                        'next_survey_date': next_survey_date.isoformat(),
+                        'next_survey_type': cert.get('next_survey_type', ''),
+                        'last_endorse': cert.get('last_endorse', ''),
+                        'status': cert.get('status', ''),
+                        'days_until_survey': (next_survey_date - current_date).days,
+                        'is_overdue': next_survey_date < current_date,
+                        'is_due_soon': 0 <= (next_survey_date - current_date).days <= 30,
+                        'is_within_window': True
+                    }
+                    
+                    upcoming_surveys.append(upcoming_survey)
+                    
+            except Exception as date_error:
+                logger.warning(f"Error parsing next_survey date '{next_survey_str}' for cert {cert.get('id', 'unknown')}: {date_error}")
+                continue
+        
+        # Sort by next survey date (soonest first)
+        upcoming_surveys.sort(key=lambda x: x['next_survey_date'])
+        
+        logger.info(f"Found {len(upcoming_surveys)} certificates with upcoming surveys")
+        
+        return {
+            "upcoming_surveys": upcoming_surveys,
+            "total_count": len(upcoming_surveys),
+            "company": user_company,
+            "check_date": current_date.isoformat(),
+            "window_info": {
+                "from_date": three_months_ago.isoformat(),
+                "to_date": three_months_later.isoformat(),
+                "window_days": 180
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting upcoming surveys: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving upcoming surveys: {str(e)}")
+
 @api_router.get("/certificates", response_model=List[CertificateResponse])
 async def get_all_certificates(current_user: UserResponse = Depends(get_current_user)):
     """Get all certificates with filtering"""
