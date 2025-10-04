@@ -409,7 +409,15 @@ function handleUploadFileWithFolderCreation(requestData) {
     var parentCategoryFolder;
     var folderPath;
     
-    if (documentPortfolioCategories.indexOf(category) !== -1) {
+    // Use parent_category if provided, otherwise fallback to old logic
+    if (parentCategory) {
+      parentCategoryFolder = findFolderByName(shipFolder, parentCategory);
+      if (!parentCategoryFolder) {
+        return createJsonResponse(false, "Parent category folder '" + parentCategory + "' not found in ship '" + shipName + "'");
+      }
+      folderPath = shipName + "/" + parentCategory + "/" + category;
+    } else if (documentPortfolioCategories.indexOf(category) !== -1) {
+      // Fallback to old logic for backward compatibility
       parentCategoryFolder = findFolderByName(shipFolder, "Class & Flag Cert");
       if (!parentCategoryFolder) {
         return createJsonResponse(false, "Class & Flag Cert folder not found in ship '" + shipName + "'");
