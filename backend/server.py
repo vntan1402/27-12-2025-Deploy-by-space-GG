@@ -3790,7 +3790,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         logger.warning(f"Error parsing condition certificate dates for cert {cert.get('id', 'unknown')}: {date_parse_error}")
                         continue
                 
-                elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']):
+                elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']):
                     # Initial Survey for SMC, ISSC, MLC: window from valid_date - 3 months to valid_date
                     valid_date_str = cert.get('valid_date')
                     
@@ -3854,7 +3854,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         # For condition certificates, use expiry date for calculations
                         days_until_survey = days_until_expiry
                         
-                    elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']):
+                    elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']):
                         # Initial Survey for SMC, ISSC, MLC: overdue if past valid date
                         is_overdue = current_date > window_close  # window_close = valid_date
                         
@@ -3898,7 +3898,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     # Determine window type for display
                     if 'Condition Certificate Expiry' in next_survey_type:
                         window_type = 'Issue→Valid'  # From issue date to valid date
-                    elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']):
+                    elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']):
                         window_type = 'Valid-3M→Valid'  # From valid date - 3 months to valid date
                     elif 'Special Survey' in next_survey_type:
                         window_type = '-3M'  # Only before deadline
