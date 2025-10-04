@@ -1087,6 +1087,15 @@ const HomePage = () => {
   // Queue system for sequential duplicate resolution
   const [duplicateQueue, setDuplicateQueue] = useState([]);
 
+  // Upcoming surveys notification system
+  const [upcomingSurveysModal, setUpcomingSurveysModal] = useState({
+    show: false,
+    surveys: [],
+    totalCount: 0,
+    company: '',
+    checkDate: ''
+  });
+
   // Function to add duplicate to queue and show if none is currently shown
   const addToduplicateQueue = (duplicateData) => {
     setDuplicateQueue(prev => {
