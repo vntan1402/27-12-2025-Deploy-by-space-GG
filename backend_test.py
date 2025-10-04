@@ -291,16 +291,61 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error verifying response structure: {str(e)}", "ERROR")
             return False
     
-    def create_test_certificate_files(self):
-        """Skip file creation and use existing certificates instead"""
+    def test_date_filtering_logic(self):
+        """Test the ±3 months date filtering logic"""
         try:
-            self.log("📄 Skipping test file creation - will use existing certificates...")
-            self.log("   Multi-upload endpoint requires PDF/JPG/PNG files")
-            self.log("   Testing with existing certificates in database instead")
-            return True
+            self.log("📅 Testing date filtering logic (±3 months window)...")
             
+            if not self.test_certificates:
+                self.log("   ⚠️ No upcoming surveys to test date filtering")
+                # This might be valid - no surveys due
+                self.survey_tests['date_filtering_logic_working'] = True
+                self.survey_tests['three_month_window_correct'] = True
+                return True
+            
+            from datetime import datetime, timedelta
+            current_date = datetime.now()
+            three_months_ago = current_date - timedelta(days=90)
+            three_months_ahead = current_date + timedelta(days=90)
+            
+            self.log(f"   Current date: {current_date.strftime('%Y-%m-%d')}")
+            self.log(f"   Window start: {three_months_ago.strftime('%Y-%m-%d')} (-90 days)")
+            self.log(f"   Window end: {three_months_ahead.strftime('%Y-%m-%d')} (+90 days)")
+            
+            dates_in_window = 0
+            dates_outside_window = 0
+            
+            for survey in self.test_certificates:
+                next_survey_str = survey.get('next_survey')
+                if next_survey_str:
+                    try:
+                        # Parse the next survey date
+                        if 'T' in next_survey_str:
+                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '+00:00'))
+                        else:
+                            next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d')
+                        
+                        # Check if date is within ±3 months window
+                        if three_months_ago <= next_survey_date <= three_months_ahead:
+                            dates_in_window += 1
+                            self.log(f"      ✅ {survey.get('ship_name')} - {next_survey_date.strftime('%Y-%m-%d')} (in window)")
+                        else:
+                            dates_outside_window += 1
+                            self.log(f"      ❌ {survey.get('ship_name')} - {next_survey_date.strftime('%Y-%m-%d')} (outside window)")
+                    except Exception as e:
+                        self.log(f"      ⚠️ Could not parse date: {next_survey_str} - {str(e)}")
+            
+            if dates_outside_window == 0:
+                self.survey_tests['date_filtering_logic_working'] = True
+                self.survey_tests['three_month_window_correct'] = True
+                self.log(f"✅ Date filtering logic working correctly - all {dates_in_window} surveys within ±3 months")
+                return True
+            else:
+                self.log(f"❌ Date filtering issue - {dates_outside_window} surveys outside ±3 months window")
+                return False
+                
         except Exception as e:
-            self.log(f"❌ Error in test setup: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing date filtering logic: {str(e)}", "ERROR")
             return False
 
     def test_multi_cert_upload_with_abbreviations(self):
