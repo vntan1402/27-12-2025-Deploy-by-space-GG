@@ -5176,6 +5176,7 @@ const HomePage = () => {
           handleUploadToFolder={handleUploadToFolder}
           handleSkipFile={handleSkipFile}
           defaultTab={addRecordDefaultTab}
+          defaultDocumentType={addRecordDefaultDocumentType}
           // File Viewer Modal props
           showFileViewer={showFileViewer}
           setShowFileViewer={setShowFileViewer}
