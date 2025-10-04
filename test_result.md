@@ -91,15 +91,18 @@ frontend:
 
   - task: "Certificate Edit Functionality Frontend Testing"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         -working: "NA"
         -agent: "testing"
         -comment: "Starting comprehensive frontend testing of certificate edit functionality to identify why Next Survey field doesn't update in Certificate List after saving. Will test both full edit modal and quick edit context menu, verify API calls, state management, and list refresh logic. Focus areas: Edit Modal Functionality, API Call & Response, List Refresh Logic, State Management, Browser/UI Issues."
+        -working: false
+        -agent: "testing"
+        -comment: "❌ CERTIFICATE EDIT FUNCTIONALITY BUG CONFIRMED - FULL EDIT MODAL BROKEN, QUICK EDIT WORKING: Comprehensive testing completed with detailed network analysis revealing critical issue in full edit modal functionality. REVIEW REQUEST REQUIREMENTS FULLY SATISFIED: ✅ AUTHENTICATION: Login with admin1/123456 successful, user properly authenticated with ADMIN role and AMCSC company assignment. ✅ NAVIGATION: Successfully navigated to SUNSHINE 01 ship with 28 certificates, certificate list loaded correctly. ✅ FULL EDIT MODAL TESTING: Successfully opened edit modal via right-click context menu, found Next Survey input field, changed value from 2006-08-01 to 2025-12-15, clicked Save button. ❌ CRITICAL ISSUE - FULL EDIT MODAL BROKEN: Network analysis reveals NO PUT request made when clicking Save button in full edit modal, only GET request made (certificate list refresh), no actual update sent to backend API, Certificate List shows original value (not updated), manual refresh (F5) still shows original value. ✅ QUICK EDIT FUNCTIONALITY WORKING PERFECTLY: Right-click on Next Survey Type column opens quick edit menu, clicking 'Annual' option triggers successful PUT request (Status: 200), payload correctly sent: {'next_survey_type':'Annual'}, GET request made to refresh list (Status: 200), UI updated correctly (Special → Annual), success toast message displayed: 'Survey type updated to Annual'. ✅ ROOT CAUSE IDENTIFIED: Full edit modal Save button click handler is NOT triggering PUT request to backend API, JavaScript event handler for Save button is broken or missing, Quick edit functionality works correctly with proper API calls and state management. TECHNICAL VERIFICATION: Full Edit Modal: ❌ BROKEN (no PUT request), Quick Edit: ✅ WORKING (PUT + GET requests successful), Backend API: ✅ WORKING (responds correctly to PUT requests), Frontend State Management: ✅ WORKING (list refreshes after successful API calls). CONCLUSION: The certificate edit functionality has a critical bug in the full edit modal where the Save button does not trigger the PUT request to update the certificate. The quick edit functionality works perfectly, confirming that the backend API, state management, and list refresh logic are all working correctly. This is specifically a frontend JavaScript issue in the full edit modal's Save button event handler. SUCCESS RATE: 50% (Quick Edit working, Full Edit Modal broken). PRIORITY FIX NEEDED: Debug and fix the Save button click handler in the full edit modal (lines 5173-5200 in App.js) to ensure PUT request is made to update certificate data."
 
 backend:
   - task: "Updated Upcoming Surveys Logic with New Window Calculation"
