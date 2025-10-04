@@ -10511,8 +10511,8 @@ const AddRecordModal = ({
     return allowedRoles.includes(user?.role) ? 'ship' : 'documents';
   });
 
-  // Document type selection state
-  const [selectedDocumentType, setSelectedDocumentType] = useState('');
+  // Document type selection state - use defaultDocumentType if provided
+  const [selectedDocumentType, setSelectedDocumentType] = useState(defaultDocumentType || '');
   
   // File upload state for Certificate
   const [showFileUpload, setShowFileUpload] = useState(false);
