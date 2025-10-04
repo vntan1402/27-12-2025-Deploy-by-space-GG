@@ -249,16 +249,23 @@ function handleUploadFileWithFolderCreation(requestData) {
       folderPath = shipName + "/" + category;
     }
     
-    // Find target category folder
-    var categoryFolder = findFolderByName(parentCategoryFolder, category);
-    if (!categoryFolder) {
-      return createJsonResponse(false, "Category folder '" + category + "' not found");
+    // For parent_category approach, parentCategoryFolder is already the target folder
+    var targetFolder;
+    if (parentCategory) {
+      // parentCategoryFolder is already the deepest folder from createNestedFolders
+      targetFolder = parentCategoryFolder;
+    } else {
+      // Old approach: find category folder inside parent
+      targetFolder = findFolderByName(parentCategoryFolder, category);
+      if (!targetFolder) {
+        return createJsonResponse(false, "Category folder '" + category + "' not found");
+      }
     }
     
     // Decode and upload
     var binaryData = Utilities.base64Decode(fileContent);
     var blob = Utilities.newBlob(binaryData, contentType, filename);
-    var uploadedFile = categoryFolder.createFile(blob);
+    var uploadedFile = targetFolder.createFile(blob);
     
     return createJsonResponse(true, "File uploaded successfully: " + filename, {
       file_id: uploadedFile.getId(),
