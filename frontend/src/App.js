@@ -11603,7 +11603,7 @@ const AddRecordModal = ({
     try {
       // Extract complete structure from homepage sidebar (line 990-1032)
       const currentCategories = [
-        { key: 'documents', name: 'Document Portfolio', icon: '📁' },
+        { key: 'documents', name: 'Class & Flag Cert', icon: '📁' },
         { key: 'crew', name: 'Crew Records', icon: '👥' },
         { key: 'ism', name: 'ISM Records', icon: '📋' },
         { key: 'isps', name: 'ISPS Records', icon: '🛡️' },
