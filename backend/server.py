@@ -3663,6 +3663,11 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
             # Log cert_abbreviation specifically
             if 'cert_abbreviation' in update_data:
                 logger.info(f"🔤 Certificate abbreviation being saved: '{update_data['cert_abbreviation']}'")
+            
+            # IMPORTANT: If user manually edits next_survey, clear next_survey_display to show manual value
+            if 'next_survey' in update_data:
+                logger.info(f"🗓️ Manual next_survey update detected - clearing next_survey_display to show manual value")
+                update_data['next_survey_display'] = None
                 
             await mongo_db.update("certificates", {"id": cert_id}, update_data)
             logger.info(f"✅ Successfully updated certificate {cert_id}")
