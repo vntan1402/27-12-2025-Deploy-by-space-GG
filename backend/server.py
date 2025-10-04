@@ -3712,10 +3712,6 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         from datetime import datetime, timedelta
         current_date = datetime.now().date()
         
-        # Define 3-month window (±3 months)
-        three_months_ago = current_date - timedelta(days=90)
-        three_months_later = current_date + timedelta(days=90)
-        
         upcoming_surveys = []
         
         for cert in all_certificates:
@@ -3743,8 +3739,14 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     # If it's already a date object
                     next_survey_date = next_survey_str
                 
-                # Check if next survey date is within ±3 months window
-                if three_months_ago <= next_survey_date <= three_months_later:
+                # NEW LOGIC: Create window for each certificate based on next_survey_date
+                # Window open = next_survey - 3 months
+                # Window close = next_survey + 3 months  
+                window_open = next_survey_date - timedelta(days=90)
+                window_close = next_survey_date + timedelta(days=90)
+                
+                # Check if current_date is within certificate's survey window
+                if window_open <= current_date <= window_close:
                     # Find ship information
                     ship_info = next((ship for ship in ships if ship.get('id') == cert.get('ship_id')), {})
                     
