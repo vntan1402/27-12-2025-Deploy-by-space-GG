@@ -338,61 +338,83 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error verifying response structure: {str(e)}", "ERROR")
             return False
     
-    def test_date_filtering_logic(self):
-        """Test the ±3 months date filtering logic"""
+    def test_new_window_calculation_logic(self):
+        """Test the NEW window calculation logic - each certificate creates its own ±90 day window"""
         try:
-            self.log("📅 Testing date filtering logic (±3 months window)...")
+            self.log("📅 Testing NEW window calculation logic...")
             
             if not self.test_certificates:
-                self.log("   ⚠️ No upcoming surveys to test date filtering")
+                self.log("   ⚠️ No upcoming surveys to test window calculation")
                 # This might be valid - no surveys due
-                self.survey_tests['date_filtering_logic_working'] = True
-                self.survey_tests['three_month_window_correct'] = True
+                self.survey_tests['window_calculation_logic_working'] = True
+                self.survey_tests['individual_certificate_windows_correct'] = True
                 return True
             
             from datetime import datetime, timedelta
-            current_date = datetime.now()
-            three_months_ago = current_date - timedelta(days=90)
-            three_months_ahead = current_date + timedelta(days=90)
+            current_date = datetime.now().date()
             
-            self.log(f"   Current date: {current_date.strftime('%Y-%m-%d')}")
-            self.log(f"   Window start: {three_months_ago.strftime('%Y-%m-%d')} (-90 days)")
-            self.log(f"   Window end: {three_months_ahead.strftime('%Y-%m-%d')} (+90 days)")
+            self.log(f"   Current date: {current_date}")
+            self.log("   NEW LOGIC: Each certificate creates its own ±90 day window around next_survey_date")
             
-            dates_in_window = 0
-            dates_outside_window = 0
+            windows_correct = 0
+            windows_incorrect = 0
             
             for survey in self.test_certificates:
-                next_survey_str = survey.get('next_survey')
-                if next_survey_str:
+                ship_name = survey.get('ship_name', 'Unknown')
+                next_survey_str = survey.get('next_survey_date')  # Use the ISO format date
+                window_open_str = survey.get('window_open')
+                window_close_str = survey.get('window_close')
+                
+                if next_survey_str and window_open_str and window_close_str:
                     try:
-                        # Parse the next survey date
-                        if 'T' in next_survey_str:
-                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '+00:00'))
-                        else:
-                            next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d')
+                        # Parse dates
+                        next_survey_date = datetime.fromisoformat(next_survey_str).date()
+                        window_open = datetime.fromisoformat(window_open_str).date()
+                        window_close = datetime.fromisoformat(window_close_str).date()
                         
-                        # Check if date is within ±3 months window
-                        if three_months_ago <= next_survey_date <= three_months_ahead:
-                            dates_in_window += 1
-                            self.log(f"      ✅ {survey.get('ship_name')} - {next_survey_date.strftime('%Y-%m-%d')} (in window)")
+                        # Calculate expected window
+                        expected_window_open = next_survey_date - timedelta(days=90)
+                        expected_window_close = next_survey_date + timedelta(days=90)
+                        
+                        self.log(f"   Certificate for {ship_name}:")
+                        self.log(f"      Next survey: {next_survey_date}")
+                        self.log(f"      Window open: {window_open} (expected: {expected_window_open})")
+                        self.log(f"      Window close: {window_close} (expected: {expected_window_close})")
+                        
+                        # Verify window calculation
+                        if window_open == expected_window_open and window_close == expected_window_close:
+                            windows_correct += 1
+                            self.log(f"      ✅ Window calculation correct")
+                            
+                            # Verify current date is within window (since certificate was returned)
+                            if expected_window_open <= current_date <= expected_window_close:
+                                self.log(f"      ✅ Current date {current_date} is within window")
+                            else:
+                                self.log(f"      ❌ Current date {current_date} is NOT within window - should not be returned")
+                                windows_incorrect += 1
                         else:
-                            dates_outside_window += 1
-                            self.log(f"      ❌ {survey.get('ship_name')} - {next_survey_date.strftime('%Y-%m-%d')} (outside window)")
+                            windows_incorrect += 1
+                            self.log(f"      ❌ Window calculation incorrect")
+                            
                     except Exception as e:
-                        self.log(f"      ⚠️ Could not parse date: {next_survey_str} - {str(e)}")
+                        self.log(f"      ⚠️ Could not verify window calculation: {str(e)}")
+                        windows_incorrect += 1
+                else:
+                    self.log(f"   ❌ Missing window data for {ship_name}")
+                    windows_incorrect += 1
             
-            if dates_outside_window == 0:
-                self.survey_tests['date_filtering_logic_working'] = True
-                self.survey_tests['three_month_window_correct'] = True
-                self.log(f"✅ Date filtering logic working correctly - all {dates_in_window} surveys within ±3 months")
+            if windows_incorrect == 0:
+                self.survey_tests['window_calculation_logic_working'] = True
+                self.survey_tests['individual_certificate_windows_correct'] = True
+                self.survey_tests['current_date_filter_working'] = True
+                self.log(f"✅ NEW window calculation logic working correctly - all {windows_correct} certificates have correct windows")
                 return True
             else:
-                self.log(f"❌ Date filtering issue - {dates_outside_window} surveys outside ±3 months window")
+                self.log(f"❌ Window calculation issues - {windows_incorrect} certificates have incorrect windows")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error testing date filtering logic: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing window calculation logic: {str(e)}", "ERROR")
             return False
 
     def test_company_filtering(self):
