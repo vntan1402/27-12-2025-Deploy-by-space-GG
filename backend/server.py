@@ -3811,33 +3811,51 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     
                     # Updated status classification logic based on certificate's survey window and type
                     # Apply different overdue logic based on survey type
-                    if 'Special Survey' in next_survey_type:
+                    if 'Condition Certificate Expiry' in next_survey_type:
+                        # Condition Certificate: overdue if past valid date (expiry)
+                        is_overdue = current_date > window_close  # window_close = valid_date
+                        
+                        # Due soon: Certificate expires within next 30 days
+                        days_until_expiry = (window_close - current_date).days
+                        is_due_soon = 0 <= days_until_expiry <= 30
+                        
+                        # Critical: Certificate expires within 7 days or already expired
+                        is_critical = days_until_expiry <= 7
+                        
+                        # For condition certificates, use expiry date for calculations
+                        days_until_survey = days_until_expiry
+                        
+                    elif 'Special Survey' in next_survey_type:
                         # Special Survey: overdue if past survey date (no grace period)
                         is_overdue = next_survey_date < current_date
+                        
+                        # Due soon: Survey is coming within next 30 days
+                        is_due_soon = 0 <= days_until_survey <= 30
+                        
+                        # Critical: Special Survey critical if due within 7 days or overdue
+                        is_critical = days_until_survey <= 7
+                        
                     else:
                         # Other surveys: overdue if past survey date + 90 days window
                         is_overdue = current_date > (next_survey_date + timedelta(days=90))
-                    
-                    # Due soon: Survey is coming within next 30 days (regardless of type)
-                    is_due_soon = 0 <= days_until_survey <= 30
+                        
+                        # Due soon: Survey is coming within next 30 days
+                        is_due_soon = 0 <= days_until_survey <= 30
+                        
+                        # Critical: Other surveys critical if due within 7 days or significantly overdue
+                        is_critical = days_until_survey <= 7 or days_until_survey < -30
                     
                     # Within window: Current date falls within this certificate's survey window
                     is_within_window = True  # Always true since we already filtered by this condition
-                    
-                    # Critical: Different logic for Special Survey vs Others
-                    if 'Special Survey' in next_survey_type:
-                        # Special Survey: critical if due within 7 days or overdue
-                        is_critical = days_until_survey <= 7
-                    else:
-                        # Other surveys: critical if due within 7 days or significantly overdue
-                        is_critical = days_until_survey <= 7 or days_until_survey < -30
                     
                     # Calculate window information for this certificate
                     days_from_window_open = (current_date - window_open).days
                     days_to_window_close = (window_close - current_date).days
                     
                     # Determine window type for display
-                    if 'Special Survey' in next_survey_type:
+                    if 'Condition Certificate Expiry' in next_survey_type:
+                        window_type = 'Issue→Valid'  # From issue date to valid date
+                    elif 'Special Survey' in next_survey_type:
                         window_type = '-3M'  # Only before deadline
                     else:
                         window_type = '±3M'  # Before and after
