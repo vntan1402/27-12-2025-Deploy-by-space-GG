@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Updated Upcoming Surveys Logic with New Window Calculation"
+    - "Certificate Edit Functionality Frontend Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
