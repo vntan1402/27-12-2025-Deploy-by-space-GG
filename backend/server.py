@@ -3956,13 +3956,18 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 "description": "Each certificate creates its own survey window based on certificate type and Next Survey rules. Current date must fall within certificate's window.",
                 "window_rules": {
                     "condition_certificate": "Issue date → Valid date (certificate validity period)",
+                    "initial_smc_issc_mlc": "Valid date - 3M → Valid date (3 months before expiry)",
                     "special_survey": "Only -3M (90 days before survey date, no extension after)", 
                     "other_surveys": "±3M (90 days before and after survey date)"
                 },
                 "window_calculation": {
                     "condition_certificate": "window_open = issue_date, window_close = valid_date",
+                    "initial_smc_issc_mlc": "window_open = valid_date - 90 days, window_close = valid_date",
                     "special_survey": "window_open = next_survey - 90 days, window_close = next_survey",
                     "other_surveys": "window_open = next_survey - 90 days, window_close = next_survey + 90 days"
+                },
+                "certificate_types": {
+                    "initial_applies_to": ["SMC", "ISSC", "MLC certificates with Initial survey type"]
                 },
                 "filter_condition": "window_open <= current_date <= window_close"
             }
