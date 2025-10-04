@@ -7081,16 +7081,18 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
         if not parent_folder_id:
             raise Exception("Parent folder ID not configured")
         
-        # Category mapping for folder names
+        # Category mapping for folder names with parent categories
         category_mapping = {
-            "certificates": "Certificates",
-            "test_reports": "Test Reports", 
-            "survey_reports": "Survey Reports",
-            "drawings_manuals": "Drawings & Manuals",
-            "other_documents": "Other Documents"
+            "certificates": {"parent": "Class & Flag Cert", "folder": "Certificates"},
+            "test_reports": {"parent": "Class & Flag Cert", "folder": "Test Report"}, 
+            "survey_reports": {"parent": "Class & Flag Cert", "folder": "Class Survey Report"},
+            "drawings_manuals": {"parent": "Class & Flag Cert", "folder": "Drawings & Manuals"},
+            "other_documents": {"parent": "Class & Flag Cert", "folder": "Other Documents"}
         }
         
-        folder_name = category_mapping.get(category, "Other Documents")
+        category_info = category_mapping.get(category, {"parent": None, "folder": "Other Documents"})
+        parent_category = category_info["parent"] 
+        folder_name = category_info["folder"]
         
         # Encode file content to base64
         import base64
