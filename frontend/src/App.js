@@ -727,6 +727,7 @@ const HomePage = () => {
   const [hoverTimeout, setHoverTimeout] = useState(null);
   const [showAddRecord, setShowAddRecord] = useState(false);
   const [addRecordDefaultTab, setAddRecordDefaultTab] = useState(null);
+  const [addRecordDefaultDocumentType, setAddRecordDefaultDocumentType] = useState(null);
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
   const [showShipListModal, setShowShipListModal] = useState(false);
