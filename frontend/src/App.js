@@ -10713,8 +10713,6 @@ const AddRecordModal = ({
   defaultTab,
   defaultDocumentType,
   duplicateQueue,
-  upcomingSurveysModal,
-  setUpcomingSurveysModal,
   // File Viewer Modal props
   showFileViewer,
   setShowFileViewer,
