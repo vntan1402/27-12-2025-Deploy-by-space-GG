@@ -7100,8 +7100,8 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
             "action": "upload_file_with_folder_creation",
             "parent_folder_id": parent_folder_id,
             "ship_name": ship_name,
-            "category_folder": folder_name,
-            "file_name": filename,
+            "category": folder_name,  # Fixed: was "category_folder" 
+            "filename": filename,     # Fixed: was "file_name"
             "file_content": file_base64
         }
         
