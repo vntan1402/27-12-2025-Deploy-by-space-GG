@@ -9304,14 +9304,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                     'reasoning': 'Cannot determine anniversary date'
                 }
         
-        # Determine certificate's survey window (±3 months for most certificates)
+        # Determine certificate's survey window (±3 months for all certificates)
         window_months = 3
-        
-        # Special cases for different certificate types
-        if any(keyword in cert_name for keyword in ['RADIO', 'GMDSS']):
-            window_months = 3  # Radio certificates: ±3 months
-        elif any(keyword in cert_name for keyword in ['MLC', 'LABOUR']):
-            window_months = 3  # MLC certificates: ±3 months
         
         # Calculate 5-year cycle based on valid_date or special survey cycle
         cycle_start = None
