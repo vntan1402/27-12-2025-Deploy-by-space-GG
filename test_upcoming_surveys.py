@@ -5,6 +5,12 @@ Test script for the upcoming surveys endpoint
 import asyncio
 import sys
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv('/app/backend/.env')
+
 sys.path.append('/app/backend')
 
 from mongodb_database import mongo_db
