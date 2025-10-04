@@ -928,10 +928,10 @@ class UpcomingSurveysNotificationTester:
             self.log(f"         Error verifying date formats: {str(e)}")
             return False
     
-    def run_comprehensive_multi_upload_tests(self):
-        """Main test function for multi cert upload abbreviation functionality"""
-        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - MULTI CERT UPLOAD ABBREVIATION TESTING")
-        self.log("🎯 FOCUS: Test Multi Cert Upload fix for cert_abbreviation saving")
+    def run_comprehensive_upcoming_surveys_tests(self):
+        """Main test function for upcoming surveys notification functionality"""
+        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - UPCOMING SURVEYS NOTIFICATION TESTING")
+        self.log("🎯 FOCUS: Test the new upcoming surveys notification system")
         self.log("=" * 100)
         
         try:
@@ -942,54 +942,45 @@ class UpcomingSurveysNotificationTester:
                 self.log("❌ Authentication failed - cannot proceed with testing")
                 return False
             
-            # Step 2: Find test ship
-            self.log("\n🚢 STEP 2: FIND TEST SHIP")
+            # Step 2: Test upcoming surveys endpoint
+            self.log("\n📅 STEP 2: TEST UPCOMING SURVEYS ENDPOINT")
             self.log("=" * 50)
-            ship_found = self.find_test_ship()
-            if not ship_found:
-                self.log("❌ No ship found for testing - cannot proceed")
+            endpoint_success = self.test_upcoming_surveys_endpoint()
+            if not endpoint_success:
+                self.log("❌ Upcoming surveys endpoint failed - cannot proceed")
                 return False
             
-            # Step 3: Create test certificate files
-            self.log("\n📄 STEP 3: CREATE TEST CERTIFICATE FILES")
+            # Step 3: Verify response structure
+            self.log("\n🔍 STEP 3: VERIFY RESPONSE STRUCTURE")
             self.log("=" * 50)
-            files_created = self.create_test_certificate_files()
-            if not files_created:
-                self.log("❌ Failed to create test files - cannot proceed")
-                return False
+            structure_success = self.verify_response_structure()
             
-            # Step 4: Test multi cert upload with abbreviations
-            self.log("\n📤 STEP 4: TEST MULTI CERT UPLOAD WITH ABBREVIATIONS")
+            # Step 4: Test date filtering logic
+            self.log("\n📅 STEP 4: TEST DATE FILTERING LOGIC")
             self.log("=" * 50)
-            upload_success = self.test_multi_cert_upload_with_abbreviations()
+            date_filtering_success = self.test_date_filtering_logic()
             
-            # Step 5: Verify database abbreviation records
-            self.log("\n🔍 STEP 5: VERIFY DATABASE ABBREVIATION RECORDS")
+            # Step 5: Test company filtering
+            self.log("\n🏢 STEP 5: TEST COMPANY FILTERING")
             self.log("=" * 50)
-            db_verification = self.verify_database_abbreviation_records()
+            company_filtering_success = self.test_company_filtering()
             
-            # Step 6: Check enhanced logging
-            self.log("\n📝 STEP 6: CHECK ENHANCED LOGGING")
+            # Step 6: Test status indicators
+            self.log("\n🚦 STEP 6: TEST STATUS INDICATORS")
             self.log("=" * 50)
-            logging_check = self.check_enhanced_logging()
+            status_indicators_success = self.test_status_indicators()
             
-            # Step 7: Test abbreviation mappings
-            self.log("\n🗂️ STEP 7: TEST ABBREVIATION MAPPINGS")
-            self.log("=" * 50)
-            mapping_success = self.test_abbreviation_mappings()
-            
-            # Step 8: Final Analysis
-            self.log("\n📊 STEP 8: FINAL ANALYSIS")
+            # Step 7: Final Analysis
+            self.log("\n📊 STEP 7: FINAL ANALYSIS")
             self.log("=" * 50)
             self.provide_final_analysis()
             
-            # Cleanup test files
-            self.cleanup_test_files()
-            
-            return upload_success and db_verification and logging_check
+            return (endpoint_success and structure_success and 
+                   date_filtering_success and company_filtering_success and 
+                   status_indicators_success)
             
         except Exception as e:
-            self.log(f"❌ Comprehensive multi upload testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive upcoming surveys testing error: {str(e)}", "ERROR")
             return False
     
     def provide_final_analysis(self):
