@@ -9873,7 +9873,7 @@ async def get_sidebar_structure():
     try:
         # Define the current sidebar structure that matches the frontend
         sidebar_structure = {
-            "Document Portfolio": [
+            "Class & Flag Cert": [
                 "Certificates",
                 "Class Survey Report",
                 "Test Report", 
