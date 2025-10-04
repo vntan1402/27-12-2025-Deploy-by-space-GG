@@ -3739,11 +3739,22 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     # If it's already a date object
                     next_survey_date = next_survey_str
                 
-                # NEW LOGIC: Create window for each certificate based on next_survey_date
-                # Window open = next_survey - 3 months
-                # Window close = next_survey + 3 months  
-                window_open = next_survey_date - timedelta(days=90)
-                window_close = next_survey_date + timedelta(days=90)
+                # NEW LOGIC: Create window for each certificate based on next_survey_date and survey type
+                # Apply Next Survey window rules:
+                # - Special Survey: only -3M (must be done before deadline)
+                # - Other surveys: ±3M (can be done before or after within window)
+                
+                next_survey_type = cert.get('next_survey_type', '')
+                
+                # Determine window based on survey type
+                if 'Special Survey' in next_survey_type:
+                    # Special Survey: only -3 months (90 days before, no days after)
+                    window_open = next_survey_date - timedelta(days=90)
+                    window_close = next_survey_date  # No extension after survey date
+                else:
+                    # All other surveys: ±3 months (90 days before and after)
+                    window_open = next_survey_date - timedelta(days=90)
+                    window_close = next_survey_date + timedelta(days=90)
                 
                 # Check if current_date is within certificate's survey window
                 if window_open <= current_date <= window_close:
