@@ -3928,7 +3928,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         'cert_abbreviation': cert_abbreviation,
                         'cert_name_display': cert_name_display,
                         'next_survey': next_survey_str,
-                        'next_survey_date': next_survey_date.isoformat(),
+                        'next_survey_date': next_survey_date.isoformat() if next_survey_date else None,
                         'next_survey_type': cert.get('next_survey_type', ''),
                         'last_endorse': cert.get('last_endorse', ''),
                         'status': cert.get('status', ''),
