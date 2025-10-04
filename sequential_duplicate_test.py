@@ -229,7 +229,7 @@ class SequentialDuplicateResolutionTester:
             ship_id = self.ship_data.get('id')
             
             # Test endpoint accessibility with empty request (should return error but endpoint should be accessible)
-            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates/multi-upload"
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
             self.log(f"   Testing endpoint: {endpoint}")
             
             # Create a minimal test request to check endpoint accessibility
