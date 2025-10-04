@@ -13342,11 +13342,11 @@ const AddRecordModal = ({
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}</span>
-                      <p className="text-gray-900">{duplicate.existing_cert?.issue_date || 'N/A'}</p>
+                      <p className="text-gray-900">{formatDateDisplay(duplicate.existing_cert?.issue_date)}</p>
                     </div>
                     <div>
                       <span className="font-medium text-gray-700">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span>
-                      <p className="text-gray-900">{duplicate.existing_cert?.valid_date || 'N/A'}</p>
+                      <p className="text-gray-900">{formatDateDisplay(duplicate.existing_cert?.valid_date)}</p>
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-red-600">
