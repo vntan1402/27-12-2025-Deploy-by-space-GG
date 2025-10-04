@@ -290,11 +290,11 @@ class InitialSurveyBugFixTester:
                     if 'initial_smc_issc_mlc' in rule_key:
                         initial_rule_found = True
                         if 'Valid date - 3M → Valid date' in rule_description or '3 months before expiry' in rule_description:
-                            self.survey_tests['logic_info_includes_initial_rules'] = True
+                            self.bug_fix_tests['logic_info_includes_initial_rules'] = True
                             self.log(f"         ✅ Initial certificate rule correctly documented")
                 
                 if len(window_rules) >= 4:
-                    self.survey_tests['all_window_rule_types_documented'] = True
+                    self.bug_fix_tests['all_window_rule_types_documented'] = True
                     self.log("✅ All window rule types documented")
                 
                 if not initial_rule_found:
