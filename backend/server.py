@@ -7102,8 +7102,9 @@ async def upload_file_via_apps_script(gdrive_config: dict, file_content: bytes, 
             "action": "upload_file_with_folder_creation",
             "parent_folder_id": parent_folder_id,
             "ship_name": ship_name,
-            "category": folder_name,  # Fixed: was "category_folder" 
-            "filename": filename,     # Fixed: was "file_name"
+            "parent_category": parent_category,  # Main category (e.g., "Class & Flag Cert")
+            "category": folder_name,             # Sub-folder (e.g., "Certificates")
+            "filename": filename,
             "file_content": file_base64
         }
         
