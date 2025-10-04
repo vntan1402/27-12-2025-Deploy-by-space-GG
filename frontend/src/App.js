@@ -5238,6 +5238,7 @@ const HomePage = () => {
           handleSkipFile={handleSkipFile}
           defaultTab={addRecordDefaultTab}
           defaultDocumentType={addRecordDefaultDocumentType}
+          duplicateQueue={duplicateQueue}
           // File Viewer Modal props
           showFileViewer={showFileViewer}
           setShowFileViewer={setShowFileViewer}
