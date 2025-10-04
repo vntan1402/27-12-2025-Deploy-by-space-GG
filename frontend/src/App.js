@@ -1086,6 +1086,64 @@ const HomePage = () => {
 
   // Queue system for sequential duplicate resolution
   const [duplicateQueue, setDuplicateQueue] = useState([]);
+
+  // Function to add duplicate to queue and show if none is currently shown
+  const addToduplicateQueue = (duplicateData) => {
+    setDuplicateQueue(prev => {
+      const newQueue = [...prev, duplicateData];
+      
+      // If no modal is currently shown and this is the first item, show it immediately
+      if (!duplicateResolutionModal.show && newQueue.length === 1) {
+        setDuplicateResolutionModal({
+          show: true,
+          fileData: duplicateData.fileData,
+          analysisResult: duplicateData.analysisResult,
+          duplicateInfo: duplicateData.duplicateInfo,
+          shipId: duplicateData.shipId,
+          fileIndex: duplicateData.fileIndex,
+          fileName: duplicateData.fileName
+        });
+      }
+      
+      return newQueue;
+    });
+  };
+
+  // Function to process next duplicate in queue
+  const processNextDuplicate = () => {
+    setDuplicateQueue(prev => {
+      const newQueue = [...prev];
+      newQueue.shift(); // Remove current duplicate
+      
+      // Show next duplicate if exists
+      if (newQueue.length > 0) {
+        const nextDuplicate = newQueue[0];
+        setDuplicateResolutionModal({
+          show: true,
+          fileData: nextDuplicate.fileData,
+          analysisResult: nextDuplicate.analysisResult,
+          duplicateInfo: nextDuplicate.duplicateInfo,
+          shipId: nextDuplicate.shipId,
+          fileIndex: nextDuplicate.fileIndex,
+          fileName: nextDuplicate.fileName
+        });
+      } else {
+        // No more duplicates, hide modal
+        setDuplicateResolutionModal({
+          show: false,
+          fileData: null,
+          analysisResult: null,
+          duplicateInfo: null,
+          shipId: null,
+          fileIndex: -1,
+          fileName: ''
+        });
+      }
+      
+      return newQueue;
+    });
+  };
+
   const navigate = useNavigate();
   
   const t = translations[language];
