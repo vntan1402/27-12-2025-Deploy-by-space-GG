@@ -3768,22 +3768,38 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     # Calculate days until survey
                     days_until_survey = (next_survey_date - current_date).days
                     
-                    # Updated status classification logic based on certificate's survey window
-                    # Overdue: Survey date has passed (negative days)
-                    is_overdue = next_survey_date < current_date
+                    # Updated status classification logic based on certificate's survey window and type
+                    # Apply different overdue logic based on survey type
+                    if 'Special Survey' in next_survey_type:
+                        # Special Survey: overdue if past survey date (no grace period)
+                        is_overdue = next_survey_date < current_date
+                    else:
+                        # Other surveys: overdue if past survey date + 90 days window
+                        is_overdue = current_date > (next_survey_date + timedelta(days=90))
                     
-                    # Due soon: Survey is coming within next 30 days
+                    # Due soon: Survey is coming within next 30 days (regardless of type)
                     is_due_soon = 0 <= days_until_survey <= 30
                     
-                    # Within window: Current date falls within this certificate's ±3 months survey window
+                    # Within window: Current date falls within this certificate's survey window
                     is_within_window = True  # Always true since we already filtered by this condition
                     
-                    # Critical: Survey is overdue or due within 7 days
-                    is_critical = days_until_survey < 0 or (0 <= days_until_survey <= 7)
+                    # Critical: Different logic for Special Survey vs Others
+                    if 'Special Survey' in next_survey_type:
+                        # Special Survey: critical if due within 7 days or overdue
+                        is_critical = days_until_survey <= 7
+                    else:
+                        # Other surveys: critical if due within 7 days or significantly overdue
+                        is_critical = days_until_survey <= 7 or days_until_survey < -30
                     
                     # Calculate window information for this certificate
                     days_from_window_open = (current_date - window_open).days
                     days_to_window_close = (window_close - current_date).days
+                    
+                    # Determine window type for display
+                    if 'Special Survey' in next_survey_type:
+                        window_type = '-3M'  # Only before deadline
+                    else:
+                        window_type = '±3M'  # Before and after
                     
                     upcoming_survey = {
                         'certificate_id': cert.get('id'),
