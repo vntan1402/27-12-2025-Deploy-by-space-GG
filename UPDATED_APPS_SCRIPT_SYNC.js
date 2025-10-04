@@ -375,7 +375,8 @@ function getFallbackFolderStructure() {
 function handleUploadFileWithFolderCreation(requestData) {
   try {
     var shipName = requestData.ship_name;
-    var category = requestData.category;
+    var parentCategory = requestData.parent_category;  // Main category (e.g., "Class & Flag Cert")
+    var category = requestData.category;               // Sub-folder (e.g., "Certificates")
     var filename = requestData.filename;
     var fileContent = requestData.file_content;
     var contentType = requestData.content_type || 'application/pdf';
