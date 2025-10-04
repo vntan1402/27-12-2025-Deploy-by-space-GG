@@ -48,8 +48,8 @@ def test_certificate_matching():
         print(f"   Valid Date: {valid_date_str}")
         
         # Test the matching condition
-        is_initial = 'Initial' in next_survey_type
-        is_smc_issc_mlc = any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC'])
+        is_initial = 'Initial' in (next_survey_type or '')
+        is_smc_issc_mlc = any(cert_type in (cert_name or '') for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC'])
         
         print(f"   Is Initial: {is_initial}")
         print(f"   Is SMC/ISSC/MLC: {is_smc_issc_mlc}")
