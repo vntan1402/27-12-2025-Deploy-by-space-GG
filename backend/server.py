@@ -3880,7 +3880,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         # For initial certificates, use valid date for calculations
                         days_until_survey = days_until_initial
                         
-                    elif 'Special Survey' in next_survey_type:
+                    elif 'Special Survey' in next_survey_type and next_survey_date:
                         # Special Survey: overdue if past survey date (no grace period)
                         is_overdue = next_survey_date < current_date
                         
@@ -3890,7 +3890,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         # Critical: Special Survey critical if due within 7 days or overdue
                         is_critical = days_until_survey <= 7
                         
-                    else:
+                    elif next_survey_date:
                         # Other surveys: overdue if past survey date + 90 days window
                         is_overdue = current_date > (next_survey_date + timedelta(days=90))
                         
