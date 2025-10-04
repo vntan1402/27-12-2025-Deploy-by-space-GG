@@ -904,9 +904,9 @@ class InitialSurveyBugFixTester:
             return False
 
     def create_test_initial_certificates(self):
-        """Create test Initial SMC/ISSC/MLC certificates if none exist"""
+        """Create test Initial SMC/ISSC/MLC certificates with FULL NAMES to test the bug fix"""
         try:
-            self.log("🔧 Creating test Initial SMC/ISSC/MLC certificates...")
+            self.log("🔧 Creating test Initial certificates with FULL NAMES to verify bug fix...")
             
             # Get ships to create certificates for
             endpoint = f"{BACKEND_URL}/ships"
@@ -930,18 +930,18 @@ class InitialSurveyBugFixTester:
             
             self.log(f"   Using ship: {ship_name} (ID: {ship_id})")
             
-            # Create test Initial certificates
+            # Create test Initial certificates with FULL NAMES (this tests the bug fix)
             from datetime import datetime, timedelta
             current_date = datetime.now()
             
             test_certificates = [
                 {
                     "ship_id": ship_id,
-                    "cert_name": "SAFETY MANAGEMENT CERTIFICATE",
+                    "cert_name": "SAFETY MANAGEMENT CERTIFICATE",  # Full name - should match 'SAFETY MANAGEMENT'
                     "cert_type": "Full Term",
-                    "cert_no": "SMC-TEST-2025-001",
+                    "cert_no": "SMC-BUGFIX-TEST-001",
                     "issue_date": (current_date - timedelta(days=365)).isoformat(),
-                    "valid_date": (current_date + timedelta(days=45)).isoformat(),  # Expires in 45 days
+                    "valid_date": (current_date + timedelta(days=42)).isoformat(),  # Within 90-day window
                     "next_survey_type": "Initial",
                     "issued_by": "Panama Maritime Documentation Services",
                     "category": "certificates",
@@ -949,11 +949,11 @@ class InitialSurveyBugFixTester:
                 },
                 {
                     "ship_id": ship_id,
-                    "cert_name": "INTERNATIONAL SHIP SECURITY CERTIFICATE",
+                    "cert_name": "INTERNATIONAL SHIP SECURITY CERTIFICATE",  # Full name - should match 'SHIP SECURITY'
                     "cert_type": "Full Term", 
-                    "cert_no": "ISSC-TEST-2025-001",
+                    "cert_no": "ISSC-BUGFIX-TEST-001",
                     "issue_date": (current_date - timedelta(days=300)).isoformat(),
-                    "valid_date": (current_date + timedelta(days=15)).isoformat(),  # Expires in 15 days (critical)
+                    "valid_date": (current_date + timedelta(days=16)).isoformat(),  # Within 90-day window, due soon
                     "next_survey_type": "Initial",
                     "issued_by": "Panama Maritime Documentation Services",
                     "category": "certificates",
@@ -961,11 +961,11 @@ class InitialSurveyBugFixTester:
                 },
                 {
                     "ship_id": ship_id,
-                    "cert_name": "MARITIME LABOUR CERTIFICATE",
+                    "cert_name": "MARITIME LABOUR CERTIFICATE",  # Full name - should match 'MARITIME LABOUR'
                     "cert_type": "Full Term",
-                    "cert_no": "MLC-TEST-2025-001", 
+                    "cert_no": "MLC-BUGFIX-TEST-001", 
                     "issue_date": (current_date - timedelta(days=200)).isoformat(),
-                    "valid_date": (current_date - timedelta(days=5)).isoformat(),  # Already expired (overdue)
+                    "valid_date": (current_date + timedelta(days=6)).isoformat(),  # Within 90-day window, critical
                     "next_survey_type": "Initial",
                     "issued_by": "Panama Maritime Documentation Services",
                     "category": "certificates",
@@ -973,25 +973,32 @@ class InitialSurveyBugFixTester:
                 }
             ]
             
+            self.log("   Creating certificates with FULL NAMES to test bug fix:")
             created_count = 0
             for cert_data in test_certificates:
+                self.log(f"      Creating: {cert_data['cert_name']}")
+                self.log(f"         Valid date: {cert_data['valid_date']}")
+                self.log(f"         Survey type: {cert_data['next_survey_type']}")
+                
                 endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
                 response = requests.post(endpoint, json=cert_data, headers=self.get_headers(), timeout=30)
                 
                 if response.status_code == 201:
                     created_count += 1
                     cert_response = response.json()
-                    self.log(f"   ✅ Created {cert_data['cert_name']} (ID: {cert_response.get('id')})")
+                    self.log(f"         ✅ Created successfully (ID: {cert_response.get('id')})")
                 else:
-                    self.log(f"   ❌ Failed to create {cert_data['cert_name']}: {response.status_code}")
+                    self.log(f"         ❌ Failed to create: {response.status_code}")
                     try:
                         error_data = response.json()
-                        self.log(f"      Error: {error_data.get('detail', 'Unknown error')}")
+                        self.log(f"            Error: {error_data.get('detail', 'Unknown error')}")
                     except:
-                        self.log(f"      Error: {response.text[:200]}")
+                        self.log(f"            Error: {response.text[:200]}")
             
             if created_count > 0:
-                self.log(f"✅ Created {created_count} test Initial certificates")
+                self.bug_fix_tests['test_initial_certificates_created'] = True
+                self.log(f"✅ Created {created_count}/3 test Initial certificates with FULL NAMES")
+                self.log("   These certificates should now be detected by the FIXED name matching logic")
                 return True
             else:
                 self.log("❌ Failed to create any test Initial certificates")
@@ -999,6 +1006,63 @@ class InitialSurveyBugFixTester:
                 
         except Exception as e:
             self.log(f"❌ Error creating test Initial certificates: {str(e)}", "ERROR")
+            return False
+    
+    def run_comprehensive_bug_fix_test(self):
+        """Run comprehensive test of the Initial survey type certificate name matching bug fix"""
+        try:
+            self.log("🚀 STARTING COMPREHENSIVE INITIAL SURVEY TYPE BUG FIX TEST")
+            self.log("=" * 80)
+            
+            # Step 1: Authentication
+            self.log("STEP 1: Authentication")
+            if not self.authenticate():
+                self.log("❌ CRITICAL: Authentication failed - cannot proceed")
+                return False
+            
+            # Step 2: Test upcoming surveys endpoint
+            self.log("\nSTEP 2: Testing upcoming surveys endpoint")
+            if not self.test_upcoming_surveys_endpoint():
+                self.log("❌ CRITICAL: Upcoming surveys endpoint failed")
+                return False
+            
+            # Step 3: Verify response structure
+            self.log("\nSTEP 3: Verifying response structure")
+            if not self.verify_response_structure():
+                self.log("❌ CRITICAL: Response structure verification failed")
+                return False
+            
+            # Step 4: Test certificate name matching bug fix
+            self.log("\nSTEP 4: Testing certificate name matching bug fix")
+            if not self.test_certificate_name_matching_bug_fix():
+                self.log("❌ Certificate name matching test failed")
+                return False
+            
+            # Step 5: Test Initial certificate window logic
+            self.log("\nSTEP 5: Testing Initial certificate window logic")
+            if not self.test_initial_certificate_window_logic():
+                self.log("❌ Initial certificate window logic test failed")
+                return False
+            
+            # Step 6: Test Initial certificate status logic
+            self.log("\nSTEP 6: Testing Initial certificate status logic")
+            if not self.test_initial_certificate_status_logic():
+                self.log("❌ Initial certificate status logic test failed")
+                return False
+            
+            # Step 7: Validate survey data
+            self.log("\nSTEP 7: Validating survey data")
+            if not self.validate_survey_data():
+                self.log("❌ Survey data validation failed")
+                return False
+            
+            self.log("\n" + "=" * 80)
+            self.log("✅ COMPREHENSIVE BUG FIX TEST COMPLETED SUCCESSFULLY")
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
+            traceback.print_exc()
             return False
 
     def test_specific_certificate_verification(self):
