@@ -1179,14 +1179,15 @@ const HomePage = () => {
         const data = await response.json();
         
         if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
-          // Show notification modal
-          setUpcomingSurveysModal({
+          // Show notification modal using functional update to ensure state change
+          setUpcomingSurveysModal(prev => ({
+            ...prev,
             show: true,
             surveys: data.upcoming_surveys,
             totalCount: data.total_count,
             company: data.company,
             checkDate: data.check_date
-          });
+          }));
         }
       }
     } catch (error) {
