@@ -10514,6 +10514,13 @@ const AddRecordModal = ({
   // Document type selection state - use defaultDocumentType if provided
   const [selectedDocumentType, setSelectedDocumentType] = useState(defaultDocumentType || '');
   
+  // Update selectedDocumentType when defaultDocumentType changes
+  useEffect(() => {
+    if (defaultDocumentType) {
+      setSelectedDocumentType(defaultDocumentType);
+    }
+  }, [defaultDocumentType]);
+  
   // File upload state for Certificate
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
