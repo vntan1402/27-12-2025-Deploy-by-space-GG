@@ -1182,14 +1182,22 @@ const HomePage = () => {
         const data = await response.json();
         
         if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
+          console.log('📋 Setting modal state with data:', data);
           // Show notification modal
-          setUpcomingSurveysModal({
+          const modalData = {
             show: true,
             surveys: data.upcoming_surveys,
             totalCount: data.total_count,
             company: data.company,
             checkDate: data.check_date
-          });
+          };
+          console.log('📋 Modal data to set:', modalData);
+          setUpcomingSurveysModal(modalData);
+          
+          // Force a manual check after state update
+          setTimeout(() => {
+            console.log('⏰ Check modal state after timeout:', upcomingSurveysModal);
+          }, 100);
         }
       }
     } catch (error) {
