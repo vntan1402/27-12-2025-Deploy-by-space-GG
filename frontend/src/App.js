@@ -5148,10 +5148,12 @@ const HomePage = () => {
           onClose={() => {
             setShowAddRecord(false);
             setAddRecordDefaultTab(null); // Reset default tab
+            setAddRecordDefaultDocumentType(null); // Reset default document type
           }}
           onSuccess={(type) => {
             setShowAddRecord(false);
             setAddRecordDefaultTab(null); // Reset default tab
+            setAddRecordDefaultDocumentType(null); // Reset default document type
             if (type === 'ship') {
               fetchShips();
             } else if (type === 'certificate' && selectedShip) {
