@@ -1709,6 +1709,24 @@ const HomePage = () => {
     }
   }, [certificateLinksCache]);
 
+  // Handle click outside for ship selector dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close ship selector if clicking outside
+      if (showShipSelector && !event.target.closest('.relative')) {
+        setShowShipSelector(false);
+      }
+    };
+
+    if (showShipSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShipSelector]);
+
   // Get cached links for current ship
   const getCurrentShipLinks = () => {
     return selectedShip?.id ? (certificateLinksCache[selectedShip.id] || {}) : {};
