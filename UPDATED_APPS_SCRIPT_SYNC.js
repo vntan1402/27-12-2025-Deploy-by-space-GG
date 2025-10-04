@@ -409,11 +409,11 @@ function handleUploadFileWithFolderCreation(requestData) {
     var folderPath;
     
     if (documentPortfolioCategories.indexOf(category) !== -1) {
-      parentCategoryFolder = findFolderByName(shipFolder, "Document Portfolio");
+      parentCategoryFolder = findFolderByName(shipFolder, "Class & Flag Cert");
       if (!parentCategoryFolder) {
-        return createJsonResponse(false, "Document Portfolio folder not found in ship '" + shipName + "'");
+        return createJsonResponse(false, "Class & Flag Cert folder not found in ship '" + shipName + "'");
       }
-      folderPath = shipName + "/Document Portfolio/" + category;
+      folderPath = shipName + "/Class & Flag Cert/" + category;
     } else {
       parentCategoryFolder = shipFolder;
       folderPath = shipName + "/" + category;
