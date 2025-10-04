@@ -3900,6 +3900,68 @@ const HomePage = () => {
                                 {showFullShipInfo ? '▲' : '▼'}
                               </span>
                             </button>
+                            {/* Ship Select Dropdown */}
+                            <div className="relative">
+                              <button
+                                onClick={() => setShowShipSelector(!showShipSelector)}
+                                className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                              >
+                                <span className="mr-1">🚢</span>
+                                {language === 'vi' ? 'Chọn tàu' : 'Ship Select'}
+                                <span className="ml-1 text-xs">
+                                  {showShipSelector ? '▲' : '▼'}
+                                </span>
+                              </button>
+                              
+                              {/* Ship Selector Dropdown */}
+                              {showShipSelector && (
+                                <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[250px] max-h-64 overflow-y-auto">
+                                  {ships.length > 0 ? (
+                                    <>
+                                      <div className="px-4 py-2 text-xs font-medium text-gray-500 border-b bg-gray-50 rounded-t-lg">
+                                        {language === 'vi' ? 'Chọn tàu từ công ty của bạn' : 'Select ship from your company'}
+                                      </div>
+                                      {ships.map((ship) => (
+                                        <button
+                                          key={ship.id}
+                                          onClick={() => {
+                                            setSelectedShip(ship);
+                                            setShowShipSelector(false);
+                                            toast.success(
+                                              language === 'vi' 
+                                                ? `Đã chọn tàu: ${ship.name}`
+                                                : `Selected ship: ${ship.name}`
+                                            );
+                                          }}
+                                          className={`w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                            selectedShip && selectedShip.id === ship.id 
+                                              ? 'bg-blue-100 text-blue-700 font-medium' 
+                                              : 'text-gray-700'
+                                          }`}
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <div>
+                                              <div className="font-medium">{ship.name}</div>
+                                              <div className="text-xs text-gray-500">
+                                                {ship.imo ? `IMO: ${ship.imo}` : 'No IMO'} • {ship.flag || 'No Flag'}
+                                              </div>
+                                            </div>
+                                            {selectedShip && selectedShip.id === ship.id && (
+                                              <span className="text-blue-600 text-sm">✓</span>
+                                            )}
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </>
+                                  ) : (
+                                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                      {language === 'vi' ? 'Không có tàu nào' : 'No ships available'}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
                             {/* Edit Ship Button */}
                             <button
                               onClick={() => {
