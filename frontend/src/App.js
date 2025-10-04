@@ -1155,6 +1155,34 @@ const HomePage = () => {
 
   const navigate = useNavigate();
   
+  // Function to check upcoming surveys after login
+  const checkUpcomingSurveys = async () => {
+    try {
+      if (!token) return;
+      
+      const response = await fetch(`${API}/certificates/upcoming-surveys`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
+          // Show notification modal
+          setUpcomingSurveysModal({
+            show: true,
+            surveys: data.upcoming_surveys,
+            totalCount: data.total_count,
+            company: data.company,
+            checkDate: data.check_date
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking upcoming surveys:', error);
+    }
+  };
+  
   const t = translations[language];
 
   useEffect(() => {
