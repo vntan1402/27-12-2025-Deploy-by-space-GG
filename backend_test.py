@@ -1064,6 +1064,148 @@ class InitialSurveyBugFixTester:
             self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
             traceback.print_exc()
             return False
+    
+    def print_bug_fix_test_summary(self):
+        """Print comprehensive summary of bug fix test results"""
+        try:
+            self.log("\n" + "=" * 80)
+            self.log("📊 INITIAL SURVEY TYPE BUG FIX TEST SUMMARY")
+            self.log("=" * 80)
+            
+            # Count passed tests
+            total_tests = len(self.bug_fix_tests)
+            passed_tests = sum(1 for result in self.bug_fix_tests.values() if result)
+            success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+            
+            self.log(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
+            self.log("")
+            
+            # Critical Bug Fix Results
+            self.log("🔧 CRITICAL BUG FIX VERIFICATION:")
+            critical_tests = [
+                ('name_matching_bug_fixed', 'Certificate name matching bug fixed'),
+                ('full_name_safety_management_matched', 'SAFETY MANAGEMENT CERTIFICATE matched'),
+                ('full_name_ship_security_matched', 'INTERNATIONAL SHIP SECURITY CERTIFICATE matched'),
+                ('full_name_maritime_labour_matched', 'MARITIME LABOUR CERTIFICATE matched'),
+                ('initial_certificates_now_appearing', 'Initial certificates now appearing in results'),
+            ]
+            
+            for test_key, description in critical_tests:
+                status = "✅ PASS" if self.bug_fix_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Window Logic Results
+            self.log("\n📅 WINDOW CALCULATION VERIFICATION:")
+            window_tests = [
+                ('initial_certificate_window_correct', 'Initial certificate window calculation correct'),
+                ('valid_date_minus_90_days_calculation', 'Valid date - 90 days calculation working'),
+                ('window_close_equals_valid_date', 'Window close equals valid date'),
+                ('current_date_within_window_filter', 'Current date within window filter working'),
+            ]
+            
+            for test_key, description in window_tests:
+                status = "✅ PASS" if self.bug_fix_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Status Classification Results
+            self.log("\n🚦 STATUS CLASSIFICATION VERIFICATION:")
+            status_tests = [
+                ('initial_overdue_logic_working', 'Initial certificate overdue logic'),
+                ('initial_due_soon_logic_working', 'Initial certificate due soon logic'),
+                ('initial_critical_logic_working', 'Initial certificate critical logic'),
+                ('status_based_on_valid_date', 'Status based on valid date (not next_survey_date)'),
+            ]
+            
+            for test_key, description in status_tests:
+                status = "✅ PASS" if self.bug_fix_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Display Results
+            self.log("\n📺 DISPLAY VERIFICATION:")
+            display_tests = [
+                ('window_type_valid_3m_to_valid', 'Window type displays as "Valid-3M→Valid"'),
+                ('survey_window_rule_correct', 'Survey window rule correct'),
+                ('initial_smc_issc_mlc_rule_displayed', 'Initial SMC/ISSC/MLC rule displayed'),
+            ]
+            
+            for test_key, description in display_tests:
+                status = "✅ PASS" if self.bug_fix_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Overall Assessment
+            self.log("\n🎯 OVERALL BUG FIX ASSESSMENT:")
+            
+            critical_passed = sum(1 for test_key, _ in critical_tests if self.bug_fix_tests.get(test_key, False))
+            if critical_passed >= 3:  # At least 3 critical tests passed
+                self.log("   ✅ BUG FIX APPEARS TO BE WORKING")
+                self.log("   ✅ Initial certificates with full names are now being detected")
+                self.log("   ✅ Certificate name matching logic has been successfully updated")
+            else:
+                self.log("   ❌ BUG FIX MAY NOT BE COMPLETE")
+                self.log("   ❌ Initial certificates may still not be detected properly")
+                self.log("   ❌ Further investigation needed")
+            
+            self.log("=" * 80)
+            
+        except Exception as e:
+            self.log(f"❌ Error printing test summary: {str(e)}", "ERROR")
+    
+    def run_comprehensive_bug_fix_test(self):
+        """Run comprehensive test of the Initial survey type certificate name matching bug fix"""
+        try:
+            self.log("🚀 STARTING COMPREHENSIVE INITIAL SURVEY TYPE BUG FIX TEST")
+            self.log("=" * 80)
+            
+            # Step 1: Authentication
+            self.log("STEP 1: Authentication")
+            if not self.authenticate():
+                self.log("❌ CRITICAL: Authentication failed - cannot proceed")
+                return False
+            
+            # Step 2: Test upcoming surveys endpoint
+            self.log("\nSTEP 2: Testing upcoming surveys endpoint")
+            if not self.test_upcoming_surveys_endpoint():
+                self.log("❌ CRITICAL: Upcoming surveys endpoint failed")
+                return False
+            
+            # Step 3: Verify response structure
+            self.log("\nSTEP 3: Verifying response structure")
+            if not self.verify_response_structure():
+                self.log("❌ CRITICAL: Response structure verification failed")
+                return False
+            
+            # Step 4: Test certificate name matching bug fix
+            self.log("\nSTEP 4: Testing certificate name matching bug fix")
+            if not self.test_certificate_name_matching_bug_fix():
+                self.log("❌ Certificate name matching test failed")
+                return False
+            
+            # Step 5: Test Initial certificate window logic
+            self.log("\nSTEP 5: Testing Initial certificate window logic")
+            if not self.test_initial_certificate_window_logic():
+                self.log("❌ Initial certificate window logic test failed")
+                return False
+            
+            # Step 6: Test Initial certificate status logic
+            self.log("\nSTEP 6: Testing Initial certificate status logic")
+            if not self.test_initial_certificate_status_logic():
+                self.log("❌ Initial certificate status logic test failed")
+                return False
+            
+            # Step 7: Validate survey data
+            self.log("\nSTEP 7: Validating survey data")
+            if not self.validate_survey_data():
+                self.log("❌ Survey data validation failed")
+                return False
+            
+            self.log("\n" + "=" * 80)
+            self.log("✅ COMPREHENSIVE BUG FIX TEST COMPLETED SUCCESSFULLY")
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
+            traceback.print_exc()
+            return False
 
     def test_specific_certificate_verification(self):
         """Test for the specific 'Test Survey Notification Certificate' mentioned in review request"""
