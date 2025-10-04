@@ -3899,6 +3899,9 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         
                         # Critical: Other surveys critical if due within 7 days or significantly overdue
                         is_critical = days_until_survey <= 7 or days_until_survey < -30
+                    else:
+                        # No next_survey_date available - skip this certificate
+                        continue
                     
                     # Within window: Current date falls within this certificate's survey window
                     is_within_window = True  # Always true since we already filtered by this condition
