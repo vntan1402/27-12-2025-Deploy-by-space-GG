@@ -1083,6 +1083,9 @@ const HomePage = () => {
     fileIndex: -1,
     fileName: ''
   });
+
+  // Queue system for sequential duplicate resolution
+  const [duplicateQueue, setDuplicateQueue] = useState([]);
   const navigate = useNavigate();
   
   const t = translations[language];
