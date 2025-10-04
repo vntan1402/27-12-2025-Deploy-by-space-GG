@@ -361,6 +361,10 @@ startxref
                     self.log("   📋 Upload response structure:")
                     self.log(f"      Response keys: {list(response_data.keys())}")
                     
+                    # Log the full response content for debugging
+                    self.log("   📋 Full response content:")
+                    self.log(f"      {json.dumps(response_data, indent=2)}")
+                    
                     return True
                     
                 except json.JSONDecodeError as e:
