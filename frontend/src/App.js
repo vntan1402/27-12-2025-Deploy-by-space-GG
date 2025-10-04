@@ -5181,14 +5181,24 @@ const HomePage = () => {
                                     next_survey: editingCertificate.next_survey ? convertDateInputToUTC(editingCertificate.next_survey.split('T')[0]) : null
                                   };
                                   
-                                  await axios.put(`${API}/certificates/${editingCertificate.id}`, updatePayload, {
+                                  const response = await axios.put(`${API}/certificates/${editingCertificate.id}`, updatePayload, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                   });
                                   
-                                  toast.success(language === 'vi' ? 'Cập nhật chứng chỉ thành công!' : 'Certificate updated successfully!');
+                                  console.log('Certificate update response:', response.data);
+                                  
+                                  // Close modal first
                                   setShowEditCertModal(false);
                                   setEditingCertificate(null);
-                                  await fetchCertificates(selectedShip.id); // Refresh list
+                                  
+                                  // Add small delay to ensure backend has processed the update
+                                  await new Promise(resolve => setTimeout(resolve, 500));
+                                  
+                                  // Force refresh certificate list
+                                  console.log('Refreshing certificate list after update...');
+                                  await fetchCertificates(selectedShip.id);
+                                  
+                                  toast.success(language === 'vi' ? 'Cập nhật chứng chỉ thành công!' : 'Certificate updated successfully!');
                                 } catch (error) {
                                   console.error('Error updating certificate:', error);
                                   toast.error(language === 'vi' ? 'Lỗi khi cập nhật chứng chỉ!' : 'Error updating certificate!');
