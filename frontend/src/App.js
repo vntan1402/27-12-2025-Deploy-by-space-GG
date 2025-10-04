@@ -10474,6 +10474,7 @@ const AddRecordModal = ({
   handleUploadToFolder,
   handleSkipFile,
   defaultTab,
+  defaultDocumentType,
   // File Viewer Modal props
   showFileViewer,
   setShowFileViewer,
