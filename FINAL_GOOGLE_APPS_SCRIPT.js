@@ -138,7 +138,7 @@ function handleCreateCompleteShipStructure(requestData) {
     
     // CORRECT folder structure matching Homepage Sidebar
     var folderStructure = {
-      "Document Portfolio": [
+      "Class & Flag Cert": [
         "Certificates",
         "Inspection Records",
         "Survey Reports", 
