@@ -43,13 +43,15 @@ try:
         raise Exception("Internal URL not working")
 except:
     # Fallback to external URL from frontend/.env
-    with open('/app/frontend/.env', 'r') as f:
-        for line in f:
-            if line.startswith('REACT_APP_BACKEND_URL='):
-                BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
-                break
-    else:
-        BACKEND_URL = 'https://certisync-marine.preview.emergentagent.com/api'
+    BACKEND_URL = 'https://certisync-marine.preview.emergentagent.com/api'
+    try:
+        with open('/app/frontend/.env', 'r') as f:
+            for line in f:
+                if line.startswith('REACT_APP_BACKEND_URL='):
+                    BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
+                    break
+    except:
+        pass
     print(f"Using external backend URL: {BACKEND_URL}")
 
 class FolderPathFixTester:
