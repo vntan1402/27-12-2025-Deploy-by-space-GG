@@ -3907,12 +3907,14 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
             "company": user_company,
             "check_date": current_date.isoformat(),
             "logic_info": {
-                "description": "Each certificate creates its own survey window based on Next Survey rules. Current date must fall within certificate's window.",
+                "description": "Each certificate creates its own survey window based on certificate type and Next Survey rules. Current date must fall within certificate's window.",
                 "window_rules": {
-                    "special_survey": "Only -3M (90 days before survey date, no extension after)",
+                    "condition_certificate": "Issue date → Valid date (certificate validity period)",
+                    "special_survey": "Only -3M (90 days before survey date, no extension after)", 
                     "other_surveys": "±3M (90 days before and after survey date)"
                 },
                 "window_calculation": {
+                    "condition_certificate": "window_open = issue_date, window_close = valid_date",
                     "special_survey": "window_open = next_survey - 90 days, window_close = next_survey",
                     "other_surveys": "window_open = next_survey - 90 days, window_close = next_survey + 90 days"
                 },
