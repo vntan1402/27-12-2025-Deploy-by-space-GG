@@ -2005,18 +2005,20 @@ class InitialSurveyBugFixTester:
             return False
 
 def main():
-    """Main function to run Ship Management System Initial Survey Type Rules tests"""
-    print("🔄 SHIP MANAGEMENT SYSTEM - INITIAL SURVEY TYPE RULES TESTING STARTED")
+    """Main function to run Initial Survey Type Certificate Name Matching Bug Fix Test"""
+    print("🚀 INITIAL SURVEY TYPE CERTIFICATE NAME MATCHING BUG FIX TEST STARTED")
     print("=" * 80)
     
     try:
-        tester = UpcomingSurveysNotificationTester()
-        success = tester.run_comprehensive_upcoming_surveys_tests()
+        tester = InitialSurveyBugFixTester()
+        success = tester.run_comprehensive_bug_fix_test()
         
         if success:
-            print("\n✅ INITIAL SURVEY TYPE RULES TESTING COMPLETED SUCCESSFULLY")
+            print("\n✅ BUG FIX TEST COMPLETED SUCCESSFULLY")
+            tester.print_bug_fix_test_summary()
         else:
-            print("\n❌ INITIAL SURVEY TYPE RULES TESTING COMPLETED WITH ISSUES")
+            print("\n❌ BUG FIX TEST COMPLETED WITH ISSUES")
+            tester.print_bug_fix_test_summary()
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
