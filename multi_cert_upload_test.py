@@ -1,45 +1,33 @@
 #!/usr/bin/env python3
 """
-Multi-Certificate Upload Testing Script - IMO/Ship Name Validation Removal Verification
-FOCUS: Testing multi-certificate upload endpoint after removing IMO/Ship Name validation logic
+Multi Certificate Upload Google Drive Folder Path Fix - Final Verification Test
+FOCUS: Test the FIXED Multi Certificate upload with new createNestedFolders approach
 
-TESTING OBJECTIVE: Verify that multi-certificate upload works correctly after removing all IMO/Ship Name validation logic
+REVIEW REQUEST REQUIREMENTS:
+1. Authentication: Login with admin1/123456 credentials
+2. Multi Cert Upload Test: Upload a test certificate via POST /api/certificates/multi-upload  
+3. Verify NEW Correct Path: Confirm file uploaded to:
+   - ✅ Expected: `SUNSHINE 01/Class & Flag Cert/Certificates/[filename]`
+   - ❌ NOT: `SUNSHINE 01/Certificates/[filename]` (old incorrect path)
+4. Parameter Verification: Check backend sends:
+   - `parent_category`: "Class & Flag Cert"
+   - `category`: "Certificates" 
+   - `filename`: correct filename
+5. Google Apps Script Response: Verify response contains correct folder_path
 
-KEY TESTING POINTS:
-1. Basic Functionality Verification
-   - Test that POST /api/certificates/multi-upload endpoint is still accessible
-   - Verify that marine_certificates counter increments normally (without validation checks)
-   - Confirm that certificate creation flow works without validation logic
+KEY FIX VERIFICATION POINTS:
+- Backend sends both parent_category AND category parameters correctly
+- Google Apps Script createNestedFolders() creates proper hierarchy
+- Upload response folder_path shows: "SUNSHINE 01/Class & Flag Cert/Certificates"
+- File successfully created in the correct nested folder structure
+- No "folder not found" errors
 
-2. Code Cleanup Verification
-   - Verify no references to IMO validation logic remain in logs
-   - Confirm no "IMO/Ship Name Validation" messages appear in backend logs
-   - Check that no Vietnamese error messages for IMO mismatches are triggered
-   - Verify no validation_error structures are created
-
-3. Normal Upload Flow Testing
-   - Test file upload and processing works normally
-   - Verify AI analysis still functions for certificate extraction
-   - Confirm duplicate check still works (now runs immediately after marine certificate classification)
-   - Test certificate creation with normal flow
-
-4. Error Handling
-   - Test that normal error handling still works (file size, file type, etc.)
-   - Verify non-marine file handling still functions
-   - Confirm manual review workflow still operates normally
-
-5. Execution Order Verification
-   - Confirm execution order is now: Marine Certificate Check → Duplicate Check → Certificate Creation
-   - Verify no IMO validation steps interrupt the normal flow
-   - Check that marine_certificates counter increments immediately after marine certificate classification
-
-EXPECTED BEHAVIOR AFTER REMOVAL:
-- No IMO/ship name extraction or validation
-- No Vietnamese validation error messages
-- No additional_note functionality for ship name mismatches
-- Normal multi-certificate upload workflow restored
-- Duplicate check runs immediately after marine certificate classification
-- All other existing functionality remains intact
+SUCCESS CRITERIA:
+- ✅ Google Drive upload successful 
+- ✅ Correct folder path: "[Ship]/Class & Flag Cert/Certificates"
+- ✅ Certificate record created in database
+- ✅ Google Apps Script nested folder creation working
+- ✅ Backend parameter transmission correct
 """
 
 import requests
