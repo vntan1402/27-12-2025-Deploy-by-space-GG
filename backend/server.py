@@ -3814,10 +3814,11 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
             "total_count": len(upcoming_surveys),
             "company": user_company,
             "check_date": current_date.isoformat(),
-            "window_info": {
-                "from_date": three_months_ago.isoformat(),
-                "to_date": three_months_later.isoformat(),
-                "window_days": 180
+            "logic_info": {
+                "description": "Each certificate creates its own ±3 month window around next_survey_date. Current date must fall within certificate's window.",
+                "window_calculation": "window_open = next_survey - 90 days, window_close = next_survey + 90 days",
+                "filter_condition": "window_open <= current_date <= window_close",
+                "window_days_per_cert": 180
             }
         }
         
