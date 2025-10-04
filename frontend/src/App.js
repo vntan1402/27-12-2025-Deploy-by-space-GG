@@ -1801,8 +1801,23 @@ const HomePage = () => {
     console.log('fetchCertificates called with shipId:', shipId);
     try {
       setIsRefreshing(true);
-      const response = await axios.get(`${API}/ships/${shipId}/certificates`);
+      
+      // Add cache-busting parameter and force fresh data
+      const timestamp = new Date().getTime();
+      const response = await axios.get(`${API}/ships/${shipId}/certificates?_t=${timestamp}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      
       console.log('Certificates fetched successfully:', response.data.length, 'certificates');
+      console.log('Sample certificate data:', response.data[0]); // Log first certificate for debugging
+      
+      // Force state update by clearing first then setting
+      setCertificates([]);
+      await new Promise(resolve => setTimeout(resolve, 50)); // Small delay to ensure state clears
       setCertificates(response.data);
       
       // Pre-fetch certificate links for faster multi-copy functionality
