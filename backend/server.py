@@ -3752,7 +3752,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 # - Special Survey: only -3M (must be done before deadline)
                 # - Other surveys: ±3M (can be done before or after within window)
                 
-                next_survey_type = cert.get('next_survey_type', '')
+                next_survey_type = cert.get('next_survey_type') or ''
                 
                 # Determine window based on survey type and certificate type
                 cert_name = cert.get('cert_name', '').upper()
