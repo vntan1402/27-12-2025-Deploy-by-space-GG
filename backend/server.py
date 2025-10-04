@@ -3731,7 +3731,14 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     if 'T' in next_survey_str:
                         next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
                     else:
-                        next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d').date()
+                        # Handle formats like '2026-05-05 00:00:00' or '2026-05-05'
+                        if ' ' in next_survey_str:
+                            next_survey_date = datetime.strptime(next_survey_str.split(' ')[0], '%Y-%m-%d').date()
+                        else:
+                            next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d').date()
+                elif hasattr(next_survey_str, 'date'):
+                    # If it's a datetime object, extract the date
+                    next_survey_date = next_survey_str.date()
                 else:
                     # If it's already a date object
                     next_survey_date = next_survey_str
