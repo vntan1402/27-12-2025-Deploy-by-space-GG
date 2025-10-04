@@ -3900,7 +3900,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
     Returns certificates from all ships belonging to user's company
     """
     try:
-        user_company = current_user.get('company')
+        user_company = current_user.company
         logger.info(f"Checking upcoming surveys for company: {user_company}")
         
         # Get all ships belonging to user's company
