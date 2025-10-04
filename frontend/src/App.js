@@ -1713,8 +1713,7 @@ const HomePage = () => {
   // Handle click outside for ship selector dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close ship selector if clicking outside
-      if (showShipSelector && !event.target.closest('.relative')) {
+      if (shipSelectorRef.current && !shipSelectorRef.current.contains(event.target)) {
         setShowShipSelector(false);
       }
     };
