@@ -3883,7 +3883,11 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         'days_from_window_open': days_from_window_open,
                         'days_to_window_close': days_to_window_close,
                         'window_type': window_type,
-                        'survey_window_rule': 'Special Survey: -3M only' if 'Special Survey' in next_survey_type else 'Other surveys: ±3M'
+                        'survey_window_rule': (
+                            'Condition Certificate: Issue date → Valid date' if 'Condition Certificate Expiry' in next_survey_type
+                            else 'Special Survey: -3M only' if 'Special Survey' in next_survey_type 
+                            else 'Other surveys: ±3M'
+                        )
                     }
                     
                     upcoming_surveys.append(upcoming_survey)
