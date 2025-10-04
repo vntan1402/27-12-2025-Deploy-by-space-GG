@@ -1222,15 +1222,10 @@ const HomePage = () => {
 
   // Check for upcoming surveys when component mounts and token is available
   useEffect(() => {
-    console.log('🔍 HomePage useEffect triggered - token:', !!token, 'user:', !!user);
     if (token && user) {
-      console.log('✅ Both token and user available, checking upcoming surveys in 1.5s...');
       setTimeout(() => {
-        console.log('⏰ Timeout reached, calling checkUpcomingSurveys...');
         checkUpcomingSurveys();
       }, 1500); // Delay to ensure component is fully ready
-    } else {
-      console.log('❌ Token or user not available yet');
     }
   }, [token, user]);
 
