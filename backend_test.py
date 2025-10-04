@@ -1,33 +1,38 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Updated Upcoming Surveys Logic Testing
-FOCUS: Test the updated upcoming surveys logic with new window calculation
+Ship Management System - Initial Survey Type Rules Testing for SMC, ISSC, MLC Certificates
+FOCUS: Test the updated upcoming surveys logic with Initial survey type rules
 
 REVIEW REQUEST REQUIREMENTS:
 1. Login with admin1/123456
-2. Test the updated `/api/certificates/upcoming-surveys` endpoint with new logic
-3. Verify the new window calculation logic:
-   - For each certificate: window_open = next_survey - 90 days, window_close = next_survey + 90 days
-   - Filter condition: window_open <= current_date <= window_close
-4. Check the new response structure with updated fields:
-   - is_critical field (overdue or within 7 days)
-   - window_open, window_close for each certificate
-   - days_from_window_open, days_to_window_close
-   - Updated logic_info in response
+2. Test the updated `/api/certificates/upcoming-surveys` endpoint with all window rules including Initial type
+3. Verify the Initial Survey logic for SMC, ISSC, MLC certificates:
+   - window_open = valid_date - 3 months (90 days)
+   - window_close = valid_date
+   - Certificate appears in upcoming surveys if: (valid_date - 90 days) <= current_date <= valid_date
+4. Verify all window rule types work correctly:
+   - Condition Certificate Expiry: Issue date → Valid date window
+   - Initial SMC/ISSC/MLC: Valid date - 3M → Valid date window
+   - Special Survey: Only -3M window (90 days before survey date)
+   - Other Surveys: ±3M window (90 days before and after survey date)
 
 KEY VERIFICATION POINTS:
-1. Window Calculation: Each certificate creates its own ±90 day window around next_survey_date
-2. Current Date Filter: Only certificates whose window contains current date are returned
-3. Status Classification: 
-   - is_critical: overdue or due within 7 days
-   - is_due_soon: due within 30 days (but not critical)
-   - is_within_window: within certificate's ±90 day window
-4. Response Fields: New window information fields are populated correctly
+1. Initial Certificate Detection: Identifies certificates with next_survey_type "Initial" AND cert_name containing "SMC", "ISSC", or "MLC"
+2. Initial Certificate Window: Uses valid_date - 90 days to valid_date (not next_survey_date)
+3. Initial Certificate Status:
+   - is_overdue: current_date > valid_date
+   - is_due_soon: expires within 30 days
+   - is_critical: expires within 7 days or already overdue
+4. Window Type Display: "Valid-3M→Valid" for initial certificates
+5. Survey Window Rule: "Initial SMC/ISSC/MLC: Valid date - 3M → Valid date"
+6. Updated Logic Info: Includes initial certificate rules explanation
 
 EXPECTED BEHAVIOR:
-- Test certificate "Test Survey Notification Certificate" should still appear if current date falls within its ±90 day window
-- Response should include new window_open, window_close dates for each certificate
-- Status indicators should reflect new classification logic
+- Initial SMC/ISSC/MLC certificates appear if current date falls within 90 days before valid_date
+- Other certificate types maintain their existing window logic
+- Window types displayed correctly: "Issue→Valid", "Valid-3M→Valid", "-3M", "±3M"
+- Different overdue/critical logic for each certificate type
+- Logic info includes all 4 window rule types
 """
 
 import requests
