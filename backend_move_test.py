@@ -406,7 +406,7 @@ class CertificateMoveTester:
                 "certificate_ids": [cert_id],
                 "target_folder_id": "1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG",  # Real folder ID
                 "target_category": "survey_reports",
-                "target_folder_path": "SUNSHINE 01/Document Portfolio/Survey Reports"
+                "target_folder_path": "SUNSHINE 01/Class & Flag Cert/Survey Reports"
             }
             
             endpoint = f"{BACKEND_URL}/certificates/move"
