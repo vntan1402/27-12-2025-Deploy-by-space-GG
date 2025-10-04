@@ -747,6 +747,7 @@ const HomePage = () => {
   const [fileViewerData, setFileViewerData] = useState(null);
   const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
   const [showShipSelector, setShowShipSelector] = useState(false);
+  const shipSelectorRef = useRef(null);
   
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
