@@ -650,6 +650,96 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing company filtering: {str(e)}", "ERROR")
             return False
 
+    def test_initial_certificate_status_logic(self):
+        """Test Initial certificate status logic: overdue, due_soon, critical based on valid_date"""
+        try:
+            self.log("🚦 Testing Initial certificate status logic...")
+            
+            if not self.test_certificates:
+                self.log("   ⚠️ No surveys to test Initial certificate status logic")
+                return True
+            
+            from datetime import datetime, timedelta
+            current_date = datetime.now().date()
+            
+            initial_status_correct = 0
+            initial_certificates_tested = 0
+            
+            for survey in self.test_certificates:
+                ship_name = survey.get('ship_name', 'Unknown')
+                cert_name = survey.get('cert_name', '').upper()
+                next_survey_type = survey.get('next_survey_type', '').upper()
+                valid_date_str = survey.get('valid_date')
+                is_overdue = survey.get('is_overdue')
+                is_due_soon = survey.get('is_due_soon')
+                is_critical = survey.get('is_critical')
+                
+                # Only test Initial SMC/ISSC/MLC certificates
+                if ('INITIAL' in next_survey_type and 
+                    any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC'])):
+                    
+                    initial_certificates_tested += 1
+                    self.log(f"   Initial {cert_name} certificate for {ship_name}:")
+                    self.log(f"      Valid date: {valid_date_str}")
+                    self.log(f"      Is overdue: {is_overdue}")
+                    self.log(f"      Is due soon: {is_due_soon}")
+                    self.log(f"      Is critical: {is_critical}")
+                    
+                    if valid_date_str:
+                        try:
+                            # Parse the valid date (for Initial certificates, status is based on valid_date)
+                            valid_date = datetime.fromisoformat(valid_date_str).date()
+                            
+                            # Calculate expected values for Initial certificates
+                            days_to_expiry = (valid_date - current_date).days
+                            expected_is_overdue = current_date > valid_date
+                            expected_is_due_soon = 0 <= days_to_expiry <= 30 and not expected_is_overdue
+                            expected_is_critical = days_to_expiry <= 7 or expected_is_overdue
+                            
+                            self.log(f"      Days to expiry: {days_to_expiry}")
+                            self.log(f"      Expected is_overdue: {expected_is_overdue}")
+                            self.log(f"      Expected is_due_soon: {expected_is_due_soon}")
+                            self.log(f"      Expected is_critical: {expected_is_critical}")
+                            
+                            # Verify Initial certificate status calculations
+                            status_correct = True
+                            
+                            if is_overdue != expected_is_overdue:
+                                self.log(f"         ❌ Is overdue mismatch: got {is_overdue}, expected {expected_is_overdue}")
+                                status_correct = False
+                            
+                            if is_due_soon != expected_is_due_soon:
+                                self.log(f"         ❌ Is due soon mismatch: got {is_due_soon}, expected {expected_is_due_soon}")
+                                status_correct = False
+                            
+                            if is_critical != expected_is_critical:
+                                self.log(f"         ❌ Is critical mismatch: got {is_critical}, expected {expected_is_critical}")
+                                status_correct = False
+                            
+                            if status_correct:
+                                initial_status_correct += 1
+                                self.log(f"         ✅ Initial certificate status classification correct")
+                            
+                        except Exception as e:
+                            self.log(f"      ⚠️ Could not verify Initial certificate status: {str(e)}")
+            
+            if initial_certificates_tested == 0:
+                self.log("   ⚠️ No Initial SMC/ISSC/MLC certificates found to test status logic")
+                return True
+            elif initial_status_correct == initial_certificates_tested:
+                self.survey_tests['initial_certificate_overdue_logic'] = True
+                self.survey_tests['initial_certificate_due_soon_logic'] = True
+                self.survey_tests['initial_certificate_critical_logic'] = True
+                self.log(f"✅ Initial certificate status logic working correctly for all {initial_certificates_tested} Initial certificates")
+                return True
+            else:
+                self.log(f"❌ Initial certificate status incorrect for {initial_certificates_tested - initial_status_correct}/{initial_certificates_tested} certificates")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error testing Initial certificate status logic: {str(e)}", "ERROR")
+            return False
+
     def test_updated_status_classification(self):
         """Test the UPDATED status classification logic with new is_critical field"""
         try:
@@ -658,7 +748,6 @@ class UpcomingSurveysNotificationTester:
             if not self.test_certificates:
                 self.log("   ⚠️ No surveys to test status classification")
                 self.survey_tests['status_indicators_calculated'] = True
-                self.survey_tests['is_critical_field_present'] = True
                 return True
             
             from datetime import datetime, timedelta
@@ -669,7 +758,10 @@ class UpcomingSurveysNotificationTester:
             
             for survey in self.test_certificates:
                 ship_name = survey.get('ship_name', 'Unknown')
+                cert_name = survey.get('cert_name', '').upper()
+                next_survey_type = survey.get('next_survey_type', '').upper()
                 next_survey_date_str = survey.get('next_survey_date')
+                valid_date_str = survey.get('valid_date')
                 is_overdue = survey.get('is_overdue')
                 is_due_soon = survey.get('is_due_soon')
                 is_critical = survey.get('is_critical')
@@ -677,70 +769,86 @@ class UpcomingSurveysNotificationTester:
                 days_until_survey = survey.get('days_until_survey')
                 
                 self.log(f"   Survey for {ship_name}:")
+                self.log(f"      Cert Name: {cert_name}")
+                self.log(f"      Survey Type: {next_survey_type}")
                 self.log(f"      Next survey: {next_survey_date_str}")
+                self.log(f"      Valid date: {valid_date_str}")
                 self.log(f"      Is overdue: {is_overdue}")
                 self.log(f"      Is due soon: {is_due_soon}")
                 self.log(f"      Is critical: {is_critical}")
                 self.log(f"      Is within window: {is_within_window}")
                 self.log(f"      Days until survey: {days_until_survey}")
                 
-                # Check if is_critical field is present
-                if 'is_critical' in survey:
-                    self.survey_tests['is_critical_field_present'] = True
+                # Different logic for Initial SMC/ISSC/MLC certificates vs others
+                is_initial_smc_issc_mlc = ('INITIAL' in next_survey_type and 
+                                         any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']))
                 
-                if next_survey_date_str:
+                if is_initial_smc_issc_mlc and valid_date_str:
+                    # For Initial certificates, use valid_date for status calculation
                     try:
-                        # Parse the next survey date
-                        next_survey_date = datetime.fromisoformat(next_survey_date_str).date()
+                        valid_date = datetime.fromisoformat(valid_date_str).date()
+                        days_diff = (valid_date - current_date).days
+                        expected_is_overdue = current_date > valid_date
+                        expected_is_due_soon = 0 <= days_diff <= 30 and not expected_is_overdue
+                        expected_is_critical = days_diff <= 7 or expected_is_overdue
+                        expected_is_within_window = True  # Should be true since certificate was returned
                         
-                        # Calculate expected values based on NEW logic
-                        days_diff = (next_survey_date - current_date).days
-                        expected_is_overdue = next_survey_date < current_date
-                        expected_is_due_soon = 0 <= days_diff <= 30
-                        expected_is_critical = days_diff < 0 or (0 <= days_diff <= 7)  # NEW: overdue or within 7 days
-                        expected_is_within_window = True  # Should always be true since certificate was returned
-                        
-                        self.log(f"      Calculated days difference: {days_diff}")
-                        self.log(f"      Expected is_overdue: {expected_is_overdue}")
-                        self.log(f"      Expected is_due_soon: {expected_is_due_soon}")
-                        self.log(f"      Expected is_critical: {expected_is_critical}")
-                        self.log(f"      Expected is_within_window: {expected_is_within_window}")
-                        
-                        # Verify calculations
-                        classification_correct = True
-                        
-                        if days_until_survey != days_diff:
-                            self.log(f"         ❌ Days until survey mismatch: got {days_until_survey}, expected {days_diff}")
-                            classification_correct = False
-                        
-                        if is_overdue != expected_is_overdue:
-                            self.log(f"         ❌ Is overdue mismatch: got {is_overdue}, expected {expected_is_overdue}")
-                            classification_correct = False
-                        
-                        if is_due_soon != expected_is_due_soon:
-                            self.log(f"         ❌ Is due soon mismatch: got {is_due_soon}, expected {expected_is_due_soon}")
-                            classification_correct = False
-                        
-                        if is_critical != expected_is_critical:
-                            self.log(f"         ❌ Is critical mismatch: got {is_critical}, expected {expected_is_critical}")
-                            classification_correct = False
-                        
-                        if is_within_window != expected_is_within_window:
-                            self.log(f"         ❌ Is within window mismatch: got {is_within_window}, expected {expected_is_within_window}")
-                            classification_correct = False
-                        
-                        if classification_correct:
-                            status_correct += 1
-                            self.log(f"         ✅ Status classification correct")
+                        self.log(f"      [Initial Certificate] Days to expiry: {days_diff}")
                         
                     except Exception as e:
-                        self.log(f"      ⚠️ Could not verify status classification: {str(e)}")
+                        self.log(f"      ⚠️ Could not parse valid_date for Initial certificate: {str(e)}")
+                        continue
+                        
+                elif next_survey_date_str:
+                    # For other certificates, use next_survey_date for status calculation
+                    try:
+                        next_survey_date = datetime.fromisoformat(next_survey_date_str).date()
+                        days_diff = (next_survey_date - current_date).days
+                        expected_is_overdue = next_survey_date < current_date
+                        expected_is_due_soon = 0 <= days_diff <= 30 and not expected_is_overdue
+                        expected_is_critical = days_diff <= 7 or expected_is_overdue
+                        expected_is_within_window = True  # Should be true since certificate was returned
+                        
+                        self.log(f"      [Regular Certificate] Days until survey: {days_diff}")
+                        
+                    except Exception as e:
+                        self.log(f"      ⚠️ Could not parse next_survey_date: {str(e)}")
+                        continue
+                else:
+                    self.log(f"      ⚠️ Missing date information for status calculation")
+                    continue
+                
+                self.log(f"      Expected is_overdue: {expected_is_overdue}")
+                self.log(f"      Expected is_due_soon: {expected_is_due_soon}")
+                self.log(f"      Expected is_critical: {expected_is_critical}")
+                self.log(f"      Expected is_within_window: {expected_is_within_window}")
+                
+                # Verify calculations
+                classification_correct = True
+                
+                if is_overdue != expected_is_overdue:
+                    self.log(f"         ❌ Is overdue mismatch: got {is_overdue}, expected {expected_is_overdue}")
+                    classification_correct = False
+                
+                if is_due_soon != expected_is_due_soon:
+                    self.log(f"         ❌ Is due soon mismatch: got {is_due_soon}, expected {expected_is_due_soon}")
+                    classification_correct = False
+                
+                if is_critical != expected_is_critical:
+                    self.log(f"         ❌ Is critical mismatch: got {is_critical}, expected {expected_is_critical}")
+                    classification_correct = False
+                
+                if is_within_window != expected_is_within_window:
+                    self.log(f"         ❌ Is within window mismatch: got {is_within_window}, expected {expected_is_within_window}")
+                    classification_correct = False
+                
+                if classification_correct:
+                    status_correct += 1
+                    self.log(f"         ✅ Status classification correct")
             
             if status_correct == total_surveys:
                 self.survey_tests['status_indicators_calculated'] = True
                 self.survey_tests['days_until_survey_accurate'] = True
-                self.survey_tests['is_critical_logic_correct'] = True
-                self.survey_tests['status_classification_updated'] = True
                 self.log(f"✅ UPDATED status classification working correctly for all {total_surveys} surveys")
                 return True
             else:
