@@ -147,13 +147,8 @@ const AuthProvider = ({ children }) => {
       
       toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Login successful!');
       
-      // Check for upcoming surveys after successful login
-      setTimeout(() => {
-        // Call checkUpcomingSurveys if it exists (will be defined in HomePage component)
-        if (typeof window.checkUpcomingSurveys === 'function') {
-          window.checkUpcomingSurveys();
-        }
-      }, 1000); // Small delay to ensure everything is set up
+      // Note: Upcoming surveys will be checked when HomePage component mounts with token
+      // See HomePage useEffect that triggers checkUpcomingSurveys when token && user are available
       
       return true;
     } catch (error) {
