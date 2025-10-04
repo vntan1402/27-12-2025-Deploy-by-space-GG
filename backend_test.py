@@ -1,29 +1,33 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Upcoming Surveys Notification System Testing
-FOCUS: Test the new upcoming surveys notification system
+Ship Management System - Updated Upcoming Surveys Logic Testing
+FOCUS: Test the updated upcoming surveys logic with new window calculation
 
 REVIEW REQUEST REQUIREMENTS:
 1. Login with admin1/123456
-2. Test the new `/api/certificates/upcoming-surveys` endpoint
-3. Verify it returns certificates with Next Survey dates within ±3 months window
-4. Check the response structure includes: ship_name, cert_name_display, next_survey, next_survey_type, last_endorse, status indicators
-5. Test the date comparison logic works correctly (±90 days from current date)
-6. Verify company filtering - only shows certificates from user's company ships
+2. Test the updated `/api/certificates/upcoming-surveys` endpoint with new logic
+3. Verify the new window calculation logic:
+   - For each certificate: window_open = next_survey - 90 days, window_close = next_survey + 90 days
+   - Filter condition: window_open <= current_date <= window_close
+4. Check the new response structure with updated fields:
+   - is_critical field (overdue or within 7 days)
+   - window_open, window_close for each certificate
+   - days_from_window_open, days_to_window_close
+   - Updated logic_info in response
 
-TEST SCENARIOS:
-- Test upcoming surveys endpoint accessibility
-- Verify date filtering logic (±3 months window)
-- Check response structure and required fields
-- Test company filtering functionality
-- Verify status indicators calculation
+KEY VERIFICATION POINTS:
+1. Window Calculation: Each certificate creates its own ±90 day window around next_survey_date
+2. Current Date Filter: Only certificates whose window contains current date are returned
+3. Status Classification: 
+   - is_critical: overdue or due within 7 days
+   - is_due_soon: due within 30 days (but not critical)
+   - is_within_window: within certificate's ±90 day window
+4. Response Fields: New window information fields are populated correctly
 
 EXPECTED BEHAVIOR:
-- GET /api/certificates/upcoming-surveys returns proper JSON structure
-- Only certificates within ±90 days window are returned
-- Response includes all required fields (ship_name, cert_name_display, etc.)
-- Company filtering works correctly
-- Status indicators (is_overdue, is_due_soon, days_until_survey) calculated correctly
+- Test certificate "Test Survey Notification Certificate" should still appear if current date falls within its ±90 day window
+- Response should include new window_open, window_close dates for each certificate
+- Status indicators should reflect new classification logic
 """
 
 import requests
