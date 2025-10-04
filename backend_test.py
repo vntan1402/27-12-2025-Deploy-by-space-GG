@@ -264,7 +264,7 @@ class InitialSurveyBugFixTester:
                 self.log(f"   ❌ Missing keys: {missing_keys}")
                 return False
             
-            self.survey_tests['response_structure_correct'] = True
+            self.bug_fix_tests['response_structure_correct'] = True
             self.log("✅ Top-level response structure is correct")
             
             # NEW: Verify logic_info structure includes Initial certificate rules
