@@ -1223,6 +1223,16 @@ const HomePage = () => {
     fetchAiConfig(); // Fetch AI config when component mounts
   }, []);
 
+  // Check for upcoming surveys when component mounts and token is available
+  useEffect(() => {
+    if (token && user) {
+      console.log('🚀 HomePage mounted with token, checking upcoming surveys...');
+      setTimeout(() => {
+        checkUpcomingSurveys();
+      }, 1500); // Delay to ensure component is fully ready
+    }
+  }, [token, user]);
+
   // Close quick edit menu when pressing Escape key
   useEffect(() => {
     const handleEscapeKey = (event) => {
