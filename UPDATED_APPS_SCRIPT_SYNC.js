@@ -334,7 +334,7 @@ function getFallbackFolderStructure() {
   return {
     success: true,
     structure: {
-      "Document Portfolio": [
+      "Class & Flag Cert": [
         "Certificates",
         "Class Survey Report",      // UPDATED: was "Inspection Records"
         "Test Report",             // UPDATED: was "Survey Reports"
