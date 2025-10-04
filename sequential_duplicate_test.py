@@ -308,82 +308,193 @@ class SequentialDuplicateResolutionTester:
             self.log(f"❌ Error creating duplicate test scenario: {str(e)}", "ERROR")
             return False
     
-    def simulate_duplicate_uploads(self):
-        """Simulate uploading multiple certificates that will trigger duplicates"""
+    def create_test_pdf_content(self):
+        """Create a simple test PDF content for duplicate testing"""
         try:
-            self.log("📋 Simulating duplicate certificate uploads...")
-            
-            if not self.test_certificates:
-                self.log("❌ No test certificates available for duplication")
-                return False
+            # Create a simple PDF-like content (minimal PDF structure)
+            pdf_content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+
+4 0 obj
+<<
+/Length 100
+>>
+stream
+BT
+/F1 12 Tf
+100 700 Td
+(CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE) Tj
+0 -20 Td
+(Certificate No: PM242308) Tj
+0 -20 Td
+(Issue Date: 2024-10-04) Tj
+0 -20 Td
+(Valid Date: 2027-05-05) Tj
+ET
+endstream
+endobj
+
+xref
+0 5
+0000000000 65535 f 
+0000000010 00000 n 
+0000000053 00000 n 
+0000000125 00000 n 
+0000000185 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+285
+%%EOF"""
+            return pdf_content
+        except Exception as e:
+            self.log(f"❌ Error creating test PDF content: {str(e)}", "ERROR")
+            return None
+
+    def simulate_duplicate_uploads(self):
+        """Simulate uploading multiple certificates that will trigger duplicates using multi-upload endpoint"""
+        try:
+            self.log("📋 Simulating duplicate certificate uploads using multi-upload endpoint...")
             
             ship_id = self.ship_data.get('id')
-            base_cert = self.test_certificates[0]
             
-            # Create multiple certificates with same data to trigger duplicates
-            duplicate_cert_data = {
-                'cert_name': base_cert.get('cert_name'),
-                'cert_no': base_cert.get('cert_no'),
-                'cert_type': base_cert.get('cert_type', 'Full Term'),
-                'issue_date': base_cert.get('issue_date'),
-                'valid_date': base_cert.get('valid_date'),
-                'last_endorse': base_cert.get('last_endorse'),
-                'issued_by': base_cert.get('issued_by', 'Test Authority'),
-                'ship_id': ship_id
+            # Create test PDF content
+            pdf_content = self.create_test_pdf_content()
+            if not pdf_content:
+                self.log("❌ Failed to create test PDF content")
+                return False
+            
+            # Multi-upload endpoint
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            
+            self.log("   Creating first upload to establish baseline...")
+            
+            # First upload - this should succeed and create a certificate
+            files1 = {
+                'files': ('test_certificate_1.pdf', pdf_content, 'application/pdf'),
+                'ship_id': (None, ship_id)
             }
             
-            self.log("   Creating duplicate certificates to test sequential processing...")
-            
-            # Create first duplicate
-            endpoint = f"{BACKEND_URL}/certificates"
-            response1 = requests.post(endpoint, json=duplicate_cert_data, headers=self.get_headers(), timeout=30)
-            
-            self.log(f"   First duplicate upload - Status: {response1.status_code}")
+            response1 = requests.post(endpoint, files=files1, headers=self.get_headers(), timeout=60)
+            self.log(f"   First upload - Status: {response1.status_code}")
             
             if response1.status_code == 200:
                 response1_data = response1.json()
                 self.duplicate_responses.append(response1_data)
                 
-                # Check if this triggered duplicate detection
-                if response1_data.get('status') == 'pending_duplicate_resolution':
-                    self.log("✅ First duplicate detected - duplicate resolution triggered")
-                    self.duplicate_tests['duplicate_detection_triggered'] = True
+                # Log the response structure
+                self.log(f"   First upload response: {json.dumps(response1_data, indent=2, default=str)[:500]}...")
+                
+                # Check if any results indicate success
+                results = response1_data.get('results', [])
+                if results:
+                    first_result = results[0]
+                    self.log(f"   First result status: {first_result.get('status')}")
                     
-                    # Create second duplicate to test sequential processing
-                    time.sleep(1)  # Small delay
-                    response2 = requests.post(endpoint, json=duplicate_cert_data, headers=self.get_headers(), timeout=30)
+                    # Wait a moment then upload the same file again to trigger duplicate detection
+                    time.sleep(2)
                     
-                    self.log(f"   Second duplicate upload - Status: {response2.status_code}")
+                    self.log("   Creating second upload (duplicate) to test sequential processing...")
+                    
+                    # Second upload - same content, should trigger duplicate detection
+                    files2 = {
+                        'files': ('test_certificate_2.pdf', pdf_content, 'application/pdf'),
+                        'ship_id': (None, ship_id)
+                    }
+                    
+                    response2 = requests.post(endpoint, files=files2, headers=self.get_headers(), timeout=60)
+                    self.log(f"   Second upload - Status: {response2.status_code}")
                     
                     if response2.status_code == 200:
                         response2_data = response2.json()
                         self.duplicate_responses.append(response2_data)
                         
-                        if response2_data.get('status') == 'pending_duplicate_resolution':
-                            self.log("✅ Second duplicate detected - multiple duplicates created")
-                            self.duplicate_tests['multiple_duplicates_created'] = True
+                        # Log the response structure
+                        self.log(f"   Second upload response: {json.dumps(response2_data, indent=2, default=str)[:500]}...")
+                        
+                        # Check for duplicate detection
+                        results2 = response2_data.get('results', [])
+                        if results2:
+                            second_result = results2[0]
+                            self.log(f"   Second result status: {second_result.get('status')}")
                             
-                            # Create third duplicate for comprehensive testing
-                            time.sleep(1)
-                            response3 = requests.post(endpoint, json=duplicate_cert_data, headers=self.get_headers(), timeout=30)
-                            
-                            self.log(f"   Third duplicate upload - Status: {response3.status_code}")
-                            
-                            if response3.status_code == 200:
-                                response3_data = response3.json()
-                                self.duplicate_responses.append(response3_data)
+                            if second_result.get('status') == 'pending_duplicate_resolution':
+                                self.log("✅ Second upload triggered duplicate detection")
+                                self.duplicate_tests['duplicate_detection_triggered'] = True
+                                self.duplicate_tests['multiple_duplicates_created'] = True
                                 
-                                if response3_data.get('status') == 'pending_duplicate_resolution':
-                                    self.log("✅ Third duplicate detected - comprehensive duplicate scenario created")
-                                    return True
-                    
-                    return True  # At least two duplicates created
+                                # Create third upload for comprehensive testing
+                                time.sleep(2)
+                                
+                                self.log("   Creating third upload (duplicate) for comprehensive testing...")
+                                
+                                files3 = {
+                                    'files': ('test_certificate_3.pdf', pdf_content, 'application/pdf'),
+                                    'ship_id': (None, ship_id)
+                                }
+                                
+                                response3 = requests.post(endpoint, files=files3, headers=self.get_headers(), timeout=60)
+                                self.log(f"   Third upload - Status: {response3.status_code}")
+                                
+                                if response3.status_code == 200:
+                                    response3_data = response3.json()
+                                    self.duplicate_responses.append(response3_data)
+                                    
+                                    results3 = response3_data.get('results', [])
+                                    if results3:
+                                        third_result = results3[0]
+                                        self.log(f"   Third result status: {third_result.get('status')}")
+                                        
+                                        if third_result.get('status') == 'pending_duplicate_resolution':
+                                            self.log("✅ Third upload also triggered duplicate detection")
+                                            return True
+                                
+                                return True  # At least two duplicates created
+                            else:
+                                self.log("⚠️ Second upload did not trigger duplicate detection")
+                                self.log(f"   Expected 'pending_duplicate_resolution', got: {second_result.get('status')}")
+                                return False
+                        else:
+                            self.log("❌ No results in second upload response")
+                            return False
+                    else:
+                        self.log(f"❌ Second upload failed: {response2.status_code}")
+                        try:
+                            error_data = response2.json()
+                            self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                        except:
+                            self.log(f"   Error: {response2.text[:200]}")
+                        return False
                 else:
-                    self.log("⚠️ First upload did not trigger duplicate detection")
-                    self.log(f"   Response status: {response1_data.get('status')}")
+                    self.log("❌ No results in first upload response")
                     return False
             else:
-                self.log(f"❌ First duplicate upload failed: {response1.status_code}")
+                self.log(f"❌ First upload failed: {response1.status_code}")
                 try:
                     error_data = response1.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
