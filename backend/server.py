@@ -3755,7 +3755,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 next_survey_type = cert.get('next_survey_type') or ''
                 
                 # Determine window based on survey type and certificate type
-                cert_name = cert.get('cert_name', '').upper()
+                cert_name = (cert.get('cert_name') or '').upper()
                 
                 if 'Condition Certificate Expiry' in next_survey_type:
                     # Condition Certificate: window from issue date to valid date
