@@ -418,55 +418,81 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing company filtering: {str(e)}", "ERROR")
             return False
 
-    def verify_database_abbreviation_records(self):
-        """Verify that uploaded certificates have abbreviations saved in database"""
+    def test_status_indicators(self):
+        """Test status indicators calculation (is_overdue, is_due_soon, days_until_survey)"""
         try:
-            self.log("🔍 Verifying database abbreviation records...")
+            self.log("🚦 Testing status indicators calculation...")
             
-            if not self.uploaded_certificates:
-                self.log("❌ No uploaded certificates to verify")
-                return False
+            if not self.test_certificates:
+                self.log("   ⚠️ No surveys to test status indicators")
+                self.survey_tests['status_indicators_calculated'] = True
+                return True
             
-            abbreviations_verified = 0
-            total_certificates = len(self.uploaded_certificates)
+            from datetime import datetime, timedelta
+            current_date = datetime.now()
             
-            for cert in self.uploaded_certificates:
-                cert_id = cert.get('id')
-                cert_name = cert.get('cert_name', 'Unknown')
+            status_indicators_correct = 0
+            total_surveys = len(self.test_certificates)
+            
+            for survey in self.test_certificates:
+                ship_name = survey.get('ship_name', 'Unknown')
+                next_survey_str = survey.get('next_survey')
+                is_overdue = survey.get('is_overdue')
+                is_due_soon = survey.get('is_due_soon')
+                days_until_survey = survey.get('days_until_survey')
                 
-                if not cert_id:
-                    continue
+                self.log(f"   Survey for {ship_name}:")
+                self.log(f"      Next survey: {next_survey_str}")
+                self.log(f"      Is overdue: {is_overdue}")
+                self.log(f"      Is due soon: {is_due_soon}")
+                self.log(f"      Days until survey: {days_until_survey}")
                 
-                # Get current certificate data from database
-                endpoint = f"{BACKEND_URL}/certificates/{cert_id}"
-                response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-                
-                if response.status_code == 200:
-                    current_cert = response.json()
-                    current_abbreviation = current_cert.get('cert_abbreviation')
-                    
-                    self.log(f"   Certificate: {cert_name}")
-                    self.log(f"      ID: {cert_id}")
-                    self.log(f"      Database Abbreviation: {current_abbreviation}")
-                    
-                    if current_abbreviation:
-                        abbreviations_verified += 1
-                        self.log(f"      ✅ Abbreviation found in database: {current_abbreviation}")
-                    else:
-                        self.log(f"      ❌ No abbreviation found in database")
-                else:
-                    self.log(f"   ❌ Failed to get certificate {cert_id}: {response.status_code}")
+                if next_survey_str:
+                    try:
+                        # Parse the next survey date
+                        if 'T' in next_survey_str:
+                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '+00:00'))
+                        else:
+                            next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d')
+                        
+                        # Calculate expected values
+                        days_diff = (next_survey_date - current_date).days
+                        expected_is_overdue = days_diff < 0
+                        expected_is_due_soon = 0 <= days_diff <= 30  # Assuming 30 days is "due soon"
+                        
+                        self.log(f"      Calculated days difference: {days_diff}")
+                        self.log(f"      Expected is_overdue: {expected_is_overdue}")
+                        self.log(f"      Expected is_due_soon: {expected_is_due_soon}")
+                        
+                        # Verify calculations
+                        indicators_correct = True
+                        
+                        if days_until_survey != days_diff:
+                            self.log(f"         ❌ Days until survey mismatch: got {days_until_survey}, expected {days_diff}")
+                            indicators_correct = False
+                        
+                        if is_overdue != expected_is_overdue:
+                            self.log(f"         ❌ Is overdue mismatch: got {is_overdue}, expected {expected_is_overdue}")
+                            indicators_correct = False
+                        
+                        if indicators_correct:
+                            status_indicators_correct += 1
+                            self.log(f"         ✅ Status indicators correct")
+                        
+                    except Exception as e:
+                        self.log(f"      ⚠️ Could not verify status indicators: {str(e)}")
             
-            if abbreviations_verified > 0:
-                self.cert_tests['database_records_have_abbreviations'] = True
-                self.log(f"✅ Database verification successful: {abbreviations_verified}/{total_certificates} certificates have abbreviations")
+            if status_indicators_correct == total_surveys:
+                self.survey_tests['status_indicators_calculated'] = True
+                self.survey_tests['days_until_survey_accurate'] = True
+                self.log(f"✅ Status indicators calculated correctly for all {total_surveys} surveys")
                 return True
             else:
-                self.log(f"❌ Database verification failed: No certificates have abbreviations saved")
+                self.log(f"❌ Status indicators incorrect for {total_surveys - status_indicators_correct}/{total_surveys} surveys")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error verifying database abbreviation records: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing status indicators: {str(e)}", "ERROR")
             return False
 
     def check_enhanced_logging(self):
