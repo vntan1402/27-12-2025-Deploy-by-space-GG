@@ -3728,23 +3728,25 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 continue
                 
             try:
-                # Parse next survey date
-                if isinstance(next_survey_str, str):
-                    # Handle different date formats
-                    if 'T' in next_survey_str:
-                        next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
-                    else:
-                        # Handle formats like '2026-05-05 00:00:00' or '2026-05-05'
-                        if ' ' in next_survey_str:
-                            next_survey_date = datetime.strptime(next_survey_str.split(' ')[0], '%Y-%m-%d').date()
+                # Parse next survey date (skip for Initial SMC/ISSC/MLC certificates without next_survey)
+                next_survey_date = None
+                if next_survey_str:
+                    if isinstance(next_survey_str, str):
+                        # Handle different date formats
+                        if 'T' in next_survey_str:
+                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
                         else:
-                            next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d').date()
-                elif hasattr(next_survey_str, 'date'):
-                    # If it's a datetime object, extract the date
-                    next_survey_date = next_survey_str.date()
-                else:
-                    # If it's already a date object
-                    next_survey_date = next_survey_str
+                            # Handle formats like '2026-05-05 00:00:00' or '2026-05-05'
+                            if ' ' in next_survey_str:
+                                next_survey_date = datetime.strptime(next_survey_str.split(' ')[0], '%Y-%m-%d').date()
+                            else:
+                                next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d').date()
+                    elif hasattr(next_survey_str, 'date'):
+                        # If it's a datetime object, extract the date
+                        next_survey_date = next_survey_str.date()
+                    else:
+                        # If it's already a date object
+                        next_survey_date = next_survey_str
                 
                 # NEW LOGIC: Create window for each certificate based on survey type
                 # Apply different window rules for different certificate types:
