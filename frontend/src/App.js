@@ -6251,6 +6251,11 @@ const HomePage = () => {
                             : (language === 'vi' ? `Quá hạn ${Math.abs(survey.days_until_survey)} ngày` : `${Math.abs(survey.days_until_survey)} days overdue`)
                           }
                         </div>
+                        {survey.window_type && (
+                          <div className="text-xs text-blue-600 font-medium">
+                            {survey.window_type}
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-900 border-b">
                         {survey.next_survey_type || '-'}
