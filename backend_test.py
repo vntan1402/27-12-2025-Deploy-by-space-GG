@@ -487,81 +487,105 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing company filtering: {str(e)}", "ERROR")
             return False
 
-    def test_status_indicators(self):
-        """Test status indicators calculation (is_overdue, is_due_soon, days_until_survey)"""
+    def test_updated_status_classification(self):
+        """Test the UPDATED status classification logic with new is_critical field"""
         try:
-            self.log("🚦 Testing status indicators calculation...")
+            self.log("🚦 Testing UPDATED status classification logic...")
             
             if not self.test_certificates:
-                self.log("   ⚠️ No surveys to test status indicators")
+                self.log("   ⚠️ No surveys to test status classification")
                 self.survey_tests['status_indicators_calculated'] = True
+                self.survey_tests['is_critical_field_present'] = True
                 return True
             
             from datetime import datetime, timedelta
-            current_date = datetime.now()
+            current_date = datetime.now().date()
             
-            status_indicators_correct = 0
+            status_correct = 0
             total_surveys = len(self.test_certificates)
             
             for survey in self.test_certificates:
                 ship_name = survey.get('ship_name', 'Unknown')
-                next_survey_str = survey.get('next_survey')
+                next_survey_date_str = survey.get('next_survey_date')
                 is_overdue = survey.get('is_overdue')
                 is_due_soon = survey.get('is_due_soon')
+                is_critical = survey.get('is_critical')
+                is_within_window = survey.get('is_within_window')
                 days_until_survey = survey.get('days_until_survey')
                 
                 self.log(f"   Survey for {ship_name}:")
-                self.log(f"      Next survey: {next_survey_str}")
+                self.log(f"      Next survey: {next_survey_date_str}")
                 self.log(f"      Is overdue: {is_overdue}")
                 self.log(f"      Is due soon: {is_due_soon}")
+                self.log(f"      Is critical: {is_critical}")
+                self.log(f"      Is within window: {is_within_window}")
                 self.log(f"      Days until survey: {days_until_survey}")
                 
-                if next_survey_str:
+                # Check if is_critical field is present
+                if 'is_critical' in survey:
+                    self.survey_tests['is_critical_field_present'] = True
+                
+                if next_survey_date_str:
                     try:
                         # Parse the next survey date
-                        if 'T' in next_survey_str:
-                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '+00:00'))
-                        else:
-                            next_survey_date = datetime.strptime(next_survey_str, '%Y-%m-%d')
+                        next_survey_date = datetime.fromisoformat(next_survey_date_str).date()
                         
-                        # Calculate expected values
+                        # Calculate expected values based on NEW logic
                         days_diff = (next_survey_date - current_date).days
-                        expected_is_overdue = days_diff < 0
-                        expected_is_due_soon = 0 <= days_diff <= 30  # Assuming 30 days is "due soon"
+                        expected_is_overdue = next_survey_date < current_date
+                        expected_is_due_soon = 0 <= days_diff <= 30
+                        expected_is_critical = days_diff < 0 or (0 <= days_diff <= 7)  # NEW: overdue or within 7 days
+                        expected_is_within_window = True  # Should always be true since certificate was returned
                         
                         self.log(f"      Calculated days difference: {days_diff}")
                         self.log(f"      Expected is_overdue: {expected_is_overdue}")
                         self.log(f"      Expected is_due_soon: {expected_is_due_soon}")
+                        self.log(f"      Expected is_critical: {expected_is_critical}")
+                        self.log(f"      Expected is_within_window: {expected_is_within_window}")
                         
                         # Verify calculations
-                        indicators_correct = True
+                        classification_correct = True
                         
                         if days_until_survey != days_diff:
                             self.log(f"         ❌ Days until survey mismatch: got {days_until_survey}, expected {days_diff}")
-                            indicators_correct = False
+                            classification_correct = False
                         
                         if is_overdue != expected_is_overdue:
                             self.log(f"         ❌ Is overdue mismatch: got {is_overdue}, expected {expected_is_overdue}")
-                            indicators_correct = False
+                            classification_correct = False
                         
-                        if indicators_correct:
-                            status_indicators_correct += 1
-                            self.log(f"         ✅ Status indicators correct")
+                        if is_due_soon != expected_is_due_soon:
+                            self.log(f"         ❌ Is due soon mismatch: got {is_due_soon}, expected {expected_is_due_soon}")
+                            classification_correct = False
+                        
+                        if is_critical != expected_is_critical:
+                            self.log(f"         ❌ Is critical mismatch: got {is_critical}, expected {expected_is_critical}")
+                            classification_correct = False
+                        
+                        if is_within_window != expected_is_within_window:
+                            self.log(f"         ❌ Is within window mismatch: got {is_within_window}, expected {expected_is_within_window}")
+                            classification_correct = False
+                        
+                        if classification_correct:
+                            status_correct += 1
+                            self.log(f"         ✅ Status classification correct")
                         
                     except Exception as e:
-                        self.log(f"      ⚠️ Could not verify status indicators: {str(e)}")
+                        self.log(f"      ⚠️ Could not verify status classification: {str(e)}")
             
-            if status_indicators_correct == total_surveys:
+            if status_correct == total_surveys:
                 self.survey_tests['status_indicators_calculated'] = True
                 self.survey_tests['days_until_survey_accurate'] = True
-                self.log(f"✅ Status indicators calculated correctly for all {total_surveys} surveys")
+                self.survey_tests['is_critical_logic_correct'] = True
+                self.survey_tests['status_classification_updated'] = True
+                self.log(f"✅ UPDATED status classification working correctly for all {total_surveys} surveys")
                 return True
             else:
-                self.log(f"❌ Status indicators incorrect for {total_surveys - status_indicators_correct}/{total_surveys} surveys")
+                self.log(f"❌ Status classification incorrect for {total_surveys - status_correct}/{total_surveys} surveys")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error testing status indicators: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing status classification: {str(e)}", "ERROR")
             return False
 
     def validate_survey_data(self):
