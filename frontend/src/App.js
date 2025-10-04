@@ -10535,6 +10535,7 @@ const AddRecordModal = ({
   handleSkipFile,
   defaultTab,
   defaultDocumentType,
+  duplicateQueue,
   // File Viewer Modal props
   showFileViewer,
   setShowFileViewer,
