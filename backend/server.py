@@ -3822,7 +3822,9 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         'window_open': window_open.isoformat(),
                         'window_close': window_close.isoformat(),
                         'days_from_window_open': days_from_window_open,
-                        'days_to_window_close': days_to_window_close
+                        'days_to_window_close': days_to_window_close,
+                        'window_type': window_type,
+                        'survey_window_rule': 'Special Survey: -3M only' if 'Special Survey' in next_survey_type else 'Other surveys: ±3M'
                     }
                     
                     upcoming_surveys.append(upcoming_survey)
