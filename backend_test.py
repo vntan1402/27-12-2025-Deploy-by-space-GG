@@ -92,11 +92,11 @@ class UpcomingSurveysNotificationTester:
         }
         
         # Store test results for analysis
-        self.ship_data = {}
-        self.uploaded_certificates = []
-        self.ai_analysis_results = {}
-        self.abbreviation_mappings = {}
-        self.test_files = []
+        self.user_company = None
+        self.upcoming_surveys_response = {}
+        self.company_ships = []
+        self.test_certificates = []
+        self.date_analysis = {}
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
