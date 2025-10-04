@@ -3957,8 +3957,8 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 logger.warning(f"Error parsing next_survey date '{next_survey_str}' for cert {cert.get('id', 'unknown')}: {date_error}")
                 continue
         
-        # Sort by next survey date (soonest first)
-        upcoming_surveys.sort(key=lambda x: x['next_survey_date'])
+        # Sort by next survey date (soonest first), handle None values
+        upcoming_surveys.sort(key=lambda x: x['next_survey_date'] or '9999-12-31')
         
         logger.info(f"Found {len(upcoming_surveys)} certificates with upcoming surveys")
         
