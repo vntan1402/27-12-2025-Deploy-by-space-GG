@@ -13462,6 +13462,15 @@ const AddRecordModal = ({
             <div className="mb-6 relative">
               <h3 className="text-xl font-bold text-orange-600 mb-2">
                 ⚠️ {language === 'vi' ? 'Phát hiện chứng chỉ trùng lặp' : 'Duplicate Certificate Detected'}
+                {duplicateQueue.length > 1 && (
+                  <span className="ml-2 text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    {duplicateQueue.length > 1 
+                      ? (language === 'vi' 
+                          ? `Còn ${duplicateQueue.length - 1} trùng lặp nữa`
+                          : `${duplicateQueue.length - 1} more duplicates remaining`)
+                      : ''}
+                  </span>
+                )}
               </h3>
               
               {/* Close button */}
