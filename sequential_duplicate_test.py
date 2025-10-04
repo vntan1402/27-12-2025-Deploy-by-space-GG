@@ -389,15 +389,14 @@ startxref
                 self.log("❌ Failed to create test PDF content")
                 return False
             
-            # Multi-upload endpoint
-            endpoint = f"{BACKEND_URL}/certificates/multi-upload"
+            # Multi-upload endpoint with ship_id as query parameter
+            endpoint = f"{BACKEND_URL}/certificates/multi-upload?ship_id={ship_id}"
             
             self.log("   Creating first upload to establish baseline...")
             
             # First upload - this should succeed and create a certificate
             files1 = {
-                'files': ('test_certificate_1.pdf', pdf_content, 'application/pdf'),
-                'ship_id': (None, ship_id)
+                'files': ('test_certificate_1.pdf', pdf_content, 'application/pdf')
             }
             
             response1 = requests.post(endpoint, files=files1, headers=self.get_headers(), timeout=60)
