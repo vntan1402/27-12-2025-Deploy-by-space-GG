@@ -4596,7 +4596,7 @@ const HomePage = () => {
                                       )
                                     }
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">
+                                  <td className="border border-gray-300 px-4 py-2" key={`next_survey_${cert.id}_${cert.next_survey}`}>
                                     {cert.next_survey_display || formatDate(cert.next_survey)}
                                   </td>
                                   <td 
