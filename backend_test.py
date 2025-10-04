@@ -980,7 +980,7 @@ class InitialSurveyBugFixTester:
                 self.log(f"         Valid date: {cert_data['valid_date']}")
                 self.log(f"         Survey type: {cert_data['next_survey_type']}")
                 
-                endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
+                endpoint = f"{BACKEND_URL}/certificates"
                 response = requests.post(endpoint, json=cert_data, headers=self.get_headers(), timeout=30)
                 
                 if response.status_code == 201:
