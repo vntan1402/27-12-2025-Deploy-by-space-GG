@@ -422,8 +422,7 @@ startxref
                     
                     # Second upload - same content, should trigger duplicate detection
                     files2 = {
-                        'files': ('test_certificate_2.pdf', pdf_content, 'application/pdf'),
-                        'ship_id': (None, ship_id)
+                        'files': ('test_certificate_2.pdf', pdf_content, 'application/pdf')
                     }
                     
                     response2 = requests.post(endpoint, files=files2, headers=self.get_headers(), timeout=60)
