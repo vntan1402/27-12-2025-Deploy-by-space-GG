@@ -3747,7 +3747,9 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 
                 next_survey_type = cert.get('next_survey_type', '')
                 
-                # Determine window based on survey type
+                # Determine window based on survey type and certificate type
+                cert_name = cert.get('cert_name', '').upper()
+                
                 if 'Condition Certificate Expiry' in next_survey_type:
                     # Condition Certificate: window from issue date to valid date
                     issue_date_str = cert.get('issue_date')
@@ -3786,6 +3788,33 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         
                     except Exception as date_parse_error:
                         logger.warning(f"Error parsing condition certificate dates for cert {cert.get('id', 'unknown')}: {date_parse_error}")
+                        continue
+                
+                elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']):
+                    # Initial Survey for SMC, ISSC, MLC: window from valid_date - 3 months to valid_date
+                    valid_date_str = cert.get('valid_date')
+                    
+                    if not valid_date_str:
+                        continue  # Skip if missing valid date
+                    
+                    try:
+                        # Parse valid date
+                        if isinstance(valid_date_str, str):
+                            if 'T' in valid_date_str:
+                                valid_date = datetime.fromisoformat(valid_date_str.replace('Z', '')).date()
+                            else:
+                                if ' ' in valid_date_str:
+                                    valid_date = datetime.strptime(valid_date_str.split(' ')[0], '%Y-%m-%d').date()
+                                else:
+                                    valid_date = datetime.strptime(valid_date_str, '%Y-%m-%d').date()
+                        else:
+                            valid_date = valid_date_str.date() if hasattr(valid_date_str, 'date') else valid_date_str
+                        
+                        window_open = valid_date - timedelta(days=90)  # 3 months before valid date
+                        window_close = valid_date
+                        
+                    except Exception as date_parse_error:
+                        logger.warning(f"Error parsing initial certificate valid date for cert {cert.get('id', 'unknown')}: {date_parse_error}")
                         continue
                         
                 elif 'Special Survey' in next_survey_type:
