@@ -210,13 +210,13 @@ class InitialSurveyBugFixTester:
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                self.survey_tests['upcoming_surveys_endpoint_accessible'] = True
+                self.bug_fix_tests['upcoming_surveys_endpoint_accessible'] = True
                 self.log("✅ Upcoming surveys endpoint is accessible")
                 
                 try:
                     response_data = response.json()
                     self.upcoming_surveys_response = response_data
-                    self.survey_tests['upcoming_surveys_response_valid'] = True
+                    self.bug_fix_tests['upcoming_surveys_response_valid'] = True
                     self.log("✅ Response is valid JSON")
                     
                     # Log response structure for analysis
