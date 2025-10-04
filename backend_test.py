@@ -64,7 +64,7 @@ class UpcomingSurveysNotificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for upcoming surveys notification functionality
+        # Test tracking for updated upcoming surveys logic
         self.survey_tests = {
             # Authentication and setup
             'authentication_successful': False,
@@ -75,10 +75,20 @@ class UpcomingSurveysNotificationTester:
             'upcoming_surveys_response_valid': False,
             'response_structure_correct': False,
             
-            # Date filtering tests
-            'date_filtering_logic_working': False,
-            'three_month_window_correct': False,
-            'date_comparison_accurate': False,
+            # NEW: Window calculation tests
+            'window_calculation_logic_working': False,
+            'individual_certificate_windows_correct': False,
+            'current_date_filter_working': False,
+            
+            # NEW: Updated response structure tests
+            'new_window_fields_present': False,
+            'logic_info_updated': False,
+            'window_dates_calculated_correctly': False,
+            
+            # NEW: Status classification tests
+            'is_critical_field_present': False,
+            'is_critical_logic_correct': False,
+            'status_classification_updated': False,
             
             # Company filtering tests
             'company_filtering_working': False,
@@ -93,6 +103,10 @@ class UpcomingSurveysNotificationTester:
             'ship_names_present': False,
             'cert_display_names_present': False,
             'next_survey_dates_valid': False,
+            
+            # NEW: Test certificate verification
+            'test_certificate_found': False,
+            'test_certificate_in_window': False,
         }
         
         # Store test results for analysis
