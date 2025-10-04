@@ -3847,8 +3847,8 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     cert_abbreviation = cert.get('cert_abbreviation') or cert.get('abbreviation', '')
                     cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
                     
-                    # Calculate days until survey
-                    days_until_survey = (next_survey_date - current_date).days
+                    # Calculate days until survey (only if next_survey_date exists)
+                    days_until_survey = (next_survey_date - current_date).days if next_survey_date else 0
                     
                     # Updated status classification logic based on certificate's survey window and type
                     # Apply different overdue logic based on survey type
