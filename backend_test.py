@@ -1165,18 +1165,18 @@ class UpcomingSurveysNotificationTester:
             return False
 
 def main():
-    """Main function to run Ship Management System Multi Cert Upload Abbreviation tests"""
-    print("🔄 SHIP MANAGEMENT SYSTEM - MULTI CERT UPLOAD ABBREVIATION TESTING STARTED")
+    """Main function to run Ship Management System Upcoming Surveys Notification tests"""
+    print("🔄 SHIP MANAGEMENT SYSTEM - UPCOMING SURVEYS NOTIFICATION TESTING STARTED")
     print("=" * 80)
     
     try:
-        tester = MultiCertUploadAbbreviationTester()
-        success = tester.run_comprehensive_multi_upload_tests()
+        tester = UpcomingSurveysNotificationTester()
+        success = tester.run_comprehensive_upcoming_surveys_tests()
         
         if success:
-            print("\n✅ MULTI CERT UPLOAD ABBREVIATION TESTING COMPLETED SUCCESSFULLY")
+            print("\n✅ UPCOMING SURVEYS NOTIFICATION TESTING COMPLETED SUCCESSFULLY")
         else:
-            print("\n❌ MULTI CERT UPLOAD ABBREVIATION TESTING COMPLETED WITH ISSUES")
+            print("\n❌ UPCOMING SURVEYS NOTIFICATION TESTING COMPLETED WITH ISSUES")
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
