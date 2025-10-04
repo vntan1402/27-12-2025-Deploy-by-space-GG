@@ -280,6 +280,39 @@ function handleUploadFileWithFolderCreation(requestData) {
   }
 }
 
+function createNestedFolders(parentFolder, folderNames) {
+  /**
+   * Create nested folder hierarchy from array of folder names
+   * @param {Folder} parentFolder - The parent folder to start from
+   * @param {Array} folderNames - Array of folder names to create in sequence
+   * @returns {Folder} The deepest created/found folder
+   */
+  try {
+    var currentFolder = parentFolder;
+    
+    for (var i = 0; i < folderNames.length; i++) {
+      var folderName = folderNames[i];
+      
+      // Check if folder already exists
+      var folders = currentFolder.getFoldersByName(folderName);
+      if (folders.hasNext()) {
+        // Folder exists, use it
+        currentFolder = folders.next();
+        Logger.log("Found existing folder: " + folderName);
+      } else {
+        // Create new folder
+        currentFolder = currentFolder.createFolder(folderName);
+        Logger.log("Created new folder: " + folderName);
+      }
+    }
+    
+    return currentFolder;
+  } catch (error) {
+    Logger.log("Error creating nested folders: " + error.toString());
+    return null;
+  }
+}
+
 function handleCheckShipFolderExists(requestData) {
   try {
     var parentFolderId = requestData.parent_folder_id;
