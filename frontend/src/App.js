@@ -11665,6 +11665,9 @@ const AddRecordModal = ({
                       // Reset document type selection when switching away from documents tab
                       if (tab.key !== 'documents') {
                         setSelectedDocumentType('');
+                      } else if (tab.key === 'documents' && defaultDocumentType) {
+                        // When switching to documents tab and we have a default, use it
+                        setSelectedDocumentType(defaultDocumentType);
                       }
                     }}
                     className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
