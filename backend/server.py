@@ -3930,6 +3930,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         'window_type': window_type,
                         'survey_window_rule': (
                             'Condition Certificate: Issue date → Valid date' if 'Condition Certificate Expiry' in next_survey_type
+                            else 'Initial SMC/ISSC/MLC: Valid date - 3M → Valid date' if ('Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']))
                             else 'Special Survey: -3M only' if 'Special Survey' in next_survey_type 
                             else 'Other surveys: ±3M'
                         )
