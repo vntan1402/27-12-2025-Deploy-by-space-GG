@@ -1344,9 +1344,9 @@ class UpcomingSurveysNotificationTester:
             return False
     
     def run_comprehensive_upcoming_surveys_tests(self):
-        """Main test function for UPDATED upcoming surveys logic with new window calculation"""
-        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - UPDATED UPCOMING SURVEYS LOGIC TESTING")
-        self.log("🎯 FOCUS: Test the updated upcoming surveys logic with new window calculation")
+        """Main test function for Initial Survey Type Rules Testing for SMC, ISSC, MLC Certificates"""
+        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - INITIAL SURVEY TYPE RULES TESTING")
+        self.log("🎯 FOCUS: Test the updated upcoming surveys logic with Initial survey type rules for SMC, ISSC, MLC certificates")
         self.log("=" * 100)
         
         try:
@@ -1365,48 +1365,64 @@ class UpcomingSurveysNotificationTester:
                 self.log("❌ Upcoming surveys endpoint failed - cannot proceed")
                 return False
             
-            # Step 3: Verify updated response structure
-            self.log("\n🔍 STEP 3: VERIFY UPDATED RESPONSE STRUCTURE")
+            # Step 3: Verify updated response structure with Initial certificate rules
+            self.log("\n🔍 STEP 3: VERIFY UPDATED RESPONSE STRUCTURE WITH INITIAL CERTIFICATE RULES")
             self.log("=" * 50)
             structure_success = self.verify_response_structure()
             
-            # Step 4: Test NEW window calculation logic
-            self.log("\n📅 STEP 4: TEST NEW WINDOW CALCULATION LOGIC")
+            # Step 4: Test Initial certificate detection
+            self.log("\n🔍 STEP 4: TEST INITIAL CERTIFICATE DETECTION")
             self.log("=" * 50)
-            window_calculation_success = self.test_new_window_calculation_logic()
+            initial_detection_success = self.test_initial_certificate_detection()
             
-            # Step 5: Test company filtering
-            self.log("\n🏢 STEP 5: TEST COMPANY FILTERING")
+            # Step 5: Test Initial certificate window logic
+            self.log("\n📅 STEP 5: TEST INITIAL CERTIFICATE WINDOW LOGIC")
+            self.log("=" * 50)
+            initial_window_success = self.test_initial_certificate_window_logic()
+            
+            # Step 6: Test all window rule types
+            self.log("\n🔍 STEP 6: TEST ALL WINDOW RULE TYPES")
+            self.log("=" * 50)
+            window_rules_success = self.test_all_window_rule_types()
+            
+            # Step 7: Test Initial certificate status logic
+            self.log("\n🚦 STEP 7: TEST INITIAL CERTIFICATE STATUS LOGIC")
+            self.log("=" * 50)
+            initial_status_success = self.test_initial_certificate_status_logic()
+            
+            # Step 8: Test company filtering
+            self.log("\n🏢 STEP 8: TEST COMPANY FILTERING")
             self.log("=" * 50)
             company_filtering_success = self.test_company_filtering()
             
-            # Step 6: Test UPDATED status classification
-            self.log("\n🚦 STEP 6: TEST UPDATED STATUS CLASSIFICATION")
+            # Step 9: Test UPDATED status classification
+            self.log("\n🚦 STEP 9: TEST UPDATED STATUS CLASSIFICATION")
             self.log("=" * 50)
             status_classification_success = self.test_updated_status_classification()
             
-            # Step 7: Test specific certificate verification
-            self.log("\n🔍 STEP 7: TEST SPECIFIC CERTIFICATE VERIFICATION")
+            # Step 10: Test specific certificate verification
+            self.log("\n🔍 STEP 10: TEST SPECIFIC CERTIFICATE VERIFICATION")
             self.log("=" * 50)
             specific_cert_success = self.test_specific_certificate_verification()
             
-            # Step 8: Validate survey data
-            self.log("\n✅ STEP 8: VALIDATE SURVEY DATA")
+            # Step 11: Validate survey data
+            self.log("\n✅ STEP 11: VALIDATE SURVEY DATA")
             self.log("=" * 50)
             data_validation_success = self.validate_survey_data()
             
-            # Step 9: Final Analysis
-            self.log("\n📊 STEP 9: FINAL ANALYSIS")
+            # Step 12: Final Analysis
+            self.log("\n📊 STEP 12: FINAL ANALYSIS")
             self.log("=" * 50)
             self.provide_final_analysis()
             
             return (endpoint_success and structure_success and 
-                   window_calculation_success and company_filtering_success and 
-                   status_classification_success and specific_cert_success and
-                   data_validation_success)
+                   initial_detection_success and initial_window_success and
+                   window_rules_success and initial_status_success and
+                   company_filtering_success and status_classification_success and 
+                   specific_cert_success and data_validation_success)
             
         except Exception as e:
-            self.log(f"❌ Comprehensive upcoming surveys testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Comprehensive Initial survey type rules testing error: {str(e)}", "ERROR")
             return False
     
     def provide_final_analysis(self):
