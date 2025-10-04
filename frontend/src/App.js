@@ -4197,6 +4197,18 @@ const HomePage = () => {
                               </>
                             )}
                           </button>
+
+                          {/* Upcoming Survey Button */}
+                          <button
+                            onClick={() => checkUpcomingSurveys()}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-orange-600 hover:bg-orange-700 text-white cursor-pointer"
+                            title={language === 'vi' ? 'Kiểm tra các chứng chỉ sắp đến hạn survey' : 'Check upcoming survey certificates'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {language === 'vi' ? 'Upcoming Survey' : 'Upcoming Survey'}
+                          </button>
                           
                           {/* Cert Upload Button */}
                           <button
