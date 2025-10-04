@@ -1164,24 +1164,16 @@ const HomePage = () => {
   // Function to check upcoming surveys after login
   const checkUpcomingSurveys = async () => {
     try {
-      console.log('🚀 checkUpcomingSurveys called - token:', !!token);
-      if (!token) {
-        console.log('❌ No token available');
-        return;
-      }
+      if (!token) return;
       
-      console.log('📡 Making API call to:', `${API}/certificates/upcoming-surveys`);
       const response = await fetch(`${API}/certificates/upcoming-surveys`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      console.log('📄 Response status:', response.status);
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 API response data:', data);
         
         if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
-          console.log('🎯 Found', data.upcoming_surveys.length, 'upcoming surveys, showing modal...');
           // Show notification modal using functional update to ensure state change
           setUpcomingSurveysModal(prev => ({
             ...prev,
@@ -1191,15 +1183,10 @@ const HomePage = () => {
             company: data.company,
             checkDate: data.check_date
           }));
-          console.log('✅ Modal state updated');
-        } else {
-          console.log('ℹ️ No upcoming surveys found');
         }
-      } else {
-        console.log('❌ API response not ok:', response.status);
       }
     } catch (error) {
-      console.error('❌ Error checking upcoming surveys:', error);
+      console.error('Error checking upcoming surveys:', error);
     }
   };
   
