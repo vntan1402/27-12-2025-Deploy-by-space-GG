@@ -1105,6 +1105,11 @@ const HomePage = () => {
     checkDate: ''
   });
 
+  // Debug useEffect to monitor upcomingSurveysModal state changes
+  useEffect(() => {
+    console.log('🔍 upcomingSurveysModal state changed:', upcomingSurveysModal);
+  }, [upcomingSurveysModal]);
+
   // Function to add duplicate to queue and show if none is currently shown
   const addToduplicateQueue = (duplicateData) => {
     setDuplicateQueue(prev => {
