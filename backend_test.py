@@ -181,53 +181,45 @@ class UpcomingSurveysNotificationTester:
         
         return True  # Non-string values are considered valid
     
-    def find_test_ship(self):
-        """Find a ship for testing multi cert upload"""
+    def test_upcoming_surveys_endpoint(self):
+        """Test the upcoming surveys endpoint accessibility and response"""
         try:
-            self.log("🚢 Finding ship for multi cert upload testing...")
+            self.log("📅 Testing upcoming surveys endpoint...")
             
-            # Get all ships
-            endpoint = f"{BACKEND_URL}/ships"
+            endpoint = f"{BACKEND_URL}/certificates/upcoming-surveys"
+            self.log(f"   GET {endpoint}")
+            
             response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                ships = response.json()
-                self.log(f"   Found {len(ships)} total ships")
+                self.survey_tests['upcoming_surveys_endpoint_accessible'] = True
+                self.log("✅ Upcoming surveys endpoint is accessible")
                 
-                # Look for any ship to test with (prefer MINH ANH 09 if available)
-                test_ship = None
-                for ship in ships:
-                    ship_name = ship.get('name', '').upper()
-                    if 'MINH ANH' in ship_name and '09' in ship_name:
-                        test_ship = ship
-                        break
-                
-                # If MINH ANH 09 not found, use first available ship
-                if not test_ship and ships:
-                    test_ship = ships[0]
-                
-                if test_ship:
-                    self.ship_data = test_ship
-                    ship_id = test_ship.get('id')
-                    ship_name = test_ship.get('name')
-                    imo = test_ship.get('imo')
+                try:
+                    response_data = response.json()
+                    self.upcoming_surveys_response = response_data
+                    self.survey_tests['upcoming_surveys_response_valid'] = True
+                    self.log("✅ Response is valid JSON")
                     
-                    self.log(f"✅ Found test ship:")
-                    self.log(f"   Ship ID: {ship_id}")
-                    self.log(f"   Ship Name: {ship_name}")
-                    self.log(f"   IMO: {imo}")
+                    # Log response structure for analysis
+                    self.log(f"   Response keys: {list(response_data.keys())}")
                     
-                    self.cert_tests['ship_found_for_testing'] = True
                     return True
-                else:
-                    self.log("❌ No ships found for testing")
+                except json.JSONDecodeError as e:
+                    self.log(f"❌ Invalid JSON response: {str(e)}")
                     return False
             else:
-                self.log(f"   ❌ Failed to get ships: {response.status_code}")
+                self.log(f"❌ Upcoming surveys endpoint failed: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                except:
+                    self.log(f"   Error: {response.text[:200]}")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error finding test ship: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing upcoming surveys endpoint: {str(e)}", "ERROR")
             return False
     
     def test_with_existing_certificates(self):
