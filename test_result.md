@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Certificate Edit Functionality Frontend Testing"
+    - "Google Drive Folder Structure API Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
