@@ -1110,9 +1110,9 @@ class UpcomingSurveysNotificationTester:
             return False
     
     def provide_final_analysis(self):
-        """Provide final analysis of upcoming surveys notification testing"""
+        """Provide final analysis of UPDATED upcoming surveys logic testing"""
         try:
-            self.log("🔄 SHIP MANAGEMENT SYSTEM - UPCOMING SURVEYS NOTIFICATION TESTING - RESULTS")
+            self.log("🔄 SHIP MANAGEMENT SYSTEM - UPDATED UPCOMING SURVEYS LOGIC TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
@@ -1138,151 +1138,142 @@ class UpcomingSurveysNotificationTester:
             success_rate = (len(passed_tests) / len(self.survey_tests)) * 100
             self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.survey_tests)})")
             
-            # Upcoming surveys endpoint analysis
-            self.log("\n📅 UPCOMING SURVEYS ENDPOINT ANALYSIS:")
+            # NEW: Window calculation analysis
+            self.log("\n📅 NEW WINDOW CALCULATION ANALYSIS:")
             
-            if self.survey_tests['upcoming_surveys_endpoint_accessible']:
-                self.log("   ✅ CONFIRMED: /api/certificates/upcoming-surveys endpoint is accessible")
-            else:
-                self.log("   ❌ ISSUE: Upcoming surveys endpoint not accessible")
-            
-            if self.survey_tests['upcoming_surveys_response_valid']:
-                self.log("   ✅ SUCCESS: Endpoint returns valid JSON response")
-            else:
-                self.log("   ❌ ISSUE: Invalid response from endpoint")
-            
-            # Response structure analysis
-            self.log("\n🔍 RESPONSE STRUCTURE ANALYSIS:")
-            
-            if self.survey_tests['response_structure_correct']:
-                self.log("   ✅ SUCCESS: Response has correct top-level structure")
-            else:
-                self.log("   ❌ ISSUE: Response structure incorrect")
-            
-            if self.survey_tests['required_fields_present']:
-                self.log("   ✅ SUCCESS: All required fields present in survey objects")
-                self.log("      Fields: ship_name, cert_name_display, next_survey, next_survey_type, last_endorse, status indicators")
-            else:
-                self.log("   ❌ ISSUE: Missing required fields in survey objects")
-            
-            # Date filtering analysis
-            self.log("\n📅 DATE FILTERING ANALYSIS:")
-            
-            date_tests = [
-                'date_filtering_logic_working',
-                'three_month_window_correct',
-                'date_comparison_accurate'
+            window_tests = [
+                'window_calculation_logic_working',
+                'individual_certificate_windows_correct',
+                'current_date_filter_working'
             ]
-            date_passed = sum(1 for test in date_tests if self.survey_tests.get(test, False))
-            date_rate = (date_passed / len(date_tests)) * 100
+            window_passed = sum(1 for test in window_tests if self.survey_tests.get(test, False))
+            window_rate = (window_passed / len(window_tests)) * 100
             
-            self.log(f"\n🎯 DATE FILTERING: {date_rate:.1f}% ({date_passed}/{len(date_tests)})")
+            self.log(f"\n🎯 WINDOW CALCULATION: {window_rate:.1f}% ({window_passed}/{len(window_tests)})")
             
-            if self.survey_tests['date_filtering_logic_working']:
-                self.log("   ✅ SUCCESS: Date filtering logic working correctly")
+            if self.survey_tests['window_calculation_logic_working']:
+                self.log("   ✅ SUCCESS: NEW window calculation logic working correctly")
+                self.log("      Each certificate creates its own ±90 day window around next_survey_date")
             else:
-                self.log("   ❌ ISSUE: Date filtering logic has problems")
+                self.log("   ❌ ISSUE: Window calculation logic has problems")
             
-            if self.survey_tests['three_month_window_correct']:
-                self.log("   ✅ SUCCESS: ±3 months window correctly implemented")
+            if self.survey_tests['individual_certificate_windows_correct']:
+                self.log("   ✅ SUCCESS: Individual certificate windows calculated correctly")
             else:
-                self.log("   ❌ ISSUE: ±3 months window incorrect")
+                self.log("   ❌ ISSUE: Individual certificate window calculations incorrect")
+            
+            # NEW: Updated response structure analysis
+            self.log("\n🔍 UPDATED RESPONSE STRUCTURE ANALYSIS:")
+            
+            if self.survey_tests['new_window_fields_present']:
+                self.log("   ✅ SUCCESS: NEW window fields present in response")
+                self.log("      Fields: window_open, window_close, days_from_window_open, days_to_window_close")
+            else:
+                self.log("   ❌ ISSUE: Missing NEW window fields in response")
+            
+            if self.survey_tests['logic_info_updated']:
+                self.log("   ✅ SUCCESS: Updated logic_info section present")
+            else:
+                self.log("   ❌ ISSUE: Missing or incorrect logic_info section")
+            
+            # NEW: Status classification analysis
+            self.log("\n🚦 UPDATED STATUS CLASSIFICATION ANALYSIS:")
+            
+            status_tests = [
+                'is_critical_field_present',
+                'is_critical_logic_correct',
+                'status_classification_updated'
+            ]
+            status_passed = sum(1 for test in status_tests if self.survey_tests.get(test, False))
+            status_rate = (status_passed / len(status_tests)) * 100
+            
+            self.log(f"\n🎯 STATUS CLASSIFICATION: {status_rate:.1f}% ({status_passed}/{len(status_tests)})")
+            
+            if self.survey_tests['is_critical_field_present']:
+                self.log("   ✅ SUCCESS: NEW is_critical field present")
+            else:
+                self.log("   ❌ ISSUE: Missing is_critical field")
+            
+            if self.survey_tests['is_critical_logic_correct']:
+                self.log("   ✅ SUCCESS: is_critical logic working correctly (overdue or within 7 days)")
+            else:
+                self.log("   ❌ ISSUE: is_critical logic incorrect")
             
             # Company filtering analysis
             self.log("\n🏢 COMPANY FILTERING ANALYSIS:")
-            
-            company_tests = [
-                'company_filtering_working',
-                'only_user_company_ships_returned'
-            ]
-            company_passed = sum(1 for test in company_tests if self.survey_tests.get(test, False))
-            company_rate = (company_passed / len(company_tests)) * 100
-            
-            self.log(f"\n🎯 COMPANY FILTERING: {company_rate:.1f}% ({company_passed}/{len(company_tests)})")
             
             if self.survey_tests['company_filtering_working']:
                 self.log("   ✅ SUCCESS: Company filtering working correctly")
             else:
                 self.log("   ❌ ISSUE: Company filtering not working")
             
-            if self.survey_tests['only_user_company_ships_returned']:
-                self.log("   ✅ SUCCESS: Only user's company ships returned")
+            # Test certificate analysis
+            self.log("\n🔍 TEST CERTIFICATE ANALYSIS:")
+            
+            if self.survey_tests['test_certificate_found']:
+                self.log("   ✅ SUCCESS: 'Test Survey Notification Certificate' found in results")
             else:
-                self.log("   ❌ ISSUE: Surveys from other companies returned")
+                self.log("   ⚠️ INFO: 'Test Survey Notification Certificate' not found")
+                self.log("      This may be expected if current date is outside certificate's ±90 day window")
             
-            # Status indicators analysis
-            self.log("\n🚦 STATUS INDICATORS ANALYSIS:")
-            
-            status_tests = [
-                'status_indicators_calculated',
-                'days_until_survey_accurate'
-            ]
-            status_passed = sum(1 for test in status_tests if self.survey_tests.get(test, False))
-            status_rate = (status_passed / len(status_tests)) * 100
-            
-            self.log(f"\n🎯 STATUS INDICATORS: {status_rate:.1f}% ({status_passed}/{len(status_tests)})")
-            
-            if self.survey_tests['status_indicators_calculated']:
-                self.log("   ✅ SUCCESS: Status indicators calculated correctly")
-                self.log("      is_overdue, is_due_soon, days_until_survey working")
-            else:
-                self.log("   ❌ ISSUE: Status indicators calculation problems")
+            if self.survey_tests['test_certificate_in_window']:
+                self.log("   ✅ SUCCESS: Test certificate correctly within its window")
             
             # Review request requirements analysis
             self.log("\n📋 REVIEW REQUEST REQUIREMENTS ANALYSIS:")
             
             req1_met = self.survey_tests['authentication_successful']
             req2_met = self.survey_tests['upcoming_surveys_endpoint_accessible']
-            req3_met = self.survey_tests['date_filtering_logic_working']
-            req4_met = self.survey_tests['required_fields_present']
-            req5_met = self.survey_tests['company_filtering_working']
-            req6_met = self.survey_tests['status_indicators_calculated']
+            req3_met = self.survey_tests['window_calculation_logic_working']
+            req4_met = self.survey_tests['new_window_fields_present']
+            req5_met = self.survey_tests['is_critical_field_present']
+            req6_met = self.survey_tests['logic_info_updated']
             
             self.log(f"   1. Login with admin1/123456: {'✅ MET' if req1_met else '❌ NOT MET'}")
             self.log(f"      - Authentication successful")
             
-            self.log(f"   2. Test /api/certificates/upcoming-surveys endpoint: {'✅ MET' if req2_met else '❌ NOT MET'}")
-            self.log(f"      - Endpoint accessible and returns valid response")
+            self.log(f"   2. Test updated endpoint: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - /api/certificates/upcoming-surveys accessible with new logic")
             
-            self.log(f"   3. Verify ±3 months date filtering: {'✅ MET' if req3_met else '❌ NOT MET'}")
-            self.log(f"      - Date comparison logic works correctly")
+            self.log(f"   3. Verify NEW window calculation: {'✅ MET' if req3_met else '❌ NOT MET'}")
+            self.log(f"      - window_open = next_survey - 90 days, window_close = next_survey + 90 days")
             
-            self.log(f"   4. Check response structure: {'✅ MET' if req4_met else '❌ NOT MET'}")
-            self.log(f"      - All required fields present")
+            self.log(f"   4. Check NEW response fields: {'✅ MET' if req4_met else '❌ NOT MET'}")
+            self.log(f"      - window_open, window_close, days_from_window_open, days_to_window_close")
             
-            self.log(f"   5. Verify company filtering: {'✅ MET' if req5_met else '❌ NOT MET'}")
-            self.log(f"      - Only user's company ships returned")
+            self.log(f"   5. Verify is_critical field: {'✅ MET' if req5_met else '❌ NOT MET'}")
+            self.log(f"      - is_critical: overdue or within 7 days")
             
-            self.log(f"   6. Test status indicators: {'✅ MET' if req6_met else '❌ NOT MET'}")
-            self.log(f"      - is_overdue, is_due_soon, days_until_survey calculated")
+            self.log(f"   6. Check updated logic_info: {'✅ MET' if req6_met else '❌ NOT MET'}")
+            self.log(f"      - Updated logic_info section with window calculation details")
             
             requirements_met = sum([req1_met, req2_met, req3_met, req4_met, req5_met, req6_met])
             
             # Final conclusion
             if success_rate >= 80 and requirements_met >= 5:
-                self.log(f"\n🎉 CONCLUSION: UPCOMING SURVEYS NOTIFICATION SYSTEM IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Upcoming surveys functionality fully implemented!")
+                self.log(f"\n🎉 CONCLUSION: UPDATED UPCOMING SURVEYS LOGIC IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - New window calculation logic fully implemented!")
                 self.log(f"   ✅ Requirements met: {requirements_met}/6")
-                self.log(f"   ✅ Endpoint returns certificates within ±3 months window")
-                self.log(f"   ✅ Response structure includes all required fields")
-                self.log(f"   ✅ Company filtering works correctly")
-                self.log(f"   ✅ Status indicators calculated accurately")
+                self.log(f"   ✅ Each certificate creates its own ±90 day window")
+                self.log(f"   ✅ Current date filter working correctly")
+                self.log(f"   ✅ New response fields populated correctly")
+                self.log(f"   ✅ Updated status classification working")
             elif success_rate >= 60 and requirements_met >= 4:
-                self.log(f"\n⚠️ CONCLUSION: UPCOMING SURVEYS NOTIFICATION SYSTEM PARTIALLY WORKING")
-                self.log(f"   Success rate: {success_rate:.1f}% - Most functionality working, minor improvements needed")
+                self.log(f"\n⚠️ CONCLUSION: UPDATED UPCOMING SURVEYS LOGIC PARTIALLY WORKING")
+                self.log(f"   Success rate: {success_rate:.1f}% - Most new functionality working, minor improvements needed")
                 self.log(f"   ⚠️ Requirements met: {requirements_met}/6")
                 
                 if req1_met and req2_met:
                     self.log(f"   ✅ Core functionality (authentication and endpoint) is working")
                 if not req3_met:
-                    self.log(f"   ⚠️ Date filtering logic may need attention")
-                if not req5_met:
-                    self.log(f"   ⚠️ Company filtering may need fixes")
+                    self.log(f"   ⚠️ Window calculation logic may need attention")
+                if not req4_met:
+                    self.log(f"   ⚠️ New response fields may be missing")
             else:
-                self.log(f"\n❌ CONCLUSION: UPCOMING SURVEYS NOTIFICATION SYSTEM HAS CRITICAL ISSUES")
+                self.log(f"\n❌ CONCLUSION: UPDATED UPCOMING SURVEYS LOGIC HAS CRITICAL ISSUES")
                 self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
                 self.log(f"   ❌ Requirements met: {requirements_met}/6")
-                self.log(f"   ❌ Upcoming surveys notification system needs major fixes before production use")
+                self.log(f"   ❌ Updated upcoming surveys logic needs major fixes before production use")
             
             return True
             
