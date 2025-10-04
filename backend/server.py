@@ -3754,6 +3754,26 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     cert_abbreviation = cert.get('cert_abbreviation') or cert.get('abbreviation', '')
                     cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
                     
+                    # Calculate days until survey
+                    days_until_survey = (next_survey_date - current_date).days
+                    
+                    # Updated status classification logic based on certificate's survey window
+                    # Overdue: Survey date has passed (negative days)
+                    is_overdue = next_survey_date < current_date
+                    
+                    # Due soon: Survey is coming within next 30 days
+                    is_due_soon = 0 <= days_until_survey <= 30
+                    
+                    # Within window: Current date falls within this certificate's ±3 months survey window
+                    is_within_window = True  # Always true since we already filtered by this condition
+                    
+                    # Critical: Survey is overdue or due within 7 days
+                    is_critical = days_until_survey < 0 or (0 <= days_until_survey <= 7)
+                    
+                    # Calculate window information for this certificate
+                    days_from_window_open = (current_date - window_open).days
+                    days_to_window_close = (window_close - current_date).days
+                    
                     upcoming_survey = {
                         'certificate_id': cert.get('id'),
                         'ship_id': cert.get('ship_id'),
@@ -3766,10 +3786,16 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         'next_survey_type': cert.get('next_survey_type', ''),
                         'last_endorse': cert.get('last_endorse', ''),
                         'status': cert.get('status', ''),
-                        'days_until_survey': (next_survey_date - current_date).days,
-                        'is_overdue': next_survey_date < current_date,
-                        'is_due_soon': 0 <= (next_survey_date - current_date).days <= 30,
-                        'is_within_window': True
+                        'days_until_survey': days_until_survey,
+                        'is_overdue': is_overdue,
+                        'is_due_soon': is_due_soon,
+                        'is_critical': is_critical,
+                        'is_within_window': is_within_window,
+                        # Window information for this certificate
+                        'window_open': window_open.isoformat(),
+                        'window_close': window_close.isoformat(),
+                        'days_from_window_open': days_from_window_open,
+                        'days_to_window_close': days_to_window_close
                     }
                     
                     upcoming_surveys.append(upcoming_survey)
