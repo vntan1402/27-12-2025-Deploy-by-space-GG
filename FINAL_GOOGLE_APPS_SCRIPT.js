@@ -231,7 +231,7 @@ function handleUploadFileWithFolderCreation(requestData) {
       return createJsonResponse(false, "Ship folder '" + shipName + "' not found. Please create ship first.");
     }
     
-    // Categories under Document Portfolio
+    // Categories under Class & Flag Cert
     var documentPortfolioCategories = [
       "Certificates", "Inspection Records", "Survey Reports", 
       "Drawings & Manuals", "Other Documents"
