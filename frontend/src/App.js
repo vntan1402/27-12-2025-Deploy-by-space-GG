@@ -2396,16 +2396,8 @@ const HomePage = () => {
           );
         }
         
-        // Close modal
-        setDuplicateResolutionModal({
-          show: false,
-          fileData: null,
-          analysisResult: null,
-          duplicateInfo: null,
-          shipId: null,
-          fileIndex: -1,
-          fileName: ''
-        });
+        // Process next duplicate in queue (will close modal if no more duplicates)
+        processNextDuplicate();
         
         // Refresh certificates list
         if (selectedShip) {
