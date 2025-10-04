@@ -288,9 +288,9 @@ class UpcomingSurveysNotificationTester:
             self.survey_tests['response_structure_correct'] = True
             self.log("✅ Top-level response structure is correct")
             
-            # NEW: Verify logic_info structure
+            # NEW: Verify logic_info structure includes Initial certificate rules
             logic_info = response.get('logic_info', {})
-            expected_logic_fields = ['description', 'window_calculation', 'filter_condition', 'window_days_per_cert']
+            expected_logic_fields = ['description', 'window_calculation', 'filter_condition', 'window_rules']
             logic_missing = []
             
             for field in expected_logic_fields:
@@ -299,8 +299,37 @@ class UpcomingSurveysNotificationTester:
                 else:
                     self.log(f"   ✅ Found logic_info.{field}: {logic_info[field]}")
             
+            # Check if Initial certificate rules are documented
+            window_rules = logic_info.get('window_rules', [])
+            if window_rules:
+                self.log(f"   Found {len(window_rules)} window rules:")
+                initial_rule_found = False
+                expected_rules = [
+                    'Condition Certificate Expiry',
+                    'Initial SMC/ISSC/MLC',
+                    'Special Survey',
+                    'Other Surveys'
+                ]
+                
+                for rule in window_rules:
+                    rule_name = rule.get('name', '')
+                    rule_description = rule.get('description', '')
+                    self.log(f"      {rule_name}: {rule_description}")
+                    
+                    if 'Initial SMC/ISSC/MLC' in rule_name:
+                        initial_rule_found = True
+                        if 'Valid date - 3M → Valid date' in rule_description:
+                            self.survey_tests['logic_info_includes_initial_rules'] = True
+                            self.log(f"         ✅ Initial certificate rule correctly documented")
+                
+                if len(window_rules) >= 4:
+                    self.survey_tests['all_window_rule_types_documented'] = True
+                    self.log("✅ All window rule types documented")
+                
+                if not initial_rule_found:
+                    self.log("   ❌ Initial SMC/ISSC/MLC rule not found in logic_info")
+            
             if not logic_missing:
-                self.survey_tests['logic_info_updated'] = True
                 self.log("✅ Updated logic_info structure is correct")
             else:
                 self.log(f"   ❌ Missing logic_info fields: {logic_missing}")
