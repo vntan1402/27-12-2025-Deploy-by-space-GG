@@ -1044,9 +1044,9 @@ class UpcomingSurveysNotificationTester:
             return False
     
     def run_comprehensive_upcoming_surveys_tests(self):
-        """Main test function for upcoming surveys notification functionality"""
-        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - UPCOMING SURVEYS NOTIFICATION TESTING")
-        self.log("🎯 FOCUS: Test the new upcoming surveys notification system")
+        """Main test function for UPDATED upcoming surveys logic with new window calculation"""
+        self.log("🔄 STARTING SHIP MANAGEMENT SYSTEM - UPDATED UPCOMING SURVEYS LOGIC TESTING")
+        self.log("🎯 FOCUS: Test the updated upcoming surveys logic with new window calculation")
         self.log("=" * 100)
         
         try:
@@ -1065,34 +1065,45 @@ class UpcomingSurveysNotificationTester:
                 self.log("❌ Upcoming surveys endpoint failed - cannot proceed")
                 return False
             
-            # Step 3: Verify response structure
-            self.log("\n🔍 STEP 3: VERIFY RESPONSE STRUCTURE")
+            # Step 3: Verify updated response structure
+            self.log("\n🔍 STEP 3: VERIFY UPDATED RESPONSE STRUCTURE")
             self.log("=" * 50)
             structure_success = self.verify_response_structure()
             
-            # Step 4: Test date filtering logic
-            self.log("\n📅 STEP 4: TEST DATE FILTERING LOGIC")
+            # Step 4: Test NEW window calculation logic
+            self.log("\n📅 STEP 4: TEST NEW WINDOW CALCULATION LOGIC")
             self.log("=" * 50)
-            date_filtering_success = self.test_date_filtering_logic()
+            window_calculation_success = self.test_new_window_calculation_logic()
             
             # Step 5: Test company filtering
             self.log("\n🏢 STEP 5: TEST COMPANY FILTERING")
             self.log("=" * 50)
             company_filtering_success = self.test_company_filtering()
             
-            # Step 6: Test status indicators
-            self.log("\n🚦 STEP 6: TEST STATUS INDICATORS")
+            # Step 6: Test UPDATED status classification
+            self.log("\n🚦 STEP 6: TEST UPDATED STATUS CLASSIFICATION")
             self.log("=" * 50)
-            status_indicators_success = self.test_status_indicators()
+            status_classification_success = self.test_updated_status_classification()
             
-            # Step 7: Final Analysis
-            self.log("\n📊 STEP 7: FINAL ANALYSIS")
+            # Step 7: Test specific certificate verification
+            self.log("\n🔍 STEP 7: TEST SPECIFIC CERTIFICATE VERIFICATION")
+            self.log("=" * 50)
+            specific_cert_success = self.test_specific_certificate_verification()
+            
+            # Step 8: Validate survey data
+            self.log("\n✅ STEP 8: VALIDATE SURVEY DATA")
+            self.log("=" * 50)
+            data_validation_success = self.validate_survey_data()
+            
+            # Step 9: Final Analysis
+            self.log("\n📊 STEP 9: FINAL ANALYSIS")
             self.log("=" * 50)
             self.provide_final_analysis()
             
             return (endpoint_success and structure_success and 
-                   date_filtering_success and company_filtering_success and 
-                   status_indicators_success)
+                   window_calculation_success and company_filtering_success and 
+                   status_classification_success and specific_cert_success and
+                   data_validation_success)
             
         except Exception as e:
             self.log(f"❌ Comprehensive upcoming surveys testing error: {str(e)}", "ERROR")
