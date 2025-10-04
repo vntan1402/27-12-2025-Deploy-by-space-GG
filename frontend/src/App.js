@@ -3841,6 +3841,32 @@ const HomePage = () => {
                 {language === 'vi' ? 'THÊM HỒ SƠ MỚI' : 'ADD NEW RECORD'}
               </button>
               
+              {/* Test button for upcoming surveys modal - REMOVE AFTER TESTING */}
+              <button
+                onClick={() => {
+                  console.log('🧪 Test button clicked - showing modal manually');
+                  setUpcomingSurveysModal({
+                    show: true,
+                    surveys: [{
+                      ship_name: 'TEST SHIP',
+                      cert_name_display: 'Test Certificate (TEST)',
+                      next_survey: '2024-12-31',
+                      next_survey_type: 'Annual',
+                      last_endorse: '2024-01-01',
+                      is_overdue: false,
+                      is_due_soon: true,
+                      days_until_survey: 30
+                    }],
+                    totalCount: 1,
+                    company: 'TEST COMPANY',
+                    checkDate: '2024-12-01'
+                  });
+                }}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg transition-all shadow-sm font-medium text-sm"
+              >
+                🧪 TEST MODAL
+              </button>
+              
               <button
                 onClick={() => navigate('/account-control')}
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg transition-all shadow-sm font-medium"
