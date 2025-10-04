@@ -146,6 +146,12 @@ const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
       toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Login successful!');
+      
+      // Check for upcoming surveys after successful login
+      setTimeout(() => {
+        checkUpcomingSurveys();
+      }, 1000); // Small delay to ensure everything is set up
+      
       return true;
     } catch (error) {
       toast.error(language === 'vi' ? 'Đăng nhập thất bại!' : 'Login failed!');
