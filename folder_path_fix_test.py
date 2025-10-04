@@ -317,6 +317,10 @@ Expected upload path: {self.test_ship.get('name', 'TEST SHIP')}/Class & Flag Cer
                     # Log response structure for analysis
                     self.log(f"   Response keys: {list(response_data.keys())}")
                     
+                    # Log detailed response for debugging
+                    self.log("   Detailed response:")
+                    self.log(f"      {json.dumps(response_data, indent=2)}")
+                    
                     return True
                 except json.JSONDecodeError as e:
                     self.log(f"❌ Invalid JSON response: {str(e)}")
