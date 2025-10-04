@@ -3715,9 +3715,16 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         upcoming_surveys = []
         
         for cert in all_certificates:
-            # Skip certificates without next survey date
+            # Skip certificates without next survey date, EXCEPT for Initial SMC/ISSC/MLC certificates
             next_survey_str = cert.get('next_survey')
-            if not next_survey_str:
+            next_survey_type = cert.get('next_survey_type', '')
+            cert_name = cert.get('cert_name', '').upper()
+            
+            # Allow Initial SMC/ISSC/MLC certificates to proceed even without next_survey
+            is_initial_smc_issc_mlc = ('Initial' in next_survey_type and 
+                                       any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']))
+            
+            if not next_survey_str and not is_initial_smc_issc_mlc:
                 continue
                 
             try:
