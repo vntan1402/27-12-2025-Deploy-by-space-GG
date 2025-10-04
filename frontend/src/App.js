@@ -6259,9 +6259,12 @@ const HomePage = () => {
                         {formatDateDisplay(survey.last_endorse)}
                       </td>
                       <td className="px-4 py-3 text-sm border-b">
-                        {survey.is_overdue ? (
+                        {survey.is_critical ? (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                            {language === 'vi' ? 'Quá hạn' : 'Overdue'}
+                            {survey.is_overdue 
+                              ? (language === 'vi' ? 'Quá hạn' : 'Overdue')
+                              : (language === 'vi' ? 'Khẩn cấp' : 'Critical')
+                            }
                           </span>
                         ) : survey.is_due_soon ? (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
@@ -6269,7 +6272,7 @@ const HomePage = () => {
                           </span>
                         ) : (
                           <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {language === 'vi' ? 'Sắp tới' : 'Upcoming'}
+                            {language === 'vi' ? 'Trong Window' : 'In Window'}
                           </span>
                         )}
                       </td>
