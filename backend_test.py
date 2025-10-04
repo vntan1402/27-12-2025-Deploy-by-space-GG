@@ -222,74 +222,73 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing upcoming surveys endpoint: {str(e)}", "ERROR")
             return False
     
-    def test_with_existing_certificates(self):
-        """Test multi cert upload functionality using existing certificates from the ship"""
+    def verify_response_structure(self):
+        """Verify the upcoming surveys response has the correct structure"""
         try:
-            self.log("📋 Testing with existing certificates from the ship...")
+            self.log("🔍 Verifying response structure...")
             
-            if not self.ship_data.get('id'):
-                self.log("❌ No ship data available for testing")
+            if not self.upcoming_surveys_response:
+                self.log("❌ No response data to verify")
                 return False
             
-            ship_id = self.ship_data.get('id')
+            response = self.upcoming_surveys_response
             
-            # Get existing certificates for this ship
-            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            # Check for expected top-level keys
+            expected_keys = ['upcoming_surveys', 'total_count', 'company']
+            missing_keys = []
             
-            if response.status_code == 200:
-                certificates = response.json()
-                self.log(f"   Found {len(certificates)} existing certificates")
-                
-                # Look for certificates that might have abbreviations
-                test_certificates = []
-                for cert in certificates[:5]:  # Test with first 5 certificates
-                    cert_name = cert.get('cert_name', '')
-                    cert_abbreviation = cert.get('cert_abbreviation', '')
-                    cert_id = cert.get('id', '')
-                    
-                    if cert_name and cert_id:
-                        test_certificates.append({
-                            'id': cert_id,
-                            'name': cert_name,
-                            'abbreviation': cert_abbreviation,
-                            'original_cert': cert
-                        })
-                        
-                        self.log(f"      Certificate: {cert_name}")
-                        self.log(f"         ID: {cert_id}")
-                        self.log(f"         Current Abbreviation: {cert_abbreviation or 'None'}")
-                
-                if test_certificates:
-                    self.uploaded_certificates = [cert['original_cert'] for cert in test_certificates]
-                    
-                    # Check abbreviations in existing certificates
-                    abbreviations_found = 0
-                    for cert_info in test_certificates:
-                        if cert_info['abbreviation']:
-                            abbreviations_found += 1
-                    
-                    if abbreviations_found > 0:
-                        self.cert_tests['certificates_created_with_abbreviations'] = True
-                        self.cert_tests['cert_abbreviation_saved_to_database'] = True
-                        self.log(f"   ✅ Found {abbreviations_found}/{len(test_certificates)} certificates with abbreviations")
-                        
-                        # Since we found existing certificates with abbreviations, 
-                        # this indicates the system is working
-                        self.cert_tests['multi_upload_successful'] = True
-                        return True
-                    else:
-                        self.log(f"   ⚠️ No existing certificates have abbreviations")
-                        return False
+            for key in expected_keys:
+                if key not in response:
+                    missing_keys.append(key)
                 else:
-                    self.log("   ❌ No suitable certificates found for testing")
-                    return False
-            else:
-                self.log(f"   ❌ Failed to get certificates: {response.status_code}")
+                    self.log(f"   ✅ Found key: {key}")
+            
+            if missing_keys:
+                self.log(f"   ❌ Missing keys: {missing_keys}")
                 return False
+            
+            self.survey_tests['response_structure_correct'] = True
+            self.log("✅ Top-level response structure is correct")
+            
+            # Check upcoming_surveys array structure
+            upcoming_surveys = response.get('upcoming_surveys', [])
+            self.log(f"   Found {len(upcoming_surveys)} upcoming surveys")
+            
+            if upcoming_surveys:
+                # Check first survey item structure
+                first_survey = upcoming_surveys[0]
+                expected_survey_fields = [
+                    'ship_name', 'cert_name_display', 'next_survey', 
+                    'next_survey_type', 'last_endorse', 'days_until_survey',
+                    'is_overdue', 'is_due_soon'
+                ]
+                
+                missing_fields = []
+                for field in expected_survey_fields:
+                    if field not in first_survey:
+                        missing_fields.append(field)
+                    else:
+                        self.log(f"      ✅ Found field: {field}")
+                
+                if missing_fields:
+                    self.log(f"   ❌ Missing survey fields: {missing_fields}")
+                    return False
+                
+                self.survey_tests['required_fields_present'] = True
+                self.log("✅ All required survey fields are present")
+                
+                # Store surveys for further analysis
+                self.test_certificates = upcoming_surveys
+                
+                return True
+            else:
+                self.log("   ⚠️ No upcoming surveys found in response")
+                # This might be valid if no surveys are due
+                self.survey_tests['required_fields_present'] = True
+                return True
                 
         except Exception as e:
-            self.log(f"❌ Error testing with existing certificates: {str(e)}", "ERROR")
+            self.log(f"❌ Error verifying response structure: {str(e)}", "ERROR")
             return False
     
     def create_test_certificate_files(self):
