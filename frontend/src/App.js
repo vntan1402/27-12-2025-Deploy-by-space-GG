@@ -5313,8 +5313,6 @@ const HomePage = () => {
           defaultTab={addRecordDefaultTab}
           defaultDocumentType={addRecordDefaultDocumentType}
           duplicateQueue={duplicateQueue}
-          upcomingSurveysModal={upcomingSurveysModal}
-          setUpcomingSurveysModal={setUpcomingSurveysModal}
           // File Viewer Modal props
           showFileViewer={showFileViewer}
           setShowFileViewer={setShowFileViewer}
