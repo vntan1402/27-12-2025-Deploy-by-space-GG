@@ -8,6 +8,51 @@ import './App.css';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Date utility function to handle consistent date formatting without time shift
+const formatDateDisplay = (dateValue) => {
+  if (!dateValue) return '-';
+  
+  // Handle different date formats consistently
+  let dateStr = dateValue;
+  if (typeof dateValue === 'object' && dateValue.toString) {
+    dateStr = dateValue.toString();
+  }
+  
+  // If it's already in DD/MM/YYYY format, return as is
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+    return dateStr;
+  }
+  
+  // Parse ISO date string (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss) without creating Date object
+  // This avoids timezone conversion issues
+  if (typeof dateStr === 'string') {
+    // Extract just the date part (YYYY-MM-DD)
+    const datePart = dateStr.split('T')[0]; // Remove time component if present
+    const dateMatch = datePart.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    
+    if (dateMatch) {
+      const [, year, month, day] = dateMatch;
+      return `${day}/${month}/${year}`;
+    }
+  }
+  
+  // Fallback: try to parse with Date (may have timezone issues)
+  try {
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      // Use UTC methods to avoid timezone shift for dates that might be stored as UTC
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const year = date.getUTCFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  } catch (e) {
+    console.warn('Date parsing error:', e);
+  }
+  
+  return dateStr; // Return original value if all parsing fails
+};
+
 // Auth Context
 const AuthContext = createContext();
 
