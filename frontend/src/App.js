@@ -2416,6 +2416,9 @@ const HomePage = () => {
           : `Error resolving duplicate: ${errorData.detail || response.statusText}`
         );
         
+        // Process next duplicate even on error
+        processNextDuplicate();
+        
         // Reset multi cert processing state on error
         if (typeof resetAnalyzingState === 'function') {
           resetAnalyzingState(false);
@@ -2428,6 +2431,9 @@ const HomePage = () => {
         ? 'Lỗi khi xử lý trùng lặp'
         : 'Error resolving duplicate'
       );
+      
+      // Process next duplicate even on error
+      processNextDuplicate();
       
       // Reset multi cert processing state on error
       if (typeof resetAnalyzingState === 'function') {
