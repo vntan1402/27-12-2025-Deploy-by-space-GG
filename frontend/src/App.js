@@ -2672,7 +2672,7 @@ const HomePage = () => {
               resolve({ status: 'success', file: file.name });
               
             } else if (result && result.status === 'pending_duplicate_resolution') {
-              // File requires duplicate resolution - pause and show dialog
+              // File requires duplicate resolution - pause and add to queue
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
@@ -2685,9 +2685,8 @@ const HomePage = () => {
                   : upload
               ));
               
-              // Show duplicate resolution modal
-              setDuplicateResolutionModal({
-                show: true,
+              // Add to duplicate queue (will show modal if none is currently shown)
+              addToduplicateQueue({
                 fileData: file,
                 analysisResult: result.analysis,
                 duplicateInfo: result.duplicate_info,
