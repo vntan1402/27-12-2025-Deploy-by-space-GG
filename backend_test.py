@@ -495,102 +495,60 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing status indicators: {str(e)}", "ERROR")
             return False
 
-    def check_enhanced_logging(self):
-        """Check for enhanced logging of cert_abbreviation processing"""
+    def validate_survey_data(self):
+        """Validate the survey data returned by the endpoint"""
         try:
-            self.log("📝 Checking for enhanced logging of cert_abbreviation processing...")
+            self.log("✅ Validating survey data quality...")
             
-            # Since we can't directly access backend logs, we'll infer logging functionality
-            # from the successful operation of the abbreviation system
-            if (self.cert_tests['certificates_created_with_abbreviations'] or 
-                self.cert_tests['cert_abbreviation_saved_to_database']):
-                
-                self.cert_tests['enhanced_logging_detected'] = True
-                self.cert_tests['cert_abbreviation_processing_logged'] = True
-                self.log("✅ Enhanced logging detected (inferred from successful abbreviation processing)")
-                self.log("   - Certificate abbreviation system working correctly")
-                self.log("   - Backend logic handling cert_abbreviation field properly")
+            if not self.test_certificates:
+                self.log("   ⚠️ No survey data to validate")
                 return True
+            
+            ship_names_present = 0
+            cert_names_present = 0
+            valid_dates = 0
+            
+            for survey in self.test_certificates:
+                ship_name = survey.get('ship_name')
+                cert_name_display = survey.get('cert_name_display')
+                next_survey = survey.get('next_survey')
+                
+                if ship_name and ship_name.strip():
+                    ship_names_present += 1
+                
+                if cert_name_display and cert_name_display.strip():
+                    cert_names_present += 1
+                
+                if next_survey:
+                    valid_dates += 1
+            
+            total_surveys = len(self.test_certificates)
+            
+            if ship_names_present == total_surveys:
+                self.survey_tests['ship_names_present'] = True
+                self.log(f"   ✅ All {total_surveys} surveys have ship names")
             else:
-                self.log("⚠️ Enhanced logging could not be verified")
-                self.log("   - No clear evidence of abbreviation processing")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Error checking enhanced logging: {str(e)}", "ERROR")
-            return False
-
-    def test_abbreviation_mappings(self):
-        """Test if abbreviation mappings are utilized during multi-upload"""
-        try:
-            self.log("🗂️ Testing abbreviation mappings utilization...")
+                self.log(f"   ❌ {total_surveys - ship_names_present}/{total_surveys} surveys missing ship names")
             
-            # Get certificate abbreviation mappings
-            endpoint = f"{BACKEND_URL}/certificate-abbreviation-mappings"
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            
-            if response.status_code == 200:
-                mappings = response.json()
-                self.log(f"   Found {len(mappings)} abbreviation mappings")
-                
-                # Look for mappings related to our uploaded certificates
-                relevant_mappings = []
-                
-                for mapping in mappings:
-                    mapping_cert_name = mapping.get('cert_name', '').upper()
-                    mapping_abbreviation = mapping.get('abbreviation', '')
-                    
-                    # Check if any of our uploaded certificates match this mapping
-                    for cert in self.uploaded_certificates:
-                        cert_name = cert.get('cert_name', '').upper()
-                        cert_abbreviation = cert.get('cert_abbreviation', '')
-                        
-                        if (mapping_cert_name in cert_name or cert_name in mapping_cert_name) and cert_abbreviation == mapping_abbreviation:
-                            relevant_mappings.append({
-                                'mapping': mapping,
-                                'certificate': cert
-                            })
-                            self.log(f"   Found mapping utilization:")
-                            self.log(f"      Mapping: {mapping_cert_name} → {mapping_abbreviation}")
-                            self.log(f"      Certificate: {cert_name} → {cert_abbreviation}")
-                            break
-                
-                if relevant_mappings:
-                    self.cert_tests['abbreviation_mappings_utilized'] = True
-                    self.log("✅ Abbreviation mappings are being utilized")
-                    self.abbreviation_mappings = relevant_mappings
-                    return True
-                else:
-                    self.log("⚠️ No clear mapping utilization detected")
-                    # Still mark as successful if mappings exist
-                    if mappings:
-                        self.cert_tests['abbreviation_mappings_utilized'] = True
-                    return True
+            if cert_names_present == total_surveys:
+                self.survey_tests['cert_display_names_present'] = True
+                self.log(f"   ✅ All {total_surveys} surveys have certificate display names")
             else:
-                self.log(f"   ❌ Failed to get abbreviation mappings: {response.status_code}")
-                # This might not be implemented yet, so don't fail the test
-                self.log("   ℹ️ Abbreviation mappings endpoint may not be implemented")
-                return True
-                
+                self.log(f"   ❌ {total_surveys - cert_names_present}/{total_surveys} surveys missing cert display names")
+            
+            if valid_dates == total_surveys:
+                self.survey_tests['next_survey_dates_valid'] = True
+                self.log(f"   ✅ All {total_surveys} surveys have valid next survey dates")
+            else:
+                self.log(f"   ❌ {total_surveys - valid_dates}/{total_surveys} surveys missing next survey dates")
+            
+            return (ship_names_present == total_surveys and 
+                   cert_names_present == total_surveys and 
+                   valid_dates == total_surveys)
+            
         except Exception as e:
-            self.log(f"❌ Error testing abbreviation mappings: {str(e)}", "ERROR")
+            self.log(f"❌ Error validating survey data: {str(e)}", "ERROR")
             return False
-    
-    def cleanup_test_files(self):
-        """Clean up temporary test files"""
-        try:
-            self.log("🧹 Cleaning up test files...")
-            
-            for test_file in self.test_files:
-                file_path = test_file.get('path')
-                if file_path and os.path.exists(file_path):
-                    os.unlink(file_path)
-                    self.log(f"   Deleted: {file_path}")
-            
-            self.log("✅ Test files cleaned up")
-            
-        except Exception as e:
-            self.log(f"⚠️ Error cleaning up test files: {str(e)}", "WARNING")
 
     def test_ship_data_retrieval(self):
         """Test ship data retrieval and verify date fields"""
