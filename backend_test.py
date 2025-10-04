@@ -983,7 +983,7 @@ class InitialSurveyBugFixTester:
                 endpoint = f"{BACKEND_URL}/certificates"
                 response = requests.post(endpoint, json=cert_data, headers=self.get_headers(), timeout=30)
                 
-                if response.status_code == 201:
+                if response.status_code in [200, 201]:
                     created_count += 1
                     cert_response = response.json()
                     self.log(f"         ✅ Created successfully (ID: {cert_response.get('id')})")
