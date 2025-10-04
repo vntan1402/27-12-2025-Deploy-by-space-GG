@@ -149,7 +149,10 @@ const AuthProvider = ({ children }) => {
       
       // Check for upcoming surveys after successful login
       setTimeout(() => {
-        checkUpcomingSurveys();
+        // Call checkUpcomingSurveys if it exists (will be defined in HomePage component)
+        if (typeof window.checkUpcomingSurveys === 'function') {
+          window.checkUpcomingSurveys();
+        }
       }, 1000); // Small delay to ensure everything is set up
       
       return true;
