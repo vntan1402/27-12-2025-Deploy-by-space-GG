@@ -348,23 +348,74 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing date filtering logic: {str(e)}", "ERROR")
             return False
 
-    def test_multi_cert_upload_with_abbreviations(self):
-        """Test multi cert upload functionality by examining existing certificates"""
+    def test_company_filtering(self):
+        """Test that only certificates from user's company ships are returned"""
         try:
-            self.log("📤 Testing multi cert upload abbreviation functionality...")
+            self.log("🏢 Testing company filtering...")
             
-            # Since we can't easily create valid PDF files for testing,
-            # we'll test the functionality by examining existing certificates
-            # and verifying that the abbreviation system is working
+            if not self.user_company:
+                self.log("❌ User company not identified")
+                return False
             
-            self.cert_tests['multi_upload_endpoint_accessible'] = True
-            self.log("✅ Multi cert upload endpoint confirmed accessible (from previous test)")
+            self.log(f"   User company: {self.user_company}")
             
-            # Test with existing certificates to verify abbreviation functionality
-            return self.test_with_existing_certificates()
+            # Check if response includes company information
+            response_company = self.upcoming_surveys_response.get('company')
+            if response_company:
+                self.log(f"   Response company: {response_company}")
+                
+                if response_company == self.user_company:
+                    self.survey_tests['company_filtering_working'] = True
+                    self.log("✅ Company filtering working - response company matches user company")
+                else:
+                    self.log(f"❌ Company mismatch - user: {self.user_company}, response: {response_company}")
+                    return False
+            else:
+                self.log("⚠️ No company information in response")
+            
+            # Get all ships to verify company filtering
+            endpoint = f"{BACKEND_URL}/ships"
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
+            
+            if response.status_code == 200:
+                all_ships = response.json()
+                user_company_ships = [ship for ship in all_ships if ship.get('company') == self.user_company]
+                
+                self.log(f"   Total ships: {len(all_ships)}")
+                self.log(f"   User company ships: {len(user_company_ships)}")
+                
+                # Check if all surveys are from user's company ships
+                if self.test_certificates:
+                    user_company_ship_names = {ship.get('name') for ship in user_company_ships}
+                    
+                    surveys_from_user_ships = 0
+                    surveys_from_other_ships = 0
+                    
+                    for survey in self.test_certificates:
+                        ship_name = survey.get('ship_name')
+                        if ship_name in user_company_ship_names:
+                            surveys_from_user_ships += 1
+                        else:
+                            surveys_from_other_ships += 1
+                            self.log(f"      ❌ Survey from non-user ship: {ship_name}")
+                    
+                    if surveys_from_other_ships == 0:
+                        self.survey_tests['only_user_company_ships_returned'] = True
+                        self.log(f"✅ All {surveys_from_user_ships} surveys are from user's company ships")
+                        return True
+                    else:
+                        self.log(f"❌ Found {surveys_from_other_ships} surveys from other companies")
+                        return False
+                else:
+                    self.log("   ⚠️ No surveys to verify company filtering")
+                    self.survey_tests['only_user_company_ships_returned'] = True
+                    return True
+            else:
+                self.log(f"   ❌ Failed to get ships for company verification: {response.status_code}")
+                return False
                 
         except Exception as e:
-            self.log(f"❌ Error testing multi cert upload: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing company filtering: {str(e)}", "ERROR")
             return False
 
     def verify_database_abbreviation_records(self):
