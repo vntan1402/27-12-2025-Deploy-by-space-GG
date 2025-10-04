@@ -241,9 +241,9 @@ class UpcomingSurveysNotificationTester:
             return False
     
     def verify_response_structure(self):
-        """Verify the upcoming surveys response has the correct structure"""
+        """Verify the upcoming surveys response has the correct structure with new fields"""
         try:
-            self.log("🔍 Verifying response structure...")
+            self.log("🔍 Verifying updated response structure...")
             
             if not self.upcoming_surveys_response:
                 self.log("❌ No response data to verify")
@@ -251,8 +251,8 @@ class UpcomingSurveysNotificationTester:
             
             response = self.upcoming_surveys_response
             
-            # Check for expected top-level keys
-            expected_keys = ['upcoming_surveys', 'total_count', 'company']
+            # Check for expected top-level keys (including new ones)
+            expected_keys = ['upcoming_surveys', 'total_count', 'company', 'check_date', 'logic_info']
             missing_keys = []
             
             for key in expected_keys:
@@ -268,25 +268,47 @@ class UpcomingSurveysNotificationTester:
             self.survey_tests['response_structure_correct'] = True
             self.log("✅ Top-level response structure is correct")
             
+            # NEW: Verify logic_info structure
+            logic_info = response.get('logic_info', {})
+            expected_logic_fields = ['description', 'window_calculation', 'filter_condition', 'window_days_per_cert']
+            logic_missing = []
+            
+            for field in expected_logic_fields:
+                if field not in logic_info:
+                    logic_missing.append(field)
+                else:
+                    self.log(f"   ✅ Found logic_info.{field}: {logic_info[field]}")
+            
+            if not logic_missing:
+                self.survey_tests['logic_info_updated'] = True
+                self.log("✅ Updated logic_info structure is correct")
+            else:
+                self.log(f"   ❌ Missing logic_info fields: {logic_missing}")
+            
             # Check upcoming_surveys array structure
             upcoming_surveys = response.get('upcoming_surveys', [])
             self.log(f"   Found {len(upcoming_surveys)} upcoming surveys")
             
             if upcoming_surveys:
-                # Check first survey item structure
+                # Check first survey item structure with NEW fields
                 first_survey = upcoming_surveys[0]
                 expected_survey_fields = [
                     'ship_name', 'cert_name_display', 'next_survey', 
                     'next_survey_type', 'last_endorse', 'days_until_survey',
-                    'is_overdue', 'is_due_soon'
+                    'is_overdue', 'is_due_soon', 'is_critical', 'is_within_window',
+                    'window_open', 'window_close', 'days_from_window_open', 'days_to_window_close'
                 ]
                 
                 missing_fields = []
+                new_fields_found = []
+                
                 for field in expected_survey_fields:
                     if field not in first_survey:
                         missing_fields.append(field)
                     else:
                         self.log(f"      ✅ Found field: {field}")
+                        if field in ['is_critical', 'is_within_window', 'window_open', 'window_close', 'days_from_window_open', 'days_to_window_close']:
+                            new_fields_found.append(field)
                 
                 if missing_fields:
                     self.log(f"   ❌ Missing survey fields: {missing_fields}")
@@ -294,6 +316,13 @@ class UpcomingSurveysNotificationTester:
                 
                 self.survey_tests['required_fields_present'] = True
                 self.log("✅ All required survey fields are present")
+                
+                # NEW: Check if new window fields are present
+                if len(new_fields_found) >= 6:  # All 6 new fields
+                    self.survey_tests['new_window_fields_present'] = True
+                    self.log("✅ All new window calculation fields are present")
+                else:
+                    self.log(f"   ❌ Missing new window fields. Found: {new_fields_found}")
                 
                 # Store surveys for further analysis
                 self.test_certificates = upcoming_surveys
