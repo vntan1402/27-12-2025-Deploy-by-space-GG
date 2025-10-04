@@ -3105,7 +3105,7 @@ const HomePage = () => {
   };
 
   const categories = [
-    { key: 'documents', name: language === 'vi' ? 'Hồ sơ tài liệu' : 'Document Portfolio', icon: '📁' },
+    { key: 'documents', name: language === 'vi' ? 'Hồ sơ tài liệu' : 'Class & Flag Cert', icon: '📁' },
     { key: 'crew', name: language === 'vi' ? 'Thuyền viên' : 'Crew Records', icon: '👥' },
     { key: 'ism', name: language === 'vi' ? 'Hồ sơ ISM' : 'ISM Records', icon: '📋' },
     { key: 'isps', name: language === 'vi' ? 'Hồ sơ ISPS' : 'ISPS Records', icon: '🛡️' },
