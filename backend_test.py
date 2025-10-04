@@ -69,7 +69,7 @@ class UpcomingSurveysNotificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for updated upcoming surveys logic
+        # Test tracking for Initial survey type rules for SMC, ISSC, MLC certificates
         self.survey_tests = {
             # Authentication and setup
             'authentication_successful': False,
@@ -80,20 +80,35 @@ class UpcomingSurveysNotificationTester:
             'upcoming_surveys_response_valid': False,
             'response_structure_correct': False,
             
-            # NEW: Window calculation tests
-            'window_calculation_logic_working': False,
-            'individual_certificate_windows_correct': False,
-            'current_date_filter_working': False,
+            # Initial Certificate Detection Tests
+            'initial_certificate_detection_working': False,
+            'smc_issc_mlc_certificates_identified': False,
+            'initial_survey_type_recognized': False,
             
-            # NEW: Updated response structure tests
-            'new_window_fields_present': False,
-            'logic_info_updated': False,
-            'window_dates_calculated_correctly': False,
+            # Initial Certificate Window Logic Tests
+            'initial_certificate_window_correct': False,
+            'valid_date_window_calculation_working': False,
+            'initial_certificate_filter_working': False,
             
-            # NEW: Status classification tests
-            'is_critical_field_present': False,
-            'is_critical_logic_correct': False,
-            'status_classification_updated': False,
+            # Window Rule Types Tests
+            'condition_certificate_expiry_window': False,
+            'initial_smc_issc_mlc_window': False,
+            'special_survey_window': False,
+            'other_surveys_window': False,
+            
+            # Initial Certificate Status Tests
+            'initial_certificate_overdue_logic': False,
+            'initial_certificate_due_soon_logic': False,
+            'initial_certificate_critical_logic': False,
+            
+            # Window Type Display Tests
+            'window_type_display_correct': False,
+            'valid_3m_to_valid_display': False,
+            'survey_window_rule_display': False,
+            
+            # Updated Logic Info Tests
+            'logic_info_includes_initial_rules': False,
+            'all_window_rule_types_documented': False,
             
             # Company filtering tests
             'company_filtering_working': False,
@@ -109,7 +124,7 @@ class UpcomingSurveysNotificationTester:
             'cert_display_names_present': False,
             'next_survey_dates_valid': False,
             
-            # NEW: Test certificate verification
+            # Test certificate verification
             'test_certificate_found': False,
             'test_certificate_in_window': False,
         }
