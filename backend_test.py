@@ -1630,29 +1630,34 @@ class UpcomingSurveysNotificationTester:
             
             # Final conclusion
             if success_rate >= 80 and requirements_met >= 5:
-                self.log(f"\n🎉 CONCLUSION: UPDATED UPCOMING SURVEYS LOGIC IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - New window calculation logic fully implemented!")
+                self.log(f"\n🎉 CONCLUSION: INITIAL SURVEY TYPE RULES FOR SMC/ISSC/MLC CERTIFICATES ARE WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Initial certificate logic fully implemented!")
                 self.log(f"   ✅ Requirements met: {requirements_met}/6")
-                self.log(f"   ✅ Each certificate creates its own ±90 day window")
-                self.log(f"   ✅ Current date filter working correctly")
-                self.log(f"   ✅ New response fields populated correctly")
-                self.log(f"   ✅ Updated status classification working")
+                self.log(f"   ✅ Initial SMC/ISSC/MLC certificates detected correctly")
+                self.log(f"   ✅ Initial certificate window logic working (valid_date - 90 days → valid_date)")
+                self.log(f"   ✅ All window rule types working correctly")
+                self.log(f"   ✅ Initial certificate status logic working")
+                self.log(f"   ✅ Updated logic info includes Initial certificate rules")
             elif success_rate >= 60 and requirements_met >= 4:
-                self.log(f"\n⚠️ CONCLUSION: UPDATED UPCOMING SURVEYS LOGIC PARTIALLY WORKING")
-                self.log(f"   Success rate: {success_rate:.1f}% - Most new functionality working, minor improvements needed")
+                self.log(f"\n⚠️ CONCLUSION: INITIAL SURVEY TYPE RULES PARTIALLY WORKING")
+                self.log(f"   Success rate: {success_rate:.1f}% - Most Initial certificate functionality working, minor improvements needed")
                 self.log(f"   ⚠️ Requirements met: {requirements_met}/6")
                 
                 if req1_met and req2_met:
                     self.log(f"   ✅ Core functionality (authentication and endpoint) is working")
                 if not req3_met:
-                    self.log(f"   ⚠️ Window calculation logic may need attention")
+                    self.log(f"   ⚠️ Initial certificate detection may need attention")
                 if not req4_met:
-                    self.log(f"   ⚠️ New response fields may be missing")
+                    self.log(f"   ⚠️ Initial certificate window logic may need fixes")
+                if not req5_met:
+                    self.log(f"   ⚠️ Window type display may be incorrect")
+                if not req6_met:
+                    self.log(f"   ⚠️ Logic info may be missing Initial certificate rules")
             else:
-                self.log(f"\n❌ CONCLUSION: UPDATED UPCOMING SURVEYS LOGIC HAS CRITICAL ISSUES")
+                self.log(f"\n❌ CONCLUSION: INITIAL SURVEY TYPE RULES HAVE CRITICAL ISSUES")
                 self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
                 self.log(f"   ❌ Requirements met: {requirements_met}/6")
-                self.log(f"   ❌ Updated upcoming surveys logic needs major fixes before production use")
+                self.log(f"   ❌ Initial survey type rules need major fixes before production use")
             
             return True
             
