@@ -409,11 +409,13 @@ function handleUploadFileWithFolderCreation(requestData) {
     var parentCategoryFolder;
     var folderPath;
     
-    // Use parent_category if provided, otherwise fallback to old logic
+    // Use parent_category if provided to create nested folder structure
     if (parentCategory) {
-      parentCategoryFolder = findFolderByName(shipFolder, parentCategory);
+      // Create nested folder path: parentCategory -> category
+      var folderHierarchy = [parentCategory, category];
+      parentCategoryFolder = createNestedFolders(shipFolder, folderHierarchy);
       if (!parentCategoryFolder) {
-        return createJsonResponse(false, "Parent category folder '" + parentCategory + "' not found in ship '" + shipName + "'");
+        return createJsonResponse(false, "Failed to create nested folder structure: " + parentCategory + "/" + category + " in ship '" + shipName + "'");
       }
       folderPath = shipName + "/" + parentCategory + "/" + category;
     } else if (documentPortfolioCategories.indexOf(category) !== -1) {
@@ -424,6 +426,7 @@ function handleUploadFileWithFolderCreation(requestData) {
       }
       folderPath = shipName + "/Class & Flag Cert/" + category;
     } else {
+      // Direct under ship folder
       parentCategoryFolder = shipFolder;
       folderPath = shipName + "/" + category;
     }
