@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Google Drive Folder Structure API Testing"
+    - "Multi Certificate Upload Google Drive Debug Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
