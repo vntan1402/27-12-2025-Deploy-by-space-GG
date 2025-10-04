@@ -1426,9 +1426,9 @@ class UpcomingSurveysNotificationTester:
             return False
     
     def provide_final_analysis(self):
-        """Provide final analysis of UPDATED upcoming surveys logic testing"""
+        """Provide final analysis of Initial Survey Type Rules Testing for SMC, ISSC, MLC Certificates"""
         try:
-            self.log("🔄 SHIP MANAGEMENT SYSTEM - UPDATED UPCOMING SURVEYS LOGIC TESTING - RESULTS")
+            self.log("🔄 SHIP MANAGEMENT SYSTEM - INITIAL SURVEY TYPE RULES TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
