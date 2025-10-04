@@ -452,8 +452,7 @@ startxref
                                 self.log("   Creating third upload (duplicate) for comprehensive testing...")
                                 
                                 files3 = {
-                                    'files': ('test_certificate_3.pdf', pdf_content, 'application/pdf'),
-                                    'ship_id': (None, ship_id)
+                                    'files': ('test_certificate_3.pdf', pdf_content, 'application/pdf')
                                 }
                                 
                                 response3 = requests.post(endpoint, files=files3, headers=self.get_headers(), timeout=60)
