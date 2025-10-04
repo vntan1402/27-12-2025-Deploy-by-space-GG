@@ -60,29 +60,35 @@ class UpcomingSurveysNotificationTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for multi cert upload abbreviation functionality
-        self.cert_tests = {
+        # Test tracking for upcoming surveys notification functionality
+        self.survey_tests = {
             # Authentication and setup
             'authentication_successful': False,
-            'ship_found_for_testing': False,
+            'user_company_identified': False,
             
-            # Multi upload endpoint tests
-            'multi_upload_endpoint_accessible': False,
-            'multi_upload_successful': False,
-            'certificates_created_with_abbreviations': False,
+            # Upcoming surveys endpoint tests
+            'upcoming_surveys_endpoint_accessible': False,
+            'upcoming_surveys_response_valid': False,
+            'response_structure_correct': False,
             
-            # AI analysis tests
-            'ai_extracted_abbreviation_working': False,
-            'mapping_based_abbreviation_working': False,
-            'cert_abbreviation_saved_to_database': False,
+            # Date filtering tests
+            'date_filtering_logic_working': False,
+            'three_month_window_correct': False,
+            'date_comparison_accurate': False,
             
-            # Enhanced logging verification
-            'enhanced_logging_detected': False,
-            'cert_abbreviation_processing_logged': False,
+            # Company filtering tests
+            'company_filtering_working': False,
+            'only_user_company_ships_returned': False,
             
-            # Database verification tests
-            'database_records_have_abbreviations': False,
-            'abbreviation_mappings_utilized': False,
+            # Response structure tests
+            'required_fields_present': False,
+            'status_indicators_calculated': False,
+            'days_until_survey_accurate': False,
+            
+            # Data validation tests
+            'ship_names_present': False,
+            'cert_display_names_present': False,
+            'next_survey_dates_valid': False,
         }
         
         # Store test results for analysis
