@@ -49,7 +49,7 @@
 ##
 ## test_plan:
 
-user_problem_statement: "Changed cert_abbreviation priority to: Mappings (HIGHEST) → AI Analysis → Auto-generation. Updated both certificate creation and auto-rename functions to prioritize user-defined abbreviation mappings over AI extraction. Test: 1. Certificate creation uses mapping first, then AI abbreviation, then auto-generation, 2. Auto-rename function uses same priority order, 3. Verify existing mappings (CSSC, LL, CL, ITC, etc.) take precedence over AI results, 4. Test that certificates with mappings get correct abbreviations in filenames. Use admin1/123456 credentials. The goal is to ensure consistent abbreviations from predefined mappings rather than relying on AI which may vary."
+user_problem_statement: "Test the complete upcoming surveys notification system with real test data. Specifically test: 1. Login with admin1/123456, 2. Verify that after login, the system automatically checks for upcoming surveys, 3. Since test data was created (certificate 'Test Survey Notification Certificate' with 30-day upcoming survey), verify the notification modal appears, 4. Check the modal content shows the test certificate data properly: Ship name: SUNSHINE 01, Certificate name: Test Survey Notification Certificate (TSN), Next Survey date formatted correctly, Survey type: Annual Survey, Status indicator: 'Due Soon' (yellow badge), 5. Test modal functionality: proper styling, table layout, close button, 6. Verify Vietnamese/English language support in modal."
 
 frontend:
   - task: "Quick Edit Survey Type Context Menu Functionality Debug"
