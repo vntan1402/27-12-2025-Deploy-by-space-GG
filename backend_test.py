@@ -588,6 +588,57 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error testing status classification: {str(e)}", "ERROR")
             return False
 
+    def test_specific_certificate_verification(self):
+        """Test for the specific 'Test Survey Notification Certificate' mentioned in review request"""
+        try:
+            self.log("🔍 Testing for specific 'Test Survey Notification Certificate'...")
+            
+            if not self.test_certificates:
+                self.log("   ⚠️ No survey data to search for test certificate")
+                return True
+            
+            test_cert_found = False
+            test_cert_details = None
+            
+            for survey in self.test_certificates:
+                cert_name = survey.get('cert_name', '')
+                cert_name_display = survey.get('cert_name_display', '')
+                ship_name = survey.get('ship_name', '')
+                
+                # Look for the test certificate
+                if 'Test Survey Notification Certificate' in cert_name or 'Test Survey Notification Certificate' in cert_name_display:
+                    test_cert_found = True
+                    test_cert_details = survey
+                    self.log(f"   ✅ Found 'Test Survey Notification Certificate'")
+                    self.log(f"      Ship: {ship_name}")
+                    self.log(f"      Certificate: {cert_name}")
+                    self.log(f"      Display: {cert_name_display}")
+                    self.log(f"      Next Survey: {survey.get('next_survey_date')}")
+                    self.log(f"      Window Open: {survey.get('window_open')}")
+                    self.log(f"      Window Close: {survey.get('window_close')}")
+                    self.log(f"      Is Critical: {survey.get('is_critical')}")
+                    self.log(f"      Is Due Soon: {survey.get('is_due_soon')}")
+                    break
+            
+            if test_cert_found:
+                self.survey_tests['test_certificate_found'] = True
+                
+                # Verify the test certificate is within its window (since it was returned)
+                if test_cert_details and test_cert_details.get('is_within_window'):
+                    self.survey_tests['test_certificate_in_window'] = True
+                    self.log("   ✅ Test certificate is correctly within its ±90 day window")
+                else:
+                    self.log("   ❌ Test certificate window status unclear")
+            else:
+                self.log("   ⚠️ 'Test Survey Notification Certificate' not found in results")
+                self.log("   This might be expected if the certificate's window doesn't contain current date")
+            
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ Error testing specific certificate: {str(e)}", "ERROR")
+            return False
+
     def validate_survey_data(self):
         """Validate the survey data returned by the endpoint"""
         try:
@@ -600,11 +651,14 @@ class UpcomingSurveysNotificationTester:
             ship_names_present = 0
             cert_names_present = 0
             valid_dates = 0
+            window_dates_present = 0
             
             for survey in self.test_certificates:
                 ship_name = survey.get('ship_name')
                 cert_name_display = survey.get('cert_name_display')
                 next_survey = survey.get('next_survey')
+                window_open = survey.get('window_open')
+                window_close = survey.get('window_close')
                 
                 if ship_name and ship_name.strip():
                     ship_names_present += 1
@@ -614,6 +668,9 @@ class UpcomingSurveysNotificationTester:
                 
                 if next_survey:
                     valid_dates += 1
+                
+                if window_open and window_close:
+                    window_dates_present += 1
             
             total_surveys = len(self.test_certificates)
             
@@ -635,9 +692,16 @@ class UpcomingSurveysNotificationTester:
             else:
                 self.log(f"   ❌ {total_surveys - valid_dates}/{total_surveys} surveys missing next survey dates")
             
+            if window_dates_present == total_surveys:
+                self.survey_tests['window_dates_calculated_correctly'] = True
+                self.log(f"   ✅ All {total_surveys} surveys have window dates calculated")
+            else:
+                self.log(f"   ❌ {total_surveys - window_dates_present}/{total_surveys} surveys missing window dates")
+            
             return (ship_names_present == total_surveys and 
                    cert_names_present == total_surveys and 
-                   valid_dates == total_surveys)
+                   valid_dates == total_surveys and
+                   window_dates_present == total_surveys)
             
         except Exception as e:
             self.log(f"❌ Error validating survey data: {str(e)}", "ERROR")
