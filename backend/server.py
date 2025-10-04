@@ -1141,15 +1141,24 @@ async def enhance_certificate_response(cert_dict: dict) -> dict:
         cert_dict['has_notes'] = False
         return cert_dict
 
-def normalize_date_string(date_str: str) -> str:
+def normalize_date_string(date_value) -> str:
     """
     Normalize date string to consistent format for comparison.
     Handles various date formats and removes time components.
+    Supports both string and datetime objects.
     """
-    if not date_str or date_str.strip() == '':
+    if not date_value:
         return ''
     
-    date_str = str(date_str).strip()
+    # Handle datetime objects
+    if hasattr(date_value, 'strftime'):
+        # It's a datetime object - convert to YYYY-MM-DD format
+        return date_value.strftime('%Y-%m-%d')
+    
+    # Handle string values
+    date_str = str(date_value).strip()
+    if not date_str:
+        return ''
     
     # Remove time components (anything after space or 'T')
     if ' ' in date_str:
