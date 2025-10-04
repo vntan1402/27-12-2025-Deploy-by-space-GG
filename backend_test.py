@@ -138,7 +138,10 @@ class UpcomingSurveysNotificationTester:
                 self.log(f"   User Role: {self.current_user.get('role')}")
                 self.log(f"   Company: {self.current_user.get('company')}")
                 
-                self.cert_tests['authentication_successful'] = True
+                self.survey_tests['authentication_successful'] = True
+                self.user_company = self.current_user.get('company')
+                if self.user_company:
+                    self.survey_tests['user_company_identified'] = True
                 return True
             else:
                 self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
