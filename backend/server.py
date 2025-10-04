@@ -8634,7 +8634,7 @@ async def create_ship_google_drive_folder(
             logger.info(f"   Ship: {ship_name}")
             logger.info(f"   Source: {source}")
             logger.info(f"   Subfolders ({total_subfolders}): {subfolders}")
-            all_categories = ["Document Portfolio"]  # Default category
+            all_categories = ["Class & Flag Cert"]  # Default category
             all_subfolders = subfolders
         
         # Get company Google Drive configuration
