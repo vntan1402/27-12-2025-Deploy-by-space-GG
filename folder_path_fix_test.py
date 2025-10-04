@@ -227,24 +227,46 @@ class FolderPathFixTester:
             # Create a realistic certificate filename
             self.test_filename = f"Safety_Management_Certificate_Test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             
-            # Create realistic PDF-like content (simplified for testing)
+            # Create realistic PDF-like content that will be recognized as a marine certificate
             pdf_header = b"%PDF-1.4\n"
+            ship_name = self.test_ship.get('name', 'SUNSHINE 01')
+            imo_number = self.test_ship.get('imo', '9415313')
+            
             certificate_content = f"""
 SAFETY MANAGEMENT CERTIFICATE
 
-Ship Name: {self.test_ship.get('name', 'TEST SHIP')}
-IMO Number: {self.test_ship.get('imo', '1234567')}
-Certificate Number: SMC-TEST-{datetime.now().strftime('%Y%m%d')}
+This is to certify that the Safety Management System of the ship named below has been audited and that the ship complies with the requirements of the International Safety Management Code.
+
+Ship Name: {ship_name}
+IMO Number: {imo_number}
+Port of Registry: BELIZE
+Flag: BELIZE
+Gross Tonnage: 5000
+Ship Type: CARGO SHIP
+
+Certificate Number: SMC-{datetime.now().strftime('%Y%m%d')}-001
 Issue Date: {datetime.now().strftime('%d/%m/%Y')}
 Valid Until: {(datetime.now().replace(year=datetime.now().year + 1)).strftime('%d/%m/%Y')}
 
-This certificate is issued under the provisions of the International Safety Management Code.
+This certificate is issued under the provisions of the International Safety Management Code (ISM Code) as adopted by the International Maritime Organization by resolution A.741(18).
+
+The Safety Management System of the above ship has been audited and found to comply with the requirements of the ISM Code.
 
 Issued by: Panama Maritime Documentation Services
-Date: {datetime.now().strftime('%d/%m/%Y')}
+Place of Issue: PANAMA
+Date of Issue: {datetime.now().strftime('%d/%m/%Y')}
+
+This certificate is valid until: {(datetime.now().replace(year=datetime.now().year + 1)).strftime('%d/%m/%Y')}
+
+ENDORSEMENT FOR ANNUAL VERIFICATION
+This is to certify that at an annual verification required by paragraph 13.1 of the ISM Code, the ship was found to comply with the relevant provisions of the ISM Code.
+
+Annual verification: {datetime.now().strftime('%d/%m/%Y')}
+Place: PANAMA
+Signature: [Authorized Officer]
 
 This is a test certificate for Multi Certificate Upload Path Fix verification.
-Expected upload path: {self.test_ship.get('name', 'TEST SHIP')}/Class & Flag Cert/Certificates/{self.test_filename}
+Expected upload path: {ship_name}/Class & Flag Cert/Certificates/{self.test_filename}
 """.encode('utf-8')
             
             # Combine to create PDF-like content
