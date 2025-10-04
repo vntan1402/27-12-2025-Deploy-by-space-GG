@@ -1,25 +1,29 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Multi Cert Upload cert_abbreviation Saving Testing
-FOCUS: Test Multi Cert Upload fix for cert_abbreviation saving
+Ship Management System - Upcoming Surveys Notification System Testing
+FOCUS: Test the new upcoming surveys notification system
 
 REVIEW REQUEST REQUIREMENTS:
-1. Find the multi cert upload endpoint /certificates/multi-upload
-2. Test if cert_abbreviation is now properly saved to certificate records
-3. Check if the enhanced logging shows cert_abbreviation processing
-4. Verify both AI-extracted and mapping-based abbreviations work
-5. Use admin1/123456 credentials
+1. Login with admin1/123456
+2. Test the new `/api/certificates/upcoming-surveys` endpoint
+3. Verify it returns certificates with Next Survey dates within ±3 months window
+4. Check the response structure includes: ship_name, cert_name_display, next_survey, next_survey_type, last_endorse, status indicators
+5. Test the date comparison logic works correctly (±90 days from current date)
+6. Verify company filtering - only shows certificates from user's company ships
 
 TEST SCENARIOS:
-- Certificate where AI extracts cert_abbreviation directly
-- Certificate where abbreviation comes from existing mappings
-- Verify cert_abbreviation field is populated in database after multi upload
+- Test upcoming surveys endpoint accessibility
+- Verify date filtering logic (±3 months window)
+- Check response structure and required fields
+- Test company filtering functionality
+- Verify status indicators calculation
 
 EXPECTED BEHAVIOR:
-- Multi Cert Upload should save cert_abbreviation to certificate database records
-- AI analysis_result should include cert_abbreviation
-- Existing abbreviation mappings should be used when AI doesn't provide one
-- Enhanced logging should show cert_abbreviation processing
+- GET /api/certificates/upcoming-surveys returns proper JSON structure
+- Only certificates within ±90 days window are returned
+- Response includes all required fields (ship_name, cert_name_display, etc.)
+- Company filtering works correctly
+- Status indicators (is_overdue, is_due_soon, days_until_survey) calculated correctly
 """
 
 import requests
