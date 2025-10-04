@@ -52,7 +52,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vesseltrack.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class MultiCertUploadAbbreviationTester:
+class UpcomingSurveysNotificationTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
