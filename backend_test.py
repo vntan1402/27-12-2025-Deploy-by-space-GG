@@ -1666,8 +1666,8 @@ class UpcomingSurveysNotificationTester:
             return False
 
 def main():
-    """Main function to run Ship Management System Updated Upcoming Surveys Logic tests"""
-    print("🔄 SHIP MANAGEMENT SYSTEM - UPDATED UPCOMING SURVEYS LOGIC TESTING STARTED")
+    """Main function to run Ship Management System Initial Survey Type Rules tests"""
+    print("🔄 SHIP MANAGEMENT SYSTEM - INITIAL SURVEY TYPE RULES TESTING STARTED")
     print("=" * 80)
     
     try:
@@ -1675,9 +1675,9 @@ def main():
         success = tester.run_comprehensive_upcoming_surveys_tests()
         
         if success:
-            print("\n✅ UPDATED UPCOMING SURVEYS LOGIC TESTING COMPLETED SUCCESSFULLY")
+            print("\n✅ INITIAL SURVEY TYPE RULES TESTING COMPLETED SUCCESSFULLY")
         else:
-            print("\n❌ UPDATED UPCOMING SURVEYS LOGIC TESTING COMPLETED WITH ISSUES")
+            print("\n❌ INITIAL SURVEY TYPE RULES TESTING COMPLETED WITH ISSUES")
             
     except Exception as e:
         print(f"\n❌ CRITICAL ERROR: {str(e)}")
