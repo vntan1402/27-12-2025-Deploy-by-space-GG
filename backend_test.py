@@ -336,12 +336,12 @@ class InitialSurveyBugFixTester:
                     self.log(f"   ❌ Missing survey fields: {missing_fields}")
                     return False
                 
-                self.survey_tests['required_fields_present'] = True
+                self.bug_fix_tests['required_fields_present'] = True
                 self.log("✅ All required survey fields are present")
                 
                 # NEW: Check if new window fields are present
                 if len(new_fields_found) >= 6:  # All 6 new fields
-                    self.survey_tests['new_window_fields_present'] = True
+                    self.bug_fix_tests['window_calculation_fields_present'] = True
                     self.log("✅ All new window calculation fields are present")
                 else:
                     self.log(f"   ❌ Missing new window fields. Found: {new_fields_found}")
@@ -353,7 +353,7 @@ class InitialSurveyBugFixTester:
             else:
                 self.log("   ⚠️ No upcoming surveys found in response")
                 # This might be valid if no surveys are due
-                self.survey_tests['required_fields_present'] = True
+                self.bug_fix_tests['required_fields_present'] = True
                 return True
                 
         except Exception as e:
