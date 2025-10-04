@@ -3919,7 +3919,7 @@ const HomePage = () => {
                               </span>
                             </button>
                             {/* Ship Select Dropdown */}
-                            <div className="relative">
+                            <div className="relative" ref={shipSelectorRef}>
                               <button
                                 onClick={() => setShowShipSelector(!showShipSelector)}
                                 className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
