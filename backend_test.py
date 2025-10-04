@@ -300,25 +300,17 @@ class UpcomingSurveysNotificationTester:
                     self.log(f"   ✅ Found logic_info.{field}: {logic_info[field]}")
             
             # Check if Initial certificate rules are documented
-            window_rules = logic_info.get('window_rules', [])
+            window_rules = logic_info.get('window_rules', {})
             if window_rules:
                 self.log(f"   Found {len(window_rules)} window rules:")
                 initial_rule_found = False
-                expected_rules = [
-                    'Condition Certificate Expiry',
-                    'Initial SMC/ISSC/MLC',
-                    'Special Survey',
-                    'Other Surveys'
-                ]
                 
-                for rule in window_rules:
-                    rule_name = rule.get('name', '')
-                    rule_description = rule.get('description', '')
-                    self.log(f"      {rule_name}: {rule_description}")
+                for rule_key, rule_description in window_rules.items():
+                    self.log(f"      {rule_key}: {rule_description}")
                     
-                    if 'Initial SMC/ISSC/MLC' in rule_name:
+                    if 'initial_smc_issc_mlc' in rule_key:
                         initial_rule_found = True
-                        if 'Valid date - 3M → Valid date' in rule_description:
+                        if 'Valid date - 3M → Valid date' in rule_description or '3 months before expiry' in rule_description:
                             self.survey_tests['logic_info_includes_initial_rules'] = True
                             self.log(f"         ✅ Initial certificate rule correctly documented")
                 
@@ -328,6 +320,8 @@ class UpcomingSurveysNotificationTester:
                 
                 if not initial_rule_found:
                     self.log("   ❌ Initial SMC/ISSC/MLC rule not found in logic_info")
+            else:
+                self.log("   ❌ No window_rules found in logic_info")
             
             if not logic_missing:
                 self.log("✅ Updated logic_info structure is correct")
