@@ -393,10 +393,23 @@ startxref
                 self.log("❌ No upload response to verify")
                 return False
             
-            # Check if upload was successful
+            # Check if upload was successful - look for different success indicators
             success = self.upload_response.get('success', False)
+            summary = self.upload_response.get('summary', {})
+            
+            # Check summary for success indicators
+            if not success and summary:
+                total_files = summary.get('total_files', 0)
+                successful_uploads = summary.get('successful_uploads', 0)
+                if successful_uploads > 0:
+                    self.log(f"✅ Found {successful_uploads}/{total_files} successful uploads in summary")
+                    success = True
+                else:
+                    self.log(f"❌ No successful uploads found: {successful_uploads}/{total_files}")
+            
             if not success:
                 self.log("❌ Upload was not successful according to response")
+                self.log(f"   Response summary: {summary}")
                 return False
             
             # Look for results array
