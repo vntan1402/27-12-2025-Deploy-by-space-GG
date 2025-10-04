@@ -358,83 +358,226 @@ class UpcomingSurveysNotificationTester:
             self.log(f"❌ Error verifying response structure: {str(e)}", "ERROR")
             return False
     
-    def test_new_window_calculation_logic(self):
-        """Test the NEW window calculation logic - each certificate creates its own ±90 day window"""
+    def test_initial_certificate_detection(self):
+        """Test Initial certificate detection for SMC, ISSC, MLC certificates"""
         try:
-            self.log("📅 Testing NEW window calculation logic...")
+            self.log("🔍 Testing Initial certificate detection for SMC, ISSC, MLC...")
             
             if not self.test_certificates:
-                self.log("   ⚠️ No upcoming surveys to test window calculation")
-                # This might be valid - no surveys due
-                self.survey_tests['window_calculation_logic_working'] = True
-                self.survey_tests['individual_certificate_windows_correct'] = True
+                self.log("   ⚠️ No upcoming surveys to test initial certificate detection")
+                return True
+            
+            initial_certificates_found = []
+            smc_issc_mlc_found = []
+            
+            for survey in self.test_certificates:
+                ship_name = survey.get('ship_name', 'Unknown')
+                cert_name = survey.get('cert_name', '').upper()
+                next_survey_type = survey.get('next_survey_type', '').upper()
+                window_type = survey.get('window_type', '')
+                
+                self.log(f"   Certificate for {ship_name}:")
+                self.log(f"      Cert Name: {cert_name}")
+                self.log(f"      Next Survey Type: {next_survey_type}")
+                self.log(f"      Window Type: {window_type}")
+                
+                # Check if it's an Initial survey type
+                if 'INITIAL' in next_survey_type:
+                    initial_certificates_found.append(survey)
+                    self.log(f"      ✅ Initial survey type detected")
+                    
+                    # Check if it's SMC, ISSC, or MLC certificate
+                    if any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']):
+                        smc_issc_mlc_found.append(survey)
+                        self.log(f"      ✅ SMC/ISSC/MLC certificate detected")
+                        
+                        # Check window type display
+                        if window_type == 'Valid-3M→Valid':
+                            self.log(f"      ✅ Correct window type display: {window_type}")
+                        else:
+                            self.log(f"      ❌ Incorrect window type display: {window_type} (expected: Valid-3M→Valid)")
+                    else:
+                        self.log(f"      ⚠️ Initial certificate but not SMC/ISSC/MLC")
+                else:
+                    self.log(f"      ⚠️ Not an Initial survey type")
+            
+            if initial_certificates_found:
+                self.survey_tests['initial_survey_type_recognized'] = True
+                self.log(f"✅ Found {len(initial_certificates_found)} Initial survey type certificates")
+            
+            if smc_issc_mlc_found:
+                self.survey_tests['smc_issc_mlc_certificates_identified'] = True
+                self.survey_tests['initial_certificate_detection_working'] = True
+                self.log(f"✅ Found {len(smc_issc_mlc_found)} Initial SMC/ISSC/MLC certificates")
+                return True
+            else:
+                self.log("   ⚠️ No Initial SMC/ISSC/MLC certificates found in results")
+                self.log("   This may be expected if no such certificates are due")
+                return True
+                
+        except Exception as e:
+            self.log(f"❌ Error testing initial certificate detection: {str(e)}", "ERROR")
+            return False
+
+    def test_initial_certificate_window_logic(self):
+        """Test Initial certificate window logic: valid_date - 90 days to valid_date"""
+        try:
+            self.log("📅 Testing Initial certificate window logic...")
+            
+            if not self.test_certificates:
+                self.log("   ⚠️ No upcoming surveys to test initial certificate window logic")
                 return True
             
             from datetime import datetime, timedelta
             current_date = datetime.now().date()
             
             self.log(f"   Current date: {current_date}")
-            self.log("   NEW LOGIC: Each certificate creates its own ±90 day window around next_survey_date")
+            self.log("   INITIAL LOGIC: window_open = valid_date - 90 days, window_close = valid_date")
             
-            windows_correct = 0
-            windows_incorrect = 0
+            initial_windows_correct = 0
+            initial_windows_incorrect = 0
             
             for survey in self.test_certificates:
                 ship_name = survey.get('ship_name', 'Unknown')
-                next_survey_str = survey.get('next_survey_date')  # Use the ISO format date
+                cert_name = survey.get('cert_name', '').upper()
+                next_survey_type = survey.get('next_survey_type', '').upper()
+                valid_date_str = survey.get('valid_date')
                 window_open_str = survey.get('window_open')
                 window_close_str = survey.get('window_close')
+                window_type = survey.get('window_type', '')
                 
-                if next_survey_str and window_open_str and window_close_str:
-                    try:
-                        # Parse dates
-                        next_survey_date = datetime.fromisoformat(next_survey_str).date()
-                        window_open = datetime.fromisoformat(window_open_str).date()
-                        window_close = datetime.fromisoformat(window_close_str).date()
-                        
-                        # Calculate expected window
-                        expected_window_open = next_survey_date - timedelta(days=90)
-                        expected_window_close = next_survey_date + timedelta(days=90)
-                        
-                        self.log(f"   Certificate for {ship_name}:")
-                        self.log(f"      Next survey: {next_survey_date}")
-                        self.log(f"      Window open: {window_open} (expected: {expected_window_open})")
-                        self.log(f"      Window close: {window_close} (expected: {expected_window_close})")
-                        
-                        # Verify window calculation
-                        if window_open == expected_window_open and window_close == expected_window_close:
-                            windows_correct += 1
-                            self.log(f"      ✅ Window calculation correct")
+                # Only test Initial SMC/ISSC/MLC certificates
+                if ('INITIAL' in next_survey_type and 
+                    any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC'])):
+                    
+                    self.log(f"   Initial {cert_name} certificate for {ship_name}:")
+                    
+                    if valid_date_str and window_open_str and window_close_str:
+                        try:
+                            # Parse dates
+                            valid_date = datetime.fromisoformat(valid_date_str).date()
+                            window_open = datetime.fromisoformat(window_open_str).date()
+                            window_close = datetime.fromisoformat(window_close_str).date()
                             
-                            # Verify current date is within window (since certificate was returned)
-                            if expected_window_open <= current_date <= expected_window_close:
-                                self.log(f"      ✅ Current date {current_date} is within window")
+                            # Calculate expected window for Initial certificates
+                            expected_window_open = valid_date - timedelta(days=90)
+                            expected_window_close = valid_date
+                            
+                            self.log(f"      Valid date: {valid_date}")
+                            self.log(f"      Window open: {window_open} (expected: {expected_window_open})")
+                            self.log(f"      Window close: {window_close} (expected: {expected_window_close})")
+                            self.log(f"      Window type: {window_type}")
+                            
+                            # Verify Initial certificate window calculation
+                            if (window_open == expected_window_open and 
+                                window_close == expected_window_close):
+                                initial_windows_correct += 1
+                                self.log(f"      ✅ Initial certificate window calculation correct")
+                                
+                                # Verify current date is within window (since certificate was returned)
+                                if expected_window_open <= current_date <= expected_window_close:
+                                    self.log(f"      ✅ Current date {current_date} is within Initial certificate window")
+                                else:
+                                    self.log(f"      ❌ Current date {current_date} is NOT within Initial certificate window")
+                                    initial_windows_incorrect += 1
                             else:
-                                self.log(f"      ❌ Current date {current_date} is NOT within window - should not be returned")
-                                windows_incorrect += 1
-                        else:
-                            windows_incorrect += 1
-                            self.log(f"      ❌ Window calculation incorrect")
-                            
-                    except Exception as e:
-                        self.log(f"      ⚠️ Could not verify window calculation: {str(e)}")
-                        windows_incorrect += 1
-                else:
-                    self.log(f"   ❌ Missing window data for {ship_name}")
-                    windows_incorrect += 1
+                                initial_windows_incorrect += 1
+                                self.log(f"      ❌ Initial certificate window calculation incorrect")
+                                
+                        except Exception as e:
+                            self.log(f"      ⚠️ Could not verify Initial certificate window: {str(e)}")
+                            initial_windows_incorrect += 1
+                    else:
+                        self.log(f"   ❌ Missing window data for Initial certificate {ship_name}")
+                        initial_windows_incorrect += 1
             
-            if windows_incorrect == 0:
-                self.survey_tests['window_calculation_logic_working'] = True
-                self.survey_tests['individual_certificate_windows_correct'] = True
-                self.survey_tests['current_date_filter_working'] = True
-                self.log(f"✅ NEW window calculation logic working correctly - all {windows_correct} certificates have correct windows")
+            if initial_windows_incorrect == 0 and initial_windows_correct > 0:
+                self.survey_tests['initial_certificate_window_correct'] = True
+                self.survey_tests['valid_date_window_calculation_working'] = True
+                self.survey_tests['initial_certificate_filter_working'] = True
+                self.log(f"✅ Initial certificate window logic working correctly - all {initial_windows_correct} Initial certificates have correct windows")
+                return True
+            elif initial_windows_correct == 0:
+                self.log("   ⚠️ No Initial SMC/ISSC/MLC certificates found to test window logic")
                 return True
             else:
-                self.log(f"❌ Window calculation issues - {windows_incorrect} certificates have incorrect windows")
+                self.log(f"❌ Initial certificate window issues - {initial_windows_incorrect} certificates have incorrect windows")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error testing window calculation logic: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing Initial certificate window logic: {str(e)}", "ERROR")
+            return False
+
+    def test_all_window_rule_types(self):
+        """Test all 4 window rule types work correctly"""
+        try:
+            self.log("🔍 Testing all window rule types...")
+            
+            if not self.test_certificates:
+                self.log("   ⚠️ No upcoming surveys to test window rule types")
+                return True
+            
+            window_types_found = set()
+            window_rule_examples = {}
+            
+            for survey in self.test_certificates:
+                ship_name = survey.get('ship_name', 'Unknown')
+                cert_name = survey.get('cert_name', '')
+                next_survey_type = survey.get('next_survey_type', '')
+                window_type = survey.get('window_type', '')
+                survey_window_rule = survey.get('survey_window_rule', '')
+                
+                if window_type:
+                    window_types_found.add(window_type)
+                    window_rule_examples[window_type] = {
+                        'ship_name': ship_name,
+                        'cert_name': cert_name,
+                        'next_survey_type': next_survey_type,
+                        'survey_window_rule': survey_window_rule
+                    }
+            
+            self.log(f"   Found window types: {list(window_types_found)}")
+            
+            # Expected window types
+            expected_window_types = {
+                'Issue→Valid': 'Condition Certificate Expiry',
+                'Valid-3M→Valid': 'Initial SMC/ISSC/MLC',
+                '-3M': 'Special Survey',
+                '±3M': 'Other Surveys'
+            }
+            
+            types_working = 0
+            for window_type, description in expected_window_types.items():
+                if window_type in window_types_found:
+                    example = window_rule_examples[window_type]
+                    self.log(f"   ✅ {window_type} ({description}) found:")
+                    self.log(f"      Example: {example['cert_name']} on {example['ship_name']}")
+                    self.log(f"      Survey type: {example['next_survey_type']}")
+                    self.log(f"      Rule: {example['survey_window_rule']}")
+                    types_working += 1
+                    
+                    # Set specific test flags
+                    if window_type == 'Issue→Valid':
+                        self.survey_tests['condition_certificate_expiry_window'] = True
+                    elif window_type == 'Valid-3M→Valid':
+                        self.survey_tests['initial_smc_issc_mlc_window'] = True
+                    elif window_type == '-3M':
+                        self.survey_tests['special_survey_window'] = True
+                    elif window_type == '±3M':
+                        self.survey_tests['other_surveys_window'] = True
+                else:
+                    self.log(f"   ⚠️ {window_type} ({description}) not found in results")
+            
+            if types_working >= 2:  # At least 2 different window types working
+                self.survey_tests['window_type_display_correct'] = True
+                self.log(f"✅ Window rule types working correctly - found {types_working}/4 types")
+                return True
+            else:
+                self.log(f"❌ Insufficient window rule types found - only {types_working}/4 types")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error testing window rule types: {str(e)}", "ERROR")
             return False
 
     def test_company_filtering(self):
