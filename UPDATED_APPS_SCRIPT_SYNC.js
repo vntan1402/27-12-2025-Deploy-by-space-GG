@@ -299,8 +299,8 @@ function getDynamicFolderStructure(backendApiUrl) {
         Logger.log("📊 Received structure with " + Object.keys(result.structure).length + " categories");
         
         // Log specific folder names to verify they're updated
-        if (result.structure["Document Portfolio"]) {
-          Logger.log("📋 Document Portfolio subcategories: " + result.structure["Document Portfolio"].join(", "));
+        if (result.structure["Class & Flag Cert"]) {
+          Logger.log("📋 Class & Flag Cert subcategories: " + result.structure["Class & Flag Cert"].join(", "));
         }
         
         return {
