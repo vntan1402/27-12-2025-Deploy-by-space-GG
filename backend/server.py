@@ -3854,6 +3854,20 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         # For condition certificates, use expiry date for calculations
                         days_until_survey = days_until_expiry
                         
+                    elif 'Initial' in next_survey_type and any(cert_type in cert_name for cert_type in ['SMC', 'ISSC', 'MLC']):
+                        # Initial Survey for SMC, ISSC, MLC: overdue if past valid date
+                        is_overdue = current_date > window_close  # window_close = valid_date
+                        
+                        # Due soon: Initial survey due within next 30 days
+                        days_until_initial = (window_close - current_date).days
+                        is_due_soon = 0 <= days_until_initial <= 30
+                        
+                        # Critical: Initial survey due within 7 days or already overdue
+                        is_critical = days_until_initial <= 7
+                        
+                        # For initial certificates, use valid date for calculations
+                        days_until_survey = days_until_initial
+                        
                     elif 'Special Survey' in next_survey_type:
                         # Special Survey: overdue if past survey date (no grace period)
                         is_overdue = next_survey_date < current_date
