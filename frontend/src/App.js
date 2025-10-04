@@ -13476,15 +13476,9 @@ const AddRecordModal = ({
               {/* Close button */}
               <button
                 onClick={() => {
-                  setDuplicateResolutionModal({
-                    show: false,
-                    fileData: null,
-                    analysisResult: null,
-                    duplicateInfo: null,
-                    shipId: null,
-                    fileIndex: -1,
-                    fileName: ''
-                  });
+                  // Process next duplicate in queue (will close modal if no more duplicates)
+                  processNextDuplicate();
+                  
                   // Reset multi cert processing state when modal is closed
                   if (setIsMultiCertProcessing) {
                     setIsMultiCertProcessing(false);
