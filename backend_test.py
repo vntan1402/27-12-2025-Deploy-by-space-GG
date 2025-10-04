@@ -1,38 +1,31 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Initial Survey Type Rules Testing for SMC, ISSC, MLC Certificates
-FOCUS: Test the updated upcoming surveys logic with Initial survey type rules
+Ship Management System - Initial Survey Type Rules Bug Fix Testing
+FOCUS: Test the FIXED Initial survey type logic after certificate name matching bug fix
 
 REVIEW REQUEST REQUIREMENTS:
 1. Login with admin1/123456
-2. Test the updated `/api/certificates/upcoming-surveys` endpoint with all window rules including Initial type
-3. Verify the Initial Survey logic for SMC, ISSC, MLC certificates:
-   - window_open = valid_date - 3 months (90 days)
-   - window_close = valid_date
-   - Certificate appears in upcoming surveys if: (valid_date - 90 days) <= current_date <= valid_date
-4. Verify all window rule types work correctly:
-   - Condition Certificate Expiry: Issue date → Valid date window
-   - Initial SMC/ISSC/MLC: Valid date - 3M → Valid date window
-   - Special Survey: Only -3M window (90 days before survey date)
-   - Other Surveys: ±3M window (90 days before and after survey date)
+2. Test the `/api/certificates/upcoming-surveys` endpoint after the name matching fix
+3. Verify that Initial certificates with full names are now properly identified:
+   - 'SAFETY MANAGEMENT CERTIFICATE' should match 'SAFETY MANAGEMENT' 
+   - 'INTERNATIONAL SHIP SECURITY CERTIFICATE' should match 'SHIP SECURITY'
+   - 'MARITIME LABOUR CERTIFICATE' should match 'MARITIME LABOUR'
+4. Check that Initial certificates now appear in upcoming surveys results
+5. Verify window calculation works correctly: window_open = valid_date - 90 days, window_close = valid_date
+6. Check status classification: is_overdue, is_due_soon, is_critical logic for Initial certificates
+7. Verify window_type displays as "Valid-3M→Valid"
+8. Check survey_window_rule shows "Initial SMC/ISSC/MLC: Valid date - 3M → Valid date"
 
-KEY VERIFICATION POINTS:
-1. Initial Certificate Detection: Identifies certificates with next_survey_type "Initial" AND cert_name containing "SMC", "ISSC", or "MLC"
-2. Initial Certificate Window: Uses valid_date - 90 days to valid_date (not next_survey_date)
-3. Initial Certificate Status:
-   - is_overdue: current_date > valid_date
-   - is_due_soon: expires within 30 days
-   - is_critical: expires within 7 days or already overdue
-4. Window Type Display: "Valid-3M→Valid" for initial certificates
-5. Survey Window Rule: "Initial SMC/ISSC/MLC: Valid date - 3M → Valid date"
-6. Updated Logic Info: Includes initial certificate rules explanation
+EXPECTED RESULTS AFTER FIX:
+- Initial certificates with next_survey_type "Initial" should appear in results
+- Window calculation should use valid_date - 90 days to valid_date  
+- Status should be calculated based on valid_date expiry logic
+- Window type should show "Valid-3M→Valid"
+- Response should include Initial certificates in upcoming_surveys array
 
-EXPECTED BEHAVIOR:
-- Initial SMC/ISSC/MLC certificates appear if current date falls within 90 days before valid_date
-- Other certificate types maintain their existing window logic
-- Window types displayed correctly: "Issue→Valid", "Valid-3M→Valid", "-3M", "±3M"
-- Different overdue/critical logic for each certificate type
-- Logic info includes all 4 window rule types
+CRITICAL TEST:
+The previously created test Initial certificates should now appear in the upcoming surveys response 
+if they fall within their calculated windows and match the updated name criteria.
 """
 
 import requests
