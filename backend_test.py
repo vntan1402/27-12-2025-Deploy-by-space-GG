@@ -984,159 +984,179 @@ class UpcomingSurveysNotificationTester:
             return False
     
     def provide_final_analysis(self):
-        """Provide final analysis of multi cert upload abbreviation testing"""
+        """Provide final analysis of upcoming surveys notification testing"""
         try:
-            self.log("🔄 SHIP MANAGEMENT SYSTEM - MULTI CERT UPLOAD ABBREVIATION TESTING - RESULTS")
+            self.log("🔄 SHIP MANAGEMENT SYSTEM - UPCOMING SURVEYS NOTIFICATION TESTING - RESULTS")
             self.log("=" * 80)
             
             # Check which tests passed
             passed_tests = []
             failed_tests = []
             
-            for test_name, passed in self.cert_tests.items():
+            for test_name, passed in self.survey_tests.items():
                 if passed:
                     passed_tests.append(test_name)
                 else:
                     failed_tests.append(test_name)
             
-            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.cert_tests)}):")
+            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.survey_tests)}):")
             for test in passed_tests:
                 self.log(f"   ✅ {test.replace('_', ' ').title()}")
             
             if failed_tests:
-                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.cert_tests)}):")
+                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.survey_tests)}):")
                 for test in failed_tests:
                     self.log(f"   ❌ {test.replace('_', ' ').title()}")
             
             # Calculate success rate
-            success_rate = (len(passed_tests) / len(self.cert_tests)) * 100
-            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.cert_tests)})")
+            success_rate = (len(passed_tests) / len(self.survey_tests)) * 100
+            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.survey_tests)})")
             
-            # Multi upload endpoint analysis
-            self.log("\n📤 MULTI CERT UPLOAD ENDPOINT ANALYSIS:")
+            # Upcoming surveys endpoint analysis
+            self.log("\n📅 UPCOMING SURVEYS ENDPOINT ANALYSIS:")
             
-            if self.cert_tests['multi_upload_endpoint_accessible']:
-                self.log("   ✅ CONFIRMED: /certificates/multi-upload endpoint is accessible")
+            if self.survey_tests['upcoming_surveys_endpoint_accessible']:
+                self.log("   ✅ CONFIRMED: /api/certificates/upcoming-surveys endpoint is accessible")
             else:
-                self.log("   ❌ ISSUE: Multi cert upload endpoint not accessible")
+                self.log("   ❌ ISSUE: Upcoming surveys endpoint not accessible")
             
-            if self.cert_tests['multi_upload_successful']:
-                self.log("   ✅ SUCCESS: Multi cert upload completed successfully")
-                self.log(f"      Uploaded {len(self.uploaded_certificates)} certificates")
+            if self.survey_tests['upcoming_surveys_response_valid']:
+                self.log("   ✅ SUCCESS: Endpoint returns valid JSON response")
             else:
-                self.log("   ❌ ISSUE: Multi cert upload failed")
+                self.log("   ❌ ISSUE: Invalid response from endpoint")
             
-            # Certificate abbreviation analysis
-            self.log("\n📋 CERTIFICATE ABBREVIATION ANALYSIS:")
+            # Response structure analysis
+            self.log("\n🔍 RESPONSE STRUCTURE ANALYSIS:")
             
-            abbreviation_tests = [
-                'certificates_created_with_abbreviations',
-                'cert_abbreviation_saved_to_database',
-                'ai_extracted_abbreviation_working',
-                'database_records_have_abbreviations'
+            if self.survey_tests['response_structure_correct']:
+                self.log("   ✅ SUCCESS: Response has correct top-level structure")
+            else:
+                self.log("   ❌ ISSUE: Response structure incorrect")
+            
+            if self.survey_tests['required_fields_present']:
+                self.log("   ✅ SUCCESS: All required fields present in survey objects")
+                self.log("      Fields: ship_name, cert_name_display, next_survey, next_survey_type, last_endorse, status indicators")
+            else:
+                self.log("   ❌ ISSUE: Missing required fields in survey objects")
+            
+            # Date filtering analysis
+            self.log("\n📅 DATE FILTERING ANALYSIS:")
+            
+            date_tests = [
+                'date_filtering_logic_working',
+                'three_month_window_correct',
+                'date_comparison_accurate'
             ]
-            abbreviation_passed = sum(1 for test in abbreviation_tests if self.cert_tests.get(test, False))
-            abbreviation_rate = (abbreviation_passed / len(abbreviation_tests)) * 100
+            date_passed = sum(1 for test in date_tests if self.survey_tests.get(test, False))
+            date_rate = (date_passed / len(date_tests)) * 100
             
-            self.log(f"\n🎯 ABBREVIATION FUNCTIONALITY: {abbreviation_rate:.1f}% ({abbreviation_passed}/{len(abbreviation_tests)})")
+            self.log(f"\n🎯 DATE FILTERING: {date_rate:.1f}% ({date_passed}/{len(date_tests)})")
             
-            if self.cert_tests['certificates_created_with_abbreviations']:
-                self.log("   ✅ SUCCESS: Certificates created with abbreviations")
+            if self.survey_tests['date_filtering_logic_working']:
+                self.log("   ✅ SUCCESS: Date filtering logic working correctly")
             else:
-                self.log("   ❌ ISSUE: Certificates not created with abbreviations")
+                self.log("   ❌ ISSUE: Date filtering logic has problems")
             
-            if self.cert_tests['cert_abbreviation_saved_to_database']:
-                self.log("   ✅ SUCCESS: cert_abbreviation saved to database")
+            if self.survey_tests['three_month_window_correct']:
+                self.log("   ✅ SUCCESS: ±3 months window correctly implemented")
             else:
-                self.log("   ❌ ISSUE: cert_abbreviation not saved to database")
+                self.log("   ❌ ISSUE: ±3 months window incorrect")
             
-            if self.cert_tests['ai_extracted_abbreviation_working']:
-                self.log("   ✅ SUCCESS: AI extracted abbreviations working")
-            else:
-                self.log("   ⚠️ INFO: AI abbreviation extraction not detected")
+            # Company filtering analysis
+            self.log("\n🏢 COMPANY FILTERING ANALYSIS:")
             
-            if self.cert_tests['database_records_have_abbreviations']:
-                self.log("   ✅ SUCCESS: Database records have abbreviations")
-            else:
-                self.log("   ❌ ISSUE: Database records missing abbreviations")
-            
-            # Enhanced logging analysis
-            self.log("\n📝 ENHANCED LOGGING ANALYSIS:")
-            
-            logging_tests = [
-                'enhanced_logging_detected',
-                'cert_abbreviation_processing_logged'
+            company_tests = [
+                'company_filtering_working',
+                'only_user_company_ships_returned'
             ]
-            logging_passed = sum(1 for test in logging_tests if self.cert_tests.get(test, False))
-            logging_rate = (logging_passed / len(logging_tests)) * 100
+            company_passed = sum(1 for test in company_tests if self.survey_tests.get(test, False))
+            company_rate = (company_passed / len(company_tests)) * 100
             
-            self.log(f"\n🎯 ENHANCED LOGGING: {logging_rate:.1f}% ({logging_passed}/{len(logging_tests)})")
+            self.log(f"\n🎯 COMPANY FILTERING: {company_rate:.1f}% ({company_passed}/{len(company_tests)})")
             
-            if self.cert_tests['enhanced_logging_detected']:
-                self.log("   ✅ SUCCESS: Enhanced logging detected and working")
-                self.log("   ✅ cert_abbreviation processing is being logged")
+            if self.survey_tests['company_filtering_working']:
+                self.log("   ✅ SUCCESS: Company filtering working correctly")
             else:
-                self.log("   ⚠️ WARNING: Enhanced logging could not be verified")
+                self.log("   ❌ ISSUE: Company filtering not working")
             
-            # Abbreviation mappings analysis
-            self.log("\n🗂️ ABBREVIATION MAPPINGS ANALYSIS:")
-            
-            if self.cert_tests['abbreviation_mappings_utilized']:
-                self.log("   ✅ SUCCESS: Abbreviation mappings are being utilized")
+            if self.survey_tests['only_user_company_ships_returned']:
+                self.log("   ✅ SUCCESS: Only user's company ships returned")
             else:
-                self.log("   ⚠️ INFO: Abbreviation mappings utilization not clearly detected")
+                self.log("   ❌ ISSUE: Surveys from other companies returned")
+            
+            # Status indicators analysis
+            self.log("\n🚦 STATUS INDICATORS ANALYSIS:")
+            
+            status_tests = [
+                'status_indicators_calculated',
+                'days_until_survey_accurate'
+            ]
+            status_passed = sum(1 for test in status_tests if self.survey_tests.get(test, False))
+            status_rate = (status_passed / len(status_tests)) * 100
+            
+            self.log(f"\n🎯 STATUS INDICATORS: {status_rate:.1f}% ({status_passed}/{len(status_tests)})")
+            
+            if self.survey_tests['status_indicators_calculated']:
+                self.log("   ✅ SUCCESS: Status indicators calculated correctly")
+                self.log("      is_overdue, is_due_soon, days_until_survey working")
+            else:
+                self.log("   ❌ ISSUE: Status indicators calculation problems")
             
             # Review request requirements analysis
             self.log("\n📋 REVIEW REQUEST REQUIREMENTS ANALYSIS:")
             
-            req1_met = self.cert_tests['multi_upload_endpoint_accessible']
-            req2_met = self.cert_tests['cert_abbreviation_saved_to_database']
-            req3_met = self.cert_tests['enhanced_logging_detected']
-            req4_met = self.cert_tests['ai_extracted_abbreviation_working'] or self.cert_tests['abbreviation_mappings_utilized']
-            req5_met = self.cert_tests['database_records_have_abbreviations']
+            req1_met = self.survey_tests['authentication_successful']
+            req2_met = self.survey_tests['upcoming_surveys_endpoint_accessible']
+            req3_met = self.survey_tests['date_filtering_logic_working']
+            req4_met = self.survey_tests['required_fields_present']
+            req5_met = self.survey_tests['company_filtering_working']
+            req6_met = self.survey_tests['status_indicators_calculated']
             
-            self.log(f"   1. Find multi cert upload endpoint: {'✅ MET' if req1_met else '❌ NOT MET'}")
-            self.log(f"      - /certificates/multi-upload endpoint accessible")
+            self.log(f"   1. Login with admin1/123456: {'✅ MET' if req1_met else '❌ NOT MET'}")
+            self.log(f"      - Authentication successful")
             
-            self.log(f"   2. cert_abbreviation saved to certificate records: {'✅ MET' if req2_met else '❌ NOT MET'}")
-            self.log(f"      - Database records contain cert_abbreviation field")
+            self.log(f"   2. Test /api/certificates/upcoming-surveys endpoint: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - Endpoint accessible and returns valid response")
             
-            self.log(f"   3. Enhanced logging shows cert_abbreviation processing: {'✅ MET' if req3_met else '❌ NOT MET'}")
-            self.log(f"      - cert_abbreviation processing logged")
+            self.log(f"   3. Verify ±3 months date filtering: {'✅ MET' if req3_met else '❌ NOT MET'}")
+            self.log(f"      - Date comparison logic works correctly")
             
-            self.log(f"   4. AI-extracted and mapping-based abbreviations work: {'✅ MET' if req4_met else '❌ NOT MET'}")
-            self.log(f"      - Both AI extraction and mapping lookup functional")
+            self.log(f"   4. Check response structure: {'✅ MET' if req4_met else '❌ NOT MET'}")
+            self.log(f"      - All required fields present")
             
-            self.log(f"   5. cert_abbreviation populated in database: {'✅ MET' if req5_met else '❌ NOT MET'}")
-            self.log(f"      - Database verification successful")
+            self.log(f"   5. Verify company filtering: {'✅ MET' if req5_met else '❌ NOT MET'}")
+            self.log(f"      - Only user's company ships returned")
             
-            requirements_met = sum([req1_met, req2_met, req3_met, req4_met, req5_met])
+            self.log(f"   6. Test status indicators: {'✅ MET' if req6_met else '❌ NOT MET'}")
+            self.log(f"      - is_overdue, is_due_soon, days_until_survey calculated")
+            
+            requirements_met = sum([req1_met, req2_met, req3_met, req4_met, req5_met, req6_met])
             
             # Final conclusion
-            if success_rate >= 80 and requirements_met >= 4:
-                self.log(f"\n🎉 CONCLUSION: MULTI CERT UPLOAD ABBREVIATION SAVING IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Multi cert upload abbreviation functionality fully implemented!")
-                self.log(f"   ✅ Requirements met: {requirements_met}/5")
-                self.log(f"   ✅ Multi Cert Upload saves cert_abbreviation to certificate database records")
-                self.log(f"   ✅ AI analysis_result includes cert_abbreviation")
-                self.log(f"   ✅ Existing abbreviation mappings are used when AI doesn't provide one")
-                self.log(f"   ✅ Enhanced logging shows cert_abbreviation processing")
-            elif success_rate >= 60 and requirements_met >= 3:
-                self.log(f"\n⚠️ CONCLUSION: MULTI CERT UPLOAD ABBREVIATION SAVING PARTIALLY WORKING")
+            if success_rate >= 80 and requirements_met >= 5:
+                self.log(f"\n🎉 CONCLUSION: UPCOMING SURVEYS NOTIFICATION SYSTEM IS WORKING EXCELLENTLY")
+                self.log(f"   Success rate: {success_rate:.1f}% - Upcoming surveys functionality fully implemented!")
+                self.log(f"   ✅ Requirements met: {requirements_met}/6")
+                self.log(f"   ✅ Endpoint returns certificates within ±3 months window")
+                self.log(f"   ✅ Response structure includes all required fields")
+                self.log(f"   ✅ Company filtering works correctly")
+                self.log(f"   ✅ Status indicators calculated accurately")
+            elif success_rate >= 60 and requirements_met >= 4:
+                self.log(f"\n⚠️ CONCLUSION: UPCOMING SURVEYS NOTIFICATION SYSTEM PARTIALLY WORKING")
                 self.log(f"   Success rate: {success_rate:.1f}% - Most functionality working, minor improvements needed")
-                self.log(f"   ⚠️ Requirements met: {requirements_met}/5")
+                self.log(f"   ⚠️ Requirements met: {requirements_met}/6")
                 
                 if req1_met and req2_met:
-                    self.log(f"   ✅ Core functionality (multi upload and database saving) is working")
+                    self.log(f"   ✅ Core functionality (authentication and endpoint) is working")
                 if not req3_met:
-                    self.log(f"   ⚠️ Enhanced logging could not be fully verified")
-                if not req4_met:
-                    self.log(f"   ⚠️ AI extraction or mapping utilization may need attention")
+                    self.log(f"   ⚠️ Date filtering logic may need attention")
+                if not req5_met:
+                    self.log(f"   ⚠️ Company filtering may need fixes")
             else:
-                self.log(f"\n❌ CONCLUSION: MULTI CERT UPLOAD ABBREVIATION SAVING HAS CRITICAL ISSUES")
+                self.log(f"\n❌ CONCLUSION: UPCOMING SURVEYS NOTIFICATION SYSTEM HAS CRITICAL ISSUES")
                 self.log(f"   Success rate: {success_rate:.1f}% - Significant fixes needed")
-                self.log(f"   ❌ Requirements met: {requirements_met}/5")
-                self.log(f"   ❌ Multi cert upload abbreviation saving needs major fixes before production use")
+                self.log(f"   ❌ Requirements met: {requirements_met}/6")
+                self.log(f"   ❌ Upcoming surveys notification system needs major fixes before production use")
             
             return True
             
