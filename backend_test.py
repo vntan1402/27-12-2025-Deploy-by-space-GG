@@ -1454,66 +1454,129 @@ class UpcomingSurveysNotificationTester:
             success_rate = (len(passed_tests) / len(self.survey_tests)) * 100
             self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.survey_tests)})")
             
-            # NEW: Window calculation analysis
-            self.log("\n📅 NEW WINDOW CALCULATION ANALYSIS:")
+            # Initial Certificate Detection Analysis
+            self.log("\n🔍 INITIAL CERTIFICATE DETECTION ANALYSIS:")
+            
+            detection_tests = [
+                'initial_certificate_detection_working',
+                'smc_issc_mlc_certificates_identified',
+                'initial_survey_type_recognized'
+            ]
+            detection_passed = sum(1 for test in detection_tests if self.survey_tests.get(test, False))
+            detection_rate = (detection_passed / len(detection_tests)) * 100
+            
+            self.log(f"\n🎯 INITIAL CERTIFICATE DETECTION: {detection_rate:.1f}% ({detection_passed}/{len(detection_tests)})")
+            
+            if self.survey_tests['initial_certificate_detection_working']:
+                self.log("   ✅ SUCCESS: Initial certificate detection working correctly")
+                self.log("      Identifies certificates with next_survey_type 'Initial' AND cert_name containing 'SMC', 'ISSC', or 'MLC'")
+            else:
+                self.log("   ❌ ISSUE: Initial certificate detection has problems")
+            
+            if self.survey_tests['smc_issc_mlc_certificates_identified']:
+                self.log("   ✅ SUCCESS: SMC/ISSC/MLC certificates identified correctly")
+            else:
+                self.log("   ❌ ISSUE: SMC/ISSC/MLC certificate identification incorrect")
+            
+            # Initial Certificate Window Logic Analysis
+            self.log("\n📅 INITIAL CERTIFICATE WINDOW LOGIC ANALYSIS:")
             
             window_tests = [
-                'window_calculation_logic_working',
-                'individual_certificate_windows_correct',
-                'current_date_filter_working'
+                'initial_certificate_window_correct',
+                'valid_date_window_calculation_working',
+                'initial_certificate_filter_working'
             ]
             window_passed = sum(1 for test in window_tests if self.survey_tests.get(test, False))
             window_rate = (window_passed / len(window_tests)) * 100
             
-            self.log(f"\n🎯 WINDOW CALCULATION: {window_rate:.1f}% ({window_passed}/{len(window_tests)})")
+            self.log(f"\n🎯 INITIAL CERTIFICATE WINDOW LOGIC: {window_rate:.1f}% ({window_passed}/{len(window_tests)})")
             
-            if self.survey_tests['window_calculation_logic_working']:
-                self.log("   ✅ SUCCESS: NEW window calculation logic working correctly")
-                self.log("      Each certificate creates its own ±90 day window around next_survey_date")
+            if self.survey_tests['initial_certificate_window_correct']:
+                self.log("   ✅ SUCCESS: Initial certificate window logic working correctly")
+                self.log("      window_open = valid_date - 90 days, window_close = valid_date")
             else:
-                self.log("   ❌ ISSUE: Window calculation logic has problems")
+                self.log("   ❌ ISSUE: Initial certificate window calculation incorrect")
             
-            if self.survey_tests['individual_certificate_windows_correct']:
-                self.log("   ✅ SUCCESS: Individual certificate windows calculated correctly")
+            if self.survey_tests['valid_date_window_calculation_working']:
+                self.log("   ✅ SUCCESS: Valid date window calculation working")
             else:
-                self.log("   ❌ ISSUE: Individual certificate window calculations incorrect")
+                self.log("   ❌ ISSUE: Valid date window calculation problems")
             
-            # NEW: Updated response structure analysis
-            self.log("\n🔍 UPDATED RESPONSE STRUCTURE ANALYSIS:")
+            # Window Rule Types Analysis
+            self.log("\n🔍 WINDOW RULE TYPES ANALYSIS:")
             
-            if self.survey_tests['new_window_fields_present']:
-                self.log("   ✅ SUCCESS: NEW window fields present in response")
-                self.log("      Fields: window_open, window_close, days_from_window_open, days_to_window_close")
+            rule_tests = [
+                'condition_certificate_expiry_window',
+                'initial_smc_issc_mlc_window',
+                'special_survey_window',
+                'other_surveys_window'
+            ]
+            rule_passed = sum(1 for test in rule_tests if self.survey_tests.get(test, False))
+            rule_rate = (rule_passed / len(rule_tests)) * 100
+            
+            self.log(f"\n🎯 WINDOW RULE TYPES: {rule_rate:.1f}% ({rule_passed}/{len(rule_tests)})")
+            
+            if self.survey_tests['condition_certificate_expiry_window']:
+                self.log("   ✅ SUCCESS: Condition Certificate Expiry window (Issue→Valid) working")
             else:
-                self.log("   ❌ ISSUE: Missing NEW window fields in response")
+                self.log("   ❌ ISSUE: Condition Certificate Expiry window not found")
             
-            if self.survey_tests['logic_info_updated']:
-                self.log("   ✅ SUCCESS: Updated logic_info section present")
+            if self.survey_tests['initial_smc_issc_mlc_window']:
+                self.log("   ✅ SUCCESS: Initial SMC/ISSC/MLC window (Valid-3M→Valid) working")
             else:
-                self.log("   ❌ ISSUE: Missing or incorrect logic_info section")
+                self.log("   ❌ ISSUE: Initial SMC/ISSC/MLC window not found")
             
-            # NEW: Status classification analysis
-            self.log("\n🚦 UPDATED STATUS CLASSIFICATION ANALYSIS:")
+            if self.survey_tests['special_survey_window']:
+                self.log("   ✅ SUCCESS: Special Survey window (-3M) working")
+            else:
+                self.log("   ❌ ISSUE: Special Survey window not found")
+            
+            if self.survey_tests['other_surveys_window']:
+                self.log("   ✅ SUCCESS: Other Surveys window (±3M) working")
+            else:
+                self.log("   ❌ ISSUE: Other Surveys window not found")
+            
+            # Initial Certificate Status Logic Analysis
+            self.log("\n🚦 INITIAL CERTIFICATE STATUS LOGIC ANALYSIS:")
             
             status_tests = [
-                'is_critical_field_present',
-                'is_critical_logic_correct',
-                'status_classification_updated'
+                'initial_certificate_overdue_logic',
+                'initial_certificate_due_soon_logic',
+                'initial_certificate_critical_logic'
             ]
             status_passed = sum(1 for test in status_tests if self.survey_tests.get(test, False))
             status_rate = (status_passed / len(status_tests)) * 100
             
-            self.log(f"\n🎯 STATUS CLASSIFICATION: {status_rate:.1f}% ({status_passed}/{len(status_tests)})")
+            self.log(f"\n🎯 INITIAL CERTIFICATE STATUS LOGIC: {status_rate:.1f}% ({status_passed}/{len(status_tests)})")
             
-            if self.survey_tests['is_critical_field_present']:
-                self.log("   ✅ SUCCESS: NEW is_critical field present")
+            if self.survey_tests['initial_certificate_overdue_logic']:
+                self.log("   ✅ SUCCESS: Initial certificate overdue logic working (current_date > valid_date)")
             else:
-                self.log("   ❌ ISSUE: Missing is_critical field")
+                self.log("   ❌ ISSUE: Initial certificate overdue logic incorrect")
             
-            if self.survey_tests['is_critical_logic_correct']:
-                self.log("   ✅ SUCCESS: is_critical logic working correctly (overdue or within 7 days)")
+            if self.survey_tests['initial_certificate_due_soon_logic']:
+                self.log("   ✅ SUCCESS: Initial certificate due soon logic working (expires within 30 days)")
             else:
-                self.log("   ❌ ISSUE: is_critical logic incorrect")
+                self.log("   ❌ ISSUE: Initial certificate due soon logic incorrect")
+            
+            if self.survey_tests['initial_certificate_critical_logic']:
+                self.log("   ✅ SUCCESS: Initial certificate critical logic working (expires within 7 days or overdue)")
+            else:
+                self.log("   ❌ ISSUE: Initial certificate critical logic incorrect")
+            
+            # Updated Logic Info Analysis
+            self.log("\n📋 UPDATED LOGIC INFO ANALYSIS:")
+            
+            if self.survey_tests['logic_info_includes_initial_rules']:
+                self.log("   ✅ SUCCESS: Logic info includes Initial certificate rules")
+                self.log("      'Initial SMC/ISSC/MLC: Valid date - 3M → Valid date' documented")
+            else:
+                self.log("   ❌ ISSUE: Logic info missing Initial certificate rules")
+            
+            if self.survey_tests['all_window_rule_types_documented']:
+                self.log("   ✅ SUCCESS: All 4 window rule types documented")
+            else:
+                self.log("   ❌ ISSUE: Missing window rule types in documentation")
             
             # Company filtering analysis
             self.log("\n🏢 COMPANY FILTERING ANALYSIS:")
