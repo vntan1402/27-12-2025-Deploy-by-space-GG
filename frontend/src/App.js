@@ -4091,7 +4091,8 @@ const HomePage = () => {
                             }
                             onClick={() => {
                               if (selectedShip && !isMultiCertProcessing) {
-                                setAddRecordDefaultTab('certificate'); // Force certificate tab
+                                setAddRecordDefaultTab('documents'); // Open Document Portfolio tab
+                                setAddRecordDefaultDocumentType('certificate'); // Auto-select Certificate
                                 setShowAddRecord(true);
                               }
                             }}
