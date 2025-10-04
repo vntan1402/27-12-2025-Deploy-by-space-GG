@@ -1603,28 +1603,28 @@ class UpcomingSurveysNotificationTester:
             
             req1_met = self.survey_tests['authentication_successful']
             req2_met = self.survey_tests['upcoming_surveys_endpoint_accessible']
-            req3_met = self.survey_tests['window_calculation_logic_working']
-            req4_met = self.survey_tests['new_window_fields_present']
-            req5_met = self.survey_tests['is_critical_field_present']
-            req6_met = self.survey_tests['logic_info_updated']
+            req3_met = self.survey_tests['initial_certificate_detection_working']
+            req4_met = self.survey_tests['initial_certificate_window_correct']
+            req5_met = self.survey_tests['window_type_display_correct']
+            req6_met = self.survey_tests['logic_info_includes_initial_rules']
             
             self.log(f"   1. Login with admin1/123456: {'✅ MET' if req1_met else '❌ NOT MET'}")
             self.log(f"      - Authentication successful")
             
-            self.log(f"   2. Test updated endpoint: {'✅ MET' if req2_met else '❌ NOT MET'}")
-            self.log(f"      - /api/certificates/upcoming-surveys accessible with new logic")
+            self.log(f"   2. Test updated endpoint with all window rules: {'✅ MET' if req2_met else '❌ NOT MET'}")
+            self.log(f"      - /api/certificates/upcoming-surveys accessible with Initial type rules")
             
-            self.log(f"   3. Verify NEW window calculation: {'✅ MET' if req3_met else '❌ NOT MET'}")
-            self.log(f"      - window_open = next_survey - 90 days, window_close = next_survey + 90 days")
+            self.log(f"   3. Verify Initial Survey logic for SMC/ISSC/MLC: {'✅ MET' if req3_met else '❌ NOT MET'}")
+            self.log(f"      - Initial certificate detection and identification working")
             
-            self.log(f"   4. Check NEW response fields: {'✅ MET' if req4_met else '❌ NOT MET'}")
-            self.log(f"      - window_open, window_close, days_from_window_open, days_to_window_close")
+            self.log(f"   4. Verify Initial certificate window: {'✅ MET' if req4_met else '❌ NOT MET'}")
+            self.log(f"      - window_open = valid_date - 90 days, window_close = valid_date")
             
-            self.log(f"   5. Verify is_critical field: {'✅ MET' if req5_met else '❌ NOT MET'}")
-            self.log(f"      - is_critical: overdue or within 7 days")
+            self.log(f"   5. Verify window type display: {'✅ MET' if req5_met else '❌ NOT MET'}")
+            self.log(f"      - 'Valid-3M→Valid' for Initial certificates, other types working")
             
-            self.log(f"   6. Check updated logic_info: {'✅ MET' if req6_met else '❌ NOT MET'}")
-            self.log(f"      - Updated logic_info section with window calculation details")
+            self.log(f"   6. Check updated logic info: {'✅ MET' if req6_met else '❌ NOT MET'}")
+            self.log(f"      - Logic info includes Initial SMC/ISSC/MLC rules explanation")
             
             requirements_met = sum([req1_met, req2_met, req3_met, req4_met, req5_met, req6_met])
             
