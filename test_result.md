@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Upcoming Surveys Notification System Integration Test"
+    - "Updated Upcoming Surveys Logic with New Window Calculation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
