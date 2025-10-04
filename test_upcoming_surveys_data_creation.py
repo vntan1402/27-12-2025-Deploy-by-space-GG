@@ -310,7 +310,7 @@ class UpcomingSurveysDataCreationTester:
                 'notes': 'Test certificate created for upcoming surveys notification system testing'
             }
             
-            endpoint = f"{BACKEND_URL}/ships/{ship_id}/certificates"
+            endpoint = f"{BACKEND_URL}/certificates"
             self.log(f"   POST {endpoint}")
             
             response = requests.post(endpoint, json=cert_data, headers=self.get_headers(), timeout=30)
