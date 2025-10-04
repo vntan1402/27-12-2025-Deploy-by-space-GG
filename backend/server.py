@@ -3826,14 +3826,17 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                         logger.warning(f"Error parsing initial certificate valid date for cert {cert.get('id', 'unknown')}: {date_parse_error}")
                         continue
                         
-                elif 'Special Survey' in next_survey_type:
+                elif 'Special Survey' in next_survey_type and next_survey_date:
                     # Special Survey: only -3 months (90 days before, no days after)
                     window_open = next_survey_date - timedelta(days=90)
                     window_close = next_survey_date  # No extension after survey date
-                else:
+                elif next_survey_date:
                     # All other surveys: ±3 months (90 days before and after)
                     window_open = next_survey_date - timedelta(days=90)
                     window_close = next_survey_date + timedelta(days=90)
+                else:
+                    # Skip certificates without next_survey_date and not Initial SMC/ISSC/MLC
+                    continue
                 
                 # Check if current_date is within certificate's survey window
                 if window_open <= current_date <= window_close:
