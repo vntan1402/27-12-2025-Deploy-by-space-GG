@@ -5207,6 +5207,7 @@ const HomePage = () => {
             setShowAddRecord(false);
             setAddRecordDefaultTab(null); // Reset default tab
             setAddRecordDefaultDocumentType(null); // Reset default document type
+            setDuplicateQueue([]); // Clear duplicate queue
           }}
           onSuccess={(type) => {
             setShowAddRecord(false);
