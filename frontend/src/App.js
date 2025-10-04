@@ -1192,6 +1192,14 @@ const HomePage = () => {
     }
   };
   
+  // Expose checkUpcomingSurveys to global scope for login function to access
+  useEffect(() => {
+    window.checkUpcomingSurveys = checkUpcomingSurveys;
+    return () => {
+      delete window.checkUpcomingSurveys;
+    };
+  }, [token]);
+  
   const t = translations[language];
 
   useEffect(() => {
