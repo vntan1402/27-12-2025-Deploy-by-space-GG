@@ -3894,7 +3894,7 @@ async def delete_certificate_abbreviation_mapping(
 
 # General certificates endpoint
 @api_router.get("/certificates/upcoming-surveys")
-async def get_upcoming_surveys(current_user: dict = Depends(get_current_user)):
+async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_user)):
     """
     Get all certificates with upcoming surveys (within ±3 months window)
     Returns certificates from all ships belonging to user's company
