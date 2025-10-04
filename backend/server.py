@@ -3739,15 +3739,56 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     # If it's already a date object
                     next_survey_date = next_survey_str
                 
-                # NEW LOGIC: Create window for each certificate based on next_survey_date and survey type
-                # Apply Next Survey window rules:
+                # NEW LOGIC: Create window for each certificate based on survey type
+                # Apply different window rules for different certificate types:
+                # - Condition Certificate Expiry: window_open = issue_date, window_close = valid_date
                 # - Special Survey: only -3M (must be done before deadline)
                 # - Other surveys: ±3M (can be done before or after within window)
                 
                 next_survey_type = cert.get('next_survey_type', '')
                 
                 # Determine window based on survey type
-                if 'Special Survey' in next_survey_type:
+                if 'Condition Certificate Expiry' in next_survey_type:
+                    # Condition Certificate: window from issue date to valid date
+                    issue_date_str = cert.get('issue_date')
+                    valid_date_str = cert.get('valid_date')
+                    
+                    if not issue_date_str or not valid_date_str:
+                        continue  # Skip if missing required dates
+                    
+                    try:
+                        # Parse issue date
+                        if isinstance(issue_date_str, str):
+                            if 'T' in issue_date_str:
+                                issue_date = datetime.fromisoformat(issue_date_str.replace('Z', '')).date()
+                            else:
+                                if ' ' in issue_date_str:
+                                    issue_date = datetime.strptime(issue_date_str.split(' ')[0], '%Y-%m-%d').date()
+                                else:
+                                    issue_date = datetime.strptime(issue_date_str, '%Y-%m-%d').date()
+                        else:
+                            issue_date = issue_date_str.date() if hasattr(issue_date_str, 'date') else issue_date_str
+                        
+                        # Parse valid date
+                        if isinstance(valid_date_str, str):
+                            if 'T' in valid_date_str:
+                                valid_date = datetime.fromisoformat(valid_date_str.replace('Z', '')).date()
+                            else:
+                                if ' ' in valid_date_str:
+                                    valid_date = datetime.strptime(valid_date_str.split(' ')[0], '%Y-%m-%d').date()
+                                else:
+                                    valid_date = datetime.strptime(valid_date_str, '%Y-%m-%d').date()
+                        else:
+                            valid_date = valid_date_str.date() if hasattr(valid_date_str, 'date') else valid_date_str
+                        
+                        window_open = issue_date
+                        window_close = valid_date
+                        
+                    except Exception as date_parse_error:
+                        logger.warning(f"Error parsing condition certificate dates for cert {cert.get('id', 'unknown')}: {date_parse_error}")
+                        continue
+                        
+                elif 'Special Survey' in next_survey_type:
                     # Special Survey: only -3 months (90 days before, no days after)
                     window_open = next_survey_date - timedelta(days=90)
                     window_close = next_survey_date  # No extension after survey date
