@@ -5393,10 +5393,10 @@ const HomePage = () => {
                                   {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                                  {language === 'vi' ? 'Ngày lên tàu' : 'Date Sign On'}
+                                  {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                  {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign Off'}
+                                  {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
                                 </th>
                               </tr>
                             </thead>
