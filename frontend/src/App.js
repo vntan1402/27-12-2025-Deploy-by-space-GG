@@ -7354,7 +7354,7 @@ const AccountControlPage = () => {
       fetchGoogleDriveStatus();
       fetchGoogleDriveConfig();
     }
-    if (user?.role === 'super_admin') {
+    if (user?.role === 'super_admin' || user?.role === 'admin') {
       fetchAIConfig();
     }
     if (user?.role === 'admin' || user?.role === 'super_admin') {
