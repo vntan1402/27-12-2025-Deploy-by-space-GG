@@ -4464,6 +4464,16 @@ async def update_ai_config(
             "updated_at": datetime.now(timezone.utc)
         }
         
+        # Add Google Document AI configuration if provided
+        if config.document_ai:
+            config_data["document_ai"] = {
+                "enabled": config.document_ai.enabled,
+                "project_id": config.document_ai.project_id,
+                "location": config.document_ai.location,
+                "processor_id": config.document_ai.processor_id,
+                "service_account_key": config.document_ai.service_account_key
+            }
+        
         # Update or create AI config
         existing_config = await mongo_db.find_one("ai_config", {"id": "system_ai"})
         if existing_config:
