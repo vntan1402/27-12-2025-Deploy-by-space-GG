@@ -749,6 +749,22 @@ const HomePage = () => {
   const [showShipSelector, setShowShipSelector] = useState(false);
   const shipSelectorRef = useRef(null);
   
+  // Add Crew Modal States
+  const [showAddCrewModal, setShowAddCrewModal] = useState(false);
+  const [newCrewData, setNewCrewData] = useState({
+    full_name: '',
+    sex: 'M',
+    rank: '',
+    date_of_birth: '',
+    place_of_birth: '',
+    passport: '',
+    seamen_book: '',
+    status: 'Active',
+    ship_sign_on: '',
+    date_sign_on: '',
+    date_sign_off: ''
+  });
+  
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
     certificateType: 'all',
