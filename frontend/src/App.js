@@ -3135,6 +3135,24 @@ const HomePage = () => {
     { key: 'supplies', name: language === 'vi' ? 'Vật tư' : 'Supplies', icon: '📦' },
   ];
 
+  // Function to get dynamic page title based on selected category
+  const getDynamicPageTitle = () => {
+    const currentCategory = categories.find(cat => cat.key === selectedCategory);
+    
+    // Special case for 'crew' category - display as "CREW RECORD" (singular)
+    if (selectedCategory === 'crew') {
+      return language === 'vi' ? 'THUYỀN VIÊN' : 'CREW RECORD';
+    }
+    
+    // For other categories, transform to uppercase
+    if (currentCategory) {
+      return currentCategory.name.toUpperCase();
+    }
+    
+    // Fallback to default
+    return language === 'vi' ? 'HỒ SƠ TÀI LIỆU' : 'CLASS & FLAG CERT';
+  };
+
   const subMenuItems = {
     documents: [
       { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
