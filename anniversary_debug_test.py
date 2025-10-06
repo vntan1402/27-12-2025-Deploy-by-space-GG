@@ -20,7 +20,7 @@ import time
 import traceback
 
 # Configuration - Use external URL from frontend/.env
-BACKEND_URL = "https://certisync-marine.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipmate-55.preview.emergentagent.com/api"
 
 class AnniversaryDateDebugTester:
     def __init__(self):

@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BACKEND_URL = "https://certisync-marine.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipmate-55.preview.emergentagent.com/api"
 TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNDNkOWNmNS0yMTZhLTRjZjAtOGM2My00MjE4YzY5YjJkOTAiLCJ1c2VybmFtZSI6ImFkbWluMSIsInJvbGUiOiJhZG1pbiIsImNvbXBhbnkiOiJBTUNTQyIsImZ1bGxfbmFtZSI6IkFkbWluIFVzZXIgMSIsImV4cCI6MTc1OTY1NzgzMX0.dZ0_Z32CRKegkdTQKc7U_IbhCKf6sP-PZhF0nq9B-fY"
 
 def get_headers():
