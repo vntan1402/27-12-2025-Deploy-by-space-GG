@@ -6711,10 +6711,10 @@ const HomePage = () => {
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
-                  {/* Full Name */}
+                  {/* Full Name - Required */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Họ tên *' : 'Full Name *'}
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Họ tên' : 'Full Name'}
                     </label>
                     <input
                       type="text"
