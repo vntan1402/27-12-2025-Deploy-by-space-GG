@@ -3176,6 +3176,62 @@ const HomePage = () => {
     return language === 'vi' ? 'HỒ SƠ TÀI LIỆU' : 'CLASS & FLAG CERT';
   };
 
+  // Handle passport file upload and analysis
+  const handlePassportUpload = async (file) => {
+    if (!file) return;
+    
+    setIsAnalyzingPassport(true);
+    setPassportError('');
+    
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('passport_file', file);
+      formData.append('ship_name', selectedShip?.name || 'UNKNOWN');
+      
+      // Call backend API to analyze passport with Google Document AI
+      const response = await axios.post(`${API}/crew/analyze-passport`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        const analysis = response.data.analysis;
+        
+        // Auto-populate crew data from passport analysis
+        setNewCrewData({
+          ...newCrewData,
+          full_name: analysis.full_name || '',
+          sex: analysis.sex || 'M',
+          date_of_birth: analysis.date_of_birth ? convertDateInputToUTC(analysis.date_of_birth) : '',
+          place_of_birth: analysis.place_of_birth || '',
+          passport: analysis.passport_number || ''
+        });
+        
+        setPassportAnalysis(analysis);
+        setPassportFile(file);
+        
+        toast.success(language === 'vi' 
+          ? 'Phân tích hộ chiếu thành công! Thông tin đã được điền tự động.'
+          : 'Passport analysis successful! Information has been auto-filled.'
+        );
+      } else {
+        throw new Error(response.data.message || 'Passport analysis failed');
+      }
+    } catch (error) {
+      console.error('Passport analysis error:', error);
+      setPassportError(error.response?.data?.message || error.message || 'Passport analysis failed');
+      toast.error(language === 'vi' 
+        ? `Lỗi phân tích hộ chiếu: ${error.message}`
+        : `Passport analysis error: ${error.message}`
+      );
+    } finally {
+      setIsAnalyzingPassport(false);
+    }
+  };
+
   const subMenuItems = {
     documents: [
       { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
