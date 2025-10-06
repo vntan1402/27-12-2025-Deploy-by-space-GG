@@ -6769,7 +6769,100 @@ const HomePage = () => {
               </div>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+              
+              {/* Passport Upload Section */}
+              {addCrewMethod === 'passport' && (
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="text-lg font-semibold text-blue-800 mb-3">
+                    <span className="mr-2">📄</span>
+                    {language === 'vi' ? 'Tải lên hộ chiếu' : 'Upload Passport'}
+                  </h4>
+                  
+                  {!passportFile ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-blue-700">
+                        {language === 'vi' 
+                          ? 'Tải lên file hộ chiếu để tự động phân tích thông tin thuyền viên'
+                          : 'Upload passport file to automatically analyze crew information'
+                        }
+                      </p>
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              handlePassportUpload(file);
+                            }
+                          }}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                          disabled={isAnalyzingPassport}
+                        />
+                      </div>
+                      
+                      {isAnalyzingPassport && (
+                        <div className="flex items-center space-x-2 text-blue-600">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span className="text-sm">
+                            {language === 'vi' ? 'Đang phân tích hộ chiếu...' : 'Analyzing passport...'}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {passportError && (
+                        <div className="text-red-600 text-sm bg-red-50 p-2 rounded">
+                          {passportError}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 text-green-600">
+                        <span>✅</span>
+                        <span className="text-sm font-medium">
+                          {language === 'vi' ? 'Hộ chiếu đã được tải lên' : 'Passport uploaded successfully'}
+                        </span>
+                      </div>
+                      <div className="bg-white p-3 rounded border">
+                        <p className="text-sm text-gray-600">
+                          <strong>{language === 'vi' ? 'File:' : 'File:'}</strong> {passportFile.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          <strong>{language === 'vi' ? 'Kích thước:' : 'Size:'}</strong> {(passportFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPassportFile(null);
+                          setPassportAnalysis(null);
+                          setPassportError('');
+                          // Reset form data
+                          setNewCrewData({
+                            full_name: '',
+                            sex: 'M',
+                            date_of_birth: '',
+                            place_of_birth: '',
+                            passport: '',
+                            rank: '',
+                            seamen_book: '',
+                            status: 'Sign on',
+                            ship_sign_on: '-',
+                            date_sign_on: '',
+                            date_sign_off: ''
+                          });
+                        }}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        {language === 'vi' ? 'Xóa và tải lại' : 'Remove and re-upload'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <form onSubmit={(e) => {
                 e.preventDefault();
                 
