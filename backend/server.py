@@ -454,9 +454,8 @@ class AIConfig(BaseModel):
 class DocumentAIConfigResponse(BaseModel):
     enabled: Optional[bool] = False
     project_id: Optional[str] = None
-    location: Optional[str] = "us"
+    location: Optional[str] = "us" 
     processor_id: Optional[str] = None
-    # Don't expose service_account_key in response
 
 class AIConfigResponse(BaseModel):
     provider: str
