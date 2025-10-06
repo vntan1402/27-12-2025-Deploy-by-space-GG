@@ -6847,19 +6847,23 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Ship Sign On */}
+                  {/* Ship Sign On - Optional */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Tàu đăng ký *' : 'Ship Sign On *'}
+                      {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
                     </label>
-                    <input
-                      type="text"
-                      required
+                    <select
                       value={newCrewData.ship_sign_on}
                       onChange={(e) => setNewCrewData({...newCrewData, ship_sign_on: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Nhập tên tàu' : 'Enter ship name'}
-                    />
+                    >
+                      <option value="-">{language === 'vi' ? '- (Không thuộc tàu nào)' : '- (Not assigned to any ship)'}</option>
+                      {ships.map(ship => (
+                        <option key={ship.id} value={ship.name}>
+                          {ship.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Date Sign On */}
