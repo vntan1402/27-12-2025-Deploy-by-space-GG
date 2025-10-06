@@ -5366,10 +5366,16 @@ const HomePage = () => {
                               : `Manage crew members for ${selectedShip ? selectedShip.name : 'selected ship'}`}
                           </p>
                         </div>
-                        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center">
-                          <span className="mr-2">👤</span>
-                          {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
-                        </button>
+                        {/* Only show Add Crew button for manager and admin roles */}
+                        {user && (user.role === 'manager' || user.role === 'admin') && (
+                          <button 
+                            onClick={() => setShowAddCrewModal(true)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
+                          >
+                            <span className="mr-2">👤</span>
+                            {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
+                          </button>
+                        )}
                       </div>
 
                       {/* Crew List Table */}
