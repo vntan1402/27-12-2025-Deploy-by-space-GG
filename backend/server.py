@@ -4902,11 +4902,23 @@ async def multi_cert_upload_for_ship(
                     text_content = analysis_result.get('text_content', '')
                     text_quality_sufficient = len(text_content) >= 100 if text_content else False
                     
-                    # Determine if extraction is sufficient
+                    # If no confidence provided, calculate based on extraction performance
+                    if confidence_score == 0.0 and not confidence:
+                        # Calculate confidence based on how well the extraction performed
+                        if critical_extraction_rate >= 0.67 and overall_extraction_rate >= 0.5:
+                            confidence_score = 0.8  # High confidence
+                        elif critical_extraction_rate >= 0.33 and overall_extraction_rate >= 0.3:
+                            confidence_score = 0.6  # Medium confidence
+                        else:
+                            confidence_score = 0.3  # Low confidence
+                        
+                        logger.info(f"📊 Auto-calculated confidence score: {confidence_score} based on extraction rates")
+                    
+                    # Determine if extraction is sufficient (more lenient thresholds)
                     extraction_sufficient = (
-                        confidence_score >= 0.5 and  # Medium confidence or higher
+                        confidence_score >= 0.4 and  # Lower threshold for confidence
                         critical_extraction_rate >= 0.67 and  # At least 2/3 critical fields
-                        overall_extraction_rate >= 0.4 and  # At least 40% of all fields
+                        overall_extraction_rate >= 0.3 and  # At least 30% of all fields (reduced from 40%)
                         text_quality_sufficient and  # Sufficient text content
                         is_marine_certificate  # Properly classified as certificate
                     )
