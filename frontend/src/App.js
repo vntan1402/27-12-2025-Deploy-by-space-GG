@@ -752,17 +752,17 @@ const HomePage = () => {
   // Add Crew Modal States
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
   const [newCrewData, setNewCrewData] = useState({
-    full_name: '',
-    sex: 'M',
-    rank: '',
-    date_of_birth: '',
-    place_of_birth: '',
-    passport: '',
-    seamen_book: '',
-    status: 'Active',
-    ship_sign_on: '',
-    date_sign_on: '',
-    date_sign_off: ''
+    full_name: '',           // Required
+    sex: 'M',               // Required 
+    date_of_birth: '',      // Required
+    place_of_birth: '',     // Required
+    passport: '',           // Required (PASSPORT No.)
+    rank: '',               // Optional
+    seamen_book: '',        // Optional
+    status: 'Sign on',      // Optional - Default to 'Sign on'
+    ship_sign_on: '-',      // Optional - Default to '-' (no ship)
+    date_sign_on: '',       // Optional
+    date_sign_off: ''       // Optional
   });
   
   // Certificate List filters and sorting
