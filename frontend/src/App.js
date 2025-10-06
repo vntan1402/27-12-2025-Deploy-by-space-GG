@@ -10519,12 +10519,48 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
                   <div>
                     <button
                       type="button"
-                      onClick={() => {
-                        // TODO: Implement test connection
-                        toast.info(language === 'vi' 
-                          ? 'Tính năng kiểm tra kết nối sẽ được thêm sau'
-                          : 'Test connection feature will be added later'
-                        );
+                      onClick={async () => {
+                        // Validate required fields before testing
+                        if (!config.document_ai?.project_id || !config.document_ai?.processor_id) {
+                          toast.error(language === 'vi' 
+                            ? 'Vui lòng điền đầy đủ Project ID và Processor ID trước khi kiểm tra'
+                            : 'Please fill in Project ID and Processor ID before testing'
+                          );
+                          return;
+                        }
+                        
+                        try {
+                          toast.info(language === 'vi' 
+                            ? 'Đang kiểm tra kết nối Google Document AI...'
+                            : 'Testing Google Document AI connection...'
+                          );
+                          
+                          const response = await axios.post(`${API}/test-document-ai`, {
+                            project_id: config.document_ai.project_id,
+                            location: config.document_ai.location,
+                            processor_id: config.document_ai.processor_id
+                          }, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                          });
+                          
+                          if (response.data.success) {
+                            toast.success(language === 'vi' 
+                              ? `Kết nối thành công! Processor: ${response.data.processor_name || 'N/A'}`
+                              : `Connection successful! Processor: ${response.data.processor_name || 'N/A'}`
+                            );
+                          } else {
+                            toast.error(language === 'vi' 
+                              ? `Kết nối thất bại: ${response.data.message}`
+                              : `Connection failed: ${response.data.message}`
+                            );
+                          }
+                        } catch (error) {
+                          console.error('Document AI test error:', error);
+                          toast.error(language === 'vi' 
+                            ? `Lỗi kiểm tra kết nối: ${error.response?.data?.detail || error.message}`
+                            : `Connection test error: ${error.response?.data?.detail || error.message}`
+                          );
+                        }
                       }}
                       className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm transition-all"
                     >
