@@ -6787,10 +6787,10 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Place of Birth */}
+                  {/* Place of Birth - Required */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Nơi sinh *' : 'Place of Birth *'}
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Nơi sinh' : 'Place of Birth'}
                     </label>
                     <input
                       type="text"
