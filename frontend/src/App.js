@@ -6866,21 +6866,23 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Date Sign On */}
+                  {/* Date Sign On - Optional */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Ngày xuống tàu *' : 'Date Sign On *'}
+                      {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
                     </label>
                     <input
                       type="date"
-                      required
                       value={newCrewData.date_sign_on}
                       onChange={(e) => setNewCrewData({...newCrewData, date_sign_on: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    <p className="text-sm text-gray-500 mt-1">
+                      {language === 'vi' ? 'Tùy chọn - Ngày bắt đầu làm việc trên tàu' : 'Optional - Date started working on ship'}
+                    </p>
                   </div>
 
-                  {/* Date Sign Off */}
+                  {/* Date Sign Off - Optional */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
@@ -6892,7 +6894,7 @@ const HomePage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <p className="text-sm text-gray-500 mt-1">
-                      {language === 'vi' ? 'Để trống nếu thuyền viên vẫn trên tàu' : 'Leave empty if crew member is still on ship'}
+                      {language === 'vi' ? 'Tùy chọn - Để trống nếu thuyền viên vẫn trên tàu' : 'Optional - Leave empty if crew member is still on ship'}
                     </p>
                   </div>
 
