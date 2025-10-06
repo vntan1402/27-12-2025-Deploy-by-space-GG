@@ -3573,7 +3573,7 @@ async def delete_ship(
                     # Get company Google Drive configuration using same pattern as other working functions
                     try:
                         # Use resolve_company_id like other functions (create_ship, upload_file, etc.)
-                        company_uuid = await resolve_company_id(user_company)
+                        company_uuid = await resolve_company_id(current_user)
                         if not company_uuid:
                             logger.warning(f"⚠️ Could not resolve company UUID for {user_company}")
                             google_drive_deletion_result = {
