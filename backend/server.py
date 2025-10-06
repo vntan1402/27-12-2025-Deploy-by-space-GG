@@ -4462,7 +4462,15 @@ async def update_ai_config(
     config: AIConfig,
     current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
+    """Update AI configuration"""
     try:
+        logger.info(f"🔧 Updating AI config - provider: {config.provider}, model: {config.model}")
+        logger.info(f"📄 Document AI config: {config.document_ai}")
+        if config.document_ai:
+            logger.info(f"   - Enabled: {config.document_ai.enabled}")
+            logger.info(f"   - Project ID: {config.document_ai.project_id}")
+            logger.info(f"   - Processor ID: {config.document_ai.processor_id}")
+            logger.info(f"   - Location: {config.document_ai.location}")
         config_data = {
             "id": "system_ai",
             "provider": config.provider,
