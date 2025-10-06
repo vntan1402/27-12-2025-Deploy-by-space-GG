@@ -5335,25 +5335,227 @@ const HomePage = () => {
                     </div>
                   )}
                   
-                  {/* Other categories content */}
-                  {selectedCategory !== 'documents' || selectedSubMenu !== 'certificates' ? (
-                    <div className="text-center py-12">
-                      <div className="text-6xl mb-4">
-                        {selectedCategory === 'crew' ? '👥' : 
-                         selectedCategory === 'ism' ? '📋' :
-                         selectedCategory === 'isps' ? '🛡️' :
-                         selectedCategory === 'mlc' ? '⚖️' :
-                         selectedCategory === 'supplies' ? '📦' : '📋'}
+                  {/* Crew Records Section */}
+                  {selectedCategory === 'crew' ? (
+                    <div className="space-y-6">
+                      {/* Header with Add Crew Button */}
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                            {language === 'vi' ? 'Danh sách thuyền viên công ty' : 'Company Crew List'}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {language === 'vi' 
+                              ? `Quản lý thuyền viên cho ${selectedShip ? selectedShip.name : 'tàu được chọn'}` 
+                              : `Manage crew members for ${selectedShip ? selectedShip.name : 'selected ship'}`}
+                          </p>
+                        </div>
+                        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center">
+                          <span className="mr-2">👤</span>
+                          {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew Member'}
+                        </button>
                       </div>
-                      <h3 className="text-xl font-semibold mb-2">
-                        {subMenuItems[selectedCategory]?.find(item => item.key === selectedSubMenu)?.name || 
-                         categories.find(cat => cat.key === selectedCategory)?.name}
-                      </h3>
-                      <p className="text-gray-600">
-                        {language === 'vi' ? 'Danh mục này đang được phát triển' : 'This section is under development'}
-                      </p>
+
+                      {/* Crew List Table */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'STT' : 'No.'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Họ tên' : 'Full Name'}
+                                </th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Giới tính' : 'Sex'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Chức vụ' : 'Rank'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Nơi sinh' : 'Place of Birth'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Hộ chiếu' : 'Passport'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                                </th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Trạng thái' : 'Status'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                                  {language === 'vi' ? 'Ngày lên tàu' : 'Date Sign On'}
+                                </th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign Off'}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {/* Sample Data Row 1 */}
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">1</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
+                                  Nguyễn Văn An
+                                </td>
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">M</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Captain</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">15/03/1985</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Ho Chi Minh City</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B2345678</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-123456</td>
+                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Active
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">01/01/2025</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                              </tr>
+                              
+                              {/* Sample Data Row 2 */}
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">2</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
+                                  Trần Thị Bình
+                                </td>
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">F</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Chief Engineer</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">22/07/1988</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Ha Noi</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B3456789</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-234567</td>
+                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Active
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">05/02/2025</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                              </tr>
+
+                              {/* Sample Data Row 3 */}
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">3</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
+                                  Lê Văn Cường
+                                </td>
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">M</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">First Officer</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">10/12/1990</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Da Nang</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B4567890</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-345678</td>
+                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    On Leave
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">15/01/2025</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">20/09/2025</td>
+                              </tr>
+
+                              {/* Sample Data Row 4 */}
+                              <tr className="hover:bg-gray-50">
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">4</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
+                                  Phạm Thị Dung
+                                </td>
+                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">F</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Second Engineer</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">28/05/1992</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Can Tho</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B5678901</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-456789</td>
+                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Active
+                                  </span>
+                                </td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">10/03/2025</td>
+                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
+                              </tr>
+
+                              {/* Empty State */}
+                              {/* Uncomment this section to show empty state instead of sample data
+                              <tr>
+                                <td colSpan="12" className="px-6 py-12 text-center">
+                                  <div className="text-gray-400 text-lg mb-2">👥</div>
+                                  <p className="text-gray-500">
+                                    {language === 'vi' ? 'Chưa có thuyền viên nào được thêm' : 'No crew members added yet'}
+                                  </p>
+                                  <p className="text-sm text-gray-400 mt-1">
+                                    {language === 'vi' ? 'Nhấn "Thêm thuyền viên" để bắt đầu' : 'Click "Add Crew Member" to get started'}
+                                  </p>
+                                </td>
+                              </tr>
+                              */}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Summary Statistics */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                          <div className="text-2xl font-bold text-blue-600">4</div>
+                          <div className="text-sm text-blue-700">
+                            {language === 'vi' ? 'Tổng thuyền viên' : 'Total Crew'}
+                          </div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                          <div className="text-2xl font-bold text-green-600">3</div>
+                          <div className="text-sm text-green-700">
+                            {language === 'vi' ? 'Đang hoạt động' : 'Active'}
+                          </div>
+                        </div>
+                        <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                          <div className="text-2xl font-bold text-yellow-600">1</div>
+                          <div className="text-sm text-yellow-700">
+                            {language === 'vi' ? 'Nghỉ phép' : 'On Leave'}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="text-2xl font-bold text-gray-600">0</div>
+                          <div className="text-sm text-gray-700">
+                            {language === 'vi' ? 'Chưa phân công' : 'Unassigned'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  ) : null}
+                  ) : (
+                    /* Other categories content */
+                    selectedCategory !== 'documents' || selectedSubMenu !== 'certificates' ? (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">
+                          {selectedCategory === 'ism' ? '📋' :
+                           selectedCategory === 'isps' ? '🛡️' :
+                           selectedCategory === 'mlc' ? '⚖️' :
+                           selectedCategory === 'supplies' ? '📦' : '📋'}
+                        </div>
+                        <h3 className="text-xl font-semibold mb-2">
+                          {subMenuItems[selectedCategory]?.find(item => item.key === selectedSubMenu)?.name || 
+                           categories.find(cat => cat.key === selectedCategory)?.name}
+                        </h3>
+                        <p className="text-gray-600">
+                          {language === 'vi' ? 'Danh mục này đang được phát triển' : 'This section is under development'}
+                        </p>
+                      </div>
+                    ) : null
+                  )}
                 </div>
               ) : (
                 // Default view when no ship is selected
