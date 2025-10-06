@@ -1384,8 +1384,11 @@ const HomePage = () => {
         : `Deleting ship ${deleteShipData?.name}...`
       );
 
-      // Delete ship from database
-      const deleteResponse = await fetch(`${API}/ships/${shipId}`, {
+      // Delete ship from database (with optional Google Drive deletion)
+      const deleteGoogleDriveFolder = deleteShipOption === 'with_gdrive';
+      const deleteUrl = `${API}/ships/${shipId}${deleteGoogleDriveFolder ? '?delete_google_drive_folder=true' : ''}`;
+      
+      const deleteResponse = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: { 
           'Authorization': `Bearer ${token}`,
