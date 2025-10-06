@@ -6674,21 +6674,37 @@ const HomePage = () => {
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
               <form onSubmit={(e) => {
                 e.preventDefault();
+                
+                // Validate required fields
+                if (!newCrewData.full_name || !newCrewData.date_of_birth || !newCrewData.place_of_birth || !newCrewData.passport) {
+                  toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ các trường bắt buộc!' : 'Please fill in all required fields!');
+                  return;
+                }
+                
+                // Process dates using existing UTC conversion logic
+                const processedData = {
+                  ...newCrewData,
+                  date_of_birth: convertDateInputToUTC(newCrewData.date_of_birth),
+                  date_sign_on: newCrewData.date_sign_on ? convertDateInputToUTC(newCrewData.date_sign_on) : null,
+                  date_sign_off: newCrewData.date_sign_off ? convertDateInputToUTC(newCrewData.date_sign_off) : null
+                };
+                
                 // TODO: Implement crew submission logic
-                console.log('Crew data to submit:', newCrewData);
+                console.log('Crew data to submit:', processedData);
                 toast.success(language === 'vi' ? 'Thuyền viên đã được thêm!' : 'Crew member added successfully!');
                 setShowAddCrewModal(false);
-                // Reset form
+                
+                // Reset form to default values
                 setNewCrewData({
                   full_name: '',
                   sex: 'M',
-                  rank: '',
                   date_of_birth: '',
                   place_of_birth: '',
                   passport: '',
+                  rank: '',
                   seamen_book: '',
-                  status: 'Active',
-                  ship_sign_on: selectedShip ? selectedShip.name : '',
+                  status: 'Sign on',
+                  ship_sign_on: '-',
                   date_sign_on: '',
                   date_sign_off: ''
                 });
