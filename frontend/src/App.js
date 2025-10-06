@@ -6742,18 +6742,17 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Rank */}
+                  {/* Rank - Optional */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Chức vụ *' : 'Rank *'}
+                      {language === 'vi' ? 'Chức vụ' : 'Rank'}
                     </label>
                     <select
-                      required
                       value={newCrewData.rank}
                       onChange={(e) => setNewCrewData({...newCrewData, rank: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">{language === 'vi' ? 'Chọn chức vụ' : 'Select rank'}</option>
+                      <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
                       <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
                       <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
                       <option value="First Officer">{language === 'vi' ? 'Sĩ quan nhất' : 'First Officer'}</option>
