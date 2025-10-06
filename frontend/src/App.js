@@ -3225,10 +3225,14 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error('Passport analysis error:', error);
-      setPassportError(error.response?.data?.message || error.message || 'Passport analysis failed');
+      console.error('Error response:', error.response);
+      console.error('Error status:', error.response?.status);
+      console.error('Error data:', error.response?.data);
+      
+      setPassportError(error.response?.data?.detail || error.response?.data?.message || error.message || 'Passport analysis failed');
       toast.error(language === 'vi' 
-        ? `Lỗi phân tích hộ chiếu: ${error.message}`
-        : `Passport analysis error: ${error.message}`
+        ? `Lỗi phân tích hộ chiếu: ${error.response?.data?.detail || error.message}`
+        : `Passport analysis error: ${error.response?.data?.detail || error.message}`
       );
     } finally {
       setIsAnalyzingPassport(false);
