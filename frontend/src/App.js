@@ -5352,7 +5352,7 @@ const HomePage = () => {
                         </div>
                         <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center">
                           <span className="mr-2">👤</span>
-                          {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew Member'}
+                          {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
                         </button>
                       </div>
 
