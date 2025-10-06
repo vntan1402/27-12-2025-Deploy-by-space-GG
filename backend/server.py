@@ -4944,7 +4944,7 @@ async def multi_cert_upload_for_ship(
                         'overall_extraction_rate': overall_extraction_rate,
                         'text_quality_sufficient': text_quality_sufficient,
                         'extracted_critical_fields': extracted_critical_fields,
-                        'total_critical_fields': len(critical_fields),
+                        'total_critical_fields': len(critical_fields_variations),
                         'extracted_all_fields': extracted_all_fields,
                         'total_all_fields': len(all_expected_fields),
                         'text_length': len(text_content) if text_content else 0
