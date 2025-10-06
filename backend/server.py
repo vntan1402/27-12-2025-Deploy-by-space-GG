@@ -4873,14 +4873,28 @@ async def multi_cert_upload_for_ship(
                     if confidence_score == 0.0 and not confidence:
                         logger.info("🔄 No confidence provided by AI - calculating based on extraction quality")
                     
-                    # Critical fields for certificate processing
-                    critical_fields = ['ship_name', 'cert_name', 'cert_no']
+                    # Critical fields for certificate processing (with variations)
+                    critical_fields_variations = {
+                        'ship_name': ['ship_name', 'vessel_name', 'name_of_ship', 'name'],
+                        'cert_name': ['cert_name', 'certificate_name', 'cert_type', 'document_type'],
+                        'cert_no': ['cert_no', 'certificate_number', 'certificate_no', 'document_number']
+                    }
+                    
                     extracted_critical_fields = 0
                     
-                    for field in critical_fields:
-                        value = analysis_result.get(field, '').strip() if analysis_result.get(field) else ''
-                        if value and value.lower() not in ['unknown', 'null', 'none', '']:
-                            extracted_critical_fields += 1
+                    for field_group, variations in critical_fields_variations.items():
+                        found = False
+                        for variation in variations:
+                            value = analysis_result.get(variation, '').strip() if analysis_result.get(variation) else ''
+                            if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                                extracted_critical_fields += 1
+                                found = True
+                                break
+                        # If no variation found, still check main field
+                        if not found:
+                            value = analysis_result.get(field_group, '').strip() if analysis_result.get(field_group) else ''
+                            if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                                extracted_critical_fields += 1
                     
                     critical_extraction_rate = extracted_critical_fields / len(critical_fields)
                     
