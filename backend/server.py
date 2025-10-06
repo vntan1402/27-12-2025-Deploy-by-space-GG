@@ -4869,6 +4869,10 @@ async def multi_cert_upload_for_ship(
                     elif isinstance(confidence, (int, float)):
                         confidence_score = float(confidence)
                     
+                    # If no confidence provided by AI, calculate based on extracted fields
+                    if confidence_score == 0.0 and not confidence:
+                        logger.info("🔄 No confidence provided by AI - calculating based on extraction quality")
+                    
                     # Critical fields for certificate processing
                     critical_fields = ['ship_name', 'cert_name', 'cert_no']
                     extracted_critical_fields = 0
