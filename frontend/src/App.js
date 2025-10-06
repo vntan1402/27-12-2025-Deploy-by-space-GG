@@ -6726,10 +6726,10 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Sex */}
+                  {/* Sex - Required */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Giới tính *' : 'Sex *'}
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Giới tính' : 'Sex'}
                     </label>
                     <select
                       required
