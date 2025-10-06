@@ -443,7 +443,6 @@ class DocumentAIConfig(BaseModel):
     project_id: Optional[str] = None
     location: Optional[str] = "us"
     processor_id: Optional[str] = None
-    service_account_key: Optional[str] = None  # JSON key as string
 
 class AIConfig(BaseModel):
     provider: str
