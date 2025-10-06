@@ -10073,16 +10073,23 @@ async def analyze_passport_for_crew(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
             
-        # Get AI configuration for Document AI
-        ai_config_doc = await mongo_db.find_one("ai_config", {"company_id": company_uuid})
+        # Get AI configuration for Document AI (system-wide configuration)
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
         if not ai_config_doc:
             raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
             
-        ai_config = ai_config_doc.get("config", {})
-        document_ai_config = ai_config.get("document_ai", {})
+        document_ai_config = ai_config_doc.get("document_ai", {})
         
         if not document_ai_config.get("enabled", False):
             raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id"),
+            document_ai_config.get("service_account_key")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration. Please check Project ID, Processor ID, and Service Account Key.")
             
         # TODO: Implement Google Document AI analysis
         # This would typically use Google Document AI Python client
