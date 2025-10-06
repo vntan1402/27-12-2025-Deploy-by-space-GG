@@ -10608,6 +10608,31 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
                 alert(language === 'vi' ? 'Vui lòng nhập API key' : 'Please enter API key');
                 return;
               }
+              
+              // Validate Google Document AI configuration if enabled
+              if (config.document_ai?.enabled) {
+                if (!config.document_ai?.project_id || !config.document_ai?.project_id.trim()) {
+                  alert(language === 'vi' ? 'Vui lòng nhập Project ID cho Google Document AI' : 'Please enter Project ID for Google Document AI');
+                  return;
+                }
+                if (!config.document_ai?.processor_id || !config.document_ai?.processor_id.trim()) {
+                  alert(language === 'vi' ? 'Vui lòng nhập Processor ID cho Google Document AI' : 'Please enter Processor ID for Google Document AI');
+                  return;
+                }
+                if (!config.document_ai?.service_account_key || !config.document_ai?.service_account_key.trim()) {
+                  alert(language === 'vi' ? 'Vui lòng nhập Service Account Key cho Google Document AI' : 'Please enter Service Account Key for Google Document AI');
+                  return;
+                }
+                
+                // Validate JSON format of service account key
+                try {
+                  JSON.parse(config.document_ai.service_account_key);
+                } catch (e) {
+                  alert(language === 'vi' ? 'Service Account Key phải là định dạng JSON hợp lệ' : 'Service Account Key must be valid JSON format');
+                  return;
+                }
+              }
+              
               onSave();
             }}
             className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all"
