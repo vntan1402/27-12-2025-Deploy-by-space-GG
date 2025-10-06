@@ -6773,10 +6773,10 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Date of Birth */}
+                  {/* Date of Birth - Required */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Ngày sinh *' : 'Date of Birth *'}
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
                     </label>
                     <input
                       type="date"
