@@ -10558,14 +10558,14 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
                       </li>
                       <li>
                         {language === 'vi' 
-                          ? 'Tạo Service Account với role Document AI API User' 
-                          : 'Create Service Account with Document AI API User role'
+                          ? 'Đảm bảo Google Drive Configuration đã được thiết lập' 
+                          : 'Ensure Google Drive Configuration is already set up'
                         }
                       </li>
                       <li>
                         {language === 'vi' 
-                          ? 'Tải xuống JSON key của Service Account' 
-                          : 'Download Service Account JSON key'
+                          ? 'Google Apps Script sẽ tự động sử dụng authentication đã có' 
+                          : 'Google Apps Script will automatically use existing authentication'
                         }
                       </li>
                     </ul>
