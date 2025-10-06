@@ -5498,7 +5498,7 @@ const HomePage = () => {
                                     {language === 'vi' ? 'Chưa có thuyền viên nào được thêm' : 'No crew members added yet'}
                                   </p>
                                   <p className="text-sm text-gray-400 mt-1">
-                                    {language === 'vi' ? 'Nhấn "Thêm thuyền viên" để bắt đầu' : 'Click "Add Crew Member" to get started'}
+                                    {language === 'vi' ? 'Nhấn "Thêm thuyền viên" để bắt đầu' : 'Click "Add Crew" to get started'}
                                   </p>
                                 </td>
                               </tr>
