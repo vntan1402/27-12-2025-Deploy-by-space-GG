@@ -6802,10 +6802,10 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Passport */}
+                  {/* Passport No. - Required */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Hộ chiếu *' : 'Passport *'}
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Số hộ chiếu' : 'Passport No.'}
                     </label>
                     <input
                       type="text"
