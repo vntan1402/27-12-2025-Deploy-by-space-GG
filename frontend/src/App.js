@@ -751,6 +751,7 @@ const HomePage = () => {
   
   // Add Crew Modal States
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
+  const [addCrewMethod, setAddCrewMethod] = useState('manual'); // 'manual' or 'passport'
   const [newCrewData, setNewCrewData] = useState({
     full_name: '',           // Required
     sex: 'M',               // Required 
@@ -764,6 +765,12 @@ const HomePage = () => {
     date_sign_on: '',       // Optional
     date_sign_off: ''       // Optional
   });
+  
+  // Passport Upload States
+  const [passportFile, setPassportFile] = useState(null);
+  const [passportAnalysis, setPassportAnalysis] = useState(null);
+  const [isAnalyzingPassport, setIsAnalyzingPassport] = useState(false);
+  const [passportError, setPassportError] = useState('');
   
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
