@@ -3545,15 +3545,80 @@ async def update_ship(ship_id: str, ship_data: ShipUpdate, current_user: UserRes
         raise HTTPException(status_code=500, detail="Failed to update ship")
 
 @api_router.delete("/ships/{ship_id}")
-async def delete_ship(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def delete_ship(
+    ship_id: str, 
+    delete_google_drive_folder: bool = False,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
     try:
         # Check if ship exists
         existing_ship = await mongo_db.find_one("ships", {"id": ship_id})
         if not existing_ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
+        ship_name = existing_ship.get('name', 'Unknown Ship')
+        logger.info(f"🗑️ Deleting ship: {ship_name} (ID: {ship_id})")
+        
+        # Delete Google Drive folder if requested
+        google_drive_deletion_result = None
+        if delete_google_drive_folder:
+            logger.info(f"🗑️ Also deleting Google Drive folder for ship: {ship_name}")
+            
+            try:
+                # Get user's company information for Google Drive integration
+                user_company = current_user.company
+                if not user_company:
+                    logger.warning("⚠️ No company found for user - skipping Google Drive deletion")
+                else:
+                    # Get company Google Drive configuration
+                    company_config = await mongo_db.find_one("companies", {"name": user_company})
+                    if not company_config or not company_config.get('google_drive_folder_id'):
+                        logger.warning(f"⚠️ No Google Drive configuration found for company {user_company}")
+                    else:
+                        google_drive_manager = GoogleDriveManager()
+                        google_drive_deletion_result = await google_drive_manager.delete_ship_structure(
+                            parent_folder_id=company_config['google_drive_folder_id'],
+                            ship_name=ship_name,
+                            permanent_delete=False  # Move to trash by default for safety
+                        )
+                        
+                        if google_drive_deletion_result.get('success'):
+                            logger.info(f"✅ Google Drive folder deleted successfully for ship: {ship_name}")
+                        else:
+                            logger.error(f"❌ Failed to delete Google Drive folder: {google_drive_deletion_result.get('message')}")
+                            
+            except Exception as gdrive_error:
+                logger.error(f"❌ Error during Google Drive folder deletion: {str(gdrive_error)}")
+                google_drive_deletion_result = {
+                    "success": False,
+                    "message": f"Google Drive deletion failed: {str(gdrive_error)}"
+                }
+        
+        # Delete ship from database
         await mongo_db.delete("ships", {"id": ship_id})
-        return {"message": "Ship deleted successfully"}
+        logger.info(f"✅ Ship deleted from database: {ship_name}")
+        
+        # Prepare response
+        response = {
+            "message": f"Ship '{ship_name}' deleted successfully",
+            "ship_id": ship_id,
+            "ship_name": ship_name,
+            "database_deletion": "success"
+        }
+        
+        if delete_google_drive_folder:
+            response["google_drive_deletion_requested"] = True
+            if google_drive_deletion_result:
+                response["google_drive_deletion"] = google_drive_deletion_result
+            else:
+                response["google_drive_deletion"] = {
+                    "success": False,
+                    "message": "Google Drive deletion was requested but no company configuration found"
+                }
+        else:
+            response["google_drive_deletion_requested"] = False
+            
+        return response
         
     except HTTPException:
         raise
