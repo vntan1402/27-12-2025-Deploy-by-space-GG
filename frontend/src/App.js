@@ -8894,6 +8894,7 @@ const AccountControlPage = () => {
             onClose={() => setShowAIConfig(false)}
             onSave={handleAIConfigUpdate}
             language={language}
+            token={token}
           />
         )}
 
