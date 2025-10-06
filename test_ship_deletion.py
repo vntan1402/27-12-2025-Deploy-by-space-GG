@@ -11,7 +11,7 @@ API_URL = "https://shipmate-55.preview.emergentagent.com"
 def login():
     """Login and get auth token"""
     login_data = {
-        "email": "admin1@amcsc.com", 
+        "username": "admin1", 
         "password": "123456"
     }
     
