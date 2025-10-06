@@ -10255,11 +10255,11 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" 
       onClick={handleOverlayClick}
     >
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-2xl font-bold text-gray-800">
             {language === 'vi' ? 'Cấu hình AI' : 'AI Configuration'}
           </h2>
@@ -10271,7 +10271,8 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
           </button>
         </div>
         
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'vi' ? 'Nhà cung cấp AI' : 'AI Provider'}
