@@ -10536,6 +10536,14 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language, token }) 
                             : 'Testing Google Document AI connection...'
                           );
                           
+                          // Check if token exists
+                          if (!token) {
+                            throw new Error(language === 'vi' 
+                              ? 'Chưa đăng nhập. Vui lòng đăng nhập lại.'
+                              : 'Not logged in. Please login again.'
+                            );
+                          }
+                          
                           const response = await axios.post(`${API}/test-document-ai`, {
                             project_id: config.document_ai.project_id,
                             location: config.document_ai.location,
