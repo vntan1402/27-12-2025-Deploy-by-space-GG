@@ -10495,34 +10495,24 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
                     />
                   </div>
 
-                  {/* Service Account Key */}
+                  {/* Authentication Method */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Service Account Key (JSON) *' : 'Service Account Key (JSON) *'}
-                    </label>
-                    <textarea
-                      value={config.document_ai?.service_account_key || ''}
-                      onChange={(e) => setConfig(prev => ({
-                        ...prev,
-                        document_ai: {
-                          ...prev.document_ai,
-                          service_account_key: e.target.value
-                        }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows="4"
-                      placeholder={language === 'vi' 
-                        ? 'Dán nội dung JSON key của Service Account' 
-                        : 'Paste Service Account JSON key content'
-                      }
-                      required={config.document_ai?.enabled}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {language === 'vi' 
-                        ? 'Service Account cần có quyền Document AI API User'
-                        : 'Service Account must have Document AI API User role'
-                      }
-                    </p>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <span className="text-green-600 mr-2">🔗</span>
+                        <div>
+                          <p className="text-sm font-medium text-green-800">
+                            {language === 'vi' ? 'Xác thực tự động' : 'Automatic Authentication'}
+                          </p>
+                          <p className="text-xs text-green-700 mt-1">
+                            {language === 'vi' 
+                              ? 'Sử dụng Google Apps Script đã được cấu hình trong Google Drive Configuration'
+                              : 'Uses Google Apps Script configured in Google Drive Configuration'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Test Connection Button */}
