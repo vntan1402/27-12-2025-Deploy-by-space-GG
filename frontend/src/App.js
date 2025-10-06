@@ -3928,17 +3928,19 @@ const HomePage = () => {
                             {getDynamicPageTitle()}
                           </h2>
                           <div className="flex items-center gap-2">
-                            {/* Ship Particular Button */}
-                            <button
-                              onClick={() => setShowFullShipInfo(!showFullShipInfo)}
-                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
-                            >
-                              <span className="mr-1">🚢</span>
-                              {language === 'vi' ? 'Thông số kỹ thuật' : 'Ship Particular'}
-                              <span className="ml-1 text-xs">
-                                {showFullShipInfo ? '▲' : '▼'}
-                              </span>
-                            </button>
+                            {/* Ship Particular Button - Hidden in Crew Records */}
+                            {selectedCategory !== 'crew' && (
+                              <button
+                                onClick={() => setShowFullShipInfo(!showFullShipInfo)}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                              >
+                                <span className="mr-1">🚢</span>
+                                {language === 'vi' ? 'Thông số kỹ thuật' : 'Ship Particular'}
+                                <span className="ml-1 text-xs">
+                                  {showFullShipInfo ? '▲' : '▼'}
+                                </span>
+                              </button>
+                            )}
                             {/* Ship Select Dropdown */}
                             <div className="relative" ref={shipSelectorRef}>
                               <button
