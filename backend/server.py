@@ -3572,15 +3572,24 @@ async def delete_ship(
                 else:
                     # Get company Google Drive configuration
                     company_config = await mongo_db.find_one("companies", {"name": user_company})
-                    if not company_config or not company_config.get('google_drive_folder_id'):
-                        logger.warning(f"⚠️ No Google Drive configuration found for company {user_company}")
+                    if not company_config:
+                        logger.warning(f"⚠️ No company configuration found for {user_company}")
                     else:
-                        google_drive_manager = GoogleDriveManager()
-                        google_drive_deletion_result = await google_drive_manager.delete_ship_structure(
-                            parent_folder_id=company_config['google_drive_folder_id'],
-                            ship_name=ship_name,
-                            permanent_delete=False  # Move to trash by default for safety
-                        )
+                        # Get Google Drive configuration
+                        gdrive_config = company_config.get('google_drive_config', {})
+                        if not gdrive_config.get('folder_id') or not (gdrive_config.get('web_app_url') or gdrive_config.get('apps_script_url')):
+                            logger.warning(f"⚠️ Incomplete Google Drive configuration for company {user_company}")
+                            google_drive_deletion_result = {
+                                "success": False,
+                                "message": "Google Drive integration not properly configured for this company"
+                            }
+                        else:
+                            google_drive_manager = GoogleDriveManager()
+                            google_drive_deletion_result = await google_drive_manager.delete_ship_structure(
+                                gdrive_config=gdrive_config,
+                                ship_name=ship_name,
+                                permanent_delete=False  # Move to trash by default for safety
+                            )
                         
                         if google_drive_deletion_result.get('success'):
                             logger.info(f"✅ Google Drive folder deleted successfully for ship: {ship_name}")
