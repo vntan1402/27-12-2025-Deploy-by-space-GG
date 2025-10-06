@@ -4896,7 +4896,7 @@ async def multi_cert_upload_for_ship(
                             if value and value.lower() not in ['unknown', 'null', 'none', '']:
                                 extracted_critical_fields += 1
                     
-                    critical_extraction_rate = extracted_critical_fields / len(critical_fields)
+                    critical_extraction_rate = extracted_critical_fields / len(critical_fields_variations)
                     
                     # All fields for overall assessment
                     all_expected_fields = [
