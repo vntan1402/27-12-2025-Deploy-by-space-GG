@@ -10593,9 +10593,10 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
               }
             </p>
           </div>
+          </div>
         </div>
 
-        <div className="flex justify-end space-x-4 mt-8">
+        <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 flex-shrink-0">
           <button
             onClick={onClose}
             className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
