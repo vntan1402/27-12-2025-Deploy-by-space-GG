@@ -6654,6 +6654,254 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* Add Crew Modal */}
+      {showAddCrewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800">
+                {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
+              </h3>
+              <button
+                onClick={() => setShowAddCrewModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                // TODO: Implement crew submission logic
+                console.log('Crew data to submit:', newCrewData);
+                toast.success(language === 'vi' ? 'Thuyền viên đã được thêm!' : 'Crew member added successfully!');
+                setShowAddCrewModal(false);
+                // Reset form
+                setNewCrewData({
+                  full_name: '',
+                  sex: 'M',
+                  rank: '',
+                  date_of_birth: '',
+                  place_of_birth: '',
+                  passport: '',
+                  seamen_book: '',
+                  status: 'Active',
+                  ship_sign_on: selectedShip ? selectedShip.name : '',
+                  date_sign_on: '',
+                  date_sign_off: ''
+                });
+              }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Họ tên *' : 'Full Name *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newCrewData.full_name}
+                      onChange={(e) => setNewCrewData({...newCrewData, full_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập họ tên đầy đủ' : 'Enter full name'}
+                    />
+                  </div>
+
+                  {/* Sex */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Giới tính *' : 'Sex *'}
+                    </label>
+                    <select
+                      required
+                      value={newCrewData.sex}
+                      onChange={(e) => setNewCrewData({...newCrewData, sex: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="M">{language === 'vi' ? 'Nam' : 'Male'}</option>
+                      <option value="F">{language === 'vi' ? 'Nữ' : 'Female'}</option>
+                    </select>
+                  </div>
+
+                  {/* Rank */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Chức vụ *' : 'Rank *'}
+                    </label>
+                    <select
+                      required
+                      value={newCrewData.rank}
+                      onChange={(e) => setNewCrewData({...newCrewData, rank: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{language === 'vi' ? 'Chọn chức vụ' : 'Select rank'}</option>
+                      <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
+                      <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
+                      <option value="First Officer">{language === 'vi' ? 'Sĩ quan nhất' : 'First Officer'}</option>
+                      <option value="Second Officer">{language === 'vi' ? 'Sĩ quan hai' : 'Second Officer'}</option>
+                      <option value="Third Officer">{language === 'vi' ? 'Sĩ quan ba' : 'Third Officer'}</option>
+                      <option value="Second Engineer">{language === 'vi' ? 'Máy phó nhất' : 'Second Engineer'}</option>
+                      <option value="Third Engineer">{language === 'vi' ? 'Máy phó hai' : 'Third Engineer'}</option>
+                      <option value="Fourth Engineer">{language === 'vi' ? 'Máy phó ba' : 'Fourth Engineer'}</option>
+                      <option value="Bosun">{language === 'vi' ? 'Thuyền phó' : 'Bosun'}</option>
+                      <option value="AB Seaman">{language === 'vi' ? 'Thuyền viên thành thạo' : 'AB Seaman'}</option>
+                      <option value="OS Seaman">{language === 'vi' ? 'Thuyền viên tập sự' : 'OS Seaman'}</option>
+                      <option value="Cook">{language === 'vi' ? 'Bếp trưởng' : 'Cook'}</option>
+                      <option value="Messman">{language === 'vi' ? 'Phục vụ' : 'Messman'}</option>
+                      <option value="Oiler">{language === 'vi' ? 'Thợ dầu' : 'Oiler'}</option>
+                      <option value="Fitter">{language === 'vi' ? 'Thợ máy' : 'Fitter'}</option>
+                      <option value="Wiper">{language === 'vi' ? 'Thợ lau' : 'Wiper'}</option>
+                      <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                    </select>
+                  </div>
+
+                  {/* Date of Birth */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Ngày sinh *' : 'Date of Birth *'}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={newCrewData.date_of_birth}
+                      onChange={(e) => setNewCrewData({...newCrewData, date_of_birth: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Place of Birth */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Nơi sinh *' : 'Place of Birth *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newCrewData.place_of_birth}
+                      onChange={(e) => setNewCrewData({...newCrewData, place_of_birth: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập nơi sinh' : 'Enter place of birth'}
+                    />
+                  </div>
+
+                  {/* Passport */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Hộ chiếu *' : 'Passport *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newCrewData.passport}
+                      onChange={(e) => setNewCrewData({...newCrewData, passport: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập số hộ chiếu' : 'Enter passport number'}
+                    />
+                  </div>
+
+                  {/* Seamen Book */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Sổ thuyền viên *' : 'Seamen Book *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newCrewData.seamen_book}
+                      onChange={(e) => setNewCrewData({...newCrewData, seamen_book: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập số sổ thuyền viên' : 'Enter seamen book number'}
+                    />
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Trạng thái *' : 'Status *'}
+                    </label>
+                    <select
+                      required
+                      value={newCrewData.status}
+                      onChange={(e) => setNewCrewData({...newCrewData, status: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Active">{language === 'vi' ? 'Đang hoạt động' : 'Active'}</option>
+                      <option value="On Leave">{language === 'vi' ? 'Nghỉ phép' : 'On Leave'}</option>
+                      <option value="Unassigned">{language === 'vi' ? 'Chưa phân công' : 'Unassigned'}</option>
+                    </select>
+                  </div>
+
+                  {/* Ship Sign On */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Tàu đăng ký *' : 'Ship Sign On *'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newCrewData.ship_sign_on}
+                      onChange={(e) => setNewCrewData({...newCrewData, ship_sign_on: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập tên tàu' : 'Enter ship name'}
+                    />
+                  </div>
+
+                  {/* Date Sign On */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Ngày xuống tàu *' : 'Date Sign On *'}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={newCrewData.date_sign_on}
+                      onChange={(e) => setNewCrewData({...newCrewData, date_sign_on: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Date Sign Off */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
+                    </label>
+                    <input
+                      type="date"
+                      value={newCrewData.date_sign_off}
+                      onChange={(e) => setNewCrewData({...newCrewData, date_sign_off: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      {language === 'vi' ? 'Để trống nếu thuyền viên vẫn trên tàu' : 'Leave empty if crew member is still on ship'}
+                    </p>
+                  </div>
+
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddCrewModal(false)}
+                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                  >
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                  >
+                    {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew Member'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
