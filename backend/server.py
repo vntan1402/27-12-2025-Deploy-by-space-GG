@@ -10235,6 +10235,68 @@ This summary was generated using Google Document AI for crew management purposes
         logger.error(f"Passport analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Passport analysis failed: {str(e)}")
 
+# TEST DOCUMENT AI CONNECTION ENDPOINT
+@api_router.post("/test-document-ai")
+async def test_document_ai_connection(
+    test_config: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Test Google Document AI connection via Google Apps Script
+    """
+    try:
+        project_id = test_config.get("project_id")
+        location = test_config.get("location", "us")
+        processor_id = test_config.get("processor_id")
+        
+        if not project_id or not processor_id:
+            raise HTTPException(status_code=400, detail="Project ID and Processor ID are required")
+            
+        logger.info(f"🧪 Testing Document AI connection: Project={project_id}, Processor={processor_id}")
+        
+        # Get company information for Apps Script call
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+            
+        # Test connection via Google Apps Script
+        google_drive_manager = GoogleDriveManager()
+        
+        apps_script_payload = {
+            "action": "test_document_ai_connection",
+            "project_id": project_id,
+            "location": location,
+            "processor_id": processor_id
+        }
+        
+        # Call Google Apps Script to test connection
+        test_response = await google_drive_manager.call_apps_script(
+            apps_script_payload,
+            company_id=company_uuid
+        )
+        
+        if test_response.get("success"):
+            logger.info("✅ Document AI connection test successful")
+            return {
+                "success": True,
+                "message": "Document AI connection successful",
+                "processor_name": test_response.get("processor_name", "Unknown"),
+                "processor_type": test_response.get("processor_type", "Unknown")
+            }
+        else:
+            error_message = test_response.get("error", "Unknown error")
+            logger.warning(f"❌ Document AI connection test failed: {error_message}")
+            return {
+                "success": False,
+                "message": error_message
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Document AI test error: {e}")
+        raise HTTPException(status_code=500, detail=f"Connection test failed: {str(e)}")
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
