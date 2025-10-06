@@ -446,12 +446,12 @@ class GoogleDriveManager:
             'folder_id': self.folder_id
         }
 
-    async def delete_ship_structure(self, parent_folder_id: str, ship_name: str, permanent_delete: bool = False) -> Dict[str, Any]:
+    async def delete_ship_structure(self, gdrive_config: dict, ship_name: str, permanent_delete: bool = False) -> Dict[str, Any]:
         """
         Delete ship folder structure from Google Drive via Apps Script
         
         Args:
-            parent_folder_id: Company's Google Drive folder ID
+            gdrive_config: Google Drive configuration dict containing web_app_url and folder_id
             ship_name: Name of the ship folder to delete
             permanent_delete: If True, permanently delete; if False, move to trash
             
@@ -460,72 +460,59 @@ class GoogleDriveManager:
         """
         logger.info(f"🗑️ Deleting ship structure: {ship_name} from Google Drive")
         
-        if not self.is_configured:
-            return {
-                'success': False,
-                'message': 'Google Drive integration not configured'
-            }
-            
         try:
-            # Get Apps Script URL from environment or configuration
-            import requests
-            
-            # This should be the deployed Google Apps Script web app URL
-            # You'll need to replace this with the actual URL after deploying the Apps Script
-            apps_script_url = os.getenv('GOOGLE_APPS_SCRIPT_URL')
-            
-            if not apps_script_url:
-                logger.error("❌ GOOGLE_APPS_SCRIPT_URL environment variable not set")
+            # Get the web app URL from the config (same pattern as create_dynamic_ship_folder_structure)
+            script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+            if not script_url:
                 return {
                     'success': False,
-                    'message': 'Google Apps Script URL not configured. Please set GOOGLE_APPS_SCRIPT_URL environment variable.'
+                    'message': 'Apps Script URL not configured in company settings'
                 }
             
-            # Prepare request payload
+            # Get parent folder ID from config
+            parent_folder_id = gdrive_config.get("folder_id")
+            if not parent_folder_id:
+                return {
+                    'success': False,
+                    'message': 'Parent folder ID not configured in company settings'
+                }
+            
+            # Prepare request payload (matching the format you specified)
             payload = {
-                'action': 'delete_complete_ship_structure',
-                'parent_folder_id': parent_folder_id,
-                'ship_name': ship_name,
-                'permanent_delete': permanent_delete
+                "action": "delete_complete_ship_structure",
+                "parent_folder_id": parent_folder_id,
+                "ship_name": ship_name,
+                "permanent_delete": permanent_delete
             }
             
             logger.info(f"📡 Calling Google Apps Script to delete ship structure: {ship_name}")
+            logger.info(f"Apps Script URL: {script_url}")
+            logger.info(f"Payload: {payload}")
             
-            # Make request to Apps Script
-            response = requests.post(
-                apps_script_url,
-                json=payload,
-                headers={'Content-Type': 'application/json'},
-                timeout=60  # 60 seconds timeout for large deletions
-            )
+            # Make request to Apps Script (same pattern as existing functions)
+            import requests
+            response = requests.post(script_url, json=payload, timeout=90)  # 90s timeout like create function
+            response.raise_for_status()
             
-            if response.status_code == 200:
-                result = response.json()
-                logger.info(f"📡 Apps Script response: {result}")
-                
-                if result.get('success'):
-                    logger.info(f"✅ Successfully deleted ship structure: {ship_name}")
-                    return {
-                        'success': True,
-                        'message': f"Ship folder '{ship_name}' deleted successfully from Google Drive",
-                        'ship_name': ship_name,
-                        'delete_method': 'permanent_deletion' if permanent_delete else 'moved_to_trash',
-                        'deletion_stats': result.get('deletion_stats', {}),
-                        'apps_script_response': result
-                    }
-                else:
-                    logger.error(f"❌ Apps Script reported failure: {result.get('message')}")
-                    return {
-                        'success': False,
-                        'message': f"Failed to delete ship folder: {result.get('message', 'Unknown error')}",
-                        'apps_script_response': result
-                    }
+            result = response.json()
+            logger.info(f"📡 Apps Script response: {result}")
+            
+            if result.get('success'):
+                logger.info(f"✅ Successfully deleted ship structure: {ship_name}")
+                return {
+                    'success': True,
+                    'message': f"Ship folder '{ship_name}' deleted successfully from Google Drive",
+                    'ship_name': ship_name,
+                    'delete_method': result.get('delete_method', 'moved_to_trash'),
+                    'deletion_stats': result.get('deletion_stats', {}),
+                    'apps_script_response': result
+                }
             else:
-                logger.error(f"❌ Apps Script request failed with status {response.status_code}: {response.text}")
+                logger.error(f"❌ Apps Script reported failure: {result.get('message')}")
                 return {
                     'success': False,
-                    'message': f"Google Apps Script request failed (HTTP {response.status_code})",
-                    'response_text': response.text
+                    'message': f"Failed to delete ship folder: {result.get('message', 'Unknown error')}",
+                    'apps_script_response': result
                 }
                 
         except requests.exceptions.Timeout:
