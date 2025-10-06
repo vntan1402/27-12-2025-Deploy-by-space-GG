@@ -6817,18 +6817,17 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Seamen Book */}
+                  {/* Seamen Book - Optional */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Sổ thuyền viên *' : 'Seamen Book *'}
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
                     </label>
                     <input
                       type="text"
-                      required
                       value={newCrewData.seamen_book}
                       onChange={(e) => setNewCrewData({...newCrewData, seamen_book: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Nhập số sổ thuyền viên' : 'Enter seamen book number'}
+                      placeholder={language === 'vi' ? 'Nhập số sổ thuyền viên (tùy chọn)' : 'Enter seamen book number (optional)'}
                     />
                   </div>
 
