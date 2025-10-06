@@ -3187,7 +3187,10 @@ const HomePage = () => {
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('passport_file', file);
-      formData.append('ship_name', selectedShip?.name || 'UNKNOWN');
+      
+      const shipName = selectedShip?.name || 'UNKNOWN';
+      console.log('Selected ship for passport upload:', selectedShip, 'Ship name:', shipName);
+      formData.append('ship_name', shipName);
       
       // Call backend API to analyze passport with Google Document AI
       const response = await axios.post(`${API}/crew/analyze-passport`, formData, {
