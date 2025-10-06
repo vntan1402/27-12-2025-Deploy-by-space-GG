@@ -438,16 +438,32 @@ class GoogleDriveStatus(BaseModel):
     status: str
     message: Optional[str] = None
     
+class DocumentAIConfig(BaseModel):
+    enabled: Optional[bool] = False
+    project_id: Optional[str] = None
+    location: Optional[str] = "us"
+    processor_id: Optional[str] = None
+    service_account_key: Optional[str] = None  # JSON key as string
+
 class AIConfig(BaseModel):
     provider: str
     model: str
     api_key: str
     use_emergent_key: Optional[bool] = True  # Default to using Emergent key
+    document_ai: Optional[DocumentAIConfig] = None  # Google Document AI configuration
+
+class DocumentAIConfigResponse(BaseModel):
+    enabled: Optional[bool] = False
+    project_id: Optional[str] = None
+    location: Optional[str] = "us"
+    processor_id: Optional[str] = None
+    # Don't expose service_account_key in response
 
 class AIConfigResponse(BaseModel):
     provider: str
     model: str
     use_emergent_key: Optional[bool] = True
+    document_ai: Optional[DocumentAIConfigResponse] = None
     # Don't expose API key in response
 
 # Add CORS middleware
