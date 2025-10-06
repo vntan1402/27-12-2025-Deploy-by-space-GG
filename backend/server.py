@@ -3570,26 +3570,41 @@ async def delete_ship(
                 if not user_company:
                     logger.warning("⚠️ No company found for user - skipping Google Drive deletion")
                 else:
-                    # Get company Google Drive configuration
-                    company_config = await mongo_db.find_one("companies", {"name": user_company})
-                    if not company_config:
-                        logger.warning(f"⚠️ No company configuration found for {user_company}")
-                    else:
-                        # Get Google Drive configuration
-                        gdrive_config = company_config.get('google_drive_config', {})
-                        if not gdrive_config.get('folder_id') or not (gdrive_config.get('web_app_url') or gdrive_config.get('apps_script_url')):
-                            logger.warning(f"⚠️ Incomplete Google Drive configuration for company {user_company}")
+                    # Get company Google Drive configuration using same pattern as other working functions
+                    try:
+                        # Use resolve_company_id like other functions (create_ship, upload_file, etc.)
+                        company_uuid = await resolve_company_id(user_company)
+                        if not company_uuid:
+                            logger.warning(f"⚠️ Could not resolve company UUID for {user_company}")
                             google_drive_deletion_result = {
                                 "success": False,
-                                "message": "Google Drive integration not properly configured for this company"
+                                "message": f"Could not resolve company UUID for {user_company}"
                             }
                         else:
-                            google_drive_manager = GoogleDriveManager()
-                            google_drive_deletion_result = await google_drive_manager.delete_ship_structure(
-                                gdrive_config=gdrive_config,
-                                ship_name=ship_name,
-                                permanent_delete=False  # Move to trash by default for safety
-                            )
+                            logger.info(f"✅ Found company UUID {company_uuid} for company name {user_company}")
+                            
+                            # Get Google Drive config from company_gdrive_config collection (same as other functions)
+                            gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+                            if not gdrive_config:
+                                logger.warning(f"⚠️ No Google Drive configuration found for company {user_company}")
+                                google_drive_deletion_result = {
+                                    "success": False,
+                                    "message": "Google Drive integration not configured for this company"
+                                }
+                            else:
+                                logger.info(f"✅ Company Google Drive config found for {user_company}")
+                                google_drive_manager = GoogleDriveManager()
+                                google_drive_deletion_result = await google_drive_manager.delete_ship_structure(
+                                    gdrive_config=gdrive_config,
+                                    ship_name=ship_name,
+                                    permanent_delete=False  # Move to trash by default for safety
+                                )
+                    except Exception as config_error:
+                        logger.error(f"❌ Error getting Google Drive configuration: {str(config_error)}")
+                        google_drive_deletion_result = {
+                            "success": False,
+                            "message": f"Error retrieving Google Drive configuration: {str(config_error)}"
+                        }
                         
                         if google_drive_deletion_result.get('success'):
                             logger.info(f"✅ Google Drive folder deleted successfully for ship: {ship_name}")
