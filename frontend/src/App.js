@@ -6831,20 +6831,19 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Status */}
+                  {/* Status - Optional */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {language === 'vi' ? 'Trạng thái *' : 'Status *'}
+                      {language === 'vi' ? 'Trạng thái' : 'Status'}
                     </label>
                     <select
-                      required
                       value={newCrewData.status}
                       onChange={(e) => setNewCrewData({...newCrewData, status: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="Active">{language === 'vi' ? 'Đang hoạt động' : 'Active'}</option>
-                      <option value="On Leave">{language === 'vi' ? 'Nghỉ phép' : 'On Leave'}</option>
-                      <option value="Unassigned">{language === 'vi' ? 'Chưa phân công' : 'Unassigned'}</option>
+                      <option value="Sign on">{language === 'vi' ? 'Đang trên tàu' : 'Sign on'}</option>
+                      <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
+                      <option value="Leave">{language === 'vi' ? 'Nghỉ phép' : 'Leave'}</option>
                     </select>
                   </div>
 
