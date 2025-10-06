@@ -4426,11 +4426,23 @@ async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
             # Return default config
             return AIConfigResponse(provider="openai", model="gpt-4", use_emergent_key=True)
         
-        # Don't expose the API key
+        # Don't expose the API key and service account key
+        document_ai_config = config.get("document_ai")
+        document_ai_response = None
+        if document_ai_config:
+            document_ai_response = DocumentAIConfigResponse(
+                enabled=document_ai_config.get("enabled", False),
+                project_id=document_ai_config.get("project_id"),
+                location=document_ai_config.get("location", "us"),
+                processor_id=document_ai_config.get("processor_id")
+                # service_account_key is not exposed
+            )
+        
         return AIConfigResponse(
             provider=config.get("provider", "openai"),
             model=config.get("model", "gpt-4"),
-            use_emergent_key=config.get("use_emergent_key", True)
+            use_emergent_key=config.get("use_emergent_key", True),
+            document_ai=document_ai_response
         )
     except Exception as e:
         logger.error(f"Error fetching AI config: {e}")
