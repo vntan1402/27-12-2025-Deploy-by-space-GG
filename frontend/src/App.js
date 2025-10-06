@@ -4003,92 +4003,94 @@ const HomePage = () => {
                               )}
                             </div>
 
-                            {/* Edit Ship Button */}
-                            <button
-                              onClick={() => {
-                                // Fetch full ship details from server before editing
-                                const fetchAndEditShip = async () => {
-                                  try {
-                                    if (!selectedShip.id) {
-                                      throw new Error('Selected ship has no ID!');
-                                    }
-                                    
-                                    const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
-                                      headers: { 'Authorization': `Bearer ${token}` }
-                                    });
-                                    
-                                    // Use full ship details from API instead of selectedShip
-                                    const fullShipData = response.data;
-                                    
-                                    // Helper function to format ISO datetime to YYYY-MM-DD for date inputs (UTC-safe)
-                                    const formatDateForEditModal = (isoDate) => {
-                                      if (!isoDate) return '';
-                                      try {
-                                        const date = new Date(isoDate);
-                                        // Use UTC methods to prevent timezone shifts
-                                        const year = date.getUTCFullYear();
-                                        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                                        const day = String(date.getUTCDate()).padStart(2, '0');
-                                        return `${year}-${month}-${day}`;
-                                      } catch (e) {
-                                        return '';
+                            {/* Edit Ship Button - Hidden in Crew Records */}
+                            {selectedCategory !== 'crew' && (
+                              <button
+                                onClick={() => {
+                                  // Fetch full ship details from server before editing
+                                  const fetchAndEditShip = async () => {
+                                    try {
+                                      if (!selectedShip.id) {
+                                        throw new Error('Selected ship has no ID!');
                                       }
-                                    };
-                                    
-                                    const initData = {
-                                      ...fullShipData,
-                                      // Format date fields for HTML date inputs (UTC-safe)
-                                      last_docking: formatDateForEditModal(fullShipData.last_docking),
-                                      last_docking_2: formatDateForEditModal(fullShipData.last_docking_2),
-                                      next_docking: formatDateForEditModal(fullShipData.next_docking),
-                                      last_special_survey: formatDateForEditModal(fullShipData.last_special_survey),
-                                      last_intermediate_survey: formatDateForEditModal(fullShipData.last_intermediate_survey),
-                                      keel_laid: formatDateForEditModal(fullShipData.keel_laid),
-                                      delivery_date: formatDateForEditModal(fullShipData.delivery_date),
-                                      // Ensure enhanced anniversary date structure
-                                      anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
-                                        ? fullShipData.anniversary_date 
-                                        : fullShipData.anniversary_date 
-                                          ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
-                                          : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
-                                      // Ensure enhanced dry dock cycle structure
-                                      dry_dock_cycle: fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'object'
-                                        ? fullShipData.dry_dock_cycle
-                                        : fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'number'
-                                          ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
-                                          : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
-                                      // Ensure enhanced special survey cycle structure
-                                      special_survey_cycle: fullShipData.special_survey_cycle && typeof fullShipData.special_survey_cycle === 'object'
-                                        ? {
-                                            ...fullShipData.special_survey_cycle,
-                                            from_date: formatDateForEditModal(fullShipData.special_survey_cycle.from_date),
-                                            to_date: formatDateForEditModal(fullShipData.special_survey_cycle.to_date)
-                                          }
-                                        : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null },
-                                      // Convert numeric fields to strings for HTML inputs (MUST be after ...fullShipData)
-                                      built_year: fullShipData.built_year ? String(fullShipData.built_year) : '',
-                                      gross_tonnage: fullShipData.gross_tonnage ? String(fullShipData.gross_tonnage) : '',
-                                      deadweight: fullShipData.deadweight ? String(fullShipData.deadweight) : ''
-                                    };
-                                    
-                                    console.log('🔍 Edit Modal Data - Built Year:', initData.built_year, 'Type:', typeof initData.built_year);
-                                    setEditingShipData(initData);
-                                    setShowEditShipModal(true);
-                                  } catch (error) {
-                                    console.error('Failed to fetch full ship details:', error);
-                                    toast.error(language === 'vi' 
-                                      ? 'Không thể tải thông tin chi tiết tàu'
-                                      : 'Failed to load ship details'
-                                    );
-                                  }
-                                };
-                                fetchAndEditShip();
-                              }}
-                              className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
-                            >
-                              <span className="mr-1">✏️</span>
-                              {language === 'vi' ? 'Sửa tàu' : 'Edit Ship'}
-                            </button>
+                                      
+                                      const response = await axios.get(`${API}/ships/${selectedShip.id}`, {
+                                        headers: { 'Authorization': `Bearer ${token}` }
+                                      });
+                                      
+                                      // Use full ship details from API instead of selectedShip
+                                      const fullShipData = response.data;
+                                      
+                                      // Helper function to format ISO datetime to YYYY-MM-DD for date inputs (UTC-safe)
+                                      const formatDateForEditModal = (isoDate) => {
+                                        if (!isoDate) return '';
+                                        try {
+                                          const date = new Date(isoDate);
+                                          // Use UTC methods to prevent timezone shifts
+                                          const year = date.getUTCFullYear();
+                                          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                                          const day = String(date.getUTCDate()).padStart(2, '0');
+                                          return `${year}-${month}-${day}`;
+                                        } catch (e) {
+                                          return '';
+                                        }
+                                      };
+                                      
+                                      const initData = {
+                                        ...fullShipData,
+                                        // Format date fields for HTML date inputs (UTC-safe)
+                                        last_docking: formatDateForEditModal(fullShipData.last_docking),
+                                        last_docking_2: formatDateForEditModal(fullShipData.last_docking_2),
+                                        next_docking: formatDateForEditModal(fullShipData.next_docking),
+                                        last_special_survey: formatDateForEditModal(fullShipData.last_special_survey),
+                                        last_intermediate_survey: formatDateForEditModal(fullShipData.last_intermediate_survey),
+                                        keel_laid: formatDateForEditModal(fullShipData.keel_laid),
+                                        delivery_date: formatDateForEditModal(fullShipData.delivery_date),
+                                        // Ensure enhanced anniversary date structure
+                                        anniversary_date: fullShipData.anniversary_date && typeof fullShipData.anniversary_date === 'object' 
+                                          ? fullShipData.anniversary_date 
+                                          : fullShipData.anniversary_date 
+                                            ? { day: null, month: null, auto_calculated: false, manual_override: true, source_certificate_type: "Legacy" }
+                                            : { day: null, month: null, auto_calculated: false, manual_override: false, source_certificate_type: null },
+                                        // Ensure enhanced dry dock cycle structure
+                                        dry_dock_cycle: fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'object'
+                                          ? fullShipData.dry_dock_cycle
+                                          : fullShipData.dry_dock_cycle && typeof fullShipData.dry_dock_cycle === 'number'
+                                            ? { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null }
+                                            : { from_date: null, to_date: null, intermediate_docking_required: true, last_intermediate_docking: null },
+                                        // Ensure enhanced special survey cycle structure
+                                        special_survey_cycle: fullShipData.special_survey_cycle && typeof fullShipData.special_survey_cycle === 'object'
+                                          ? {
+                                              ...fullShipData.special_survey_cycle,
+                                              from_date: formatDateForEditModal(fullShipData.special_survey_cycle.from_date),
+                                              to_date: formatDateForEditModal(fullShipData.special_survey_cycle.to_date)
+                                            }
+                                          : { from_date: null, to_date: null, intermediate_required: false, cycle_type: null },
+                                        // Convert numeric fields to strings for HTML inputs (MUST be after ...fullShipData)
+                                        built_year: fullShipData.built_year ? String(fullShipData.built_year) : '',
+                                        gross_tonnage: fullShipData.gross_tonnage ? String(fullShipData.gross_tonnage) : '',
+                                        deadweight: fullShipData.deadweight ? String(fullShipData.deadweight) : ''
+                                      };
+                                      
+                                      console.log('🔍 Edit Modal Data - Built Year:', initData.built_year, 'Type:', typeof initData.built_year);
+                                      setEditingShipData(initData);
+                                      setShowEditShipModal(true);
+                                    } catch (error) {
+                                      console.error('Failed to fetch full ship details:', error);
+                                      toast.error(language === 'vi' 
+                                        ? 'Không thể tải thông tin chi tiết tàu'
+                                        : 'Failed to load ship details'
+                                      );
+                                    }
+                                  };
+                                  fetchAndEditShip();
+                                }}
+                                className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                              >
+                                <span className="mr-1">✏️</span>
+                                {language === 'vi' ? 'Sửa tàu' : 'Edit Ship'}
+                              </button>
+                            )}
                           </div>
                         </div>
                         <button
