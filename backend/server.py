@@ -4923,6 +4923,10 @@ async def multi_cert_upload_for_ship(
                             confidence_score = 0.8  # High confidence
                         elif critical_extraction_rate >= 0.33 and overall_extraction_rate >= 0.3:
                             confidence_score = 0.6  # Medium confidence
+                        elif text_quality_sufficient and overall_extraction_rate >= 0.2:
+                            # If we have good text extraction but poor field matching, still give some confidence
+                            confidence_score = 0.5  # Medium-low confidence
+                            logger.info(f"📊 Text quality-based confidence: good text content but lower field extraction")
                         else:
                             confidence_score = 0.3  # Low confidence
                         
