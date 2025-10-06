@@ -6899,6 +6899,12 @@ const HomePage = () => {
                   date_sign_on: '',
                   date_sign_off: ''
                 });
+                
+                // Reset passport upload states
+                setAddCrewMethod('manual');
+                setPassportFile(null);
+                setPassportAnalysis(null);
+                setPassportError('');
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
