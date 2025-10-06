@@ -10386,6 +10386,204 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
             </div>
           </div>
 
+          {/* Google Document AI Configuration */}
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center mb-4">
+              <h4 className="text-lg font-medium text-gray-800">
+                📄 {language === 'vi' ? 'Google Document AI' : 'Google Document AI'}
+              </h4>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Enable/Disable Google Document AI */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    {language === 'vi' ? 'Kích hoạt Google Document AI' : 'Enable Google Document AI'}
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {language === 'vi' 
+                      ? 'Sử dụng cho phân tích hộ chiếu và tài liệu trong quản lý thuyền viên'
+                      : 'Used for passport and document analysis in crew management'
+                    }
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.document_ai?.enabled || false}
+                    onChange={(e) => setConfig(prev => ({
+                      ...prev,
+                      document_ai: {
+                        ...prev.document_ai,
+                        enabled: e.target.checked
+                      }
+                    }))}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+
+              {/* Google Document AI Configuration Fields */}
+              {config.document_ai?.enabled && (
+                <div className="space-y-4 pl-4 border-l-2 border-blue-200">
+                  
+                  {/* Project ID */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Project ID *' : 'Project ID *'}
+                    </label>
+                    <input
+                      type="text"
+                      value={config.document_ai?.project_id || ''}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        document_ai: {
+                          ...prev.document_ai,
+                          project_id: e.target.value
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={language === 'vi' ? 'Nhập Google Cloud Project ID' : 'Enter Google Cloud Project ID'}
+                      required={config.document_ai?.enabled}
+                    />
+                  </div>
+
+                  {/* Location */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Vùng (Location) *' : 'Location *'}
+                    </label>
+                    <select
+                      value={config.document_ai?.location || 'us'}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        document_ai: {
+                          ...prev.document_ai,
+                          location: e.target.value
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="us">US (United States)</option>
+                      <option value="eu">EU (Europe)</option>
+                      <option value="asia-northeast1">Asia Northeast 1 (Tokyo)</option>
+                      <option value="asia-southeast1">Asia Southeast 1 (Singapore)</option>
+                    </select>
+                  </div>
+
+                  {/* Processor ID */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Processor ID *' : 'Processor ID *'}
+                    </label>
+                    <input
+                      type="text"
+                      value={config.document_ai?.processor_id || ''}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        document_ai: {
+                          ...prev.document_ai,
+                          processor_id: e.target.value
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={language === 'vi' ? 'Nhập Document AI Processor ID' : 'Enter Document AI Processor ID'}
+                      required={config.document_ai?.enabled}
+                    />
+                  </div>
+
+                  {/* Service Account Key */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Service Account Key (JSON) *' : 'Service Account Key (JSON) *'}
+                    </label>
+                    <textarea
+                      value={config.document_ai?.service_account_key || ''}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        document_ai: {
+                          ...prev.document_ai,
+                          service_account_key: e.target.value
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows="4"
+                      placeholder={language === 'vi' 
+                        ? 'Dán nội dung JSON key của Service Account' 
+                        : 'Paste Service Account JSON key content'
+                      }
+                      required={config.document_ai?.enabled}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {language === 'vi' 
+                        ? 'Service Account cần có quyền Document AI API User'
+                        : 'Service Account must have Document AI API User role'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Test Connection Button */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // TODO: Implement test connection
+                        toast.info(language === 'vi' 
+                          ? 'Tính năng kiểm tra kết nối sẽ được thêm sau'
+                          : 'Test connection feature will be added later'
+                        );
+                      }}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm transition-all"
+                    >
+                      {language === 'vi' ? 'Kiểm tra kết nối' : 'Test Connection'}
+                    </button>
+                  </div>
+
+                  {/* Configuration Info */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-sm text-yellow-800">
+                      <strong>{language === 'vi' ? 'Hướng dẫn cấu hình:' : 'Configuration Guide:'}</strong>
+                    </p>
+                    <ul className="text-xs text-yellow-700 mt-2 space-y-1 list-disc list-inside">
+                      <li>
+                        {language === 'vi' 
+                          ? 'Tạo project trong Google Cloud Console' 
+                          : 'Create project in Google Cloud Console'
+                        }
+                      </li>
+                      <li>
+                        {language === 'vi' 
+                          ? 'Kích hoạt Document AI API' 
+                          : 'Enable Document AI API'
+                        }
+                      </li>
+                      <li>
+                        {language === 'vi' 
+                          ? 'Tạo Document AI processor (loại: FORM_PARSER hoặc PASSPORT_PARSER)' 
+                          : 'Create Document AI processor (type: FORM_PARSER or PASSPORT_PARSER)'
+                        }
+                      </li>
+                      <li>
+                        {language === 'vi' 
+                          ? 'Tạo Service Account với role Document AI API User' 
+                          : 'Create Service Account with Document AI API User role'
+                        }
+                      </li>
+                      <li>
+                        {language === 'vi' 
+                          ? 'Tải xuống JSON key của Service Account' 
+                          : 'Download Service Account JSON key'
+                        }
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
               {language === 'vi' ? 
