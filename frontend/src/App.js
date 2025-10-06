@@ -10237,7 +10237,7 @@ const PermissionModal = ({ selectedUsers, onClose, onSuccess }) => {
 };
 
 // AI Configuration Modal Component
-const AIConfigModal = ({ config, setConfig, onClose, onSave, language }) => {
+const AIConfigModal = ({ config, setConfig, onClose, onSave, language, token }) => {
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
