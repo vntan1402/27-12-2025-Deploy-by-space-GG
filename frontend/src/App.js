@@ -5670,7 +5670,7 @@ const HomePage = () => {
                           </div>
 
                           {/* Search Field */}
-                          <div className="flex items-center space-x-2 min-w-[250px] flex-1">
+                          <div className="flex items-center space-x-2 min-w-[200px] max-w-[280px]">
                             <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
                               {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
                             </label>
