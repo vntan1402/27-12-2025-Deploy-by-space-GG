@@ -10151,17 +10151,9 @@ async def analyze_passport_for_crew(
         # Get Google Drive manager to call Apps Script for Document AI analysis
         google_drive_manager = GoogleDriveManager()
         
-        logger.info("🤖 Analyzing passport with Google Document AI via Google Apps Script...")
+        logger.info("🤖 Analyzing passport with Google Document AI via Google Apps Script (No Cache Busting)...")
         
-        # Generate unique identifiers for cache busting (moved outside try block)
-        import time
-        timestamp = int(time.time() * 1000)
-        unique_id = str(uuid.uuid4())[:8]
-        cache_key = f"{timestamp}_{unique_id}_{filename.replace('.', '_')}"
-        
-        logger.info(f"🔄 CACHE BUSTING - Generating unique request ID: {cache_key}")
-        
-        # Initialize empty analysis data (no more hardcoded old passport data)
+        # Initialize empty analysis data
         analysis_result = {
             "full_name": "",
             "sex": "",
@@ -10172,12 +10164,12 @@ async def analyze_passport_for_crew(
             "issue_date": "",
             "expiry_date": "",
             "confidence_score": 0.0,
-            "processing_method": "fresh_analysis"
+            "processing_method": "clean_analysis"
         }
         
         try:
             
-            # Call Google Apps Script to analyze passport with Document AI
+            # Call Google Apps Script to analyze passport with Document AI (CLEAN - no cache busting)
             apps_script_payload = {
                 "action": "analyze_passport_document_ai",
                 "file_content": base64.b64encode(file_content).decode('utf-8'),
@@ -10185,12 +10177,7 @@ async def analyze_passport_for_crew(
                 "content_type": passport_file.content_type or 'application/octet-stream',
                 "project_id": document_ai_config.get("project_id"),
                 "location": document_ai_config.get("location", "us"),
-                "processor_id": document_ai_config.get("processor_id"),
-                # Cache busting fields
-                "cache_key": cache_key,
-                "timestamp": timestamp,
-                "unique_id": unique_id,
-                "request_version": "v1.1"
+                "processor_id": document_ai_config.get("processor_id")
             }
             
             # Make request to Google Apps Script
