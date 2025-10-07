@@ -94,6 +94,12 @@ const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
+      // Check if token exists
+      if (!token) {
+        console.log('No token found');
+        return;
+      }
+      
       // Try to decode token to get user info
       const tokenData = token.split('.')[1];
       const decoded = JSON.parse(atob(tokenData));
