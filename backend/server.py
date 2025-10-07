@@ -10413,7 +10413,7 @@ async def create_crew_member(
         # Prepare crew document
         crew_doc = crew_data.dict()
         crew_doc.update({
-            "id": str(uuid4()),
+            "id": str(uuid.uuid4()),
             "company_id": company_uuid,
             "created_at": datetime.now(timezone.utc),
             "created_by": current_user.username,
