@@ -4486,7 +4486,8 @@ async def update_ai_config(
                 "enabled": config.document_ai.enabled,
                 "project_id": config.document_ai.project_id,
                 "location": config.document_ai.location,
-                "processor_id": config.document_ai.processor_id
+                "processor_id": config.document_ai.processor_id,
+                "apps_script_url": config.document_ai.apps_script_url
             }
         
         # Update or create AI config
