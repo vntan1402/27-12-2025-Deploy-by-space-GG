@@ -3352,6 +3352,131 @@ const HomePage = () => {
     }
   };
 
+  // ===========================================
+  // CREW MANAGEMENT FUNCTIONS
+  // ===========================================
+
+  // Handle crew data submission
+  const handleAddCrewSubmit = async () => {
+    setIsSubmittingCrew(true);
+    
+    try {
+      // Validate required fields
+      if (!newCrewData.full_name || !newCrewData.date_of_birth || !newCrewData.place_of_birth || !newCrewData.passport) {
+        toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ các trường bắt buộc!' : 'Please fill in all required fields!');
+        return;
+      }
+      
+      // Process dates using existing UTC conversion logic
+      const processedData = {
+        ...newCrewData,
+        date_of_birth: convertDateInputToUTC(newCrewData.date_of_birth),
+        date_sign_on: newCrewData.date_sign_on ? convertDateInputToUTC(newCrewData.date_sign_on) : null,
+        date_sign_off: newCrewData.date_sign_off ? convertDateInputToUTC(newCrewData.date_sign_off) : null
+      };
+      
+      // Call backend API to create crew member
+      const response = await axios.post(`${API}/crew`, processedData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data) {
+        toast.success(language === 'vi' ? 'Thuyền viên đã được thêm thành công!' : 'Crew member added successfully!');
+        
+        // Reset form and close modal
+        resetAddCrewForm();
+        setShowAddCrewModal(false);
+        
+        // Refresh crew list
+        await fetchCrewMembers();
+      }
+      
+    } catch (error) {
+      console.error('Error adding crew member:', error);
+      
+      if (error.response?.status === 400 && error.response?.data?.detail?.includes('already exists')) {
+        toast.error(language === 'vi' 
+          ? 'Số hộ chiếu này đã tồn tại trong hệ thống!'
+          : 'This passport number already exists in the system!'
+        );
+      } else {
+        toast.error(language === 'vi' 
+          ? `Lỗi khi thêm thuyền viên: ${error.response?.data?.detail || error.message}`
+          : `Error adding crew member: ${error.response?.data?.detail || error.message}`
+        );
+      }
+    } finally {
+      setIsSubmittingCrew(false);
+    }
+  };
+
+  // Fetch crew members from backend
+  const fetchCrewMembers = async (shipFilter = null, statusFilter = null) => {
+    try {
+      let url = `${API}/crew`;
+      const params = new URLSearchParams();
+      
+      if (shipFilter && shipFilter !== 'All') {
+        params.append('ship_name', shipFilter);
+      }
+      
+      if (statusFilter && statusFilter !== 'All') {
+        params.append('status', statusFilter);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.data) {
+        setCrewList(response.data);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching crew members:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi tải danh sách thuyền viên'
+        : 'Error loading crew members'
+      );
+    }
+  };
+
+  // Reset add crew form
+  const resetAddCrewForm = () => {
+    setNewCrewData({
+      full_name: '',
+      sex: 'M',
+      date_of_birth: '',
+      place_of_birth: '',
+      passport: '',
+      rank: '',
+      seamen_book: '',
+      status: 'Sign on',
+      ship_sign_on: '-',
+      date_sign_on: '',
+      date_sign_off: ''
+    });
+    setPassportFile(null);
+    setPassportAnalysis(null);
+    setPassportError('');
+  };
+
+  // Load crew members when component mounts or filters change
+  React.useEffect(() => {
+    if (token && selectedCategory === 'crew') {
+      fetchCrewMembers(crewFilters?.ship_sign_on, crewFilters?.status);
+    }
+  }, [token, selectedCategory, crewFilters?.ship_sign_on, crewFilters?.status]);
+
   const subMenuItems = {
     documents: [
       { key: 'certificates', name: language === 'vi' ? 'Giấy chứng nhận' : 'Certificates' },
