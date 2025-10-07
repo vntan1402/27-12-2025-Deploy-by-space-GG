@@ -8008,12 +8008,26 @@ const AccountControlPage = () => {
 
   const handleAIConfigUpdate = async () => {
     try {
-      await axios.post(`${API}/ai-config`, aiConfig);
+      console.log('Saving AI config:', aiConfig);
+      
+      const response = await axios.post(`${API}/ai-config`, aiConfig, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('AI config save response:', response.data);
       toast.success(language === 'vi' ? 'Cấu hình AI thành công!' : 'AI configuration updated successfully!');
       setShowAIConfig(false);
       fetchAIConfig();
     } catch (error) {
-      toast.error(language === 'vi' ? 'Cấu hình AI thất bại!' : 'Failed to update AI configuration!');
+      console.error('AI config save error:', error);
+      const errorMsg = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' 
+        ? `Cấu hình AI thất bại: ${errorMsg}` 
+        : `Failed to update AI configuration: ${errorMsg}`
+      );
     }
   };
 
