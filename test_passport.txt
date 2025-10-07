@@ -1,0 +1,1 @@
+PASSPORT TEST DOCUMENT - This is a sample passport for testing Document AI integration
