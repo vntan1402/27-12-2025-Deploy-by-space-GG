@@ -3334,13 +3334,35 @@ const HomePage = () => {
     if (!dateString || typeof dateString !== 'string') return null;
     
     try {
+      const trimmedDate = dateString.trim();
+      
       // Handle YYYY-MM-DD format from HTML date inputs
-      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-      if (datePattern.test(dateString.trim())) {
-        // Convert to UTC ISO datetime to avoid timezone shifts
-        return `${dateString.trim()}T00:00:00Z`;
+      const isoPattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (isoPattern.test(trimmedDate)) {
+        return `${trimmedDate}T00:00:00Z`;
       }
       
+      // Handle DD/MM/YYYY format from Document AI passport analysis
+      const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+      const ddmmMatch = ddmmyyyyPattern.exec(trimmedDate);
+      if (ddmmMatch) {
+        const day = ddmmMatch[1].padStart(2, '0');
+        const month = ddmmMatch[2].padStart(2, '0');
+        const year = ddmmMatch[3];
+        return `${year}-${month}-${day}T00:00:00Z`;
+      }
+      
+      // Handle YYYY-MM-DD format from backend responses
+      const yyyymmddPattern = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+      const yyyymmMatch = yyyymmddPattern.exec(trimmedDate);
+      if (yyyymmMatch) {
+        const year = yyyymmMatch[1];
+        const month = yyyymmMatch[2].padStart(2, '0');
+        const day = yyyymmMatch[3].padStart(2, '0');
+        return `${year}-${month}-${day}T00:00:00Z`;
+      }
+      
+      console.warn('Unsupported date format:', dateString);
       return null;
     } catch (error) {
       console.error('Error converting date input to UTC:', error);
@@ -12138,13 +12160,35 @@ const AddRecordModal = ({
     if (!dateString || typeof dateString !== 'string') return null;
     
     try {
+      const trimmedDate = dateString.trim();
+      
       // Handle YYYY-MM-DD format from HTML date inputs
-      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
-      if (datePattern.test(dateString.trim())) {
-        // Convert to UTC ISO datetime to avoid timezone shifts
-        return `${dateString.trim()}T00:00:00Z`;
+      const isoPattern = /^\d{4}-\d{2}-\d{2}$/;
+      if (isoPattern.test(trimmedDate)) {
+        return `${trimmedDate}T00:00:00Z`;
       }
       
+      // Handle DD/MM/YYYY format from Document AI passport analysis
+      const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+      const ddmmMatch = ddmmyyyyPattern.exec(trimmedDate);
+      if (ddmmMatch) {
+        const day = ddmmMatch[1].padStart(2, '0');
+        const month = ddmmMatch[2].padStart(2, '0');
+        const year = ddmmMatch[3];
+        return `${year}-${month}-${day}T00:00:00Z`;
+      }
+      
+      // Handle YYYY-MM-DD format from backend responses
+      const yyyymmddPattern = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+      const yyyymmMatch = yyyymmddPattern.exec(trimmedDate);
+      if (yyyymmMatch) {
+        const year = yyyymmMatch[1];
+        const month = yyyymmMatch[2].padStart(2, '0');
+        const day = yyyymmMatch[3].padStart(2, '0');
+        return `${year}-${month}-${day}T00:00:00Z`;
+      }
+      
+      console.warn('Unsupported date format:', dateString);
       return null;
     } catch (error) {
       console.error('Error converting date input to UTC:', error);
