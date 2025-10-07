@@ -10352,6 +10352,40 @@ async def test_document_ai_connection(
         raise HTTPException(status_code=500, detail=f"Connection test failed: {str(e)}")
 
 # =====================================
+# AUDIT LOGGING HELPER
+# =====================================
+
+async def log_audit_trail(
+    user_id: str,
+    action: str,
+    resource_type: str,
+    resource_id: str,
+    details: dict,
+    company_id: str
+):
+    """Log audit trail for crew operations"""
+    try:
+        audit_log = {
+            "id": str(uuid4()),
+            "user_id": user_id,
+            "action": action,
+            "resource_type": resource_type,
+            "resource_id": resource_id,
+            "details": details,
+            "company_id": company_id,
+            "timestamp": datetime.now(timezone.utc),
+            "ip_address": None,  # TODO: Extract from request
+            "user_agent": None   # TODO: Extract from request
+        }
+        
+        await mongo_db.insert_one("audit_logs", audit_log)
+        logger.info(f"Audit log created: {action} on {resource_type} {resource_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to create audit log: {e}")
+        # Don't raise exception as audit logging failure shouldn't break main operation
+
+# =====================================
 # CREW MANAGEMENT ENDPOINTS
 # =====================================
 
