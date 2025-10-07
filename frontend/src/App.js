@@ -3329,6 +3329,41 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to convert passport date format (DD/MM/YYYY) to HTML date input format (YYYY-MM-DD)
+  const convertPassportDateToInputFormat = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return '';
+    
+    try {
+      const trimmedDate = dateString.trim();
+      
+      // Handle DD/MM/YYYY format from Document AI passport analysis
+      const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+      const ddmmMatch = ddmmyyyyPattern.exec(trimmedDate);
+      if (ddmmMatch) {
+        const day = ddmmMatch[1].padStart(2, '0');
+        const month = ddmmMatch[2].padStart(2, '0');
+        const year = ddmmMatch[3];
+        return `${year}-${month}-${day}`;  // Return YYYY-MM-DD for HTML date input
+      }
+      
+      // Handle YYYY-MM-DD format (already correct)
+      const yyyymmddPattern = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+      const yyyymmMatch = yyyymmddPattern.exec(trimmedDate);
+      if (yyyymmMatch) {
+        const year = yyyymmMatch[1];
+        const month = yyyymmMatch[2].padStart(2, '0');
+        const day = yyyymmMatch[3].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      console.warn('Unsupported passport date format:', dateString);
+      return '';
+    } catch (error) {
+      console.error('Error converting passport date to input format:', error);
+      return '';
+    }
+  };
+
   // Helper function to convert date input (YYYY-MM-DD) to UTC ISO datetime
   const convertDateInputToUTC = (dateString) => {
     if (!dateString || typeof dateString !== 'string') return null;
@@ -12152,6 +12187,41 @@ const AddRecordModal = ({
     } catch (error) {
       console.error('Error converting last docking date:', error);
       return null;
+    }
+  };
+
+  // Helper function to convert passport date format (DD/MM/YYYY) to HTML date input format (YYYY-MM-DD)
+  const convertPassportDateToInputFormat = (dateString) => {
+    if (!dateString || typeof dateString !== 'string') return '';
+    
+    try {
+      const trimmedDate = dateString.trim();
+      
+      // Handle DD/MM/YYYY format from Document AI passport analysis
+      const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+      const ddmmMatch = ddmmyyyyPattern.exec(trimmedDate);
+      if (ddmmMatch) {
+        const day = ddmmMatch[1].padStart(2, '0');
+        const month = ddmmMatch[2].padStart(2, '0');
+        const year = ddmmMatch[3];
+        return `${year}-${month}-${day}`;  // Return YYYY-MM-DD for HTML date input
+      }
+      
+      // Handle YYYY-MM-DD format (already correct)
+      const yyyymmddPattern = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+      const yyyymmMatch = yyyymmddPattern.exec(trimmedDate);
+      if (yyyymmMatch) {
+        const year = yyyymmMatch[1];
+        const month = yyyymmMatch[2].padStart(2, '0');
+        const day = yyyymmMatch[3].padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      console.warn('Unsupported passport date format:', dateString);
+      return '';
+    } catch (error) {
+      console.error('Error converting passport date to input format:', error);
+      return '';
     }
   };
 
