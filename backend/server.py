@@ -10215,8 +10215,8 @@ async def analyze_passport_for_crew(
                 
         except Exception as apps_script_error:
             logger.error(f"Google Apps Script call failed: {apps_script_error}")
-            # Use fallback mock data (already initialized above)
-            logger.info("Using fallback mock analysis data due to Apps Script error")
+            # Don't use old cached data - return empty analysis
+            logger.info("Will return empty analysis data due to Apps Script error")
         
         # Generate summary text
         summary_content = f"""PASSPORT ANALYSIS SUMMARY
