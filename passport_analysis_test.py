@@ -29,7 +29,6 @@ import sys
 import tempfile
 from datetime import datetime
 import traceback
-import io
 
 # Configuration - Use environment variable for backend URL
 try:
@@ -41,20 +40,11 @@ try:
     else:
         raise Exception("Internal URL not working")
 except:
-    # Fallback to external URL from frontend/.env
-    try:
-        with open('/app/frontend/.env', 'r') as f:
-            for line in f:
-                if line.startswith('REACT_APP_BACKEND_URL='):
-                    BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
-                    break
-            else:
-                BACKEND_URL = 'https://maritime-docs.preview.emergentagent.com/api'
-    except:
-        BACKEND_URL = 'https://maritime-docs.preview.emergentagent.com/api'
+    # Fallback to external URL
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maritime-docs.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class PassportAnalysisTester:
+class PassportAnalysisDebugger:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
@@ -62,47 +52,41 @@ class PassportAnalysisTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for passport analysis functionality
-        self.passport_tests = {
+        # Test tracking for passport analysis debugging
+        self.debug_tests = {
             # Authentication and setup
             'authentication_successful': False,
-            'user_has_admin_access': False,
             'user_company_identified': False,
             
-            # AI Configuration tests
-            'ai_config_endpoint_accessible': False,
-            'ai_config_response_valid': False,
-            'document_ai_config_present': False,
-            'document_ai_enabled_status': False,
+            # File Download and Preparation
+            'passport_file_download_successful': False,
+            'passport_file_prepared': False,
             
-            # Passport Analysis Endpoint tests
-            'passport_analysis_endpoint_exists': False,
-            'passport_analysis_handles_requests': False,
-            'passport_analysis_checks_config': False,
-            'passport_analysis_error_handling': False,
-            'passport_analysis_404_expected': False,
+            # Passport Analysis Endpoint Testing
+            'analyze_passport_endpoint_accessible': False,
+            'analyze_passport_request_sent': False,
+            'analyze_passport_response_received': False,
+            'response_structure_logged': False,
             
-            # Document AI Test Connection tests
-            'test_document_ai_endpoint_exists': False,
-            'test_document_ai_handles_requests': False,
-            'test_document_ai_validates_params': False,
-            'test_document_ai_error_handling': False,
+            # Response Analysis
+            'success_field_true': False,
+            'analysis_object_present': False,
+            'analysis_object_not_empty': False,
+            'expected_fields_present': False,
+            'field_names_match_frontend': False,
             
-            # Backend Integration tests
-            'call_apps_script_method_available': False,
-            'google_drive_manager_integration': False,
-            'backend_logs_show_proper_handling': False,
+            # Data Content Verification
+            'full_name_extracted': False,
+            'passport_number_extracted': False,
+            'date_of_birth_extracted': False,
+            'place_of_birth_extracted': False,
+            'sex_extracted': False,
             
-            # Ship data for testing
-            'ships_available_for_testing': False,
-            'test_ship_selected': False,
+            # Integration Verification
+            'apps_script_integration_working': False,
+            'document_ai_processing_working': False,
+            'cache_busting_working': False,
         }
-        
-        # Store test data
-        self.ai_config_response = {}
-        self.test_ship = None
-        self.passport_analysis_response = {}
-        self.test_document_ai_response = {}
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
@@ -110,7 +94,7 @@ class PassportAnalysisTester:
         formatted_message = f"[{timestamp}] [{level}] {message}"
         print(formatted_message)
         
-        # Store in log collection
+        # Also store in our log collection
         self.backend_logs.append({
             'timestamp': timestamp,
             'level': level,
@@ -118,9 +102,9 @@ class PassportAnalysisTester:
         })
         
     def authenticate(self):
-        """Authenticate with admin1/123456 credentials as specified in review request"""
+        """Authenticate with admin1/123456 credentials"""
         try:
-            self.log("🔐 Authenticating with admin1/123456 credentials...")
+            self.log("🔐 Authenticating with admin1/123456...")
             
             login_data = {
                 "username": "admin1",
@@ -144,23 +128,12 @@ class PassportAnalysisTester:
                 self.log(f"   User Role: {self.current_user.get('role')}")
                 self.log(f"   Company: {self.current_user.get('company')}")
                 
-                self.passport_tests['authentication_successful'] = True
-                
-                # Check if user has admin access
-                user_role = self.current_user.get('role', '').lower()
-                if user_role in ['admin', 'super_admin', 'manager']:
-                    self.passport_tests['user_has_admin_access'] = True
-                    self.log(f"✅ User has admin access (role: {user_role})")
-                else:
-                    self.log(f"⚠️ User role '{user_role}' may not have admin access")
-                
-                # Store user company
+                self.debug_tests['authentication_successful'] = True
                 if self.current_user.get('company'):
-                    self.passport_tests['user_company_identified'] = True
-                
+                    self.debug_tests['user_company_identified'] = True
                 return True
             else:
-                self.log(f"❌ Authentication failed - Status: {response.status_code}")
+                self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
@@ -176,552 +149,422 @@ class PassportAnalysisTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_ai_config_endpoint(self):
-        """Test GET /api/ai-config endpoint to check Document AI configuration"""
+    def download_passport_file(self):
+        """Download the specific passport file for testing"""
         try:
-            self.log("🤖 Testing AI Configuration endpoint...")
+            self.log("📄 Downloading passport file for testing...")
             
-            endpoint = f"{BACKEND_URL}/ai-config"
-            self.log(f"   GET {endpoint}")
+            passport_url = "https://customer-assets.emergentagent.com/job_d040008f-5aae-467d-90f4-4064c1b65ddd/artifacts/m027k3a2_PASS%20PORT%20Tran%20Trong%20Toan.pdf"
+            self.log(f"   Downloading from: {passport_url}")
             
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            self.log(f"   Response status: {response.status_code}")
+            response = requests.get(passport_url, timeout=30)
+            self.log(f"   Download response status: {response.status_code}")
             
             if response.status_code == 200:
-                self.passport_tests['ai_config_endpoint_accessible'] = True
-                self.log("✅ AI Configuration endpoint is accessible")
+                # Save to temporary file
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                    temp_file.write(response.content)
+                    temp_file_path = temp_file.name
                 
-                try:
-                    response_data = response.json()
-                    self.ai_config_response = response_data
-                    self.passport_tests['ai_config_response_valid'] = True
-                    self.log("✅ Response is valid JSON")
-                    
-                    # Log response structure for analysis
-                    self.log(f"   Response keys: {list(response_data.keys())}")
-                    
-                    # Check for Document AI configuration
-                    document_ai_config = response_data.get('document_ai', {})
-                    if document_ai_config:
-                        self.passport_tests['document_ai_config_present'] = True
-                        self.log("✅ Document AI configuration section found")
-                        
-                        # Check if Document AI is enabled
-                        enabled = document_ai_config.get('enabled', False)
-                        project_id = document_ai_config.get('project_id')
-                        processor_id = document_ai_config.get('processor_id')
-                        location = document_ai_config.get('location', 'us')
-                        
-                        self.log(f"   Document AI enabled: {enabled}")
-                        self.log(f"   Project ID: {project_id}")
-                        self.log(f"   Processor ID: {processor_id}")
-                        self.log(f"   Location: {location}")
-                        
-                        if enabled:
-                            self.passport_tests['document_ai_enabled_status'] = True
-                            self.log("✅ Document AI is enabled")
-                        else:
-                            self.log("⚠️ Document AI is not enabled")
-                        
-                        if project_id and processor_id:
-                            self.log("✅ Document AI has required configuration parameters")
-                        else:
-                            self.log("⚠️ Document AI missing required configuration (project_id or processor_id)")
-                    else:
-                        self.log("⚠️ No Document AI configuration found")
-                    
-                    return True
-                    
-                except json.JSONDecodeError as e:
-                    self.log(f"❌ Invalid JSON response: {str(e)}")
-                    return False
+                self.log(f"✅ Passport file downloaded successfully")
+                self.log(f"   File size: {len(response.content)} bytes")
+                self.log(f"   Temporary file: {temp_file_path}")
+                
+                self.debug_tests['passport_file_download_successful'] = True
+                self.debug_tests['passport_file_prepared'] = True
+                return temp_file_path
             else:
-                self.log(f"❌ AI Configuration endpoint failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:200]}")
-                return False
+                self.log(f"   ❌ Failed to download passport file - Status: {response.status_code}")
+                return None
                 
         except Exception as e:
-            self.log(f"❌ Error testing AI Configuration endpoint: {str(e)}", "ERROR")
-            return False
-    
-    def get_test_ship(self):
-        """Get a ship for testing passport analysis"""
-        try:
-            self.log("🚢 Getting ships for passport analysis testing...")
-            
-            endpoint = f"{BACKEND_URL}/ships"
-            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
-            
-            if response.status_code == 200:
-                ships = response.json()
-                user_company = self.current_user.get('company')
-                
-                # Filter ships by user's company
-                user_ships = [ship for ship in ships if ship.get('company') == user_company]
-                
-                self.log(f"   Total ships: {len(ships)}")
-                self.log(f"   User company ships: {len(user_ships)}")
-                
-                if user_ships:
-                    self.test_ship = user_ships[0]  # Use first ship
-                    self.passport_tests['ships_available_for_testing'] = True
-                    self.passport_tests['test_ship_selected'] = True
-                    
-                    self.log(f"✅ Selected test ship: {self.test_ship.get('name')}")
-                    self.log(f"   Ship ID: {self.test_ship.get('id')}")
-                    self.log(f"   Company: {self.test_ship.get('company')}")
-                    return True
-                else:
-                    self.log("⚠️ No ships found for user's company")
-                    return False
-            else:
-                self.log(f"❌ Failed to get ships: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Error getting test ship: {str(e)}", "ERROR")
-            return False
-    
-    def create_sample_passport_file(self):
-        """Create a sample passport file for testing"""
-        try:
-            # Create a simple text file that simulates a passport document
-            passport_content = """
-PASSPORT
-REPUBLIC OF VIETNAM
-PASSPORT NUMBER: N1234567
-SURNAME: NGUYEN
-GIVEN NAMES: VAN A
-DATE OF BIRTH: 01/01/1990
-PLACE OF BIRTH: HO CHI MINH CITY
-SEX: M
-DATE OF ISSUE: 01/01/2020
-DATE OF EXPIRY: 01/01/2030
-ISSUING AUTHORITY: IMMIGRATION DEPARTMENT
-            """.strip()
-            
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-            temp_file.write(passport_content)
-            temp_file.close()
-            
-            self.log(f"✅ Created sample passport file: {temp_file.name}")
-            return temp_file.name
-            
-        except Exception as e:
-            self.log(f"❌ Error creating sample passport file: {str(e)}", "ERROR")
+            self.log(f"❌ Error downloading passport file: {str(e)}", "ERROR")
             return None
     
-    def test_passport_analysis_endpoint(self):
-        """Test POST /api/crew/analyze-passport endpoint"""
+    def test_analyze_passport_endpoint(self, passport_file_path):
+        """Test the analyze-passport endpoint with the specific passport file"""
         try:
-            self.log("📄 Testing Passport Analysis endpoint...")
-            
-            if not self.test_ship:
-                self.log("❌ No test ship available for passport analysis")
-                return False
-            
-            # Create sample passport file
-            passport_file_path = self.create_sample_passport_file()
-            if not passport_file_path:
-                self.log("❌ Failed to create sample passport file")
-                return False
+            self.log("🔍 Testing POST /api/crew/analyze-passport endpoint...")
             
             endpoint = f"{BACKEND_URL}/crew/analyze-passport"
             self.log(f"   POST {endpoint}")
             
-            try:
-                # Prepare multipart form data
-                with open(passport_file_path, 'rb') as f:
-                    files = {
-                        'passport_file': ('sample_passport.txt', f, 'text/plain')
-                    }
-                    data = {
-                        'ship_name': self.test_ship.get('name')
-                    }
-                    
-                    self.log(f"   Ship name: {data['ship_name']}")
-                    self.log(f"   File: sample_passport.txt")
-                    
-                    response = requests.post(
-                        endpoint, 
-                        files=files, 
-                        data=data, 
-                        headers=self.get_headers(), 
-                        timeout=60
-                    )
-                    
+            # Prepare multipart form data
+            with open(passport_file_path, 'rb') as file:
+                files = {
+                    'passport_file': ('PASS_PORT_Tran_Trong_Toan.pdf', file, 'application/pdf')
+                }
+                
+                # Add ship data as form data (matching frontend implementation)
+                data = {
+                    'ship_name': 'BROTHER 36',
+                    'ship_id': 'test-ship-id',
+                    'imo': '8743531'
+                }
+                
+                self.log(f"   Ship data: {json.dumps(data, indent=2)}")
+                self.log(f"   File: PASS_PORT_Tran_Trong_Toan.pdf")
+                
+                self.debug_tests['analyze_passport_endpoint_accessible'] = True
+                self.debug_tests['analyze_passport_request_sent'] = True
+                
+                # Send request
+                response = requests.post(
+                    endpoint, 
+                    files=files, 
+                    data=data,
+                    headers=self.get_headers(), 
+                    timeout=120  # Longer timeout for file processing
+                )
+                
                 self.log(f"   Response status: {response.status_code}")
                 
-                # Clean up temp file
-                os.unlink(passport_file_path)
-                
-                # Check if endpoint exists and handles requests
-                if response.status_code in [200, 201, 400, 404, 422, 500]:
-                    self.passport_tests['passport_analysis_endpoint_exists'] = True
-                    self.passport_tests['passport_analysis_handles_requests'] = True
-                    self.log("✅ Passport Analysis endpoint exists and handles requests")
+                if response.status_code == 200:
+                    self.debug_tests['analyze_passport_response_received'] = True
+                    self.log("✅ Analyze passport endpoint responded successfully")
                     
                     try:
                         response_data = response.json()
-                        self.passport_analysis_response = response_data
+                        self.debug_tests['response_structure_logged'] = True
                         
-                        self.log(f"   Response data: {json.dumps(response_data, indent=2)}")
+                        # Log COMPLETE response structure
+                        self.log("📋 COMPLETE RESPONSE STRUCTURE:")
+                        self.log("=" * 60)
+                        self.log(json.dumps(response_data, indent=2, default=str))
+                        self.log("=" * 60)
                         
-                        # Check for expected 404 due to missing Document AI configuration
-                        if response.status_code == 404:
-                            error_detail = response_data.get('detail', '')
-                            if 'AI configuration not found' in error_detail or 'Document AI' in error_detail:
-                                self.passport_tests['passport_analysis_404_expected'] = True
-                                self.passport_tests['passport_analysis_checks_config'] = True
-                                self.passport_tests['passport_analysis_error_handling'] = True
-                                self.log("✅ Expected 404 error due to missing Document AI configuration")
-                                self.log(f"   Error message: {error_detail}")
-                                return True
-                            else:
-                                self.log(f"⚠️ Unexpected 404 error: {error_detail}")
+                        # Analyze response structure
+                        self.analyze_response_structure(response_data)
                         
-                        # Check for successful analysis (if Document AI is configured)
-                        elif response.status_code in [200, 201]:
-                            self.log("✅ Passport analysis completed successfully")
-                            self.log("✅ Document AI configuration appears to be working")
-                            return True
+                        return response_data
                         
-                        # Check for validation errors
-                        elif response.status_code == 422:
-                            self.passport_tests['passport_analysis_error_handling'] = True
-                            self.log("✅ Endpoint properly validates input parameters")
-                            validation_errors = response_data.get('detail', [])
-                            for error in validation_errors:
-                                self.log(f"   Validation error: {error}")
-                            return True
+                    except json.JSONDecodeError as e:
+                        self.log(f"   ❌ Invalid JSON response: {str(e)}")
+                        self.log(f"   Raw response: {response.text[:500]}")
+                        return None
                         
-                        # Check for other errors
-                        else:
-                            self.passport_tests['passport_analysis_error_handling'] = True
-                            self.log(f"⚠️ Passport analysis returned status {response.status_code}")
-                            error_detail = response_data.get('detail', 'Unknown error')
-                            self.log(f"   Error: {error_detail}")
-                            return True
-                            
-                    except json.JSONDecodeError:
-                        self.log(f"⚠️ Non-JSON response: {response.text[:200]}")
-                        return True
                 else:
-                    self.log(f"❌ Unexpected response status: {response.status_code}")
-                    self.log(f"   Response: {response.text[:200]}")
-                    return False
+                    self.log(f"   ❌ Analyze passport endpoint failed: {response.status_code}")
+                    try:
+                        error_data = response.json()
+                        self.log(f"   Error: {json.dumps(error_data, indent=2)}")
+                    except:
+                        self.log(f"   Error: {response.text[:500]}")
+                    return None
                     
-            except Exception as e:
-                self.log(f"❌ Error making passport analysis request: {str(e)}", "ERROR")
-                return False
-                
         except Exception as e:
-            self.log(f"❌ Error testing passport analysis endpoint: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Error testing analyze passport endpoint: {str(e)}", "ERROR")
+            traceback.print_exc()
+            return None
     
-    def test_document_ai_test_connection_endpoint(self):
-        """Test POST /api/test-document-ai endpoint"""
+    def analyze_response_structure(self, response_data):
+        """Analyze the response structure in detail"""
         try:
-            self.log("🔗 Testing Document AI Test Connection endpoint...")
+            self.log("🔬 ANALYZING RESPONSE STRUCTURE...")
             
-            endpoint = f"{BACKEND_URL}/test-document-ai"
-            self.log(f"   POST {endpoint}")
+            # Check top-level structure
+            self.log("📊 TOP-LEVEL FIELDS:")
+            for key, value in response_data.items():
+                value_type = type(value).__name__
+                if isinstance(value, dict):
+                    self.log(f"   {key}: {value_type} (keys: {list(value.keys())})")
+                elif isinstance(value, list):
+                    self.log(f"   {key}: {value_type} (length: {len(value)})")
+                else:
+                    self.log(f"   {key}: {value_type} = {value}")
             
-            # Test with sample project_id and processor_id
-            test_data = {
-                "project_id": "test-project-id",
-                "processor_id": "test-processor-id"
-            }
+            # Check success field
+            success = response_data.get('success')
+            self.log(f"\n✅ SUCCESS FIELD: {success}")
+            if success:
+                self.debug_tests['success_field_true'] = True
             
-            self.log(f"   Test data: {json.dumps(test_data, indent=2)}")
-            
-            response = requests.post(
-                endpoint, 
-                json=test_data, 
-                headers=self.get_headers(), 
-                timeout=60
-            )
-            
-            self.log(f"   Response status: {response.status_code}")
-            
-            # Check if endpoint exists and handles requests
-            if response.status_code in [200, 201, 400, 404, 422, 500]:
-                self.passport_tests['test_document_ai_endpoint_exists'] = True
-                self.passport_tests['test_document_ai_handles_requests'] = True
-                self.log("✅ Document AI Test Connection endpoint exists and handles requests")
+            # Check analysis data
+            analysis = response_data.get('analysis')
+            if analysis is not None:
+                self.debug_tests['analysis_object_present'] = True
+                self.log(f"\n📋 ANALYSIS DATA FOUND:")
+                self.log(f"   Type: {type(analysis).__name__}")
                 
-                try:
-                    response_data = response.json()
-                    self.test_document_ai_response = response_data
-                    
-                    self.log(f"   Response data: {json.dumps(response_data, indent=2)}")
-                    
-                    # Check for successful connection test
-                    if response.status_code in [200, 201]:
-                        self.log("✅ Document AI test connection completed successfully")
-                        return True
-                    
-                    # Check for validation errors (missing parameters)
-                    elif response.status_code == 422:
-                        self.passport_tests['test_document_ai_validates_params'] = True
-                        self.passport_tests['test_document_ai_error_handling'] = True
-                        self.log("✅ Endpoint properly validates required parameters")
-                        validation_errors = response_data.get('detail', [])
-                        for error in validation_errors:
-                            self.log(f"   Validation error: {error}")
-                        return True
-                    
-                    # Check for configuration errors
-                    elif response.status_code == 400:
-                        self.passport_tests['test_document_ai_error_handling'] = True
-                        error_detail = response_data.get('detail', '')
-                        self.log(f"✅ Endpoint handles configuration errors properly")
-                        self.log(f"   Error: {error_detail}")
-                        return True
-                    
-                    # Check for other errors
-                    else:
-                        self.passport_tests['test_document_ai_error_handling'] = True
-                        self.log(f"⚠️ Document AI test connection returned status {response.status_code}")
-                        error_detail = response_data.get('detail', 'Unknown error')
-                        self.log(f"   Error: {error_detail}")
-                        return True
+                if isinstance(analysis, dict):
+                    if analysis:  # Not empty
+                        self.debug_tests['analysis_object_not_empty'] = True
+                        self.log(f"   Keys: {list(analysis.keys())}")
                         
-                except json.JSONDecodeError:
-                    self.log(f"⚠️ Non-JSON response: {response.text[:200]}")
-                    return True
-            else:
-                self.log(f"❌ Unexpected response status: {response.status_code}")
-                self.log(f"   Response: {response.text[:200]}")
-                return False
+                        # Check expected fields that frontend expects
+                        expected_fields = ['full_name', 'sex', 'date_of_birth', 'place_of_birth', 'passport_number']
+                        self.log(f"\n🔍 CHECKING EXPECTED FIELDS:")
+                        
+                        fields_found = 0
+                        for field in expected_fields:
+                            if field in analysis:
+                                value = analysis[field]
+                                self.log(f"   ✅ {field}: {value}")
+                                fields_found += 1
+                                
+                                # Mark specific field extractions
+                                if field == 'full_name' and value:
+                                    self.debug_tests['full_name_extracted'] = True
+                                elif field == 'passport_number' and value:
+                                    self.debug_tests['passport_number_extracted'] = True
+                                elif field == 'date_of_birth' and value:
+                                    self.debug_tests['date_of_birth_extracted'] = True
+                                elif field == 'place_of_birth' and value:
+                                    self.debug_tests['place_of_birth_extracted'] = True
+                                elif field == 'sex' and value:
+                                    self.debug_tests['sex_extracted'] = True
+                            else:
+                                self.log(f"   ❌ {field}: MISSING")
+                        
+                        if fields_found == len(expected_fields):
+                            self.debug_tests['expected_fields_present'] = True
+                            self.debug_tests['field_names_match_frontend'] = True
+                            self.log(f"\n✅ ALL EXPECTED FIELDS PRESENT")
+                        elif fields_found > 0:
+                            self.log(f"\n⚠️ PARTIAL FIELDS PRESENT ({fields_found}/{len(expected_fields)})")
+                        else:
+                            self.log(f"\n❌ NO EXPECTED FIELDS FOUND")
+                        
+                        # Check for additional fields
+                        additional_fields = set(analysis.keys()) - set(expected_fields)
+                        if additional_fields:
+                            self.log(f"\n📋 ADDITIONAL FIELDS FOUND:")
+                            for field in additional_fields:
+                                value = analysis[field]
+                                self.log(f"   + {field}: {value}")
+                    else:
+                        self.log(f"   ❌ Analysis object is empty: {analysis}")
                 
-        except Exception as e:
-            self.log(f"❌ Error testing Document AI test connection endpoint: {str(e)}", "ERROR")
-            return False
-    
-    def test_backend_integration(self):
-        """Test backend integration and Google Drive Manager"""
-        try:
-            self.log("🔧 Testing backend integration...")
+                else:
+                    self.log(f"   ❌ Analysis is not a dictionary: {analysis}")
+            else:
+                self.log(f"\n❌ NO ANALYSIS DATA FOUND")
+                self.log(f"   Analysis field value: {analysis}")
             
-            # Check if the backend logs show proper handling
-            # This is inferred from the successful endpoint responses
-            if (self.passport_tests.get('passport_analysis_endpoint_exists') and 
-                self.passport_tests.get('test_document_ai_endpoint_exists')):
-                self.passport_tests['backend_logs_show_proper_handling'] = True
-                self.log("✅ Backend integration appears to be working")
-                
-                # Infer that call_apps_script method is available if endpoints work
-                if (self.passport_tests.get('passport_analysis_handles_requests') or 
-                    self.passport_tests.get('test_document_ai_handles_requests')):
-                    self.passport_tests['call_apps_script_method_available'] = True
-                    self.passport_tests['google_drive_manager_integration'] = True
-                    self.log("✅ Google Drive Manager integration appears functional")
-                    self.log("✅ call_apps_script method appears to be available")
-                
-                return True
-            else:
-                self.log("⚠️ Backend integration status unclear")
-                return False
-                
+            # Check for other relevant fields
+            other_fields = ['message', 'error', 'confidence_score', 'processing_time']
+            self.log(f"\n📋 OTHER RELEVANT FIELDS:")
+            for field in other_fields:
+                if field in response_data:
+                    value = response_data[field]
+                    self.log(f"   {field}: {value}")
+            
+            # Check cache busting
+            if 'cache_busted' in response_data or 'timestamp' in response_data:
+                self.debug_tests['cache_busting_working'] = True
+                self.log(f"\n✅ CACHE BUSTING DETECTED")
+            
+            # Check Apps Script integration indicators
+            if 'apps_script_response' in response_data or 'document_ai_response' in response_data:
+                self.debug_tests['apps_script_integration_working'] = True
+                self.log(f"\n✅ APPS SCRIPT INTEGRATION DETECTED")
+            
+            # Check Document AI processing indicators
+            if 'document_ai' in str(response_data).lower() or 'google' in str(response_data).lower():
+                self.debug_tests['document_ai_processing_working'] = True
+                self.log(f"\n✅ DOCUMENT AI PROCESSING DETECTED")
+            
         except Exception as e:
-            self.log(f"❌ Error testing backend integration: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Error analyzing response structure: {str(e)}", "ERROR")
     
-    def run_comprehensive_passport_analysis_test(self):
-        """Run comprehensive test of passport analysis functionality"""
+    def cleanup_temp_files(self, file_paths):
+        """Clean up temporary files"""
         try:
-            self.log("🚀 STARTING COMPREHENSIVE PASSPORT ANALYSIS FUNCTIONALITY TEST")
+            for file_path in file_paths:
+                if file_path and os.path.exists(file_path):
+                    os.unlink(file_path)
+                    self.log(f"🧹 Cleaned up temporary file: {file_path}")
+        except Exception as e:
+            self.log(f"⚠️ Error cleaning up temporary files: {str(e)}")
+    
+    def run_passport_analysis_debug_test(self):
+        """Run comprehensive passport analysis debug test"""
+        temp_files = []
+        
+        try:
+            self.log("🚀 STARTING PASSPORT ANALYSIS AUTO-FILL DEBUG TEST")
             self.log("=" * 80)
             
             # Step 1: Authentication
-            self.log("STEP 1: Authentication with admin1/123456")
+            self.log("STEP 1: Authentication")
             if not self.authenticate():
                 self.log("❌ CRITICAL: Authentication failed - cannot proceed")
                 return False
             
-            # Step 2: Test AI Configuration endpoint
-            self.log("\nSTEP 2: Testing AI Configuration endpoint")
-            if not self.test_ai_config_endpoint():
-                self.log("❌ AI Configuration endpoint test failed")
-                # Continue testing even if AI config fails
+            # Step 2: Download passport file
+            self.log("\nSTEP 2: Download passport file")
+            passport_file_path = self.download_passport_file()
+            if not passport_file_path:
+                self.log("❌ CRITICAL: Failed to download passport file")
+                return False
+            temp_files.append(passport_file_path)
             
-            # Step 3: Get test ship
-            self.log("\nSTEP 3: Getting test ship for passport analysis")
-            if not self.get_test_ship():
-                self.log("❌ Failed to get test ship - some tests may be limited")
-                # Continue testing even without ship
-            
-            # Step 4: Test Passport Analysis endpoint
-            self.log("\nSTEP 4: Testing Passport Analysis endpoint")
-            if not self.test_passport_analysis_endpoint():
-                self.log("❌ Passport Analysis endpoint test failed")
-                # Continue testing
-            
-            # Step 5: Test Document AI Test Connection endpoint
-            self.log("\nSTEP 5: Testing Document AI Test Connection endpoint")
-            if not self.test_document_ai_test_connection_endpoint():
-                self.log("❌ Document AI Test Connection endpoint test failed")
-                # Continue testing
-            
-            # Step 6: Test backend integration
-            self.log("\nSTEP 6: Testing backend integration")
-            if not self.test_backend_integration():
-                self.log("❌ Backend integration test failed")
+            # Step 3: Test analyze-passport endpoint
+            self.log("\nSTEP 3: Test analyze-passport endpoint with exact file")
+            response_data = self.test_analyze_passport_endpoint(passport_file_path)
+            if not response_data:
+                self.log("❌ CRITICAL: Analyze passport endpoint failed")
+                return False
             
             self.log("\n" + "=" * 80)
-            self.log("✅ COMPREHENSIVE PASSPORT ANALYSIS TEST COMPLETED")
+            self.log("✅ PASSPORT ANALYSIS DEBUG TEST COMPLETED")
             return True
             
         except Exception as e:
-            self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
+            self.log(f"❌ CRITICAL ERROR in debug test: {str(e)}", "ERROR")
             traceback.print_exc()
             return False
+        finally:
+            # Cleanup temporary files
+            self.cleanup_temp_files(temp_files)
     
-    def print_test_summary(self):
-        """Print comprehensive summary of passport analysis test results"""
+    def print_debug_summary(self):
+        """Print comprehensive summary of debug results"""
         try:
             self.log("\n" + "=" * 80)
-            self.log("📊 PASSPORT ANALYSIS FUNCTIONALITY TEST SUMMARY")
+            self.log("📊 PASSPORT ANALYSIS AUTO-FILL DEBUG SUMMARY")
             self.log("=" * 80)
             
             # Count passed tests
-            total_tests = len(self.passport_tests)
-            passed_tests = sum(1 for result in self.passport_tests.values() if result)
+            total_tests = len(self.debug_tests)
+            passed_tests = sum(1 for result in self.debug_tests.values() if result)
             success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
             
             self.log(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
             self.log("")
             
             # Authentication Results
-            self.log("🔐 AUTHENTICATION VERIFICATION:")
+            self.log("🔐 AUTHENTICATION:")
             auth_tests = [
-                ('authentication_successful', 'Login with admin1/123456 successful'),
-                ('user_has_admin_access', 'User has admin access'),
+                ('authentication_successful', 'Authentication successful'),
                 ('user_company_identified', 'User company identified'),
             ]
             
             for test_key, description in auth_tests:
-                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
+                status = "✅ PASS" if self.debug_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # AI Configuration Results
-            self.log("\n🤖 AI CONFIGURATION VERIFICATION:")
-            ai_config_tests = [
-                ('ai_config_endpoint_accessible', 'GET /api/ai-config endpoint accessible'),
-                ('ai_config_response_valid', 'AI config response is valid JSON'),
-                ('document_ai_config_present', 'Document AI configuration section present'),
-                ('document_ai_enabled_status', 'Document AI enabled status checked'),
+            # File Preparation Results
+            self.log("\n📄 FILE PREPARATION:")
+            file_tests = [
+                ('passport_file_download_successful', 'Passport file download successful'),
+                ('passport_file_prepared', 'Passport file prepared for testing'),
             ]
             
-            for test_key, description in ai_config_tests:
-                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in file_tests:
+                status = "✅ PASS" if self.debug_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Passport Analysis Results
-            self.log("\n📄 PASSPORT ANALYSIS ENDPOINT VERIFICATION:")
-            passport_tests = [
-                ('passport_analysis_endpoint_exists', 'POST /api/crew/analyze-passport endpoint exists'),
-                ('passport_analysis_handles_requests', 'Endpoint handles requests properly'),
-                ('passport_analysis_checks_config', 'Endpoint checks for Document AI configuration'),
-                ('passport_analysis_404_expected', 'Returns 404 when Document AI not configured (expected)'),
-                ('passport_analysis_error_handling', 'Proper error handling implemented'),
+            # Endpoint Testing Results
+            self.log("\n🔍 ENDPOINT TESTING:")
+            endpoint_tests = [
+                ('analyze_passport_endpoint_accessible', 'Analyze passport endpoint accessible'),
+                ('analyze_passport_request_sent', 'Analyze passport request sent'),
+                ('analyze_passport_response_received', 'Analyze passport response received'),
+                ('response_structure_logged', 'Response structure logged'),
             ]
             
-            for test_key, description in passport_tests:
-                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in endpoint_tests:
+                status = "✅ PASS" if self.debug_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Document AI Test Connection Results
-            self.log("\n🔗 DOCUMENT AI TEST CONNECTION VERIFICATION:")
-            test_connection_tests = [
-                ('test_document_ai_endpoint_exists', 'POST /api/test-document-ai endpoint exists'),
-                ('test_document_ai_handles_requests', 'Endpoint handles requests properly'),
-                ('test_document_ai_validates_params', 'Validates required parameters (project_id, processor_id)'),
-                ('test_document_ai_error_handling', 'Proper error handling implemented'),
+            # Response Analysis Results
+            self.log("\n📋 RESPONSE ANALYSIS:")
+            response_tests = [
+                ('success_field_true', 'Success field is true'),
+                ('analysis_object_present', 'Analysis object present'),
+                ('analysis_object_not_empty', 'Analysis object not empty'),
+                ('expected_fields_present', 'Expected fields present'),
+                ('field_names_match_frontend', 'Field names match frontend'),
             ]
             
-            for test_key, description in test_connection_tests:
-                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in response_tests:
+                status = "✅ PASS" if self.debug_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Backend Integration Results
-            self.log("\n🔧 BACKEND INTEGRATION VERIFICATION:")
+            # Data Extraction Results
+            self.log("\n📊 DATA EXTRACTION:")
+            extraction_tests = [
+                ('full_name_extracted', 'Full name extracted'),
+                ('passport_number_extracted', 'Passport number extracted'),
+                ('date_of_birth_extracted', 'Date of birth extracted'),
+                ('place_of_birth_extracted', 'Place of birth extracted'),
+                ('sex_extracted', 'Sex extracted'),
+            ]
+            
+            for test_key, description in extraction_tests:
+                status = "✅ PASS" if self.debug_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Integration Results
+            self.log("\n🔗 INTEGRATION:")
             integration_tests = [
-                ('call_apps_script_method_available', 'call_apps_script method available'),
-                ('google_drive_manager_integration', 'Google Drive Manager integration working'),
-                ('backend_logs_show_proper_handling', 'Backend logs show proper error handling'),
-                ('ships_available_for_testing', 'Ships available for testing'),
-                ('test_ship_selected', 'Test ship selected successfully'),
+                ('apps_script_integration_working', 'Apps Script integration working'),
+                ('document_ai_processing_working', 'Document AI processing working'),
+                ('cache_busting_working', 'Cache busting working'),
             ]
             
             for test_key, description in integration_tests:
-                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
+                status = "✅ PASS" if self.debug_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Overall Assessment
-            self.log("\n🎯 OVERALL PASSPORT ANALYSIS ASSESSMENT:")
+            # Critical Analysis
+            self.log("\n🎯 CRITICAL ANALYSIS:")
             
-            # Check critical functionality
-            endpoints_working = (self.passport_tests.get('passport_analysis_endpoint_exists', False) and 
-                                self.passport_tests.get('test_document_ai_endpoint_exists', False))
-            error_handling_working = (self.passport_tests.get('passport_analysis_error_handling', False) and 
-                                    self.passport_tests.get('test_document_ai_error_handling', False))
-            
-            if endpoints_working and error_handling_working:
-                self.log("   ✅ PASSPORT ANALYSIS FUNCTIONALITY IS WORKING")
-                self.log("   ✅ All required endpoints exist and handle requests properly")
-                self.log("   ✅ Error handling is implemented correctly")
-                
-                if self.passport_tests.get('passport_analysis_404_expected', False):
-                    self.log("   ✅ Expected 404 behavior when Document AI not configured")
-                    self.log("   ℹ️  Configure Document AI in System Settings to enable full functionality")
-                
+            if self.debug_tests.get('analyze_passport_response_received', False):
+                if self.debug_tests.get('success_field_true', False):
+                    if self.debug_tests.get('analysis_object_present', False):
+                        if self.debug_tests.get('analysis_object_not_empty', False):
+                            if self.debug_tests.get('field_names_match_frontend', False):
+                                self.log("   ✅ RESPONSE STRUCTURE APPEARS CORRECT")
+                                self.log("   ✅ Analysis data contains expected fields")
+                                self.log("   ➡️ Issue may be in frontend form auto-fill logic")
+                                self.log("   ➡️ Check frontend JavaScript for form population")
+                            else:
+                                self.log("   ❌ FIELD NAMES DON'T MATCH FRONTEND EXPECTATIONS")
+                                self.log("   ➡️ This is likely the root cause of auto-fill failure")
+                                self.log("   ➡️ Backend returns different field names than frontend expects")
+                        else:
+                            self.log("   ❌ ANALYSIS OBJECT IS EMPTY")
+                            self.log("   ➡️ This is likely the root cause of auto-fill failure")
+                            self.log("   ➡️ Document AI is not extracting data properly")
+                    else:
+                        self.log("   ❌ ANALYSIS OBJECT IS MISSING")
+                        self.log("   ➡️ This is likely the root cause of auto-fill failure")
+                        self.log("   ➡️ Backend response structure is incorrect")
+                else:
+                    self.log("   ❌ SUCCESS FIELD IS FALSE")
+                    self.log("   ➡️ Backend is returning failure but frontend shows success")
+                    self.log("   ➡️ Check frontend error handling logic")
             else:
-                self.log("   ❌ PASSPORT ANALYSIS FUNCTIONALITY HAS ISSUES")
-                if not endpoints_working:
-                    self.log("   ❌ Some required endpoints are not working properly")
-                if not error_handling_working:
-                    self.log("   ❌ Error handling needs improvement")
-            
-            # Specific findings
-            self.log("\n📋 KEY FINDINGS:")
-            if self.passport_tests.get('passport_analysis_404_expected', False):
-                self.log("   • Passport analysis returns 404 due to missing Document AI configuration (EXPECTED)")
-            if self.passport_tests.get('call_apps_script_method_available', False):
-                self.log("   • call_apps_script method appears to be working")
-            if self.passport_tests.get('document_ai_config_present', False):
-                self.log("   • Document AI configuration section is available in AI settings")
+                self.log("   ❌ ANALYZE PASSPORT ENDPOINT NOT RESPONDING")
+                self.log("   ➡️ Backend integration issue")
+                self.log("   ➡️ Check backend logs and configuration")
             
             self.log("=" * 80)
             
         except Exception as e:
-            self.log(f"❌ Error printing test summary: {str(e)}", "ERROR")
+            self.log(f"❌ Error printing debug summary: {str(e)}", "ERROR")
 
 def main():
-    """Main function to run passport analysis tests"""
-    tester = PassportAnalysisTester()
+    """Main function to run the passport analysis debug test"""
+    debugger = PassportAnalysisDebugger()
     
     try:
-        # Run comprehensive test
-        success = tester.run_comprehensive_passport_analysis_test()
+        # Run debug test
+        success = debugger.run_passport_analysis_debug_test()
         
         # Print summary
-        tester.print_test_summary()
+        debugger.print_debug_summary()
         
         # Return appropriate exit code
         sys.exit(0 if success else 1)
         
     except KeyboardInterrupt:
-        tester.log("❌ Test interrupted by user", "ERROR")
+        debugger.log("\n❌ Test interrupted by user", "ERROR")
         sys.exit(1)
     except Exception as e:
-        tester.log(f"❌ Unexpected error: {str(e)}", "ERROR")
+        debugger.log(f"❌ Unexpected error: {str(e)}", "ERROR")
         traceback.print_exc()
         sys.exit(1)
 
