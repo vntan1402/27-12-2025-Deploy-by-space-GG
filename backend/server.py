@@ -10110,7 +10110,7 @@ async def handle_manual_review_action(
 
 # PASSPORT ANALYSIS ENDPOINT FOR CREW MANAGEMENT
 @api_router.post("/crew/analyze-passport")
-async def extract_passport_fields_from_summary(summary_text: str, ai_provider: str, ai_model: str, use_emergent_key: bool) -> dict:
+async def extract_maritime_document_fields_from_summary(summary_text: str, document_type: str, ai_provider: str, ai_model: str, use_emergent_key: bool) -> dict:
     """
     Extract passport fields from Document AI summary using system AI (Gemini)
     """
