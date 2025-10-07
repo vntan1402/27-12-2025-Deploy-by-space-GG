@@ -3214,7 +3214,7 @@ const HomePage = () => {
           ...newCrewData,
           full_name: analysis.full_name || '',
           sex: analysis.sex || 'M',
-          date_of_birth: analysis.date_of_birth ? convertDateInputToUTC(analysis.date_of_birth) : '',
+          date_of_birth: analysis.date_of_birth ? convertPassportDateToInputFormat(analysis.date_of_birth) : '',
           place_of_birth: analysis.place_of_birth || '',
           passport: analysis.passport_number || ''
         });
