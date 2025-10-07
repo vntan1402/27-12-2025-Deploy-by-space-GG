@@ -10293,6 +10293,146 @@ This summary was generated using Google Document AI for crew management purposes
         logger.error(f"Passport analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Passport analysis failed: {str(e)}")
 
+# TEST PASSPORT ANALYSIS WITHOUT CACHE BUSTING
+@api_router.post("/crew/test-passport-no-cache")
+async def test_passport_analysis_no_cache(
+    passport_file: UploadFile = File(...),
+    ship_name: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    TEST: Analyze passport without cache busting to debug empty analysis results
+    """
+    try:
+        logger.info(f"🧪 TEST: Passport analysis without cache busting for ship: {ship_name}")
+        
+        # Read file content
+        file_content = await passport_file.read()
+        filename = passport_file.filename
+        
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+            
+        logger.info(f"📄 TEST: Processing passport file: {filename} ({len(file_content)} bytes)")
+        
+        # Get company information
+        user_company = current_user.company
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+            
+        # Get AI configuration for Document AI
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration")
+        
+        # Get Google Drive manager to call Apps Script for Document AI analysis
+        google_drive_manager = GoogleDriveManager()
+        
+        logger.info("🧪 TEST: Analyzing passport with Google Document AI (NO CACHE BUSTING)...")
+        
+        # Initialize empty analysis data
+        analysis_result = {
+            "full_name": "",
+            "sex": "",
+            "date_of_birth": "",
+            "place_of_birth": "",
+            "passport_number": "",
+            "nationality": "",
+            "issue_date": "",
+            "expiry_date": "",
+            "confidence_score": 0.0,
+            "processing_method": "test_no_cache"
+        }
+        
+        try:
+            # Call Google Apps Script CLEAN - no cache busting parameters
+            apps_script_payload = {
+                "action": "analyze_passport_document_ai",
+                "file_content": base64.b64encode(file_content).decode('utf-8'),
+                "filename": filename,
+                "content_type": passport_file.content_type or 'application/octet-stream',
+                "project_id": document_ai_config.get("project_id"),
+                "location": document_ai_config.get("location", "us"),
+                "processor_id": document_ai_config.get("processor_id")
+                # NO cache busting fields at all
+            }
+            
+            logger.info("🧪 TEST: Apps Script payload (no cache busting):")
+            logger.info(f"   Action: {apps_script_payload['action']}")
+            logger.info(f"   File: {apps_script_payload['filename']}")
+            logger.info(f"   Content Type: {apps_script_payload['content_type']}")
+            logger.info(f"   Project: {apps_script_payload['project_id']}")
+            logger.info(f"   Processor: {apps_script_payload['processor_id']}")
+            
+            # Make request to Google Apps Script
+            analysis_response = await google_drive_manager.call_apps_script(
+                apps_script_payload, 
+                company_id=company_uuid
+            )
+            
+            logger.info(f"🧪 TEST: Apps Script response success: {analysis_response.get('success')}")
+            logger.info(f"🧪 TEST: Apps Script response message: {analysis_response.get('message')}")
+            
+            if analysis_response.get("success"):
+                # Extract analysis from Google Document AI via Apps Script
+                extracted_analysis = analysis_response.get("data", {}).get("analysis", {})
+                logger.info(f"🧪 TEST: Extracted analysis keys: {list(extracted_analysis.keys()) if extracted_analysis else 'None'}")
+                
+                if extracted_analysis:
+                    # Log each field
+                    for field, value in extracted_analysis.items():
+                        logger.info(f"   🔍 {field}: '{value}'")
+                    
+                    analysis_result.update(extracted_analysis)
+                    logger.info("✅ TEST: Document AI analysis completed successfully (NO CACHE BUSTING)")
+                    logger.info(f"   📄 Final Name: '{analysis_result.get('full_name')}'")
+                    logger.info(f"   📔 Final Passport: '{analysis_result.get('passport_number')}'")
+                else:
+                    logger.warning("🧪 TEST: Apps Script succeeded but returned empty analysis object")
+                    logger.info(f"   Full response data: {analysis_response.get('data', {})}")
+            else:
+                logger.warning(f"🧪 TEST: Apps Script analysis failed: {analysis_response.get('message', 'Unknown error')}")
+                
+        except Exception as apps_script_error:
+            logger.error(f"🧪 TEST: Google Apps Script call failed: {apps_script_error}")
+        
+        # Return test results
+        return {
+            "success": True,
+            "test_mode": "no_cache_busting",
+            "analysis": analysis_result,
+            "apps_script_response": analysis_response,
+            "test_info": {
+                "filename": filename,
+                "ship_name": ship_name,
+                "file_size": len(file_content),
+                "content_type": passport_file.content_type,
+                "processor_id": document_ai_config.get("processor_id"),
+                "project_id": document_ai_config.get("project_id")
+            },
+            "message": "Test passport analysis completed (no cache busting)"
+        }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"🧪 TEST: Passport analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"Test passport analysis failed: {str(e)}")
+
 # TEST DOCUMENT AI CONNECTION ENDPOINT
 @api_router.post("/test-document-ai")
 async def test_document_ai_connection(
