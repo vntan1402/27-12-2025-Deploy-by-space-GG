@@ -6945,10 +6945,22 @@ const HomePage = () => {
                   onClick={() => {
                     setShowAddCrewModal(false);
                     // Reset all states
-                    setAddCrewMethod('manual');
                     setPassportFile(null);
                     setPassportAnalysis(null);
                     setPassportError('');
+                    setNewCrewData({
+                      full_name: '',
+                      sex: 'M',
+                      date_of_birth: '',
+                      place_of_birth: '',
+                      passport: '',
+                      rank: '',
+                      seamen_book: '',
+                      status: 'Sign on',
+                      ship_sign_on: '-',
+                      date_sign_on: '',
+                      date_sign_off: ''
+                    });
                   }}
                   className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
                 >
