@@ -777,6 +777,10 @@ const HomePage = () => {
   const [isAnalyzingPassport, setIsAnalyzingPassport] = useState(false);
   const [passportError, setPassportError] = useState('');
 
+  // Crew Submission States
+  const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
+  const [crewList, setCrewList] = useState([]);
+
   // Crew List Filters
   const [crewFilters, setCrewFilters] = useState({
     ship_sign_on: 'All',
