@@ -62,6 +62,146 @@ def get_emergent_llm_key():
         logger.error(f"Failed to get Emergent LLM key: {e}")
         return None
 
+def create_maritime_extraction_prompt(summary_text: str, document_type: str) -> str:
+    """Create document type specific extraction prompts"""
+    
+    base_prompt = f"""
+You are an AI assistant specialized in extracting maritime document information from summaries.
+
+DOCUMENT SUMMARY:
+{summary_text}
+
+DOCUMENT TYPE: {document_type.upper()}
+"""
+    
+    if document_type == "passport":
+        return base_prompt + """
+TASK: Extract passport information. Return ONLY a JSON object with these exact field names:
+
+{
+  "full_name": "extracted full name or empty string",
+  "sex": "M or F or empty string", 
+  "date_of_birth": "DD/MM/YYYY format or empty string",
+  "place_of_birth": "place of birth or empty string",
+  "passport_number": "passport number or empty string",
+  "nationality": "nationality or empty string", 
+  "issue_date": "DD/MM/YYYY format or empty string",
+  "expiry_date": "DD/MM/YYYY format or empty string",
+  "confidence_score": 0.0 to 1.0
+}
+
+EXTRACTION RULES:
+1. Only extract information clearly stated in the summary
+2. Use DD/MM/YYYY format for all dates
+3. For sex, use only "M" for Male or "F" for Female
+4. Set confidence_score based on information clarity (0.0 = no info, 1.0 = very clear)
+5. If a field cannot be determined, use empty string ""
+6. Return ONLY the JSON object, no other text
+
+JSON:"""
+    
+    elif document_type == "seamans_book":
+        return base_prompt + """
+TASK: Extract seaman's book information. Return ONLY a JSON object:
+
+{
+  "full_name": "seaman full name or empty string",
+  "book_number": "seaman book number or empty string",
+  "date_of_birth": "DD/MM/YYYY format or empty string",
+  "place_of_birth": "place of birth or empty string",
+  "nationality": "nationality or empty string",
+  "rank": "maritime rank or empty string",
+  "issue_date": "DD/MM/YYYY format or empty string",
+  "expiry_date": "DD/MM/YYYY format or empty string",
+  "issuing_authority": "issuing authority or empty string",
+  "confidence_score": 0.0 to 1.0
+}
+
+JSON:"""
+    
+    elif document_type == "certificate":
+        return base_prompt + """
+TASK: Extract maritime certificate information. Return ONLY a JSON object:
+
+{
+  "certificate_name": "name of certificate or empty string",
+  "certificate_number": "certificate number or empty string",
+  "holder_name": "certificate holder name or empty string",
+  "issue_date": "DD/MM/YYYY format or empty string",
+  "expiry_date": "DD/MM/YYYY format or empty string",
+  "issuing_authority": "issuing authority or empty string",
+  "certificate_level": "certificate level/grade or empty string",
+  "endorsements": "endorsements or limitations or empty string",
+  "confidence_score": 0.0 to 1.0
+}
+
+JSON:"""
+    
+    elif document_type == "medical":
+        return base_prompt + """
+TASK: Extract medical certificate information. Return ONLY a JSON object:
+
+{
+  "patient_name": "patient name or empty string",
+  "certificate_number": "medical certificate number or empty string",
+  "examination_date": "DD/MM/YYYY format or empty string",
+  "expiry_date": "DD/MM/YYYY format or empty string",
+  "medical_status": "fit/unfit/restricted or empty string",
+  "restrictions": "medical restrictions or empty string",
+  "examining_doctor": "doctor name or empty string",
+  "medical_facility": "medical facility name or empty string",
+  "confidence_score": 0.0 to 1.0
+}
+
+JSON:"""
+    
+    else:  # general_maritime
+        return base_prompt + """
+TASK: Extract general maritime document information. Return ONLY a JSON object:
+
+{
+  "document_name": "document name/title or empty string",
+  "document_number": "document number/ID or empty string",
+  "holder_name": "document holder name or empty string",
+  "issue_date": "DD/MM/YYYY format or empty string",
+  "expiry_date": "DD/MM/YYYY format or empty string",
+  "issuing_authority": "issuing authority or empty string",
+  "document_type": "type/category of document or empty string",
+  "confidence_score": 0.0 to 1.0
+}
+
+JSON:"""
+
+def validate_maritime_document_fields(extracted_data: dict, document_type: str) -> dict:
+    """Validate extracted fields based on document type"""
+    
+    field_sets = {
+        "passport": ["full_name", "sex", "date_of_birth", "place_of_birth", 
+                    "passport_number", "nationality", "issue_date", "expiry_date", "confidence_score"],
+        "seamans_book": ["full_name", "book_number", "date_of_birth", "place_of_birth", 
+                        "nationality", "rank", "issue_date", "expiry_date", "issuing_authority", "confidence_score"],
+        "certificate": ["certificate_name", "certificate_number", "holder_name", "issue_date", 
+                       "expiry_date", "issuing_authority", "certificate_level", "endorsements", "confidence_score"],
+        "medical": ["patient_name", "certificate_number", "examination_date", "expiry_date", 
+                   "medical_status", "restrictions", "examining_doctor", "medical_facility", "confidence_score"],
+        "general_maritime": ["document_name", "document_number", "holder_name", "issue_date", 
+                           "expiry_date", "issuing_authority", "document_type", "confidence_score"]
+    }
+    
+    required_fields = field_sets.get(document_type, field_sets["general_maritime"])
+    
+    validated_data = {}
+    for field in required_fields:
+        validated_data[field] = extracted_data.get(field, "")
+    
+    # Ensure confidence_score is a float
+    try:
+        validated_data["confidence_score"] = float(validated_data.get("confidence_score", 0.0))
+    except:
+        validated_data["confidence_score"] = 0.0
+    
+    return validated_data
+
 # Import the enhanced OCR processor
 try:
     from ocr_processor import EnhancedOCRProcessor
