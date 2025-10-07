@@ -1,31 +1,25 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Passport Analysis Functionality Testing
-FOCUS: Test the passport analysis functionality after Google Document AI fixes
+Passport Analysis Auto-fill Debug Test
+FOCUS: Debug the passport analysis auto-fill issue by testing the exact response structure
 
-REVIEW REQUEST REQUIREMENTS:
-1. Authentication: Login with admin1/123456 credentials to get admin access
-2. AI Configuration Check: Verify GET /api/ai-config returns current Document AI configuration
-3. Passport Analysis Endpoint: Test POST /api/crew/analyze-passport endpoint
-   - Use a sample passport file (PDF or image)
-   - Include required parameters: passport file and ship_name 
-   - The endpoint should check for Document AI configuration
-   - Should return 404 if Document AI is not configured (expected behavior)
-   - Should return analysis results if properly configured
-4. Document AI Test Connection: Test POST /api/test-document-ai endpoint
-   - Should test connection to Google Document AI API
-   - Requires project_id and processor_id in the request body
+PROBLEM DESCRIPTION:
+- Frontend shows "Passport analysis successful! Information has been auto-filled" toast message
+- But form fields remain empty (not auto-filled)
+- This suggests backend returns success=true but analysis data is empty or incorrect structure
 
-BACKGROUND:
-- Fixed syntax error in Document AI standalone Google Apps Script
-- Added missing `call_apps_script` method to GoogleDriveManager class
-- System should now be able to analyze passport files using Google Document AI
+DEBUGGING REQUIREMENTS:
+1. Test Passport Analysis Response Structure with specific file:
+   https://customer-assets.emergentagent.com/job_d040008f-5aae-467d-90f4-4064c1b65ddd/artifacts/m027k3a2_PASS%20PORT%20Tran%20Trong%20Toan.pdf
+2. Verify Analysis Data Content - check if response.data.analysis contains extracted information
+3. Check Expected vs Actual Response - verify field names match frontend expectations
+4. Verify Field Extraction - check if Document AI is extracting correct information
+5. Check Apps Script Integration - verify backend is successfully calling Apps Script
 
-EXPECTED RESULTS:
-- Endpoints should exist and handle requests properly
-- May return 404 for passport analysis due to missing Document AI configuration (expected)
-- Should provide proper error messages when configuration is missing
-- Backend logs should show proper error handling
+CRITICAL FOCUS:
+- The issue is that frontend receives success=true but cannot auto-fill form
+- This means either analysis object is empty OR field names don't match
+- Need exact response structure to debug the disconnect
 """
 
 import requests
