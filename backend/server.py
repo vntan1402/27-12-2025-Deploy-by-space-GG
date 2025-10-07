@@ -10112,43 +10112,20 @@ async def handle_manual_review_action(
 @api_router.post("/crew/analyze-passport")
 async def extract_maritime_document_fields_from_summary(summary_text: str, document_type: str, ai_provider: str, ai_model: str, use_emergent_key: bool) -> dict:
     """
-    Extract passport fields from Document AI summary using system AI (Gemini)
+    Extract maritime document fields from Document AI summary using system AI (Gemini)
+    Supports multiple document types: passport, seaman's book, certificates, medical, etc.
     """
     try:
         if use_emergent_key and ai_provider == "google":
             # Use Emergent integration for Google AI
             from emergentintegrations import GoogleAI
             
-            # Create prompt for passport field extraction
-            extraction_prompt = f"""
-You are an AI assistant specialized in extracting passport information from document summaries.
-
-DOCUMENT SUMMARY:
-{summary_text}
-
-TASK: Extract the following passport fields from the summary above. Return ONLY a JSON object with these exact field names:
-
-{{
-  "full_name": "extracted full name or empty string",
-  "sex": "M or F or empty string", 
-  "date_of_birth": "DD/MM/YYYY format or empty string",
-  "place_of_birth": "place of birth or empty string",
-  "passport_number": "passport number or empty string",
-  "nationality": "nationality or empty string", 
-  "issue_date": "DD/MM/YYYY format or empty string",
-  "expiry_date": "DD/MM/YYYY format or empty string",
-  "confidence_score": 0.0 to 1.0
-}}
-
-EXTRACTION RULES:
-1. Only extract information that is clearly stated in the summary
-2. Use DD/MM/YYYY format for all dates
-3. Set confidence_score based on how clear the information is (0.0 = no info, 1.0 = very clear)
-4. If a field cannot be determined, use empty string ""
-5. For sex, use only "M" for Male or "F" for Female
-6. Return ONLY the JSON object, no other text
-
-JSON:"""
+            # Create document type specific extraction prompts
+            extraction_prompt = create_maritime_extraction_prompt(summary_text, document_type)
+            
+            if not extraction_prompt:
+                logger.error(f"Unsupported document type: {document_type}")
+                return {}
 
             # Get Emergent LLM key
             from server import get_emergent_llm_key
