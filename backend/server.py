@@ -10171,7 +10171,7 @@ async def analyze_passport_for_crew(
             # Generate unique identifiers for cache busting
             import time
             timestamp = int(time.time() * 1000)
-            unique_id = str(uuid4())[:8]
+            unique_id = str(uuid.uuid4())[:8]
             cache_key = f"{timestamp}_{unique_id}_{filename.replace('.', '_')}"
             
             logger.info(f"🔄 CACHE BUSTING - Generating unique request ID: {cache_key}")
