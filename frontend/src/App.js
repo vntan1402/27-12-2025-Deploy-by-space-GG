@@ -7095,8 +7095,15 @@ const HomePage = () => {
                   <span className="mr-2">✏️</span>
                   {language === 'vi' ? 'Thông tin thuyền viên (Nhập thủ công)' : 'Crew Information (Manual Entry)'}
                 </h4>
+                
+                <p className="text-sm text-gray-600 mb-4">
+                  {language === 'vi' 
+                    ? 'Điền thông tin thuyền viên hoặc chỉnh sửa thông tin đã được phân tích từ hộ chiếu ở trên'
+                    : 'Fill in crew information or edit the information analyzed from passport above'
+                  }
+                </p>
 
-              <form onSubmit={(e) => {
+                <form onSubmit={(e) => {
                 e.preventDefault();
                 
                 // Validate required fields
