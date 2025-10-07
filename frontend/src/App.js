@@ -7152,7 +7152,6 @@ const HomePage = () => {
                 });
                 
                 // Reset passport upload states
-                setAddCrewMethod('manual');
                 setPassportFile(null);
                 setPassportAnalysis(null);
                 setPassportError('');
