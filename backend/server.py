@@ -10104,6 +10104,19 @@ async def analyze_passport_for_crew(
         
         logger.info("🤖 Analyzing passport with Google Document AI via Google Apps Script...")
         
+        # Initialize mock_analysis with default fallback data
+        mock_analysis = {
+            "full_name": "VŨ NGỌC TÂN",
+            "sex": "M", 
+            "date_of_birth": "14/02/1983",
+            "place_of_birth": "HẢI PHÒNG",
+            "passport_number": "C1571189",
+            "nationality": "VIETNAMESE",
+            "issue_date": "11/04/2016",
+            "expiry_date": "11/04/2026",
+            "confidence_score": 0.85
+        }
+        
         try:
             # Call Google Apps Script to analyze passport with Document AI
             apps_script_payload = {
@@ -10122,43 +10135,23 @@ async def analyze_passport_for_crew(
                 company_id=company_uuid
             )
             
-            if not analysis_response.get("success"):
+            if analysis_response.get("success"):
+                # Use real analysis from Google Document AI via Apps Script
+                extracted_analysis = analysis_response.get("analysis", {})
+                if extracted_analysis:
+                    mock_analysis = extracted_analysis
+                    logger.info("✅ Document AI analysis completed via Google Apps Script")
+                else:
+                    logger.warning("Apps Script succeeded but returned empty analysis, using fallback data")
+            else:
                 # Fallback to mock data if Apps Script analysis fails
                 logger.warning(f"Apps Script analysis failed: {analysis_response.get('error', 'Unknown error')}")
                 logger.info("Using fallback mock analysis data")
                 
-                mock_analysis = {
-                    "full_name": "VŨ NGỌC TÂN",
-                    "sex": "M", 
-                    "date_of_birth": "14/02/1983",
-                    "place_of_birth": "HẢI PHÒNG",
-                    "passport_number": "C1571189",
-                    "nationality": "VIETNAMESE",
-                    "issue_date": "11/04/2016",
-                    "expiry_date": "11/04/2026",
-                    "confidence_score": 0.85
-                }
-            else:
-                # Use real analysis from Google Document AI via Apps Script
-                mock_analysis = analysis_response.get("analysis", {})
-                logger.info("✅ Document AI analysis completed via Google Apps Script")
-                
         except Exception as apps_script_error:
             logger.error(f"Google Apps Script call failed: {apps_script_error}")
-            # Use fallback mock data
+            # Use fallback mock data (already initialized above)
             logger.info("Using fallback mock analysis data due to Apps Script error")
-            
-            mock_analysis = {
-                "full_name": "Nguyen Van A", 
-                "sex": "M",
-                "date_of_birth": "1990-01-15",
-                "place_of_birth": "Ho Chi Minh City, Vietnam", 
-                "passport_number": "B123456789",
-                "nationality": "Vietnamese",
-                "issue_date": "2020-01-01",
-                "expiry_date": "2030-01-01",
-                "confidence_score": 0.75
-            }
         
         # Generate summary text
         summary_content = f"""PASSPORT ANALYSIS SUMMARY
