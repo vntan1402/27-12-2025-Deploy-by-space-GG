@@ -247,6 +247,55 @@ class CompanyUpdate(BaseModel):
     email: Optional[str] = None
     website: Optional[str] = None
 
+# Crew Models
+class CrewBase(BaseModel):
+    full_name: str
+    sex: str  # M or F
+    date_of_birth: Union[str, datetime]
+    place_of_birth: str
+    passport: str
+    nationality: Optional[str] = None
+    rank: Optional[str] = None
+    seamen_book: Optional[str] = None
+    status: str = "Sign on"  # Sign on, Standby, Leave
+    ship_sign_on: Optional[str] = "-"
+    date_sign_on: Optional[Union[str, datetime]] = None
+    date_sign_off: Optional[Union[str, datetime]] = None
+    passport_issue_date: Optional[Union[str, datetime]] = None
+    passport_expiry_date: Optional[Union[str, datetime]] = None
+    # File references
+    passport_file_id: Optional[str] = None
+    summary_file_id: Optional[str] = None
+
+class CrewCreate(CrewBase):
+    pass
+
+class CrewUpdate(BaseModel):
+    full_name: Optional[str] = None
+    sex: Optional[str] = None
+    date_of_birth: Optional[Union[str, datetime]] = None
+    place_of_birth: Optional[str] = None
+    passport: Optional[str] = None
+    nationality: Optional[str] = None
+    rank: Optional[str] = None
+    seamen_book: Optional[str] = None
+    status: Optional[str] = None
+    ship_sign_on: Optional[str] = None
+    date_sign_on: Optional[Union[str, datetime]] = None
+    date_sign_off: Optional[Union[str, datetime]] = None
+    passport_issue_date: Optional[Union[str, datetime]] = None
+    passport_expiry_date: Optional[Union[str, datetime]] = None
+    passport_file_id: Optional[str] = None
+    summary_file_id: Optional[str] = None
+
+class CrewResponse(CrewBase):
+    id: str
+    company_id: str
+    created_at: datetime
+    created_by: str
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[str] = None
+
 class CompanyResponse(CompanyBase):
     id: str
     created_at: datetime
