@@ -1,33 +1,29 @@
 #!/usr/bin/env python3
 """
-AI Configuration and EMERGENT_LLM_KEY Testing Script
-FOCUS: Testing AI configuration status and EMERGENT_LLM_KEY functionality for marine certificate classification
+AI Configuration Save and Fetch Endpoints Testing
+FOCUS: Test Document AI settings save and persistence functionality
 
 REVIEW REQUEST REQUIREMENTS:
-1. Check AI Configuration - Test GET /api/ai-config endpoint
-2. Verify provider, model, and use_emergent_key settings
-3. Check if EMERGENT_LLM_KEY is properly configured
-4. Test EMERGENT_LLM_KEY - Verify if the universal key is accessible and working
-5. Test if it's properly integrated in the AI analysis workflow
-6. Check System Settings - Verify if AI settings are properly configured
-7. Check if provider and model selections are appropriate for document analysis
+Test AI Configuration save and fetch endpoints to debug why Document AI settings are not being saved:
 
-EXPECTED FINDINGS:
-- AI configuration should be accessible via GET /api/ai-config
-- EMERGENT_LLM_KEY should be properly configured and working
-- AI analysis workflow should be functional for marine certificate classification
+1. GET /api/ai-config - Fetch current AI configuration
+2. POST /api/ai-config - Save AI configuration  
+3. Verify save persistence - settings should persist across requests
+
+SPECIFIC TESTING:
+- Test with admin token
+- Verify response includes document_ai settings
+- Test complete AI config including Document AI settings
+- Verify apps_script_url is properly stored and retrievable
+- Check all document_ai fields are persisted correctly
 """
 
 import requests
 import json
 import os
 import sys
-import re
-from datetime import datetime, timedelta
-import time
 import traceback
-import tempfile
-from urllib.parse import urlparse
+from datetime import datetime
 
 # Configuration - Use environment variable for backend URL
 try:
@@ -43,7 +39,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maritime-docs.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class AIConfigurationTester:
+class AIConfigTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
