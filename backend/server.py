@@ -10274,6 +10274,11 @@ This summary was generated using Google Document AI for crew management purposes
             return {
                 "success": True,
                 "analysis": analysis_result,
+                "cache_info": {
+                    "cache_key": cache_key,
+                    "timestamp": timestamp,
+                    "fresh_analysis": True
+                },
                 "files": {
                     "passport": {
                         "filename": filename,
