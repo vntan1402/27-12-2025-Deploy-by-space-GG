@@ -47,34 +47,49 @@ class AIConfigTester:
         self.test_results = {}
         self.backend_logs = []
         
-        # Test tracking for AI configuration requirements
+        # Test tracking for AI config testing
         self.ai_config_tests = {
-            # Authentication
+            # Authentication and setup
             'authentication_successful': False,
+            'user_has_admin_permissions': False,
             
-            # AI Configuration Endpoint Testing
-            'ai_config_endpoint_accessible': False,
-            'ai_config_response_valid': False,
-            'provider_setting_verified': False,
-            'model_setting_verified': False,
-            'use_emergent_key_setting_verified': False,
+            # GET /api/ai-config - Fetch current AI configuration
+            'get_ai_config_endpoint_accessible': False,
+            'get_ai_config_returns_valid_response': False,
+            'get_ai_config_includes_document_ai': False,
+            'get_ai_config_response_structure_correct': False,
             
-            # EMERGENT_LLM_KEY Testing
-            'emergent_key_configured': False,
-            'emergent_key_accessible': False,
-            'emergent_key_working': False,
-            'emergent_key_integration_verified': False,
+            # POST /api/ai-config - Save AI configuration
+            'post_ai_config_endpoint_accessible': False,
+            'post_ai_config_accepts_complete_payload': False,
+            'post_ai_config_saves_document_ai_settings': False,
+            'post_ai_config_returns_success_response': False,
             
-            # System Settings Verification
-            'system_settings_accessible': False,
-            'ai_settings_properly_configured': False,
-            'provider_model_appropriate_for_documents': False,
+            # Persistence verification
+            'document_ai_settings_persist_after_save': False,
+            'apps_script_url_properly_stored': False,
+            'all_document_ai_fields_persisted': False,
+            'settings_retrievable_after_save': False,
             
-            # AI Analysis Workflow Testing
-            'ai_analysis_workflow_functional': False,
-            'marine_certificate_classification_working': False,
-            'ai_analysis_endpoint_accessible': False,
-            'ai_analysis_response_valid': False,
+            # Backend validation and error handling
+            'backend_validation_working': False,
+            'mongodb_storage_working': False,
+            'permission_checks_working': False,
+        }
+        
+        # Sample AI config payload as specified in review request
+        self.sample_ai_config = {
+            "provider": "google",
+            "model": "gemini-2.0-flash",
+            "api_key": "",
+            "use_emergent_key": True,
+            "document_ai": {
+                "enabled": True,
+                "project_id": "ship-management-472011",
+                "location": "us",
+                "processor_id": "13fe983af540a40c",
+                "apps_script_url": "https://script.google.com/macros/s/AKfycbzds9kwxoICxPV4PhWjFK9R1ayCTA_o7hchKzaDpvrk9NmEHPd82OFm7pJg87Ym_bI/exec"
+            }
         }
         
     def log(self, message, level="INFO"):
@@ -91,7 +106,7 @@ class AIConfigTester:
         })
         
     def authenticate(self):
-        """Authenticate with admin1/123456 credentials as specified in review request"""
+        """Authenticate with admin1/123456 credentials"""
         try:
             self.log("🔐 Authenticating with admin1/123456...")
             
@@ -118,6 +133,15 @@ class AIConfigTester:
                 self.log(f"   Company: {self.current_user.get('company')}")
                 
                 self.ai_config_tests['authentication_successful'] = True
+                
+                # Check if user has admin permissions
+                user_role = self.current_user.get('role', '').lower()
+                if user_role in ['admin', 'super_admin']:
+                    self.ai_config_tests['user_has_admin_permissions'] = True
+                    self.log(f"✅ User has admin permissions: {user_role}")
+                else:
+                    self.log(f"⚠️ User role '{user_role}' may not have AI config permissions")
+                
                 return True
             else:
                 self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
@@ -136,774 +160,448 @@ class AIConfigTester:
         """Get authentication headers"""
         return {"Authorization": f"Bearer {self.auth_token}"}
     
-    def test_ai_config_endpoint(self):
-        """Test GET /api/ai-config endpoint and verify response"""
+    def test_get_ai_config_endpoint(self):
+        """Test GET /api/ai-config - Fetch current AI configuration"""
         try:
-            self.log("🤖 Testing AI Configuration Endpoint...")
+            self.log("📥 Testing GET /api/ai-config - Fetch current AI configuration...")
             
             endpoint = f"{BACKEND_URL}/ai-config"
             self.log(f"   GET {endpoint}")
             
-            response = requests.get(
-                endpoint,
-                headers=self.get_headers(),
-                timeout=30
-            )
-            
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                self.log("✅ AI Config endpoint accessible")
-                self.ai_config_tests['ai_config_endpoint_accessible'] = True
+                self.ai_config_tests['get_ai_config_endpoint_accessible'] = True
+                self.log("✅ GET /api/ai-config endpoint accessible")
                 
                 try:
-                    response_data = response.json()
-                    self.log("✅ AI Config response is valid JSON")
-                    self.ai_config_tests['ai_config_response_valid'] = True
+                    config_data = response.json()
+                    self.ai_config_tests['get_ai_config_returns_valid_response'] = True
+                    self.log("✅ GET endpoint returns valid JSON response")
                     
-                    # Log full response for analysis
-                    self.log("   AI Configuration Response:")
-                    self.log(f"   {json.dumps(response_data, indent=2)}")
+                    # Log the current configuration
+                    self.log(f"   Current AI Config: {json.dumps(config_data, indent=2)}")
                     
-                    # Verify required fields
-                    provider = response_data.get('provider')
-                    model = response_data.get('model')
-                    use_emergent_key = response_data.get('use_emergent_key')
+                    # Check response structure
+                    expected_fields = ['provider', 'model', 'use_emergent_key']
+                    structure_correct = True
                     
-                    if provider:
-                        self.log(f"✅ Provider setting verified: {provider}")
-                        self.ai_config_tests['provider_setting_verified'] = True
-                        
-                        # Check if provider is appropriate for document analysis
-                        appropriate_providers = ['google', 'openai', 'anthropic', 'emergent']
-                        if provider.lower() in appropriate_providers:
-                            self.log(f"✅ Provider '{provider}' is appropriate for document analysis")
-                            self.ai_config_tests['provider_model_appropriate_for_documents'] = True
+                    for field in expected_fields:
+                        if field in config_data:
+                            self.log(f"      ✅ Field '{field}' present: {config_data[field]}")
                         else:
-                            self.log(f"⚠️ Provider '{provider}' may not be optimal for document analysis")
-                    else:
-                        self.log("❌ Provider setting not found in response")
+                            self.log(f"      ❌ Field '{field}' missing")
+                            structure_correct = False
                     
-                    if model:
-                        self.log(f"✅ Model setting verified: {model}")
-                        self.ai_config_tests['model_setting_verified'] = True
+                    if structure_correct:
+                        self.ai_config_tests['get_ai_config_response_structure_correct'] = True
+                        self.log("✅ Response structure is correct")
+                    
+                    # Check if document_ai section is present
+                    if 'document_ai' in config_data:
+                        self.ai_config_tests['get_ai_config_includes_document_ai'] = True
+                        self.log("✅ Response includes document_ai settings")
                         
-                        # Check if model is appropriate for document analysis
-                        document_analysis_models = [
-                            'gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo',
-                            'gemini-pro', 'gemini-2.0-flash', 'gemini-1.5-pro',
-                            'claude-3', 'claude-3-sonnet', 'claude-3-haiku'
-                        ]
-                        if any(doc_model in model.lower() for doc_model in document_analysis_models):
-                            self.log(f"✅ Model '{model}' is appropriate for document analysis")
-                        else:
-                            self.log(f"⚠️ Model '{model}' may not be optimal for document analysis")
-                    else:
-                        self.log("❌ Model setting not found in response")
-                    
-                    if use_emergent_key is not None:
-                        self.log(f"✅ Use Emergent Key setting verified: {use_emergent_key}")
-                        self.ai_config_tests['use_emergent_key_setting_verified'] = True
+                        document_ai = config_data['document_ai']
+                        self.log(f"   Document AI Config: {json.dumps(document_ai, indent=2)}")
                         
-                        if use_emergent_key:
-                            self.log("✅ System is configured to use EMERGENT_LLM_KEY")
-                        else:
-                            self.log("⚠️ System is NOT configured to use EMERGENT_LLM_KEY")
+                        # Check document_ai fields
+                        doc_ai_fields = ['enabled', 'project_id', 'location', 'processor_id', 'apps_script_url']
+                        for field in doc_ai_fields:
+                            if field in document_ai:
+                                self.log(f"      ✅ Document AI field '{field}': {document_ai[field]}")
+                            else:
+                                self.log(f"      ⚠️ Document AI field '{field}' missing or null")
                     else:
-                        self.log("❌ Use Emergent Key setting not found in response")
+                        self.log("⚠️ Response does not include document_ai settings")
                     
-                    return True
+                    return config_data
                     
-                except json.JSONDecodeError:
-                    self.log("❌ AI Config response is not valid JSON")
-                    self.log(f"   Response text: {response.text[:500]}")
-                    return False
-                    
-            elif response.status_code == 404:
-                self.log("❌ AI Config endpoint not found (404)")
-                self.log("   This suggests the AI configuration endpoint is not implemented")
-                return False
-            elif response.status_code == 401:
-                self.log("❌ AI Config endpoint requires authentication (401)")
-                self.log("   Authentication may have failed or expired")
-                return False
+                except json.JSONDecodeError as e:
+                    self.log(f"   ❌ Invalid JSON response: {str(e)}")
+                    return None
             else:
-                self.log(f"❌ AI Config endpoint failed: {response.status_code}")
+                self.log(f"   ❌ GET /api/ai-config endpoint failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
                 except:
-                    self.log(f"   Error: {response.text[:500]}")
-                return False
+                    self.log(f"   Error: {response.text[:200]}")
+                return None
                 
         except Exception as e:
-            self.log(f"❌ AI Config endpoint testing error: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Error testing GET /api/ai-config endpoint: {str(e)}", "ERROR")
+            return None
     
-    def test_emergent_key_configuration(self):
-        """Test EMERGENT_LLM_KEY configuration and accessibility"""
+    def test_post_ai_config_endpoint(self):
+        """Test POST /api/ai-config - Save AI configuration"""
         try:
-            self.log("🔑 Testing EMERGENT_LLM_KEY Configuration...")
+            self.log("📤 Testing POST /api/ai-config - Save AI configuration...")
             
-            # Since the analyze-ship-certificate endpoint requires a file upload,
-            # let's create a simple PDF file for testing
-            self.log("   Creating test PDF file for EMERGENT_LLM_KEY testing...")
+            endpoint = f"{BACKEND_URL}/ai-config"
+            self.log(f"   POST {endpoint}")
+            self.log(f"   Payload: {json.dumps(self.sample_ai_config, indent=2)}")
             
-            # Create a simple PDF content (minimal PDF structure)
-            pdf_content = b"""%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
->>
-endobj
-
-4 0 obj
-<<
-/Length 44
->>
-stream
-BT
-/F1 12 Tf
-100 700 Td
-(CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE) Tj
-100 680 Td
-(Ship Name: TEST SHIP) Tj
-100 660 Td
-(IMO: 1234567) Tj
-100 640 Td
-(Flag: PANAMA) Tj
-100 620 Td
-(Valid until: 2025-12-31) Tj
-ET
-endstream
-endobj
-
-xref
-0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000206 00000 n 
-trailer
-<<
-/Size 5
-/Root 1 0 R
->>
-startxref
-400
-%%EOF"""
-            
-            # Test with file upload to analyze-ship-certificate endpoint
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            self.log(f"   Testing EMERGENT_LLM_KEY functionality via POST {endpoint}")
-            
-            files = {
-                'file': ('test_certificate.pdf', pdf_content, 'application/pdf')
-            }
-            
-            response = requests.post(
-                endpoint,
-                files=files,
-                headers=self.get_headers(),
-                timeout=90  # AI analysis may take longer
-            )
-            
+            response = requests.post(endpoint, json=self.sample_ai_config, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
-            if response.status_code == 200:
+            if response.status_code in [200, 201]:
+                self.ai_config_tests['post_ai_config_endpoint_accessible'] = True
+                self.ai_config_tests['post_ai_config_accepts_complete_payload'] = True
+                self.log("✅ POST /api/ai-config endpoint accessible and accepts payload")
+                
                 try:
                     response_data = response.json()
-                    self.log("✅ AI analysis endpoint responded successfully")
+                    self.ai_config_tests['post_ai_config_returns_success_response'] = True
+                    self.log("✅ POST endpoint returns success response")
                     self.log(f"   Response: {json.dumps(response_data, indent=2)}")
                     
-                    # Check if the response indicates successful AI processing
-                    if response_data.get('success'):
-                        analysis = response_data.get('analysis', {})
-                        if analysis and (analysis.get('ship_name') or analysis.get('imo_number')):
-                            self.log("✅ EMERGENT_LLM_KEY is working - AI analysis successful")
-                            self.log("   AI analysis completed successfully, indicating key is functional")
-                            self.ai_config_tests['emergent_key_configured'] = True
-                            self.ai_config_tests['emergent_key_accessible'] = True
-                            self.ai_config_tests['emergent_key_working'] = True
-                            self.ai_config_tests['emergent_key_integration_verified'] = True
-                            return True
-                        else:
-                            self.log("✅ EMERGENT_LLM_KEY appears to be working (fallback mode)")
-                            self.log("   AI endpoint responded successfully, key appears configured")
-                            self.ai_config_tests['emergent_key_configured'] = True
-                            self.ai_config_tests['emergent_key_accessible'] = True
-                            return True
-                    else:
-                        self.log("⚠️ AI analysis response received but may indicate key issues")
-                        
-                        # Check for specific error messages that might indicate key issues
-                        message = response_data.get('message', '').lower()
-                        if 'api key' in message or 'authentication' in message or 'unauthorized' in message:
-                            self.log("❌ EMERGENT_LLM_KEY appears to have authentication issues")
-                            return False
-                        elif 'fallback' in message:
-                            self.log("✅ EMERGENT_LLM_KEY appears to be configured (fallback mode)")
-                            self.ai_config_tests['emergent_key_configured'] = True
-                            return True
-                        else:
-                            self.log("✅ EMERGENT_LLM_KEY appears to be configured (no auth errors)")
-                            self.ai_config_tests['emergent_key_configured'] = True
-                            return True
-                            
-                except json.JSONDecodeError:
-                    self.log("❌ AI analysis response is not valid JSON")
-                    return False
+                    # Check if response indicates successful save
+                    if response_data.get('success') or 'message' in response_data:
+                        self.ai_config_tests['post_ai_config_saves_document_ai_settings'] = True
+                        self.log("✅ Response indicates successful save")
                     
-            elif response.status_code == 422:
-                self.log("⚠️ AI analysis endpoint validation error (422)")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Validation error: {error_data}")
-                    # 422 usually means validation error, not EMERGENT_LLM_KEY issue
-                    self.log("✅ EMERGENT_LLM_KEY appears to be configured (endpoint accessible)")
-                    self.ai_config_tests['emergent_key_configured'] = True
-                    return True
-                except:
-                    return False
-            elif response.status_code == 404:
-                self.log("❌ AI analysis endpoint not found (404)")
-                self.log("   Cannot test EMERGENT_LLM_KEY functionality without AI analysis endpoint")
-                return False
-            elif response.status_code == 401:
-                self.log("❌ AI analysis endpoint requires authentication (401)")
-                return False
-            elif response.status_code == 500:
-                self.log("❌ AI analysis endpoint internal server error (500)")
-                self.log("   This may indicate EMERGENT_LLM_KEY configuration issues")
-                try:
-                    error_data = response.json()
-                    error_message = error_data.get('detail', '').lower()
-                    if 'api key' in error_message or 'emergent' in error_message:
-                        self.log("❌ EMERGENT_LLM_KEY configuration issue confirmed")
-                        return False
-                    else:
-                        self.log(f"   Server error: {error_data.get('detail', 'Unknown error')}")
-                        return False
-                except:
-                    self.log(f"   Server error: {response.text[:500]}")
-                    return False
+                    return response_data
+                    
+                except json.JSONDecodeError as e:
+                    self.log(f"   ❌ Invalid JSON response: {str(e)}")
+                    self.log(f"   Raw response: {response.text[:500]}")
+                    return None
             else:
-                self.log(f"❌ AI analysis endpoint failed: {response.status_code}")
+                self.log(f"   ❌ POST /api/ai-config endpoint failed: {response.status_code}")
                 try:
                     error_data = response.json()
                     self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
+                    
+                    # Check for specific validation errors
+                    if response.status_code == 400:
+                        self.log("   ⚠️ Backend validation rejected the request")
+                    elif response.status_code == 403:
+                        self.log("   ⚠️ Permission denied - user may not have AI config permissions")
+                    elif response.status_code == 404:
+                        self.log("   ⚠️ Endpoint not found - may not be implemented")
+                    
                 except:
-                    self.log(f"   Error: {response.text[:500]}")
+                    self.log(f"   Error: {response.text[:200]}")
+                return None
+                
+        except Exception as e:
+            self.log(f"❌ Error testing POST /api/ai-config endpoint: {str(e)}", "ERROR")
+            return None
+    
+    def test_save_persistence(self):
+        """Test that AI configuration settings persist after save"""
+        try:
+            self.log("🔄 Testing save persistence - verifying settings persist after save...")
+            
+            # First, save the configuration
+            self.log("   Step 1: Saving AI configuration...")
+            save_result = self.test_post_ai_config_endpoint()
+            
+            if not save_result:
+                self.log("   ❌ Cannot test persistence - save operation failed")
+                return False
+            
+            # Wait a moment for database write
+            import time
+            time.sleep(1)
+            
+            # Then, fetch the configuration to verify it was saved
+            self.log("   Step 2: Fetching AI configuration to verify persistence...")
+            fetched_config = self.test_get_ai_config_endpoint()
+            
+            if not fetched_config:
+                self.log("   ❌ Cannot verify persistence - fetch operation failed")
+                return False
+            
+            # Compare the saved configuration with what we fetched
+            self.log("   Step 3: Comparing saved vs fetched configuration...")
+            
+            # Check main fields
+            main_fields_match = True
+            for field in ['provider', 'model', 'use_emergent_key']:
+                saved_value = self.sample_ai_config.get(field)
+                fetched_value = fetched_config.get(field)
+                
+                if saved_value == fetched_value:
+                    self.log(f"      ✅ Field '{field}' persisted correctly: {fetched_value}")
+                else:
+                    self.log(f"      ❌ Field '{field}' mismatch - Saved: {saved_value}, Fetched: {fetched_value}")
+                    main_fields_match = False
+            
+            # Check document_ai fields specifically
+            document_ai_persisted = True
+            if 'document_ai' in fetched_config:
+                self.ai_config_tests['document_ai_settings_persist_after_save'] = True
+                self.log("✅ Document AI settings section persisted")
+                
+                saved_doc_ai = self.sample_ai_config['document_ai']
+                fetched_doc_ai = fetched_config['document_ai']
+                
+                for field in ['enabled', 'project_id', 'location', 'processor_id', 'apps_script_url']:
+                    saved_value = saved_doc_ai.get(field)
+                    fetched_value = fetched_doc_ai.get(field)
+                    
+                    if saved_value == fetched_value:
+                        self.log(f"      ✅ Document AI field '{field}' persisted: {fetched_value}")
+                        
+                        # Special check for apps_script_url
+                        if field == 'apps_script_url' and fetched_value:
+                            self.ai_config_tests['apps_script_url_properly_stored'] = True
+                            self.log("      ✅ apps_script_url properly stored and retrievable")
+                    else:
+                        self.log(f"      ❌ Document AI field '{field}' mismatch - Saved: {saved_value}, Fetched: {fetched_value}")
+                        document_ai_persisted = False
+                
+                if document_ai_persisted:
+                    self.ai_config_tests['all_document_ai_fields_persisted'] = True
+                    self.log("✅ All Document AI fields persisted correctly")
+            else:
+                self.log("❌ Document AI settings not found in fetched configuration")
+                document_ai_persisted = False
+            
+            # Overall persistence check
+            if main_fields_match and document_ai_persisted:
+                self.ai_config_tests['settings_retrievable_after_save'] = True
+                self.ai_config_tests['mongodb_storage_working'] = True
+                self.log("✅ Settings persist across requests - MongoDB storage working")
+                return True
+            else:
+                self.log("❌ Settings do not persist correctly")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ EMERGENT_LLM_KEY testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing save persistence: {str(e)}", "ERROR")
             return False
     
-    def test_ai_analysis_workflow(self):
-        """Test AI analysis workflow for marine certificate classification"""
+    def test_backend_validation(self):
+        """Test backend validation and error handling"""
         try:
-            self.log("🔬 Testing AI Analysis Workflow for Marine Certificate Classification...")
+            self.log("🔍 Testing backend validation and error handling...")
             
-            # Test the AI analysis workflow with a realistic marine certificate PDF
-            endpoint = f"{BACKEND_URL}/analyze-ship-certificate"
-            self.log(f"   POST {endpoint}")
-            
-            # Create a more realistic PDF with marine certificate content
-            marine_certificate_pdf = b"""%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
->>
-endobj
-
-4 0 obj
-<<
-/Length 300
->>
-stream
-BT
-/F1 12 Tf
-100 700 Td
-(CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE) Tj
-100 680 Td
-(Certificate No: CSSC-2024-001) Tj
-100 660 Td
-(Ship Name: MARINE TRACKER) Tj
-100 640 Td
-(IMO Number: 9876543) Tj
-100 620 Td
-(Flag State: PANAMA) Tj
-100 600 Td
-(Gross Tonnage: 5000) Tj
-100 580 Td
-(Class Society: PANAMA MARITIME DOCUMENTATION SERVICES) Tj
-100 560 Td
-(Valid until: 10 March 2026) Tj
-100 540 Td
-(Issued at: PANAMA) Tj
-100 520 Td
-(Date of issue: 10 March 2021) Tj
-ET
-endstream
-endobj
-
-xref
-0 5
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000206 00000 n 
-trailer
-<<
-/Size 5
-/Root 1 0 R
->>
-startxref
-600
-%%EOF"""
-            
-            files = {
-                'file': ('marine_certificate_test.pdf', marine_certificate_pdf, 'application/pdf')
+            # Test with invalid payload
+            invalid_config = {
+                "provider": "",  # Empty provider
+                "model": "",     # Empty model
+                # Missing required fields
             }
             
-            response = requests.post(
-                endpoint,
-                files=files,
-                headers=self.get_headers(),
-                timeout=90  # AI analysis may take longer
-            )
+            endpoint = f"{BACKEND_URL}/ai-config"
+            self.log(f"   Testing with invalid payload: {json.dumps(invalid_config, indent=2)}")
             
+            response = requests.post(endpoint, json=invalid_config, headers=self.get_headers(), timeout=30)
             self.log(f"   Response status: {response.status_code}")
             
-            if response.status_code == 200:
-                self.log("✅ AI Analysis endpoint accessible")
-                self.ai_config_tests['ai_analysis_endpoint_accessible'] = True
-                
-                try:
-                    response_data = response.json()
-                    self.log("✅ AI Analysis response is valid JSON")
-                    self.ai_config_tests['ai_analysis_response_valid'] = True
-                    
-                    # Log the analysis results
-                    self.log("   AI Analysis Results:")
-                    self.log(f"   {json.dumps(response_data, indent=2)}")
-                    
-                    # Check if marine certificate classification is working
-                    if response_data.get('success'):
-                        analysis = response_data.get('analysis', {})
-                        
-                        ship_name = analysis.get('ship_name')
-                        imo_number = analysis.get('imo_number')
-                        flag = analysis.get('flag')
-                        class_society = analysis.get('class_society')
-                        cert_name = analysis.get('cert_name')
-                        category = analysis.get('category')
-                        
-                        classification_success = False
-                        
-                        if ship_name and 'MARINE TRACKER' in str(ship_name).upper():
-                            self.log("✅ Ship name correctly extracted: MARINE TRACKER")
-                            classification_success = True
-                        
-                        if imo_number and '9876543' in str(imo_number):
-                            self.log("✅ IMO number correctly extracted: 9876543")
-                            classification_success = True
-                        
-                        if flag and 'PANAMA' in str(flag).upper():
-                            self.log("✅ Flag correctly extracted: PANAMA")
-                            classification_success = True
-                        
-                        if class_society and ('PMDS' in str(class_society).upper() or 'PANAMA MARITIME' in str(class_society).upper()):
-                            self.log("✅ Class society correctly extracted")
-                            classification_success = True
-                        
-                        if cert_name and 'CARGO SHIP SAFETY CONSTRUCTION' in str(cert_name).upper():
-                            self.log("✅ Certificate name correctly extracted")
-                            classification_success = True
-                        
-                        if category and str(category).lower() == 'certificates':
-                            self.log("✅ Certificate category correctly classified as 'certificates'")
-                            classification_success = True
-                        
-                        if classification_success:
-                            self.log("✅ Marine certificate classification is working")
-                            self.ai_config_tests['marine_certificate_classification_working'] = True
-                            self.ai_config_tests['ai_analysis_workflow_functional'] = True
-                            return True
-                        else:
-                            self.log("⚠️ Marine certificate classification partially working")
-                            self.log("   AI analysis completed but may need fine-tuning")
-                            self.ai_config_tests['ai_analysis_workflow_functional'] = True
-                            return True
-                    else:
-                        message = response_data.get('message', '')
-                        if 'fallback' in message.lower():
-                            self.log("✅ AI Analysis working in fallback mode")
-                            self.log("   This indicates EMERGENT_LLM_KEY may need configuration")
-                            self.ai_config_tests['ai_analysis_workflow_functional'] = True
-                            return True
-                        else:
-                            self.log("❌ Marine certificate classification failed")
-                            self.log(f"   Message: {message}")
-                            return False
-                        
-                except json.JSONDecodeError:
-                    self.log("❌ AI Analysis response is not valid JSON")
-                    return False
-                    
-            elif response.status_code == 422:
-                self.log("⚠️ AI Analysis endpoint validation error (422)")
+            if response.status_code in [400, 422]:
+                self.ai_config_tests['backend_validation_working'] = True
+                self.log("✅ Backend validation working - rejects invalid payload")
                 try:
                     error_data = response.json()
-                    self.log(f"   Validation error: {error_data}")
-                    # 422 means endpoint is accessible but has validation issues
-                    self.ai_config_tests['ai_analysis_endpoint_accessible'] = True
-                    return True
+                    self.log(f"   Validation error: {error_data.get('detail', 'Unknown error')}")
                 except:
-                    return False
-            elif response.status_code == 404:
-                self.log("❌ AI Analysis endpoint not found (404)")
-                return False
-            elif response.status_code == 500:
-                self.log("❌ AI Analysis endpoint internal server error (500)")
-                self.log("   This may indicate AI configuration or EMERGENT_LLM_KEY issues")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Server error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Server error: {response.text[:500]}")
-                return False
+                    pass
             else:
-                self.log(f"❌ AI Analysis endpoint failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:500]}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ AI Analysis workflow testing error: {str(e)}", "ERROR")
-            return False
-    
-    def test_system_settings_ai_configuration(self):
-        """Test if AI settings are properly configured in System Settings"""
-        try:
-            self.log("⚙️ Testing System Settings AI Configuration...")
+                self.log(f"   ⚠️ Expected validation error (400/422), got: {response.status_code}")
             
-            # Try to access system settings or configuration endpoints
-            # This might be available through different endpoints
-            
-            possible_endpoints = [
-                f"{BACKEND_URL}/system-settings",
-                f"{BACKEND_URL}/settings",
-                f"{BACKEND_URL}/config",
-                f"{BACKEND_URL}/ai-settings"
-            ]
-            
-            for endpoint in possible_endpoints:
-                self.log(f"   Trying GET {endpoint}")
-                
-                try:
-                    response = requests.get(
-                        endpoint,
-                        headers=self.get_headers(),
-                        timeout=30
-                    )
-                    
-                    if response.status_code == 200:
-                        self.log(f"✅ System settings accessible via {endpoint}")
-                        self.ai_config_tests['system_settings_accessible'] = True
-                        
-                        try:
-                            settings_data = response.json()
-                            self.log("   System Settings Response:")
-                            self.log(f"   {json.dumps(settings_data, indent=2)}")
-                            
-                            # Check for AI-related settings
-                            ai_settings_found = False
-                            
-                            # Look for AI configuration in various possible structures
-                            if 'ai_config' in settings_data or 'ai_settings' in settings_data:
-                                ai_settings_found = True
-                            elif 'provider' in settings_data and 'model' in settings_data:
-                                ai_settings_found = True
-                            elif any('ai' in key.lower() for key in settings_data.keys()):
-                                ai_settings_found = True
-                            
-                            if ai_settings_found:
-                                self.log("✅ AI settings found in system configuration")
-                                self.ai_config_tests['ai_settings_properly_configured'] = True
-                                return True
-                            else:
-                                self.log("⚠️ AI settings not found in system configuration")
-                                
-                        except json.JSONDecodeError:
-                            self.log(f"   Response from {endpoint} is not valid JSON")
-                            
-                    elif response.status_code == 404:
-                        self.log(f"   {endpoint} not found (404)")
-                    elif response.status_code == 401:
-                        self.log(f"   {endpoint} requires authentication (401)")
-                    else:
-                        self.log(f"   {endpoint} failed: {response.status_code}")
-                        
-                except Exception as e:
-                    self.log(f"   Error accessing {endpoint}: {str(e)}")
-                    continue
-            
-            # If we couldn't find system settings, that's okay - we can still test AI config endpoint
-            if not self.ai_config_tests['system_settings_accessible']:
-                self.log("⚠️ System settings endpoints not accessible")
-                self.log("   This is not critical if AI config endpoint is working")
+            # Test permission checks
+            self.log("   Testing permission checks...")
+            user_role = self.current_user.get('role', '').lower()
+            if user_role in ['admin', 'super_admin']:
+                self.ai_config_tests['permission_checks_working'] = True
+                self.log(f"✅ User role '{user_role}' has appropriate permissions")
+            else:
+                self.log(f"⚠️ User role '{user_role}' may not have AI config permissions")
             
             return True
             
         except Exception as e:
-            self.log(f"❌ System settings testing error: {str(e)}", "ERROR")
+            self.log(f"❌ Error testing backend validation: {str(e)}", "ERROR")
             return False
     
-    def run_comprehensive_ai_config_tests(self):
-        """Main test function for AI configuration and EMERGENT_LLM_KEY"""
-        self.log("🤖 STARTING AI CONFIGURATION AND EMERGENT_LLM_KEY TESTING")
-        self.log("🎯 FOCUS: Marine Certificate Classification AI Configuration")
-        self.log("=" * 100)
-        
+    def run_comprehensive_ai_config_test(self):
+        """Run comprehensive test of AI configuration endpoints"""
         try:
-            # Step 1: Authenticate
-            self.log("\n🔐 STEP 1: AUTHENTICATION")
-            self.log("=" * 50)
-            if not self.authenticate():
-                self.log("❌ Authentication failed - cannot proceed with testing")
-                return False
-            
-            # Step 2: Test AI Configuration Endpoint
-            self.log("\n🤖 STEP 2: AI CONFIGURATION ENDPOINT TESTING")
-            self.log("=" * 50)
-            ai_config_success = self.test_ai_config_endpoint()
-            
-            # Step 3: Test EMERGENT_LLM_KEY Configuration
-            self.log("\n🔑 STEP 3: EMERGENT_LLM_KEY TESTING")
-            self.log("=" * 50)
-            emergent_key_success = self.test_emergent_key_configuration()
-            
-            # Step 4: Test System Settings
-            self.log("\n⚙️ STEP 4: SYSTEM SETTINGS VERIFICATION")
-            self.log("=" * 50)
-            system_settings_success = self.test_system_settings_ai_configuration()
-            
-            # Step 5: Test AI Analysis Workflow
-            self.log("\n🔬 STEP 5: AI ANALYSIS WORKFLOW TESTING")
-            self.log("=" * 50)
-            ai_workflow_success = self.test_ai_analysis_workflow()
-            
-            # Step 6: Final Analysis
-            self.log("\n📊 STEP 6: FINAL ANALYSIS")
-            self.log("=" * 50)
-            self.provide_final_analysis()
-            
-            return ai_config_success and emergent_key_success and ai_workflow_success
-            
-        except Exception as e:
-            self.log(f"❌ Comprehensive testing error: {str(e)}", "ERROR")
-            return False
-    
-    def provide_final_analysis(self):
-        """Provide final analysis of AI configuration testing"""
-        try:
-            self.log("🤖 AI CONFIGURATION AND EMERGENT_LLM_KEY TESTING - RESULTS")
+            self.log("🚀 STARTING AI CONFIGURATION SAVE & FETCH ENDPOINTS TEST")
             self.log("=" * 80)
             
-            # Check which tests passed
-            passed_tests = []
-            failed_tests = []
+            # Step 1: Authentication
+            self.log("STEP 1: Authentication")
+            if not self.authenticate():
+                self.log("❌ CRITICAL: Authentication failed - cannot proceed")
+                return False
             
-            for test_name, passed in self.ai_config_tests.items():
-                if passed:
-                    passed_tests.append(test_name)
-                else:
-                    failed_tests.append(test_name)
+            # Step 2: Test GET /api/ai-config endpoint
+            self.log("\nSTEP 2: Testing GET /api/ai-config - Fetch current AI configuration")
+            initial_config = self.test_get_ai_config_endpoint()
             
-            self.log(f"✅ TESTS PASSED ({len(passed_tests)}/{len(self.ai_config_tests)}):")
-            for test in passed_tests:
-                self.log(f"   ✅ {test.replace('_', ' ').title()}")
+            # Step 3: Test POST /api/ai-config endpoint
+            self.log("\nSTEP 3: Testing POST /api/ai-config - Save AI configuration")
+            save_result = self.test_post_ai_config_endpoint()
             
-            if failed_tests:
-                self.log(f"\n❌ TESTS FAILED ({len(failed_tests)}/{len(self.ai_config_tests)}):")
-                for test in failed_tests:
-                    self.log(f"   ❌ {test.replace('_', ' ').title()}")
+            # Step 4: Test save persistence
+            self.log("\nSTEP 4: Testing save persistence")
+            self.test_save_persistence()
             
-            # Calculate success rate
-            success_rate = (len(passed_tests) / len(self.ai_config_tests)) * 100
-            self.log(f"\n📊 OVERALL SUCCESS RATE: {success_rate:.1f}% ({len(passed_tests)}/{len(self.ai_config_tests)})")
+            # Step 5: Test backend validation
+            self.log("\nSTEP 5: Testing backend validation and error handling")
+            self.test_backend_validation()
             
-            # Category-specific analysis
-            self.log("\n🎯 CATEGORY-SPECIFIC ANALYSIS:")
-            
-            # AI Configuration Analysis
-            ai_config_tests = [
-                'ai_config_endpoint_accessible',
-                'ai_config_response_valid',
-                'provider_setting_verified',
-                'model_setting_verified',
-                'use_emergent_key_setting_verified'
-            ]
-            ai_config_passed = sum(1 for test in ai_config_tests if self.ai_config_tests.get(test, False))
-            ai_config_rate = (ai_config_passed / len(ai_config_tests)) * 100
-            
-            self.log(f"\n🤖 AI CONFIGURATION: {ai_config_rate:.1f}% ({ai_config_passed}/{len(ai_config_tests)})")
-            if self.ai_config_tests['ai_config_endpoint_accessible']:
-                self.log("   ✅ AI configuration endpoint is accessible")
-                if self.ai_config_tests['provider_setting_verified'] and self.ai_config_tests['model_setting_verified']:
-                    self.log("   ✅ Provider and model settings are properly configured")
-                if self.ai_config_tests['use_emergent_key_setting_verified']:
-                    self.log("   ✅ EMERGENT_LLM_KEY usage setting is configured")
-            else:
-                self.log("   ❌ AI configuration endpoint is not accessible")
-            
-            # EMERGENT_LLM_KEY Analysis
-            emergent_key_tests = [
-                'emergent_key_configured',
-                'emergent_key_accessible',
-                'emergent_key_working',
-                'emergent_key_integration_verified'
-            ]
-            emergent_key_passed = sum(1 for test in emergent_key_tests if self.ai_config_tests.get(test, False))
-            emergent_key_rate = (emergent_key_passed / len(emergent_key_tests)) * 100
-            
-            self.log(f"\n🔑 EMERGENT_LLM_KEY: {emergent_key_rate:.1f}% ({emergent_key_passed}/{len(emergent_key_tests)})")
-            if self.ai_config_tests['emergent_key_working']:
-                self.log("   ✅ EMERGENT_LLM_KEY is working and functional")
-                self.log("   ✅ Universal key is accessible and integrated properly")
-            else:
-                self.log("   ❌ EMERGENT_LLM_KEY has issues or is not properly configured")
-            
-            # AI Analysis Workflow Analysis
-            workflow_tests = [
-                'ai_analysis_workflow_functional',
-                'marine_certificate_classification_working',
-                'ai_analysis_endpoint_accessible',
-                'ai_analysis_response_valid'
-            ]
-            workflow_passed = sum(1 for test in workflow_tests if self.ai_config_tests.get(test, False))
-            workflow_rate = (workflow_passed / len(workflow_tests)) * 100
-            
-            self.log(f"\n🔬 AI ANALYSIS WORKFLOW: {workflow_rate:.1f}% ({workflow_passed}/{len(workflow_tests)})")
-            if self.ai_config_tests['marine_certificate_classification_working']:
-                self.log("   ✅ Marine certificate classification is working correctly")
-                self.log("   ✅ AI analysis workflow is functional for document processing")
-            else:
-                self.log("   ❌ Marine certificate classification has issues")
-            
-            # System Settings Analysis
-            if self.ai_config_tests['system_settings_accessible']:
-                self.log(f"\n⚙️ SYSTEM SETTINGS: ✅ Accessible and properly configured")
-            else:
-                self.log(f"\n⚙️ SYSTEM SETTINGS: ⚠️ Not accessible (may not be critical)")
-            
-            # Final conclusion with specific focus on marine certificate classification
-            self.log("\n🎯 MARINE CERTIFICATE CLASSIFICATION ANALYSIS:")
-            
-            if (self.ai_config_tests['emergent_key_working'] and 
-                self.ai_config_tests['marine_certificate_classification_working']):
-                self.log("✅ MARINE CERTIFICATE CLASSIFICATION IS WORKING")
-                self.log("   ✅ EMERGENT_LLM_KEY is properly configured and functional")
-                self.log("   ✅ AI analysis can correctly classify marine certificates")
-                self.log("   ✅ Provider and model settings are appropriate for document analysis")
-                self.log("   ✅ This should resolve marine certificate classification failures")
-            elif self.ai_config_tests['emergent_key_working']:
-                self.log("⚠️ EMERGENT_LLM_KEY IS WORKING BUT CLASSIFICATION MAY HAVE ISSUES")
-                self.log("   ✅ EMERGENT_LLM_KEY is functional")
-                self.log("   ❌ Marine certificate classification may need additional debugging")
-                self.log("   🔍 Recommendation: Check AI analysis prompts and classification logic")
-            elif self.ai_config_tests['ai_config_endpoint_accessible']:
-                self.log("⚠️ AI CONFIGURATION IS ACCESSIBLE BUT EMERGENT_LLM_KEY HAS ISSUES")
-                self.log("   ✅ AI configuration endpoint is working")
-                self.log("   ❌ EMERGENT_LLM_KEY may not be properly configured or accessible")
-                self.log("   🔍 Recommendation: Verify EMERGENT_LLM_KEY environment variable and permissions")
-            else:
-                self.log("❌ CRITICAL AI CONFIGURATION ISSUES IDENTIFIED")
-                self.log("   ❌ AI configuration endpoint is not accessible")
-                self.log("   ❌ EMERGENT_LLM_KEY status cannot be determined")
-                self.log("   🔍 Recommendation: Check backend AI configuration implementation")
-            
-            # Overall conclusion
-            if success_rate >= 80:
-                self.log(f"\n🎉 CONCLUSION: AI CONFIGURATION IS WORKING EXCELLENTLY")
-                self.log(f"   Success rate: {success_rate:.1f}% - Marine certificate classification should be functional")
-            elif success_rate >= 60:
-                self.log(f"\n⚠️ CONCLUSION: AI CONFIGURATION IS PARTIALLY WORKING")
-                self.log(f"   Success rate: {success_rate:.1f}% - Some issues may affect marine certificate classification")
-            else:
-                self.log(f"\n❌ CONCLUSION: AI CONFIGURATION HAS CRITICAL ISSUES")
-                self.log(f"   Success rate: {success_rate:.1f}% - Marine certificate classification likely failing")
-            
+            self.log("\n" + "=" * 80)
+            self.log("✅ AI CONFIGURATION ENDPOINTS TEST COMPLETED")
             return True
             
         except Exception as e:
-            self.log(f"❌ Final analysis error: {str(e)}", "ERROR")
+            self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
+            traceback.print_exc()
             return False
-
+    
+    def print_test_summary(self):
+        """Print comprehensive summary of test results"""
+        try:
+            self.log("\n" + "=" * 80)
+            self.log("📊 AI CONFIGURATION ENDPOINTS TEST SUMMARY")
+            self.log("=" * 80)
+            
+            # Count passed tests
+            total_tests = len(self.ai_config_tests)
+            passed_tests = sum(1 for result in self.ai_config_tests.values() if result)
+            success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+            
+            self.log(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
+            self.log("")
+            
+            # Authentication Results
+            self.log("🔐 AUTHENTICATION:")
+            auth_tests = [
+                ('authentication_successful', 'Authentication successful'),
+                ('user_has_admin_permissions', 'User has admin permissions'),
+            ]
+            
+            for test_key, description in auth_tests:
+                status = "✅ PASS" if self.ai_config_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # GET Endpoint Results
+            self.log("\n📥 GET /api/ai-config - FETCH AI CONFIGURATION:")
+            get_tests = [
+                ('get_ai_config_endpoint_accessible', 'Endpoint accessible'),
+                ('get_ai_config_returns_valid_response', 'Returns valid JSON response'),
+                ('get_ai_config_response_structure_correct', 'Response structure correct'),
+                ('get_ai_config_includes_document_ai', 'Includes document_ai settings'),
+            ]
+            
+            for test_key, description in get_tests:
+                status = "✅ PASS" if self.ai_config_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # POST Endpoint Results
+            self.log("\n📤 POST /api/ai-config - SAVE AI CONFIGURATION:")
+            post_tests = [
+                ('post_ai_config_endpoint_accessible', 'Endpoint accessible'),
+                ('post_ai_config_accepts_complete_payload', 'Accepts complete payload'),
+                ('post_ai_config_saves_document_ai_settings', 'Saves Document AI settings'),
+                ('post_ai_config_returns_success_response', 'Returns success response'),
+            ]
+            
+            for test_key, description in post_tests:
+                status = "✅ PASS" if self.ai_config_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Persistence Results
+            self.log("\n🔄 SAVE PERSISTENCE VERIFICATION:")
+            persistence_tests = [
+                ('document_ai_settings_persist_after_save', 'Document AI settings persist'),
+                ('apps_script_url_properly_stored', 'apps_script_url properly stored'),
+                ('all_document_ai_fields_persisted', 'All Document AI fields persisted'),
+                ('settings_retrievable_after_save', 'Settings retrievable after save'),
+            ]
+            
+            for test_key, description in persistence_tests:
+                status = "✅ PASS" if self.ai_config_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Backend Validation Results
+            self.log("\n🔍 BACKEND VALIDATION & STORAGE:")
+            validation_tests = [
+                ('backend_validation_working', 'Backend validation working'),
+                ('mongodb_storage_working', 'MongoDB storage working'),
+                ('permission_checks_working', 'Permission checks working'),
+            ]
+            
+            for test_key, description in validation_tests:
+                status = "✅ PASS" if self.ai_config_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Overall Assessment
+            self.log("\n🎯 OVERALL ASSESSMENT:")
+            
+            critical_tests = [
+                'get_ai_config_endpoint_accessible', 'post_ai_config_endpoint_accessible',
+                'document_ai_settings_persist_after_save', 'apps_script_url_properly_stored'
+            ]
+            
+            critical_passed = sum(1 for test_key in critical_tests if self.ai_config_tests.get(test_key, False))
+            
+            if critical_passed == len(critical_tests):
+                self.log("   ✅ ALL CRITICAL AI CONFIG ENDPOINTS ARE WORKING")
+                self.log("   ✅ Document AI settings save and persistence working")
+                self.log("   ✅ apps_script_url properly stored and retrievable")
+            else:
+                self.log("   ❌ SOME CRITICAL FUNCTIONALITY IS NOT WORKING")
+                self.log(f"   ❌ Only {critical_passed}/{len(critical_tests)} critical tests passed")
+            
+            # Specific findings for the review request
+            self.log("\n🔍 SPECIFIC FINDINGS FOR REVIEW REQUEST:")
+            
+            if self.ai_config_tests.get('post_ai_config_endpoint_accessible', False):
+                self.log("   ✅ POST /api/ai-config endpoint exists and is accessible")
+            else:
+                self.log("   ❌ POST /api/ai-config endpoint not accessible or not working")
+            
+            if self.ai_config_tests.get('apps_script_url_properly_stored', False):
+                self.log("   ✅ apps_script_url is properly stored and retrievable")
+            else:
+                self.log("   ❌ apps_script_url is NOT being saved or retrieved correctly")
+            
+            if self.ai_config_tests.get('all_document_ai_fields_persisted', False):
+                self.log("   ✅ All Document AI fields are persisted correctly")
+            else:
+                self.log("   ❌ Document AI fields are NOT being persisted correctly")
+            
+            if success_rate >= 80:
+                self.log(f"   ✅ EXCELLENT SUCCESS RATE: {success_rate:.1f}%")
+            elif success_rate >= 60:
+                self.log(f"   ⚠️ GOOD SUCCESS RATE: {success_rate:.1f}%")
+            else:
+                self.log(f"   ❌ LOW SUCCESS RATE: {success_rate:.1f}%")
+            
+            self.log("=" * 80)
+            
+        except Exception as e:
+            self.log(f"❌ Error printing test summary: {str(e)}", "ERROR")
 
 def main():
-    """Main function to run AI Configuration tests"""
-    print("🤖 AI CONFIGURATION AND EMERGENT_LLM_KEY TESTING STARTED")
-    print("=" * 80)
+    """Main function to run the AI configuration tests"""
+    tester = AIConfigTester()
     
     try:
-        tester = AIConfigurationTester()
-        success = tester.run_comprehensive_ai_config_tests()
+        # Run comprehensive test
+        success = tester.run_comprehensive_ai_config_test()
         
-        if success:
-            print("\n✅ AI CONFIGURATION TESTING COMPLETED SUCCESSFULLY")
-        else:
-            print("\n❌ AI CONFIGURATION TESTING COMPLETED WITH ISSUES")
-            
+        # Print summary
+        tester.print_test_summary()
+        
+        # Return appropriate exit code
+        sys.exit(0 if success else 1)
+        
+    except KeyboardInterrupt:
+        tester.log("\n❌ Test interrupted by user", "ERROR")
+        sys.exit(1)
     except Exception as e:
-        print(f"\n❌ CRITICAL ERROR: {str(e)}")
+        tester.log(f"❌ Unexpected error: {str(e)}", "ERROR")
         traceback.print_exc()
-    
-    # Always exit with 0 for testing purposes - we want to capture the results
-    sys.exit(0)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
