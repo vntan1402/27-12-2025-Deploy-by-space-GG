@@ -5759,7 +5759,11 @@ const HomePage = () => {
                             </label>
                             <select 
                               value={crewFilters?.ship_sign_on || 'All'}
-                              onChange={(e) => setCrewFilters({...crewFilters, ship_sign_on: e.target.value})}
+                              onChange={(e) => {
+                                const newFilters = {...crewFilters, ship_sign_on: e.target.value};
+                                setCrewFilters(newFilters);
+                                // Backend filtering will be handled by useEffect
+                              }}
                               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             >
                               <option value="All">{language === 'vi' ? 'Tất cả' : 'All'}</option>
