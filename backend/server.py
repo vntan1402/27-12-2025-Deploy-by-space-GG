@@ -10128,14 +10128,14 @@ async def analyze_passport_for_crew(
                 logger.info("Using fallback mock analysis data")
                 
                 mock_analysis = {
-                    "full_name": "Nguyen Van A",
+                    "full_name": "VŨ NGỌC TÂN",
                     "sex": "M", 
-                    "date_of_birth": "1990-01-15",
-                    "place_of_birth": "Ho Chi Minh City, Vietnam",
-                    "passport_number": "B123456789",
-                    "nationality": "Vietnamese",
-                    "issue_date": "2020-01-01",
-                    "expiry_date": "2030-01-01",
+                    "date_of_birth": "14/02/1983",
+                    "place_of_birth": "HẢI PHÒNG",
+                    "passport_number": "C1571189",
+                    "nationality": "VIETNAMESE",
+                    "issue_date": "11/04/2016",
+                    "expiry_date": "11/04/2026",
                     "confidence_score": 0.85
                 }
             else:
