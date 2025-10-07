@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Configuration
-BACKEND_URL = 'https://shipmate-55.preview.emergentagent.com/api'
+BACKEND_URL = 'https://maritime-docs.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""

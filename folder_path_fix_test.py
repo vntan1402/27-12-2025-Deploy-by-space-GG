@@ -43,7 +43,7 @@ try:
         raise Exception("Internal URL not working")
 except:
     # Fallback to external URL from frontend/.env
-    BACKEND_URL = 'https://shipmate-55.preview.emergentagent.com/api'
+    BACKEND_URL = 'https://maritime-docs.preview.emergentagent.com/api'
     try:
         with open('/app/frontend/.env', 'r') as f:
             for line in f:
