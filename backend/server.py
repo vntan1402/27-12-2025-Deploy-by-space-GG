@@ -10351,6 +10351,259 @@ async def test_document_ai_connection(
         logger.error(f"Document AI test error: {e}")
         raise HTTPException(status_code=500, detail=f"Connection test failed: {str(e)}")
 
+# =====================================
+# CREW MANAGEMENT ENDPOINTS
+# =====================================
+
+@api_router.post("/crew", response_model=CrewResponse)
+async def create_crew_member(
+    crew_data: CrewCreate,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new crew member"""
+    try:
+        company_uuid = resolve_company_id(current_user)
+        
+        # Check for duplicate passport
+        existing_crew = await mongo_db.find_one("crew_members", {
+            "company_id": company_uuid,
+            "passport": crew_data.passport
+        })
+        
+        if existing_crew:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Crew member with passport {crew_data.passport} already exists"
+            )
+        
+        # Prepare crew document
+        crew_doc = crew_data.dict()
+        crew_doc.update({
+            "id": str(uuid4()),
+            "company_id": company_uuid,
+            "created_at": datetime.now(timezone.utc),
+            "created_by": current_user.username,
+            "updated_at": None,
+            "updated_by": None
+        })
+        
+        # Convert date strings to datetime objects for storage
+        for date_field in ['date_of_birth', 'date_sign_on', 'date_sign_off', 'passport_issue_date', 'passport_expiry_date']:
+            if crew_doc.get(date_field):
+                if isinstance(crew_doc[date_field], str):
+                    try:
+                        # Handle ISO format dates from frontend
+                        if 'T' in crew_doc[date_field]:
+                            crew_doc[date_field] = datetime.fromisoformat(crew_doc[date_field].replace('Z', '+00:00'))
+                        else:
+                            # Handle YYYY-MM-DD format
+                            crew_doc[date_field] = datetime.fromisoformat(crew_doc[date_field] + "T00:00:00+00:00")
+                    except ValueError:
+                        logger.warning(f"Could not parse date {date_field}: {crew_doc[date_field]}")
+                        crew_doc[date_field] = None
+        
+        # Save to database
+        await mongo_db.insert_one("crew_members", crew_doc)
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="CREATE_CREW",
+            resource_type="crew_member",
+            resource_id=crew_doc["id"],
+            details={
+                "crew_name": crew_data.full_name,
+                "passport": crew_data.passport,
+                "ship": crew_data.ship_sign_on,
+                "status": crew_data.status
+            },
+            company_id=company_uuid
+        )
+        
+        logger.info(f"Created crew member: {crew_data.full_name} (Passport: {crew_data.passport})")
+        
+        return CrewResponse(**crew_doc)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating crew member: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create crew member: {str(e)}")
+
+@api_router.get("/crew", response_model=List[CrewResponse])
+async def get_crew_members(
+    ship_name: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get all crew members for the company with optional filters"""
+    try:
+        company_uuid = resolve_company_id(current_user)
+        
+        # Build query filter
+        query_filter = {"company_id": company_uuid}
+        
+        if ship_name and ship_name != "All":
+            query_filter["ship_sign_on"] = ship_name
+            
+        if status and status != "All":
+            query_filter["status"] = status
+        
+        # Get crew members from database
+        crew_members = await mongo_db.find("crew_members", query_filter)
+        
+        return [CrewResponse(**crew) for crew in crew_members]
+        
+    except Exception as e:
+        logger.error(f"Error getting crew members: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get crew members: {str(e)}")
+
+@api_router.get("/crew/{crew_id}", response_model=CrewResponse)
+async def get_crew_member(
+    crew_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get a specific crew member"""
+    try:
+        company_uuid = resolve_company_id(current_user)
+        
+        crew = await mongo_db.find_one("crew_members", {
+            "id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        return CrewResponse(**crew)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting crew member {crew_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get crew member: {str(e)}")
+
+@api_router.put("/crew/{crew_id}", response_model=CrewResponse)
+async def update_crew_member(
+    crew_id: str,
+    crew_update: CrewUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update a crew member"""
+    try:
+        company_uuid = resolve_company_id(current_user)
+        
+        # Check if crew member exists
+        existing_crew = await mongo_db.find_one("crew_members", {
+            "id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if not existing_crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Check for passport duplication if passport is being updated
+        if crew_update.passport and crew_update.passport != existing_crew.get("passport"):
+            duplicate = await mongo_db.find_one("crew_members", {
+                "company_id": company_uuid,
+                "passport": crew_update.passport,
+                "id": {"$ne": crew_id}
+            })
+            
+            if duplicate:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Another crew member with passport {crew_update.passport} already exists"
+                )
+        
+        # Prepare update data
+        update_data = {k: v for k, v in crew_update.dict().items() if v is not None}
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        update_data["updated_by"] = current_user.username
+        
+        # Convert date strings to datetime objects
+        for date_field in ['date_of_birth', 'date_sign_on', 'date_sign_off', 'passport_issue_date', 'passport_expiry_date']:
+            if date_field in update_data and isinstance(update_data[date_field], str):
+                try:
+                    if 'T' in update_data[date_field]:
+                        update_data[date_field] = datetime.fromisoformat(update_data[date_field].replace('Z', '+00:00'))
+                    else:
+                        update_data[date_field] = datetime.fromisoformat(update_data[date_field] + "T00:00:00+00:00")
+                except ValueError:
+                    logger.warning(f"Could not parse date {date_field}: {update_data[date_field]}")
+                    update_data[date_field] = None
+        
+        # Update in database
+        await mongo_db.update_one("crew_members", {"id": crew_id}, {"$set": update_data})
+        
+        # Get updated document
+        updated_crew = await mongo_db.find_one("crew_members", {"id": crew_id})
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="UPDATE_CREW", 
+            resource_type="crew_member",
+            resource_id=crew_id,
+            details={
+                "updated_fields": list(update_data.keys()),
+                "crew_name": updated_crew.get("full_name"),
+                "passport": updated_crew.get("passport")
+            },
+            company_id=company_uuid
+        )
+        
+        return CrewResponse(**updated_crew)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating crew member {crew_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update crew member: {str(e)}")
+
+@api_router.delete("/crew/{crew_id}")
+async def delete_crew_member(
+    crew_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete a crew member"""
+    try:
+        company_uuid = resolve_company_id(current_user)
+        
+        # Check if crew member exists
+        crew = await mongo_db.find_one("crew_members", {
+            "id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Delete from database
+        await mongo_db.delete_one("crew_members", {"id": crew_id})
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="DELETE_CREW",
+            resource_type="crew_member", 
+            resource_id=crew_id,
+            details={
+                "crew_name": crew.get("full_name"),
+                "passport": crew.get("passport"),
+                "deleted_at": datetime.now(timezone.utc).isoformat()
+            },
+            company_id=company_uuid
+        )
+        
+        return {"success": True, "message": "Crew member deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting crew member {crew_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete crew member: {str(e)}")
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
