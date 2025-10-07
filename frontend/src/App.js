@@ -784,6 +784,80 @@ const HomePage = () => {
     status: 'All', 
     search: ''
   });
+
+  // Mock Crew Data (TODO: Replace with actual API data)
+  const mockCrewData = [
+    {
+      id: 1,
+      full_name: 'VŨ NGỌC TÂN',
+      sex: 'M',
+      rank: 'Captain',
+      date_of_birth: '14/02/1983',
+      place_of_birth: 'HẢI PHÒNG',
+      passport: 'C1571189',
+      seamen_book: 'SB123456',
+      status: 'Sign on',
+      ship_sign_on: 'BROTHER 36',
+      date_sign_on: '15/01/2024',
+      date_sign_off: ''
+    },
+    {
+      id: 2,
+      full_name: 'NGUYỄN VĂN A',
+      sex: 'M', 
+      rank: 'Chief Engineer',
+      date_of_birth: '20/05/1985',
+      place_of_birth: 'HỒ CHÍ MINH',
+      passport: 'C2345678',
+      seamen_book: 'SB234567',
+      status: 'Standby',
+      ship_sign_on: '-',
+      date_sign_on: '',
+      date_sign_off: '20/12/2023'
+    },
+    {
+      id: 3,
+      full_name: 'TRẦN THỊ B',
+      sex: 'F',
+      rank: 'Cook',
+      date_of_birth: '12/08/1990',
+      place_of_birth: 'ĐÀ NẴNG',
+      passport: 'C3456789',
+      seamen_book: 'SB345678',
+      status: 'Sign on',
+      ship_sign_on: 'GRACE 88',
+      date_sign_on: '10/03/2024',
+      date_sign_off: ''
+    },
+    {
+      id: 4,
+      full_name: 'LÊ VĂN C',
+      sex: 'M',
+      rank: 'AB Seaman',
+      date_of_birth: '25/11/1988',
+      place_of_birth: 'CẦN THƠ',
+      passport: 'C4567890',
+      seamen_book: 'SB456789',
+      status: 'Leave',
+      ship_sign_on: 'BROTHER 36',
+      date_sign_on: '01/01/2024',
+      date_sign_off: '15/06/2024'
+    },
+    {
+      id: 5,
+      full_name: 'PHẠM THỊ D',
+      sex: 'F',
+      rank: 'Steward',
+      date_of_birth: '08/09/1992',
+      place_of_birth: 'HUẾ',
+      passport: 'C5678901',
+      seamen_book: 'SB567890',
+      status: 'Sign on',
+      ship_sign_on: 'GRACE 88',
+      date_sign_on: '20/02/2024',
+      date_sign_off: ''
+    }
+  ];
   
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
