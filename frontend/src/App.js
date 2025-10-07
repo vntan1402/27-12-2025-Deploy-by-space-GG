@@ -3283,8 +3283,13 @@ const HomePage = () => {
   const handlePassportUpload = async (file) => {
     if (!file) return;
     
+    // Reset previous analysis state
+    setPassportAnalysis(null);
+    setPassportFile(null);
     setIsAnalyzingPassport(true);
     setPassportError('');
+    
+    console.log('🔄 Starting fresh passport analysis for:', file.name);
     
     try {
       // Create FormData for file upload
