@@ -457,6 +457,7 @@ class DocumentAIConfigResponse(BaseModel):
     project_id: Optional[str] = None
     location: Optional[str] = "us" 
     processor_id: Optional[str] = None
+    apps_script_url: Optional[str] = None
 
 class AIConfigResponse(BaseModel):
     provider: str
