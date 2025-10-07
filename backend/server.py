@@ -10273,7 +10273,7 @@ This summary was generated using Google Document AI for crew management purposes
             
             return {
                 "success": True,
-                "analysis": mock_analysis,
+                "analysis": analysis_result,
                 "files": {
                     "passport": {
                         "filename": filename,
@@ -10294,7 +10294,7 @@ This summary was generated using Google Document AI for crew management purposes
             # Return analysis even if file upload fails
             return {
                 "success": True,
-                "analysis": mock_analysis,
+                "analysis": analysis_result,
                 "files": None,
                 "error": f"Analysis successful but file upload failed: {str(drive_error)}",
                 "message": "Passport analyzed but could not save to Google Drive"
