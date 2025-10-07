@@ -4437,7 +4437,8 @@ async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
                 enabled=document_ai_config.get("enabled", False),
                 project_id=document_ai_config.get("project_id"),
                 location=document_ai_config.get("location", "us"),
-                processor_id=document_ai_config.get("processor_id")
+                processor_id=document_ai_config.get("processor_id"),
+                apps_script_url=document_ai_config.get("apps_script_url")
                 # service_account_key is not exposed
             )
         
