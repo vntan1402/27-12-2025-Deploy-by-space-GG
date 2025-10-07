@@ -639,7 +639,7 @@ class GoogleDriveManager:
                 parent_category = path_parts[-2] if len(path_parts) > 2 else None
             
             payload = {
-                "action": "upload_file_with_folder_creation",
+                "action": "upload_file",
                 "ship_name": ship_name,
                 "parent_category": parent_category,
                 "category": category,
