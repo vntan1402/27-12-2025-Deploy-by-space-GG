@@ -10187,18 +10187,45 @@ async def analyze_passport_for_crew(
             )
             
             if analysis_response.get("success"):
-                # Use real analysis from Google Document AI via Apps Script
-                extracted_analysis = analysis_response.get("data", {}).get("analysis", {})
-                if extracted_analysis:
-                    analysis_result.update(extracted_analysis)
-                    logger.info("✅ Fresh Document AI analysis completed via Google Apps Script")
-                    logger.info(f"   📄 Extracted Name: {analysis_result.get('full_name')}")
-                    logger.info(f"   📔 Extracted Passport: {analysis_result.get('passport_number')}")
+                # Get summary from Document AI via Apps Script
+                document_summary = analysis_response.get("data", {}).get("summary", "")
+                
+                if document_summary:
+                    logger.info("✅ Document AI summary generated successfully")
+                    logger.info(f"   📝 Summary length: {len(document_summary)} characters")
+                    
+                    # Use System AI to extract passport fields from summary
+                    try:
+                        # Get AI configuration for field extraction
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        logger.info(f"🤖 Using {ai_provider} {ai_model} to extract passport fields from summary...")
+                        
+                        # Extract passport fields using system AI
+                        extracted_fields = await extract_passport_fields_from_summary(
+                            document_summary, ai_provider, ai_model, use_emergent_key
+                        )
+                        
+                        if extracted_fields:
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "summary_to_ai_extraction"
+                            logger.info("✅ AI field extraction completed successfully")
+                            logger.info(f"   👤 Extracted Name: '{analysis_result.get('full_name')}'")
+                            logger.info(f"   📔 Extracted Passport: '{analysis_result.get('passport_number')}'")
+                        else:
+                            logger.warning("AI field extraction returned empty results")
+                        
+                    except Exception as ai_error:
+                        logger.error(f"AI field extraction failed: {ai_error}")
+                        analysis_result["processing_method"] = "summary_only"
+                        analysis_result["raw_summary"] = document_summary
                 else:
-                    logger.warning("Apps Script succeeded but returned empty analysis")
+                    logger.warning("Apps Script succeeded but returned empty summary")
             else:
                 # Log error but don't use old cached data
-                logger.warning(f"Apps Script analysis failed: {analysis_response.get('message', 'Unknown error')}")
+                logger.warning(f"Apps Script summary generation failed: {analysis_response.get('message', 'Unknown error')}")
                 logger.info("Will return empty analysis data - no fallback to old cached data")
                 
         except Exception as apps_script_error:
