@@ -10282,11 +10282,6 @@ This summary was generated using Google Document AI for crew management purposes
             return {
                 "success": True,
                 "analysis": analysis_result,
-                "cache_info": {
-                    "cache_key": cache_key,
-                    "timestamp": timestamp,
-                    "fresh_analysis": True
-                },
                 "files": None,
                 "error": f"Analysis successful but file upload failed: {str(drive_error)}",
                 "message": "Passport analyzed but could not save to Google Drive"
