@@ -443,6 +443,7 @@ class DocumentAIConfig(BaseModel):
     project_id: Optional[str] = None
     location: Optional[str] = "us"
     processor_id: Optional[str] = None
+    apps_script_url: Optional[str] = None
 
 class AIConfig(BaseModel):
     provider: str
