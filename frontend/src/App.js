@@ -3310,10 +3310,18 @@ const HomePage = () => {
       
       if (response.data.success) {
         const analysis = response.data.analysis;
+        console.log('✅ Fresh passport analysis received:', analysis);
         
-        // Auto-populate crew data from passport analysis
+        // Reset and populate crew data with NEW passport analysis
         setNewCrewData({
-          ...newCrewData,
+          // Keep non-passport fields but reset all passport-related fields
+          rank: newCrewData.rank,
+          seamen_book: newCrewData.seamen_book,
+          status: newCrewData.status,
+          ship_sign_on: newCrewData.ship_sign_on,
+          date_sign_on: newCrewData.date_sign_on,
+          date_sign_off: newCrewData.date_sign_off,
+          // Fill with NEW analysis data
           full_name: analysis.full_name || '',
           sex: analysis.sex || 'M',
           date_of_birth: analysis.date_of_birth ? convertPassportDateToInputFormat(analysis.date_of_birth) : '',
