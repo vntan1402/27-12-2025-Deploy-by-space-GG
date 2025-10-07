@@ -10437,7 +10437,7 @@ async def create_crew_member(
                         crew_doc[date_field] = None
         
         # Save to database
-        await mongo_db.insert_one("crew_members", crew_doc)
+        await mongo_db.create("crew_members", crew_doc)
         
         # Log audit trail
         await log_audit_trail(
