@@ -777,6 +777,13 @@ const HomePage = () => {
   const [passportAnalysis, setPassportAnalysis] = useState(null);
   const [isAnalyzingPassport, setIsAnalyzingPassport] = useState(false);
   const [passportError, setPassportError] = useState('');
+
+  // Crew List Filters
+  const [crewFilters, setCrewFilters] = useState({
+    ship_sign_on: 'All',
+    status: 'All', 
+    search: ''
+  });
   
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
