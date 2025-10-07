@@ -5741,108 +5741,68 @@ const HomePage = () => {
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                              {/* Sample Data Row 1 */}
-                              <tr className="hover:bg-gray-50">
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">1</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
-                                  Nguyễn Văn An
-                                </td>
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">M</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Captain</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">15/03/1985</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Ho Chi Minh City</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B2345678</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-123456</td>
-                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
-                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Active
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">01/01/2025</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
-                              </tr>
-                              
-                              {/* Sample Data Row 2 */}
-                              <tr className="hover:bg-gray-50">
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">2</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
-                                  Trần Thị Bình
-                                </td>
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">F</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Chief Engineer</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">22/07/1988</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Ha Noi</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B3456789</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-234567</td>
-                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
-                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Active
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">05/02/2025</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
-                              </tr>
-
-                              {/* Sample Data Row 3 */}
-                              <tr className="hover:bg-gray-50">
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">3</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
-                                  Lê Văn Cường
-                                </td>
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">M</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">First Officer</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">10/12/1990</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Da Nang</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B4567890</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-345678</td>
-                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
-                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    On Leave
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">15/01/2025</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">20/09/2025</td>
-                              </tr>
-
-                              {/* Sample Data Row 4 */}
-                              <tr className="hover:bg-gray-50">
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">4</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
-                                  Phạm Thị Dung
-                                </td>
-                                <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">F</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Second Engineer</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">28/05/1992</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">Can Tho</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">B5678901</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">VN-SB-456789</td>
-                                <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
-                                  <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Active
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">BROTHER 36</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">10/03/2025</td>
-                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">-</td>
-                              </tr>
-
-                              {/* Empty State */}
-                              {/* Uncomment this section to show empty state instead of sample data
-                              <tr>
-                                <td colSpan="12" className="px-6 py-12 text-center">
-                                  <div className="text-gray-400 text-lg mb-2">👥</div>
-                                  <p className="text-gray-500">
-                                    {language === 'vi' ? 'Chưa có thuyền viên nào được thêm' : 'No crew members added yet'}
-                                  </p>
-                                  <p className="text-sm text-gray-400 mt-1">
-                                    {language === 'vi' ? 'Nhấn "Thêm thuyền viên" để bắt đầu' : 'Click "Add Crew" to get started'}
-                                  </p>
-                                </td>
-                              </tr>
-                              */}
+                              {filteredCrewData.length > 0 ? (
+                                filteredCrewData.map((crew, index) => (
+                                  <tr key={crew.id} className="hover:bg-gray-50">
+                                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {index + 1}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
+                                      {crew.full_name}
+                                    </td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.sex}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.rank || '-'}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.date_of_birth}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.place_of_birth}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.passport}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.seamen_book || '-'}
+                                    </td>
+                                    <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        crew.status === 'Sign on' ? 'bg-green-100 text-green-800' :
+                                        crew.status === 'Standby' ? 'bg-yellow-100 text-yellow-800' :
+                                        crew.status === 'Leave' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {crew.status}
+                                      </span>
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.ship_sign_on}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                      {crew.date_sign_on || '-'}
+                                    </td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                      {crew.date_sign_off || '-'}
+                                    </td>
+                                  </tr>
+                                ))
+                              ) : (
+                                {/* Empty State */}
+                                <tr>
+                                  <td colSpan="12" className="px-6 py-12 text-center">
+                                    <div className="text-gray-400 text-lg mb-2">👥</div>
+                                    <p className="text-gray-500">
+                                      {language === 'vi' ? 'Không tìm thấy thuyền viên phù hợp' : 'No crew members found'}
+                                    </p>
+                                    <p className="text-sm text-gray-400 mt-1">
+                                      {language === 'vi' ? 'Thử thay đổi bộ lọc hoặc thêm thuyền viên mới' : 'Try changing filters or add new crew members'}
+                                    </p>
+                                  </td>
+                                </tr>
+                              )}
                             </tbody>
                           </table>
                         </div>
