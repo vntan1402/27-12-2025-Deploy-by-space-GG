@@ -10200,16 +10200,18 @@ async def analyze_passport_for_crew(
             
             if analysis_response.get("success"):
                 # Use real analysis from Google Document AI via Apps Script
-                extracted_analysis = analysis_response.get("analysis", {})
+                extracted_analysis = analysis_response.get("data", {}).get("analysis", {})
                 if extracted_analysis:
-                    mock_analysis = extracted_analysis
-                    logger.info("✅ Document AI analysis completed via Google Apps Script")
+                    analysis_result.update(extracted_analysis)
+                    logger.info("✅ Fresh Document AI analysis completed via Google Apps Script")
+                    logger.info(f"   📄 Extracted Name: {analysis_result.get('full_name')}")
+                    logger.info(f"   📔 Extracted Passport: {analysis_result.get('passport_number')}")
                 else:
-                    logger.warning("Apps Script succeeded but returned empty analysis, using fallback data")
+                    logger.warning("Apps Script succeeded but returned empty analysis")
             else:
-                # Fallback to mock data if Apps Script analysis fails
-                logger.warning(f"Apps Script analysis failed: {analysis_response.get('error', 'Unknown error')}")
-                logger.info("Using fallback mock analysis data")
+                # Log error but don't use old cached data
+                logger.warning(f"Apps Script analysis failed: {analysis_response.get('message', 'Unknown error')}")
+                logger.info("Will return empty analysis data - no fallback to old cached data")
                 
         except Exception as apps_script_error:
             logger.error(f"Google Apps Script call failed: {apps_script_error}")
