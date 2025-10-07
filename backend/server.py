@@ -10223,17 +10223,18 @@ async def analyze_passport_for_crew(
 Generated on: {datetime.now(timezone.utc).isoformat()}
 Ship: {ship_name}
 File: {filename}
+Cache Key: {cache_key}
 
 EXTRACTED INFORMATION:
-- Full Name: {mock_analysis.get('full_name', 'N/A')}
-- Sex: {mock_analysis.get('sex', 'N/A')}
-- Date of Birth: {mock_analysis.get('date_of_birth', 'N/A')}
-- Place of Birth: {mock_analysis.get('place_of_birth', 'N/A')}
-- Passport Number: {mock_analysis.get('passport_number', 'N/A')}
-- Nationality: {mock_analysis.get('nationality', 'N/A')}
-- Issue Date: {mock_analysis.get('issue_date', 'N/A')}
-- Expiry Date: {mock_analysis.get('expiry_date', 'N/A')}
-- AI Confidence: {mock_analysis.get('confidence_score', 0):.2%}
+- Full Name: {analysis_result.get('full_name', 'N/A')}
+- Sex: {analysis_result.get('sex', 'N/A')}
+- Date of Birth: {analysis_result.get('date_of_birth', 'N/A')}
+- Place of Birth: {analysis_result.get('place_of_birth', 'N/A')}
+- Passport Number: {analysis_result.get('passport_number', 'N/A')}
+- Nationality: {analysis_result.get('nationality', 'N/A')}
+- Issue Date: {analysis_result.get('issue_date', 'N/A')}
+- Expiry Date: {analysis_result.get('expiry_date', 'N/A')}
+- AI Confidence: {analysis_result.get('confidence_score', 0):.2%}
 
 This summary was generated using Google Document AI for crew management purposes.
 """
