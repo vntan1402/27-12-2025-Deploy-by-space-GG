@@ -10496,19 +10496,46 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language, token }) 
                     />
                   </div>
 
+                  {/* Document AI Apps Script URL */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {language === 'vi' ? 'Document AI Apps Script URL *' : 'Document AI Apps Script URL *'}
+                    </label>
+                    <input
+                      type="url"
+                      value={config.document_ai?.apps_script_url || ''}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        document_ai: {
+                          ...prev.document_ai,
+                          apps_script_url: e.target.value
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={language === 'vi' ? 'https://script.google.com/macros/s/..../exec' : 'https://script.google.com/macros/s/..../exec'}
+                      required={config.document_ai?.enabled}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {language === 'vi' 
+                        ? 'URL của Google Apps Script riêng biệt để xử lý Document AI'
+                        : 'Separate Google Apps Script URL for Document AI processing'
+                      }
+                    </p>
+                  </div>
+
                   {/* Authentication Method */}
                   <div>
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <div className="flex items-center">
-                        <span className="text-green-600 mr-2">🔗</span>
+                        <span className="text-blue-600 mr-2">🔗</span>
                         <div>
-                          <p className="text-sm font-medium text-green-800">
-                            {language === 'vi' ? 'Xác thực tự động' : 'Automatic Authentication'}
+                          <p className="text-sm font-medium text-blue-800">
+                            {language === 'vi' ? 'Xác thực Google Apps Script' : 'Google Apps Script Authentication'}
                           </p>
-                          <p className="text-xs text-green-700 mt-1">
+                          <p className="text-xs text-blue-700 mt-1">
                             {language === 'vi' 
-                              ? 'Sử dụng Google Apps Script đã được cấu hình trong Google Drive Configuration'
-                              : 'Uses Google Apps Script configured in Google Drive Configuration'
+                              ? 'Apps Script sẽ sử dụng OAuth của Google để truy cập Document AI API'
+                              : 'Apps Script uses Google OAuth to access Document AI API'
                             }
                           </p>
                         </div>
