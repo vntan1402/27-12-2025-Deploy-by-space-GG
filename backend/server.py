@@ -10538,6 +10538,273 @@ This summary was generated using Google Document AI for crew management purposes
         logger.error(f"Passport analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Passport analysis failed: {str(e)}")
 
+@api_router.post("/crew/analyze-maritime-document")
+async def analyze_maritime_document_for_crew(
+    document_file: UploadFile = File(...),
+    document_type: str = Form(...),  # passport, seamans_book, certificate, medical, general_maritime
+    ship_name: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Analyze various maritime documents using Google Document AI and save to Google Drive
+    Supports: Passport, Seaman's Book, Certificates, Medical Certificates, etc.
+    """
+    try:
+        # Validate document type
+        valid_types = ["passport", "seamans_book", "certificate", "medical", "general_maritime"]
+        if document_type not in valid_types:
+            raise HTTPException(status_code=400, detail=f"Invalid document type. Must be one of: {valid_types}")
+        
+        logger.info(f"🛂 Starting maritime document analysis: {document_type} for ship: {ship_name}")
+        
+        # Read file content
+        file_content = await document_file.read()
+        filename = document_file.filename
+        
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+            
+        logger.info(f"📄 Processing {document_type} file: {filename} ({len(file_content)} bytes)")
+        
+        # Get company information
+        user_company = current_user.company
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+            
+        # Get AI configuration for Document AI
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration. Please check Project ID and Processor ID.")
+        
+        # Get Google Drive manager to call Apps Script for Document AI analysis
+        google_drive_manager = GoogleDriveManager()
+        
+        logger.info(f"🤖 Analyzing {document_type} with Google Document AI via Google Apps Script...")
+        
+        # Initialize empty analysis data
+        analysis_result = {
+            "document_type": document_type,
+            "confidence_score": 0.0,
+            "processing_method": "maritime_summary_to_ai"
+        }
+        
+        # Add default fields based on document type
+        if document_type == "passport":
+            analysis_result.update({
+                "full_name": "", "sex": "", "date_of_birth": "", "place_of_birth": "",
+                "passport_number": "", "nationality": "", "issue_date": "", "expiry_date": ""
+            })
+        elif document_type == "seamans_book":
+            analysis_result.update({
+                "full_name": "", "book_number": "", "date_of_birth": "", "place_of_birth": "",
+                "nationality": "", "rank": "", "issue_date": "", "expiry_date": "", "issuing_authority": ""
+            })
+        elif document_type == "certificate":
+            analysis_result.update({
+                "certificate_name": "", "certificate_number": "", "holder_name": "", "issue_date": "",
+                "expiry_date": "", "issuing_authority": "", "certificate_level": "", "endorsements": ""
+            })
+        elif document_type == "medical":
+            analysis_result.update({
+                "patient_name": "", "certificate_number": "", "examination_date": "", "expiry_date": "",
+                "medical_status": "", "restrictions": "", "examining_doctor": "", "medical_facility": ""
+            })
+        else:  # general_maritime
+            analysis_result.update({
+                "document_name": "", "document_number": "", "holder_name": "", "issue_date": "",
+                "expiry_date": "", "issuing_authority": "", "document_type": ""
+            })
+        
+        try:
+            # Call Google Apps Script to analyze maritime document with Document AI
+            action_mapping = {
+                "passport": "analyze_passport_document_ai",
+                "seamans_book": "analyze_seamans_book_document_ai",
+                "certificate": "analyze_certificate_document_ai", 
+                "medical": "analyze_medical_document_ai",
+                "general_maritime": "analyze_maritime_document_ai"
+            }
+            
+            apps_script_payload = {
+                "action": action_mapping.get(document_type, "analyze_maritime_document_ai"),
+                "file_content": base64.b64encode(file_content).decode('utf-8'),
+                "filename": filename,
+                "content_type": document_file.content_type or 'application/octet-stream',
+                "project_id": document_ai_config.get("project_id"),
+                "location": document_ai_config.get("location", "us"),
+                "processor_id": document_ai_config.get("processor_id")
+            }
+            
+            # Make request to Google Apps Script
+            analysis_response = await google_drive_manager.call_apps_script(
+                apps_script_payload, 
+                company_id=company_uuid
+            )
+            
+            if analysis_response.get("success"):
+                # Get summary from Document AI via Apps Script
+                document_summary = analysis_response.get("data", {}).get("summary", "")
+                
+                if document_summary:
+                    logger.info(f"✅ Document AI summary generated successfully for {document_type}")
+                    logger.info(f"   📝 Summary length: {len(document_summary)} characters")
+                    
+                    # Use System AI to extract fields from summary
+                    try:
+                        # Get AI configuration for field extraction
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        logger.info(f"🤖 Using {ai_provider} {ai_model} to extract {document_type} fields from summary...")
+                        
+                        # Extract document fields using system AI
+                        extracted_fields = await extract_maritime_document_fields_from_summary(
+                            document_summary, document_type, ai_provider, ai_model, use_emergent_key
+                        )
+                        
+                        if extracted_fields:
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "maritime_summary_to_ai_extraction"
+                            logger.info(f"✅ AI field extraction completed successfully for {document_type}")
+                            
+                            # Log key extracted fields based on document type
+                            if document_type == "passport":
+                                logger.info(f"   👤 Name: '{analysis_result.get('full_name')}'")
+                                logger.info(f"   📔 Passport: '{analysis_result.get('passport_number')}'")
+                            elif document_type == "seamans_book":
+                                logger.info(f"   👤 Name: '{analysis_result.get('full_name')}'")
+                                logger.info(f"   📋 Book#: '{analysis_result.get('book_number')}'")
+                                logger.info(f"   ⚓ Rank: '{analysis_result.get('rank')}'")
+                            elif document_type == "certificate":
+                                logger.info(f"   📜 Certificate: '{analysis_result.get('certificate_name')}'")
+                                logger.info(f"   👤 Holder: '{analysis_result.get('holder_name')}'")
+                            
+                        else:
+                            logger.warning(f"AI field extraction returned empty results for {document_type}")
+                        
+                    except Exception as ai_error:
+                        logger.error(f"AI field extraction failed for {document_type}: {ai_error}")
+                        analysis_result["processing_method"] = "summary_only"
+                        analysis_result["raw_summary"] = document_summary
+                else:
+                    logger.warning(f"Apps Script succeeded but returned empty summary for {document_type}")
+            else:
+                # Log error but don't use old cached data
+                logger.warning(f"Apps Script {document_type} analysis failed: {analysis_response.get('message', 'Unknown error')}")
+                logger.info("Will return empty analysis data")
+                
+        except Exception as apps_script_error:
+            logger.error(f"Google Apps Script call failed for {document_type}: {apps_script_error}")
+        
+        # Generate summary text
+        summary_content = f"""MARITIME DOCUMENT ANALYSIS SUMMARY
+Generated on: {datetime.now(timezone.utc).isoformat()}
+Ship: {ship_name}
+File: {filename}
+Document Type: {document_type.upper()}
+
+EXTRACTED INFORMATION:
+"""
+        # Add fields based on document type
+        for key, value in analysis_result.items():
+            if key not in ["processing_method", "document_type"]:
+                summary_content += f"- {key.replace('_', ' ').title()}: {value if value else 'N/A'}\n"
+        
+        summary_content += f"\nThis summary was generated using Google Document AI for maritime crew management purposes."
+        
+        # Determine folder structure based on document type
+        folder_mapping = {
+            "passport": "Crewlist",
+            "seamans_book": "Crewlist", 
+            "certificate": "Certificates",
+            "medical": "Medical",
+            "general_maritime": "Documents"
+        }
+        
+        document_folder = folder_mapping.get(document_type, "Documents")
+        
+        # Get Google Drive manager
+        google_drive_manager = GoogleDriveManager()
+        
+        try:
+            # 1. Save document file to appropriate folder
+            logger.info(f"📁 Saving {document_type} to Google Drive: {ship_name}/{document_folder}")
+            
+            document_upload_result = await google_drive_manager.upload_file_with_folder_creation(
+                file_content=file_content,
+                filename=filename,
+                folder_path=f"{ship_name}/{document_folder}",
+                content_type=document_file.content_type or 'application/octet-stream',
+                company_id=company_uuid
+            )
+            
+            # 2. Create summary filename
+            base_name = filename.rsplit('.', 1)[0]  # Remove extension
+            summary_filename = f"{base_name}_{document_type.upper()}_Summary.txt"
+            
+            # 3. Save summary to SUMMARY folder
+            logger.info(f"📋 Saving {document_type} summary to Google Drive: SUMMARY/{summary_filename}")
+            
+            summary_upload_result = await google_drive_manager.upload_file_with_folder_creation(
+                file_content=summary_content.encode('utf-8'),
+                filename=summary_filename,
+                folder_path="SUMMARY",
+                content_type='text/plain',
+                company_id=company_uuid
+            )
+            
+            logger.info(f"✅ {document_type.title()} analysis and file uploads completed successfully")
+            
+            return {
+                "success": True,
+                "analysis": analysis_result,
+                "files": {
+                    "document": {
+                        "filename": filename,
+                        "folder": f"{ship_name}/{document_folder}",
+                        "upload_result": document_upload_result
+                    },
+                    "summary": {
+                        "filename": summary_filename,
+                        "folder": "SUMMARY",
+                        "upload_result": summary_upload_result
+                    }
+                },
+                "message": f"{document_type.title()} analyzed successfully and files saved to Google Drive"
+            }
+            
+        except Exception as drive_error:
+            logger.error(f"Google Drive upload error for {document_type}: {drive_error}")
+            # Return analysis even if file upload fails
+            return {
+                "success": True,
+                "analysis": analysis_result,
+                "files": None,
+                "error": f"Analysis successful but file upload failed: {str(drive_error)}",
+                "message": f"{document_type.title()} analyzed but could not save to Google Drive"
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"{document_type.title()} analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"{document_type.title()} analysis failed: {str(e)}")
+
 # TEST PASSPORT ANALYSIS WITHOUT CACHE BUSTING
 @api_router.post("/crew/test-passport-no-cache")
 async def test_passport_analysis_no_cache(
