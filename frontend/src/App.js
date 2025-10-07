@@ -5689,8 +5689,8 @@ const HomePage = () => {
                           {/* Results Count */}
                           <div className="flex items-end">
                             <p className="text-sm text-gray-600">
-                              {language === 'vi' ? 'Hiển thị' : 'Showing'} {mockCrewData.length}/{mockCrewData.length} {language === 'vi' ? 'thuyền viên' : 'crew members'}
-                              <span className="ml-2 text-green-600">✓ {mockCrewData.filter(crew => crew.status === 'Sign on').length} {language === 'vi' ? 'đang làm việc' : 'working'}</span>
+                              {language === 'vi' ? 'Hiển thị' : 'Showing'} {filteredCrewData.length}/{mockCrewData.length} {language === 'vi' ? 'thuyền viên' : 'crew members'}
+                              <span className="ml-2 text-green-600">✓ {filteredCrewData.filter(crew => crew.status === 'Sign on').length} {language === 'vi' ? 'đang làm việc' : 'working'}</span>
                             </p>
                           </div>
                         </div>
