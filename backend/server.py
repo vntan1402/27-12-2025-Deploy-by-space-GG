@@ -10420,9 +10420,10 @@ async def analyze_passport_for_crew(
                         
                         logger.info(f"🤖 Using {ai_provider} {ai_model} to extract passport fields from summary...")
                         
-                        # Extract passport fields using system AI
-                        extracted_fields = await extract_passport_fields_from_summary(
-                            document_summary, ai_provider, ai_model, use_emergent_key
+                        # Extract document fields using system AI
+                        document_type = "passport"  # Default for this endpoint
+                        extracted_fields = await extract_maritime_document_fields_from_summary(
+                            document_summary, document_type, ai_provider, ai_model, use_emergent_key
                         )
                         
                         if extracted_fields:
