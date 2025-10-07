@@ -5499,16 +5499,97 @@ const HomePage = () => {
                               : `Manage crew members for ${selectedShip ? selectedShip.name : 'selected ship'}`}
                           </p>
                         </div>
-                        {/* Only show Add Crew button for manager and admin roles */}
-                        {user && (user.role === 'manager' || user.role === 'admin') && (
+                        {/* Action Buttons */}
+                        <div className="flex items-center space-x-3">
+                          {/* Refresh Button */}
                           <button 
-                            onClick={() => setShowAddCrewModal(true)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
+                            onClick={() => {
+                              // TODO: Implement refresh crew list functionality
+                              console.log('Refreshing crew list...');
+                            }}
+                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all flex items-center"
+                            title={language === 'vi' ? 'Làm mới' : 'Refresh'}
                           >
-                            <span className="mr-2">👤</span>
-                            {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
+                            <span className="mr-2">🔄</span>
+                            {language === 'vi' ? 'Làm mới' : 'Refresh'}
                           </button>
-                        )}
+                          
+                          {/* Only show Add Crew button for manager and admin roles */}
+                          {user && (user.role === 'manager' || user.role === 'admin') && (
+                            <button 
+                              onClick={() => setShowAddCrewModal(true)}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
+                            >
+                              <span className="mr-2">👤</span>
+                              {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Filters and Search */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          {/* Ship Sign On Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              {language === 'vi' ? 'Tàu đăng ký:' : 'Ship Sign On:'}
+                            </label>
+                            <select 
+                              value={crewFilters?.ship_sign_on || 'All'}
+                              onChange={(e) => setCrewFilters({...crewFilters, ship_sign_on: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            >
+                              <option value="All">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              {ships.map(ship => (
+                                <option key={ship.id} value={ship.name}>{ship.name}</option>
+                              ))}
+                              <option value="-">-</option>
+                            </select>
+                          </div>
+
+                          {/* Status Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              {language === 'vi' ? 'Trạng thái:' : 'Status:'}
+                            </label>
+                            <select 
+                              value={crewFilters?.status || 'All'}
+                              onChange={(e) => setCrewFilters({...crewFilters, status: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            >
+                              <option value="All">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              <option value="Sign on">{language === 'vi' ? 'Đang làm việc' : 'Sign on'}</option>
+                              <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
+                              <option value="Leave">{language === 'vi' ? 'Nghỉ phép' : 'Leave'}</option>
+                            </select>
+                          </div>
+
+                          {/* Search Field */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                placeholder={language === 'vi' ? 'Tìm theo tên thuyền viên...' : 'Search by crew name...'}
+                                value={crewFilters?.search || ''}
+                                onChange={(e) => setCrewFilters({...crewFilters, search: e.target.value})}
+                                className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                              />
+                              <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                            </div>
+                          </div>
+
+                          {/* Results Count */}
+                          <div className="flex items-end">
+                            <p className="text-sm text-gray-600">
+                              {language === 'vi' ? 'Hiển thị' : 'Showing'} {mockCrewData.length}/{mockCrewData.length} {language === 'vi' ? 'thuyền viên' : 'crew members'}
+                              <span className="ml-2 text-green-600">✓ {mockCrewData.filter(crew => crew.status === 'Sign on').length} {language === 'vi' ? 'đang làm việc' : 'working'}</span>
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Crew List Table */}
