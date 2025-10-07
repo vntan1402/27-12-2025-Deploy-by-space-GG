@@ -5790,7 +5790,7 @@ const HomePage = () => {
                                   </tr>
                                 ))
                               ) : (
-                                {/* Empty State */}
+                                // Empty State
                                 <tr>
                                   <td colSpan="12" className="px-6 py-12 text-center">
                                     <div className="text-gray-400 text-lg mb-2">👥</div>
