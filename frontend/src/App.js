@@ -862,23 +862,13 @@ const HomePage = () => {
     }
   ];
 
-  // Filtered Crew Data based on current filters
-  const filteredCrewData = mockCrewData.filter(crew => {
-    // Ship Sign On filter
-    if (crewFilters.ship_sign_on !== 'All' && crew.ship_sign_on !== crewFilters.ship_sign_on) {
-      return false;
-    }
-
-    // Status filter  
-    if (crewFilters.status !== 'All' && crew.status !== crewFilters.status) {
-      return false;
-    }
-
-    // Search filter
+  // Filtered Crew Data based on current filters (now uses real data from backend)
+  const filteredCrewData = crewList.filter(crew => {
+    // Search filter (local filtering)
     if (crewFilters.search && crewFilters.search.trim() !== '') {
       const searchTerm = crewFilters.search.toLowerCase();
       return crew.full_name.toLowerCase().includes(searchTerm) ||
-             crew.rank.toLowerCase().includes(searchTerm) ||
+             (crew.rank && crew.rank.toLowerCase().includes(searchTerm)) ||
              crew.passport.toLowerCase().includes(searchTerm);
     }
 
