@@ -10132,7 +10132,7 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
             api_key = get_emergent_llm_key()
             
             if not api_key:
-                logger.error("Failed to get Emergent LLM key for passport field extraction")
+                logger.error(f"Failed to get Emergent LLM key for {document_type} field extraction")
                 return {}
             
             # Initialize Google AI client
@@ -10142,51 +10142,39 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
             response = google_ai.generate_content(
                 model=ai_model,
                 prompt=extraction_prompt,
-                max_tokens=500,
+                max_tokens=800,  # Increased for more complex documents
                 temperature=0.1  # Low temperature for consistent extraction
             )
             
             if response and response.get('content'):
                 content = response['content'].strip()
-                logger.info(f"🤖 AI extraction response: {content}")
+                logger.info(f"🤖 {document_type.upper()} extraction response: {content[:200]}...")
                 
                 # Try to parse JSON response
-                import json
                 try:
                     # Clean the response - remove any markdown formatting
                     clean_content = content.replace('```json', '').replace('```', '').strip()
                     extracted_data = json.loads(clean_content)
                     
-                    # Validate the extracted data structure
-                    required_fields = ["full_name", "sex", "date_of_birth", "place_of_birth", 
-                                     "passport_number", "nationality", "issue_date", "expiry_date", "confidence_score"]
+                    # Validate based on document type
+                    validated_data = validate_maritime_document_fields(extracted_data, document_type)
                     
-                    validated_data = {}
-                    for field in required_fields:
-                        validated_data[field] = extracted_data.get(field, "")
-                    
-                    # Ensure confidence_score is a float
-                    try:
-                        validated_data["confidence_score"] = float(validated_data.get("confidence_score", 0.0))
-                    except:
-                        validated_data["confidence_score"] = 0.0
-                    
-                    logger.info("✅ AI field extraction successful")
+                    logger.info(f"✅ {document_type.upper()} AI field extraction successful")
                     return validated_data
                     
                 except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse AI extraction JSON: {e}")
+                    logger.error(f"Failed to parse {document_type} extraction JSON: {e}")
                     logger.error(f"Raw response: {content}")
                     return {}
             else:
-                logger.error("No content in AI extraction response")
+                logger.error(f"No content in {document_type} AI extraction response")
                 return {}
         else:
             logger.warning("AI field extraction not supported for non-Emergent configurations")
             return {}
             
     except Exception as e:
-        logger.error(f"AI field extraction error: {e}")
+        logger.error(f"{document_type.upper()} AI field extraction error: {e}")
         return {}
 
 @api_router.post("/crew/analyze-passport")
