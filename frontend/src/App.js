@@ -6938,7 +6938,7 @@ const HomePage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-gray-800">
                   {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
                 </h3>
@@ -6956,127 +6956,145 @@ const HomePage = () => {
                   ×
                 </button>
               </div>
-              
-              {/* Method Selection Tabs */}
-              <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setAddCrewMethod('manual')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    addCrewMethod === 'manual'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                >
-                  <span className="mr-2">✏️</span>
-                  {language === 'vi' ? 'Nhập thủ công' : 'Manual Entry'}
-                </button>
-                <button
-                  onClick={() => setAddCrewMethod('passport')}
-                  className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    addCrewMethod === 'passport'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                >
-                  <span className="mr-2">📄</span>
-                  {language === 'vi' ? 'Từ hộ chiếu' : 'From Passport'}
-                </button>
-              </div>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6">
               
-              {/* Passport Upload Section */}
-              {addCrewMethod === 'passport' && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="text-lg font-semibold text-blue-800 mb-3">
-                    <span className="mr-2">📄</span>
-                    {language === 'vi' ? 'Tải lên hộ chiếu' : 'Upload Passport'}
-                  </h4>
-                  
-                  {!passportFile ? (
-                    <div className="space-y-3">
-                      <p className="text-sm text-blue-700">
-                        {language === 'vi' 
-                          ? 'Tải lên file hộ chiếu để tự động phân tích thông tin thuyền viên'
-                          : 'Upload passport file to automatically analyze crew information'
+              {/* Section 1: From Passport (AI Analysis) - TOP */}
+              <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
+                <h4 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+                  <span className="mr-2">📄</span>
+                  {language === 'vi' ? 'Phân tích từ hộ chiếu (AI)' : 'From Passport (AI Analysis)'}
+                </h4>
+                
+                {!passportFile ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-blue-700">
+                      {language === 'vi' 
+                        ? 'Tải lên file hộ chiếu để tự động phân tích và điền thông tin thuyền viên'
+                        : 'Upload passport file to automatically analyze and fill crew information'
+                      }
+                    </p>
+                    
+                    {/* Drag & Drop Area */}
+                    <div 
+                      className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 cursor-pointer transition-colors"
+                      onClick={() => document.getElementById('passport-upload').click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('border-blue-400', 'bg-blue-100');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
+                        const file = e.dataTransfer.files[0];
+                        if (file) {
+                          handlePassportUpload(file);
                         }
-                      </p>
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="file"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              handlePassportUpload(file);
-                            }
-                          }}
-                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                          disabled={isAnalyzingPassport}
-                        />
+                      }}
+                    >
+                      <div className="space-y-2">
+                        <div className="text-blue-500 text-3xl">📁</div>
+                        <p className="text-blue-700 font-medium">
+                          {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
+                        </p>
+                        <p className="text-blue-600 text-sm">
+                          {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
+                        </p>
                       </div>
-                      
-                      {isAnalyzingPassport && (
-                        <div className="flex items-center space-x-2 text-blue-600">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                          <span className="text-sm">
-                            {language === 'vi' ? 'Đang phân tích hộ chiếu...' : 'Analyzing passport...'}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {passportError && (
-                        <div className="text-red-600 text-sm bg-red-50 p-2 rounded">
-                          {passportError}
-                        </div>
-                      )}
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 text-green-600">
-                        <span>✅</span>
-                        <span className="text-sm font-medium">
-                          {language === 'vi' ? 'Hộ chiếu đã được tải lên' : 'Passport uploaded successfully'}
+                    
+                    <input
+                      id="passport-upload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          handlePassportUpload(file);
+                        }
+                      }}
+                      className="hidden"
+                      disabled={isAnalyzingPassport}
+                    />
+                    
+                    {isAnalyzingPassport && (
+                      <div className="flex items-center justify-center space-x-2 text-blue-600 py-4">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                        <span className="font-medium">
+                          {language === 'vi' ? 'Đang phân tích hộ chiếu...' : 'Analyzing passport...'}
                         </span>
                       </div>
-                      <div className="bg-white p-3 rounded border">
-                        <p className="text-sm text-gray-600">
-                          <strong>{language === 'vi' ? 'File:' : 'File:'}</strong> {passportFile.name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <strong>{language === 'vi' ? 'Kích thước:' : 'Size:'}</strong> {(passportFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                    )}
+                    
+                    {passportError && (
+                      <div className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
+                        <div className="flex items-center space-x-2">
+                          <span>⚠️</span>
+                          <span>{passportError}</span>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPassportFile(null);
-                          setPassportAnalysis(null);
-                          setPassportError('');
-                          // Reset form data
-                          setNewCrewData({
-                            full_name: '',
-                            sex: 'M',
-                            date_of_birth: '',
-                            place_of_birth: '',
-                            passport: '',
-                            rank: '',
-                            seamen_book: '',
-                            status: 'Sign on',
-                            ship_sign_on: '-',
-                            date_sign_on: '',
-                            date_sign_off: ''
-                          });
-                        }}
-                        className="text-sm text-red-600 hover:text-red-800"
-                      >
-                        {language === 'vi' ? 'Xóa và tải lại' : 'Remove and re-upload'}
-                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 text-green-700">
+                      <span>✅</span>
+                      <span className="font-medium">
+                        {language === 'vi' ? 'Hộ chiếu đã được phân tích thành công' : 'Passport analyzed successfully'}
+                      </span>
                     </div>
-                  )}
-                </div>
-              )}
+                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <p><strong>{language === 'vi' ? 'File:' : 'File:'}</strong> {passportFile.name}</p>
+                        <p><strong>{language === 'vi' ? 'Kích thước:' : 'Size:'}</strong> {(passportFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        {passportAnalysis && (
+                          <>
+                            <p><strong>{language === 'vi' ? 'Tên:' : 'Name:'}</strong> {passportAnalysis.full_name || 'N/A'}</p>
+                            <p><strong>{language === 'vi' ? 'Hộ chiếu:' : 'Passport:'}</strong> {passportAnalysis.passport_number || 'N/A'}</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPassportFile(null);
+                        setPassportAnalysis(null);
+                        setPassportError('');
+                        // Reset form data
+                        setNewCrewData({
+                          full_name: '',
+                          sex: 'M',
+                          date_of_birth: '',
+                          place_of_birth: '',
+                          passport: '',
+                          rank: '',
+                          seamen_book: '',
+                          status: 'Sign on',
+                          ship_sign_on: '-',
+                          date_sign_on: '',
+                          date_sign_off: ''
+                        });
+                      }}
+                      className="text-sm text-red-600 hover:text-red-800 flex items-center space-x-1"
+                    >
+                      <span>🗑️</span>
+                      <span>{language === 'vi' ? 'Xóa và tải lại' : 'Remove and re-upload'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Manual Entry - BOTTOM */}
+              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="mr-2">✏️</span>
+                  {language === 'vi' ? 'Thông tin thuyền viên (Nhập thủ công)' : 'Crew Information (Manual Entry)'}
+                </h4>
 
               <form onSubmit={(e) => {
                 e.preventDefault();
