@@ -10153,17 +10153,18 @@ async def analyze_passport_for_crew(
         
         logger.info("🤖 Analyzing passport with Google Document AI via Google Apps Script...")
         
-        # Initialize mock_analysis with default fallback data
-        mock_analysis = {
-            "full_name": "VŨ NGỌC TÂN",
-            "sex": "M", 
-            "date_of_birth": "14/02/1983",
-            "place_of_birth": "HẢI PHÒNG",
-            "passport_number": "C1571189",
-            "nationality": "VIETNAMESE",
-            "issue_date": "11/04/2016",
-            "expiry_date": "11/04/2026",
-            "confidence_score": 0.85
+        # Initialize empty analysis data (no more hardcoded old passport data)
+        analysis_result = {
+            "full_name": "",
+            "sex": "",
+            "date_of_birth": "",
+            "place_of_birth": "",
+            "passport_number": "",
+            "nationality": "",
+            "issue_date": "",
+            "expiry_date": "",
+            "confidence_score": 0.0,
+            "processing_method": "fresh_analysis"
         }
         
         try:
