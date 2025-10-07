@@ -7123,18 +7123,8 @@ const HomePage = () => {
                   return;
                 }
                 
-                // Process dates using existing UTC conversion logic
-                const processedData = {
-                  ...newCrewData,
-                  date_of_birth: convertDateInputToUTC(newCrewData.date_of_birth),
-                  date_sign_on: newCrewData.date_sign_on ? convertDateInputToUTC(newCrewData.date_sign_on) : null,
-                  date_sign_off: newCrewData.date_sign_off ? convertDateInputToUTC(newCrewData.date_sign_off) : null
-                };
-                
-                // TODO: Implement crew submission logic
-                console.log('Crew data to submit:', processedData);
-                toast.success(language === 'vi' ? 'Thuyền viên đã được thêm!' : 'Crew member added successfully!');
-                setShowAddCrewModal(false);
+                // Submit crew data to backend
+                handleAddCrewSubmit();
                 
                 // Reset form to default values
                 setNewCrewData({
