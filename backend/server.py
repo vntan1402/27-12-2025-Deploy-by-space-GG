@@ -53,6 +53,15 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def get_emergent_llm_key():
+    """Get Emergent LLM key for AI integrations"""
+    try:
+        from emergentintegrations import get_universal_key
+        return get_universal_key()
+    except Exception as e:
+        logger.error(f"Failed to get Emergent LLM key: {e}")
+        return None
+
 # Import the enhanced OCR processor
 try:
     from ocr_processor import EnhancedOCRProcessor
