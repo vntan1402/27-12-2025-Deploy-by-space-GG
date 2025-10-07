@@ -10614,7 +10614,7 @@ async def delete_crew_member(
             raise HTTPException(status_code=404, detail="Crew member not found")
         
         # Delete from database
-        await mongo_db.delete_one("crew_members", {"id": crew_id})
+        await mongo_db.delete("crew_members", {"id": crew_id})
         
         # Log audit trail
         await log_audit_trail(
