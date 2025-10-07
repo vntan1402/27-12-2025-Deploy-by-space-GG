@@ -10396,7 +10396,7 @@ async def create_crew_member(
 ):
     """Create a new crew member"""
     try:
-        company_uuid = resolve_company_id(current_user)
+        company_uuid = await resolve_company_id(current_user)
         
         # Check for duplicate passport
         existing_crew = await mongo_db.find_one("crew_members", {
@@ -10472,7 +10472,7 @@ async def get_crew_members(
 ):
     """Get all crew members for the company with optional filters"""
     try:
-        company_uuid = resolve_company_id(current_user)
+        company_uuid = await resolve_company_id(current_user)
         
         # Build query filter
         query_filter = {"company_id": company_uuid}
@@ -10499,7 +10499,7 @@ async def get_crew_member(
 ):
     """Get a specific crew member"""
     try:
-        company_uuid = resolve_company_id(current_user)
+        company_uuid = await resolve_company_id(current_user)
         
         crew = await mongo_db.find_one("crew_members", {
             "id": crew_id,
@@ -10525,7 +10525,7 @@ async def update_crew_member(
 ):
     """Update a crew member"""
     try:
-        company_uuid = resolve_company_id(current_user)
+        company_uuid = await resolve_company_id(current_user)
         
         # Check if crew member exists
         existing_crew = await mongo_db.find_one("crew_members", {
@@ -10602,7 +10602,7 @@ async def delete_crew_member(
 ):
     """Delete a crew member"""
     try:
-        company_uuid = resolve_company_id(current_user)
+        company_uuid = await resolve_company_id(current_user)
         
         # Check if crew member exists
         crew = await mongo_db.find_one("crew_members", {
