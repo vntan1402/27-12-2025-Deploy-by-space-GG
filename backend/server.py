@@ -10211,7 +10211,6 @@ async def analyze_passport_for_crew(
 Generated on: {datetime.now(timezone.utc).isoformat()}
 Ship: {ship_name}
 File: {filename}
-Cache Key: {cache_key}
 
 EXTRACTED INFORMATION:
 - Full Name: {analysis_result.get('full_name', 'N/A')}
