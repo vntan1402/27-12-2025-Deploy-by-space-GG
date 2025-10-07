@@ -757,7 +757,6 @@ const HomePage = () => {
   
   // Add Crew Modal States
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
-  const [addCrewMethod, setAddCrewMethod] = useState('manual'); // 'manual' or 'passport'
   const [newCrewData, setNewCrewData] = useState({
     full_name: '',           // Required
     sex: 'M',               // Required 
