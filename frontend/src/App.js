@@ -3310,10 +3310,37 @@ const HomePage = () => {
       
       if (response.data.success) {
         const analysis = response.data.analysis;
-        console.log('✅ Fresh passport analysis received:', analysis);
+        console.log('🔍 DEBUGGING AUTO-FILL:');
+        console.log('   Full response:', response.data);
+        console.log('   Analysis object:', analysis);
+        console.log('   Analysis keys:', Object.keys(analysis || {}));
+        
+        if (!analysis || Object.keys(analysis).length === 0) {
+          console.error('❌ Analysis object is empty or null!');
+          toast.error(language === 'vi' 
+            ? 'Phân tích thành công nhưng không trích xuất được thông tin từ hộ chiếu'
+            : 'Analysis successful but no information extracted from passport'
+          );
+          return;
+        }
+        
+        // Log individual field extractions
+        console.log('   📄 Extracting fields:');
+        console.log('     full_name:', analysis.full_name);
+        console.log('     sex:', analysis.sex); 
+        console.log('     date_of_birth:', analysis.date_of_birth);
+        console.log('     place_of_birth:', analysis.place_of_birth);
+        console.log('     passport_number:', analysis.passport_number);
+        
+        // Convert date if needed
+        let convertedDate = '';
+        if (analysis.date_of_birth) {
+          convertedDate = convertPassportDateToInputFormat(analysis.date_of_birth);
+          console.log('     date converted:', analysis.date_of_birth, '→', convertedDate);
+        }
         
         // Reset and populate crew data with NEW passport analysis
-        setNewCrewData({
+        const newData = {
           // Keep non-passport fields but reset all passport-related fields
           rank: newCrewData.rank,
           seamen_book: newCrewData.seamen_book,
@@ -3324,10 +3351,13 @@ const HomePage = () => {
           // Fill with NEW analysis data
           full_name: analysis.full_name || '',
           sex: analysis.sex || 'M',
-          date_of_birth: analysis.date_of_birth ? convertPassportDateToInputFormat(analysis.date_of_birth) : '',
+          date_of_birth: convertedDate,
           place_of_birth: analysis.place_of_birth || '',
           passport: analysis.passport_number || ''
-        });
+        };
+        
+        console.log('   📋 Setting new crew data:', newData);
+        setNewCrewData(newData);
         
         setPassportAnalysis(analysis);
         setPassportFile(file);
