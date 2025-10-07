@@ -7513,7 +7513,7 @@ const HomePage = () => {
 
 // Account Control Page Component  
 const AccountControlPage = () => {
-  const { user, language } = useAuth();
+  const { user, language, token } = useAuth();
   const [users, setUsers] = useState([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
