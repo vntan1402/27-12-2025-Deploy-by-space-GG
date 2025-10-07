@@ -10378,7 +10378,7 @@ async def log_audit_trail(
             "user_agent": None   # TODO: Extract from request
         }
         
-        await mongo_db.insert_one("audit_logs", audit_log)
+        await mongo_db.create("audit_logs", audit_log)
         logger.info(f"Audit log created: {action} on {resource_type} {resource_id}")
         
     except Exception as e:
