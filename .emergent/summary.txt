@@ -1,0 +1,92 @@
+<analysis>
+The AI engineer's work spanned critical bug fixes and significant feature development for the Ship Management System. Initial efforts resolved a ship deletion bug and improved AI document extraction reliability. Major UI/UX enhancements included dynamic sidebar titles, conditional button visibility, a Company Crew List table, and the implementation of an Add Crew modal. A core feature, Add Crew From Passport, leveraged Google Document AI via a new, standalone Google Apps Script. This integration required extensive frontend configuration, backend API development, and multiple debugging cycles to address Apps Script syntax errors, frontend token issues, date auto-fill discrepancies, caching problems in Document AI, and persistence of AI configuration settings. The current challenge revolves around the Document AI service returning empty analysis results despite successful API calls.
+</analysis>
+
+<product_requirements>
+The Ship Management System manages maritime certificates and crew records. Key product requirements for this trajectory included:
+- Implement dynamic page titles based on sidebar navigation.
+- Hide Ship Particular and Edit Ship buttons when Crew Record is selected.
+- Create a Company Crew List Table displaying comprehensive crew data (Name, Sex, Rank, DOB, POB, Passport No., Seamen Book, Status, Ship Sign On, Date Sign On, Date Sign Off) with corrected Vietnamese labels.
+- Rename Add Crew Member button to Add Crew.
+- Implement an Add Crew Modal for manual input or AI-powered passport analysis.
+- Add Crew From Passport functionality: upload passport, use Google Document AI for analysis, save passport file to  and a summary to  in Google Drive.
+- Configure Google Document AI (Project ID, Location, Processor ID) in System Settings using a separate Google Apps Script for API calls.
+- Enhance the Company Crew List with filters (Ship Sign On, Status), a Refresh button, and a Search field, adopting a layout similar to the Certificate List.
+</product_requirements>
+
+<key_technical_concepts>
+-   **Full-stack Monorepo:** React frontend, FastAPI backend, MongoDB for data persistence.
+-   **AI Integration:** Google Gemini for general AI, Google Document AI for structured document (passport) analysis.
+-   **Google Apps Script:** Used as an intermediary for secure, serverless calls to Google Document AI.
+-   **Asynchronous Operations:** React state management and FastAPI for non-blocking UI and API calls.
+-   **Authentication/Authorization:** Role-based access control.
+</key_technical_concepts>
+
+<code_architecture>
+
+
+-   ****
+    -   **Summary:** FastAPI backend, containing API endpoints for various application functionalities, including AI configuration, ship/certificate management, and crew management.
+    -   **Changes:**
+        -   Fixed ship deletion  call.
+        -   Modified AI document extraction confidence logic.
+        -   Updated  Pydantic models to include  (Project ID, Location, Processor ID) and .
+        -   Implemented new  endpoint for Document AI integration, handling file uploads and calling Google Apps Script.
+        -   Added  for Document AI.
+        -   Created , , , , ,  Pydantic models.
+        -   Implemented , , ,  for CRUD operations on crew members.
+        -   Added  function for auditing crew actions.
+        -   Imported  and  to support new functionalities.
+-   ****
+    -   **Summary:** Manages interactions with Google Drive via Apps Script.
+    -   **Changes:** Modified to retrieve the Document AI Apps Script URL from the AI configuration and to make calls to this new standalone script for Document AI-related tasks. Added  function.
+-   ****
+    -   **Summary:** The main React component for the entire frontend, handling UI, state management, and API calls.
+    -   **Changes:**
+        -   Implemented  for dynamic page titles.
+        -   Conditional rendering for Crew Record category (hide Ship Particular, Edit Ship buttons).
+        -   Added mock Company Crew List Table structure, corrected Vietnamese labels, and renamed Add Crew Member to Add Crew.
+        -   Implemented Add Crew Modal with required/optional fields and a tabbed interface (later changed to two sections).
+        -   Added UI for Document AI configuration (Project ID, Location, Processor ID, **Document AI Apps Script URL**) in System Settings, removed  field.
+        -   Fixed  not receiving  prop.
+        -   Implemented , ,  states and logic for the crew list.
+        -   Updated crew list UI for horizontal filters, search field, refresh button, and enhanced table header styling (font-bold, text-sm, initial caps).
+        -   Refactored Add Crew Modal from tabs to two distinct sections (From Passport on top, Manual Entry below).
+        -   Removed  state.
+        -   Updated  to reset form data and analysis state to prevent caching issues.
+        -   Integrated , , ,  functions with backend APIs.
+        -   Updated  to handle .
+        -   Created  for HTML date input  formatting.
+        -   Added  at the top of the file to fix  errors.
+        -   Added debugging logs for  and API responses.
+-   **, **
+    -   **Summary:** Initial versions of the standalone Google Apps Script and its manifest for Document AI integration.
+    -   **Changes:** Created, but  had syntax errors.
+-   **, **
+    -   **Summary:** Intermediate versions of the Apps Script aimed at resolving syntax errors.
+    -   **Changes:** Created to simplify syntax.
+-   **, **
+    -   **Summary:** Later versions of the Apps Script incorporating cache busting and full  logic.
+    -   **Changes:** Created to include cache busting logic (timestamp, unique headers), implement , and extract passport information.
+</code_architecture>
+
+<pending_tasks>
+- Investigate why Google Document AI returns empty analysis results for passport files, despite successful API calls and backend integration. This involves re-examining the  and potentially the Document AI processor configuration itself.
+- Thoroughly test the Add Crew From Passport functionality end-to-end once the empty analysis result is resolved.
+</pending_tasks>
+
+<current_work>
+Immediately prior to this summary, the AI engineer was debugging a critical issue with the Add Crew From Passport feature. Although the system reports Passport analysis successful! Information has been auto-filled, the form fields remain empty.
+
+Previous debug steps identified and fixed:
+1.  **token is not defined errors on frontend:** Initially in , later in . This was resolved by ensuring the  was correctly passed as a prop and retrieved from the  hook, and by adding  to .
+2.  **Date of Birth auto-fill issue:** The  function was not handling  format from Document AI. This was addressed by updating  and creating a new  specifically for HTML date inputs expecting .
+3.  **Document AI caching issue:** The system was auto-filling with data from previously analyzed passports. This was addressed by implementing cache-busting mechanisms in the Google Apps Script () and ensuring the backend sends unique identifiers with each request.
+4.  **Google Document AI settings not saving:** This was fixed by ensuring API calls to  from the frontend included authorization headers and correctly handled the response structure.
+
+The *current* problem (as per Chat Message 548-558) is that while the backend API calls to Document AI are successful, and  object is being returned, **all fields within this  object are empty**. This suggests a problem within the Google Apps Script's  function or the Document AI processor's ability to extract entities from the uploaded passport.
+</current_work>
+
+<optional_next_step>
+Re-evaluate the Google Apps Script () to debug why Document AI's  object is empty.
+</optional_next_step>

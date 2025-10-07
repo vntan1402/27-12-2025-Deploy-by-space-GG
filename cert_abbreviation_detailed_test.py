@@ -9,7 +9,7 @@ import json
 import os
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maritime-docs.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipmanage-1.preview.emergentagent.com') + '/api'
 
 def authenticate():
     """Authenticate and get token"""
