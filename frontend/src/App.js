@@ -7467,9 +7467,16 @@ const HomePage = () => {
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                      disabled={isSubmittingCrew}
+                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all flex items-center"
                     >
-                      {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew Member'}
+                      {isSubmittingCrew && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      )}
+                      {isSubmittingCrew 
+                        ? (language === 'vi' ? 'Đang thêm...' : 'Adding...')
+                        : (language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew Member')
+                      }
                     </button>
                   </div>
                 </form>
