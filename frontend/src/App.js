@@ -5605,6 +5605,17 @@ const HomePage = () => {
                         </div>
                         {/* Action Buttons */}
                         <div className="flex items-center space-x-3">
+                          {/* Only show Add Crew button for manager and admin roles */}
+                          {user && (user.role === 'manager' || user.role === 'admin') && (
+                            <button 
+                              onClick={() => setShowAddCrewModal(true)}
+                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
+                            >
+                              <span className="mr-2">👤</span>
+                              {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
+                            </button>
+                          )}
+                          
                           {/* Refresh Button */}
                           <button 
                             onClick={() => {
@@ -5617,17 +5628,6 @@ const HomePage = () => {
                             <span className="mr-2">🔄</span>
                             {language === 'vi' ? 'Làm mới' : 'Refresh'}
                           </button>
-                          
-                          {/* Only show Add Crew button for manager and admin roles */}
-                          {user && (user.role === 'manager' || user.role === 'admin') && (
-                            <button 
-                              onClick={() => setShowAddCrewModal(true)}
-                              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
-                            >
-                              <span className="mr-2">👤</span>
-                              {language === 'vi' ? 'Thêm thuyền viên' : 'Add Crew'}
-                            </button>
-                          )}
                         </div>
                       </div>
 
