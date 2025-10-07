@@ -545,24 +545,24 @@ class GoogleDriveManager:
             # Get the Apps Script configuration from database
             from server import mongo_db  # Import here to avoid circular import
             
-            # Look up company Google Drive configuration
-            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+            # Get Document AI Apps Script URL from AI configuration (system-wide)
+            ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
             
-            if not gdrive_config_doc:
-                logger.error(f"No Google Drive configuration found for company: {company_id}")
+            if not ai_config_doc:
+                logger.error("No AI configuration found")
                 return {
                     'success': False,
-                    'message': 'Google Drive configuration not found for your company'
+                    'message': 'AI configuration not found. Please configure Google Document AI in System Settings.'
                 }
             
-            # Check if Document AI Apps Script URL is configured
-            document_ai_script_url = gdrive_config_doc.get("document_ai_script_url") or gdrive_config_doc.get("web_app_url")
+            document_ai_config = ai_config_doc.get("document_ai", {})
+            document_ai_script_url = document_ai_config.get("apps_script_url")
             
             if not document_ai_script_url:
-                logger.error(f"Document AI Apps Script URL not configured for company: {company_id}")
+                logger.error("Document AI Apps Script URL not configured")
                 return {
                     'success': False,
-                    'message': 'Document AI Apps Script URL not configured. Please configure in System Settings.'
+                    'message': 'Document AI Apps Script URL not configured. Please add the Apps Script URL in AI Configuration.'
                 }
             
             logger.info(f"📡 Making request to Apps Script: {document_ai_script_url}")
