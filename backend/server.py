@@ -10153,6 +10153,14 @@ async def analyze_passport_for_crew(
         
         logger.info("🤖 Analyzing passport with Google Document AI via Google Apps Script...")
         
+        # Generate unique identifiers for cache busting (moved outside try block)
+        import time
+        timestamp = int(time.time() * 1000)
+        unique_id = str(uuid.uuid4())[:8]
+        cache_key = f"{timestamp}_{unique_id}_{filename.replace('.', '_')}"
+        
+        logger.info(f"🔄 CACHE BUSTING - Generating unique request ID: {cache_key}")
+        
         # Initialize empty analysis data (no more hardcoded old passport data)
         analysis_result = {
             "full_name": "",
@@ -10168,13 +10176,6 @@ async def analyze_passport_for_crew(
         }
         
         try:
-            # Generate unique identifiers for cache busting
-            import time
-            timestamp = int(time.time() * 1000)
-            unique_id = str(uuid.uuid4())[:8]
-            cache_key = f"{timestamp}_{unique_id}_{filename.replace('.', '_')}"
-            
-            logger.info(f"🔄 CACHE BUSTING - Generating unique request ID: {cache_key}")
             
             # Call Google Apps Script to analyze passport with Document AI
             apps_script_payload = {
