@@ -7840,15 +7840,41 @@ const AccountControlPage = () => {
 
   const fetchAIConfig = async () => {
     try {
-      const response = await axios.get(`${API}/ai-config`);
+      const response = await axios.get(`${API}/ai-config`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Fetched AI config:', response.data);
       setAiConfig({
-        provider: response.data.provider || 'openai',
-        model: response.data.model || 'gpt-4o', 
-        api_key: response.data.api_key || ''
+        provider: response.data.provider || 'google',
+        model: response.data.model || 'gemini-2.0-flash',
+        api_key: response.data.api_key || '',
+        use_emergent_key: response.data.use_emergent_key || true,
+        document_ai: response.data.document_ai || {
+          enabled: false,
+          project_id: '',
+          location: 'us',
+          processor_id: '',
+          apps_script_url: ''
+        }
       });
     } catch (error) {
       console.error('Failed to fetch AI config:', error);
-      setAiConfig({ provider: 'openai', model: 'gpt-4o', api_key: '' });
+      setAiConfig({ 
+        provider: 'google', 
+        model: 'gemini-2.0-flash', 
+        api_key: '',
+        use_emergent_key: true,
+        document_ai: {
+          enabled: false,
+          project_id: '',
+          location: 'us',
+          processor_id: '',
+          apps_script_url: ''
+        }
+      });
     }
   };
 
