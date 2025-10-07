@@ -599,6 +599,67 @@ class GoogleDriveManager:
                 'message': f"Unexpected error: {str(e)}",
                 'error': 'unexpected_error'
             }
+    
+    async def upload_file_with_folder_creation(self, file_content: bytes, filename: str, folder_path: str, content_type: str, company_id: str) -> Dict[str, Any]:
+        """
+        Upload file to Google Drive with folder creation using Apps Script
+        
+        Args:
+            file_content: File content as bytes
+            filename: Name of the file
+            folder_path: Path like "SHIP_NAME/Crewlist" or "SUMMARY"
+            content_type: MIME type of the file
+            company_id: Company UUID
+            
+        Returns:
+            Dictionary containing upload result
+        """
+        try:
+            import base64
+            
+            # Encode file content to base64
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Parse folder path
+            path_parts = folder_path.split('/')
+            if len(path_parts) == 2:
+                # Ship-specific folder like "BROTHER 36/Crewlist"
+                ship_name = path_parts[0]
+                category = path_parts[1]
+                parent_category = None
+            elif len(path_parts) == 1:
+                # Root folder like "SUMMARY"
+                ship_name = None
+                category = path_parts[0]
+                parent_category = None
+            else:
+                # Complex path - use last part as category
+                ship_name = path_parts[0] if len(path_parts) > 1 else None
+                category = path_parts[-1]
+                parent_category = path_parts[-2] if len(path_parts) > 2 else None
+            
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "ship_name": ship_name,
+                "parent_category": parent_category,
+                "category": category,
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
+            }
+            
+            # Call Apps Script
+            result = await self.call_apps_script(payload, company_id)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error in upload_file_with_folder_creation: {str(e)}")
+            return {
+                'success': False,
+                'message': f"File upload failed: {str(e)}",
+                'error': 'upload_failed'
+            }
 
 # Global instance
 gdrive_manager = GoogleDriveManager()
