@@ -5807,7 +5807,7 @@ const HomePage = () => {
                           {/* Results Count */}
                           <div className="flex items-center ml-auto">
                             <p className="text-sm text-gray-600 whitespace-nowrap">
-                              {language === 'vi' ? 'Hiển thị' : 'Showing'} <span className="font-semibold">{filteredCrewData.length}/{mockCrewData.length}</span> {language === 'vi' ? 'thuyền viên' : 'crew members'}
+                              {language === 'vi' ? 'Hiển thị' : 'Showing'} <span className="font-semibold">{filteredCrewData.length}/{crewList.length}</span> {language === 'vi' ? 'thuyền viên' : 'crew members'}
                               <span className="ml-2 text-green-600">✓ <span className="font-semibold">{filteredCrewData.filter(crew => crew.status === 'Sign on').length}</span> {language === 'vi' ? 'đang làm việc' : 'working'}</span>
                             </p>
                           </div>
