@@ -10683,6 +10683,10 @@ const AIConfigModal = ({ config, setConfig, onClose, onSave, language, token }) 
                   alert(language === 'vi' ? 'Vui lòng nhập Processor ID cho Google Document AI' : 'Please enter Processor ID for Google Document AI');
                   return;
                 }
+                if (!config.document_ai?.apps_script_url || !config.document_ai?.apps_script_url.trim()) {
+                  alert(language === 'vi' ? 'Vui lòng nhập Apps Script URL cho Google Document AI' : 'Please enter Apps Script URL for Google Document AI');
+                  return;
+                }
               }
               
               onSave();
