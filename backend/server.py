@@ -10568,7 +10568,7 @@ async def update_crew_member(
                     update_data[date_field] = None
         
         # Update in database
-        await mongo_db.update_one("crew_members", {"id": crew_id}, {"$set": update_data})
+        await mongo_db.update("crew_members", {"id": crew_id}, update_data)
         
         # Get updated document
         updated_crew = await mongo_db.find_one("crew_members", {"id": crew_id})
