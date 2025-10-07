@@ -10366,7 +10366,7 @@ async def log_audit_trail(
     """Log audit trail for crew operations"""
     try:
         audit_log = {
-            "id": str(uuid4()),
+            "id": str(uuid.uuid4()),
             "user_id": user_id,
             "action": action,
             "resource_type": resource_type,
