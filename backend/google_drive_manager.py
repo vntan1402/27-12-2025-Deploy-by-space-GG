@@ -528,5 +528,77 @@ class GoogleDriveManager:
                 'message': f"Failed to delete Google Drive folder: {str(e)}"
             }
 
+    async def call_apps_script(self, payload: Dict[str, Any], company_id: str) -> Dict[str, Any]:
+        """
+        Generic method to call Google Apps Script with payload
+        
+        Args:
+            payload: Dictionary containing action and parameters for Apps Script
+            company_id: Company UUID to get the correct Apps Script configuration
+            
+        Returns:
+            Dictionary containing the Apps Script response
+        """
+        logger.info(f"🚀 Calling Apps Script for company: {company_id}")
+        
+        try:
+            # Get the Apps Script configuration from database
+            from server import mongo_db  # Import here to avoid circular import
+            
+            # Look up company Google Drive configuration
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+            
+            if not gdrive_config_doc:
+                logger.error(f"No Google Drive configuration found for company: {company_id}")
+                return {
+                    'success': False,
+                    'message': 'Google Drive configuration not found for your company'
+                }
+            
+            # Check if Document AI Apps Script URL is configured
+            document_ai_script_url = gdrive_config_doc.get("document_ai_script_url") or gdrive_config_doc.get("web_app_url")
+            
+            if not document_ai_script_url:
+                logger.error(f"Document AI Apps Script URL not configured for company: {company_id}")
+                return {
+                    'success': False,
+                    'message': 'Document AI Apps Script URL not configured. Please configure in System Settings.'
+                }
+            
+            logger.info(f"📡 Making request to Apps Script: {document_ai_script_url}")
+            logger.info(f"📦 Payload: {payload}")
+            
+            # Make request to Apps Script
+            import requests
+            response = requests.post(document_ai_script_url, json=payload, timeout=120)  # 2 minutes timeout for Document AI
+            response.raise_for_status()
+            
+            result = response.json()
+            logger.info(f"📡 Apps Script response received: success={result.get('success', False)}")
+            
+            return result
+            
+        except requests.exceptions.Timeout:
+            logger.error("❌ Apps Script request timed out")
+            return {
+                'success': False,
+                'message': 'Request to Google Apps Script timed out. Please try again.',
+                'error': 'timeout'
+            }
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ Apps Script request failed: {str(e)}")
+            return {
+                'success': False,
+                'message': f"Failed to communicate with Google Apps Script: {str(e)}",
+                'error': 'request_failed'
+            }
+        except Exception as e:
+            logger.error(f"❌ Unexpected error calling Apps Script: {str(e)}")
+            return {
+                'success': False,
+                'message': f"Unexpected error: {str(e)}",
+                'error': 'unexpected_error'
+            }
+
 # Global instance
 gdrive_manager = GoogleDriveManager()
