@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
 """
-Passport Analysis Caching Issue Debug Test
+Passport Analysis Cache Busting Test
+FOCUS: Test the cache busting fix for passport analysis with new uploaded passport file
 
-PROBLEM:
-User uploaded a new passport file "PASS PORT Tran Trong Toan.pdf" but the system is still 
-showing old analysis results from "VŨ NGỌC TÂN" passport instead of analyzing the new file.
+REVIEW REQUEST REQUIREMENTS:
+Test the cache busting fix for passport analysis with the new uploaded passport file:
+- User reported that uploading new passport file "Tran Trong Toan.pdf" still showed old analysis results from "VŨ NGỌC TÂN"
+- Main agent implemented cache busting mechanism in both backend and Apps Script
+- Added unique identifiers, timestamps, and request versioning to prevent Document AI caching
 
 TESTING REQUIREMENTS:
-1. Download new passport file from provided URL
-2. Test POST /api/crew/analyze-passport with the NEW passport file
-3. Verify backend calls Document AI Apps Script properly
-4. Check if analysis results contain NEW passport information (not cached old data)
-5. Expected results should be for "Trần Trọng Toàn" (NOT "VŨ NGỌC TÂN")
-6. Debug cache investigation
+1. Test Fresh Passport Analysis with new passport file
+2. Verify Cache Busting messages in backend logs
+3. Ensure unique cache_key is generated for each request
+4. Verify analysis returns NEW passport data (not old cached data)
+5. Check response structure contains cache_info with cache_key and timestamp
+6. Verify fresh_analysis flag is set to true
+7. Compare results with what user saw in frontend - should be different
 
-CRITICAL: The issue is that uploading new passport file shows old analysis data.
+Expected Results:
+- Should extract "Trần Trọng Toàn" or similar Vietnamese name
+- Should extract NEW passport number (not C1571189)
+- Should have fresh timestamp and cache_info in response
+- Analysis should be genuinely fresh (not cached from previous passport)
 """
 
 import requests
