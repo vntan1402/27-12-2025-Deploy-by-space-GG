@@ -10167,6 +10167,14 @@ async def analyze_passport_for_crew(
         }
         
         try:
+            # Generate unique identifiers for cache busting
+            import time
+            timestamp = int(time.time() * 1000)
+            unique_id = str(uuid4())[:8]
+            cache_key = f"{timestamp}_{unique_id}_{filename.replace('.', '_')}"
+            
+            logger.info(f"🔄 CACHE BUSTING - Generating unique request ID: {cache_key}")
+            
             # Call Google Apps Script to analyze passport with Document AI
             apps_script_payload = {
                 "action": "analyze_passport_document_ai",
@@ -10175,7 +10183,12 @@ async def analyze_passport_for_crew(
                 "content_type": passport_file.content_type or 'application/octet-stream',
                 "project_id": document_ai_config.get("project_id"),
                 "location": document_ai_config.get("location", "us"),
-                "processor_id": document_ai_config.get("processor_id")
+                "processor_id": document_ai_config.get("processor_id"),
+                # Cache busting fields
+                "cache_key": cache_key,
+                "timestamp": timestamp,
+                "unique_id": unique_id,
+                "request_version": "v1.1"
             }
             
             # Make request to Google Apps Script
