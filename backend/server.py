@@ -10484,7 +10484,7 @@ async def get_crew_members(
             query_filter["status"] = status
         
         # Get crew members from database
-        crew_members = await mongo_db.find("crew_members", query_filter)
+        crew_members = await mongo_db.find_all("crew_members", query_filter)
         
         return [CrewResponse(**crew) for crew in crew_members]
         
