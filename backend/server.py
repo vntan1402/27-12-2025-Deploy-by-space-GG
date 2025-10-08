@@ -113,19 +113,22 @@ SPECIFIC SEARCH PATTERNS:
 - Look for Vietnamese place names and provinces
 - Search for date labels: "sinh:", "birth:", "cấp:", "issue:", "hạn:", "expiry:"
 
-Return ONLY a JSON object:
+Return ONLY a JSON object with ALL fields populated:
 
 {
   "full_name": "Surname + Given Names (Vietnamese format)",
   "sex": "M or F based on passport data", 
-  "date_of_birth": "DD/MM/YYYY from passport",
+  "date_of_birth": "DD/MM/YYYY from passport - REQUIRED, search thoroughly",
   "place_of_birth": "Vietnamese place name from passport",
   "passport_number": "Letter+digits from passport (e.g., C1571189)",
   "nationality": "Vietnamese or extracted nationality", 
-  "issue_date": "DD/MM/YYYY passport issue date",
-  "expiry_date": "DD/MM/YYYY passport expiry date",
+  "issue_date": "DD/MM/YYYY passport issue date - REQUIRED, search thoroughly",
+  "expiry_date": "DD/MM/YYYY passport expiry date - REQUIRED, search thoroughly",
   "confidence_score": 0.0 to 1.0
 }
+
+IMPORTANT: If you find dates in any format (14/02/1983, 14-02-1983, 14.02.1983, February 14 1983), 
+convert them to DD/MM/YYYY format. DO NOT leave date fields empty unless absolutely no date information exists.
 
 CRITICAL: Extract ONLY actual passport data, NOT system text or processing messages.
 
