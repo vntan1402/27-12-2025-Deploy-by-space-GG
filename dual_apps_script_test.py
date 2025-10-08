@@ -235,7 +235,7 @@ class DualAppsScriptTester:
             endpoint = f"{BACKEND_URL}/crew/analyze-passport"
             self.log(f"   POST {endpoint}")
             self.log(f"   Ship: {data['ship_name']}")
-            self.log(f"   File: PASS PORT Tran Trong Toan.pdf")
+            self.log(f"   File: PASS PORT Tran Trong Toan.png")
             
             # Make the request
             response = requests.post(
