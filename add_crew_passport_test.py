@@ -552,7 +552,7 @@ startxref
                 self.log("   ✅ Date format standardized (DD/MM/YYYY)")
             
             place_of_birth = analysis_data.get('place_of_birth', '')
-            if place_of_birth and any(place in place_of_birth.upper() for place in ['HẢI PHÒNG', 'HÀ NỘI', 'HỒ CHÍ MINH', 'ĐÀ NẴNG']):
+            if place_of_birth and any(place in place_of_birth.upper() for place in ['HAI PHONG', 'HẢI PHÒNG', 'HÀ NỘI', 'HỒ CHÍ MINH', 'ĐÀ NẴNG']):
                 self.passport_tests['place_of_birth_extracted'] = True
                 self.log("   ✅ Vietnamese place of birth extracted")
             
