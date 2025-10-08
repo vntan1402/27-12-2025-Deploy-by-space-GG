@@ -11243,8 +11243,8 @@ EXTRACTED INFORMATION:
         
         # Determine folder structure based on document type
         folder_mapping = {
-            "passport": "Crew record",
-            "seamans_book": "Crew record", 
+            "passport": "Crew records",
+            "seamans_book": "Crew records", 
             "certificate": "Certificates",
             "medical": "Medical",
             "general_maritime": "Documents"
