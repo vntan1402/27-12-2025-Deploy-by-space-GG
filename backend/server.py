@@ -10846,6 +10846,90 @@ This summary was generated using Google Document AI for crew management purposes
         logger.error(f"Passport analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Passport analysis failed: {str(e)}")
 
+@api_router.post("/crew/debug-summary")
+async def debug_document_summary(
+    document_file: UploadFile = File(...),
+    document_type: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    DEBUG: Return the raw summary content from Document AI for inspection
+    """
+    try:
+        logger.info(f"🔍 DEBUG: Getting summary content for {document_type}")
+        
+        # Read file content
+        file_content = await document_file.read()
+        filename = document_file.filename
+        
+        # Get company information
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get AI configuration
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found")
+        
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Document AI not enabled")
+        
+        # Get Google Drive manager
+        google_drive_manager = GoogleDriveManager()
+        
+        # Call Apps Script for analysis
+        action_mapping = {
+            "passport": "analyze_passport_document_ai",
+            "seamans_book": "analyze_seamans_book_document_ai",
+            "certificate": "analyze_certificate_document_ai", 
+            "medical": "analyze_medical_document_ai",
+            "general_maritime": "analyze_maritime_document_ai"
+        }
+        
+        apps_script_payload = {
+            "action": action_mapping.get(document_type, "analyze_maritime_document_ai"),
+            "file_content": base64.b64encode(file_content).decode('utf-8'),
+            "filename": filename,
+            "content_type": document_file.content_type or 'application/octet-stream',
+            "project_id": document_ai_config.get("project_id"),
+            "location": document_ai_config.get("location", "us"),
+            "processor_id": document_ai_config.get("processor_id")
+        }
+        
+        # Get Apps Script response
+        analysis_response = await google_drive_manager.call_apps_script(
+            apps_script_payload, 
+            company_id=company_uuid
+        )
+        
+        if analysis_response.get("success"):
+            document_summary = analysis_response.get("data", {}).get("summary", "")
+            
+            return {
+                "success": True,
+                "summary_content": document_summary,
+                "summary_length": len(document_summary),
+                "apps_script_response": analysis_response,
+                "debug_info": {
+                    "filename": filename,
+                    "document_type": document_type,
+                    "processor_id": document_ai_config.get("processor_id"),
+                    "project_id": document_ai_config.get("project_id")
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "error": analysis_response.get("message", "Apps Script failed"),
+                "full_response": analysis_response
+            }
+            
+    except Exception as e:
+        logger.error(f"DEBUG summary error: {e}")
+        raise HTTPException(status_code=500, detail=f"Debug failed: {str(e)}")
+
 @api_router.post("/crew/analyze-maritime-document")
 async def analyze_maritime_document_for_crew(
     document_file: UploadFile = File(...),
