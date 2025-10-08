@@ -10257,8 +10257,8 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
     """
     try:
         if use_emergent_key and ai_provider == "google":
-            # Use Emergent integration for Google AI
-            from emergentintegrations import GoogleAI
+            # Use official Google Gen AI SDK with Emergent LLM key
+            from google import genai
             
             # Create document type specific extraction prompts
             extraction_prompt = create_maritime_extraction_prompt(summary_text, document_type)
