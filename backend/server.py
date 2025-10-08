@@ -20,6 +20,7 @@ import requests
 import re
 import base64
 import time
+import traceback
 import asyncio
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 
