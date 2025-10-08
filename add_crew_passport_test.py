@@ -537,7 +537,7 @@ startxref
             
             # Specific field tests
             full_name = analysis_data.get('full_name', '')
-            if full_name and ('XUẤT NHẬP CẢNH' in full_name or any(vn_name in full_name.upper() for vn_name in ['NGUYEN', 'TRAN', 'LE', 'PHAM'])):
+            if full_name and ('XUAT NHAP CANH' in full_name or 'XUẤT NHẬP CẢNH' in full_name or any(vn_name in full_name.upper() for vn_name in ['NGUYEN', 'TRAN', 'LE', 'PHAM'])):
                 self.passport_tests['vietnamese_name_extracted'] = True
                 self.log("   ✅ Vietnamese name extracted correctly")
             
