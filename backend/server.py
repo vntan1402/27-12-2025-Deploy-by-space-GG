@@ -10970,7 +10970,7 @@ This summary was generated using Google Document AI for crew management purposes
             passport_upload = upload_results.get('uploads', {}).get('passport', {})
             summary_upload = upload_results.get('uploads', {}).get('summary', {})
             
-            logger.info("✅ Passport analysis and file uploads completed successfully")
+            logger.info("✅ Dual Apps Script processing completed successfully")
             
             return {
                 "success": True,
@@ -10979,15 +10979,17 @@ This summary was generated using Google Document AI for crew management purposes
                     "passport": {
                         "filename": filename,
                         "folder": f"{ship_name}/Crew records",
-                        "upload_result": passport_upload_result
+                        "upload_result": passport_upload
                     },
                     "summary": {
-                        "filename": summary_filename,
-                        "folder": "SUMMARY",
-                        "upload_result": summary_upload_result
+                        "filename": f"{filename.rsplit('.', 1)[0]}_Summary.txt",
+                        "folder": "SUMMARY", 
+                        "upload_result": summary_upload
                     }
                 },
-                "message": "Passport analyzed successfully and files saved to Google Drive"
+                "processing_method": "dual_apps_script",
+                "workflow": "system_document_ai + company_file_upload",
+                "message": "Passport analyzed and uploaded successfully via dual Apps Scripts"
             }
             
         except Exception as drive_error:
