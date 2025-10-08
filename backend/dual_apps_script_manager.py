@@ -22,13 +22,13 @@ class DualAppsScriptManager:
         self.company_id = company_id
         self.system_apps_script_url = None
         self.company_apps_script_url = None
-        self._load_configuration()
+        # Configuration will be loaded when first needed
     
-    def _load_configuration(self):
+    async def _load_configuration(self):
         """Load Apps Script URLs from configuration"""
         try:
             # Get Document AI configuration (System Apps Script)
-            ai_config = mongo_db.find_one(
+            ai_config = await mongo_db.find_one(
                 "ai_config",
                 {"company_id": self.company_id}
             )
@@ -38,7 +38,7 @@ class DualAppsScriptManager:
                 logger.info(f"✅ System Apps Script URL loaded for Document AI")
             
             # Get Company Google Drive configuration (Company Apps Script)
-            gdrive_config = mongo_db.find_one(
+            gdrive_config = await mongo_db.find_one(
                 "company_gdrive_config",
                 {"company_id": self.company_id}
             )
