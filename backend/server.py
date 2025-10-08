@@ -10275,15 +10275,17 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                 logger.error(f"Failed to get Emergent LLM key for {document_type} field extraction")
                 return {}
             
-            # Initialize Google AI client
-            google_ai = GoogleAI(api_key=api_key)
+            # Initialize Google Gen AI client
+            client = genai.Client(api_key=api_key)
             
-            # Generate field extraction
-            response = google_ai.generate_content(
+            # Generate field extraction using official Google Gen AI SDK
+            response = client.models.generate_content(
                 model=ai_model,
-                prompt=extraction_prompt,
-                max_tokens=800,  # Increased for more complex documents
-                temperature=0.1  # Low temperature for consistent extraction
+                contents=extraction_prompt,
+                config=genai.GenerateContentConfig(
+                    max_output_tokens=800,
+                    temperature=0.1
+                )
             )
             
             if response and response.get('content'):
