@@ -10430,6 +10430,10 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                         clean_content = content.replace('```json', '').replace('```', '').strip()
                         extracted_data = json.loads(clean_content)
                         
+                        # Standardize dates for passport documents to match certificate handling
+                        if document_type == "passport":
+                            extracted_data = standardize_passport_dates(extracted_data)
+                        
                         # Validate based on document type
                         validated_data = validate_maritime_document_fields(extracted_data, document_type)
                         
