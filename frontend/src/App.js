@@ -13254,7 +13254,7 @@ const AddRecordModal = ({
       // Fallback to minimal structure if extraction fails
       const fallbackStructure = {
         'Class & Flag Cert': ['Certificates', 'Class Survey Report', 'Test Report', 'Drawings & Manuals', 'Other Documents'],
-        'Crew Records': ['Crew List', 'Crew Certificates', 'Medical Records'],
+        'Crew Records': [],
         'ISM Records': ['ISM Certificate', 'Safety Procedures', 'Audit Reports'],
         'ISPS Records': ['ISPS Certificate', 'Security Plan', 'Security Assessments'],
         'MLC Records': ['MLC Certificate', 'Labor Conditions', 'Accommodation Reports'],
