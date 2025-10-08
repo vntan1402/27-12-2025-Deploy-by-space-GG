@@ -78,37 +78,47 @@ DOCUMENT TYPE: {document_type.upper()}
     
     if document_type == "passport":
         return base_prompt + """
-TASK: Extract passport information from the summary above. Look carefully for Vietnamese names, passport numbers, dates, and personal details.
+TASK: Extract Vietnamese passport information from the Document AI summary. Follow ICAO standard Vietnamese passport format.
 
-IMPORTANT EXTRACTION GUIDELINES:
-- Look for Vietnamese names (usually 2-4 words like "NGUYEN VAN MINH")
-- Passport numbers are usually format like "C1234567" or "B1234567" 
-- Dates may be in various formats: DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY
-- Sex indicators: "Nam/Male" = M, "Nữ/Female" = F
-- Nationality: Look for "Việt Nam", "Vietnamese", "VN"
-- Places: Vietnamese city names like "Hồ Chí Minh", "Hà Nội", etc.
+VIETNAMESE PASSPORT STRUCTURE TO LOOK FOR:
+- **Surname**: Vietnamese family name (usually first word like NGUYEN, TRAN, LE, PHAM, HOANG, etc.)
+- **Given Names**: Vietnamese given names (2-3 words after surname)
+- **Passport Number**: Letter + 7-8 digits (like C1571189, B2345678)
+- **Date of Birth**: DD/MM/YYYY format  
+- **Sex**: M (Male/Nam) or F (Female/Nữ)
+- **Place of Birth**: Vietnamese province/city names
+- **Nationality**: "VIỆT NAM" or "VIETNAMESE" or "VNM"
+- **Date of Issue**: DD/MM/YYYY format
+- **Date of Expiry**: DD/MM/YYYY format
 
-SPECIFIC PATTERNS TO LOOK FOR:
-- Names found: [look for actual Vietnamese names, not "Document Processing Summary"]
-- Document numbers: [passport numbers starting with letters]
-- Dates found: [birth dates, issue dates, expiry dates]
-- Nationality information: [Vietnamese citizenship indicators]
+EXTRACTION RULES:
+1. For **full_name**: Combine Surname + Given Names (e.g., "NGUYEN VAN MINH")
+2. For **sex**: Look for "M", "F", "Male", "Female", "Nam", "Nữ" 
+3. For **dates**: Look for DD/MM/YYYY patterns, distinguish birth vs issue vs expiry
+4. For **place_of_birth**: Vietnamese locations like "Hồ Chí Minh", "Hà Nội", "Đà Nẵng", provinces
+5. IGNORE system messages like "Document Processing", "Summary", "Analysis"
 
-Return ONLY a JSON object with these exact field names:
+SPECIFIC SEARCH PATTERNS:
+- Look for Vietnamese name patterns: "NGUYEN [Given Names]", "TRAN [Given Names]", etc.
+- Look for passport numbers: Letter followed by 7-8 digits  
+- Look for dates in context: birth date, issue date, expiry date
+- Look for Vietnamese place names and provinces
+
+Return ONLY a JSON object:
 
 {
-  "full_name": "extracted Vietnamese full name (NOT Document Processing Summary)",
-  "sex": "M or F or empty string", 
-  "date_of_birth": "DD/MM/YYYY format or empty string",
-  "place_of_birth": "Vietnamese place name or empty string",
-  "passport_number": "passport number like C1571189 or empty string",
-  "nationality": "Vietnamese or nationality found or empty string", 
-  "issue_date": "DD/MM/YYYY format or empty string",
-  "expiry_date": "DD/MM/YYYY format or empty string",
+  "full_name": "Surname + Given Names (Vietnamese format)",
+  "sex": "M or F based on passport data", 
+  "date_of_birth": "DD/MM/YYYY from passport",
+  "place_of_birth": "Vietnamese place name from passport",
+  "passport_number": "Letter+digits from passport (e.g., C1571189)",
+  "nationality": "Vietnamese or extracted nationality", 
+  "issue_date": "DD/MM/YYYY passport issue date",
+  "expiry_date": "DD/MM/YYYY passport expiry date",
   "confidence_score": 0.0 to 1.0
 }
 
-CRITICAL: Do NOT extract system messages like "Document Processing Summary" as names. Only extract actual Vietnamese person names.
+CRITICAL: Extract ONLY actual passport data, NOT system text or processing messages.
 
 JSON:"""
     
