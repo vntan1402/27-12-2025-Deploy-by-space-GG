@@ -607,7 +607,7 @@ class GoogleDriveManager:
         Args:
             file_content: File content as bytes
             filename: Name of the file
-            folder_path: Path like "SHIP_NAME/Crewlist" or "SUMMARY"
+            folder_path: Path like "SHIP_NAME/Crew record" or "SUMMARY"
             content_type: MIME type of the file
             company_id: Company UUID
             
