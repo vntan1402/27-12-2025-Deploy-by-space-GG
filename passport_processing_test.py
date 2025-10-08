@@ -285,6 +285,7 @@ class PassportProcessingTester:
                         
                         # Log the full response for debugging
                         self.log(f"   Analysis result keys: {list(analysis_result.keys())}")
+                        self.log(f"   Full response: {json.dumps(analysis_result, indent=2)}")
                         
                         # Check for Document AI processing success
                         if 'processing_method' in analysis_result:
