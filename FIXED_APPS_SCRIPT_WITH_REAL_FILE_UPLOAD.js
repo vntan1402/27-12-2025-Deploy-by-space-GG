@@ -159,9 +159,22 @@ function handleRealFileUpload(data) {
       return createJsonResponse(false, "No file content provided");
     }
     
-    // Get the root company folder (this should be set as parent_folder_id in your backend)
-    // For now, we'll get the root folder of the script's Drive
-    var rootFolder = DriveApp.getRootFolder();
+    // Get the company folder from parent_folder_id
+    var parentFolderId = data.parent_folder_id;
+    var rootFolder;
+    
+    if (parentFolderId) {
+      try {
+        rootFolder = DriveApp.getFolderById(parentFolderId);
+        console.log("✅ Using company folder ID: " + parentFolderId);
+      } catch (folderError) {
+        console.log("❌ Cannot access folder ID: " + parentFolderId + ", using root folder");
+        rootFolder = DriveApp.getRootFolder();
+      }
+    } else {
+      console.log("⚠️ No parent_folder_id provided, using root folder");
+      rootFolder = DriveApp.getRootFolder();
+    }
     
     // Create folder structure
     var targetFolder;
