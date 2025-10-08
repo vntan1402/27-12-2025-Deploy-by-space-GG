@@ -10756,7 +10756,7 @@ async def analyze_passport_for_crew(
     """
     Analyze passport file using Google Document AI and save to Google Drive
     1. Analyze passport with Google Document AI
-    2. Save passport file to: ShipName > Crewlist folder
+    2. Save passport file to: ShipName > Crew record folder
     3. Generate summary and save to: SUMMARY folder
     """
     try:
