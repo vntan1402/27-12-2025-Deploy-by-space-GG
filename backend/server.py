@@ -10939,7 +10939,7 @@ This summary was generated using Google Document AI for crew management purposes
                 "files": {
                     "passport": {
                         "filename": filename,
-                        "folder": f"{ship_name}/Crew record",
+                        "folder": f"{ship_name}/Crew records",
                         "upload_result": passport_upload_result
                     },
                     "summary": {
