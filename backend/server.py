@@ -10376,10 +10376,11 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
 
 def extract_basic_info_from_summary(summary_text: str, document_type: str) -> dict:
     """
-    Extract basic information from summary text using regex patterns
+    Extract basic information from summary text using improved regex patterns
     """
     try:
-        logger.info("🔄 Extracting basic info from summary using patterns...")
+        logger.info("🔄 Extracting basic info from summary using enhanced patterns...")
+        logger.info(f"   Summary length: {len(summary_text)} characters")
         
         # Initialize result based on document type
         if document_type == "passport":
@@ -10399,18 +10400,42 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
         
         # Extract patterns from summary
         if document_type == "passport":
-            # Look for Vietnamese names
+            # Enhanced Vietnamese name extraction - avoid system text
             name_patterns = [
+                # Look for Names found: pattern but exclude system text
                 r'Names found:\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]*\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]*\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]*)',
-                r'([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)'
+                # Look for actual Vietnamese name patterns in content
+                r'\b([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
+                # Vietnamese name with specific patterns
+                r'\b(NGUYEN\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
+                r'\b(TRAN\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
+                r'\b(LE\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b'
             ]
             
             for pattern in name_patterns:
-                match = re.search(pattern, summary_text)
-                if match:
-                    result["full_name"] = match.group(1).strip()
-                    logger.info(f"   Found name: {result['full_name']}")
-                    break
+                matches = re.findall(pattern, summary_text, re.IGNORECASE)
+                if matches:
+                    for match in matches:
+                        # Filter out system text
+                        if isinstance(match, tuple):
+                            candidate = match[0] if match[0] else match[1] if len(match) > 1 else ""
+                        else:
+                            candidate = match
+                        
+                        # Exclude system messages
+                        exclude_terms = [
+                            "document processing", "summary", "analysis", "extraction", 
+                            "content", "processing", "text", "information", "maritime",
+                            "passport", "certificate", "field", "data"
+                        ]
+                        
+                        if candidate and not any(term in candidate.lower() for term in exclude_terms):
+                            result["full_name"] = candidate.strip()
+                            logger.info(f"   Found valid name: {result['full_name']}")
+                            break
+                    
+                    if result["full_name"]:
+                        break
             
             # Look for passport numbers
             passport_patterns = [
