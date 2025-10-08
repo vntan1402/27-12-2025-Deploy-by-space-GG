@@ -227,31 +227,28 @@ class PassportExtractionDebugTester:
                 
                 # Extract key information
                 success = result.get('success', False)
-                summary_text = result.get('summary_text', '')
-                extracted_data = result.get('extracted_data', {})
+                analysis = result.get('analysis', {})
                 
-                if success and summary_text:
+                if success and analysis:
                     self.log_result(
                         "Passport Analysis Request",
                         True,
                         f"Analysis completed successfully"
                     )
                     
-                    # Examine the summary text in detail
-                    self.examine_summary_text(summary_text)
+                    # Since we don't have direct access to the summary_text, 
+                    # we'll analyze the extracted data and provide recommendations
+                    self.examine_extracted_data(analysis)
                     
-                    # Examine the extracted data
-                    self.examine_extracted_data(extracted_data)
-                    
-                    # Compare summary vs extracted data
-                    self.compare_summary_vs_extraction(summary_text, extracted_data)
+                    # Analyze the extraction issues
+                    self.analyze_extraction_issues(analysis)
                     
                     return True
                 else:
                     self.log_result(
                         "Passport Analysis Request",
                         False,
-                        f"Analysis failed - success: {success}, has_summary: {bool(summary_text)}"
+                        f"Analysis failed - success: {success}, has_analysis: {bool(analysis)}"
                     )
                     return False
                     
