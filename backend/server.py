@@ -10905,13 +10905,13 @@ This summary was generated using Google Document AI for crew management purposes
         google_drive_manager = GoogleDriveManager()
         
         try:
-            # 1. Save passport file to ShipName > Crew record folder
-            logger.info(f"📁 Saving passport to Google Drive: {ship_name}/Crew record")
+            # 1. Save passport file to ShipName > Crew records folder
+            logger.info(f"📁 Saving passport to Google Drive: {ship_name}/Crew records")
             
             passport_upload_result = await google_drive_manager.upload_file_with_folder_creation(
                 file_content=file_content,
                 filename=filename,
-                folder_path=f"{ship_name}/Crew record",
+                folder_path=f"{ship_name}/Crew records",
                 content_type=passport_file.content_type or 'application/octet-stream',
                 company_id=company_uuid
             )
