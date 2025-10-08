@@ -14,7 +14,7 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 # 
-## user_problem_statement: {problem_statement}
+## user_problem_statement: "Standardize passport date extraction format to match certificate handling. Current issue: AI extraction returns verbose dates like 'February 14, 1983 (14/02/1983)' instead of clean DD/MM/YYYY format required for HTML date inputs and consistency with certificate processing."
 ## backend:
 ##   - task: "Task name"
 ##     implemented: true
