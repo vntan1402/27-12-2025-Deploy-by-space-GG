@@ -75,6 +75,9 @@ class DualAppsScriptManager:
             dict: Combined results from both Apps Scripts
         """
         try:
+            # Load configuration first
+            await self._load_configuration()
+            
             logger.info(f"🔄 Starting dual Apps Script processing for: {filename}")
             
             # Step 1: Document AI Analysis via System Apps Script
