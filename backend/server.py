@@ -98,11 +98,20 @@ EXTRACTION RULES:
 4. For **place_of_birth**: Vietnamese locations like "Hồ Chí Minh", "Hà Nội", "Đà Nẵng", provinces
 5. IGNORE system messages like "Document Processing", "Summary", "Analysis"
 
+CRITICAL DATE EXTRACTION RULES:
+- **Date of Birth**: Look for "Ngày sinh", "Date of birth", followed by DD/MM/YYYY format
+- **Issue Date**: Look for "Ngày cấp", "Date of issue", followed by DD/MM/YYYY format  
+- **Expiry Date**: Look for "Ngày hết hạn", "Date of expiry", followed by DD/MM/YYYY format
+- Search ALL date patterns: "14/02/1983", "14-02-1983", "14.02.1983", "14 02 1983"
+- If dates are written as words, convert to DD/MM/YYYY: "14 February 1983" → "14/02/1983"
+- ALWAYS extract dates even if format varies - prioritize finding actual dates over format perfection
+
 SPECIFIC SEARCH PATTERNS:
 - Look for Vietnamese name patterns: "NGUYEN [Given Names]", "TRAN [Given Names]", etc.
 - Look for passport numbers: Letter followed by 7-8 digits  
 - Look for dates in context: birth date, issue date, expiry date
 - Look for Vietnamese place names and provinces
+- Search for date labels: "sinh:", "birth:", "cấp:", "issue:", "hạn:", "expiry:"
 
 Return ONLY a JSON object:
 
