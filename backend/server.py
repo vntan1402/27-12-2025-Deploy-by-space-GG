@@ -10901,19 +10901,27 @@ EXTRACTED INFORMATION:
 This summary was generated using Google Document AI for crew management purposes.
 """
         
-        # Get Google Drive manager
-        google_drive_manager = GoogleDriveManager()
+        # Get Company Drive manager for direct upload
+        from company_google_drive_manager import create_company_drive_manager
+        company_drive_manager = create_company_drive_manager(company_uuid)
+        
+        if not company_drive_manager:
+            logger.error("❌ Company Google Drive manager not available")
+            return {
+                "success": False,
+                "message": "Google Drive not configured for this company",
+                "error": "Company Drive manager initialization failed"
+            }
         
         try:
-            # 1. Save passport file to ShipName > Crew records folder
-            logger.info(f"📁 Saving passport to Google Drive: {ship_name}/Crew records")
+            # 1. Save passport file to ShipName > Crew records folder (Backend Direct Upload)
+            logger.info(f"📁 Backend uploading passport to Company Drive: {ship_name}/Crew records")
             
-            passport_upload_result = await google_drive_manager.upload_file_with_folder_creation(
+            passport_upload_result = company_drive_manager.upload_file(
                 file_content=file_content,
                 filename=filename,
                 folder_path=f"{ship_name}/Crew records",
-                content_type=passport_file.content_type or 'application/octet-stream',
-                company_id=company_uuid
+                content_type=passport_file.content_type or 'application/octet-stream'
             )
             
             # 2. Create summary filename
