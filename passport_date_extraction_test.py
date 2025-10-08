@@ -238,7 +238,7 @@ class PassportDateExtractionTester:
                 
                 # Prepare multipart form data
                 with open(test_file_path, 'rb') as f:
-                    files = {'passport_file': ('test_passport.txt', f, 'text/plain')}
+                    files = {'passport_file': ('test_passport.png', f, 'image/png')}
                     data = {'ship_name': 'BROTHER 36'}  # Use a known ship for testing
                     
                     self.log("   Sending passport analysis request...")
