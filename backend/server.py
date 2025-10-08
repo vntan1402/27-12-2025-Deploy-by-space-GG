@@ -10490,27 +10490,87 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
                     if result["passport_number"]:
                         break
             
-            # Look for dates
-            date_patterns = [
-                r'Dates found:\s*(\d{1,2}/\d{1,2}/\d{4})',
-                r'\b(\d{1,2}/\d{1,2}/\d{4})\b'
+            # Enhanced date extraction with context
+            # Look for birth date specifically
+            birth_date_patterns = [
+                r'(?:Date\s*of\s*birth|Birth\s*date|DOB|Ngày\s*sinh)[\s:]*(\d{1,2}/\d{1,2}/\d{4})',
+                r'Dates found:\s*(\d{1,2}/\d{1,2}/\d{4})',  # Usually first is birth
+                r'\b(\d{1,2}/\d{1,2}/\d{4})\b'  # Any date pattern
             ]
             
             dates_found = []
-            for pattern in date_patterns:
-                matches = re.findall(pattern, summary_text)
+            for pattern in birth_date_patterns:
+                matches = re.findall(pattern, summary_text, re.IGNORECASE)
                 dates_found.extend(matches)
             
             if dates_found:
-                # Assume first date might be birth date
-                if len(dates_found) >= 1:
-                    result["date_of_birth"] = dates_found[0]
-                    logger.info(f"   Found DOB: {result['date_of_birth']}")
+                # Use first date as birth date
+                result["date_of_birth"] = dates_found[0]
+                logger.info(f"   Found date of birth: {result['date_of_birth']}")
+                
+                # Look for other dates (issue, expiry)
+                if len(dates_found) >= 2:
+                    # Try to determine which is issue vs expiry
+                    for i, date in enumerate(dates_found[1:], 1):
+                        if i == 1:
+                            result["issue_date"] = date
+                            logger.info(f"   Found issue date: {result['issue_date']}")
+                        elif i == 2:
+                            result["expiry_date"] = date
+                            logger.info(f"   Found expiry date: {result['expiry_date']}")
             
-            # Check for nationality indicators
-            if 'việt nam' in summary_text.lower() or 'vietnamese' in summary_text.lower():
-                result["nationality"] = "Vietnamese"
-                logger.info("   Found nationality: Vietnamese")
+            # Enhanced nationality detection
+            nationality_patterns = [
+                r'(?:nationality|quốc\s*tịch)[\s:]*([A-Za-z\s]+)',
+                r'(việt\s*nam|vietnamese|vn\b)',
+                r'VIỆT\s*NAM',
+                r'Vietnamese'
+            ]
+            
+            for pattern in nationality_patterns:
+                match = re.search(pattern, summary_text, re.IGNORECASE)
+                if match:
+                    nationality = match.group(1).strip()
+                    if 'việt' in nationality.lower() or 'vietnamese' in nationality.lower():
+                        result["nationality"] = "Vietnamese"
+                        logger.info("   Found nationality: Vietnamese")
+                        break
+            
+            # Look for sex/gender indicators
+            sex_patterns = [
+                r'(?:sex|gender|giới\s*tính)[\s:]*([MFmfNamNữ])',
+                r'\b(Nam|Male|M)\b',
+                r'\b(Nữ|Female|F)\b'
+            ]
+            
+            for pattern in sex_patterns:
+                match = re.search(pattern, summary_text, re.IGNORECASE)
+                if match:
+                    sex_value = match.group(1).upper()
+                    if sex_value in ['M', 'MALE', 'NAM']:
+                        result["sex"] = "M"
+                        logger.info("   Found sex: M (Male)")
+                        break
+                    elif sex_value in ['F', 'FEMALE', 'NỮ']:
+                        result["sex"] = "F"
+                        logger.info("   Found sex: F (Female)")
+                        break
+            
+            # Look for Vietnamese place names
+            place_patterns = [
+                r'(?:place\s*of\s*birth|nơi\s*sinh)[\s:]*([A-Za-zÀ-ỹ\s]+)',
+                r'(Hồ\s*Chí\s*Minh|Hà\s*Nội|Đà\s*Nẵng|Cần\s*Thơ|Hải\s*Phòng)',
+                r'([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)*)\s*(?:Province|Tỉnh)'
+            ]
+            
+            for pattern in place_patterns:
+                match = re.search(pattern, summary_text, re.IGNORECASE)
+                if match:
+                    place = match.group(1).strip()
+                    if len(place) > 2 and not any(term in place.lower() for term in exclude_terms):
+                        result["place_of_birth"] = place
+                        logger.info(f"   Found place of birth: {result['place_of_birth']}")
+                        break
         
         # Calculate confidence based on how many fields we extracted
         extracted_fields = sum(1 for v in result.values() if v and v != 0.5)
