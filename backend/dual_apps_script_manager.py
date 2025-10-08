@@ -30,7 +30,7 @@ class DualAppsScriptManager:
             # Get Document AI configuration (System Apps Script)
             ai_config = await mongo_db.find_one(
                 "ai_config",
-                {"company_id": self.company_id}
+                {"id": "system_ai"}
             )
             
             if ai_config and ai_config.get("document_ai", {}).get("enabled"):
