@@ -10249,8 +10249,7 @@ async def handle_manual_review_action(
 # SURVEY TYPE ANALYSIS ENDPOINT REMOVED
 # User will implement custom survey type logic
 
-# PASSPORT ANALYSIS ENDPOINT FOR CREW MANAGEMENT
-@api_router.post("/crew/analyze-passport")
+# HELPER FUNCTION FOR AI FIELD EXTRACTION
 async def extract_maritime_document_fields_from_summary(summary_text: str, document_type: str, ai_provider: str, ai_model: str, use_emergent_key: bool) -> dict:
     """
     Extract maritime document fields from Document AI summary using system AI (Gemini)
