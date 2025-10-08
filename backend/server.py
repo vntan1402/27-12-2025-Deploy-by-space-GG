@@ -10260,6 +10260,7 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
         if use_emergent_key and ai_provider == "google":
             # Use official Google Gen AI SDK with Emergent LLM key
             from google import genai
+            from google.genai import types
             
             # Create document type specific extraction prompts
             extraction_prompt = create_maritime_extraction_prompt(summary_text, document_type)
@@ -10283,7 +10284,7 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
             response = client.models.generate_content(
                 model=ai_model,
                 contents=extraction_prompt,
-                config=genai.GenerateContentConfig(
+                config=types.GenerateContentConfig(
                     max_output_tokens=800,
                     temperature=0.1
                 )
