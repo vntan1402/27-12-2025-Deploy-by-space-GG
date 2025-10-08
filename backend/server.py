@@ -10496,11 +10496,12 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
                         break
             
             # Enhanced date extraction with context
-            # Look for birth date specifically
+            # Enhanced date extraction - look for specific birth date from summary
             birth_date_patterns = [
+                r'date of birth is ([^.]+)',  # From summary text
                 r'(?:Date\s*of\s*birth|Birth\s*date|DOB|Ngày\s*sinh)[\s:]*(\d{1,2}/\d{1,2}/\d{4})',
                 r'Dates found:\s*(\d{1,2}/\d{1,2}/\d{4})',  # Usually first is birth
-                r'\b(\d{1,2}/\d{1,2}/\d{4})\b'  # Any date pattern
+                r'(\d{1,2}/\d{1,2}/\d{4})'  # Any date pattern
             ]
             
             dates_found = []
