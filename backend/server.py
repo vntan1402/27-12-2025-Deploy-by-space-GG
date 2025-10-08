@@ -10704,8 +10704,30 @@ def extract_fields_manually_from_response(content: str, document_type: str) -> d
                 "full_name": r'(?:full_name|name)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
                 "passport_number": r'(?:passport_number|passport)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
                 "date_of_birth": r'(?:date_of_birth|dob|birth)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
-                "nationality": r'(?:nationality|country)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?'
+                "nationality": r'(?:nationality|country)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
+                "place_of_birth": r'(?:place_of_birth|pob|birthplace)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
+                "sex": r'(?:sex|gender)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
+                "issue_date": r'(?:issue_date|issued|date_issue)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?',
+                "expiry_date": r'(?:expiry_date|expires|date_expiry)[\s]*:[\s]*["\']?([^"\'\\n,}]+)["\']?'
             }
+            
+            # Additional aggressive date pattern search for date_of_birth if not found above
+            if "date_of_birth" not in [k for k in result.keys() if result.get(k)]:
+                # Look for any DD/MM/YYYY pattern in the text that might be a birth date
+                date_patterns = [
+                    r'(?:birth|sinh|born).*?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})',
+                    r'(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}).*?(?:birth|sinh|born)',
+                    r'(?:ngày sinh|date of birth).*?(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4})',
+                    r'(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{4}).*?(?:ngày sinh|date of birth)'
+                ]
+                
+                for date_pattern in date_patterns:
+                    date_match = re.search(date_pattern, content, re.IGNORECASE)
+                    if date_match:
+                        found_date = date_match.group(1).replace('-', '/').replace('.', '/')
+                        result["date_of_birth"] = found_date
+                        logger.info(f"   Aggressively extracted date_of_birth: {found_date}")
+                        break
             
             for field, pattern in patterns.items():
                 match = re.search(pattern, content, re.IGNORECASE)
