@@ -194,6 +194,119 @@ TASK: Extract general maritime document information. Return ONLY a JSON object:
 
 JSON:"""
 
+def standardize_passport_dates(extracted_data: dict) -> dict:
+    """
+    Standardize date formats in passport extraction data to match certificate handling.
+    Convert verbose AI responses like "February 14, 1983 (14/02/1983)" to clean "14/02/1983" format.
+    This ensures consistency with existing certificate date processing.
+    """
+    import re
+    from datetime import datetime
+    
+    date_fields = ["date_of_birth", "issue_date", "expiry_date"]
+    
+    for field in date_fields:
+        if field in extracted_data and extracted_data[field]:
+            date_value = str(extracted_data[field]).strip()
+            if not date_value or date_value.lower() in ['', 'null', 'none', 'n/a']:
+                extracted_data[field] = ""
+                continue
+            
+            logger.info(f"🗓️ Standardizing {field}: '{date_value}'")
+            
+            # Pattern 1: Extract DD/MM/YYYY from parentheses like "February 14, 1983 (14/02/1983)"
+            parentheses_pattern = r'\((\d{1,2}\/\d{1,2}\/\d{4})\)'
+            parentheses_match = re.search(parentheses_pattern, date_value)
+            if parentheses_match:
+                clean_date = parentheses_match.group(1)
+                # Ensure DD/MM/YYYY format with zero padding
+                parts = clean_date.split('/')
+                if len(parts) == 3:
+                    day, month, year = parts
+                    standardized_date = f"{day.zfill(2)}/{month.zfill(2)}/{year}"
+                    extracted_data[field] = standardized_date
+                    logger.info(f"   ✅ Extracted from parentheses: '{standardized_date}'")
+                    continue
+            
+            # Pattern 2: Direct DD/MM/YYYY format (already correct)
+            ddmm_pattern = r'^(\d{1,2})\/(\d{1,2})\/(\d{4})$'
+            ddmm_match = re.match(ddmm_pattern, date_value)
+            if ddmm_match:
+                day, month, year = ddmm_match.groups()
+                standardized_date = f"{day.zfill(2)}/{month.zfill(2)}/{year}"
+                extracted_data[field] = standardized_date
+                logger.info(f"   ✅ Already in DD/MM/YYYY format: '{standardized_date}'")
+                continue
+            
+            # Pattern 3: Convert verbose month names like "February 14, 1983" or "14 February 1983"
+            # Handle patterns like "14 Feb 1983", "Feb 14, 1983", "14-Feb-1983"
+            verbose_patterns = [
+                r'(\d{1,2})\s+(?:Jan|January)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Feb|February)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Mar|March)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Apr|April)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:May)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Jun|June)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Jul|July)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Aug|August)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Sep|September)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Oct|October)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Nov|November)\s+(\d{4})',
+                r'(\d{1,2})\s+(?:Dec|December)\s+(\d{4})',
+                r'(?:Jan|January)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Feb|February)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Mar|March)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Apr|April)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:May)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Jun|June)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Jul|July)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Aug|August)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Sep|September)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Oct|October)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Nov|November)\s+(\d{1,2}),?\s+(\d{4})',
+                r'(?:Dec|December)\s+(\d{1,2}),?\s+(\d{4})'
+            ]
+            
+            month_mapping = {
+                'jan': '01', 'january': '01', 'feb': '02', 'february': '02',
+                'mar': '03', 'march': '03', 'apr': '04', 'april': '04',
+                'may': '05', 'jun': '06', 'june': '06', 'jul': '07', 'july': '07',
+                'aug': '08', 'august': '08', 'sep': '09', 'september': '09',
+                'oct': '10', 'october': '10', 'nov': '11', 'november': '11',
+                'dec': '12', 'december': '12'
+            }
+            
+            # Try to parse with Python datetime for complex formats
+            try:
+                # Common verbose formats to try
+                format_patterns = [
+                    "%B %d, %Y",      # February 14, 1983
+                    "%d %B %Y",       # 14 February 1983
+                    "%B %d %Y",       # February 14 1983
+                    "%d-%b-%Y",       # 14-Feb-1983
+                    "%d %b %Y",       # 14 Feb 1983
+                    "%b %d, %Y",      # Feb 14, 1983
+                    "%b %d %Y",       # Feb 14 1983
+                ]
+                
+                for fmt in format_patterns:
+                    try:
+                        parsed_date = datetime.strptime(date_value, fmt)
+                        standardized_date = f"{parsed_date.day:02d}/{parsed_date.month:02d}/{parsed_date.year}"
+                        extracted_data[field] = standardized_date
+                        logger.info(f"   ✅ Parsed verbose format to DD/MM/YYYY: '{standardized_date}'")
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    # If no format worked, keep original value but log warning
+                    logger.warning(f"   ⚠️ Could not standardize date format: '{date_value}' - keeping original")
+                    
+            except Exception as e:
+                logger.warning(f"   ⚠️ Date parsing error for '{date_value}': {e} - keeping original")
+    
+    return extracted_data
+
 def validate_maritime_document_fields(extracted_data: dict, document_type: str) -> dict:
     """Validate extracted fields based on document type"""
     
