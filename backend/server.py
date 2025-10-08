@@ -10415,8 +10415,8 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
                 # Pattern 1: Names found in summary with common Vietnamese surnames
                 r'Names found:\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*)+)',
                 
-                # Pattern 2: Common Vietnamese surnames followed by given names
-                r'\b((?:NGUYEN|NGO|TRAN|LE|PHAM|HOANG|HO|VU|DANG|BUI|DO|DUONG|LY|TRINH|NONG|TRUONG)\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*)*)\b',
+                # Pattern 2: Common Vietnamese surnames (including VU/VŨ) followed by given names
+                r'\b((?:NGUYEN|NGO|TRAN|LE|PHAM|HOANG|HO|VU|VŨ|DANG|BUI|DO|DUONG|LY|TRINH|NONG|TRUONG)\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ][A-Za-zàáạảãâầấậẩẫăằắặẳẵđèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ][A-Za-zàáạảãâầấậẩẫăằắặẳẵđèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]*)*)\b',
                 
                 # Pattern 3: Vietnamese name structure (2-4 words)
                 r'\b([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]{2,}\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
