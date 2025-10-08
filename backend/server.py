@@ -56,8 +56,9 @@ logger = logging.getLogger(__name__)
 def get_emergent_llm_key():
     """Get Emergent LLM key for AI integrations"""
     try:
-        from emergentintegrations import get_universal_key
-        return get_universal_key()
+        # Use the emergent_integrations_manager tool result
+        # This is a workaround since emergentintegrations package is empty
+        return "sk-emergent-eEe35Fb1b449940199"  # From emergent_integrations_manager tool
     except Exception as e:
         logger.error(f"Failed to get Emergent LLM key: {e}")
         return None
