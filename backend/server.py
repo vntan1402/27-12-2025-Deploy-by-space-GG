@@ -10449,6 +10449,9 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                         logger.info("🔄 Attempting manual field extraction as fallback...")
                         fallback_data = extract_fields_manually_from_response(content, document_type)
                         if fallback_data:
+                            # Standardize dates for passport documents
+                            if document_type == "passport":
+                                fallback_data = standardize_passport_dates(fallback_data)
                             logger.info("✅ Manual extraction successful")
                             return fallback_data
                         return {}
