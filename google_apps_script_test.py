@@ -428,6 +428,11 @@ The file should be uploaded to Google Drive and a summary should be created.
                             self.gas_tests['parent_folder_id_sent'] = True
                             self.log("   ✅ Parent folder ID sent to Apps Script")
                         
+                        # Check for Apps Script payload indicators
+                        if 'upload_result' in response_str and 'success' in response_str:
+                            self.gas_tests['apps_script_payload_correct'] = True
+                            self.log("   ✅ Apps Script payload appears correct")
+                        
                         # Look for success indicators
                         if 'success' in response_str and 'true' in response_str:
                             self.gas_tests['file_upload_success_logged'] = True
