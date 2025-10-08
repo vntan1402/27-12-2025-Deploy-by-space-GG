@@ -88,7 +88,7 @@ class PassportExtractionDebugTester:
                 "password": TEST_PASSWORD
             }
             
-            response = requests.post(f"{BACKEND_URL}/login", json=login_data)
+            response = requests.post(f"{BACKEND_URL}/auth/login", json=login_data)
             
             if response.status_code == 200:
                 data = response.json()
