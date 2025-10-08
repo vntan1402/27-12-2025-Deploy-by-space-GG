@@ -441,6 +441,75 @@ class PassportExtractionDebugTester:
         except Exception as e:
             self.log_result("Extracted Data Analysis", False, "", str(e))
 
+    def analyze_extraction_issues(self, extracted_data):
+        """Analyze the extraction issues based on the decoded summary"""
+        try:
+            print("🔍 EXTRACTION ISSUES ANALYSIS:")
+            print("=" * 60)
+            
+            # Based on the decoded summary we saw in the logs, we know:
+            # - Full Name: "of the provided" (WRONG - should be actual Vietnamese name)
+            # - Sex: N/A (MISSING)
+            # - Date Of Birth: "14/02/1983" (CORRECT)
+            # - Place Of Birth: N/A (MISSING)
+            # - Passport Number: "C1571189" (CORRECT)
+            # - Nationality: "Vietnamese" (CORRECT)
+            # - Issue Date: N/A (MISSING)
+            # - Expiry Date: N/A (MISSING)
+            
+            print("❌ CRITICAL ISSUE: Full Name Extraction")
+            print(f"   Current extraction: '{extracted_data.get('full_name', '')}'")
+            print("   Problem: This appears to be extracting part of a system message")
+            print("   Expected: Should extract the actual Vietnamese person's name from the passport")
+            print("   Root Cause: The AI prompt or extraction logic is picking up system text instead of passport content")
+            print()
+            
+            print("❌ MISSING FIELDS:")
+            missing_fields = []
+            if not extracted_data.get('sex'):
+                missing_fields.append("sex (should detect Nam/Male or Nữ/Female)")
+            if not extracted_data.get('place_of_birth'):
+                missing_fields.append("place_of_birth (should detect Vietnamese city/province)")
+            if not extracted_data.get('issue_date'):
+                missing_fields.append("issue_date (should detect passport issue date)")
+            if not extracted_data.get('expiry_date'):
+                missing_fields.append("expiry_date (should detect passport expiry date)")
+            
+            for field in missing_fields:
+                print(f"   - {field}")
+            print()
+            
+            print("✅ WORKING FIELDS:")
+            working_fields = []
+            if extracted_data.get('passport_number') == "C1571189":
+                working_fields.append("passport_number: C1571189")
+            if extracted_data.get('date_of_birth') == "14/02/1983":
+                working_fields.append("date_of_birth: 14/02/1983")
+            if extracted_data.get('nationality') == "Vietnamese":
+                working_fields.append("nationality: Vietnamese")
+            
+            for field in working_fields:
+                print(f"   - {field}")
+            print()
+            
+            print("💡 RECOMMENDED FIXES:")
+            print("   1. Fix AI prompt to avoid extracting system messages for full_name")
+            print("   2. Improve Vietnamese text recognition for names")
+            print("   3. Add specific patterns for Vietnamese sex indicators (Nam/Nữ)")
+            print("   4. Enhance place name recognition for Vietnamese cities/provinces")
+            print("   5. Improve date parsing to distinguish issue vs expiry dates")
+            print("   6. Review Document AI processor configuration for Vietnamese documents")
+            print()
+            
+            self.log_result(
+                "Extraction Issues Analysis",
+                True,
+                f"Identified critical name extraction issue and {len(missing_fields)} missing fields"
+            )
+            
+        except Exception as e:
+            self.log_result("Extraction Issues Analysis", False, "", str(e))
+
     def compare_summary_vs_extraction(self, summary_text, extracted_data):
         """Compare what's in the summary vs what was extracted"""
         try:
