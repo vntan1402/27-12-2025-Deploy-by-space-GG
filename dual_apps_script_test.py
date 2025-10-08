@@ -225,7 +225,7 @@ class DualAppsScriptTester:
             
             # Prepare multipart form data
             files = {
-                'passport_file': ('PASS PORT Tran Trong Toan.pdf', self.test_passport_content, 'application/pdf')
+                'passport_file': ('PASS PORT Tran Trong Toan.png', self.test_passport_content, 'image/png')
             }
             
             data = {
