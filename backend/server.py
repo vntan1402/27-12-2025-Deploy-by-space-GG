@@ -10410,38 +10410,61 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
         
         # Extract patterns from summary
         if document_type == "passport":
-            # Enhanced Vietnamese name extraction - avoid system text
+            # Enhanced Vietnamese name extraction with comprehensive patterns
             name_patterns = [
-                # Look for Names found: pattern but exclude system text
-                r'Names found:\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]*\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]*\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]*)',
-                # Look for actual Vietnamese name patterns in content
-                r'\b([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
-                # Vietnamese name with specific patterns
-                r'\b(NGUYEN\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
-                r'\b(TRAN\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
-                r'\b(LE\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][a-zàáạảãâầấậẩẫăằắặẳẵ]+)\b'
+                # Pattern 1: Names found in summary with common Vietnamese surnames
+                r'Names found:\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*)+)',
+                
+                # Pattern 2: Common Vietnamese surnames followed by given names
+                r'\b((?:NGUYEN|NGO|TRAN|LE|PHAM|HOANG|HO|VU|DANG|BUI|DO|DUONG|LY|TRINH|NONG|TRUONG)\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*)*)\b',
+                
+                # Pattern 3: Vietnamese name structure (2-4 words)
+                r'\b([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]{2,}\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]+\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]+)\b',
+                
+                # Pattern 4: Look for actual names in raw content (avoiding system text)
+                r'([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]{2,}(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]{2,}){1,3})'
             ]
             
-            for pattern in name_patterns:
-                matches = re.findall(pattern, summary_text, re.IGNORECASE)
+            exclude_terms = [
+                "document", "processing", "summary", "analysis", "extraction", 
+                "content", "text", "information", "maritime", "passport", 
+                "certificate", "field", "data", "status", "service", "method",
+                "ai", "system", "version", "api", "response", "request",
+                "pdf", "jpg", "jpeg", "png", "file", "upload", "download",
+                "success", "error", "fail", "complete", "started", "finished"
+            ]
+            
+            # Try each pattern and validate results
+            for i, pattern in enumerate(name_patterns):
+                logger.info(f"   Trying name pattern {i+1}: {pattern}")
+                matches = re.findall(pattern, summary_text, re.IGNORECASE | re.MULTILINE)
+                
                 if matches:
+                    logger.info(f"   Found {len(matches)} potential names: {matches}")
+                    
                     for match in matches:
-                        # Filter out system text
-                        if isinstance(match, tuple):
-                            candidate = match[0] if match[0] else match[1] if len(match) > 1 else ""
-                        else:
-                            candidate = match
+                        # Handle tuple results from groups
+                        candidate = match if isinstance(match, str) else match[0] if match else ""
+                        candidate = candidate.strip()
                         
-                        # Exclude system messages
-                        exclude_terms = [
-                            "document processing", "summary", "analysis", "extraction", 
-                            "content", "processing", "text", "information", "maritime",
-                            "passport", "certificate", "field", "data"
-                        ]
-                        
-                        if candidate and not any(term in candidate.lower() for term in exclude_terms):
-                            result["full_name"] = candidate.strip()
-                            logger.info(f"   Found valid name: {result['full_name']}")
+                        # Skip empty or too short
+                        if not candidate or len(candidate) < 6:
+                            continue
+                            
+                        # Check against exclude terms
+                        if any(term in candidate.lower() for term in exclude_terms):
+                            logger.info(f"   Excluded: {candidate} (contains system term)")
+                            continue
+                            
+                        # Must have at least 2 words
+                        words = candidate.split()
+                        if len(words) < 2:
+                            continue
+                            
+                        # Validate Vietnamese name structure
+                        if len(words) >= 2 and all(len(word) >= 2 for word in words):
+                            result["full_name"] = candidate.upper()  # Standardize to uppercase
+                            logger.info(f"   ✅ Found valid Vietnamese name: {result['full_name']}")
                             break
                     
                     if result["full_name"]:
