@@ -295,8 +295,7 @@ class AddCrewPassportTester:
             
             # Create a simple PDF-like content for testing
             # In a real scenario, we would use the actual "PASS PORT Tran Trong Toan.pdf" file
-            test_content = b"""
-%PDF-1.4
+            test_content = b"""%PDF-1.4
 1 0 obj
 <<
 /Type /Catalog
@@ -331,13 +330,13 @@ BT
 100 700 Td
 (PASSPORT) Tj
 100 680 Td
-(Full Name: XUẤT NHẬP CẢNH) Tj
+(Full Name: XUAT NHAP CANH) Tj
 100 660 Td
 (Passport No: C9329057) Tj
 100 640 Td
 (Date of Birth: 17/01/1987) Tj
 100 620 Td
-(Place of Birth: Hải Phòng) Tj
+(Place of Birth: Hai Phong) Tj
 100 600 Td
 (Sex: M) Tj
 100 580 Td
