@@ -78,27 +78,37 @@ DOCUMENT TYPE: {document_type.upper()}
     
     if document_type == "passport":
         return base_prompt + """
-TASK: Extract passport information. Return ONLY a JSON object with these exact field names:
+TASK: Extract passport information from the summary above. Look carefully for Vietnamese names, passport numbers, dates, and personal details.
+
+IMPORTANT EXTRACTION GUIDELINES:
+- Look for Vietnamese names (usually 2-4 words like "NGUYEN VAN MINH")
+- Passport numbers are usually format like "C1234567" or "B1234567" 
+- Dates may be in various formats: DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY
+- Sex indicators: "Nam/Male" = M, "Nữ/Female" = F
+- Nationality: Look for "Việt Nam", "Vietnamese", "VN"
+- Places: Vietnamese city names like "Hồ Chí Minh", "Hà Nội", etc.
+
+SPECIFIC PATTERNS TO LOOK FOR:
+- Names found: [look for actual Vietnamese names, not "Document Processing Summary"]
+- Document numbers: [passport numbers starting with letters]
+- Dates found: [birth dates, issue dates, expiry dates]
+- Nationality information: [Vietnamese citizenship indicators]
+
+Return ONLY a JSON object with these exact field names:
 
 {
-  "full_name": "extracted full name or empty string",
+  "full_name": "extracted Vietnamese full name (NOT Document Processing Summary)",
   "sex": "M or F or empty string", 
   "date_of_birth": "DD/MM/YYYY format or empty string",
-  "place_of_birth": "place of birth or empty string",
-  "passport_number": "passport number or empty string",
-  "nationality": "nationality or empty string", 
+  "place_of_birth": "Vietnamese place name or empty string",
+  "passport_number": "passport number like C1571189 or empty string",
+  "nationality": "Vietnamese or nationality found or empty string", 
   "issue_date": "DD/MM/YYYY format or empty string",
   "expiry_date": "DD/MM/YYYY format or empty string",
   "confidence_score": 0.0 to 1.0
 }
 
-EXTRACTION RULES:
-1. Only extract information clearly stated in the summary
-2. Use DD/MM/YYYY format for all dates
-3. For sex, use only "M" for Male or "F" for Female
-4. Set confidence_score based on information clarity (0.0 = no info, 1.0 = very clear)
-5. If a field cannot be determined, use empty string ""
-6. Return ONLY the JSON object, no other text
+CRITICAL: Do NOT extract system messages like "Document Processing Summary" as names. Only extract actual Vietnamese person names.
 
 JSON:"""
     
