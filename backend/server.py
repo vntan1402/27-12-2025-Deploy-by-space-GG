@@ -10470,18 +10470,25 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
                     if result["full_name"]:
                         break
             
-            # Look for passport numbers
+            # Enhanced passport number extraction
             passport_patterns = [
                 r'Document numbers:\s*([A-Z]\d{7,8})',
-                r'\b([A-Z]\d{7,8})\b'
+                r'Passport.*?([A-Z]\d{7,8})',
+                r'\b([A-Z]\d{7,8})\b',
+                r'([A-Z]\d{7,8})'  # Simple fallback
             ]
             
             for pattern in passport_patterns:
-                match = re.search(pattern, summary_text)
-                if match:
-                    result["passport_number"] = match.group(1)
-                    logger.info(f"   Found passport: {result['passport_number']}")
-                    break
+                matches = re.findall(pattern, summary_text, re.IGNORECASE)
+                if matches:
+                    # Take the first valid passport number
+                    for passport_num in matches:
+                        if re.match(r'^[A-Z]\d{7,8}$', passport_num):
+                            result["passport_number"] = passport_num.upper()
+                            logger.info(f"   Found passport number: {result['passport_number']}")
+                            break
+                    if result["passport_number"]:
+                        break
             
             # Look for dates
             date_patterns = [
