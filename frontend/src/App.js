@@ -3519,9 +3519,6 @@ const HomePage = () => {
       { key: 'other_documents', name: language === 'vi' ? 'Hồ sơ khác' : 'Other Documents' },
     ],
     crew: [
-      { key: 'crew_list', name: language === 'vi' ? 'Danh sách thuyền viên' : 'Crew List' },
-      { key: 'crew_certificates', name: language === 'vi' ? 'Chứng chỉ thuyền viên' : 'Crew Certificates' },
-      { key: 'medical_records', name: language === 'vi' ? 'Hồ sơ y tế' : 'Medical Records' },
     ],
     ism: [
       { key: 'ism_certificate', name: language === 'vi' ? 'Chứng chỉ ISM' : 'ISM Certificate' },
