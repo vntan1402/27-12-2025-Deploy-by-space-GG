@@ -253,8 +253,9 @@ class GoogleAppsScriptTester:
                 self.log(f"   POST {endpoint} (to trigger folder ID lookup)")
                 
                 with open(temp_file_path, 'rb') as f:
-                    files = {'file': ('test_passport_folder_id.txt', f, 'text/plain')}
-                    response = requests.post(endpoint, files=files, headers=self.get_headers(), timeout=60)
+                    files = {'passport_file': ('test_passport_folder_id.txt', f, 'text/plain')}
+                    data = {'ship_name': 'BROTHER 36'}  # Required ship_name parameter
+                    response = requests.post(endpoint, files=files, data=data, headers=self.get_headers(), timeout=60)
                 
                 self.log(f"   Response status: {response.status_code}")
                 
