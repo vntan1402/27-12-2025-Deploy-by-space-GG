@@ -10928,15 +10928,14 @@ This summary was generated using Google Document AI for crew management purposes
             base_name = filename.rsplit('.', 1)[0]  # Remove extension
             summary_filename = f"{base_name}_Summary.txt"
             
-            # 3. Save summary to SUMMARY folder
-            logger.info(f"📋 Saving summary to Google Drive: SUMMARY/{summary_filename}")
+            # 3. Save summary to SUMMARY folder (Backend Direct Upload)
+            logger.info(f"📋 Backend uploading summary to Company Drive: SUMMARY/{summary_filename}")
             
-            summary_upload_result = await google_drive_manager.upload_file_with_folder_creation(
+            summary_upload_result = company_drive_manager.upload_file(
                 file_content=summary_content.encode('utf-8'),
                 filename=summary_filename,
                 folder_path="SUMMARY",
-                content_type='text/plain',
-                company_id=company_uuid
+                content_type='text/plain'
             )
             
             logger.info("✅ Passport analysis and file uploads completed successfully")
