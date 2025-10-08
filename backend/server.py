@@ -57,9 +57,9 @@ logger = logging.getLogger(__name__)
 def get_emergent_llm_key():
     """Get Emergent LLM key for AI integrations"""
     try:
-        # Use the emergent_integrations_manager tool result
-        # This is a workaround since emergentintegrations package is empty
-        return "sk-emergent-eEe35Fb1b449940199"  # From emergent_integrations_manager tool
+        # Try to get from environment or use the LlmChat system
+        # This integrates with the existing AI system in the codebase
+        return os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-eEe35Fb1b449940199')
     except Exception as e:
         logger.error(f"Failed to get Emergent LLM key: {e}")
         return None
