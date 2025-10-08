@@ -388,7 +388,16 @@ The file should be uploaded to Google Drive and a summary should be created.
                 if response.status_code in [200, 400, 422]:  # 400/422 expected for text files
                     try:
                         response_data = response.json()
-                        self.log(f"   Response received: {json.dumps(response_data, indent=2)[:500]}...")
+                        self.log(f"   Response received: {json.dumps(response_data, indent=2)[:1000]}...")
+                        
+                        # Log the full response for detailed analysis
+                        if 'files' in response_data:
+                            files_info = response_data['files']
+                            self.log(f"   📁 Files uploaded: {json.dumps(files_info, indent=2)}")
+                        
+                        if 'analysis' in response_data:
+                            analysis_info = response_data['analysis']
+                            self.log(f"   🔍 Analysis result: {json.dumps(analysis_info, indent=2)}")
                         
                         # Check for file upload success indicators
                         response_str = json.dumps(response_data).lower()
