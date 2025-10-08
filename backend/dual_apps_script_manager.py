@@ -286,6 +286,9 @@ class DualAppsScriptManager:
     
     async def test_both_apps_scripts(self) -> Dict[str, Any]:
         """Test connectivity to both Apps Scripts"""
+        # Load configuration first
+        await self._load_configuration()
+        
         results = {}
         
         # Test System Apps Script
