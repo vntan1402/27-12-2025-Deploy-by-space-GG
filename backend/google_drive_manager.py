@@ -638,8 +638,20 @@ class GoogleDriveManager:
                 category = path_parts[-1]
                 parent_category = path_parts[-2] if len(path_parts) > 2 else None
             
+            # Get company Google Drive configuration to get parent folder ID
+            from mongodb_database import mongo_db
+            gdrive_config = await mongo_db.find_one(
+                "company_gdrive_config", 
+                {"company_id": company_id}
+            )
+            
+            parent_folder_id = None
+            if gdrive_config:
+                parent_folder_id = gdrive_config.get("folder_id")
+            
             payload = {
                 "action": "upload_file",
+                "parent_folder_id": parent_folder_id,
                 "ship_name": ship_name,
                 "parent_category": parent_category,
                 "category": category,
