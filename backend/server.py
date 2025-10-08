@@ -238,45 +238,7 @@ def standardize_passport_dates(extracted_data: dict) -> dict:
                 logger.info(f"   ✅ Already in DD/MM/YYYY format: '{standardized_date}'")
                 continue
             
-            # Pattern 3: Convert verbose month names like "February 14, 1983" or "14 February 1983"
-            # Handle patterns like "14 Feb 1983", "Feb 14, 1983", "14-Feb-1983"
-            verbose_patterns = [
-                r'(\d{1,2})\s+(?:Jan|January)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Feb|February)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Mar|March)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Apr|April)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:May)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Jun|June)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Jul|July)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Aug|August)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Sep|September)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Oct|October)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Nov|November)\s+(\d{4})',
-                r'(\d{1,2})\s+(?:Dec|December)\s+(\d{4})',
-                r'(?:Jan|January)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Feb|February)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Mar|March)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Apr|April)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:May)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Jun|June)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Jul|July)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Aug|August)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Sep|September)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Oct|October)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Nov|November)\s+(\d{1,2}),?\s+(\d{4})',
-                r'(?:Dec|December)\s+(\d{1,2}),?\s+(\d{4})'
-            ]
-            
-            month_mapping = {
-                'jan': '01', 'january': '01', 'feb': '02', 'february': '02',
-                'mar': '03', 'march': '03', 'apr': '04', 'april': '04',
-                'may': '05', 'jun': '06', 'june': '06', 'jul': '07', 'july': '07',
-                'aug': '08', 'august': '08', 'sep': '09', 'september': '09',
-                'oct': '10', 'october': '10', 'nov': '11', 'november': '11',
-                'dec': '12', 'december': '12'
-            }
-            
-            # Try to parse with Python datetime for complex formats
+            # Pattern 3: Convert verbose month names using Python datetime for complex formats
             try:
                 # Common verbose formats to try
                 format_patterns = [
