@@ -623,7 +623,7 @@ class GoogleDriveManager:
             # Parse folder path
             path_parts = folder_path.split('/')
             if len(path_parts) == 2:
-                # Ship-specific folder like "BROTHER 36/Crewlist"
+                # Ship-specific folder like "BROTHER 36/Crew record"
                 ship_name = path_parts[0]
                 category = path_parts[1]
                 parent_category = None
