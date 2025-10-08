@@ -10412,8 +10412,13 @@ def extract_basic_info_from_summary(summary_text: str, document_type: str) -> di
         if document_type == "passport":
             # Enhanced Vietnamese name extraction with comprehensive patterns
             name_patterns = [
-                # Pattern 1: Names found in summary with common Vietnamese surnames
-                r'Names found:\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ][A-Za-zàáạảãâầấậẩẫăằắặẳẵ]*)+)',
+                # Pattern 0: Direct search for the name from summary (VŨ NGỌC TÂN)
+                r'holder\'s full name is "([^"]+)"',
+                r'full name is "([^"]+)"',
+                r'name is "([^"]+)"',
+                
+                # Pattern 1: Names found in summary with common Vietnamese surnames  
+                r'Names found:\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ][A-Za-zàáạảãâầấậẩẫăằắặẳẵđèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ][A-Za-zàáạảãâầấậẩẫăằắặẳẵđèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]*)+)',
                 
                 # Pattern 2: Common Vietnamese surnames (including VU/VŨ) followed by given names
                 r'\b((?:NGUYEN|NGO|TRAN|LE|PHAM|HOANG|HO|VU|VŨ|DANG|BUI|DO|DUONG|LY|TRINH|NONG|TRUONG)\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ][A-Za-zàáạảãâầấậẩẫăằắặẳẵđèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]*(?:\s+[A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴĐÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸ][A-Za-zàáạảãâầấậẩẫăằắặẳẵđèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]*)*)\b',
