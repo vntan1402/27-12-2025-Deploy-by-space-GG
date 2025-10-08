@@ -10288,8 +10288,8 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                 )
             )
             
-            if response and response.get('content'):
-                content = response['content'].strip()
+            if response and response.text:
+                content = response.text.strip()
                 logger.info(f"🤖 {document_type.upper()} extraction response: {content[:200]}...")
                 
                 # Try to parse JSON response
