@@ -13206,9 +13206,6 @@ const AddRecordModal = ({
           { key: 'other_documents', name: 'Other Documents' },
         ],
         crew: [
-          { key: 'crew_list', name: 'Crew List' },
-          { key: 'crew_certificates', name: 'Crew Certificates' },
-          { key: 'medical_records', name: 'Medical Records' },
         ],
         ism: [
           { key: 'ism_certificate', name: 'ISM Certificate' },
