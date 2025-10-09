@@ -181,25 +181,32 @@ class PassportWorkflowTester:
             self.log(f"❌ Error finding ship: {str(e)}", "ERROR")
             return False
     
-    def create_test_passport_file(self):
-        """Create a test passport file for upload"""
+    def verify_real_passport_file(self):
+        """Verify the real passport file exists and is valid"""
         try:
-            # Create a simple test file with realistic content
-            test_content = b"""Test passport file content for folder structure testing.
-This simulates a passport image file that would be processed by Document AI.
-Ship: BROTHER 36
-Test timestamp: """ + str(time.time()).encode()
+            passport_file = "/app/3_2O_THUONG_PP.pdf"
             
-            self.test_filename = f"test_passport_folder_structure_{int(time.time())}.jpg"
+            if not os.path.exists(passport_file):
+                self.log(f"❌ Real passport file not found: {passport_file}", "ERROR")
+                return None
             
-            with open(self.test_filename, "wb") as f:
-                f.write(test_content)
+            file_size = os.path.getsize(passport_file)
+            self.log(f"✅ Real passport file found: {passport_file}")
+            self.log(f"   File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
             
-            self.log(f"✅ Created test passport file: {self.test_filename} ({len(test_content)} bytes)")
-            return self.test_filename
-            
+            # Check if it's a PDF file
+            with open(passport_file, 'rb') as f:
+                header = f.read(8)
+                if header.startswith(b'%PDF'):
+                    self.log("✅ File is a valid PDF")
+                    self.test_filename = "3_2O_THUONG_PP.pdf"
+                    return passport_file
+                else:
+                    self.log("❌ File is not a valid PDF", "ERROR")
+                    return None
+                    
         except Exception as e:
-            self.log(f"❌ Error creating test file: {str(e)}", "ERROR")
+            self.log(f"❌ Error verifying real passport file: {str(e)}", "ERROR")
             return None
     
     def test_passport_analysis_endpoint(self):
