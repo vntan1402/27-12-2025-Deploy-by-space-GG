@@ -146,7 +146,11 @@ Return ONLY a valid JSON object with the extracted fields:
 
 CONVERT ALL DATES: If you find "October 10, 1992" convert it to "10/10/1992". If you find "July 15, 2022" convert it to "15/07/2022".
 
-CRITICAL: Extract ONLY passport holder's personal information, NOT government agency names.
+CRITICAL FILTERING RULES:
+- NEVER extract document formatting phrases like "EACH STARTING WITH"
+- NEVER extract document structure descriptions  
+- ONLY extract actual passport holder personal data
+- If unsure about a name, look for context clues like "passport holder", "citizen", "belongs to"
 
 JSON:"""
     
