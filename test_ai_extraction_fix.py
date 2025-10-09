@@ -87,6 +87,17 @@ async def test_ai_extraction():
             
             print(f"📝 AI response preview: {content[:200]}...")
             
+            # Clean up response to extract JSON (same logic as server.py)
+            print("🧹 Cleaning JSON response...")
+            if "```json" in content:
+                print("   Found ```json markers, extracting...")
+                content = content.split("```json")[1].split("```")[0].strip()
+                print(f"   Cleaned content: {content[:100]}...")
+            elif "```" in content:
+                print("   Found ``` markers, extracting...")
+                content = content.split("```")[1].split("```")[0].strip()
+                print(f"   Cleaned content: {content[:100]}...")
+            
             # Try to parse JSON
             try:
                 extracted_data = json.loads(content)
@@ -95,7 +106,7 @@ async def test_ai_extraction():
                 return extracted_data
             except json.JSONDecodeError as json_error:
                 print(f"❌ JSON parsing failed: {json_error}")
-                print(f"Raw content: {content}")
+                print(f"Raw content (first 200 chars): {content[:200]}")
                 return None
                 
         else:
