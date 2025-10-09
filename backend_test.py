@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Crew Management Backend API Testing
-FOCUS: Test the newly implemented Crew Management System backend APIs
+Add Crew From Passport Workflow - Backend Testing
+FOCUS: Test the updated "Add Crew From Passport" workflow with final folder structure
 
 REVIEW REQUEST REQUIREMENTS:
-Test the newly implemented Crew Management System backend APIs with 5 endpoints:
+Test the updated "Add Crew From Passport" workflow with the final folder structure:
 
-1. POST /api/crew - Create new crew member
-2. GET /api/crew - Get crew members list  
-3. GET /api/crew/{crew_id} - Get specific crew member
-4. PUT /api/crew/{crew_id} - Update crew member
-5. DELETE /api/crew/{crew_id} - Delete crew member
+POST to /api/crew/analyze-passport with a passport file
 
-VALIDATION TESTS:
-- Required fields: full_name, sex, date_of_birth, place_of_birth, passport
-- Duplicate passport number validation
-- Date format handling (ISO datetime)
-- Permission checks (manager+ for create/update, admin+ for delete)
+The workflow should now create exactly:
+1. Passport file: `[Ship Name]/Crew Records/[filename].jpg`
+2. Summary file: `SUMMARY/Crew Records/[filename]_Summary.txt`
 
-DATABASE VERIFICATION:
-- Check that crew data is properly stored in MongoDB "crew_members" collection
-- Verify audit logs are created in "audit_logs" collection
-- Check that company_id is properly associated with crew records
+Key changes to verify:
+- Both passport and summary files go into "Crew Records" subfolder
+- Passport upload: `category: "Crew Records"` under ship name
+- Summary upload: `ship_name: "SUMMARY"` with `category: "Crew Records"`
+- Apps Script handles both cases correctly
+
+Check backend logs for:
+- "Uploading passport file: [Ship Name]/Crew Records/[filename]"
+- "Uploading summary file: SUMMARY/Crew Records/[filename]_Summary.txt"
+- Successful completion of dual Apps Script processing
+- Correct folder structure creation in Google Drive
 """
 
 import requests
