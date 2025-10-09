@@ -10663,18 +10663,25 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
                 # Try to parse JSON
                 try:
                     extracted_data = json.loads(content)
-                    logger.info("✅ ACTUAL AI extraction successful!")
+                    logger.info("✅ System AI extraction successful!")
                     logger.info(f"📋 Extracted fields: {list(extracted_data.keys())}")
                     
-                    # Log critical field values for debugging
-                    if 'full_name' in extracted_data:
-                        logger.info(f"   👤 Full Name: '{extracted_data['full_name']}'")
-                    if 'place_of_birth' in extracted_data:
-                        logger.info(f"   📍 Place of Birth: '{extracted_data['place_of_birth']}'")
-                    if 'passport_number' in extracted_data:
-                        logger.info(f"   📔 Passport Number: '{extracted_data['passport_number']}'")
-                    
-                    return extracted_data
+                    # Convert new structured format to old format for compatibility
+                    if document_type == "passport":
+                        converted_data = convert_structured_passport_fields(extracted_data)
+                        logger.info("🔄 Converted structured fields to compatibility format")
+                        
+                        # Log critical field values for debugging
+                        if 'full_name' in converted_data:
+                            logger.info(f"   👤 Full Name: '{converted_data['full_name']}'")
+                        if 'place_of_birth' in converted_data:
+                            logger.info(f"   📍 Place of Birth: '{converted_data['place_of_birth']}'")
+                        if 'passport_number' in converted_data:
+                            logger.info(f"   📔 Passport Number: '{converted_data['passport_number']}'")
+                        
+                        return converted_data
+                    else:
+                        return extracted_data
                     
                 except json.JSONDecodeError as json_error:
                     logger.error(f"❌ AI response is not valid JSON: {json_error}")
