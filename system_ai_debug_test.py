@@ -208,15 +208,18 @@ class SystemAIDebugTester:
             self.log("Expected: Backend converts to old format (full_name, passport_number, etc.)")
             self.log("=" * 80)
             
-            # Create test file
-            test_file_path = self.create_vietnamese_passport_test_file()
-            if not test_file_path:
+            # Get real passport file
+            passport_file_path = self.get_vietnamese_passport_test_file()
+            if not passport_file_path:
                 return False
             
+            # Get filename for upload
+            filename = os.path.basename(passport_file_path)
+            
             # Prepare multipart form data
-            with open(test_file_path, "rb") as f:
+            with open(passport_file_path, "rb") as f:
                 files = {
-                    "passport_file": ("vietnamese_passport_test.txt", f, "text/plain")
+                    "passport_file": (filename, f, "application/pdf")
                 }
                 data = {
                     "ship_name": self.ship_name
