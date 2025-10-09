@@ -72,6 +72,14 @@ class AppsScriptDebugger:
         """Get Company Apps Script configuration from database"""
         try:
             self.log("🔍 Getting Company Apps Script configuration...")
+            self.log(f"   Looking for company_id: {self.company_id}")
+            
+            # First, let's see what's in the company_gdrive_config collection
+            all_configs = await mongo_db.find_all("company_gdrive_config", {})
+            self.log(f"   Found {len(all_configs)} company configs in database")
+            
+            for config in all_configs:
+                self.log(f"   Config: company_id={config.get('company_id')}, has_url={bool(config.get('company_apps_script_url') or config.get('web_app_url'))}")
             
             # Look for company configuration
             gdrive_config = await mongo_db.find_one(
@@ -89,10 +97,29 @@ class AppsScriptDebugger:
                 return company_apps_script_url, parent_folder_id
             else:
                 self.log("❌ No company Google Drive configuration found", "ERROR")
+                
+                # Try to find by company name instead
+                self.log("   Trying to find by company name...")
+                gdrive_config_by_name = await mongo_db.find_one(
+                    "company_gdrive_config",
+                    {"company_name": self.company_id}
+                )
+                
+                if gdrive_config_by_name:
+                    company_apps_script_url = gdrive_config_by_name.get("company_apps_script_url") or gdrive_config_by_name.get("web_app_url")
+                    parent_folder_id = gdrive_config_by_name.get("parent_folder_id") or gdrive_config_by_name.get("folder_id")
+                    
+                    self.log(f"✅ Found by name - Company Apps Script URL: {company_apps_script_url}")
+                    self.log(f"✅ Found by name - Parent Folder ID: {parent_folder_id}")
+                    
+                    return company_apps_script_url, parent_folder_id
+                
                 return None, None
                 
         except Exception as e:
             self.log(f"❌ Error getting configuration: {e}", "ERROR")
+            import traceback
+            traceback.print_exc()
             return None, None
     
     async def test_company_apps_script_directly(self, apps_script_url, parent_folder_id):
