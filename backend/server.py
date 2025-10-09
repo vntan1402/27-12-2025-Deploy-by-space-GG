@@ -65,110 +65,81 @@ def get_emergent_llm_key():
         return None
 
 def create_maritime_extraction_prompt(summary_text: str, document_type: str) -> str:
-    """Create document type specific extraction prompts"""
+    """Create a prompt for extracting maritime document fields from a summary"""
     
-    base_prompt = f"""
-You are an AI assistant specialized in extracting maritime document information from summaries.
+    if document_type == "passport":
+        prompt = f"""You are an AI specialized in structured information extraction from maritime and identity documents.
+
+Your task:
+Analyze the following text summary of a passport and extract all key passport fields. 
+The text already contains all relevant information about the document, so focus only on extracting and normalizing it into a structured JSON format.
+
+=== INSTRUCTIONS ===
+1. Extract only the passport-related fields listed below.
+2. Return the output strictly in valid JSON format.
+3. If a field is not found, leave it as an empty string "".
+4. Normalize all dates to the ISO format "YYYY-MM-DD".
+5. Use uppercase for country codes and names.
+6. Do not infer or fabricate any missing information.
+7. Ensure names are written in correct Vietnamese format (Surname first, Given names after).
+
+=== FIELDS TO EXTRACT ===
+{{
+  "Passport_Number": "",
+  "Type": "",
+  "Issuing_Country_Code": "",
+  "Country_Name": "",
+  "Surname": "",
+  "Given_Names": "",
+  "Sex": "",
+  "Date_of_Birth": "",
+  "Place_of_Birth": "",
+  "Nationality": "",
+  "Date_of_Issue": "",
+  "Date_of_Expiry": "",
+  "Place_of_Issue": "",
+  "Authority": "",
+  "MRZ_Line_1": "",
+  "MRZ_Line_2": ""
+}}
+
+=== EXAMPLE OUTPUT FORMAT ===
+{{
+  "Passport_Number": "C9575554",
+  "Type": "P",
+  "Issuing_Country_Code": "VNM",
+  "Country_Name": "VIET NAM",
+  "Surname": "TRAN",
+  "Given_Names": "VAN DUC",
+  "Sex": "M",
+  "Date_of_Birth": "1979-02-19",
+  "Place_of_Birth": "NAM DINH",
+  "Nationality": "VIETNAMESE",
+  "Date_of_Issue": "2021-03-02",
+  "Date_of_Expiry": "2031-03-02",
+  "Place_of_Issue": "CUC QUAN LY XUAT NHAP CANH",
+  "Authority": "DEPUTY CHIEF TA THI HUONG GIANG - IMMIGRATION DEPARTMENT",
+  "MRZ_Line_1": "P<VNMTRAN<<VAN<DUC<<<",
+  "MRZ_Line_2": "C9575554<2VNM7902192M3103027162166702<<<<<96"
+}}
+
+=== TEXT INPUT (Passport Summary) ===
+{summary_text}
+
+Return ONLY the JSON output with extracted fields. Do not include any explanations or additional text."""
+        return prompt
+    
+    elif document_type == "seamans_book":
+        return f"""You are an AI assistant specialized in extracting maritime document information from summaries.
 
 DOCUMENT SUMMARY:
 {summary_text}
 
 DOCUMENT TYPE: {document_type.upper()}
-"""
-    
-    if document_type == "passport":
-        return base_prompt + """
-TASK: Extract passport information from the summary. Extract ONLY the passport holder's personal information.
 
-CRITICAL: The document contains formatting text like "each starting with" - this is NOT a person's name. 
-
-STEP-BY-STEP EXTRACTION:
-
-1. **FIND THE ACTUAL NAME**: Look for the specific line "The passport holder's full name is [NAME]"
-   
-2. **EXAMPLE FROM THIS DOCUMENT**: 
-   Line: "• The passport holder's full name is HỒ SỸ CHƯƠNG."
-   Correct extraction: "HỒ SỸ CHƯƠNG"
-   
-3. **NEVER EXTRACT THESE**:
-   - "each starting with" (this describes bullet point format)
-   - "Immigration Department" (government agency)
-   - "Document Type" (metadata)
-   - Any text that describes the document structure
-
-4. **FULL NAME EXTRACTION**: 
-   - ONLY extract Vietnamese names after "passport holder's full name is"
-   - Vietnamese names typically have 2-4 parts (HỒ SỸ CHƯƠNG, NGUYỄN VĂN AN, etc.)
-   - DO NOT extract formatting descriptions or agency names
-
-2. **PASSPORT NUMBER**: Look for "passport number is [NUMBER]"
-   - Example: "passport number is P00100475" → Extract: "P00100475"
-
-3. **DATE OF BIRTH**: Look for "born on [DATE]" 
-   - Example: "born on October 10, 1992" → Convert to: "10/10/1992"
-
-4. **PLACE OF BIRTH**: Look for "place of birth is [LOCATION]"
-   - Example: "place of birth is Hòa Bình" → Extract: "Hòa Bình"
-
-5. **SEX**: Look for "male" or "female" describing the person
-   - "a male born" → Extract: "M"
-   - "a female born" → Extract: "F"
-
-6. **ISSUE/EXPIRY DATES**: Look for "issued on [DATE]" and "expires on [DATE]"
-   - Convert all dates to DD/MM/YYYY format
-
-EXAMPLES FROM CURRENT SUMMARY FORMAT:
-
-For summary like: "The passport number is P00100475, and it belongs to NGUYỄN NGỌC TÂN, a male born on October 10, 1992"
-
-Extract:
-- full_name: "NGUYỄN NGỌC TÂN" (person's name after "belongs to")
-- passport_number: "P00100475" 
-- date_of_birth: "10/10/1992" (convert "October 10, 1992" to DD/MM/YYYY)
-- sex: "M" (from "a male")
-
-For summary like: "The passport was issued on July 15, 2022, and expires on July 15, 2032"
-
-Extract:
-- issue_date: "15/07/2022" (convert "July 15, 2022" to DD/MM/YYYY) 
-- expiry_date: "15/07/2032" (convert "July 15, 2032" to DD/MM/YYYY)
-
-CRITICAL: Only extract information about the PASSPORT HOLDER (the person), never about government agencies or departments.
-
-Return ONLY a valid JSON object with the extracted fields:
-
-{
-  "full_name": "Full name of passport holder",
-  "passport_number": "Passport number", 
-  "date_of_birth": "DD/MM/YYYY birth date",
-  "place_of_birth": "Place of birth location",
-  "sex": "M or F",
-  "nationality": "Vietnamese", 
-  "issue_date": "DD/MM/YYYY issue date",
-  "expiry_date": "DD/MM/YYYY expiry date",
-  "confidence_score": 0.8
-}
-
-CONVERT ALL DATES: If you find "October 10, 1992" convert it to "10/10/1992". If you find "July 15, 2022" convert it to "15/07/2022".
-
-FINAL EXTRACTION RULE FOR THIS DOCUMENT:
-From line "• The passport holder's full name is HỒ SỸ CHƯƠNG."
-Extract ONLY: "HỒ SỸ CHƯƠNG"
-
-DO NOT EXTRACT:
-- "EACH STARTING WITH" (document formatting)
-- "Immigration Department" (agency name)  
-- Any text describing bullet points or document structure
-
-Focus on extracting the actual Vietnamese person's name that appears after "passport holder's full name is"
-
-JSON:"""
-    
-    elif document_type == "seamans_book":
-        return base_prompt + """
 TASK: Extract seaman's book information. Return ONLY a JSON object:
 
-{
+{{
   "full_name": "seaman full name or empty string",
   "book_number": "seaman book number or empty string",
   "date_of_birth": "DD/MM/YYYY format or empty string",
@@ -179,15 +150,21 @@ TASK: Extract seaman's book information. Return ONLY a JSON object:
   "expiry_date": "DD/MM/YYYY format or empty string",
   "issuing_authority": "issuing authority or empty string",
   "confidence_score": 0.0 to 1.0
-}
+}}
 
 JSON:"""
     
     elif document_type == "certificate":
-        return base_prompt + """
+        return f"""You are an AI assistant specialized in extracting maritime document information from summaries.
+
+DOCUMENT SUMMARY:
+{summary_text}
+
+DOCUMENT TYPE: {document_type.upper()}
+
 TASK: Extract maritime certificate information. Return ONLY a JSON object:
 
-{
+{{
   "certificate_name": "name of certificate or empty string",
   "certificate_number": "certificate number or empty string",
   "holder_name": "certificate holder name or empty string",
@@ -197,15 +174,21 @@ TASK: Extract maritime certificate information. Return ONLY a JSON object:
   "certificate_level": "certificate level/grade or empty string",
   "endorsements": "endorsements or limitations or empty string",
   "confidence_score": 0.0 to 1.0
-}
+}}
 
 JSON:"""
     
     elif document_type == "medical":
-        return base_prompt + """
+        return f"""You are an AI assistant specialized in extracting maritime document information from summaries.
+
+DOCUMENT SUMMARY:
+{summary_text}
+
+DOCUMENT TYPE: {document_type.upper()}
+
 TASK: Extract medical certificate information. Return ONLY a JSON object:
 
-{
+{{
   "patient_name": "patient name or empty string",
   "certificate_number": "medical certificate number or empty string",
   "examination_date": "DD/MM/YYYY format or empty string",
@@ -215,15 +198,21 @@ TASK: Extract medical certificate information. Return ONLY a JSON object:
   "examining_doctor": "doctor name or empty string",
   "medical_facility": "medical facility name or empty string",
   "confidence_score": 0.0 to 1.0
-}
+}}
 
 JSON:"""
     
     else:  # general_maritime
-        return base_prompt + """
+        return f"""You are an AI assistant specialized in extracting maritime document information from summaries.
+
+DOCUMENT SUMMARY:
+{summary_text}
+
+DOCUMENT TYPE: {document_type.upper()}
+
 TASK: Extract general maritime document information. Return ONLY a JSON object:
 
-{
+{{
   "document_name": "document name/title or empty string",
   "document_number": "document number/ID or empty string",
   "holder_name": "document holder name or empty string",
@@ -232,7 +221,7 @@ TASK: Extract general maritime document information. Return ONLY a JSON object:
   "issuing_authority": "issuing authority or empty string",
   "document_type": "type/category of document or empty string",
   "confidence_score": 0.0 to 1.0
-}
+}}
 
 JSON:"""
 
