@@ -10465,18 +10465,9 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
 
         logger.info(f"✅ Extraction prompt created for {document_type}")
         
-        # BYPASS System AI due to persistent "EACH STARTING WITH" bug
-        # Use direct extraction as PRIMARY method for reliable Vietnamese passport processing
-        logger.info("🔄 BYPASSING System AI - Using direct extraction as primary method")
-        logger.info("   Reason: System AI consistently extracts formatting text instead of actual names")
-        
-        # Try direct extraction first (most reliable)
-        direct_data = extract_fields_directly_from_summary_simple(summary_text, document_type)
-        if direct_data and len(direct_data) > 1:
-            if document_type == "passport":
-                direct_data = standardize_passport_dates(direct_data)
-            logger.info("✅ PRIMARY direct extraction successful")
-            return direct_data
+        # Use SYSTEM AI as PRIMARY method with improved structured prompt
+        logger.info("🤖 Using System AI as PRIMARY method with structured prompt")
+        logger.info("   New approach: Structured extraction with clear field definitions and example output")
         
         # Use the configured AI system (same as certificate analysis, ship analysis, etc.)
         if use_emergent_key and ai_provider == "google":
