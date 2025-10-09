@@ -10556,18 +10556,17 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                         clean_content = content.replace('```json', '').replace('```', '').strip()
                         extracted_data = json.loads(clean_content)
                         
-                        # Check for the persistent bug and reject if found
+                        # Process passport documents with structured format conversion
                         if document_type == "passport":
-                            ai_full_name = extracted_data.get('full_name', '')
-                            if 'EACH STARTING WITH' in ai_full_name.upper():
-                                logger.warning("❌ AI still extracting 'EACH STARTING WITH' - rejecting AI result")
-                                # Don't return AI result, fall through to manual extraction
-                            else:
-                                # Standardize dates for passport documents to match certificate handling
-                                extracted_data = standardize_passport_dates(extracted_data)
-                                
-                                # Validate based on document type
-                                validated_data = validate_maritime_document_fields(extracted_data, document_type)
+                            # Convert structured format to old format for compatibility
+                            converted_data = convert_structured_passport_fields(extracted_data)
+                            logger.info("🔄 Converted structured passport fields to compatibility format")
+                            
+                            # Standardize dates for passport documents
+                            converted_data = standardize_passport_dates(converted_data)
+                            
+                            # Validate based on document type
+                            validated_data = validate_maritime_document_fields(converted_data, document_type)
                                 
                                 logger.info(f"✅ FALLBACK AI field extraction successful")
                                 logger.info(f"   Extracted fields: {list(validated_data.keys())}")
