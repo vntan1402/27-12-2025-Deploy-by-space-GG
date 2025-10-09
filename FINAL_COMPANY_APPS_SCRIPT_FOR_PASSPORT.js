@@ -335,22 +335,24 @@ function handleUpload(requestData) {
     var targetFolder;
     var folderPath;
     
-    if (parentCategory) {
+    if (parentCategory && category) {
+      // Create nested folders: Ship/ParentCategory/Category
       targetFolder = createNestedFolders(shipFolder, [parentCategory, category]);
       if (!targetFolder) {
         return createResponse(false, "Failed to create nested folders");
       }
       folderPath = shipName + "/" + parentCategory + "/" + category;
-    } else {
-      var parentCategoryFolder = findFolderByName(shipFolder, "Class & Flag Cert");
-      if (!parentCategoryFolder) {
-        return createResponse(false, "Class & Flag Cert folder not found");
-      }
-      targetFolder = findFolderByName(parentCategoryFolder, category);
+    } else if (category) {
+      // Create single level: Ship/Category (for passport: Ship/Crew Records)
+      targetFolder = createNestedFolders(shipFolder, [category]);
       if (!targetFolder) {
-        return createResponse(false, "Category folder not found: " + category);
+        return createResponse(false, "Failed to create category folder");
       }
-      folderPath = shipName + "/Class & Flag Cert/" + category;
+      folderPath = shipName + "/" + category;
+    } else {
+      // Upload directly to ship folder (for summary: SUMMARY/)
+      targetFolder = shipFolder;
+      folderPath = shipName;
     }
     
     var binaryData = Utilities.base64Decode(fileContent);
