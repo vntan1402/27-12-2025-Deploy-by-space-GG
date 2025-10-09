@@ -84,8 +84,9 @@ def test_passport_extraction():
             
             # Date format check
             date_of_birth = analysis.get('date_of_birth', '')
+            date_pattern = r'^\d{2}/\d{2}/\d{4}$'
             print(f"Date of Birth: '{date_of_birth}'")
-            print(f"   - DD/MM/YYYY format: {bool(re.match(r'^\d{2}/\d{2}/\d{4}$', str(date_of_birth)))}")
+            print(f"   - DD/MM/YYYY format: {bool(re.match(date_pattern, str(date_of_birth)))}")
             
             # Processing method
             processing_method = result.get('processing_method', '')
