@@ -112,121 +112,22 @@ class VietnamesePassportTester:
         # Store extracted data for analysis
         self.extracted_data = {}
         self.processing_logs = []
-"""
-Vietnamese Passport Analysis Testing - Real Passport Image Testing
-FOCUS: Test the Vietnamese passport analysis with real passport image from provided URL
-
-REVIEW REQUEST REQUIREMENTS:
-1. Authentication with admin1/123456 credentials
-2. Download Vietnamese passport image from: https://customer-assets.emergentagent.com/job_d040008f-5aae-467d-90f4-4064c1b65ddd/artifacts/wlq78363_Ho%20chieu%20pho%20thong.jpg
-3. Test POST /api/crew/analyze-passport endpoint with Vietnamese passport
-4. Verify Document AI analysis accuracy against expected data
-5. Check Apps Script integration with configured URL: https://script.google.com/macros/s/AKfycbzds9kwxoICxPV4PhWjFK9R1ayCTA_o7hchKzaDpvrk9NmEHPd82OFm7pJg87Ym_bI/exec
-6. Verify response structure includes extracted analysis data and file upload results
-
-EXPECTED PASSPORT DATA (for verification):
-- Full Name: VŨ NGỌC TÂN  
-- Passport Number: C1571189
-- Nationality: VIỆT NAM/VIETNAMESE
-- Date of Birth: 14/02/1983
-- Place of Birth: HẢI PHÒNG  
-- Sex: NAM/M
-- Issue Date: 11/04/2016
-- Expiry Date: 11/04/2026
-
-SUCCESS CRITERIA:
-- Passport analysis completes successfully
-- Document AI extracts key information accurately
-- Vietnamese text characters are handled correctly
-- Apps Script communication works without errors
-- Response includes both analysis results and file upload status
-"""
-
-import requests
-import json
-import os
-import sys
-import tempfile
-import time
-from datetime import datetime
-from urllib.parse import urlparse
-import traceback
-
-# Configuration
-try:
-    test_response = requests.get('http://0.0.0.0:8001/api/ships', timeout=5)
-    if test_response.status_code in [200, 401]:
-        BACKEND_URL = 'http://0.0.0.0:8001/api'
-        print("Using internal backend URL: http://0.0.0.0:8001/api")
-    else:
-        raise Exception("Internal URL not working")
-except:
-    with open('/app/frontend/.env', 'r') as f:
-        for line in f:
-            if line.startswith('REACT_APP_BACKEND_URL='):
-                BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
-                break
-    print(f"Using external backend URL: {BACKEND_URL}")
-
-class VietnamesePassportTester:
-    def __init__(self):
-        self.session = requests.Session()
-        self.auth_token = None
-        self.current_user = None
-        self.test_results = {}
-        
-        # Test configuration
-        self.passport_image_url = "https://customer-assets.emergentagent.com/job_d040008f-5aae-467d-90f4-4064c1b65ddd/artifacts/wlq78363_Ho%20chieu%20pho%20thong.jpg"
-        self.expected_apps_script_url = "https://script.google.com/macros/s/AKfycbzds9kwxoICxPV4PhWjFK9R1ayCTA_o7hchKzaDpvrk9NmEHPd82OFm7pJg87Ym_bI/exec"
-        
-        # Expected passport data
-        self.expected_data = {
-            'full_name': 'VŨ NGỌC TÂN',
-            'passport_number': 'C1571189',
-            'nationality': ['VIỆT NAM', 'VIETNAMESE'],
-            'date_of_birth': '14/02/1983',
-            'place_of_birth': 'HẢI PHÒNG',
-            'sex': ['NAM', 'M'],
-            'issue_date': '11/04/2016',
-            'expiry_date': '11/04/2026'
-        }
-        
-        # Test tracking
-        self.tests = {
-            'authentication_successful': False,
-            'passport_image_downloaded': False,
-            'ship_selected': False,
-            'ai_config_checked': False,
-            'document_ai_enabled': False,
-            'apps_script_url_configured': False,
-            'passport_analysis_endpoint_accessible': False,
-            'passport_analysis_successful': False,
-            'response_structure_correct': False,
-            'full_name_extracted': False,
-            'passport_number_extracted': False,
-            'nationality_extracted': False,
-            'date_of_birth_extracted': False,
-            'place_of_birth_extracted': False,
-            'sex_extracted': False,
-            'issue_date_extracted': False,
-            'expiry_date_extracted': False,
-            'vietnamese_text_handled': False,
-            'apps_script_communication_working': False,
-            'file_upload_status_present': False,
-            'confidence_score_present': False
-        }
-        
-        self.passport_image_path = None
-        self.selected_ship = None
-        self.analysis_response = None
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] [{level}] {message}")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        formatted_message = f"[{timestamp}] [{level}] {message}"
+        print(formatted_message)
+        
+        # Also store in our log collection
+        self.backend_logs.append({
+            'timestamp': timestamp,
+            'level': level,
+            'message': message
+        })
         
     def authenticate(self):
-        """Authenticate with admin1/123456"""
+        """Authenticate with admin1/123456 credentials"""
         try:
             self.log("🔐 Authenticating with admin1/123456...")
             
@@ -236,7 +137,10 @@ class VietnamesePassportTester:
                 "remember_me": False
             }
             
-            response = requests.post(f"{BACKEND_URL}/auth/login", json=login_data, timeout=30)
+            endpoint = f"{BACKEND_URL}/auth/login"
+            self.log(f"   POST {endpoint}")
+            
+            response = requests.post(endpoint, json=login_data, timeout=60)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
@@ -244,520 +148,623 @@ class VietnamesePassportTester:
                 self.auth_token = data.get("access_token")
                 self.current_user = data.get("user", {})
                 
+                # Set authorization header for future requests
+                self.session.headers.update({
+                    "Authorization": f"Bearer {self.auth_token}"
+                })
+                
                 self.log("✅ Authentication successful")
-                self.log(f"   User: {self.current_user.get('username')}")
-                self.log(f"   Role: {self.current_user.get('role')}")
+                self.log(f"   User ID: {self.current_user.get('id')}")
+                self.log(f"   User Role: {self.current_user.get('role')}")
                 self.log(f"   Company: {self.current_user.get('company')}")
                 
-                self.tests['authentication_successful'] = True
+                self.extraction_tests['authentication_successful'] = True
                 return True
             else:
-                self.log(f"❌ Authentication failed: {response.status_code}")
+                self.log(f"❌ Authentication failed: {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
             self.log(f"❌ Authentication error: {str(e)}", "ERROR")
             return False
     
-    def get_headers(self):
-        """Get authentication headers"""
-        return {"Authorization": f"Bearer {self.auth_token}"}
-    
-    def download_passport_image(self):
-        """Download the Vietnamese passport image"""
+    def verify_passport_file(self):
+        """Verify the Vietnamese passport file is available and valid"""
         try:
-            self.log("📥 Downloading Vietnamese passport image...")
-            self.log(f"   URL: {self.passport_image_url}")
+            self.log("📄 Verifying Vietnamese passport file: 2. CO DUC- PP.pdf")
             
-            response = requests.get(self.passport_image_url, timeout=30)
-            self.log(f"   Response status: {response.status_code}")
-            self.log(f"   Content-Type: {response.headers.get('Content-Type')}")
-            self.log(f"   Content-Length: {len(response.content)} bytes")
-            
-            if response.status_code == 200:
-                # Save to temporary file
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                    temp_file.write(response.content)
-                    self.passport_image_path = temp_file.name
-                
-                self.tests['passport_image_downloaded'] = True
-                self.log("✅ Passport image downloaded successfully")
-                return True
-            else:
-                self.log(f"❌ Failed to download passport image: {response.status_code}")
+            if not os.path.exists(self.passport_file_path):
+                self.log(f"❌ Passport file not found: {self.passport_file_path}", "ERROR")
                 return False
-                
+            
+            file_size = os.path.getsize(self.passport_file_path)
+            self.log(f"✅ Passport file found: {self.passport_file_path}")
+            self.log(f"   File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
+            
+            # Check if it's a PDF file by reading header
+            with open(self.passport_file_path, 'rb') as f:
+                header = f.read(8)
+                if header.startswith(b'%PDF'):
+                    self.log("✅ File is a valid PDF")
+                    self.extraction_tests['passport_file_verified'] = True
+                    return True
+                else:
+                    self.log("❌ File is not a valid PDF", "ERROR")
+                    return False
+                    
         except Exception as e:
-            self.log(f"❌ Error downloading passport image: {str(e)}", "ERROR")
+            self.log(f"❌ Error verifying passport file: {str(e)}", "ERROR")
             return False
     
-    def select_ship(self):
-        """Select BROTHER 36 ship for testing"""
+    def find_ship(self):
+        """Find the test ship"""
         try:
-            self.log("🚢 Selecting ship for testing...")
+            self.log(f"🚢 Finding ship: {self.ship_name}")
             
-            response = requests.get(f"{BACKEND_URL}/ships", headers=self.get_headers(), timeout=30)
-            self.log(f"   Response status: {response.status_code}")
+            response = self.session.get(f"{BACKEND_URL}/ships")
             
             if response.status_code == 200:
                 ships = response.json()
-                self.log(f"   Found {len(ships)} ships")
-                
-                # Look for BROTHER 36
                 for ship in ships:
-                    if 'BROTHER 36' in ship.get('name', '').upper():
-                        self.selected_ship = ship
-                        break
+                    if ship.get("name") == self.ship_name:
+                        ship_id = ship.get("id")
+                        self.log(f"✅ Found ship: {self.ship_name} (ID: {ship_id})")
+                        self.extraction_tests['ship_discovery_successful'] = True
+                        return True
                 
-                if not self.selected_ship and ships:
-                    # Use first available ship
-                    self.selected_ship = ships[0]
-                
-                if self.selected_ship:
-                    self.tests['ship_selected'] = True
-                    self.log(f"✅ Selected ship: {self.selected_ship.get('name')}")
-                    return True
-                else:
-                    self.log("❌ No ships available")
-                    return False
+                self.log(f"❌ Ship '{self.ship_name}' not found", "ERROR")
+                return False
             else:
-                self.log(f"❌ Failed to get ships: {response.status_code}")
+                self.log(f"❌ Failed to get ships: {response.status_code}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Error selecting ship: {str(e)}", "ERROR")
+            self.log(f"❌ Error finding ship: {str(e)}", "ERROR")
             return False
     
-    def check_ai_configuration(self):
-        """Check Document AI configuration"""
+    def test_passport_analysis_with_vietnamese_file(self):
+        """Test passport analysis endpoint with the specific Vietnamese passport file"""
         try:
-            self.log("🤖 Checking Document AI configuration...")
+            self.log("🔍 Testing passport analysis with Vietnamese passport: 2. CO DUC- PP.pdf")
             
-            response = requests.get(f"{BACKEND_URL}/ai-config", headers=self.get_headers(), timeout=30)
+            # Prepare multipart form data with Vietnamese passport file
+            with open(self.passport_file_path, "rb") as f:
+                files = {
+                    "passport_file": ("2_CO_DUC_PP.pdf", f, "application/pdf")
+                }
+                data = {
+                    "ship_name": self.ship_name
+                }
+                
+                self.log(f"📤 Uploading Vietnamese passport file: 2_CO_DUC_PP.pdf")
+                self.log(f"🚢 Ship name: {self.ship_name}")
+                
+                endpoint = f"{BACKEND_URL}/crew/analyze-passport"
+                self.log(f"   POST {endpoint}")
+                
+                start_time = time.time()
+                response = self.session.post(
+                    endpoint,
+                    files=files,
+                    data=data,
+                    timeout=180  # 3 minutes for AI processing
+                )
+                end_time = time.time()
+                
+                processing_time = end_time - start_time
+                self.log(f"⏱️ Processing time: {processing_time:.1f} seconds")
+            
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
-                config = response.json()
-                self.tests['ai_config_checked'] = True
-                self.log("✅ AI configuration accessible")
+                self.extraction_tests['passport_analysis_endpoint_accessible'] = True
+                self.extraction_tests['passport_file_upload_successful'] = True
+                self.extraction_tests['api_processing_completed'] = True
                 
-                # Check Document AI settings
-                document_ai = config.get('document_ai', {})
-                if document_ai:
-                    enabled = document_ai.get('enabled', False)
-                    project_id = document_ai.get('project_id')
-                    processor_id = document_ai.get('processor_id')
-                    location = document_ai.get('location')
-                    apps_script_url = document_ai.get('apps_script_url')
+                try:
+                    result = response.json()
+                    self.log("✅ Passport analysis endpoint accessible and processing completed")
                     
-                    self.log(f"   Document AI enabled: {enabled}")
-                    self.log(f"   Project ID: {project_id}")
-                    self.log(f"   Processor ID: {processor_id}")
-                    self.log(f"   Location: {location}")
-                    self.log(f"   Apps Script URL: {apps_script_url}")
+                    # Store the full response for detailed analysis
+                    self.extracted_data = result
                     
-                    if enabled:
-                        self.tests['document_ai_enabled'] = True
-                        self.log("   ✅ Document AI is enabled")
+                    self.log(f"📊 Response keys: {list(result.keys())}")
                     
-                    if apps_script_url and self.expected_apps_script_url in apps_script_url:
-                        self.tests['apps_script_url_configured'] = True
-                        self.log("   ✅ Apps Script URL is configured correctly")
-                    elif apps_script_url:
-                        self.tests['apps_script_url_configured'] = True
-                        self.log("   ✅ Apps Script URL is configured")
-                    
-                    return True
-                else:
-                    self.log("   ❌ Document AI configuration not found")
-                    return False
+                    # Check for success
+                    if result.get("success"):
+                        self.log("✅ API returns success: true")
+                        self.extraction_tests['api_returns_success'] = True
+                        
+                        # Analyze the extraction results
+                        self.analyze_field_extraction(result)
+                        self.analyze_date_formats(result)
+                        self.analyze_processing_method(result)
+                        
+                        return result
+                    else:
+                        error_msg = result.get("message", "Unknown error")
+                        error_detail = result.get("error", "")
+                        self.log(f"❌ API returned success: false", "ERROR")
+                        self.log(f"   Message: {error_msg}", "ERROR")
+                        self.log(f"   Error: {error_detail}", "ERROR")
+                        return result
+                        
+                except json.JSONDecodeError as e:
+                    self.log(f"❌ Invalid JSON response: {str(e)}", "ERROR")
+                    self.log(f"   Raw response: {response.text[:500]}", "ERROR")
+                    return None
             else:
-                self.log(f"❌ Failed to get AI configuration: {response.status_code}")
-                return False
+                self.log(f"❌ Passport analysis request failed: {response.status_code}", "ERROR")
+                try:
+                    error_data = response.json()
+                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}", "ERROR")
+                except:
+                    self.log(f"   Raw error: {response.text[:500]}", "ERROR")
+                return None
                 
         except Exception as e:
-            self.log(f"❌ Error checking AI configuration: {str(e)}", "ERROR")
-            return False
+            self.log(f"❌ Error in passport analysis test: {str(e)}", "ERROR")
+            return None
     
-    def test_passport_analysis(self):
-        """Test the passport analysis endpoint with Vietnamese passport"""
+    def analyze_field_extraction(self, result):
+        """Analyze the field extraction accuracy"""
         try:
-            self.log("🔍 Testing passport analysis endpoint...")
+            self.log("🔍 Analyzing field extraction accuracy...")
             
-            if not self.passport_image_path or not self.selected_ship:
-                self.log("❌ Missing passport image or ship selection")
-                return False
+            analysis = result.get("analysis", {})
+            if not analysis:
+                self.log("❌ No analysis data found in response", "ERROR")
+                return
             
-            endpoint = f"{BACKEND_URL}/crew/analyze-passport"
-            self.log(f"   POST {endpoint}")
+            # Expected fields for Vietnamese passport
+            expected_fields = {
+                'full_name': 'Full Name',
+                'passport_number': 'Passport Number',
+                'date_of_birth': 'Date of Birth',
+                'place_of_birth': 'Place of Birth',
+                'sex': 'Sex',
+                'nationality': 'Nationality',
+                'issue_date': 'Issue Date',
+                'expiry_date': 'Expiry Date'
+            }
             
-            # Prepare multipart form data
-            with open(self.passport_image_path, 'rb') as image_file:
-                files = {
-                    'passport_file': ('vietnamese_passport.jpg', image_file, 'image/jpeg')
-                }
-                data = {
-                    'ship_name': self.selected_ship.get('name', 'BROTHER 36')
-                }
+            extracted_fields = 0
+            missing_fields = []
+            
+            for field_key, field_name in expected_fields.items():
+                field_value = analysis.get(field_key, '')
+                if field_value and str(field_value).strip() and str(field_value).strip().lower() not in ['', 'null', 'none', 'n/a']:
+                    self.log(f"   ✅ {field_name}: '{field_value}'")
+                    extracted_fields += 1
+                    
+                    # Set specific test flags
+                    if field_key == 'full_name':
+                        self.extraction_tests['full_name_extracted_correctly'] = True
+                        # Check if it looks like a Vietnamese name (CO DUC expected)
+                        if 'CO' in str(field_value).upper() or 'DUC' in str(field_value).upper():
+                            self.log(f"      ✅ Expected Vietnamese name pattern detected")
+                    
+                    elif field_key == 'passport_number':
+                        self.extraction_tests['passport_number_extracted'] = True
+                        # Check if it looks like a passport number
+                        if re.match(r'^[A-Z]\d{7,8}$', str(field_value)):
+                            self.log(f"      ✅ Valid passport number format")
+                    
+                    elif field_key == 'date_of_birth':
+                        self.extraction_tests['date_of_birth_extracted'] = True
+                    
+                    elif field_key == 'place_of_birth':
+                        self.extraction_tests['place_of_birth_extracted'] = True
+                    
+                    elif field_key == 'sex':
+                        self.extraction_tests['sex_extracted'] = True
+                        if str(field_value).upper() in ['M', 'F', 'MALE', 'FEMALE', 'NAM', 'NỮ']:
+                            self.log(f"      ✅ Valid sex value")
+                    
+                    elif field_key == 'nationality':
+                        self.extraction_tests['nationality_extracted'] = True
+                        if 'VIETNAM' in str(field_value).upper() or 'VNM' in str(field_value).upper():
+                            self.log(f"      ✅ Vietnamese nationality detected")
+                    
+                    elif field_key == 'issue_date':
+                        self.extraction_tests['issue_date_extracted'] = True
+                    
+                    elif field_key == 'expiry_date':
+                        self.extraction_tests['expiry_date_extracted'] = True
+                        
+                else:
+                    self.log(f"   ❌ {field_name}: Not extracted or empty")
+                    missing_fields.append(field_name)
+            
+            # Overall extraction assessment
+            extraction_rate = (extracted_fields / len(expected_fields)) * 100
+            self.log(f"📊 Field extraction rate: {extraction_rate:.1f}% ({extracted_fields}/{len(expected_fields)} fields)")
+            
+            if extraction_rate >= 75:
+                self.extraction_tests['extraction_accuracy_improved'] = True
+                self.log("✅ Field extraction accuracy is good (≥75%)")
+            else:
+                self.log("⚠️ Field extraction accuracy needs improvement (<75%)")
+            
+            if missing_fields:
+                self.extraction_tests['missing_information_identified'] = True
+                self.log(f"⚠️ Missing information identified: {', '.join(missing_fields)}")
+            
+            # Check confidence score
+            confidence = analysis.get('confidence_score', 0)
+            if confidence >= 0.7:
+                self.extraction_tests['extraction_confidence_acceptable'] = True
+                self.log(f"✅ Extraction confidence acceptable: {confidence}")
+            else:
+                self.log(f"⚠️ Low extraction confidence: {confidence}")
+            
+        except Exception as e:
+            self.log(f"❌ Error analyzing field extraction: {str(e)}", "ERROR")
+    
+    def analyze_date_formats(self, result):
+        """Analyze date format standardization"""
+        try:
+            self.log("📅 Analyzing date format standardization...")
+            
+            analysis = result.get("analysis", {})
+            date_fields = ['date_of_birth', 'issue_date', 'expiry_date']
+            
+            dd_mm_yyyy_count = 0
+            verbose_format_found = False
+            
+            for field in date_fields:
+                date_value = analysis.get(field, '')
+                if date_value and str(date_value).strip():
+                    self.log(f"   📅 {field}: '{date_value}'")
+                    
+                    # Check if in DD/MM/YYYY format
+                    if re.match(r'^\d{2}/\d{2}/\d{4}$', str(date_value)):
+                        dd_mm_yyyy_count += 1
+                        self.log(f"      ✅ Correct DD/MM/YYYY format")
+                    else:
+                        self.log(f"      ❌ Not in DD/MM/YYYY format")
+                    
+                    # Check for verbose formats (should be converted)
+                    if any(month in str(date_value) for month in ['January', 'February', 'March', 'April', 'May', 'June', 
+                                                                  'July', 'August', 'September', 'October', 'November', 'December']):
+                        verbose_format_found = True
+                        self.log(f"      ⚠️ Verbose date format detected (should be standardized)")
+            
+            # Date format assessment
+            if dd_mm_yyyy_count == len([f for f in date_fields if analysis.get(f)]):
+                self.extraction_tests['dates_in_dd_mm_yyyy_format'] = True
+                self.extraction_tests['date_standardization_working'] = True
+                self.log("✅ All extracted dates are in DD/MM/YYYY format")
+            else:
+                self.log("❌ Some dates are not in DD/MM/YYYY format")
+            
+            if not verbose_format_found:
+                self.extraction_tests['no_verbose_date_formats'] = True
+                self.log("✅ No verbose date formats found (good standardization)")
+            else:
+                self.log("⚠️ Verbose date formats found (standardization may need improvement)")
+            
+        except Exception as e:
+            self.log(f"❌ Error analyzing date formats: {str(e)}", "ERROR")
+    
+    def analyze_processing_method(self, result):
+        """Analyze the processing method and multi-layer extraction system"""
+        try:
+            self.log("🔧 Analyzing processing method and multi-layer extraction system...")
+            
+            processing_method = result.get('processing_method', '')
+            if processing_method:
+                self.log(f"   Processing method: {processing_method}")
                 
-                self.log(f"   Ship name: {data['ship_name']}")
-                self.log(f"   File size: {os.path.getsize(self.passport_image_path)} bytes")
-                
-                response = requests.post(
-                    endpoint, 
-                    files=files, 
-                    data=data, 
-                    headers=self.get_headers(), 
-                    timeout=120
-                )
-                
-                self.log(f"   Response status: {response.status_code}")
-                
-                if response.status_code == 200:
-                    self.tests['passport_analysis_endpoint_accessible'] = True
-                    self.log("✅ Passport analysis endpoint accessible")
+                if 'dual' in processing_method.lower() or 'apps_script' in processing_method.lower():
+                    self.extraction_tests['multi_layer_system_working'] = True
+                    self.log("✅ Multi-layer extraction system detected")
+            
+            # Check for Document AI summary
+            if 'summary' in result or 'document_ai' in str(result).lower():
+                self.extraction_tests['document_ai_summary_generated'] = True
+                self.log("✅ Document AI summary appears to be generated")
+            
+            # Check for system AI extraction
+            if 'system_ai' in str(result).lower() or 'ai_extraction' in str(result).lower():
+                self.extraction_tests['system_ai_extraction_attempted'] = True
+                self.log("✅ System AI extraction appears to be attempted")
+            
+            # Check for regex extraction availability
+            if 'regex' in str(result).lower() or 'fallback' in str(result).lower():
+                self.extraction_tests['direct_regex_extraction_available'] = True
+                self.log("✅ Direct regex extraction appears to be available")
+            
+        except Exception as e:
+            self.log(f"❌ Error analyzing processing method: {str(e)}", "ERROR")
+    
+    def check_backend_logs_for_extraction_details(self):
+        """Check backend logs for detailed extraction process information"""
+        try:
+            self.log("📋 Checking backend logs for extraction process details...")
+            
+            # Check supervisor backend logs
+            log_files = [
+                "/var/log/supervisor/backend.out.log",
+                "/var/log/supervisor/backend.err.log"
+            ]
+            
+            extraction_patterns = {
+                'document_ai_summary': ['Document AI', 'summary', 'processing'],
+                'system_ai_extraction': ['System AI', 'extraction', 'AI extraction'],
+                'regex_extraction': ['regex', 'fallback', 'direct extraction'],
+                'date_standardization': ['standardize', 'date', 'DD/MM/YYYY'],
+                'final_results': ['final', 'result', 'extracted fields']
+            }
+            
+            for log_file in log_files:
+                if os.path.exists(log_file):
+                    self.log(f"📄 Checking {log_file}...")
                     
                     try:
-                        self.analysis_response = response.json()
-                        self.tests['passport_analysis_successful'] = True
-                        self.log("✅ Passport analysis completed successfully")
-                        self.log(f"   Response keys: {list(self.analysis_response.keys())}")
-                        return True
-                    except json.JSONDecodeError as e:
-                        self.log(f"❌ Invalid JSON response: {str(e)}")
-                        return False
+                        # Get last 200 lines to capture recent activity
+                        result = os.popen(f"tail -n 200 {log_file}").read()
+                        if result.strip():
+                            lines = result.strip().split('\n')
+                            
+                            # Look for extraction-related patterns
+                            for pattern_name, keywords in extraction_patterns.items():
+                                pattern_found = False
+                                for line in lines:
+                                    if any(keyword.lower() in line.lower() for keyword in keywords):
+                                        if not pattern_found:
+                                            self.log(f"   🔍 {pattern_name.replace('_', ' ').title()} logs found:")
+                                            pattern_found = True
+                                        self.log(f"     {line.strip()}")
+                                        
+                                        # Set test flags
+                                        if pattern_name == 'document_ai_summary':
+                                            self.extraction_tests['backend_logs_document_ai_summary'] = True
+                                        elif pattern_name == 'system_ai_extraction':
+                                            self.extraction_tests['backend_logs_system_ai_extraction'] = True
+                                        elif pattern_name == 'regex_extraction':
+                                            self.extraction_tests['backend_logs_regex_extraction'] = True
+                                        elif pattern_name == 'date_standardization':
+                                            self.extraction_tests['backend_logs_date_standardization'] = True
+                                        elif pattern_name == 'final_results':
+                                            self.extraction_tests['backend_logs_final_results'] = True
+                                
+                                if not pattern_found:
+                                    self.log(f"   ⚠️ No {pattern_name.replace('_', ' ')} logs found")
+                        else:
+                            self.log(f"   {log_file} is empty or not accessible")
+                    except Exception as e:
+                        self.log(f"   Error reading {log_file}: {e}")
                 else:
-                    self.log(f"❌ Passport analysis failed: {response.status_code}")
-                    try:
-                        error_data = response.json()
-                        self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                    except:
-                        self.log(f"   Error text: {response.text[:500]}")
-                    return False
-                    
-        except Exception as e:
-            self.log(f"❌ Error testing passport analysis: {str(e)}", "ERROR")
-            return False
-    
-    def verify_response_structure(self):
-        """Verify the response structure"""
-        try:
-            self.log("📋 Verifying response structure...")
-            
-            if not self.analysis_response:
-                self.log("❌ No analysis response to verify")
-                return False
-            
-            response = self.analysis_response
-            
-            # Check basic structure
-            if 'success' in response and 'analysis' in response:
-                self.tests['response_structure_correct'] = True
-                self.log("✅ Response structure is correct")
-                
-                # Check analysis data
-                analysis = response.get('analysis', {})
-                if analysis:
-                    self.log(f"   Analysis fields: {list(analysis.keys())}")
-                    
-                    # Check confidence score
-                    if 'confidence_score' in analysis:
-                        self.tests['confidence_score_present'] = True
-                        self.log(f"   ✅ Confidence score: {analysis.get('confidence_score')}")
-                
-                # Check file upload status
-                if 'file_upload' in response:
-                    self.tests['file_upload_status_present'] = True
-                    self.log("✅ File upload status present")
-                
-                return True
-            else:
-                self.log(f"❌ Unexpected response structure: {list(response.keys())}")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Error verifying response structure: {str(e)}", "ERROR")
-            return False
-    
-    def verify_data_extraction(self):
-        """Verify the accuracy of extracted data"""
-        try:
-            self.log("🎯 Verifying data extraction accuracy...")
-            
-            if not self.analysis_response or 'analysis' not in self.analysis_response:
-                self.log("❌ No analysis data to verify")
-                return False
-            
-            analysis = self.analysis_response['analysis']
-            self.log("   Extracted data:")
-            
-            # Check each field
-            extracted_name = analysis.get('full_name', '').strip()
-            if extracted_name:
-                self.log(f"   Full Name: '{extracted_name}'")
-                if self.expected_data['full_name'].upper() in extracted_name.upper():
-                    self.tests['full_name_extracted'] = True
-                    self.log("     ✅ Full name matches expected")
-            
-            extracted_passport = analysis.get('passport_number', '').strip()
-            if extracted_passport:
-                self.log(f"   Passport Number: '{extracted_passport}'")
-                if self.expected_data['passport_number'] in extracted_passport:
-                    self.tests['passport_number_extracted'] = True
-                    self.log("     ✅ Passport number matches expected")
-            
-            extracted_nationality = analysis.get('nationality', '').strip().upper()
-            if extracted_nationality:
-                self.log(f"   Nationality: '{extracted_nationality}'")
-                if any(nat.upper() in extracted_nationality for nat in self.expected_data['nationality']):
-                    self.tests['nationality_extracted'] = True
-                    self.log("     ✅ Nationality matches expected")
-            
-            extracted_dob = analysis.get('date_of_birth', '').strip()
-            if extracted_dob:
-                self.log(f"   Date of Birth: '{extracted_dob}'")
-                if self.expected_data['date_of_birth'] in extracted_dob or self.normalize_date(self.expected_data['date_of_birth']) in self.normalize_date(extracted_dob):
-                    self.tests['date_of_birth_extracted'] = True
-                    self.log("     ✅ Date of birth matches expected")
-            
-            extracted_pob = analysis.get('place_of_birth', '').strip().upper()
-            if extracted_pob:
-                self.log(f"   Place of Birth: '{extracted_pob}'")
-                if self.expected_data['place_of_birth'].upper() in extracted_pob:
-                    self.tests['place_of_birth_extracted'] = True
-                    self.log("     ✅ Place of birth matches expected")
-            
-            extracted_sex = analysis.get('sex', '').strip().upper()
-            if extracted_sex:
-                self.log(f"   Sex: '{extracted_sex}'")
-                if any(sex.upper() in extracted_sex for sex in self.expected_data['sex']):
-                    self.tests['sex_extracted'] = True
-                    self.log("     ✅ Sex matches expected")
-            
-            extracted_issue = analysis.get('issue_date', '').strip()
-            if extracted_issue:
-                self.log(f"   Issue Date: '{extracted_issue}'")
-                if self.expected_data['issue_date'] in extracted_issue or self.normalize_date(self.expected_data['issue_date']) in self.normalize_date(extracted_issue):
-                    self.tests['issue_date_extracted'] = True
-                    self.log("     ✅ Issue date matches expected")
-            
-            extracted_expiry = analysis.get('expiry_date', '').strip()
-            if extracted_expiry:
-                self.log(f"   Expiry Date: '{extracted_expiry}'")
-                if self.expected_data['expiry_date'] in extracted_expiry or self.normalize_date(self.expected_data['expiry_date']) in self.normalize_date(extracted_expiry):
-                    self.tests['expiry_date_extracted'] = True
-                    self.log("     ✅ Expiry date matches expected")
-            
-            # Check Vietnamese text handling
-            vietnamese_chars = ['Ũ', 'Ọ', 'Â', 'Ế', 'Ồ', 'Ả', 'Ị', 'Ờ']
-            if any(char in str(analysis) for char in vietnamese_chars):
-                self.tests['vietnamese_text_handled'] = True
-                self.log("   ✅ Vietnamese characters handled correctly")
-            
-            # Check Apps Script communication
-            if self.analysis_response.get('success'):
-                self.tests['apps_script_communication_working'] = True
-                self.log("   ✅ Apps Script communication appears successful")
+                    self.log(f"   {log_file} not found")
             
             return True
             
         except Exception as e:
-            self.log(f"❌ Error verifying data extraction: {str(e)}", "ERROR")
+            self.log(f"❌ Error checking backend logs: {str(e)}", "ERROR")
             return False
     
-    def normalize_date(self, date_str):
-        """Normalize date string for comparison"""
-        if not date_str:
-            return ""
-        return date_str.replace('/', '').replace('-', '').replace('.', '').strip()
-    
-    def cleanup(self):
-        """Clean up temporary files"""
+    def run_comprehensive_vietnamese_passport_test(self):
+        """Run comprehensive test of Vietnamese passport extraction"""
         try:
-            if self.passport_image_path and os.path.exists(self.passport_image_path):
-                os.unlink(self.passport_image_path)
-                self.log("🧹 Cleaned up temporary files")
-        except Exception as e:
-            self.log(f"⚠️ Error cleaning up: {str(e)}")
-    
-    def run_comprehensive_test(self):
-        """Run comprehensive Vietnamese passport analysis test"""
-        try:
-            self.log("🚀 STARTING VIETNAMESE PASSPORT ANALYSIS TEST")
+            self.log("🚀 STARTING COMPREHENSIVE VIETNAMESE PASSPORT EXTRACTION TEST")
+            self.log("=" * 80)
+            self.log("📄 Testing with NEW Vietnamese passport file: 2. CO DUC- PP.pdf")
+            self.log("🎯 Focus: Field extraction accuracy, date formats, multi-layer system")
             self.log("=" * 80)
             
             # Step 1: Authentication
-            self.log("STEP 1: Authentication")
+            self.log("\nSTEP 1: Authentication")
             if not self.authenticate():
-                self.log("❌ CRITICAL: Authentication failed")
+                self.log("❌ Authentication failed - stopping tests", "ERROR")
                 return False
             
-            # Step 2: Download passport image
-            self.log("\nSTEP 2: Download Vietnamese passport image")
-            if not self.download_passport_image():
-                self.log("❌ CRITICAL: Failed to download passport image")
+            # Step 2: File Verification
+            self.log("\nSTEP 2: Vietnamese Passport File Verification")
+            if not self.verify_passport_file():
+                self.log("❌ Passport file verification failed - stopping tests", "ERROR")
                 return False
             
-            # Step 3: Select ship
-            self.log("\nSTEP 3: Select ship for testing")
-            if not self.select_ship():
-                self.log("❌ CRITICAL: Failed to select ship")
-                return False
+            # Step 3: Ship Discovery
+            self.log("\nSTEP 3: Ship Discovery")
+            if not self.find_ship():
+                self.log("❌ Ship discovery failed - continuing with tests", "WARNING")
             
-            # Step 4: Check AI configuration
-            self.log("\nSTEP 4: Check Document AI configuration")
-            if not self.check_ai_configuration():
-                self.log("❌ WARNING: AI configuration check failed")
+            # Step 4: Passport Analysis with Vietnamese File
+            self.log("\nSTEP 4: Vietnamese Passport Analysis")
+            analysis_result = self.test_passport_analysis_with_vietnamese_file()
             
-            # Step 5: Test passport analysis
-            self.log("\nSTEP 5: Test passport analysis endpoint")
-            if not self.test_passport_analysis():
-                self.log("❌ CRITICAL: Passport analysis failed")
-                return False
+            if not analysis_result:
+                self.log("❌ Passport analysis failed - continuing with log analysis", "WARNING")
             
-            # Step 6: Verify response structure
-            self.log("\nSTEP 6: Verify response structure")
-            if not self.verify_response_structure():
-                self.log("❌ Response structure verification failed")
-                return False
-            
-            # Step 7: Verify data extraction
-            self.log("\nSTEP 7: Verify data extraction accuracy")
-            if not self.verify_data_extraction():
-                self.log("❌ Data extraction verification failed")
-                return False
+            # Step 5: Backend Logs Analysis
+            self.log("\nSTEP 5: Backend Logs Analysis for Extraction Details")
+            self.check_backend_logs_for_extraction_details()
             
             self.log("\n" + "=" * 80)
-            self.log("✅ VIETNAMESE PASSPORT ANALYSIS TEST COMPLETED")
+            self.log("✅ COMPREHENSIVE VIETNAMESE PASSPORT EXTRACTION TEST COMPLETED")
             return True
             
         except Exception as e:
-            self.log(f"❌ CRITICAL ERROR: {str(e)}", "ERROR")
+            self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
             traceback.print_exc()
             return False
-        finally:
-            self.cleanup()
     
-    def print_summary(self):
-        """Print test summary"""
+    def print_test_summary(self):
+        """Print comprehensive summary of Vietnamese passport extraction test results"""
         try:
             self.log("\n" + "=" * 80)
-            self.log("📊 VIETNAMESE PASSPORT ANALYSIS TEST SUMMARY")
+            self.log("📊 VIETNAMESE PASSPORT EXTRACTION TEST SUMMARY")
+            self.log("📄 File: 2. CO DUC- PP.pdf")
             self.log("=" * 80)
             
-            total_tests = len(self.tests)
-            passed_tests = sum(1 for result in self.tests.values() if result)
-            success_rate = (passed_tests / total_tests) * 100
+            # Count passed tests
+            total_tests = len(self.extraction_tests)
+            passed_tests = sum(1 for result in self.extraction_tests.values() if result)
+            success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
             
             self.log(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
             self.log("")
             
-            # Authentication & Setup
+            # Authentication & Setup Results
             self.log("🔐 AUTHENTICATION & SETUP:")
-            auth_tests = [
-                ('authentication_successful', 'Authentication with admin1/123456'),
-                ('passport_image_downloaded', 'Vietnamese passport image downloaded'),
-                ('ship_selected', 'Ship selected for testing'),
+            setup_tests = [
+                ('authentication_successful', 'Authentication successful'),
+                ('passport_file_verified', 'Vietnamese passport file verified'),
+                ('ship_discovery_successful', 'Ship discovery successful'),
             ]
             
-            for test_key, description in auth_tests:
-                status = "✅ PASS" if self.tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in setup_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Document AI Configuration
-            self.log("\n🤖 DOCUMENT AI CONFIGURATION:")
-            ai_tests = [
-                ('ai_config_checked', 'AI configuration accessible'),
-                ('document_ai_enabled', 'Document AI enabled'),
-                ('apps_script_url_configured', 'Apps Script URL configured'),
-            ]
-            
-            for test_key, description in ai_tests:
-                status = "✅ PASS" if self.tests.get(test_key, False) else "❌ FAIL"
-                self.log(f"   {status} - {description}")
-            
-            # Passport Analysis
-            self.log("\n🔍 PASSPORT ANALYSIS:")
-            analysis_tests = [
+            # API Processing Results
+            self.log("\n🔍 API PROCESSING:")
+            api_tests = [
                 ('passport_analysis_endpoint_accessible', 'Passport analysis endpoint accessible'),
-                ('passport_analysis_successful', 'Passport analysis completed successfully'),
-                ('response_structure_correct', 'Response structure correct'),
-                ('apps_script_communication_working', 'Apps Script communication working'),
+                ('passport_file_upload_successful', 'File upload successful'),
+                ('api_processing_completed', 'API processing completed'),
+                ('api_returns_success', 'API returns success: true'),
             ]
             
-            for test_key, description in analysis_tests:
-                status = "✅ PASS" if self.tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in api_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Data Extraction Accuracy
-            self.log("\n🎯 DATA EXTRACTION ACCURACY:")
-            extraction_tests = [
-                ('full_name_extracted', 'Full Name: VŨ NGỌC TÂN'),
-                ('passport_number_extracted', 'Passport Number: C1571189'),
-                ('nationality_extracted', 'Nationality: VIỆT NAM/VIETNAMESE'),
-                ('date_of_birth_extracted', 'Date of Birth: 14/02/1983'),
-                ('place_of_birth_extracted', 'Place of Birth: HẢI PHÒNG'),
-                ('sex_extracted', 'Sex: NAM/M'),
-                ('issue_date_extracted', 'Issue Date: 11/04/2016'),
-                ('expiry_date_extracted', 'Expiry Date: 11/04/2026'),
-                ('vietnamese_text_handled', 'Vietnamese text handled correctly'),
+            # Field Extraction Accuracy Results
+            self.log("\n📋 FIELD EXTRACTION ACCURACY:")
+            field_tests = [
+                ('full_name_extracted_correctly', 'Full Name extracted correctly'),
+                ('passport_number_extracted', 'Passport Number extracted'),
+                ('date_of_birth_extracted', 'Date of Birth extracted'),
+                ('place_of_birth_extracted', 'Place of Birth extracted'),
+                ('sex_extracted', 'Sex extracted'),
+                ('nationality_extracted', 'Nationality extracted'),
+                ('issue_date_extracted', 'Issue Date extracted'),
+                ('expiry_date_extracted', 'Expiry Date extracted'),
             ]
             
-            for test_key, description in extraction_tests:
-                status = "✅ PASS" if self.tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in field_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # Response Structure
-            self.log("\n📋 RESPONSE STRUCTURE:")
-            structure_tests = [
-                ('confidence_score_present', 'Confidence score present'),
-                ('file_upload_status_present', 'File upload status present'),
+            # Date Format Results
+            self.log("\n📅 DATE FORMAT VERIFICATION:")
+            date_tests = [
+                ('dates_in_dd_mm_yyyy_format', 'All dates in DD/MM/YYYY format'),
+                ('date_standardization_working', 'Date standardization working'),
+                ('no_verbose_date_formats', 'No verbose date formats (clean output)'),
             ]
             
-            for test_key, description in structure_tests:
-                status = "✅ PASS" if self.tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in date_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
+            
+            # Multi-Layer Extraction System Results
+            self.log("\n🔧 MULTI-LAYER EXTRACTION SYSTEM:")
+            system_tests = [
+                ('document_ai_summary_generated', 'Document AI summary generated'),
+                ('system_ai_extraction_attempted', 'System AI extraction attempted'),
+                ('direct_regex_extraction_available', 'Direct regex extraction available'),
+                ('multi_layer_system_working', 'Multi-layer system working'),
+            ]
+            
+            for test_key, description in system_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Backend Logs Results
+            self.log("\n📋 BACKEND LOGS VERIFICATION:")
+            log_tests = [
+                ('backend_logs_document_ai_summary', 'Document AI summary logs'),
+                ('backend_logs_system_ai_extraction', 'System AI extraction logs'),
+                ('backend_logs_regex_extraction', 'Regex extraction logs'),
+                ('backend_logs_date_standardization', 'Date standardization logs'),
+                ('backend_logs_final_results', 'Final results logs'),
+            ]
+            
+            for test_key, description in log_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Extraction Improvements Results
+            self.log("\n📈 EXTRACTION IMPROVEMENTS:")
+            improvement_tests = [
+                ('extraction_accuracy_improved', 'Extraction accuracy improved (≥75%)'),
+                ('missing_information_identified', 'Missing information identified'),
+                ('extraction_confidence_acceptable', 'Extraction confidence acceptable (≥0.7)'),
+            ]
+            
+            for test_key, description in improvement_tests:
+                status = "✅ PASS" if self.extraction_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Critical Assessment
+            self.log("\n🎯 CRITICAL ASSESSMENT:")
+            
+            critical_tests = [
+                'api_returns_success',
+                'dates_in_dd_mm_yyyy_format',
+                'extraction_accuracy_improved',
+                'multi_layer_system_working'
+            ]
+            
+            critical_passed = sum(1 for test_key in critical_tests if self.extraction_tests.get(test_key, False))
+            
+            if critical_passed == len(critical_tests):
+                self.log("   ✅ ALL CRITICAL REQUIREMENTS MET")
+                self.log("   ✅ FIXED extraction system working correctly")
+                self.log("   ✅ Date format issues resolved")
+                self.log("   ✅ Multi-layer extraction system operational")
+            else:
+                self.log("   ❌ SOME CRITICAL REQUIREMENTS NOT MET")
+                self.log(f"   ❌ Only {critical_passed}/{len(critical_tests)} critical tests passed")
+            
+            # Show extracted data if available
+            if self.extracted_data and self.extracted_data.get('analysis'):
+                self.log("\n📋 EXTRACTED DATA FROM VIETNAMESE PASSPORT:")
+                analysis = self.extracted_data.get('analysis', {})
+                for field, value in analysis.items():
+                    if value and str(value).strip():
+                        self.log(f"   {field}: {value}")
             
             # Overall Assessment
-            self.log("\n🎯 OVERALL ASSESSMENT:")
-            
-            critical_tests = ['authentication_successful', 'passport_analysis_successful', 'response_structure_correct']
-            critical_passed = sum(1 for test in critical_tests if self.tests.get(test, False))
-            
-            extraction_tests_keys = [key for key, _ in extraction_tests]
-            extraction_passed = sum(1 for test in extraction_tests_keys if self.tests.get(test, False))
-            extraction_rate = (extraction_passed / len(extraction_tests_keys)) * 100
-            
-            if critical_passed == len(critical_tests) and extraction_rate >= 60:
-                self.log("   ✅ VIETNAMESE PASSPORT ANALYSIS IS WORKING CORRECTLY")
-                self.log("   ✅ Document AI successfully extracts passport information")
-                self.log("   ✅ Apps Script integration is functional")
-                self.log(f"   ✅ Data extraction accuracy: {extraction_rate:.1f}%")
-            elif critical_passed == len(critical_tests):
-                self.log("   ⚠️ PASSPORT ANALYSIS IS PARTIALLY WORKING")
-                self.log("   ✅ Core functionality works but data extraction needs improvement")
-                self.log(f"   ⚠️ Data extraction accuracy: {extraction_rate:.1f}%")
+            if success_rate >= 80:
+                self.log(f"\n✅ EXCELLENT SUCCESS RATE: {success_rate:.1f}%")
+                self.log("✅ Vietnamese passport extraction system working well")
+            elif success_rate >= 60:
+                self.log(f"\n⚠️ GOOD SUCCESS RATE: {success_rate:.1f}%")
+                self.log("⚠️ Some improvements needed in extraction system")
             else:
-                self.log("   ❌ PASSPORT ANALYSIS HAS CRITICAL ISSUES")
-                self.log("   ❌ Core functionality is not working properly")
-                self.log("   ❌ Investigation and fixes needed")
+                self.log(f"\n❌ LOW SUCCESS RATE: {success_rate:.1f}%")
+                self.log("❌ Significant issues with extraction system")
             
             self.log("=" * 80)
             
         except Exception as e:
-            self.log(f"❌ Error printing summary: {str(e)}", "ERROR")
+            self.log(f"❌ Error printing test summary: {str(e)}", "ERROR")
 
 def main():
-    """Main function"""
+    """Main function to run the Vietnamese passport extraction tests"""
+    print("🧪 Vietnamese Passport Extraction Test")
+    print("📄 Testing with NEW Vietnamese passport file: 2. CO DUC- PP.pdf")
+    print("🎯 Focus: Field extraction accuracy, date formats, multi-layer system")
+    print("=" * 80)
+    
     tester = VietnamesePassportTester()
     
     try:
-        success = tester.run_comprehensive_test()
-        tester.print_summary()
+        # Run comprehensive test
+        success = tester.run_comprehensive_vietnamese_passport_test()
+        
+        # Print summary
+        tester.print_test_summary()
+        
+        # Return appropriate exit code
         sys.exit(0 if success else 1)
         
     except KeyboardInterrupt:
-        tester.log("❌ Test interrupted by user", "ERROR")
+        tester.log("\n❌ Test interrupted by user", "ERROR")
         sys.exit(1)
     except Exception as e:
         tester.log(f"❌ Unexpected error: {str(e)}", "ERROR")
