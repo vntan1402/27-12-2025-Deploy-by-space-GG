@@ -7489,7 +7489,7 @@ const HomePage = () => {
                 </div>
 
                   {/* Submit Buttons */}
-                  <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                  <div className="flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-200">
                     <button
                       type="button"
                       onClick={() => setShowAddCrewModal(false)}
