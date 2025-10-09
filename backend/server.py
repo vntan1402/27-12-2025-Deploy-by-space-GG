@@ -10841,7 +10841,11 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
                 "date_of_birth": [
                     r"(?:date of birth is|birth date is|born).*?\((\d{2}/\d{2}/\d{4})\)",
                     r"(?:date of birth is|birth date is)\s+.*?(\d{1,2}/\d{1,2}/\d{4})",
-                    r"(?:sinh|birth).*?(\d{1,2}/\d{1,2}/\d{4})"
+                    r"(?:sinh|birth).*?(\d{1,2}/\d{1,2}/\d{4})",
+                    r"born on\s+([A-Za-z]+ \d{1,2}, \d{4})",
+                    r"born on\s+([\w\s]+\d{1,2},\s+\d{4})",
+                    r"male born on\s+([A-Za-z]+ \d{1,2}, \d{4})",
+                    r"female born on\s+([A-Za-z]+ \d{1,2}, \d{4})"
                 ],
                 "place_of_birth": [
                     r"(?:place of birth is|born in|birthplace is)\s+([\w\s]+?)(?:\.|,|;|$)",
