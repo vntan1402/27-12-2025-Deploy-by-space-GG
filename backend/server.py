@@ -145,15 +145,29 @@ Return ONLY a JSON object with ALL fields populated:
 IMPORTANT: If you find dates in any format (14/02/1983, 14-02-1983, 14.02.1983, February 14 1983), 
 convert them to DD/MM/YYYY format. DO NOT leave date fields empty unless absolutely no date information exists.
 
-EXAMPLE EXTRACTION FROM GIVEN SUMMARY:
-From: "The passport holder's full name is HỒ SỸ CHƯƠNG"
-→ full_name: "HỒ SỸ CHƯƠNG" (NOT "XUẤT NHẬP CẢNH")
+STEP-BY-STEP EXTRACTION FROM CURRENT SUMMARY:
 
-From: "place of birth is Nghệ An"  
-→ place_of_birth: "Nghệ An" (NOT "is Nghệ An")
+1. FIND FULL NAME:
+   - Search for: "The passport holder's full name is [NAME]"
+   - In text: "• The passport holder's full name is HỒ SỸ CHƯƠNG."
+   - Extract: "HỒ SỸ CHƯƠNG"
+   - IGNORE: "Immigration Department", "Xuất Nhập Cảnh", "Lương Đình Kháng"
 
-From: "passport number is C9780204"
-→ passport_number: "C9780204"
+2. FIND PLACE OF BIRTH:
+   - Search for: "place of birth is [LOCATION]"  
+   - In text: "• The passport holder's place of birth is Nghệ An."
+   - Extract: "Nghệ An" (remove the word "is")
+   - Clean result: "Nghệ An"
+
+3. FIND PASSPORT NUMBER:
+   - Search for: "passport number is [NUMBER]"
+   - In text: "passport number is C9780204"
+   - Extract: "C9780204"
+
+EXACT EXTRACTION EXAMPLES:
+• "passport holder's full name is HỒ SỸ CHƯƠNG" → full_name: "HỒ SỸ CHƯƠNG"
+• "passport holder's place of birth is Nghệ An" → place_of_birth: "Nghệ An"  
+• "passport holder's date of birth is January 1, 1969 (01/01/1969)" → date_of_birth: "01/01/1969"
 
 CRITICAL: Extract ONLY actual passport holder's data, NOT system text, agency names, or processing messages.
 
