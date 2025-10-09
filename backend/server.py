@@ -10631,7 +10631,7 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
         
         try:
             # Use LlmChat for actual AI extraction
-            from emergentintegrations.llm.chat import LlmChat
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
             
             # Create chat instance with Emergent key
             emergent_key = get_emergent_llm_key()
@@ -10645,7 +10645,9 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
             logger.info(f"📤 Sending extraction prompt to {ai_model}...")
             logger.info(f"📏 Prompt length: {len(extraction_prompt)} characters")
             
-            ai_response = await chat.send_message(extraction_prompt)
+            # Create UserMessage object for the prompt
+            user_message = UserMessage(text=extraction_prompt)
+            ai_response = await chat.send_message(user_message)
             
             logger.info(f"📥 Received AI response type: {type(ai_response)}")
             
