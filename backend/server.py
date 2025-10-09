@@ -115,12 +115,18 @@ CRITICAL DATE EXTRACTION RULES:
 - If dates are written as words, convert to DD/MM/YYYY: "14 February 1983" → "14/02/1983"
 - ALWAYS extract dates even if format varies - prioritize finding actual dates over format perfection
 
-SPECIFIC SEARCH PATTERNS:
-- Look for Vietnamese name patterns: "NGUYEN [Given Names]", "TRAN [Given Names]", etc.
-- Look for passport numbers: Letter followed by 7-8 digits  
-- Look for dates in context: birth date, issue date, expiry date
-- Look for Vietnamese place names and provinces
-- Search for date labels: "sinh:", "birth:", "cấp:", "issue:", "hạn:", "expiry:"
+SPECIFIC SEARCH PATTERNS WITH EXAMPLES:
+- **Full Name Pattern**: "The passport holder's full name is HỒ SỸ CHƯƠNG" → Extract "HỒ SỸ CHƯƠNG"
+- **Place Pattern**: "place of birth is Nghệ An" → Extract "Nghệ An" (remove "is")  
+- **Passport Number**: "passport number is C9780204" → Extract "C9780204"
+- **Date Patterns**: "date of birth is January 1, 1969 (01/01/1969)" → Extract "01/01/1969"
+- **Sex Pattern**: "sex is male (NAM/M)" → Extract "M"
+
+AVOID THESE COMMON MISTAKES:
+- DO NOT extract "XUẤT NHẬP CẢNH" as full_name (this is agency name)
+- DO NOT extract "is Nghệ An" as place_of_birth (remove "is")  
+- DO NOT extract system text like "Document Type", "Analysis", "Processing"
+- DO NOT extract issuing authority names as personal information
 
 Return ONLY a JSON object with ALL fields populated:
 
