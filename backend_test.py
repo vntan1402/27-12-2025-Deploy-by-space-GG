@@ -1189,12 +1189,19 @@ Test timestamp: """ + str(time.time()).encode()
             self.log(f"❌ Error printing test summary: {str(e)}", "ERROR")
 
 def main():
-    """Main function to run the crew management tests"""
-    tester = CrewManagementTester()
+    """Main function to run the passport workflow tests"""
+    print("🧪 Add Crew From Passport Workflow - Backend Testing")
+    print("=" * 80)
+    print("Testing updated folder structure requirements:")
+    print("1. Passport file: [Ship Name]/Crew Records/[filename].jpg")
+    print("2. Summary file: SUMMARY/Crew Records/[filename]_Summary.txt")
+    print("=" * 80)
+    
+    tester = PassportWorkflowTester()
     
     try:
         # Run comprehensive test
-        success = tester.run_comprehensive_crew_management_test()
+        success = tester.run_comprehensive_passport_workflow_test()
         
         # Print summary
         tester.print_test_summary()
@@ -1204,12 +1211,10 @@ def main():
         
     except KeyboardInterrupt:
         tester.log("\n❌ Test interrupted by user", "ERROR")
-        tester.cleanup_test_data()
         sys.exit(1)
     except Exception as e:
         tester.log(f"❌ Unexpected error: {str(e)}", "ERROR")
         traceback.print_exc()
-        tester.cleanup_test_data()
         sys.exit(1)
 
 if __name__ == "__main__":
