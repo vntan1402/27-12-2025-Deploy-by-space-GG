@@ -983,9 +983,9 @@ class PassportWorkflowTester:
             if not self.test_passport_analysis_endpoint():
                 self.log("❌ Passport analysis failed - continuing with other tests", "WARNING")
             
-            # Step 4: Backend Logs Verification
-            self.log("\nSTEP 4: Backend Logs Verification")
-            self.verify_backend_logs()
+            # Step 4: Backend Logs Analysis
+            self.log("\nSTEP 4: Backend Logs Analysis")
+            self.check_backend_logs()
             
             # Step 5: Folder Structure Requirements
             self.log("\nSTEP 5: Folder Structure Requirements")
