@@ -175,10 +175,11 @@ class CompanyAppsScriptTester:
                     response_data = response.json()
                     self.log(f"   Response data keys: {list(response_data.keys())}")
                     
-                    # Check for Apps Script URL configuration
-                    if 'apps_script_url' in response_data or 'company_apps_script_url' in response_data:
+                    # Check for Apps Script URL configuration (nested in configuration object)
+                    config_data = response_data.get('configuration', {})
+                    if config_data.get('apps_script_url') or response_data.get('apps_script_url'):
                         self.apps_script_tests['apps_script_url_configuration_returned'] = True
-                        apps_script_url = response_data.get('apps_script_url') or response_data.get('company_apps_script_url')
+                        apps_script_url = config_data.get('apps_script_url') or response_data.get('apps_script_url')
                         self.log(f"   ✅ Apps Script URL configuration returned: {apps_script_url}")
                         
                         # Check if it matches expected URL
@@ -189,10 +190,10 @@ class CompanyAppsScriptTester:
                     else:
                         self.log("   ❌ Apps Script URL configuration not found in response")
                     
-                    # Check for folder ID configuration
-                    if 'folder_id' in response_data or 'google_drive_folder_id' in response_data:
+                    # Check for folder ID configuration (nested in configuration object)
+                    if config_data.get('folder_id') or response_data.get('folder_id'):
                         self.apps_script_tests['folder_id_configuration_returned'] = True
-                        folder_id = response_data.get('folder_id') or response_data.get('google_drive_folder_id')
+                        folder_id = config_data.get('folder_id') or response_data.get('folder_id')
                         self.log(f"   ✅ Folder ID configuration returned: {folder_id}")
                     else:
                         self.log("   ❌ Folder ID configuration not found in response")
