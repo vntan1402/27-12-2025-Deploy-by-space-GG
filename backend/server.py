@@ -10958,14 +10958,14 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
                                 value = 'F'
                         
                         elif field.endswith("date") or field == "date_of_birth":
-                            # Handle various date formats including "October 10, 1992"
+                            # Handle various date formats including "May 30, 2018", "July 3, 1986" 
                             if value:
                                 try:
                                     # Convert month names to DD/MM/YYYY
                                     import re
                                     from datetime import datetime
                                     
-                                    # Pattern: "October 10, 1992" or "January 1, 1969"
+                                    # Pattern: "July 3, 1986", "May 30, 2018", "October 10, 1992" 
                                     month_pattern = r'([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})'
                                     month_match = re.match(month_pattern, value.strip())
                                     
