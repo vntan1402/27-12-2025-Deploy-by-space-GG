@@ -10639,7 +10639,7 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
                 api_key=emergent_key,
                 session_id=f"passport_extraction_{int(time.time())}",
                 system_message="You are a maritime document analysis expert specialized in passport field extraction."
-            ).with_model("google", ai_model)
+            ).with_model("gemini", ai_model)
             
             # Send extraction prompt to AI
             logger.info(f"📤 Sending extraction prompt to {ai_model}...")
