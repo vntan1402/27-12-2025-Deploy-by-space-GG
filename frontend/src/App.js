@@ -7382,7 +7382,7 @@ const HomePage = () => {
                       <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
                       <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
                       <option value="Chief Officer">{language === 'vi' ? 'Đại phó' : 'Chief Officer'}</option>
-                      <option value="Second Officer">{language === 'vi' ? 'Sĩ quan hai' : 'Second Officer'}</option>
+                      <option value="Second Officer">{language === 'vi' ? 'Phó hai' : 'Second Officer'}</option>
                       <option value="Third Officer">{language === 'vi' ? 'Sĩ quan ba' : 'Third Officer'}</option>
                       <option value="Second Engineer">{language === 'vi' ? 'Máy phó nhất' : 'Second Engineer'}</option>
                       <option value="Third Engineer">{language === 'vi' ? 'Máy phó hai' : 'Third Engineer'}</option>
