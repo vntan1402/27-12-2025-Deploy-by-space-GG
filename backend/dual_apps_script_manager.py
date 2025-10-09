@@ -205,6 +205,9 @@ class DualAppsScriptManager:
             if not self.company_apps_script_url:
                 raise ValueError("Company Apps Script URL not configured")
             
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
             upload_results = {}
             
             # Upload 1: Passport file to Ship/Crew records
