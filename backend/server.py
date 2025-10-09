@@ -330,6 +330,67 @@ def validate_maritime_document_fields(extracted_data: dict, document_type: str) 
     
     return validated_data
 
+def convert_structured_passport_fields(structured_data: dict) -> dict:
+    """
+    Convert new structured passport format to old format for compatibility.
+    Maps structured fields like 'Passport_Number', 'Given_Names', etc. to old format.
+    """
+    try:
+        converted = {}
+        
+        # Map structured fields to old format
+        field_mapping = {
+            # Old format field: New structured field
+            'full_name': lambda data: f"{data.get('Surname', '')} {data.get('Given_Names', '')}".strip(),
+            'passport_number': 'Passport_Number',
+            'sex': 'Sex', 
+            'date_of_birth': 'Date_of_Birth',
+            'place_of_birth': 'Place_of_Birth',
+            'nationality': 'Nationality',
+            'issue_date': 'Date_of_Issue',
+            'expiry_date': 'Date_of_Expiry',
+            'confidence_score': lambda data: 0.9  # High confidence for structured extraction
+        }
+        
+        for old_field, new_field in field_mapping.items():
+            if callable(new_field):
+                # Handle lambda functions for complex mappings
+                converted[old_field] = new_field(structured_data)
+            else:
+                # Direct field mapping
+                converted[old_field] = structured_data.get(new_field, "")
+        
+        # Ensure all required fields exist
+        required_fields = ["full_name", "sex", "date_of_birth", "place_of_birth", 
+                          "passport_number", "nationality", "issue_date", "expiry_date", "confidence_score"]
+        
+        for field in required_fields:
+            if field not in converted:
+                converted[field] = ""
+        
+        # Ensure confidence_score is float
+        try:
+            converted["confidence_score"] = float(converted.get("confidence_score", 0.9))
+        except:
+            converted["confidence_score"] = 0.9
+            
+        return converted
+        
+    except Exception as e:
+        logger.error(f"Error converting structured passport fields: {e}")
+        # Return empty structure on error
+        return {
+            "full_name": "",
+            "passport_number": "",
+            "sex": "",
+            "date_of_birth": "",
+            "place_of_birth": "",
+            "nationality": "",
+            "issue_date": "",
+            "expiry_date": "",
+            "confidence_score": 0.0
+        }
+
 # Import the enhanced OCR processor
 try:
     from ocr_processor import EnhancedOCRProcessor
