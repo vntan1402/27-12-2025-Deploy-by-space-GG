@@ -75,8 +75,14 @@ class AppsScriptDebugger:
             self.log(f"   Looking for company_id: {self.company_id}")
             
             # First, let's see what's in the company_gdrive_config collection
-            all_configs = await mongo_db.find_all("company_gdrive_config", {})
-            self.log(f"   Found {len(all_configs)} company configs in database")
+            try:
+                all_configs = await mongo_db.find_all("company_gdrive_config", {})
+                if all_configs is None:
+                    all_configs = []
+                self.log(f"   Found {len(all_configs)} company configs in database")
+            except Exception as e:
+                self.log(f"   Error getting all configs: {e}")
+                all_configs = []
             
             for config in all_configs:
                 self.log(f"   Config: company_id={config.get('company_id')}, has_url={bool(config.get('company_apps_script_url') or config.get('web_app_url'))}")
