@@ -160,7 +160,7 @@ class CompanyAppsScriptTester:
             
             # Construct the endpoint URL as specified in review request
             endpoint = f"{BACKEND_URL}/companies/{self.company_id}/gdrive/test-apps-script"
-            self.log(f"   POST {endpoint}")
+            self.log(f"   GET {endpoint}")
             self.log(f"   Company ID: {self.company_id}")
             
             # Make the GET request (endpoint is GET, not POST)
