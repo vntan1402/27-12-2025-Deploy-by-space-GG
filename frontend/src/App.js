@@ -7156,7 +7156,7 @@ const HomePage = () => {
                     
                     {/* Drag & Drop Area */}
                     <div 
-                      className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-400 cursor-pointer transition-colors"
+                      className="border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-400 cursor-pointer transition-colors"
                       onClick={() => document.getElementById('passport-upload').click()}
                       onDragOver={(e) => {
                         e.preventDefault();
@@ -7174,14 +7174,22 @@ const HomePage = () => {
                         }
                       }}
                     >
-                      <div className="space-y-2">
-                        <div className="text-blue-500 text-3xl">📁</div>
-                        <p className="text-blue-700 font-medium">
-                          {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
-                        </p>
-                        <p className="text-blue-600 text-sm">
-                          {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
-                        </p>
+                      {/* Flex container with text on left and icon on right */}
+                      <div className="flex items-center justify-between">
+                        {/* Text content on left */}
+                        <div className="flex-1">
+                          <p className="text-blue-700 font-medium text-left">
+                            {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
+                          </p>
+                          <p className="text-blue-600 text-sm text-left mt-1">
+                            {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
+                          </p>
+                        </div>
+                        
+                        {/* Icon on right */}
+                        <div className="flex-shrink-0 ml-4">
+                          <div className="text-blue-500 text-4xl">📁</div>
+                        </div>
                       </div>
                     </div>
                     
