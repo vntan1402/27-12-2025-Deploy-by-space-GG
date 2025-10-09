@@ -10880,7 +10880,9 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
                     r"(?:full name is|name is)\s+([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ\s]+)\.?"
                 ],
                 "passport_number": [
-                    r"(?:passport number is|number is)\s+([A-Z]\d{7,8})",
+                    r"passport number is\s+([A-Z]\d{7,8})",
+                    r"passport number is\s+([A-Z]{1,2}\d{5,8})",
+                    r"(?:number is|passport is)\s+([A-Z]\d{7,8})",
                     r"passport.*?([A-Z]\d{7,8})"
                 ],
                 "date_of_birth": [
