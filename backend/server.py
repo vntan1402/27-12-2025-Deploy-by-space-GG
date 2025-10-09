@@ -10547,17 +10547,77 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
         # Simple extraction using available AI methods
         # This will use whatever AI system is configured in the environment
         
-        # For now, return mock successful extraction to test the flow
-        logger.info("⚠️ Using mock extraction for testing - implement actual AI call")
+        # ACTUAL AI EXTRACTION using LlmChat and Emergent Key
+        logger.info("🤖 Implementing ACTUAL System AI extraction...")
         
-        # Extract some basic info from summary text as fallback
+        try:
+            # Use LlmChat for actual AI extraction
+            from llm_chat import LlmChat
+            
+            # Create chat instance with Emergent key
+            chat = LlmChat(model=ai_model, provider='google')  # Use Gemini for extraction
+            
+            # Send extraction prompt to AI
+            logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+            logger.info(f"📏 Prompt length: {len(extraction_prompt)} characters")
+            
+            ai_response = await chat.send_message(extraction_prompt)
+            
+            logger.info(f"📥 Received AI response: {len(str(ai_response))} characters")
+            logger.info(f"🔍 AI response preview: {str(ai_response)[:200]}...")
+            
+            # Parse JSON response from AI
+            if ai_response:
+                content = str(ai_response).strip()
+                
+                # Clean up response to extract JSON
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0].strip()
+                elif "```" in content:
+                    content = content.split("```")[1].split("```")[0].strip()
+                
+                # Try to parse JSON
+                try:
+                    extracted_data = json.loads(content)
+                    logger.info("✅ ACTUAL AI extraction successful!")
+                    logger.info(f"📋 Extracted fields: {list(extracted_data.keys())}")
+                    
+                    # Log critical field values for debugging
+                    if 'full_name' in extracted_data:
+                        logger.info(f"   👤 Full Name: '{extracted_data['full_name']}'")
+                    if 'place_of_birth' in extracted_data:
+                        logger.info(f"   📍 Place of Birth: '{extracted_data['place_of_birth']}'")
+                    if 'passport_number' in extracted_data:
+                        logger.info(f"   📔 Passport Number: '{extracted_data['passport_number']}'")
+                    
+                    return extracted_data
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"❌ AI response is not valid JSON: {json_error}")
+                    logger.error(f"Raw AI response: {content}")
+                    # Fall through to manual extraction
+                    
+            else:
+                logger.error("❌ No response from AI extraction")
+                # Fall through to manual extraction
+                
+        except ImportError as import_error:
+            logger.error(f"❌ LlmChat import failed: {import_error}")
+            # Fall through to manual extraction
+            
+        except Exception as ai_error:
+            logger.error(f"❌ AI extraction error: {ai_error}")
+            # Fall through to manual extraction
+        
+        # Fallback: Extract basic info from summary as backup
+        logger.info("🔄 Falling back to basic text extraction...")
         mock_data = extract_basic_info_from_summary(summary_text, document_type)
         
         if mock_data:
-            logger.info("✅ Mock extraction completed")
+            logger.info("✅ Fallback text extraction completed")
             return mock_data
         else:
-            logger.warning("Mock extraction returned empty")
+            logger.warning("❌ All extraction methods failed")
             return {}
             
     except Exception as e:
