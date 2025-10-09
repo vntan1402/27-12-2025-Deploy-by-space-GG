@@ -56,7 +56,9 @@ async def test_ai_extraction():
         print(f"📤 Sending test prompt to Gemini...")
         print(f"📏 Prompt length: {len(prompt)} characters")
         
-        ai_response = await chat.send_message(prompt)
+        # Create UserMessage object for the prompt (FIX APPLIED)
+        user_message = UserMessage(text=prompt)
+        ai_response = await chat.send_message(user_message)
         
         print(f"📥 Received AI response type: {type(ai_response)}")
         print(f"🔍 AI response dir: {dir(ai_response)}")
