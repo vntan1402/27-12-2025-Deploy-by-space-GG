@@ -70,7 +70,7 @@ function handlePassportUpload(requestData) {
     Logger.log("📁 Company root folder ID: " + parentFolderId);
     Logger.log("📂 Target folder path: " + folderPath);
     
-    var rootFolder = DriveApp.getFolderById(rootFolderId);
+    var rootFolder = DriveApp.getFolderById(parentFolderId);
     var targetFolder = createFolderPath(rootFolder, folderPath);
     
     if (!targetFolder) {
