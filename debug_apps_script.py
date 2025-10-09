@@ -9,6 +9,8 @@ import json
 import os
 import base64
 import time
+import sys
+sys.path.append('/app/backend')
 from mongodb_database import mongo_db
 import asyncio
 
