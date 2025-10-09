@@ -10892,6 +10892,31 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
                             elif value.lower() in ['female', 'nữ', 'f']:
                                 value = 'F'
                         
+                        elif field == "date_of_birth":
+                            # Handle various date formats including "October 10, 1992"
+                            if value:
+                                try:
+                                    # Convert month names to DD/MM/YYYY
+                                    import re
+                                    from datetime import datetime
+                                    
+                                    # Pattern: "October 10, 1992" or "January 1, 1969"
+                                    month_pattern = r'([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})'
+                                    month_match = re.match(month_pattern, value.strip())
+                                    
+                                    if month_match:
+                                        month_name, day, year = month_match.groups()
+                                        try:
+                                            # Parse the date
+                                            date_obj = datetime.strptime(f"{month_name} {day}, {year}", "%B %d, %Y")
+                                            # Convert to DD/MM/YYYY
+                                            value = date_obj.strftime("%d/%m/%Y")
+                                            logger.info(f"   🗓️ Converted date: '{month_name} {day}, {year}' → '{value}'")
+                                        except ValueError:
+                                            logger.warning(f"   ⚠️ Could not parse month name: {month_name}")
+                                except Exception as date_error:
+                                    logger.warning(f"   ⚠️ Date conversion error: {date_error}")
+                        
                         elif field == "nationality":
                             # Normalize nationality
                             if value.lower() in ['vietnamese', 'vietnam', 'vnm']:
