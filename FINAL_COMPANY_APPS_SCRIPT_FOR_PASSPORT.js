@@ -321,7 +321,7 @@ function handleUpload(requestData) {
     var fileContent = requestData.file_content;
     var parentFolderId = requestData.parent_folder_id;
     
-    if (!shipName || !category || !filename || !fileContent || !parentFolderId) {
+    if (!shipName || !filename || !fileContent || !parentFolderId) {
       return createResponse(false, "Missing required parameters");
     }
     
