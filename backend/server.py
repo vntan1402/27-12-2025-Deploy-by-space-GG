@@ -78,34 +78,32 @@ DOCUMENT TYPE: {document_type.upper()}
     
     if document_type == "passport":
         return base_prompt + """
-TASK: Extract Vietnamese passport information from the Document AI summary. Follow ICAO standard Vietnamese passport format.
+TASK: Extract passport information from the summary. Extract ONLY the passport holder's personal information.
 
-CRITICAL: EXTRACT ONLY PASSPORT HOLDER'S INFORMATION, NOT GOVERNMENT AGENCY OR SYSTEM INFO.
+CRITICAL RULE: DO NOT extract government agency names, department names, or system text as personal information.
 
-VIETNAMESE PASSPORT STRUCTURE TO LOOK FOR:
-- **Surname**: Vietnamese family name (usually first word like NGUYEN, TRAN, LE, PHAM, HOANG, HO, etc.)
-- **Given Names**: Vietnamese given names (2-3 words after surname)
-- **Passport Number**: Letter + 7-8 digits (like C1571189, B2345678, C9780204)
-- **Date of Birth**: DD/MM/YYYY format  
-- **Sex**: M (Male/Nam) or F (Female/Nữ)
-- **Place of Birth**: Vietnamese province/city names
-- **Nationality**: "VIỆT NAM" or "VIETNAMESE" or "VNM"
-- **Date of Issue**: DD/MM/YYYY format
-- **Date of Expiry**: DD/MM/YYYY format
+EXTRACTION INSTRUCTIONS:
+Read the summary carefully and find these specific pieces of information about the PASSPORT HOLDER (the person):
 
-CRITICAL EXTRACTION RULES:
-1. For **full_name**: Look for "The passport holder's full name is [NAME]" or "holder's name is [NAME]" 
-   - Extract ONLY the actual person's name (e.g., "HỒ SỸ CHƯƠNG")
-   - DO NOT extract government agency names like "XUẤT NHẬP CẢNH", "Immigration Department", "Cục Quản lý"
-   - IGNORE phrases like "issued by", "authority", "department"
+1. **FULL NAME**: Look for phrases like "belongs to [NAME]" or "passport holder is [NAME]"
+   - Example: "belongs to NGUYỄN NGỌC TÂN" → Extract: "NGUYỄN NGỌC TÂN"
+   - DO NOT extract: "Vietnam Immigration Department", "Cục Quản Lý", "Immigration Department"
 
-2. For **place_of_birth**: Look for "place of birth is [LOCATION]" or "born in [LOCATION]"
-   - Extract ONLY the location name (e.g., "Nghệ An")
-   - Remove any connecting words like "is", "in", "at"
+2. **PASSPORT NUMBER**: Look for "passport number is [NUMBER]"
+   - Example: "passport number is P00100475" → Extract: "P00100475"
 
-3. For **sex**: Look for "sex is [M/F]" or "male/female" in passport holder context
-4. For **dates**: Look for DD/MM/YYYY patterns with proper context (birth/issue/expiry)
-5. IGNORE ALL system messages, processing info, and government agency names
+3. **DATE OF BIRTH**: Look for "born on [DATE]" 
+   - Example: "born on October 10, 1992" → Convert to: "10/10/1992"
+
+4. **PLACE OF BIRTH**: Look for "place of birth is [LOCATION]"
+   - Example: "place of birth is Hòa Bình" → Extract: "Hòa Bình"
+
+5. **SEX**: Look for "male" or "female" describing the person
+   - "a male born" → Extract: "M"
+   - "a female born" → Extract: "F"
+
+6. **ISSUE/EXPIRY DATES**: Look for "issued on [DATE]" and "expires on [DATE]"
+   - Convert all dates to DD/MM/YYYY format
 
 CRITICAL DATE EXTRACTION RULES:
 - **Date of Birth**: Look for "Ngày sinh", "Date of birth", followed by DD/MM/YYYY format
