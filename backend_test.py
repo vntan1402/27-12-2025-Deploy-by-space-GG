@@ -404,29 +404,6 @@ Test timestamp: """ + str(time.time()).encode()
         except Exception as e:
             self.log(f"❌ Error verifying folder structure requirements: {str(e)}", "ERROR")
             return False
-                self.log(f"   Company: {self.current_user.get('company')}")
-                
-                self.crew_tests['authentication_successful'] = True
-                self.user_company = self.current_user.get('company')
-                if self.user_company:
-                    self.crew_tests['user_company_identified'] = True
-                return True
-            else:
-                self.log(f"   ❌ Authentication failed - Status: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:200]}")
-                return False
-                            
-        except Exception as e:
-            self.log(f"❌ Authentication error: {str(e)}", "ERROR")
-            return False
-    
-    def get_headers(self):
-        """Get authentication headers"""
-        return {"Authorization": f"Bearer {self.auth_token}"}
     
     def test_create_crew_endpoint(self):
         """Test POST /api/crew - Create new crew member"""
