@@ -10529,7 +10529,7 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                         
                         # Final fallback: extract directly from Document AI summary
                         logger.info("🔄 Attempting direct extraction from Document AI summary...")
-                        direct_data = extract_fields_directly_from_summary_simple(summary_text, document_type)
+                        direct_data = extract_fields_directly_from_summary(summary_text, document_type)
                         if direct_data:
                             if document_type == "passport":
                                 direct_data = standardize_passport_dates(direct_data)
