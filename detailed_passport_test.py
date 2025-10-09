@@ -11,7 +11,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crewdocs-ai.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mariner-scan.preview.emergentagent.com') + '/api'
 
 def authenticate():
     """Authenticate and get token"""

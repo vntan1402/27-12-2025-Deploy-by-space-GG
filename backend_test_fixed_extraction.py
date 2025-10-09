@@ -45,7 +45,7 @@ import tempfile
 from urllib.parse import urlparse
 
 # Configuration - Use environment variable for backend URL
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crewdocs-ai.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mariner-scan.preview.emergentagent.com') + '/api'
 print(f"Using backend URL: {BACKEND_URL}")
 
 # Test credentials
