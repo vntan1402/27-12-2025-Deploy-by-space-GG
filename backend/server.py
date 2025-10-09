@@ -10538,15 +10538,24 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                         logger.error(f"Failed to parse {document_type} extraction JSON: {e}")
                         logger.error(f"Raw response: {content}")
                         
-                        # Fallback: try to extract basic fields manually
-                        logger.info("🔄 Attempting manual field extraction as fallback...")
+                        # Fallback: try to extract basic fields manually from AI response
+                        logger.info("🔄 Attempting manual field extraction from AI response as fallback...")
                         fallback_data = extract_fields_manually_from_response(content, document_type)
                         if fallback_data:
                             # Standardize dates for passport documents
                             if document_type == "passport":
                                 fallback_data = standardize_passport_dates(fallback_data)
-                            logger.info("✅ Manual extraction successful")
+                            logger.info("✅ Manual extraction from AI response successful")
                             return fallback_data
+                        
+                        # Final fallback: extract directly from Document AI summary
+                        logger.info("🔄 Attempting direct extraction from Document AI summary...")
+                        direct_data = extract_fields_directly_from_summary(summary_text, document_type)
+                        if direct_data:
+                            if document_type == "passport":
+                                direct_data = standardize_passport_dates(direct_data)
+                            logger.info("✅ Direct summary extraction successful")
+                            return direct_data
                         return {}
                 else:
                     logger.error(f"No content in {document_type} AI extraction response")
