@@ -7140,19 +7140,22 @@ const HomePage = () => {
               
               {/* Section 1: From Passport (AI Analysis) - TOP */}
               <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-                <h4 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
-                  <span className="mr-2">📄</span>
-                  {language === 'vi' ? 'Phân tích từ hộ chiếu (AI)' : 'From Passport (AI Analysis)'}
-                </h4>
+                {/* Header with title on left and description on right */}
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-semibold text-blue-800 flex items-center">
+                    <span className="mr-2">📄</span>
+                    {language === 'vi' ? 'Phân tích từ hộ chiếu (AI)' : 'From Passport (AI Analysis)'}
+                  </h4>
+                  <p className="text-sm text-blue-700 ml-4">
+                    {language === 'vi' 
+                      ? 'Tải lên file hộ chiếu để tự động phân tích và điền thông tin thuyền viên'
+                      : 'Upload passport file to automatically analyze and fill crew information'
+                    }
+                  </p>
+                </div>
                 
                 {!passportFile ? (
                   <div className="space-y-3">
-                    <p className="text-sm text-blue-700">
-                      {language === 'vi' 
-                        ? 'Tải lên file hộ chiếu để tự động phân tích và điền thông tin thuyền viên'
-                        : 'Upload passport file to automatically analyze and fill crew information'
-                      }
-                    </p>
                     
                     {/* Drag & Drop Area */}
                     <div 
