@@ -1,5 +1,118 @@
 #!/usr/bin/env python3
 """
+Vietnamese Passport Extraction Test - CO DUC Passport
+Testing "Add Crew From Passport" with NEW Vietnamese passport file to check extraction accuracy
+
+REVIEW REQUEST REQUIREMENTS:
+Test "Add Crew From Passport" with the NEW Vietnamese passport file to check extraction accuracy:
+
+Download and test: `2. CO DUC- PP.pdf`
+URL: https://customer-assets.emergentagent.com/job_crewdocs-ai/artifacts/54wrmpzf_2.%20CO%20DUC-%20PP.pdf
+
+POST to /api/crew/analyze-passport with this file
+
+Focus on checking:
+1. **Field Extraction Accuracy** - verify if the FIXED extraction system works correctly
+2. **Date Format Issues** - check if dates are returned in proper DD/MM/YYYY format
+3. **Missing Information** - identify any fields not being extracted
+4. **Compare with previous results** to see if extraction has improved
+
+Check backend logs for:
+- Document AI summary content 
+- System AI extraction attempts
+- Direct regex extraction results (our new fallback)
+- Final field extraction results
+- Date standardization process
+
+This will help identify what extraction issues remain and if the multi-layer extraction system is working properly with this new passport file.
+"""
+
+import requests
+import json
+import os
+import sys
+import re
+from datetime import datetime, timedelta
+import time
+import traceback
+import tempfile
+from urllib.parse import urlparse
+
+# Configuration - Use environment variable for backend URL
+try:
+    # Test internal connection first
+    test_response = requests.get('http://0.0.0.0:8001/api/ships', timeout=5)
+    if test_response.status_code in [200, 401]:  # 401 is expected without auth
+        BACKEND_URL = 'http://0.0.0.0:8001/api'
+        print("Using internal backend URL: http://0.0.0.0:8001/api")
+    else:
+        raise Exception("Internal URL not working")
+except:
+    # Fallback to external URL
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crewdocs-ai.preview.emergentagent.com') + '/api'
+    print(f"Using external backend URL: {BACKEND_URL}")
+
+class VietnamesePassportTester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.auth_token = None
+        self.current_user = None
+        self.test_results = {}
+        self.backend_logs = []
+        self.ship_name = "BROTHER 36"
+        self.passport_file_path = "/app/2_CO_DUC_PP.pdf"
+        
+        # Test tracking for Vietnamese passport extraction
+        self.extraction_tests = {
+            # Authentication and setup
+            'authentication_successful': False,
+            'passport_file_verified': False,
+            'ship_discovery_successful': False,
+            
+            # Passport analysis endpoint
+            'passport_analysis_endpoint_accessible': False,
+            'passport_file_upload_successful': False,
+            'api_processing_completed': False,
+            'api_returns_success': False,
+            
+            # Field extraction accuracy tests
+            'full_name_extracted_correctly': False,
+            'passport_number_extracted': False,
+            'date_of_birth_extracted': False,
+            'place_of_birth_extracted': False,
+            'sex_extracted': False,
+            'nationality_extracted': False,
+            'issue_date_extracted': False,
+            'expiry_date_extracted': False,
+            
+            # Date format verification
+            'dates_in_dd_mm_yyyy_format': False,
+            'date_standardization_working': False,
+            'no_verbose_date_formats': False,
+            
+            # Multi-layer extraction system
+            'document_ai_summary_generated': False,
+            'system_ai_extraction_attempted': False,
+            'direct_regex_extraction_available': False,
+            'multi_layer_system_working': False,
+            
+            # Backend logs verification
+            'backend_logs_document_ai_summary': False,
+            'backend_logs_system_ai_extraction': False,
+            'backend_logs_regex_extraction': False,
+            'backend_logs_date_standardization': False,
+            'backend_logs_final_results': False,
+            
+            # Extraction improvements
+            'extraction_accuracy_improved': False,
+            'missing_information_identified': False,
+            'extraction_confidence_acceptable': False,
+        }
+        
+        # Store extracted data for analysis
+        self.extracted_data = {}
+        self.processing_logs = []
+"""
 Vietnamese Passport Analysis Testing - Real Passport Image Testing
 FOCUS: Test the Vietnamese passport analysis with real passport image from provided URL
 
