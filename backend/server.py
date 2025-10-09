@@ -11060,6 +11060,89 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
         logger.error(f"Direct summary extraction error: {e}")
         return {}
 
+def convert_structured_passport_fields(structured_data: dict) -> dict:
+    """
+    Convert structured passport format to old format for compatibility
+    
+    Structured format:
+    {
+      "Passport_Number": "C9575554",
+      "Surname": "TRAN", 
+      "Given_Names": "VAN DUC",
+      "Date_of_Birth": "1979-02-19",
+      ...
+    }
+    
+    Old format:
+    {
+      "passport_number": "C9575554",
+      "full_name": "TRAN VAN DUC", 
+      "date_of_birth": "19/02/1979",
+      ...
+    }
+    """
+    try:
+        logger.info("🔄 Converting structured passport fields to compatibility format")
+        
+        converted = {"confidence_score": 0.9}
+        
+        # Convert field mappings
+        field_mappings = {
+            "Passport_Number": "passport_number",
+            "Type": "passport_type", 
+            "Sex": "sex",
+            "Nationality": "nationality",
+            "Place_of_Birth": "place_of_birth",
+            "Place_of_Issue": "place_of_issue",
+            "Authority": "issuing_authority"
+        }
+        
+        # Simple field mappings
+        for old_field, new_field in field_mappings.items():
+            if old_field in structured_data and structured_data[old_field]:
+                converted[new_field] = structured_data[old_field]
+                logger.info(f"   Mapped {old_field} → {new_field}: '{structured_data[old_field]}'")
+        
+        # Special case: Combine Surname + Given_Names to full_name
+        surname = structured_data.get("Surname", "").strip()
+        given_names = structured_data.get("Given_Names", "").strip()
+        
+        if surname and given_names:
+            full_name = f"{surname} {given_names}"
+            converted["full_name"] = full_name
+            logger.info(f"   Combined name: '{surname}' + '{given_names}' → '{full_name}'")
+        elif surname:
+            converted["full_name"] = surname
+            logger.info(f"   Single name: '{surname}'")
+        
+        # Special case: Convert ISO dates to DD/MM/YYYY format
+        date_fields = {
+            "Date_of_Birth": "date_of_birth",
+            "Date_of_Issue": "issue_date", 
+            "Date_of_Expiry": "expiry_date"
+        }
+        
+        for iso_field, old_field in date_fields.items():
+            if iso_field in structured_data and structured_data[iso_field]:
+                iso_date = structured_data[iso_field]
+                try:
+                    # Convert "1979-02-19" to "19/02/1979"
+                    from datetime import datetime
+                    date_obj = datetime.strptime(iso_date, "%Y-%m-%d")
+                    dd_mm_yyyy = date_obj.strftime("%d/%m/%Y")
+                    converted[old_field] = dd_mm_yyyy
+                    logger.info(f"   Converted date {iso_field}: '{iso_date}' → '{dd_mm_yyyy}'")
+                except ValueError as e:
+                    logger.warning(f"   Date conversion failed for {iso_field}: {e}")
+                    converted[old_field] = iso_date  # Keep original if conversion fails
+        
+        logger.info(f"✅ Converted {len(converted)} fields from structured format")
+        return converted
+        
+    except Exception as e:
+        logger.error(f"❌ Field conversion error: {e}")
+        return {"confidence_score": 0.5}
+
 def extract_fields_directly_from_summary_simple(summary_text: str, document_type: str) -> dict:
     """
     Simplified version of direct field extraction from Document AI summary
