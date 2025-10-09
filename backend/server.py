@@ -10995,6 +10995,75 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
         logger.error(f"Direct summary extraction error: {e}")
         return {}
 
+def extract_fields_directly_from_summary_simple(summary_text: str, document_type: str) -> dict:
+    """
+    Simplified version of direct field extraction from Document AI summary
+    Uses basic regex patterns with reduced complexity
+    """
+    try:
+        logger.info("🔍 Simple direct extraction from Document AI summary...")
+        
+        result = {"confidence_score": 0.8}  # Moderate confidence for simple extraction
+        
+        if document_type == "passport":
+            # Simplified patterns for Vietnamese passport
+            simple_patterns = {
+                "full_name": [
+                    r"full name is\s+([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ\s]+)",
+                    r"belongs to\s+([A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ\s]+)"
+                ],
+                "passport_number": [
+                    r"passport number is\s+([A-Z]\d{7,8})",
+                    r"number is\s+([A-Z]\d{7,8})"
+                ],
+                "date_of_birth": [
+                    r"born on\s+([A-Za-z]+ \d{1,2}, \d{4})",
+                    r"birth.*?(\d{1,2}/\d{1,2}/\d{4})"
+                ],
+                "place_of_birth": [
+                    r"place of birth is\s+([\w\s]+?)(?:,|\.|$)"
+                ],
+                "sex": [
+                    r"(male|female)",
+                    r"a (male|female)"
+                ]
+            }
+            
+            for field, pattern_list in simple_patterns.items():
+                for pattern in pattern_list:
+                    match = re.search(pattern, summary_text, re.IGNORECASE)
+                    if match:
+                        value = match.group(1).strip()
+                        
+                        # Basic cleanup
+                        if field == "full_name":
+                            value = re.sub(r'[.\-,;]$', '', value).strip()
+                        elif field == "sex":
+                            value = 'M' if value.lower() == 'male' else 'F'
+                        elif field == "date_of_birth" and re.match(r'[A-Za-z]+ \d{1,2}, \d{4}', value):
+                            # Convert "October 10, 1992" to "10/10/1992"
+                            try:
+                                from datetime import datetime
+                                date_obj = datetime.strptime(value, "%B %d, %Y")
+                                value = date_obj.strftime("%d/%m/%Y")
+                            except:
+                                pass  # Keep original if conversion fails
+                        
+                        if value and value.lower() not in ['', 'null', 'none']:
+                            result[field] = value
+                            logger.info(f"   📍 Simple extracted {field}: {value}")
+                            break
+        
+        if len(result) > 1:  # More than just confidence_score
+            logger.info(f"✅ Simple extraction found {len(result)-1} fields")
+            return result
+        else:
+            logger.info("❌ Simple extraction found no fields")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Simple summary extraction error: {e}")
+        return {}
 def extract_fields_manually_from_response(content: str, document_type: str) -> dict:
     """
     Manually extract fields from AI response when JSON parsing fails
