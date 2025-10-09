@@ -11424,7 +11424,7 @@ This summary was generated using Google Document AI for crew management purposes
             )
             
             if extracted_fields:
-                logger.info("✅ Field extraction completed successfully")
+                logger.info("✅ System AI passport extraction completed successfully")
                 analysis_result.update(extracted_fields)
                 
                 # Standardize passport dates
