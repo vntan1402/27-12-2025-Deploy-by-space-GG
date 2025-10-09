@@ -232,7 +232,7 @@ class SimplifiedPromptTester:
                         "ship_name": self.ship_name
                     }
                     
-                    self.log(f"📤 Uploading EXACT Vietnamese passport test content")
+                    self.log(f"📤 Uploading Vietnamese passport PDF file: PASS_PORT_Tran_Trong_Toan.pdf")
                     self.log(f"🚢 Ship name: {self.ship_name}")
                     
                     endpoint = f"{BACKEND_URL}/crew/analyze-passport"
