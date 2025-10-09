@@ -80,14 +80,21 @@ DOCUMENT TYPE: {document_type.upper()}
         return base_prompt + """
 TASK: Extract passport information from the summary. Extract ONLY the passport holder's personal information.
 
-CRITICAL RULE: DO NOT extract government agency names, department names, or system text as personal information.
+CRITICAL RULE: DO NOT extract government agency names, department names, document structure text, or formatting phrases as personal information.
 
 EXTRACTION INSTRUCTIONS:
 Read the summary carefully and find these specific pieces of information about the PASSPORT HOLDER (the person):
 
-1. **FULL NAME**: Look for phrases like "belongs to [NAME]" or "passport holder is [NAME]"
+IGNORE THESE FORMATTING PHRASES:
+- "each starting with" (document structure)
+- "bullet points" (formatting)
+- "Here's a summary" (document description)
+- Any phrases describing the document format itself
+
+1. **FULL NAME**: Look for phrases like "passport holder's full name is [NAME]" or "belongs to [NAME]"
+   - Example: "passport holder's full name is CHUONG" → Extract: "CHUONG"
    - Example: "belongs to NGUYỄN NGỌC TÂN" → Extract: "NGUYỄN NGỌC TÂN"
-   - DO NOT extract: "Vietnam Immigration Department", "Cục Quản Lý", "Immigration Department"
+   - DO NOT extract: "Vietnam Immigration Department", "Cục Quản Lý", "EACH STARTING WITH"
 
 2. **PASSPORT NUMBER**: Look for "passport number is [NUMBER]"
    - Example: "passport number is P00100475" → Extract: "P00100475"
