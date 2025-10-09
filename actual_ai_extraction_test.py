@@ -197,46 +197,41 @@ class ActualAIExtractionTester:
             self.log(f"❌ Error finding ship: {str(e)}", "ERROR")
             return False
     
-    def create_vietnamese_passport_test_file(self):
-        """Create a test Vietnamese passport file for testing"""
+    def get_vietnamese_passport_test_file(self):
+        """Get an existing Vietnamese passport PDF file for testing"""
         try:
-            self.log("📄 Creating Vietnamese passport test file...")
+            self.log("📄 Getting Vietnamese passport PDF file for testing...")
             
-            # Create a realistic Vietnamese passport content for testing
-            vietnamese_passport_content = """
-CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-SOCIALIST REPUBLIC OF VIETNAM
-
-HỘ CHIẾU / PASSPORT
-
-Số / No.: C9780204
-Loại / Type: P
-
-Họ và tên / Surname and given names: NGUYỄN VĂN MINH
-Quốc tịch / Nationality: VIETNAMESE
-Giới tính / Sex: M
-Ngày sinh / Date of birth: 15/03/1985
-Nơi sinh / Place of birth: HÀ NỘI
-
-Ngày cấp / Date of issue: 20/05/2022
-Ngày hết hạn / Date of expiry: 20/05/2032
-Nơi cấp / Place of issue: HÀ NỘI
-
-CỤC QUẢN LÝ XUẤT NHẬP CẢNH
-IMMIGRATION DEPARTMENT
-"""
+            # List of available Vietnamese passport PDF files
+            passport_files = [
+                "/app/PASS_PORT_Tran_Trong_Toan.pdf",
+                "/app/3_2O_THUONG_PP.pdf", 
+                "/app/2_CO_DUC_PP.pdf"
+            ]
             
-            # Write to temporary file
-            test_file_path = "/tmp/vietnamese_passport_test.txt"
-            with open(test_file_path, 'w', encoding='utf-8') as f:
-                f.write(vietnamese_passport_content)
+            # Find the first available file
+            for passport_file in passport_files:
+                if os.path.exists(passport_file):
+                    file_size = os.path.getsize(passport_file)
+                    self.log(f"✅ Found Vietnamese passport PDF: {passport_file}")
+                    self.log(f"   File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
+                    
+                    # Check if it's a PDF file
+                    with open(passport_file, 'rb') as f:
+                        header = f.read(8)
+                        if header.startswith(b'%PDF'):
+                            self.log("✅ File is a valid PDF")
+                            self.test_filename = os.path.basename(passport_file)
+                            return passport_file
+                        else:
+                            self.log("❌ File is not a valid PDF", "ERROR")
+                            continue
             
-            self.log(f"✅ Vietnamese passport test file created: {test_file_path}")
-            self.test_filename = "vietnamese_passport_test.txt"
-            return test_file_path
+            self.log("❌ No Vietnamese passport PDF files found", "ERROR")
+            return None
             
         except Exception as e:
-            self.log(f"❌ Error creating Vietnamese passport test file: {str(e)}", "ERROR")
+            self.log(f"❌ Error getting Vietnamese passport PDF file: {str(e)}", "ERROR")
             return None
     
     def test_actual_ai_extraction_endpoint(self):
