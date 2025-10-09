@@ -217,16 +217,16 @@ class SimplifiedPromptTester:
         try:
             self.log("🇻🇳 Testing SIMPLIFIED System AI extraction with EXACT Vietnamese passport data...")
             
-            # Create test file with EXACT Vietnamese passport content from review request
-            test_file_path = self.create_specific_vietnamese_passport_test_file()
-            if not test_file_path:
+            # Verify Vietnamese passport PDF file
+            passport_file_path = self.verify_vietnamese_passport_pdf_file()
+            if not passport_file_path:
                 return False
             
             try:
-                # Prepare multipart form data with EXACT Vietnamese passport test content
-                with open(test_file_path, "rb") as f:
+                # Prepare multipart form data with Vietnamese passport PDF file
+                with open(passport_file_path, "rb") as f:
                     files = {
-                        "passport_file": ("vietnamese_passport_simplified_test.txt", f, "text/plain")
+                        "passport_file": ("PASS_PORT_Tran_Trong_Toan.pdf", f, "application/pdf")
                     }
                     data = {
                         "ship_name": self.ship_name
