@@ -10647,12 +10647,26 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
             
             ai_response = await chat.send_message(extraction_prompt)
             
-            logger.info(f"📥 Received AI response: {len(str(ai_response))} characters")
-            logger.info(f"🔍 AI response preview: {str(ai_response)[:200]}...")
+            logger.info(f"📥 Received AI response type: {type(ai_response)}")
             
-            # Parse JSON response from AI
+            # Handle different LlmChat response types
             if ai_response:
-                content = str(ai_response).strip()
+                # Check if response is already a string or has content attribute
+                if hasattr(ai_response, 'file_contents'):
+                    content = ai_response.file_contents.strip()
+                    logger.info(f"🔍 AI response from file_contents: {len(content)} characters")
+                elif hasattr(ai_response, 'content'):
+                    content = ai_response.content.strip()
+                    logger.info(f"🔍 AI response from content: {len(content)} characters")
+                elif isinstance(ai_response, str):
+                    content = ai_response.strip()
+                    logger.info(f"🔍 AI response as string: {len(content)} characters")
+                else:
+                    # Fallback: convert to string
+                    content = str(ai_response).strip()
+                    logger.info(f"🔍 AI response converted to string: {len(content)} characters")
+                
+                logger.info(f"📝 AI response preview: {content[:200]}...")
                 
                 # Clean up response to extract JSON
                 if "```json" in content:
