@@ -80,21 +80,26 @@ DOCUMENT TYPE: {document_type.upper()}
         return base_prompt + """
 TASK: Extract passport information from the summary. Extract ONLY the passport holder's personal information.
 
-CRITICAL RULE: DO NOT extract government agency names, department names, document structure text, or formatting phrases as personal information.
+CRITICAL: The document contains formatting text like "each starting with" - this is NOT a person's name. 
 
-EXTRACTION INSTRUCTIONS:
-Read the summary carefully and find these specific pieces of information about the PASSPORT HOLDER (the person):
+STEP-BY-STEP EXTRACTION:
 
-IGNORE THESE FORMATTING PHRASES:
-- "each starting with" (document structure)
-- "bullet points" (formatting)
-- "Here's a summary" (document description)
-- Any phrases describing the document format itself
+1. **FIND THE ACTUAL NAME**: Look for the specific line "The passport holder's full name is [NAME]"
+   
+2. **EXAMPLE FROM THIS DOCUMENT**: 
+   Line: "• The passport holder's full name is HỒ SỸ CHƯƠNG."
+   Correct extraction: "HỒ SỸ CHƯƠNG"
+   
+3. **NEVER EXTRACT THESE**:
+   - "each starting with" (this describes bullet point format)
+   - "Immigration Department" (government agency)
+   - "Document Type" (metadata)
+   - Any text that describes the document structure
 
-1. **FULL NAME**: Look for phrases like "passport holder's full name is [NAME]" or "belongs to [NAME]"
-   - Example: "passport holder's full name is CHUONG" → Extract: "CHUONG"
-   - Example: "belongs to NGUYỄN NGỌC TÂN" → Extract: "NGUYỄN NGỌC TÂN"
-   - DO NOT extract: "Vietnam Immigration Department", "Cục Quản Lý", "EACH STARTING WITH"
+4. **FULL NAME EXTRACTION**: 
+   - ONLY extract Vietnamese names after "passport holder's full name is"
+   - Vietnamese names typically have 2-4 parts (HỒ SỸ CHƯƠNG, NGUYỄN VĂN AN, etc.)
+   - DO NOT extract formatting descriptions or agency names
 
 2. **PASSPORT NUMBER**: Look for "passport number is [NUMBER]"
    - Example: "passport number is P00100475" → Extract: "P00100475"
