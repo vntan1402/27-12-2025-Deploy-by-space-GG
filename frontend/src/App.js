@@ -7315,9 +7315,9 @@ const HomePage = () => {
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   
-                  {/* Row 1: Full Name (col-span-3) + Sex (col-span-1) */}
+                  {/* Row 1: Full Name (span-2) + Sex (span-1) + Rank (span-1) */}
                   {/* Full Name - Required */}
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Họ tên' : 'Full Name'}
                     </label>
@@ -7347,7 +7347,6 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Row 2: Rank + Date of Birth + Place of Birth + Passport No. (each col-span-1) */}
                   {/* Rank - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -7379,6 +7378,7 @@ const HomePage = () => {
                     </select>
                   </div>
 
+                  {/* Row 2: Date of Birth + Place of Birth + Passport No. + Status (each span-1) */}
                   {/* Date of Birth - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -7423,21 +7423,6 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 3: Seamen Book + Status + Ship Sign On + Date Sign On (each col-span-1) */}
-                  {/* Seamen Book - Optional */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
-                    </label>
-                    <input
-                      type="text"
-                      value={newCrewData.seamen_book}
-                      onChange={(e) => setNewCrewData({...newCrewData, seamen_book: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seamen book number'}
-                    />
-                  </div>
-
                   {/* Status - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -7452,6 +7437,21 @@ const HomePage = () => {
                       <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
                       <option value="Leave">{language === 'vi' ? 'Nghỉ phép' : 'Leave'}</option>
                     </select>
+                  </div>
+
+                  {/* Row 3: Seamen Book + Ship Sign On + Date Sign On + Date Sign Off (each span-1) */}
+                  {/* Seamen Book - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newCrewData.seamen_book}
+                      onChange={(e) => setNewCrewData({...newCrewData, seamen_book: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seamen book number'}
+                    />
                   </div>
 
                   {/* Ship Sign On - Optional */}
@@ -7482,6 +7482,19 @@ const HomePage = () => {
                       type="date"
                       value={newCrewData.date_sign_on}
                       onChange={(e) => setNewCrewData({...newCrewData, date_sign_on: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Date Sign Off - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
+                    </label>
+                    <input
+                      type="date"
+                      value={newCrewData.date_sign_off}
+                      onChange={(e) => setNewCrewData({...newCrewData, date_sign_off: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
