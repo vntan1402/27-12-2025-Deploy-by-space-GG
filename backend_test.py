@@ -1,28 +1,32 @@
 #!/usr/bin/env python3
 """
-Add Crew From Passport Workflow - Backend Testing
-FOCUS: Test the updated "Add Crew From Passport" workflow with final folder structure
+Backend Test for Add Crew From Passport Workflow
+Testing with REAL passport file: 3. 2O THUONG - PP.pdf
+Focus: Debug upload failure "Lỗi không upload được file"
 
 REVIEW REQUEST REQUIREMENTS:
-Test the updated "Add Crew From Passport" workflow with the final folder structure:
+Test the "Add Crew From Passport" workflow with REAL passport file to debug the upload issue:
 
-POST to /api/crew/analyze-passport with a passport file
+Download and test with the actual passport file: `3. 2O THUONG - PP.pdf`
+URL: https://customer-assets.emergentagent.com/job_crewdocs-ai/artifacts/06s7wz8r_3.%202O%20THUONG%20-%20PP.pdf
 
-The workflow should now create exactly:
-1. Passport file: `[Ship Name]/Crew Records/[filename].jpg`
-2. Summary file: `SUMMARY/Crew Records/[filename]_Summary.txt`
+POST to /api/crew/analyze-passport with this real PDF file
 
-Key changes to verify:
-- Both passport and summary files go into "Crew Records" subfolder
-- Passport upload: `category: "Crew Records"` under ship name
-- Summary upload: `ship_name: "SUMMARY"` with `category: "Crew Records"`
-- Apps Script handles both cases correctly
+Focus on debugging the upload failure:
+1. Download the actual PDF file and verify it's a valid passport document
+2. Test the complete workflow with this real file
+3. Check if Document AI can process the real passport properly
+4. Verify file upload to Google Drive with actual file content
+5. Examine detailed backend logs for any upload errors
+6. Check if the issue is with file size, format, or Apps Script processing
+7. Verify both passport file and summary file upload to correct folders
 
-Check backend logs for:
-- "Uploading passport file: [Ship Name]/Crew Records/[filename]"
-- "Uploading summary file: SUMMARY/Crew Records/[filename]_Summary.txt"
-- Successful completion of dual Apps Script processing
-- Correct folder structure creation in Google Drive
+The user reports "Lỗi không upload được file" (Cannot upload file error) so focus on:
+- Actual file upload success/failure to Google Drive
+- Apps Script response analysis
+- Backend error handling
+- File format and size validation
+- Document AI processing with real passport content
 """
 
 import requests
