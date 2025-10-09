@@ -1364,6 +1364,16 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+  // Update newCrewData ship_sign_on when selectedShip changes
+  useEffect(() => {
+    if (selectedShip?.name) {
+      setNewCrewData(prevData => ({
+        ...prevData,
+        ship_sign_on: selectedShip.name
+      }));
+    }
+  }, [selectedShip]);
+
   const fetchAiConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
