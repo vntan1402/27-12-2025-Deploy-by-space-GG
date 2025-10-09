@@ -123,60 +123,23 @@ Extract:
 
 CRITICAL: Only extract information about the PASSPORT HOLDER (the person), never about government agencies or departments.
 
-Return ONLY a JSON object with ALL fields populated:
+Return ONLY a valid JSON object with the extracted fields:
 
 {
-  "full_name": "Surname + Given Names (Vietnamese format)",
-  "sex": "M or F based on passport data", 
-  "date_of_birth": "DD/MM/YYYY from passport - REQUIRED, search thoroughly",
-  "place_of_birth": "Vietnamese place name from passport",
-  "passport_number": "Letter+digits from passport (e.g., C1571189)",
-  "nationality": "Vietnamese or extracted nationality", 
-  "issue_date": "DD/MM/YYYY passport issue date - REQUIRED, search thoroughly",
-  "expiry_date": "DD/MM/YYYY passport expiry date - REQUIRED, search thoroughly",
-  "confidence_score": 0.0 to 1.0
+  "full_name": "Full name of passport holder",
+  "passport_number": "Passport number", 
+  "date_of_birth": "DD/MM/YYYY birth date",
+  "place_of_birth": "Place of birth location",
+  "sex": "M or F",
+  "nationality": "Vietnamese", 
+  "issue_date": "DD/MM/YYYY issue date",
+  "expiry_date": "DD/MM/YYYY expiry date",
+  "confidence_score": 0.8
 }
 
-IMPORTANT: If you find dates in any format (14/02/1983, 14-02-1983, 14.02.1983, February 14 1983), 
-convert them to DD/MM/YYYY format. DO NOT leave date fields empty unless absolutely no date information exists.
+CONVERT ALL DATES: If you find "October 10, 1992" convert it to "10/10/1992". If you find "July 15, 2022" convert it to "15/07/2022".
 
-STEP-BY-STEP EXTRACTION FROM CURRENT SUMMARY:
-
-1. FIND FULL NAME:
-   - Search for: "The passport holder's full name is [NAME]"
-   - In text: "• The passport holder's full name is HỒ SỸ CHƯƠNG."
-   - Extract: "HỒ SỸ CHƯƠNG"
-   - IGNORE: "Immigration Department", "Xuất Nhập Cảnh", "Lương Đình Kháng"
-
-2. FIND PLACE OF BIRTH:
-   - Search for: "place of birth is [LOCATION]"  
-   - In text: "• The passport holder's place of birth is Nghệ An."
-   - Extract: "Nghệ An" (remove the word "is")
-   - Clean result: "Nghệ An"
-
-3. FIND PASSPORT NUMBER:
-   - Search for: "passport number is [NUMBER]"
-   - In text: "passport number is C9780204"
-   - Extract: "C9780204"
-
-EXACT EXTRACTION EXAMPLES:
-• "passport holder's full name is HỒ SỸ CHƯƠNG" → full_name: "HỒ SỸ CHƯƠNG"
-• "passport holder's place of birth is Nghệ An" → place_of_birth: "Nghệ An"  
-• "passport holder's date of birth is January 1, 1969 (01/01/1969)" → date_of_birth: "01/01/1969"
-
-EXTRACTION ALGORITHM:
-1. For full_name: Find line containing "passport holder's full name is" → extract text after "is" → remove punctuation
-2. For place_of_birth: Find line containing "place of birth is" → extract text after "is" → clean result  
-3. For passport_number: Find line containing "passport number is" → extract alphanumeric code after "is"
-4. For dates: Find DD/MM/YYYY pattern in parentheses → use that format
-
-REGEX-STYLE PATTERNS TO MATCH:
-- full_name: ".*passport holder's full name is ([^.]+)"
-- place_of_birth: ".*place of birth is ([^.]+)" 
-- passport_number: ".*passport number is ([A-Z][0-9]+)"
-- date_of_birth: ".*date of birth.*\(([0-9]{2}/[0-9]{2}/[0-9]{4})\)"
-
-CRITICAL: Extract ONLY passport holder's personal data, NOT agency names or system text.
+CRITICAL: Extract ONLY passport holder's personal information, NOT government agency names.
 
 JSON:"""
     
