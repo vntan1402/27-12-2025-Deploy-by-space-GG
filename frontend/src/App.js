@@ -7380,7 +7380,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Date of Birth - Required */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
                     </label>
@@ -7393,8 +7393,9 @@ const HomePage = () => {
                     />
                   </div>
 
+                  {/* Row 3: Place of Birth (col-span-2) + Passport No. (col-span-2) */}
                   {/* Place of Birth - Required */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Nơi sinh' : 'Place of Birth'}
                     </label>
@@ -7409,7 +7410,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Passport No. - Required */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Số hộ chiếu' : 'Passport No.'}
                     </label>
@@ -7423,8 +7424,9 @@ const HomePage = () => {
                     />
                   </div>
 
+                  {/* Row 4: Seamen Book (col-span-2) + Status (col-span-2) */}
                   {/* Seamen Book - Optional */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
                     </label>
@@ -7438,7 +7440,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Status - Optional */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Trạng thái' : 'Status'}
                     </label>
@@ -7453,8 +7455,9 @@ const HomePage = () => {
                     </select>
                   </div>
 
+                  {/* Row 5: Ship Sign On (col-span-2) + Date Sign On (col-span-2) */}
                   {/* Ship Sign On - Optional */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
                     </label>
@@ -7473,7 +7476,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Date Sign On - Optional */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
                     </label>
@@ -7488,8 +7491,9 @@ const HomePage = () => {
                     </p>
                   </div>
 
+                  {/* Row 6: Date Sign Off (col-span-4 - full width) */}
                   {/* Date Sign Off - Optional */}
-                  <div>
+                  <div className="md:col-span-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
                     </label>
