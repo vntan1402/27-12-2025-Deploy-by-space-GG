@@ -12,7 +12,7 @@ import json
 # Add the backend directory to sys.path to import our modules
 sys.path.insert(0, '/app/backend')
 
-from emergentintegrations.llm.chat import LlmChat
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 def get_emergent_llm_key():
     """Get Emergent LLM key for AI integrations"""
