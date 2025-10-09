@@ -7371,7 +7371,7 @@ const HomePage = () => {
                       <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
                       <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
                       <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
-                      <option value="First Officer">{language === 'vi' ? 'Sĩ quan nhất' : 'First Officer'}</option>
+                      <option value="Chief Officer">{language === 'vi' ? 'Sĩ quan nhất' : 'Chief Officer'}</option>
                       <option value="Second Officer">{language === 'vi' ? 'Sĩ quan hai' : 'Second Officer'}</option>
                       <option value="Third Officer">{language === 'vi' ? 'Sĩ quan ba' : 'Third Officer'}</option>
                       <option value="Second Engineer">{language === 'vi' ? 'Máy phó nhất' : 'Second Engineer'}</option>
