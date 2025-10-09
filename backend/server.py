@@ -11868,19 +11868,46 @@ async def create_crew_member(
             "updated_by": None
         })
         
-        # Convert date strings to datetime objects for storage
+        # Convert date strings to datetime objects for storage (FIXED VERSION)
         for date_field in ['date_of_birth', 'date_sign_on', 'date_sign_off', 'passport_issue_date', 'passport_expiry_date']:
             if crew_doc.get(date_field):
                 if isinstance(crew_doc[date_field], str):
                     try:
-                        # Handle ISO format dates from frontend
-                        if 'T' in crew_doc[date_field]:
-                            crew_doc[date_field] = datetime.fromisoformat(crew_doc[date_field].replace('Z', '+00:00'))
+                        date_str = crew_doc[date_field]
+                        logger.info(f"🔧 Converting {date_field}: '{date_str}'")
+                        
+                        # Handle various date formats
+                        if 'T' in date_str:
+                            # ISO format with time: "2023-01-15T00:00:00Z" or "2023-01-15T10:30:00"
+                            if date_str.endswith('Z'):
+                                crew_doc[date_field] = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                            else:
+                                crew_doc[date_field] = datetime.fromisoformat(date_str)
                         else:
-                            # Handle YYYY-MM-DD format
-                            crew_doc[date_field] = datetime.fromisoformat(crew_doc[date_field] + "T00:00:00+00:00")
-                    except ValueError:
-                        logger.warning(f"Could not parse date {date_field}: {crew_doc[date_field]}")
+                            # Date-only format: "2023-01-15" or "15/01/2023"
+                            if '/' in date_str:
+                                # Handle DD/MM/YYYY format
+                                try:
+                                    parsed_date = datetime.strptime(date_str, '%d/%m/%Y')
+                                    crew_doc[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                                except ValueError:
+                                    # Try MM/DD/YYYY format as fallback
+                                    parsed_date = datetime.strptime(date_str, '%m/%d/%Y')
+                                    crew_doc[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                            else:
+                                # YYYY-MM-DD format (most common from HTML date inputs)
+                                try:
+                                    parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
+                                    crew_doc[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                                except ValueError:
+                                    # Fallback: try fromisoformat with added timezone
+                                    crew_doc[date_field] = datetime.fromisoformat(date_str + "T00:00:00+00:00")
+                        
+                        logger.info(f"✅ Successfully converted {date_field}: '{date_str}' → {crew_doc[date_field]}")
+                        
+                    except (ValueError, TypeError) as e:
+                        logger.error(f"❌ Could not parse {date_field}: '{crew_doc[date_field]}' - Error: {e}")
+                        # Set to None instead of keeping invalid date that might convert to epoch
                         crew_doc[date_field] = None
         
         # Save to database
