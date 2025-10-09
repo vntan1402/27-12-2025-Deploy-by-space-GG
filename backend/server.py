@@ -10566,7 +10566,7 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
             logger.info(f"📤 Sending extraction prompt to {ai_model}...")
             logger.info(f"📏 Prompt length: {len(extraction_prompt)} characters")
             
-            ai_response = chat.send_message(extraction_prompt)
+            ai_response = await chat.send_message(extraction_prompt)
             
             logger.info(f"📥 Received AI response: {len(str(ai_response))} characters")
             logger.info(f"🔍 AI response preview: {str(ai_response)[:200]}...")
