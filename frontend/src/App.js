@@ -7134,7 +7134,7 @@ const HomePage = () => {
                       rank: '',
                       seamen_book: '',
                       status: 'Sign on',
-                      ship_sign_on: '-',
+                      ship_sign_on: selectedShip?.name || '-',
                       date_sign_on: '',
                       date_sign_off: ''
                     });
@@ -7274,7 +7274,7 @@ const HomePage = () => {
                           rank: '',
                           seamen_book: '',
                           status: 'Sign on',
-                          ship_sign_on: '-',
+                          ship_sign_on: selectedShip?.name || '-',
                           date_sign_on: '',
                           date_sign_off: ''
                         });
@@ -7324,7 +7324,7 @@ const HomePage = () => {
                   rank: '',
                   seamen_book: '',
                   status: 'Sign on',
-                  ship_sign_on: '-',
+                  ship_sign_on: selectedShip?.name || '-',
                   date_sign_on: '',
                   date_sign_off: ''
                 });
