@@ -766,7 +766,7 @@ const HomePage = () => {
     rank: '',               // Optional
     seamen_book: '',        // Optional
     status: 'Sign on',      // Optional - Default to 'Sign on'
-    ship_sign_on: '-',      // Optional - Default to '-' (no ship)
+    ship_sign_on: selectedShip?.name || '-',      // Optional - Default to selected ship or '-'
     date_sign_on: '',       // Optional
     date_sign_off: ''       // Optional
   });
