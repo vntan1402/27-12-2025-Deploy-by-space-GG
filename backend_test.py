@@ -51,64 +51,49 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crewdocs-ai.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class CrewManagementTester:
+class PassportWorkflowTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
         self.current_user = None
         self.test_results = {}
         self.backend_logs = []
+        self.ship_name = "BROTHER 36"
+        self.ship_id = None
         
-        # Test tracking for crew management API testing
-        self.crew_tests = {
+        # Test tracking for passport workflow testing
+        self.passport_tests = {
             # Authentication and setup
             'authentication_successful': False,
             'user_company_identified': False,
+            'ship_discovery_successful': False,
             
-            # POST /api/crew - Create crew member
-            'create_crew_endpoint_accessible': False,
-            'create_crew_with_valid_data': False,
-            'create_crew_duplicate_passport_validation': False,
-            'create_crew_missing_required_fields': False,
-            'create_crew_audit_logging': False,
+            # Passport analysis endpoint
+            'passport_analysis_endpoint_accessible': False,
+            'passport_file_upload_successful': False,
+            'document_ai_processing_working': False,
+            'field_extraction_successful': False,
             
-            # GET /api/crew - Get crew members list
-            'get_crew_list_endpoint_accessible': False,
-            'get_crew_list_without_filters': False,
-            'get_crew_list_with_ship_filter': False,
-            'get_crew_list_with_status_filter': False,
-            'get_crew_list_with_combined_filters': False,
+            # Folder structure verification
+            'passport_file_correct_folder': False,
+            'summary_file_correct_folder': False,
+            'crew_records_subfolder_used': False,
+            'apps_script_dual_processing': False,
             
-            # GET /api/crew/{crew_id} - Get specific crew member
-            'get_crew_by_id_endpoint_accessible': False,
-            'get_crew_by_id_valid_id': False,
-            'get_crew_by_id_invalid_id': False,
+            # Backend logs verification
+            'backend_logs_passport_upload': False,
+            'backend_logs_summary_upload': False,
+            'backend_logs_dual_processing': False,
+            'backend_logs_folder_creation': False,
             
-            # PUT /api/crew/{crew_id} - Update crew member
-            'update_crew_endpoint_accessible': False,
-            'update_crew_various_fields': False,
-            'update_crew_duplicate_passport_validation': False,
-            'update_crew_audit_logging': False,
-            
-            # DELETE /api/crew/{crew_id} - Delete crew member
-            'delete_crew_endpoint_accessible': False,
-            'delete_crew_valid_id': False,
-            'delete_crew_invalid_id': False,
-            'delete_crew_audit_logging': False,
-            
-            # Database verification
-            'crew_data_stored_in_mongodb': False,
-            'audit_logs_created': False,
-            'company_id_associated': False,
-            
-            # Permission checks
-            'manager_create_update_permissions': False,
-            'admin_delete_permissions': False,
+            # Google Drive integration
+            'google_drive_file_upload': False,
+            'correct_folder_structure_created': False,
+            'file_ids_returned': False,
         }
         
-        # Store test data for cleanup
-        self.created_crew_ids = []
-        self.user_company = None
+        # Store test data
+        self.test_filename = None
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
