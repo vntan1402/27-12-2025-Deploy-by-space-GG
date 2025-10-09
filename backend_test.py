@@ -1107,11 +1107,18 @@ class PassportWorkflowTester:
 
 def main():
     """Main function to run the passport workflow tests"""
-    print("🧪 Add Crew From Passport Workflow - Backend Testing")
+    print("🧪 Backend Test: Add Crew From Passport Workflow")
+    print("📄 Testing with REAL passport file: 3. 2O THUONG - PP.pdf")
+    print("🎯 Focus: Debug upload failure 'Lỗi không upload được file'")
     print("=" * 80)
-    print("Testing updated folder structure requirements:")
-    print("1. Passport file: [Ship Name]/Crew Records/[filename].jpg")
-    print("2. Summary file: SUMMARY/Crew Records/[filename]_Summary.txt")
+    print("Testing requirements:")
+    print("1. Download and verify actual passport PDF file")
+    print("2. Test complete workflow with real file")
+    print("3. Check Document AI processing with real passport content")
+    print("4. Verify file upload to Google Drive")
+    print("5. Examine backend logs for upload errors")
+    print("6. Check Apps Script response analysis")
+    print("7. Verify file format and size validation")
     print("=" * 80)
     
     tester = PassportWorkflowTester()
