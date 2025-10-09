@@ -163,8 +163,8 @@ class CompanyAppsScriptTester:
             self.log(f"   POST {endpoint}")
             self.log(f"   Company ID: {self.company_id}")
             
-            # Make the POST request
-            response = requests.post(endpoint, headers=self.get_headers(), timeout=60)
+            # Make the GET request (endpoint is GET, not POST)
+            response = requests.get(endpoint, headers=self.get_headers(), timeout=60)
             self.log(f"   Response status: {response.status_code}")
             
             if response.status_code == 200:
