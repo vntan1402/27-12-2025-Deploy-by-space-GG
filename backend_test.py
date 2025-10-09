@@ -210,42 +210,41 @@ class PassportWorkflowTester:
             return None
     
     def test_passport_analysis_endpoint(self):
-        """Test the passport analysis endpoint with folder structure verification"""
+        """Test the passport analysis endpoint with REAL passport file"""
         try:
-            self.log("📄 Testing passport analysis endpoint...")
+            self.log("📄 Testing passport analysis endpoint with REAL passport file...")
             
-            # Create test file
-            test_filename = self.create_test_passport_file()
-            if not test_filename:
+            # Verify real passport file
+            passport_file_path = self.verify_real_passport_file()
+            if not passport_file_path:
                 return False
             
-            # Prepare multipart form data
-            with open(test_filename, "rb") as f:
+            # Prepare multipart form data with REAL passport file
+            with open(passport_file_path, "rb") as f:
                 files = {
-                    "passport_file": (test_filename, f, "image/jpeg")
+                    "passport_file": ("3_2O_THUONG_PP.pdf", f, "application/pdf")
                 }
                 data = {
                     "ship_name": self.ship_name
                 }
                 
-                self.log(f"📤 Uploading passport file: {test_filename}")
+                self.log(f"📤 Uploading REAL passport file: 3_2O_THUONG_PP.pdf")
                 self.log(f"🚢 Ship name: {self.ship_name}")
                 
                 endpoint = f"{BACKEND_URL}/crew/analyze-passport"
                 self.log(f"   POST {endpoint}")
                 
+                start_time = time.time()
                 response = self.session.post(
                     endpoint,
                     files=files,
                     data=data,
                     timeout=120  # Longer timeout for AI processing
                 )
-            
-            # Clean up test file
-            try:
-                os.remove(test_filename)
-            except:
-                pass
+                end_time = time.time()
+                
+                processing_time = end_time - start_time
+                self.log(f"⏱️ Processing time: {processing_time:.1f} seconds")
             
             self.log(f"   Response status: {response.status_code}")
             
