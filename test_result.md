@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Complete Ship Deletion with Google Drive Folder Deletion"
+    - "Add Crew From Passport Updated Folder Structure Testing"
   stuck_tasks: 
     - "Multi Certificate Upload Google Drive Debug Testing"
   test_all: false
