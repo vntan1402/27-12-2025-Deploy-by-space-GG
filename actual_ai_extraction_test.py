@@ -239,15 +239,15 @@ class ActualAIExtractionTester:
         try:
             self.log("🤖 Testing ACTUAL System AI extraction with Vietnamese passport...")
             
-            # Create Vietnamese passport test file
-            passport_file_path = self.create_vietnamese_passport_test_file()
+            # Get Vietnamese passport PDF file
+            passport_file_path = self.get_vietnamese_passport_test_file()
             if not passport_file_path:
                 return False
             
-            # Prepare multipart form data with Vietnamese passport content
+            # Prepare multipart form data with Vietnamese passport PDF
             with open(passport_file_path, "rb") as f:
                 files = {
-                    "passport_file": ("vietnamese_passport_test.txt", f, "text/plain")
+                    "passport_file": (self.test_filename, f, "application/pdf")
                 }
                 data = {
                     "ship_name": self.ship_name
