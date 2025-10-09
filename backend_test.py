@@ -1024,127 +1024,157 @@ Test timestamp: """ + str(time.time()).encode()
             traceback.print_exc()
             return False
     
+    def run_comprehensive_passport_workflow_test(self):
+        """Run comprehensive test of the Add Crew From Passport workflow"""
+        try:
+            self.log("🚀 Starting comprehensive Add Crew From Passport workflow test")
+            self.log("=" * 80)
+            self.log("Testing updated folder structure requirements:")
+            self.log("1. Passport file: [Ship Name]/Crew Records/[filename].jpg")
+            self.log("2. Summary file: SUMMARY/Crew Records/[filename]_Summary.txt")
+            self.log("=" * 80)
+            
+            # Step 1: Authentication
+            self.log("\nSTEP 1: Authentication")
+            if not self.authenticate():
+                self.log("❌ Authentication failed - stopping tests", "ERROR")
+                return False
+            
+            # Step 2: Ship Discovery
+            self.log("\nSTEP 2: Ship Discovery")
+            if not self.find_ship():
+                self.log("❌ Ship discovery failed - stopping tests", "ERROR")
+                return False
+            
+            # Step 3: Passport Analysis Workflow
+            self.log("\nSTEP 3: Passport Analysis Workflow")
+            if not self.test_passport_analysis_endpoint():
+                self.log("❌ Passport analysis failed - continuing with other tests", "WARNING")
+            
+            # Step 4: Backend Logs Verification
+            self.log("\nSTEP 4: Backend Logs Verification")
+            self.verify_backend_logs()
+            
+            # Step 5: Folder Structure Requirements
+            self.log("\nSTEP 5: Folder Structure Requirements")
+            self.verify_folder_structure_requirements()
+            
+            self.log("\n" + "=" * 80)
+            self.log("✅ COMPREHENSIVE PASSPORT WORKFLOW TEST COMPLETED")
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ CRITICAL ERROR in comprehensive test: {str(e)}", "ERROR")
+            traceback.print_exc()
+            return False
+    
     def print_test_summary(self):
         """Print comprehensive summary of test results"""
         try:
             self.log("\n" + "=" * 80)
-            self.log("📊 CREW MANAGEMENT BACKEND API TEST SUMMARY")
+            self.log("📊 ADD CREW FROM PASSPORT WORKFLOW TEST SUMMARY")
             self.log("=" * 80)
             
             # Count passed tests
-            total_tests = len(self.crew_tests)
-            passed_tests = sum(1 for result in self.crew_tests.values() if result)
+            total_tests = len(self.passport_tests)
+            passed_tests = sum(1 for result in self.passport_tests.values() if result)
             success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
             
             self.log(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
             self.log("")
             
             # Authentication Results
-            self.log("🔐 AUTHENTICATION:")
+            self.log("🔐 AUTHENTICATION & SETUP:")
             auth_tests = [
                 ('authentication_successful', 'Authentication successful'),
                 ('user_company_identified', 'User company identified'),
+                ('ship_discovery_successful', 'Ship discovery successful'),
             ]
             
             for test_key, description in auth_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
+                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # CREATE Endpoint Results
-            self.log("\n👥 POST /api/crew - CREATE CREW:")
-            create_tests = [
-                ('create_crew_endpoint_accessible', 'Endpoint accessible'),
-                ('create_crew_with_valid_data', 'Create with valid data'),
-                ('create_crew_duplicate_passport_validation', 'Duplicate passport validation'),
-                ('create_crew_missing_required_fields', 'Missing required fields validation'),
+            # Passport Analysis Results
+            self.log("\n📄 PASSPORT ANALYSIS ENDPOINT:")
+            analysis_tests = [
+                ('passport_analysis_endpoint_accessible', 'Endpoint accessible'),
+                ('passport_file_upload_successful', 'File upload successful'),
+                ('document_ai_processing_working', 'Document AI processing'),
+                ('field_extraction_successful', 'Field extraction successful'),
             ]
             
-            for test_key, description in create_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in analysis_tests:
+                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # GET List Endpoint Results
-            self.log("\n📋 GET /api/crew - GET CREW LIST:")
-            get_list_tests = [
-                ('get_crew_list_endpoint_accessible', 'Endpoint accessible'),
-                ('get_crew_list_without_filters', 'Get all crew members'),
-                ('get_crew_list_with_ship_filter', 'Filter by ship name'),
-                ('get_crew_list_with_status_filter', 'Filter by status'),
-                ('get_crew_list_with_combined_filters', 'Combined filters'),
+            # Folder Structure Results
+            self.log("\n📁 FOLDER STRUCTURE VERIFICATION:")
+            folder_tests = [
+                ('passport_file_correct_folder', 'Passport file correct folder'),
+                ('summary_file_correct_folder', 'Summary file correct folder'),
+                ('crew_records_subfolder_used', 'Crew Records subfolder used'),
+                ('correct_folder_structure_created', 'Correct folder structure created'),
             ]
             
-            for test_key, description in get_list_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in folder_tests:
+                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # GET by ID Endpoint Results
-            self.log("\n👤 GET /api/crew/{crew_id} - GET CREW BY ID:")
-            get_by_id_tests = [
-                ('get_crew_by_id_endpoint_accessible', 'Endpoint accessible'),
-                ('get_crew_by_id_valid_id', 'Get with valid ID'),
-                ('get_crew_by_id_invalid_id', 'Invalid ID returns 404'),
+            # Apps Script Integration Results
+            self.log("\n🔧 APPS SCRIPT INTEGRATION:")
+            apps_script_tests = [
+                ('apps_script_dual_processing', 'Dual Apps Script processing'),
+                ('google_drive_file_upload', 'Google Drive file upload'),
+                ('file_ids_returned', 'File IDs returned'),
             ]
             
-            for test_key, description in get_by_id_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in apps_script_tests:
+                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
-            # UPDATE Endpoint Results
-            self.log("\n✏️ PUT /api/crew/{crew_id} - UPDATE CREW:")
-            update_tests = [
-                ('update_crew_endpoint_accessible', 'Endpoint accessible'),
-                ('update_crew_various_fields', 'Update various fields'),
-                ('update_crew_duplicate_passport_validation', 'Duplicate passport validation'),
+            # Backend Logs Results
+            self.log("\n📋 BACKEND LOGS VERIFICATION:")
+            log_tests = [
+                ('backend_logs_passport_upload', 'Passport upload logs'),
+                ('backend_logs_summary_upload', 'Summary upload logs'),
+                ('backend_logs_dual_processing', 'Dual processing logs'),
+                ('backend_logs_folder_creation', 'Folder creation logs'),
             ]
             
-            for test_key, description in update_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
-                self.log(f"   {status} - {description}")
-            
-            # DELETE Endpoint Results
-            self.log("\n🗑️ DELETE /api/crew/{crew_id} - DELETE CREW:")
-            delete_tests = [
-                ('delete_crew_endpoint_accessible', 'Endpoint accessible'),
-                ('delete_crew_valid_id', 'Delete with valid ID'),
-                ('delete_crew_invalid_id', 'Invalid ID returns 404'),
-            ]
-            
-            for test_key, description in delete_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
-                self.log(f"   {status} - {description}")
-            
-            # Database and Security Results
-            self.log("\n🗄️ DATABASE & SECURITY:")
-            db_security_tests = [
-                ('crew_data_stored_in_mongodb', 'Data stored in MongoDB'),
-                ('company_id_associated', 'Company ID associated'),
-                ('audit_logs_created', 'Audit logs created'),
-                ('manager_create_update_permissions', 'Manager+ create/update permissions'),
-                ('admin_delete_permissions', 'Admin+ delete permissions'),
-            ]
-            
-            for test_key, description in db_security_tests:
-                status = "✅ PASS" if self.crew_tests.get(test_key, False) else "❌ FAIL"
+            for test_key, description in log_tests:
+                status = "✅ PASS" if self.passport_tests.get(test_key, False) else "❌ FAIL"
                 self.log(f"   {status} - {description}")
             
             # Overall Assessment
             self.log("\n🎯 OVERALL ASSESSMENT:")
             
             critical_tests = [
-                'create_crew_endpoint_accessible', 'get_crew_list_endpoint_accessible',
-                'get_crew_by_id_endpoint_accessible', 'update_crew_endpoint_accessible',
-                'delete_crew_endpoint_accessible'
+                'passport_analysis_endpoint_accessible',
+                'passport_file_correct_folder',
+                'summary_file_correct_folder',
+                'crew_records_subfolder_used'
             ]
             
-            critical_passed = sum(1 for test_key in critical_tests if self.crew_tests.get(test_key, False))
+            critical_passed = sum(1 for test_key in critical_tests if self.passport_tests.get(test_key, False))
             
             if critical_passed == len(critical_tests):
-                self.log("   ✅ ALL 5 CREW MANAGEMENT ENDPOINTS ARE WORKING")
-                self.log("   ✅ CRUD operations fully functional")
-                self.log("   ✅ Validation and error handling working")
+                self.log("   ✅ ALL CRITICAL FOLDER STRUCTURE REQUIREMENTS MET")
+                self.log("   ✅ Passport workflow working correctly")
+                self.log("   ✅ Both files go into 'Crew Records' subfolder")
             else:
-                self.log("   ❌ SOME CRITICAL ENDPOINTS ARE NOT WORKING")
-                self.log(f"   ❌ Only {critical_passed}/{len(critical_tests)} endpoints working")
+                self.log("   ❌ SOME CRITICAL REQUIREMENTS NOT MET")
+                self.log(f"   ❌ Only {critical_passed}/{len(critical_tests)} critical tests passed")
+            
+            # Specific folder structure verification
+            self.log("\n🔍 FOLDER STRUCTURE REQUIREMENTS:")
+            self.log(f"   Expected passport path: {self.ship_name}/Crew Records/[filename].jpg")
+            self.log(f"   Expected summary path: SUMMARY/Crew Records/[filename]_Summary.txt")
+            
+            if self.passport_tests.get('passport_file_correct_folder') and self.passport_tests.get('summary_file_correct_folder'):
+                self.log("   ✅ FOLDER STRUCTURE REQUIREMENTS SATISFIED")
+            else:
+                self.log("   ❌ FOLDER STRUCTURE REQUIREMENTS NOT SATISFIED")
             
             if success_rate >= 80:
                 self.log(f"   ✅ EXCELLENT SUCCESS RATE: {success_rate:.1f}%")
