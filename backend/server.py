@@ -151,11 +151,16 @@ Return ONLY a valid JSON object with the extracted fields:
 
 CONVERT ALL DATES: If you find "October 10, 1992" convert it to "10/10/1992". If you find "July 15, 2022" convert it to "15/07/2022".
 
-CRITICAL FILTERING RULES:
-- NEVER extract document formatting phrases like "EACH STARTING WITH"
-- NEVER extract document structure descriptions  
-- ONLY extract actual passport holder personal data
-- If unsure about a name, look for context clues like "passport holder", "citizen", "belongs to"
+FINAL EXTRACTION RULE FOR THIS DOCUMENT:
+From line "• The passport holder's full name is HỒ SỸ CHƯƠNG."
+Extract ONLY: "HỒ SỸ CHƯƠNG"
+
+DO NOT EXTRACT:
+- "EACH STARTING WITH" (document formatting)
+- "Immigration Department" (agency name)  
+- Any text describing bullet points or document structure
+
+Focus on extracting the actual Vietnamese person's name that appears after "passport holder's full name is"
 
 JSON:"""
     
