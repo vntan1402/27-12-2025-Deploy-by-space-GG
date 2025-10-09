@@ -11039,8 +11039,20 @@ def extract_fields_directly_from_summary_simple(summary_text: str, document_type
                     r"number is\s+([A-Z]\d{7,8})"
                 ],
                 "date_of_birth": [
+                    # Pattern: "born on July 3, 1986"
                     r"born on\s+([A-Za-z]+ \d{1,2}, \d{4})",
+                    # Pattern: existing DD/MM/YYYY
                     r"birth.*?(\d{1,2}/\d{1,2}/\d{4})"
+                ],
+                "issue_date": [
+                    # Pattern: "issued on May 30, 2018"
+                    r"issued on\s+([A-Za-z]+ \d{1,2}, \d{4})",
+                    r"issue.*?(\d{1,2}/\d{1,2}/\d{4})"
+                ],
+                "expiry_date": [
+                    # Pattern: "expires on May 30, 2028"
+                    r"expires on\s+([A-Za-z]+ \d{1,2}, \d{4})",
+                    r"expiry.*?(\d{1,2}/\d{1,2}/\d{4})"
                 ],
                 "place_of_birth": [
                     # Pattern: "born on July 3, 1986, in HAI PHONG"
