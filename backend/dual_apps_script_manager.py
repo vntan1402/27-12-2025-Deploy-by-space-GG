@@ -22,6 +22,7 @@ class DualAppsScriptManager:
         self.company_id = company_id
         self.system_apps_script_url = None
         self.company_apps_script_url = None
+        self.parent_folder_id = None
         # Configuration will be loaded when first needed
     
     async def _load_configuration(self):
