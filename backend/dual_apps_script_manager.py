@@ -46,10 +46,16 @@ class DualAppsScriptManager:
             if gdrive_config:
                 # Check for company_apps_script_url first, then fallback to web_app_url
                 self.company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+                self.parent_folder_id = gdrive_config.get("parent_folder_id")
                 if self.company_apps_script_url:
                     logger.info(f"✅ Company Apps Script URL loaded for file upload")
                 else:
                     logger.warning("❌ Company Apps Script URL not configured")
+                
+                if self.parent_folder_id:
+                    logger.info(f"✅ Company Google Drive Folder ID loaded: {self.parent_folder_id}")
+                else:
+                    logger.warning("❌ Company Google Drive Folder ID not configured")
             
         except Exception as e:
             logger.error(f"❌ Error loading Apps Script configuration: {e}")
