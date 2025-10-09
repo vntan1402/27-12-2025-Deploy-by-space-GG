@@ -57,18 +57,17 @@ function handlePassportUpload(requestData) {
     var fileContent = requestData.file_content;
     var folderPath = requestData.folder_path;
     var contentType = requestData.content_type || "application/pdf";
+    var parentFolderId = requestData.parent_folder_id;
     
     if (!filename || !fileContent || !folderPath) {
       return createResponse(false, "Missing required parameters: filename, file_content, folder_path");
     }
     
-    // Get the Company Google Drive root folder ID from Apps Script properties
-    var rootFolderId = PropertiesService.getScriptProperties().getProperty('COMPANY_ROOT_FOLDER_ID');
-    if (!rootFolderId) {
-      return createResponse(false, "Company root folder ID not configured. Please set COMPANY_ROOT_FOLDER_ID in Apps Script properties.");
+    if (!parentFolderId) {
+      return createResponse(false, "Missing parent_folder_id. Company Google Drive Folder ID must be configured in backend.");
     }
     
-    Logger.log("📁 Root folder ID: " + rootFolderId);
+    Logger.log("📁 Company root folder ID: " + parentFolderId);
     Logger.log("📂 Target folder path: " + folderPath);
     
     var rootFolder = DriveApp.getFolderById(rootFolderId);
