@@ -7313,10 +7313,11 @@ const HomePage = () => {
                 setPassportAnalysis(null);
                 setPassportError('');
               }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   
+                  {/* Row 1: Full Name (col-span-3) + Sex (col-span-1) */}
                   {/* Full Name - Required */}
-                  <div>
+                  <div className="md:col-span-3">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Họ tên' : 'Full Name'}
                     </label>
@@ -7331,7 +7332,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Sex - Required */}
-                  <div>
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Giới tính' : 'Sex'}
                     </label>
@@ -7346,8 +7347,9 @@ const HomePage = () => {
                     </select>
                   </div>
 
+                  {/* Row 2: Rank (col-span-2) + Date of Birth (col-span-2) */}
                   {/* Rank - Optional */}
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {language === 'vi' ? 'Chức vụ' : 'Rank'}
                     </label>
