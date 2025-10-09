@@ -253,7 +253,7 @@ class ActualAIExtractionTester:
                     "ship_name": self.ship_name
                 }
                 
-                self.log(f"📤 Uploading Vietnamese passport test file: {self.test_filename}")
+                self.log(f"📤 Uploading Vietnamese passport PDF file: {self.test_filename}")
                 self.log(f"🚢 Ship name: {self.ship_name}")
                 self.log("🎯 Focus: ACTUAL System AI extraction (not mock data)")
                 
