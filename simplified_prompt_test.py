@@ -402,12 +402,8 @@ class SimplifiedPromptTester:
                     return False
                     
             finally:
-                # Clean up temporary file
-                try:
-                    os.unlink(test_file_path)
-                    self.log(f"🧹 Cleaned up test file: {test_file_path}")
-                except:
-                    pass
+                # No cleanup needed for existing PDF file
+                pass
                 
         except Exception as e:
             self.log(f"❌ Error in SIMPLIFIED System AI extraction test: {str(e)}", "ERROR")
