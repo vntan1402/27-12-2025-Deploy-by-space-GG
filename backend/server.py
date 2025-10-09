@@ -10555,13 +10555,18 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
             from emergentintegrations.llm.chat import LlmChat
             
             # Create chat instance with Emergent key
-            chat = LlmChat(model=ai_model, provider='google')  # Use Gemini for extraction
+            emergent_key = get_emergent_llm_key()
+            chat = LlmChat(
+                api_key=emergent_key,
+                session_id=f"passport_extraction_{int(time.time())}",
+                system_message="You are a maritime document analysis expert specialized in passport field extraction."
+            ).with_model("google", ai_model)
             
             # Send extraction prompt to AI
             logger.info(f"📤 Sending extraction prompt to {ai_model}...")
             logger.info(f"📏 Prompt length: {len(extraction_prompt)} characters")
             
-            ai_response = await chat.send_message(extraction_prompt)
+            ai_response = chat.send_message(extraction_prompt)
             
             logger.info(f"📥 Received AI response: {len(str(ai_response))} characters")
             logger.info(f"🔍 AI response preview: {str(ai_response)[:200]}...")
