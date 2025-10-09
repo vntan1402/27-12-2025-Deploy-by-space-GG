@@ -80,10 +80,12 @@ DOCUMENT TYPE: {document_type.upper()}
         return base_prompt + """
 TASK: Extract Vietnamese passport information from the Document AI summary. Follow ICAO standard Vietnamese passport format.
 
+CRITICAL: EXTRACT ONLY PASSPORT HOLDER'S INFORMATION, NOT GOVERNMENT AGENCY OR SYSTEM INFO.
+
 VIETNAMESE PASSPORT STRUCTURE TO LOOK FOR:
-- **Surname**: Vietnamese family name (usually first word like NGUYEN, TRAN, LE, PHAM, HOANG, etc.)
+- **Surname**: Vietnamese family name (usually first word like NGUYEN, TRAN, LE, PHAM, HOANG, HO, etc.)
 - **Given Names**: Vietnamese given names (2-3 words after surname)
-- **Passport Number**: Letter + 7-8 digits (like C1571189, B2345678)
+- **Passport Number**: Letter + 7-8 digits (like C1571189, B2345678, C9780204)
 - **Date of Birth**: DD/MM/YYYY format  
 - **Sex**: M (Male/Nam) or F (Female/Nữ)
 - **Place of Birth**: Vietnamese province/city names
@@ -91,12 +93,19 @@ VIETNAMESE PASSPORT STRUCTURE TO LOOK FOR:
 - **Date of Issue**: DD/MM/YYYY format
 - **Date of Expiry**: DD/MM/YYYY format
 
-EXTRACTION RULES:
-1. For **full_name**: Combine Surname + Given Names (e.g., "NGUYEN VAN MINH")
-2. For **sex**: Look for "M", "F", "Male", "Female", "Nam", "Nữ" 
-3. For **dates**: Look for DD/MM/YYYY patterns, distinguish birth vs issue vs expiry
-4. For **place_of_birth**: Vietnamese locations like "Hồ Chí Minh", "Hà Nội", "Đà Nẵng", provinces
-5. IGNORE system messages like "Document Processing", "Summary", "Analysis"
+CRITICAL EXTRACTION RULES:
+1. For **full_name**: Look for "The passport holder's full name is [NAME]" or "holder's name is [NAME]" 
+   - Extract ONLY the actual person's name (e.g., "HỒ SỸ CHƯƠNG")
+   - DO NOT extract government agency names like "XUẤT NHẬP CẢNH", "Immigration Department", "Cục Quản lý"
+   - IGNORE phrases like "issued by", "authority", "department"
+
+2. For **place_of_birth**: Look for "place of birth is [LOCATION]" or "born in [LOCATION]"
+   - Extract ONLY the location name (e.g., "Nghệ An")
+   - Remove any connecting words like "is", "in", "at"
+
+3. For **sex**: Look for "sex is [M/F]" or "male/female" in passport holder context
+4. For **dates**: Look for DD/MM/YYYY patterns with proper context (birth/issue/expiry)
+5. IGNORE ALL system messages, processing info, and government agency names
 
 CRITICAL DATE EXTRACTION RULES:
 - **Date of Birth**: Look for "Ngày sinh", "Date of birth", followed by DD/MM/YYYY format
