@@ -9284,6 +9284,74 @@ async def configure_company_gdrive(
         raise HTTPException(status_code=500, detail=f"Configuration failed: {str(e)}")
 
 # Proxy endpoint for frontend compatibility
+@api_router.get("/companies/{company_id}/gdrive/test-apps-script")
+async def test_company_apps_script(
+    company_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Test Company Apps Script connectivity and configuration"""
+    try:
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+        if not gdrive_config_doc:
+            return {
+                "success": False,
+                "error": "Company Google Drive not configured"
+            }
+        
+        # Get configuration details
+        apps_script_url = gdrive_config_doc.get("company_apps_script_url") or gdrive_config_doc.get("web_app_url")
+        folder_id = gdrive_config_doc.get("parent_folder_id") or gdrive_config_doc.get("folder_id")
+        
+        result = {
+            "success": True,
+            "configuration": {
+                "apps_script_url": apps_script_url,
+                "folder_id": folder_id,
+                "has_apps_script_url": bool(apps_script_url),
+                "has_folder_id": bool(folder_id)
+            }
+        }
+        
+        # Test Apps Script if URL is available
+        if apps_script_url:
+            try:
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    # Test basic GET request
+                    async with session.get(
+                        apps_script_url,
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        response_text = await response.text()
+                        result["apps_script_test"] = {
+                            "status_code": response.status,
+                            "response_preview": response_text[:500],
+                            "success": response.status == 200
+                        }
+                        
+                        # If GET works, try to parse JSON response
+                        if response.status == 200:
+                            try:
+                                response_json = await response.json()
+                                result["apps_script_test"]["parsed_response"] = response_json
+                            except:
+                                result["apps_script_test"]["note"] = "Response is not JSON - might be HTML redirect"
+                                
+            except Exception as e:
+                result["apps_script_test"] = {
+                    "success": False,
+                    "error": str(e)
+                }
+        
+        return result
+        
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Test failed: {str(e)}"
+        }
+
 @api_router.post("/companies/{company_id}/gdrive/configure-proxy")
 async def configure_company_gdrive_proxy(
     company_id: str,
