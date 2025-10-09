@@ -162,48 +162,39 @@ class SystemAIDebugTester:
             self.log(f"❌ Error finding ship: {str(e)}", "ERROR")
             return False
     
-    def create_vietnamese_passport_test_file(self):
-        """Create a test Vietnamese passport file for debugging"""
+    def get_vietnamese_passport_test_file(self):
+        """Get a real Vietnamese passport PDF file for debugging"""
         try:
-            self.log("📄 Creating Vietnamese passport test file...")
+            self.log("📄 Using real Vietnamese passport PDF file...")
             
-            # Create a simple text file with Vietnamese passport content for testing
-            # This will trigger Document AI processing and System AI extraction
-            passport_content = """
-CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-SOCIALIST REPUBLIC OF VIETNAM
-HỘ CHIẾU - PASSPORT
-
-Loại/Type: P
-Mã quốc gia/Country code: VNM
-Số hộ chiếu/Passport No.: C9575554
-Họ/Surname: BUI
-Tên/Given names: VAN HAI
-Quốc tịch/Nationality: VIETNAMESE
-Giới tính/Sex: M
-Ngày sinh/Date of birth: 19/02/1979
-Nơi sinh/Place of birth: NAM DINH
-Ngày cấp/Date of issue: 02/03/2021
-Ngày hết hạn/Date of expiry: 02/03/2031
-Nơi cấp/Place of issue: CUC QUAN LY XUAT NHAP CANH
-Cơ quan cấp/Authority: DEPUTY CHIEF TA THI HUONG GIANG - IMMIGRATION DEPARTMENT
-
-MRZ:
-P<VNMBUI<<VAN<HAI<<<
-C9575554<2VNM7902192M3103027162166702<<<<<96
-            """
+            # Use existing Vietnamese passport PDF file
+            passport_files = [
+                "/app/PASS_PORT_Tran_Trong_Toan.pdf",
+                "/app/3_2O_THUONG_PP.pdf", 
+                "/app/2_CO_DUC_PP.pdf"
+            ]
             
-            test_file_path = "/tmp/vietnamese_passport_test.txt"
-            with open(test_file_path, 'w', encoding='utf-8') as f:
-                f.write(passport_content)
+            for passport_file in passport_files:
+                if os.path.exists(passport_file):
+                    file_size = os.path.getsize(passport_file)
+                    self.log(f"✅ Found real passport file: {passport_file}")
+                    self.log(f"   File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
+                    
+                    # Verify it's a PDF file
+                    with open(passport_file, 'rb') as f:
+                        header = f.read(8)
+                        if header.startswith(b'%PDF'):
+                            self.log("✅ File is a valid PDF")
+                            return passport_file
+                        else:
+                            self.log("❌ File is not a valid PDF", "ERROR")
+                            continue
             
-            self.log(f"✅ Created test file: {test_file_path}")
-            self.log(f"   File size: {len(passport_content)} characters")
-            
-            return test_file_path
+            self.log("❌ No valid Vietnamese passport PDF files found", "ERROR")
+            return None
             
         except Exception as e:
-            self.log(f"❌ Error creating test file: {str(e)}", "ERROR")
+            self.log(f"❌ Error getting passport file: {str(e)}", "ERROR")
             return None
     
     def debug_system_ai_passport_processing(self):
