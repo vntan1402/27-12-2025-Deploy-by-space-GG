@@ -145,7 +145,17 @@ Return ONLY a JSON object with ALL fields populated:
 IMPORTANT: If you find dates in any format (14/02/1983, 14-02-1983, 14.02.1983, February 14 1983), 
 convert them to DD/MM/YYYY format. DO NOT leave date fields empty unless absolutely no date information exists.
 
-CRITICAL: Extract ONLY actual passport data, NOT system text or processing messages.
+EXAMPLE EXTRACTION FROM GIVEN SUMMARY:
+From: "The passport holder's full name is HỒ SỸ CHƯƠNG"
+→ full_name: "HỒ SỸ CHƯƠNG" (NOT "XUẤT NHẬP CẢNH")
+
+From: "place of birth is Nghệ An"  
+→ place_of_birth: "Nghệ An" (NOT "is Nghệ An")
+
+From: "passport number is C9780204"
+→ passport_number: "C9780204"
+
+CRITICAL: Extract ONLY actual passport holder's data, NOT system text, agency names, or processing messages.
 
 JSON:"""
     
