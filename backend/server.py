@@ -10552,7 +10552,7 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
         
         try:
             # Use LlmChat for actual AI extraction
-            from llm_chat import LlmChat
+            from emergentintegrations.llm.chat import LlmChat
             
             # Create chat instance with Emergent key
             chat = LlmChat(model=ai_model, provider='google')  # Use Gemini for extraction
