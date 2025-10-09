@@ -169,7 +169,19 @@ EXACT EXTRACTION EXAMPLES:
 • "passport holder's place of birth is Nghệ An" → place_of_birth: "Nghệ An"  
 • "passport holder's date of birth is January 1, 1969 (01/01/1969)" → date_of_birth: "01/01/1969"
 
-CRITICAL: Extract ONLY actual passport holder's data, NOT system text, agency names, or processing messages.
+EXTRACTION ALGORITHM:
+1. For full_name: Find line containing "passport holder's full name is" → extract text after "is" → remove punctuation
+2. For place_of_birth: Find line containing "place of birth is" → extract text after "is" → clean result  
+3. For passport_number: Find line containing "passport number is" → extract alphanumeric code after "is"
+4. For dates: Find DD/MM/YYYY pattern in parentheses → use that format
+
+REGEX-STYLE PATTERNS TO MATCH:
+- full_name: ".*passport holder's full name is ([^.]+)"
+- place_of_birth: ".*place of birth is ([^.]+)" 
+- passport_number: ".*passport number is ([A-Z][0-9]+)"
+- date_of_birth: ".*date of birth.*\(([0-9]{2}/[0-9]{2}/[0-9]{4})\)"
+
+CRITICAL: Extract ONLY passport holder's personal data, NOT agency names or system text.
 
 JSON:"""
     
