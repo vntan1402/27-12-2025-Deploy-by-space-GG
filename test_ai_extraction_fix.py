@@ -49,7 +49,7 @@ async def test_ai_extraction():
             api_key=emergent_key,
             session_id=f"test_extraction_123456",
             system_message="You are a maritime document analysis expert."
-        ).with_model("google", "gemini-2.0-flash")
+        ).with_model("gemini", "gemini-2.0-flash")
         
         # Send extraction prompt to AI
         prompt = create_test_prompt()
