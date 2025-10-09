@@ -1,30 +1,34 @@
 #!/usr/bin/env python3
 """
-Vietnamese Passport Extraction Test - CO DUC Passport
-Testing "Add Crew From Passport" with NEW Vietnamese passport file to check extraction accuracy
+Vietnamese Passport Extraction Test - SIMPLIFIED System AI Prompt Testing
+Testing the SIMPLIFIED System AI extraction prompt with Vietnamese passport data
 
 REVIEW REQUEST REQUIREMENTS:
-Test "Add Crew From Passport" with the NEW Vietnamese passport file to check extraction accuracy:
+Test the SIMPLIFIED System AI extraction prompt with the Vietnamese passport that was showing extraction errors:
 
-Download and test: `2. CO DUC- PP.pdf`
-URL: https://customer-assets.emergentagent.com/job_crewdocs-ai/artifacts/54wrmpzf_2.%20CO%20DUC-%20PP.pdf
+POST to /api/crew/analyze-passport using the passport that contains:
+- Document AI Summary with: "it belongs to NGUYỄN NGỌC TÂN, a male born on October 10, 1992"
+- "The passport holder's place of birth is Hòa Bình, Vietnam"  
+- "passport number is P00100475"
 
-POST to /api/crew/analyze-passport with this file
+The SIMPLIFIED prompt should now extract correctly:
 
-Focus on checking:
-1. **Field Extraction Accuracy** - verify if the FIXED extraction system works correctly
-2. **Date Format Issues** - check if dates are returned in proper DD/MM/YYYY format
-3. **Missing Information** - identify any fields not being extracted
-4. **Compare with previous results** to see if extraction has improved
+**Expected Results:**
+- **Full Name**: "NGUYỄN NGỌC TÂN" (NOT "VIETNAM IMMIGRATION DEPARTMENT")
+- **Place of Birth**: "Hòa Bình" (NOT "is Hòa Bình")  
+- **Passport Number**: "P00100475" (should be correct)
+- **Date of Birth**: "10/10/1992" (converted from "October 10, 1992")
+- **Sex**: "M" (from "a male")
 
-Check backend logs for:
-- Document AI summary content 
-- System AI extraction attempts
-- Direct regex extraction results (our new fallback)
-- Final field extraction results
-- Date standardization process
+**Focus on checking:**
+1. **System AI extraction accuracy** with simplified prompt
+2. **3-layer extraction fallback** (System AI → Manual → Direct Regex)
+3. **Final field results** sent to frontend
+4. **Date conversion** working properly
 
-This will help identify what extraction issues remain and if the multi-layer extraction system is working properly with this new passport file.
+The simplified prompt removes complex instructions and focuses on clear, simple patterns that should be easier for System AI to follow correctly.
+
+Verify if the SIMPLIFIED approach finally resolves the Vietnamese passport extraction accuracy issues.
 """
 
 import requests
