@@ -230,13 +230,12 @@ class DualAppsScriptManager:
                 summary_filename = f"{base_name}_Summary.txt"
                 
                 logger.info(f"📋 Uploading summary file: SUMMARY/{summary_filename}")
-                # For summary, create SUMMARY folder directly under root (no ship_name)
-                # We'll use a special case - create SUMMARY at root level
+                # For summary, upload directly to SUMMARY folder (no subcategory)
                 summary_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
                     'ship_name': 'SUMMARY',  # Use SUMMARY as "ship_name" to create root-level SUMMARY folder
-                    'category': 'Documents',  # Simple category inside SUMMARY
+                    # No category - upload directly to SUMMARY root
                     'filename': summary_filename,
                     'file_content': base64.b64encode(summary_content.encode('utf-8')).decode('utf-8'),
                     'content_type': 'text/plain'
