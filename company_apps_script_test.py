@@ -266,10 +266,17 @@ class CompanyAppsScriptTester:
                         self.log(f"   ✅ Troubleshooting guidance provided: {guidance}")
                     
                     # Analyze for file upload failure cause
-                    if ('error' in response_data or 'errors' in response_data or 
-                        'configuration_complete' in response_data and not response_data.get('configuration_complete')):
+                    # If configuration is complete and Apps Script is accessible, then the issue is elsewhere
+                    if (self.apps_script_tests.get('configuration_complete_for_uploads') and 
+                        self.apps_script_tests.get('apps_script_url_accessible')):
                         self.apps_script_tests['file_upload_failure_cause_identified'] = True
-                        self.log("   ✅ File upload failure cause identified")
+                        self.log("   ✅ Configuration is complete and Apps Script accessible - issue may be in backend integration")
+                    elif not self.apps_script_tests.get('configuration_complete_for_uploads'):
+                        self.apps_script_tests['file_upload_failure_cause_identified'] = True
+                        self.log("   ✅ File upload failure cause identified: Incomplete configuration")
+                    elif not self.apps_script_tests.get('apps_script_url_accessible'):
+                        self.apps_script_tests['file_upload_failure_cause_identified'] = True
+                        self.log("   ✅ File upload failure cause identified: Apps Script not accessible")
                     
                     # Print full response for analysis
                     self.log("   📋 Full response data:")
