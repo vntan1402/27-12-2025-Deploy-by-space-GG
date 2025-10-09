@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
 """
-Ship Management System - Passport Processing Backend API Testing
-FOCUS: Test the updated System Apps Script (Document AI only) with real passport file
+Ship Management System - Passport Processing Workflow Backend Testing
+FOCUS: Test Python NameError fix and complete passport processing workflow
 
 REVIEW REQUEST REQUIREMENTS:
-Test the updated System Apps Script (Document AI only) with the real passport file 
-"PASS PORT Tran Trong Toan.pdf" to verify the complete Add Crew workflow.
+TEST PYTHON ERROR FIX - VERIFY COMPLETE PASSPORT PROCESSING WORKFLOW:
 
-COMPREHENSIVE TESTING REQUIREMENTS:
-1. Authentication: Login with admin1/123456
-2. System Apps Script Verification: Verify updated System Apps Script is working (Document AI only)
-3. Real Passport Analysis: Upload the actual passport file and test Document AI processing
-4. Dual Apps Script Workflow: Test System Apps Script (AI) + Company Apps Script (upload) if configured
-5. Date Standardization: Verify date extraction and standardization works correctly
-6. Field Extraction: Check all passport fields are extracted (Name, DOB, POB, Passport Number, etc.)
+**OBJECTIVE**: Test the Python NameError fix and verify complete Add Crew passport processing workflow now works end-to-end with real Google Drive file uploads.
 
-CRITICAL SUCCESS CRITERIA:
-- Document AI Processing: System Apps Script processes document successfully
-- Field Extraction: Full name, DOB, POB, passport number extracted correctly
-- Date Standardization: Dates returned in clean DD/MM/YYYY format
-- Backend Integration: DualAppsScriptManager calls System Apps Script successfully
+**PYTHON ERROR FIXED**: 
+✅ Fixed `NameError: name 'ai_config' is not defined` in server.py
+✅ Updated field extraction to use correct AI config parameters
+✅ Backend should now return complete file upload data
+
+**COMPREHENSIVE TESTING REQUIREMENTS**:
+
+### **Phase 1: Backend Error Resolution Verification**
+1. **Python Error Test**: Verify no more NameError in passport processing
+2. **Field Extraction**: Confirm AI field extraction works with fixed parameters
+3. **Complete Response**: API should return full response including file data
+
+### **Phase 2: Complete Passport Processing Workflow**
+4. **Authentication**: Login with admin1/123456
+5. **Real Passport Test**: Process "PASS PORT Tran Trong Toan.pdf" again  
+6. **Document AI Step**: System Apps Script Document AI processing
+7. **Field Extraction**: AI field extraction from summary
+8. **File Upload Step**: Company Apps Script file upload
+9. **Response Verification**: Complete API response with file data
+
+### **Phase 3: Google Drive File Creation Verification**
+10. **Real File Upload**: Files should actually be created in Google Drive
+11. **Folder Structure**: Verify correct folder creation (BROTHER 36/Crew records, SUMMARY)
+12. **File Content**: Verify files contain actual content (not empty)
 """
 
 import requests
