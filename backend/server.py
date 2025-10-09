@@ -10948,11 +10948,18 @@ This summary was generated using Google Document AI for crew management purposes
             
             # Extract fields from AI summary using our enhanced extraction
             logger.info("🧠 Extracting fields from Document AI summary using system AI...")
+            
+            # Get AI configuration for field extraction (same as used earlier)
+            ai_provider = ai_config_doc.get("provider", "google")
+            ai_model = ai_config_doc.get("model", "gemini-2.0-flash")  
+            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+            
             extracted_fields = await extract_maritime_document_fields_from_summary(
                 summary_text, 
                 "passport", 
-                ai_config,
-                company_uuid
+                ai_provider, 
+                ai_model, 
+                use_emergent_key
             )
             
             if extracted_fields:
