@@ -10567,8 +10567,9 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                             
                             # Validate based on document type
                             validated_data = validate_maritime_document_fields(converted_data, document_type)
-                                
-                                logger.info(f"✅ FALLBACK AI field extraction successful")
+                            
+                            if validated_data:
+                                logger.info(f"✅ System AI passport field extraction successful")
                                 logger.info(f"   Extracted fields: {list(validated_data.keys())}")
                                 return validated_data
                         else:
