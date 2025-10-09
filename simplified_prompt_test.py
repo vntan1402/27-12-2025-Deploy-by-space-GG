@@ -180,63 +180,36 @@ class SimplifiedPromptTester:
             self.log(f"❌ Error finding ship: {str(e)}", "ERROR")
             return False
     
-    def create_specific_vietnamese_passport_test_file(self):
-        """Create a test file with the EXACT Vietnamese passport content from the review request"""
+    def verify_vietnamese_passport_pdf_file(self):
+        """Verify the Vietnamese passport PDF file exists and is valid"""
         try:
-            self.log("📄 Creating SPECIFIC Vietnamese passport test file with exact review request data...")
+            self.log("📄 Verifying Vietnamese passport PDF file...")
             
-            # Create test content that exactly matches the review request specifications
-            vietnamese_passport_content = """
-DOCUMENT AI SUMMARY - VIETNAMESE PASSPORT ANALYSIS
-
-The passport number is P00100475, and it belongs to NGUYỄN NGỌC TÂN, a male born on October 10, 1992.
-
-The passport holder's place of birth is Hòa Bình, Vietnam.
-
-This passport was issued by the Vietnam Immigration Department (Cục Quản lý Xuất nhập cảnh).
-
-The document contains standard passport information including:
-- Personal details of the passport holder NGUYỄN NGỌC TÂN
-- Biometric information
-- Security features
-- Official stamps and signatures
-
-Additional details:
-- Nationality: Vietnamese
-- Document type: Passport
-- Issuing authority: Vietnam Immigration Department
-- Place of birth location: Hòa Bình province, Vietnam
-- Date of birth: October 10, 1992
-- Sex: male
-
-The passport appears to be in good condition with clear text and readable information.
-
-CRITICAL TEST DATA:
-- Full name: NGUYỄN NGỌC TÂN (person name, NOT agency name)
-- Passport number: P00100475
-- Date of birth: October 10, 1992 (should convert to 10/10/1992)
-- Place of birth: Hòa Bình (should be clean, not "is Hòa Bình")
-- Sex: male (should convert to M)
-"""
+            # Use existing passport PDF file
+            passport_file = "/app/PASS_PORT_Tran_Trong_Toan.pdf"
             
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8')
-            temp_file.write(vietnamese_passport_content)
-            temp_file.close()
+            if not os.path.exists(passport_file):
+                self.log(f"❌ Vietnamese passport PDF file not found: {passport_file}", "ERROR")
+                return None
             
-            self.log(f"✅ Created SPECIFIC test file: {temp_file.name}")
-            self.log(f"   File size: {os.path.getsize(temp_file.name)} bytes")
-            self.log("   Contains EXACT data from review request:")
-            self.log("     - Full Name: NGUYỄN NGỌC TÂN")
-            self.log("     - Passport Number: P00100475")
-            self.log("     - Date of Birth: October 10, 1992")
-            self.log("     - Place of Birth: Hòa Bình")
-            self.log("     - Sex: male")
+            file_size = os.path.getsize(passport_file)
+            self.log(f"✅ Vietnamese passport PDF file found: {passport_file}")
+            self.log(f"   File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
             
-            return temp_file.name
-            
+            # Check if it's a PDF file
+            with open(passport_file, 'rb') as f:
+                header = f.read(8)
+                if header.startswith(b'%PDF'):
+                    self.log("✅ File is a valid PDF")
+                    self.log("   This passport should contain Vietnamese passport data")
+                    self.log("   Testing SIMPLIFIED System AI extraction with real passport content")
+                    return passport_file
+                else:
+                    self.log("❌ File is not a valid PDF", "ERROR")
+                    return None
+                    
         except Exception as e:
-            self.log(f"❌ Error creating SPECIFIC Vietnamese passport test file: {str(e)}", "ERROR")
+            self.log(f"❌ Error verifying Vietnamese passport PDF file: {str(e)}", "ERROR")
             return None
     
     def test_simplified_system_ai_extraction(self):
