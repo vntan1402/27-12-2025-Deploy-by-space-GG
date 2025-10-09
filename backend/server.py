@@ -10892,7 +10892,7 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
                             elif value.lower() in ['female', 'nữ', 'f']:
                                 value = 'F'
                         
-                        elif field == "date_of_birth":
+                        elif field.endswith("date") or field == "date_of_birth":
                             # Handle various date formats including "October 10, 1992"
                             if value:
                                 try:
