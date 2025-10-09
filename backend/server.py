@@ -10895,8 +10895,9 @@ def extract_fields_directly_from_summary(summary_text: str, document_type: str) 
                     r"female born on\s+([A-Za-z]+ \d{1,2}, \d{4})"
                 ],
                 "place_of_birth": [
-                    r"(?:place of birth is|born in|birthplace is)\s+([\w\s]+?)(?:\.|,|;|$)",
-                    r"(?:sinh tại|place of birth).*?is\s+([\w\s]+?)(?:\.|,|;|$)"
+                    r"(?:place of birth is|birthplace is|born in)\s+([\w\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]+?)(?:,|\.|$)",
+                    r"was born.*?in\s+([\w\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]+?)(?:,|\.|$)",
+                    r"born.*?in\s+([\w\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]+?)(?:,|\.|$)"
                 ],
                 "sex": [
                     r"(?:sex is|gender is)\s+(male|female|M|F|Nam|Nữ)",
