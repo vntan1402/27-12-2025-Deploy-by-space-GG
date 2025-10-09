@@ -105,26 +105,23 @@ Read the summary carefully and find these specific pieces of information about t
 6. **ISSUE/EXPIRY DATES**: Look for "issued on [DATE]" and "expires on [DATE]"
    - Convert all dates to DD/MM/YYYY format
 
-CRITICAL DATE EXTRACTION RULES:
-- **Date of Birth**: Look for "Ngày sinh", "Date of birth", followed by DD/MM/YYYY format
-- **Issue Date**: Look for "Ngày cấp", "Date of issue", followed by DD/MM/YYYY format  
-- **Expiry Date**: Look for "Ngày hết hạn", "Date of expiry", followed by DD/MM/YYYY format
-- Search ALL date patterns: "14/02/1983", "14-02-1983", "14.02.1983", "14 02 1983"
-- If dates are written as words, convert to DD/MM/YYYY: "14 February 1983" → "14/02/1983"
-- ALWAYS extract dates even if format varies - prioritize finding actual dates over format perfection
+EXAMPLES FROM CURRENT SUMMARY FORMAT:
 
-SPECIFIC SEARCH PATTERNS WITH EXAMPLES:
-- **Full Name Pattern**: "The passport holder's full name is HỒ SỸ CHƯƠNG" → Extract "HỒ SỸ CHƯƠNG"
-- **Place Pattern**: "place of birth is Nghệ An" → Extract "Nghệ An" (remove "is")  
-- **Passport Number**: "passport number is C9780204" → Extract "C9780204"
-- **Date Patterns**: "date of birth is January 1, 1969 (01/01/1969)" → Extract "01/01/1969"
-- **Sex Pattern**: "sex is male (NAM/M)" → Extract "M"
+For summary like: "The passport number is P00100475, and it belongs to NGUYỄN NGỌC TÂN, a male born on October 10, 1992"
 
-AVOID THESE COMMON MISTAKES:
-- DO NOT extract "XUẤT NHẬP CẢNH" as full_name (this is agency name)
-- DO NOT extract "is Nghệ An" as place_of_birth (remove "is")  
-- DO NOT extract system text like "Document Type", "Analysis", "Processing"
-- DO NOT extract issuing authority names as personal information
+Extract:
+- full_name: "NGUYỄN NGỌC TÂN" (person's name after "belongs to")
+- passport_number: "P00100475" 
+- date_of_birth: "10/10/1992" (convert "October 10, 1992" to DD/MM/YYYY)
+- sex: "M" (from "a male")
+
+For summary like: "The passport was issued on July 15, 2022, and expires on July 15, 2032"
+
+Extract:
+- issue_date: "15/07/2022" (convert "July 15, 2022" to DD/MM/YYYY) 
+- expiry_date: "15/07/2032" (convert "July 15, 2032" to DD/MM/YYYY)
+
+CRITICAL: Only extract information about the PASSPORT HOLDER (the person), never about government agencies or departments.
 
 Return ONLY a JSON object with ALL fields populated:
 
