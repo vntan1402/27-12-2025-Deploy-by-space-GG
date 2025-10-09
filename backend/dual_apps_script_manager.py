@@ -213,7 +213,8 @@ class DualAppsScriptManager:
                 'file_content': base64.b64encode(file_content).decode('utf-8'),
                 'filename': filename,
                 'folder_path': f"{ship_name}/Crew records",
-                'content_type': content_type
+                'content_type': content_type,
+                'parent_folder_id': self.parent_folder_id
             })
             upload_results['passport'] = passport_upload
             
