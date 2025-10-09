@@ -405,76 +405,7 @@ Test timestamp: """ + str(time.time()).encode()
             self.log(f"❌ Error verifying folder structure requirements: {str(e)}", "ERROR")
             return False
     
-    def test_create_crew_endpoint(self):
-        """Test POST /api/crew - Create new crew member"""
-        try:
-            self.log("👥 Testing POST /api/crew - Create new crew member...")
-            
-            # Test data as specified in review request
-            crew_data = {
-                "full_name": "NGUYỄN VĂN TEST",
-                "sex": "M",
-                "date_of_birth": "1990-05-15T00:00:00Z",
-                "place_of_birth": "HỒ CHÍ MINH",
-                "passport": "TEST123456",
-                "nationality": "VIETNAMESE",
-                "rank": "Captain",
-                "seamen_book": "SB-TEST-001",
-                "status": "Sign on",
-                "ship_sign_on": "BROTHER 36"
-            }
-            
-            endpoint = f"{BACKEND_URL}/crew"
-            self.log(f"   POST {endpoint}")
-            self.log(f"   Data: {json.dumps(crew_data, indent=2)}")
-            
-            response = requests.post(endpoint, json=crew_data, headers=self.get_headers(), timeout=30)
-            self.log(f"   Response status: {response.status_code}")
-            
-            if response.status_code in [200, 201]:
-                self.crew_tests['create_crew_endpoint_accessible'] = True
-                self.crew_tests['create_crew_with_valid_data'] = True
-                self.log("✅ Create crew endpoint accessible and working")
-                
-                try:
-                    response_data = response.json()
-                    crew_id = response_data.get('id')
-                    if crew_id:
-                        self.created_crew_ids.append(crew_id)
-                        self.log(f"   ✅ Crew created successfully with ID: {crew_id}")
-                        
-                        # Verify required fields are present
-                        required_fields = ['full_name', 'sex', 'date_of_birth', 'place_of_birth', 'passport']
-                        for field in required_fields:
-                            if field in response_data:
-                                self.log(f"      ✅ Required field '{field}' present: {response_data[field]}")
-                            else:
-                                self.log(f"      ❌ Required field '{field}' missing")
-                        
-                        # Check company_id association
-                        if 'company_id' in response_data:
-                            self.crew_tests['company_id_associated'] = True
-                            self.log(f"   ✅ Company ID associated: {response_data['company_id']}")
-                        
-                        return crew_id
-                    else:
-                        self.log("   ❌ No crew ID returned in response")
-                        return None
-                        
-                except json.JSONDecodeError as e:
-                    self.log(f"   ❌ Invalid JSON response: {str(e)}")
-                    return None
-            else:
-                self.log(f"   ❌ Create crew endpoint failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    self.log(f"   Error: {error_data.get('detail', 'Unknown error')}")
-                except:
-                    self.log(f"   Error: {response.text[:200]}")
-                return None
-                
-        except Exception as e:
-            self.log(f"❌ Error testing create crew endpoint: {str(e)}", "ERROR")
+    # Old crew management methods removed - now focusing on passport workflow testing
             return None
     
     def test_duplicate_passport_validation(self):
