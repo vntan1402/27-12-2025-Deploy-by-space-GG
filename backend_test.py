@@ -406,9 +406,8 @@ Test timestamp: """ + str(time.time()).encode()
             return False
     
     # Old crew management methods removed - now focusing on passport workflow testing
-            return None
     
-    def test_duplicate_passport_validation(self):
+    def run_comprehensive_passport_workflow_test(self):
         """Test duplicate passport validation"""
         try:
             self.log("🔍 Testing duplicate passport validation...")
