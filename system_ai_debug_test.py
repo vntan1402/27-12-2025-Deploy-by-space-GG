@@ -225,7 +225,7 @@ class SystemAIDebugTester:
                     "ship_name": self.ship_name
                 }
                 
-                self.log("📤 Uploading Vietnamese passport test file...")
+                self.log(f"📤 Uploading real Vietnamese passport PDF: {filename}")
                 self.log(f"🚢 Ship name: {self.ship_name}")
                 self.log("🎯 Focus: Debug System AI prompt and response handling")
                 
