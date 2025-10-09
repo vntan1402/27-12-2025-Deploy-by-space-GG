@@ -7388,7 +7388,7 @@ const HomePage = () => {
                       <option value="Third Engineer">{language === 'vi' ? 'Máy ba' : 'Third Engineer'}</option>
                       <option value="Fourth Engineer">{language === 'vi' ? 'Máy tư' : 'Fourth Engineer'}</option>
                       <option value="Bosun">{language === 'vi' ? 'Thủy thủ trưởng' : 'Bosun'}</option>
-                      <option value="AB Seaman">{language === 'vi' ? 'Thuyền viên thành thạo' : 'AB Seaman'}</option>
+                      <option value="AB Seaman">{language === 'vi' ? 'Thuyền viên AB' : 'AB Seaman'}</option>
                       <option value="OS Seaman">{language === 'vi' ? 'Thuyền viên tập sự' : 'OS Seaman'}</option>
                       <option value="Cook">{language === 'vi' ? 'Bếp trưởng' : 'Cook'}</option>
                       <option value="Messman">{language === 'vi' ? 'Phục vụ' : 'Messman'}</option>
