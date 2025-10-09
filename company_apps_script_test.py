@@ -198,11 +198,13 @@ class CompanyAppsScriptTester:
                     else:
                         self.log("   ❌ Folder ID configuration not found in response")
                     
-                    # Check for configuration completeness
-                    if 'configuration_complete' in response_data or 'is_complete' in response_data:
+                    # Check for configuration completeness (based on has_apps_script_url and has_folder_id)
+                    has_apps_script = config_data.get('has_apps_script_url', False)
+                    has_folder_id = config_data.get('has_folder_id', False)
+                    if has_apps_script is not None and has_folder_id is not None:
                         self.apps_script_tests['configuration_completeness_checked'] = True
-                        is_complete = response_data.get('configuration_complete') or response_data.get('is_complete')
-                        self.log(f"   ✅ Configuration completeness checked: {is_complete}")
+                        is_complete = has_apps_script and has_folder_id
+                        self.log(f"   ✅ Configuration completeness checked: Apps Script URL={has_apps_script}, Folder ID={has_folder_id}")
                         
                         if is_complete:
                             self.apps_script_tests['configuration_complete_for_uploads'] = True
@@ -211,29 +213,31 @@ class CompanyAppsScriptTester:
                             self.apps_script_tests['missing_configuration_identified'] = True
                             self.log("   ⚠️ Configuration is incomplete - missing components identified")
                     
-                    # Check for connectivity testing results
-                    if 'connectivity_test' in response_data or 'apps_script_accessible' in response_data:
+                    # Check for connectivity testing results (apps_script_test object)
+                    apps_script_test = response_data.get('apps_script_test', {})
+                    if apps_script_test:
                         self.apps_script_tests['apps_script_url_connectivity_tested'] = True
-                        connectivity_result = response_data.get('connectivity_test') or response_data.get('apps_script_accessible')
-                        self.log(f"   ✅ Apps Script connectivity tested: {connectivity_result}")
+                        connectivity_success = apps_script_test.get('success', False)
+                        self.log(f"   ✅ Apps Script connectivity tested: {connectivity_success}")
                         
-                        if connectivity_result:
+                        if connectivity_success:
                             self.apps_script_tests['apps_script_url_accessible'] = True
                             self.log("   ✅ Apps Script URL is accessible")
                         else:
                             self.log("   ❌ Apps Script URL is not accessible")
-                    
-                    # Check for Apps Script response validation
-                    if 'apps_script_response' in response_data:
-                        self.apps_script_tests['apps_script_response_valid'] = True
-                        apps_script_response = response_data.get('apps_script_response')
-                        self.log(f"   ✅ Apps Script response received: {apps_script_response}")
                         
-                        # Check for service identification
-                        if isinstance(apps_script_response, dict) and 'service' in apps_script_response:
-                            self.apps_script_tests['apps_script_service_identified'] = True
-                            service_info = apps_script_response.get('service')
-                            self.log(f"   ✅ Apps Script service identified: {service_info}")
+                        # Check for Apps Script response validation
+                        parsed_response = apps_script_test.get('parsed_response')
+                        if parsed_response:
+                            self.apps_script_tests['apps_script_response_valid'] = True
+                            self.log(f"   ✅ Apps Script response received and parsed")
+                            
+                            # Check for service identification
+                            if 'service' in parsed_response:
+                                self.apps_script_tests['apps_script_service_identified'] = True
+                                service_info = parsed_response.get('service')
+                                version_info = parsed_response.get('version', '')
+                                self.log(f"   ✅ Apps Script service identified: {service_info} {version_info}")
                     
                     # Check for debugging information
                     debug_fields = ['debug_info', 'debugging_info', 'error_details', 'troubleshooting']
