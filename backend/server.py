@@ -10476,13 +10476,26 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
 
         logger.info(f"✅ Extraction prompt created for {document_type}")
         
+        # BYPASS System AI due to persistent "EACH STARTING WITH" bug
+        # Use direct extraction as PRIMARY method for reliable Vietnamese passport processing
+        logger.info("🔄 BYPASSING System AI - Using direct extraction as primary method")
+        logger.info("   Reason: System AI consistently extracts formatting text instead of actual names")
+        
+        # Try direct extraction first (most reliable)
+        direct_data = extract_fields_directly_from_summary_simple(summary_text, document_type)
+        if direct_data and len(direct_data) > 1:
+            if document_type == "passport":
+                direct_data = standardize_passport_dates(direct_data)
+            logger.info("✅ PRIMARY direct extraction successful")
+            return direct_data
+        
         # Use the configured AI system (same as certificate analysis, ship analysis, etc.)
         if use_emergent_key and ai_provider == "google":
             try:
                 # Import and use the existing AI analysis system from the codebase
                 from ai_analysis import analyze_with_ai  # Use existing AI system
                 
-                logger.info("🔄 Calling configured AI system for field extraction...")
+                logger.info("📤 FALLBACK: Calling configured AI system for field extraction...")
                 
                 # Use the same AI analysis function used elsewhere in the system
                 ai_response = await analyze_with_ai(
@@ -10502,16 +10515,28 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                         clean_content = content.replace('```json', '').replace('```', '').strip()
                         extracted_data = json.loads(clean_content)
                         
-                        # Standardize dates for passport documents to match certificate handling
+                        # Check for the persistent bug and reject if found
                         if document_type == "passport":
-                            extracted_data = standardize_passport_dates(extracted_data)
-                        
-                        # Validate based on document type
-                        validated_data = validate_maritime_document_fields(extracted_data, document_type)
-                        
-                        logger.info(f"✅ {document_type.upper()} AI field extraction successful")
-                        logger.info(f"   Extracted fields: {list(validated_data.keys())}")
-                        return validated_data
+                            ai_full_name = extracted_data.get('full_name', '')
+                            if 'EACH STARTING WITH' in ai_full_name.upper():
+                                logger.warning("❌ AI still extracting 'EACH STARTING WITH' - rejecting AI result")
+                                # Don't return AI result, fall through to manual extraction
+                            else:
+                                # Standardize dates for passport documents to match certificate handling
+                                extracted_data = standardize_passport_dates(extracted_data)
+                                
+                                # Validate based on document type
+                                validated_data = validate_maritime_document_fields(extracted_data, document_type)
+                                
+                                logger.info(f"✅ FALLBACK AI field extraction successful")
+                                logger.info(f"   Extracted fields: {list(validated_data.keys())}")
+                                return validated_data
+                        else:
+                            # For non-passport documents, proceed normally
+                            validated_data = validate_maritime_document_fields(extracted_data, document_type)
+                            logger.info(f"✅ FALLBACK AI field extraction successful")
+                            logger.info(f"   Extracted fields: {list(validated_data.keys())}")
+                            return validated_data
                         
                     except json.JSONDecodeError as e:
                         logger.error(f"Failed to parse {document_type} extraction JSON: {e}")
@@ -10527,14 +10552,6 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                             logger.info("✅ Manual extraction from AI response successful")
                             return fallback_data
                         
-                        # Final fallback: extract directly from Document AI summary
-                        logger.info("🔄 Attempting direct extraction from Document AI summary...")
-                        direct_data = extract_fields_directly_from_summary_simple(summary_text, document_type)
-                        if direct_data:
-                            if document_type == "passport":
-                                direct_data = standardize_passport_dates(direct_data)
-                            logger.info("✅ Direct summary extraction successful")
-                            return direct_data
                         return {}
                 else:
                     logger.error(f"No content in {document_type} AI extraction response")
