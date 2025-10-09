@@ -229,7 +229,8 @@ class DualAppsScriptManager:
                     'file_content': base64.b64encode(summary_content.encode('utf-8')).decode('utf-8'),
                     'filename': summary_filename,
                     'folder_path': "SUMMARY",
-                    'content_type': 'text/plain'
+                    'content_type': 'text/plain',
+                    'parent_folder_id': self.parent_folder_id
                 })
                 upload_results['summary'] = summary_upload
             
