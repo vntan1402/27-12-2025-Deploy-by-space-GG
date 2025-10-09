@@ -341,44 +341,59 @@ class PassportWorkflowTester:
             self.log(f"❌ Error in passport analysis endpoint test: {str(e)}", "ERROR")
             return False
     
-    def verify_backend_logs(self):
-        """Verify expected backend log patterns"""
+    def check_backend_logs(self):
+        """Check actual backend logs for detailed error information"""
         try:
-            self.log("📋 Verifying expected backend log patterns...")
+            self.log("📋 Checking backend logs for upload errors...")
             
-            # Expected log patterns based on review request
-            expected_patterns = [
-                f"Uploading passport file: {self.ship_name}/Crew Records/",
-                "Uploading summary file: SUMMARY/Crew Records/",
-                "Dual Apps Script processing completed successfully",
-                "All file uploads completed successfully"
+            # Check supervisor backend logs
+            log_files = [
+                "/var/log/supervisor/backend.out.log",
+                "/var/log/supervisor/backend.err.log"
             ]
             
-            self.log("🔍 Expected backend log patterns:")
-            for i, pattern in enumerate(expected_patterns, 1):
-                self.log(f"   {i}. {pattern}")
+            for log_file in log_files:
+                if os.path.exists(log_file):
+                    self.log(f"📄 Checking {log_file}...")
+                    
+                    # Get last 100 lines to capture recent activity
+                    try:
+                        result = os.popen(f"tail -n 100 {log_file}").read()
+                        if result.strip():
+                            self.log(f"   Last 30 lines from {log_file}:")
+                            lines = result.strip().split('\n')
+                            for line in lines[-30:]:  # Show last 30 lines
+                                if line.strip():
+                                    # Look for specific error patterns
+                                    if any(keyword in line.lower() for keyword in ['error', 'failed', 'exception', 'upload', 'apps script']):
+                                        self.log(f"     🔍 {line}")
+                                    else:
+                                        self.log(f"       {line}")
+                        else:
+                            self.log(f"   {log_file} is empty or not accessible")
+                    except Exception as e:
+                        self.log(f"   Error reading {log_file}: {e}")
+                else:
+                    self.log(f"   {log_file} not found")
             
-            # Note: In a real environment, we would check actual backend logs
-            # For this test, we'll mark as successful if the API response indicates success
-            self.log("✅ Backend log patterns documented for verification")
+            # Look for specific upload-related patterns
+            expected_patterns = [
+                "Uploading passport file:",
+                "Uploading summary file:",
+                "Apps Script response",
+                "File upload failed",
+                "Google Drive",
+                "Document AI"
+            ]
             
-            # Mark log verification tests as successful based on API response
-            if self.passport_tests.get('passport_file_correct_folder'):
-                self.passport_tests['backend_logs_passport_upload'] = True
-            
-            if self.passport_tests.get('summary_file_correct_folder'):
-                self.passport_tests['backend_logs_summary_upload'] = True
-            
-            if self.passport_tests.get('apps_script_dual_processing'):
-                self.passport_tests['backend_logs_dual_processing'] = True
-            
-            if self.passport_tests.get('google_drive_file_upload'):
-                self.passport_tests['backend_logs_folder_creation'] = True
+            self.log("🔍 Looking for upload-related log patterns:")
+            for pattern in expected_patterns:
+                self.log(f"   - {pattern}")
             
             return True
             
         except Exception as e:
-            self.log(f"❌ Error verifying backend logs: {str(e)}", "ERROR")
+            self.log(f"❌ Error checking backend logs: {str(e)}", "ERROR")
             return False
     
     def verify_folder_structure_requirements(self):
