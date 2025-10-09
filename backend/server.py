@@ -11056,7 +11056,7 @@ def extract_fields_directly_from_summary_simple(summary_text: str, document_type
                 ],
                 "place_of_birth": [
                     # Pattern: "born on July 3, 1986, in HAI PHONG"
-                    r"born.*?in\s+([\w\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]+?)\.?$",
+                    r"born.*?,\s+in\s+([\w\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]+?)\.?",
                     r"place of birth is\s+([\w\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]+?)(?:,|\.|$)"
                 ],
                 "sex": [
