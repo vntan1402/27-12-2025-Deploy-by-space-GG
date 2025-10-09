@@ -210,14 +210,17 @@ class DualAppsScriptManager:
             
             upload_results = {}
             
-            # Upload 1: Passport file to Ship/Crew records
+            # Upload 1: Passport file to Ship/Crew records (using same method as certificates)
             logger.info(f"📤 Uploading passport file: {ship_name}/Crew records/{filename}")
             passport_upload = await self._call_company_apps_script({
-                'file_content': base64.b64encode(file_content).decode('utf-8'),
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,
+                'ship_name': ship_name,
+                'parent_category': 'Crew Records',
+                'category': 'Crew List',  # Use existing Crew List subcategory
                 'filename': filename,
-                'folder_path': f"{ship_name}/Crew records",
-                'content_type': content_type,
-                'parent_folder_id': self.parent_folder_id
+                'file_content': base64.b64encode(file_content).decode('utf-8'),
+                'content_type': content_type
             })
             upload_results['passport'] = passport_upload
             
