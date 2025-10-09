@@ -58,6 +58,7 @@ class AppsScriptDebugger:
                 
                 # Get company ID for database lookup
                 self.company_id = user_info.get('company')
+                self.log(f"   Company ID for lookup: {self.company_id}")
                 return True
             else:
                 self.log(f"❌ Authentication failed: {response.status_code}", "ERROR")
