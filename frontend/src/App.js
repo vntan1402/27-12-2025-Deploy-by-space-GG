@@ -1509,6 +1509,123 @@ const HomePage = () => {
     setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
+  // Passport context menu function
+  const handlePassportRightClick = (e, crew) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent row context menu from showing
+    
+    // Only show context menu if crew has passport
+    if (!crew.passport) {
+      return;
+    }
+    
+    // Calculate context menu position
+    const contextMenuWidth = 200;
+    const contextMenuHeight = 150;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust position if menu would overflow viewport
+    if (x + contextMenuWidth > viewportWidth) {
+      x = viewportWidth - contextMenuWidth - 10;
+    }
+    if (y + contextMenuHeight > viewportHeight) {
+      y = y - contextMenuHeight;
+      if (y < 0) {
+        y = viewportHeight - contextMenuHeight - 10;
+      }
+    }
+    if (x < 0) x = 10;
+    if (y < 0) y = 10;
+    
+    setPassportContextMenu({
+      show: true,
+      x: x,
+      y: y,
+      crew: crew
+    });
+  };
+
+  // Handle passport actions
+  const handleViewPassport = async (crew) => {
+    try {
+      // This would typically open passport file or show passport details
+      // For now, we'll show an alert with passport info
+      alert(`Passport Information:\nName: ${crew.full_name}\nPassport No: ${crew.passport}\nDate of Birth: ${crew.date_of_birth}\nPlace of Birth: ${crew.place_of_birth}`);
+      
+    } catch (error) {
+      console.error('View passport error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xem hộ chiếu' : 'Error viewing passport');
+    }
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
+  const handleCopyPassportLink = async (crew) => {
+    try {
+      // Generate a shareable link for the crew member's passport
+      const passportLink = `${window.location.origin}/crew/${crew.id}/passport`;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(passportLink);
+      
+      toast.success(language === 'vi' ? 'Đã sao chép link hộ chiếu' : 'Passport link copied to clipboard');
+      
+    } catch (error) {
+      console.error('Copy passport link error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi sao chép link' : 'Error copying link');
+    }
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
+  const handleDownloadPassport = async (crew) => {
+    try {
+      // This would typically download the passport file from server
+      // For now, we'll simulate a download action
+      toast.info(language === 'vi' ? 'Đang tải xuống hộ chiếu...' : 'Downloading passport...');
+      
+      // Simulate API call to download passport
+      const response = await axios.get(`${API}/crew/${crew.id}/passport/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${crew.full_name}_Passport_${crew.passport}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(language === 'vi' ? 'Đã tải xuống hộ chiếu' : 'Passport downloaded successfully');
+      
+    } catch (error) {
+      console.error('Download passport error:', error);
+      
+      // For demo purposes, create a text file with passport info
+      const passportInfo = `Passport Information\n\nName: ${crew.full_name}\nPassport No: ${crew.passport}\nDate of Birth: ${crew.date_of_birth}\nPlace of Birth: ${crew.place_of_birth}\nSex: ${crew.sex}\nStatus: ${crew.status}`;
+      
+      const blob = new Blob([passportInfo], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${crew.full_name}_Passport_Info.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.info(language === 'vi' ? 'Đã tải xuống thông tin hộ chiếu' : 'Passport information downloaded');
+    }
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
   const fetchAiConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
