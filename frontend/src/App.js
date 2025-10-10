@@ -6690,6 +6690,7 @@ const HomePage = () => {
                                     >
                                       {crew.passport || '-'}
                                     </td>
+                                    {/* Seamen Book column - Hidden as requested
                                     <td 
                                       className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-context-menu hover:bg-green-50"
                                       onContextMenu={(e) => handleSeamenBookRightClick(e, crew)}
@@ -6697,6 +6698,7 @@ const HomePage = () => {
                                     >
                                       {crew.seamen_book || '-'}
                                     </td>
+                                    */}
                                     <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
                                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                         crew.status === 'Sign on' ? 'bg-green-100 text-green-800' :
