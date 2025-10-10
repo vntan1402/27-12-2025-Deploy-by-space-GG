@@ -8215,6 +8215,257 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Crew Modal */}
+      {showEditCrewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Chỉnh sửa thông tin thuyền viên' : 'Edit Crew Member'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditCrewModal(false);
+                    setEditingCrew(null);
+                    setEditCrewData({
+                      full_name: '',
+                      sex: 'M',
+                      date_of_birth: '',
+                      place_of_birth: '',
+                      passport: '',
+                      rank: '',
+                      seamen_book: '',
+                      status: 'Sign on',
+                      ship_sign_on: '-',
+                      date_sign_on: '',
+                      date_sign_off: ''
+                    });
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <form onSubmit={handleUpdateCrew}>
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="mr-2">✏️</span>
+                  {language === 'vi' ? 'Thông tin thuyền viên' : 'Crew Information'}
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  
+                  {/* Row 1: Full Name (span-2) + Sex (span-1) + Rank (span-1) */}
+                  {/* Full Name - Required */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Họ tên' : 'Full Name'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editCrewData.full_name}
+                      onChange={(e) => setEditCrewData({...editCrewData, full_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập họ tên đầy đủ' : 'Enter full name'}
+                    />
+                  </div>
+
+                  {/* Sex - Required */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Giới tính' : 'Sex'}
+                    </label>
+                    <select
+                      required
+                      value={editCrewData.sex}
+                      onChange={(e) => setEditCrewData({...editCrewData, sex: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="M">{language === 'vi' ? 'Nam' : 'Male'}</option>
+                      <option value="F">{language === 'vi' ? 'Nữ' : 'Female'}</option>
+                    </select>
+                  </div>
+
+                  {/* Rank - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Chức vụ' : 'Rank'}
+                    </label>
+                    <select
+                      value={editCrewData.rank}
+                      onChange={(e) => setEditCrewData({...editCrewData, rank: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
+                      <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
+                      <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
+                      <option value="Chief Officer">{language === 'vi' ? 'Đại phó' : 'Chief Officer'}</option>
+                      <option value="Second Officer">{language === 'vi' ? 'Phó hai' : 'Second Officer'}</option>
+                      <option value="Third Officer">{language === 'vi' ? 'Phó ba' : 'Third Officer'}</option>
+                      <option value="Second Engineer">{language === 'vi' ? 'Máy hai' : 'Second Engineer'}</option>
+                      <option value="Third Engineer">{language === 'vi' ? 'Máy ba' : 'Third Engineer'}</option>
+                      <option value="Fourth Engineer">{language === 'vi' ? 'Máy tư' : 'Fourth Engineer'}</option>
+                      <option value="Bosun">{language === 'vi' ? 'Thủy thủ trưởng' : 'Bosun'}</option>
+                      <option value="AB Seaman">{language === 'vi' ? 'Thuyền viên AB' : 'AB Seaman'}</option>
+                      <option value="OS Seaman">{language === 'vi' ? 'Thuyền viên tập sự' : 'OS Seaman'}</option>
+                      <option value="Cook">{language === 'vi' ? 'Bếp trưởng' : 'Cook'}</option>
+                      <option value="Messman">{language === 'vi' ? 'Phục vụ' : 'Messman'}</option>
+                      <option value="Oiler">{language === 'vi' ? 'Thợ dầu' : 'Oiler'}</option>
+                      <option value="Fitter">{language === 'vi' ? 'Thợ máy' : 'Fitter'}</option>
+                      <option value="Wiper">{language === 'vi' ? 'Thợ lau' : 'Wiper'}</option>
+                      <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                    </select>
+                  </div>
+
+                  {/* Row 2: Date of Birth + Place of Birth + Passport No. + Status (each span-1) */}
+                  {/* Date of Birth - Required */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={editCrewData.date_of_birth}
+                      onChange={(e) => setEditCrewData({...editCrewData, date_of_birth: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Place of Birth - Required */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Nơi sinh' : 'Place of Birth'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editCrewData.place_of_birth}
+                      onChange={(e) => setEditCrewData({...editCrewData, place_of_birth: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập nơi sinh' : 'Enter place of birth'}
+                    />
+                  </div>
+
+                  {/* Passport No. - Required */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Số hộ chiếu' : 'Passport No.'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editCrewData.passport}
+                      onChange={(e) => setEditCrewData({...editCrewData, passport: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập số hộ chiếu' : 'Enter passport number'}
+                    />
+                  </div>
+
+                  {/* Status - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Trạng thái' : 'Status'}
+                    </label>
+                    <select
+                      value={editCrewData.status}
+                      onChange={(e) => setEditCrewData({...editCrewData, status: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="Sign on">{language === 'vi' ? 'Đang trên tàu' : 'Sign on'}</option>
+                      <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
+                      <option value="Leave">{language === 'vi' ? 'Nghỉ phép' : 'Leave'}</option>
+                    </select>
+                  </div>
+
+                  {/* Row 3: Seamen Book + Ship Sign On + Date Sign On + Date Sign Off (each span-1) */}
+                  {/* Seamen Book - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editCrewData.seamen_book}
+                      onChange={(e) => setEditCrewData({...editCrewData, seamen_book: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seamen book number'}
+                    />
+                  </div>
+
+                  {/* Ship Sign On - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                    </label>
+                    <select
+                      value={editCrewData.ship_sign_on}
+                      onChange={(e) => setEditCrewData({...editCrewData, ship_sign_on: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="-">{language === 'vi' ? '- (Chưa chọn tàu)' : '- (Not assigned)'}</option>
+                      {ships.map(ship => (
+                        <option key={ship.id} value={ship.name}>
+                          {ship.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Date Sign On - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
+                    </label>
+                    <input
+                      type="date"
+                      value={editCrewData.date_sign_on}
+                      onChange={(e) => setEditCrewData({...editCrewData, date_sign_on: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Date Sign Off - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
+                    </label>
+                    <input
+                      type="date"
+                      value={editCrewData.date_sign_off}
+                      onChange={(e) => setEditCrewData({...editCrewData, date_sign_off: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {/* Submit Buttons */}
+                  <div className="flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-200 md:col-span-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowEditCrewModal(false)}
+                      className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                    >
+                      {language === 'vi' ? 'Hủy' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
+                    >
+                      <span className="mr-2">💾</span>
+                      {language === 'vi' ? 'Lưu thay đổi' : 'Save Changes'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
