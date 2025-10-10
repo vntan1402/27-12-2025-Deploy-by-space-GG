@@ -1797,9 +1797,11 @@ const HomePage = () => {
     setEditingCrew(crew);
     setEditCrewData({
       full_name: crew.full_name || '',
+      full_name_en: crew.full_name_en || '',
       sex: crew.sex || 'M',
       date_of_birth: formatDateForInput(crew.date_of_birth) || '',
       place_of_birth: crew.place_of_birth || '',
+      place_of_birth_en: crew.place_of_birth_en || '',
       passport: crew.passport || '',
       rank: crew.rank || '',
       seamen_book: crew.seamen_book || '',
