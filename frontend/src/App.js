@@ -8091,6 +8091,7 @@ const HomePage = () => {
                       seamen_book: '',
                       status: 'Sign on',
                       ship_sign_on: selectedShip?.name || '-',
+                      place_sign_on: '',
                       date_sign_on: '',
                       date_sign_off: ''
                     });
