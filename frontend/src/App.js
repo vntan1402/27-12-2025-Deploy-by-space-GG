@@ -8102,7 +8102,18 @@ const HomePage = () => {
                       type="text"
                       required
                       value={newCrewData.full_name}
-                      onChange={(e) => setNewCrewData({...newCrewData, full_name: e.target.value})}
+                      onChange={(e) => {
+                        const vietnameseName = e.target.value;
+                        const englishName = autoFillEnglishField(vietnameseName);
+                        setNewCrewData({
+                          ...newCrewData, 
+                          full_name: vietnameseName,
+                          // Auto-fill English name only if it's currently empty or was auto-generated
+                          full_name_en: newCrewData.full_name_en === autoFillEnglishField(newCrewData.full_name) || newCrewData.full_name_en === '' 
+                            ? englishName 
+                            : newCrewData.full_name_en
+                        });
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder={language === 'vi' ? 'Nhập họ tên bằng tiếng Việt' : 'Enter Vietnamese name'}
                     />
