@@ -1770,15 +1770,15 @@ const HomePage = () => {
     setEditCrewData({
       full_name: crew.full_name || '',
       sex: crew.sex || 'M',
-      date_of_birth: crew.date_of_birth || '',
+      date_of_birth: formatDateForInput(crew.date_of_birth) || '',
       place_of_birth: crew.place_of_birth || '',
       passport: crew.passport || '',
       rank: crew.rank || '',
       seamen_book: crew.seamen_book || '',
       status: crew.status || 'Sign on',
       ship_sign_on: crew.ship_sign_on || selectedShip?.name || '-',
-      date_sign_on: crew.date_sign_on || '',
-      date_sign_off: crew.date_sign_off || ''
+      date_sign_on: formatDateForInput(crew.date_sign_on) || '',
+      date_sign_off: formatDateForInput(crew.date_sign_off) || ''
     });
     setShowEditCrewModal(true);
     setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
