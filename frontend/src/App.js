@@ -8581,6 +8581,20 @@ const HomePage = () => {
                     </select>
                   </div>
 
+                  {/* Place Sign On - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Nơi đăng ký' : 'Place Sign On'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newCrewData.place_sign_on}
+                      onChange={(e) => setNewCrewData({...newCrewData, place_sign_on: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập nơi đăng ký' : 'Enter place sign on'}
+                    />
+                  </div>
+
                   {/* Date Sign On - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
