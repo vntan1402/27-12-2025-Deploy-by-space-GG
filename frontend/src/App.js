@@ -855,6 +855,12 @@ const HomePage = () => {
     y: 0,
     crew: null
   });
+  const [rankContextMenu, setRankContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    crew: null
+  });
 
   // Edit Crew Modal States
   const [showEditCrewModal, setShowEditCrewModal] = useState(false);
