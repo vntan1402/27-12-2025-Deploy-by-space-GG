@@ -7012,6 +7012,7 @@ const HomePage = () => {
                                   <button
                                     onClick={() => {
                                       setSelectedShip(ship);
+                                      setCrewFilters({...crewFilters, ship_sign_on: ship.name});
                                       setSelectedCategory('documents');
                                       setShowShipListModal(false);
                                     }}
