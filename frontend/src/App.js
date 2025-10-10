@@ -8176,23 +8176,26 @@ const HomePage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
-                      <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
-                      <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
-                      <option value="Chief Officer">{language === 'vi' ? 'Đại phó' : 'Chief Officer'}</option>
-                      <option value="Second Officer">{language === 'vi' ? 'Phó hai' : 'Second Officer'}</option>
-                      <option value="Third Officer">{language === 'vi' ? 'Phó ba' : 'Third Officer'}</option>
-                      <option value="Second Engineer">{language === 'vi' ? 'Máy hai' : 'Second Engineer'}</option>
-                      <option value="Third Engineer">{language === 'vi' ? 'Máy ba' : 'Third Engineer'}</option>
-                      <option value="Fourth Engineer">{language === 'vi' ? 'Máy tư' : 'Fourth Engineer'}</option>
-                      <option value="Bosun">{language === 'vi' ? 'Thủy thủ trưởng' : 'Bosun'}</option>
-                      <option value="AB Seaman">{language === 'vi' ? 'Thuyền viên AB' : 'AB Seaman'}</option>
-                      <option value="OS Seaman">{language === 'vi' ? 'Thuyền viên tập sự' : 'OS Seaman'}</option>
-                      <option value="Cook">{language === 'vi' ? 'Bếp trưởng' : 'Cook'}</option>
-                      <option value="Messman">{language === 'vi' ? 'Phục vụ' : 'Messman'}</option>
-                      <option value="Oiler">{language === 'vi' ? 'Thợ dầu' : 'Oiler'}</option>
-                      <option value="Fitter">{language === 'vi' ? 'Thợ máy' : 'Fitter'}</option>
-                      <option value="Wiper">{language === 'vi' ? 'Thợ lau' : 'Wiper'}</option>
-                      <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                      <option value="CAPT">{language === 'vi' ? 'Thuyền trưởng' : 'CAPT'}</option>
+                      <option value="C/O">{language === 'vi' ? 'Đại phó' : 'C/O'}</option>
+                      <option value="2/O">{language === 'vi' ? 'Phó hai' : '2/O'}</option>
+                      <option value="3/O">{language === 'vi' ? 'Phó ba' : '3/O'}</option>
+                      <option value="CE">{language === 'vi' ? 'Máy trưởng' : 'CE'}</option>
+                      <option value="2/E">{language === 'vi' ? 'Máy hai' : '2/E'}</option>
+                      <option value="3/E">{language === 'vi' ? 'Máy ba' : '3/E'}</option>
+                      <option value="4/E">{language === 'vi' ? 'Máy tư' : '4/E'}</option>
+                      <option value="BOSUN">{language === 'vi' ? 'Thủy thủ trưởng' : 'BOSUN'}</option>
+                      <option value="ABD-A">{language === 'vi' ? 'Thuyền viên AB-A' : 'ABD-A'}</option>
+                      <option value="ABD-B">{language === 'vi' ? 'Thuyền viên AB-B' : 'ABD-B'}</option>
+                      <option value="ABD-C">{language === 'vi' ? 'Thuyền viên AB-C' : 'ABD-C'}</option>
+                      <option value="ABD-D">{language === 'vi' ? 'Thuyền viên AB-D' : 'ABD-D'}</option>
+                      <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
+                      <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
+                      <option value="ABE-A">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE-A'}</option>
+                      <option value="ABE-B">{language === 'vi' ? 'Thợ máy AB-B' : 'ABE-B'}</option>
+                      <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
+                      <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
+                      <option value="MESS">{language === 'vi' ? 'Phục vụ' : 'MESS'}</option>
                     </select>
                   </div>
 
@@ -8529,23 +8532,26 @@ const HomePage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
-                      <option value="Captain">{language === 'vi' ? 'Thuyền trưởng' : 'Captain'}</option>
-                      <option value="Chief Engineer">{language === 'vi' ? 'Máy trưởng' : 'Chief Engineer'}</option>
-                      <option value="Chief Officer">{language === 'vi' ? 'Đại phó' : 'Chief Officer'}</option>
-                      <option value="Second Officer">{language === 'vi' ? 'Phó hai' : 'Second Officer'}</option>
-                      <option value="Third Officer">{language === 'vi' ? 'Phó ba' : 'Third Officer'}</option>
-                      <option value="Second Engineer">{language === 'vi' ? 'Máy hai' : 'Second Engineer'}</option>
-                      <option value="Third Engineer">{language === 'vi' ? 'Máy ba' : 'Third Engineer'}</option>
-                      <option value="Fourth Engineer">{language === 'vi' ? 'Máy tư' : 'Fourth Engineer'}</option>
-                      <option value="Bosun">{language === 'vi' ? 'Thủy thủ trưởng' : 'Bosun'}</option>
-                      <option value="AB Seaman">{language === 'vi' ? 'Thuyền viên AB' : 'AB Seaman'}</option>
-                      <option value="OS Seaman">{language === 'vi' ? 'Thuyền viên tập sự' : 'OS Seaman'}</option>
-                      <option value="Cook">{language === 'vi' ? 'Bếp trưởng' : 'Cook'}</option>
-                      <option value="Messman">{language === 'vi' ? 'Phục vụ' : 'Messman'}</option>
-                      <option value="Oiler">{language === 'vi' ? 'Thợ dầu' : 'Oiler'}</option>
-                      <option value="Fitter">{language === 'vi' ? 'Thợ máy' : 'Fitter'}</option>
-                      <option value="Wiper">{language === 'vi' ? 'Thợ lau' : 'Wiper'}</option>
-                      <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                      <option value="CAPT">{language === 'vi' ? 'Thuyền trưởng' : 'CAPT'}</option>
+                      <option value="C/O">{language === 'vi' ? 'Đại phó' : 'C/O'}</option>
+                      <option value="2/O">{language === 'vi' ? 'Phó hai' : '2/O'}</option>
+                      <option value="3/O">{language === 'vi' ? 'Phó ba' : '3/O'}</option>
+                      <option value="CE">{language === 'vi' ? 'Máy trưởng' : 'CE'}</option>
+                      <option value="2/E">{language === 'vi' ? 'Máy hai' : '2/E'}</option>
+                      <option value="3/E">{language === 'vi' ? 'Máy ba' : '3/E'}</option>
+                      <option value="4/E">{language === 'vi' ? 'Máy tư' : '4/E'}</option>
+                      <option value="BOSUN">{language === 'vi' ? 'Thủy thủ trưởng' : 'BOSUN'}</option>
+                      <option value="ABD-A">{language === 'vi' ? 'Thuyền viên AB-A' : 'ABD-A'}</option>
+                      <option value="ABD-B">{language === 'vi' ? 'Thuyền viên AB-B' : 'ABD-B'}</option>
+                      <option value="ABD-C">{language === 'vi' ? 'Thuyền viên AB-C' : 'ABD-C'}</option>
+                      <option value="ABD-D">{language === 'vi' ? 'Thuyền viên AB-D' : 'ABD-D'}</option>
+                      <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
+                      <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
+                      <option value="ABE-A">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE-A'}</option>
+                      <option value="ABE-B">{language === 'vi' ? 'Thợ máy AB-B' : 'ABE-B'}</option>
+                      <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
+                      <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
+                      <option value="MESS">{language === 'vi' ? 'Phục vụ' : 'MESS'}</option>
                     </select>
                   </div>
 
