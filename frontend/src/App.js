@@ -4103,12 +4103,13 @@ const HomePage = () => {
         return;
       }
       
-      // Process dates using existing UTC conversion logic
+      // Process dates using Certificate approach to avoid timezone shift
       const processedData = {
         ...newCrewData,
-        date_of_birth: convertDateInputToUTC(newCrewData.date_of_birth),
-        date_sign_on: newCrewData.date_sign_on ? convertDateInputToUTC(newCrewData.date_sign_on) : null,
-        date_sign_off: newCrewData.date_sign_off ? convertDateInputToUTC(newCrewData.date_sign_off) : null
+        date_of_birth: newCrewData.date_of_birth ? convertDateInputToUTC(newCrewData.date_of_birth.split('T')[0]) : null,
+        date_sign_on: newCrewData.date_sign_on ? convertDateInputToUTC(newCrewData.date_sign_on.split('T')[0]) : null,
+        date_sign_off: newCrewData.date_sign_off ? convertDateInputToUTC(newCrewData.date_sign_off.split('T')[0]) : null,
+        passport_expiry_date: newCrewData.passport_expiry_date ? convertDateInputToUTC(newCrewData.passport_expiry_date.split('T')[0]) : null
       };
       
       // Call backend API to create crew member
