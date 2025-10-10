@@ -1983,10 +1983,11 @@ const HomePage = () => {
       // Prepare data for API
       const updateData = {
         ...editCrewData,
-        // Convert date fields to UTC-safe format to avoid timezone shift
-        date_of_birth: convertDateInputToUTC(editCrewData.date_of_birth),
-        date_sign_on: convertDateInputToUTC(editCrewData.date_sign_on),
-        date_sign_off: convertDateInputToUTC(editCrewData.date_sign_off),
+        // Convert date fields to UTC-safe format to avoid timezone shift (using Certificate approach)
+        date_of_birth: editCrewData.date_of_birth ? convertDateInputToUTC(editCrewData.date_of_birth.split('T')[0]) : null,
+        date_sign_on: editCrewData.date_sign_on ? convertDateInputToUTC(editCrewData.date_sign_on.split('T')[0]) : null,
+        date_sign_off: editCrewData.date_sign_off ? convertDateInputToUTC(editCrewData.date_sign_off.split('T')[0]) : null,
+        passport_expiry_date: editCrewData.passport_expiry_date ? convertDateInputToUTC(editCrewData.passport_expiry_date.split('T')[0]) : null,
         ship_id: selectedShip?.id
       };
       
