@@ -352,8 +352,7 @@ def convert_structured_passport_fields(structured_data: dict) -> dict:
             'date_of_birth': 'Date_of_Birth',
             'place_of_birth': 'Place_of_Birth',
             'nationality': 'Nationality',
-            'issue_date': 'Date_of_Issue',
-            'expiry_date': 'Date_of_Expiry',
+            'passport_expiry_date': 'Date_of_Expiry',  # Updated field name for frontend compatibility
             'confidence_score': lambda data: 0.9  # High confidence for structured extraction
         }
         
