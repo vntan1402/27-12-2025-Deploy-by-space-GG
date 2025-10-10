@@ -6734,7 +6734,7 @@ const HomePage = () => {
                               ) : (
                                 // Empty State
                                 <tr>
-                                  <td colSpan="12" className="px-6 py-12 text-center">
+                                  <td colSpan="13" className="px-6 py-12 text-center">
                                     <div className="text-gray-400 text-lg mb-2">👥</div>
                                     <p className="text-gray-500">
                                       {language === 'vi' ? 'Không tìm thấy thuyền viên phù hợp' : 'No crew members found'}
