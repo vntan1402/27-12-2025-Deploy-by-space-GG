@@ -4996,6 +4996,7 @@ const HomePage = () => {
                                           key={ship.id}
                                           onClick={() => {
                                             setSelectedShip(ship);
+                                            setCrewFilters({...crewFilters, ship_sign_on: ship.name});
                                             setShowShipSelector(false);
                                             toast.success(
                                               language === 'vi' 
