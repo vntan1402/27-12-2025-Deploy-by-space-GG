@@ -4027,8 +4027,8 @@ const HomePage = () => {
         // Refresh crew list
         console.log('🔄 Refreshing crew list after adding new crew...');
         try {
-          if (selectedShip?.id) {
-            await fetchCrewMembers(selectedShip.id);
+          if (selectedShip?.name) {
+            await fetchCrewMembers(selectedShip.name);
           } else {
             await fetchCrewMembers();
           }
