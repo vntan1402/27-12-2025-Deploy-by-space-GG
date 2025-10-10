@@ -2941,11 +2941,14 @@ const HomePage = () => {
       if (passportContextMenu.show) {
         setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
       }
+      if (seamenBookContextMenu.show) {
+        setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
+      }
     };
     
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [contextMenu.show, crewContextMenu.show, passportContextMenu.show]);
+  }, [contextMenu.show, crewContextMenu.show, passportContextMenu.show, seamenBookContextMenu.show]);
 
   // Handle duplicate resolution
   const handleDuplicateResolution = async (action, resetAnalyzingState) => {
