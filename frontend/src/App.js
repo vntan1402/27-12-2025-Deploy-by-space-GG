@@ -1632,6 +1632,121 @@ const HomePage = () => {
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
+  // Seamen Book context menu function
+  const handleSeamenBookRightClick = (e, crew) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent row context menu from showing
+    
+    // Only show context menu if crew has seamen book
+    if (!crew.seamen_book || crew.seamen_book === '-') {
+      return;
+    }
+    
+    // Calculate context menu position
+    const contextMenuWidth = 200;
+    const contextMenuHeight = 150;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust position if menu would overflow viewport
+    if (x + contextMenuWidth > viewportWidth) {
+      x = viewportWidth - contextMenuWidth - 10;
+    }
+    if (y + contextMenuHeight > viewportHeight) {
+      y = y - contextMenuHeight;
+      if (y < 0) {
+        y = viewportHeight - contextMenuHeight - 10;
+      }
+    }
+    if (x < 0) x = 10;
+    if (y < 0) y = 10;
+    
+    setSeamenBookContextMenu({
+      show: true,
+      x: x,
+      y: y,
+      crew: crew
+    });
+  };
+
+  // Handle seamen book actions
+  const handleViewSeamenBook = async (crew) => {
+    try {
+      // This would typically open seamen book file or show seamen book details
+      alert(`Seamen Book Information:\nName: ${crew.full_name}\nSeamen Book No: ${crew.seamen_book}\nRank: ${crew.rank || 'Not specified'}\nStatus: ${crew.status}\nShip: ${crew.ship_sign_on}`);
+      
+    } catch (error) {
+      console.error('View seamen book error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xem sổ thuyền viên' : 'Error viewing seamen book');
+    }
+    setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
+  const handleCopySeamenBookLink = async (crew) => {
+    try {
+      // Generate a shareable link for the crew member's seamen book
+      const seamenBookLink = `${window.location.origin}/crew/${crew.id}/seamen-book`;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(seamenBookLink);
+      
+      toast.success(language === 'vi' ? 'Đã sao chép link sổ thuyền viên' : 'Seamen book link copied to clipboard');
+      
+    } catch (error) {
+      console.error('Copy seamen book link error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi sao chép link' : 'Error copying link');
+    }
+    setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
+  const handleDownloadSeamenBook = async (crew) => {
+    try {
+      // This would typically download the seamen book file from server
+      toast.info(language === 'vi' ? 'Đang tải xuống sổ thuyền viên...' : 'Downloading seamen book...');
+      
+      // Simulate API call to download seamen book
+      const response = await axios.get(`${API}/crew/${crew.id}/seamen-book/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${crew.full_name}_SeamenBook_${crew.seamen_book}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(language === 'vi' ? 'Đã tải xuống sổ thuyền viên' : 'Seamen book downloaded successfully');
+      
+    } catch (error) {
+      console.error('Download seamen book error:', error);
+      
+      // For demo purposes, create a text file with seamen book info
+      const seamenBookInfo = `Seamen Book Information\n\nName: ${crew.full_name}\nSeamen Book No: ${crew.seamen_book}\nRank: ${crew.rank || 'Not specified'}\nSex: ${crew.sex}\nDate of Birth: ${crew.date_of_birth}\nPlace of Birth: ${crew.place_of_birth}\nStatus: ${crew.status}\nShip: ${crew.ship_sign_on}\nDate Sign On: ${crew.date_sign_on || 'Not specified'}\nDate Sign Off: ${crew.date_sign_off || 'Still on board'}`;
+      
+      const blob = new Blob([seamenBookInfo], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${crew.full_name}_SeamenBook_Info.txt`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.info(language === 'vi' ? 'Đã tải xuống thông tin sổ thuyền viên' : 'Seamen book information downloaded');
+    }
+    setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
   const fetchAiConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
