@@ -6863,7 +6863,7 @@ const HomePage = () => {
                         </div>
                       )}
 
-                      {/* Seamen Book Context Menu */}
+                      {/* Seamen Book Context Menu - Hidden as Seamen Book column is hidden
                       {seamenBookContextMenu.show && (
                         <div 
                           className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[100]"
@@ -6911,6 +6911,7 @@ const HomePage = () => {
                           </div>
                         </div>
                       )}
+                      */}
 
                       {/* Rank Context Menu */}
                       {rankContextMenu.show && (
