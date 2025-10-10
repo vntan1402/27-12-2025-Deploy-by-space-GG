@@ -612,9 +612,11 @@ class CrewCreate(CrewBase):
 
 class CrewUpdate(BaseModel):
     full_name: Optional[str] = None
+    full_name_en: Optional[str] = None
     sex: Optional[str] = None
     date_of_birth: Optional[Union[str, datetime]] = None
     place_of_birth: Optional[str] = None
+    place_of_birth_en: Optional[str] = None
     passport: Optional[str] = None
     nationality: Optional[str] = None
     rank: Optional[str] = None
