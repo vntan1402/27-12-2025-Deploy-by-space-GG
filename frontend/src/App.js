@@ -2691,11 +2691,14 @@ const HomePage = () => {
       if (contextMenu.show) {
         handleCloseContextMenu();
       }
+      if (crewContextMenu.show) {
+        setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+      }
     };
     
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [contextMenu.show]);
+  }, [contextMenu.show, crewContextMenu.show]);
 
   // Handle duplicate resolution
   const handleDuplicateResolution = async (action, resetAnalyzingState) => {
