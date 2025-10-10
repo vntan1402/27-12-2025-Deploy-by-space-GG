@@ -366,7 +366,7 @@ def convert_structured_passport_fields(structured_data: dict) -> dict:
         
         # Ensure all required fields exist
         required_fields = ["full_name", "sex", "date_of_birth", "place_of_birth", 
-                          "passport_number", "nationality", "issue_date", "expiry_date", "confidence_score"]
+                          "passport_number", "nationality", "passport_expiry_date", "confidence_score"]
         
         for field in required_fields:
             if field not in converted:
