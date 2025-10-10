@@ -8039,11 +8039,11 @@ const HomePage = () => {
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   
-                  {/* Row 1: Full Name (span-2) + Sex (span-1) + Rank (span-1) */}
-                  {/* Full Name - Required */}
+                  {/* Row 1: Full Name VN (span-2) + Full Name EN (span-2) */}
+                  {/* Full Name Vietnamese - Required */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      <span className="text-red-500">*</span> {language === 'vi' ? 'Họ tên' : 'Full Name'}
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Họ tên (Tiếng Việt)' : 'Full Name (Vietnamese)'}
                     </label>
                     <input
                       type="text"
@@ -8051,10 +8051,25 @@ const HomePage = () => {
                       value={newCrewData.full_name}
                       onChange={(e) => setNewCrewData({...newCrewData, full_name: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Nhập họ tên đầy đủ' : 'Enter full name'}
+                      placeholder={language === 'vi' ? 'Nhập họ tên bằng tiếng Việt' : 'Enter Vietnamese name'}
                     />
                   </div>
 
+                  {/* Full Name English - Optional */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Họ tên (Tiếng Anh)' : 'Full Name (English)'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newCrewData.full_name_en}
+                      onChange={(e) => setNewCrewData({...newCrewData, full_name_en: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập họ tên bằng tiếng Anh' : 'Enter English name'}
+                    />
+                  </div>
+
+                  {/* Row 2: Sex (span-1) + Rank (span-1) + Date of Birth (span-2) */}
                   {/* Sex - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -8100,6 +8115,20 @@ const HomePage = () => {
                       <option value="Wiper">{language === 'vi' ? 'Thợ lau' : 'Wiper'}</option>
                       <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
                     </select>
+                  </div>
+
+                  {/* Date of Birth - Required */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <span className="text-red-500">*</span> {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={newCrewData.date_of_birth}
+                      onChange={(e) => setNewCrewData({...newCrewData, date_of_birth: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
 
                   {/* Row 2: Date of Birth + Place of Birth + Passport No. + Status (each span-1) */}
