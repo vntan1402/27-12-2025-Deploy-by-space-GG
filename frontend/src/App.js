@@ -96,6 +96,30 @@ const autoFillEnglishField = (vietnameseText) => {
   return removeVietnameseDiacritics(vietnameseText.trim());
 };
 
+// Rank options for quick edit dropdown
+const RANK_OPTIONS = [
+  { value: 'CAPT', label_vi: 'Thuyền trưởng', label_en: 'CAPT' },
+  { value: 'C/O', label_vi: 'Đại phó', label_en: 'C/O' },
+  { value: '2/O', label_vi: 'Phó hai', label_en: '2/O' },
+  { value: '3/O', label_vi: 'Phó ba', label_en: '3/O' },
+  { value: 'CE', label_vi: 'Máy trưởng', label_en: 'CE' },
+  { value: '2/E', label_vi: 'Máy hai', label_en: '2/E' },
+  { value: '3/E', label_vi: 'Máy ba', label_en: '3/E' },
+  { value: '4/E', label_vi: 'Máy tư', label_en: '4/E' },
+  { value: 'BOSUN', label_vi: 'Thủy thủ trưởng', label_en: 'BOSUN' },
+  { value: 'ABD-A', label_vi: 'Thuyền viên AB-A', label_en: 'ABD-A' },
+  { value: 'ABD-B', label_vi: 'Thuyền viên AB-B', label_en: 'ABD-B' },
+  { value: 'ABD-C', label_vi: 'Thuyền viên AB-C', label_en: 'ABD-C' },
+  { value: 'ABD-D', label_vi: 'Thuyền viên AB-D', label_en: 'ABD-D' },
+  { value: 'ELEC', label_vi: 'Thợ điện', label_en: 'ELEC' },
+  { value: 'FITTER', label_vi: 'Thợ máy', label_en: 'FITTER' },
+  { value: 'ABE-A', label_vi: 'Thợ máy AB-A', label_en: 'ABE-A' },
+  { value: 'ABE-B', label_vi: 'Thợ máy AB-B', label_en: 'ABE-B' },
+  { value: 'OSE', label_vi: 'Thợ máy tập sự', label_en: 'OSE' },
+  { value: 'C/COOK', label_vi: 'Bếp trưởng', label_en: 'C/COOK' },
+  { value: 'MESS', label_vi: 'Phục vụ', label_en: 'MESS' }
+];
+
 // Auth Context
 const AuthContext = createContext();
 
