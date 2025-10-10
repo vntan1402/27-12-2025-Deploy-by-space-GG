@@ -627,6 +627,7 @@ class CrewUpdate(BaseModel):
     seamen_book: Optional[str] = None
     status: Optional[str] = None
     ship_sign_on: Optional[str] = None
+    place_sign_on: Optional[str] = None
     date_sign_on: Optional[Union[str, datetime]] = None
     date_sign_off: Optional[Union[str, datetime]] = None
     passport_issue_date: Optional[Union[str, datetime]] = None
