@@ -802,6 +802,12 @@ const HomePage = () => {
     y: 0,
     crew: null
   });
+  const [seamenBookContextMenu, setSeamenBookContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    crew: null
+  });
 
   // Mock Crew Data (TODO: Replace with actual API data)
   const mockCrewData = [
