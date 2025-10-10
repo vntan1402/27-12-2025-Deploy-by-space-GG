@@ -6474,7 +6474,7 @@ const HomePage = () => {
                                       </div>
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
-                                      {crew.full_name}
+                                      {language === 'vi' ? crew.full_name : (crew.full_name_en || crew.full_name)}
                                     </td>
                                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                       {crew.sex}
