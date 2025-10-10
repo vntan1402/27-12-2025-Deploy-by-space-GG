@@ -1596,9 +1596,9 @@ const HomePage = () => {
       toast.error(language === 'vi' ? 'Lỗi khi xóa thuyền viên' : 'Error deleting crew members');
       
       // Still refresh the list even if there was an error
-      if (selectedShip?.id) {
+      if (selectedShip?.name) {
         console.log('🔄 Refreshing crew list after error...');
-        await fetchCrewMembers(selectedShip.id);
+        await fetchCrewMembers(selectedShip.name);
       }
       setSelectedCrewMembers(new Set());
     }
