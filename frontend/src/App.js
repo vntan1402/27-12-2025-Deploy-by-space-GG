@@ -8344,9 +8344,11 @@ const HomePage = () => {
                     setEditingCrew(null);
                     setEditCrewData({
                       full_name: '',
+                      full_name_en: '',
                       sex: 'M',
                       date_of_birth: '',
                       place_of_birth: '',
+                      place_of_birth_en: '',
                       passport: '',
                       rank: '',
                       seamen_book: '',
