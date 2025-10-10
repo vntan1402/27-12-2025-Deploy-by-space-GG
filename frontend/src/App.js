@@ -6568,10 +6568,10 @@ const HomePage = () => {
                                       {crew.ship_sign_on}
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                      {formatDateForInput(crew.date_sign_on) || '-'}
+                                      {formatDateDisplay(crew.date_sign_on) || '-'}
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                                      {formatDateForInput(crew.date_sign_off) || '-'}
+                                      {formatDateDisplay(crew.date_sign_off) || '-'}
                                     </td>
                                   </tr>
                                 ))
