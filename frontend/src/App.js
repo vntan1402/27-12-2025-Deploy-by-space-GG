@@ -4016,12 +4016,19 @@ const HomePage = () => {
         
         // Refresh crew list
         console.log('🔄 Refreshing crew list after adding new crew...');
-        if (selectedShip?.id) {
-          await fetchCrewMembers(selectedShip.id);
-        } else {
-          await fetchCrewMembers();
+        try {
+          if (selectedShip?.id) {
+            await fetchCrewMembers(selectedShip.id);
+          } else {
+            await fetchCrewMembers();
+          }
+          console.log('✅ Crew list refreshed successfully after adding crew');
+        } catch (refreshError) {
+          console.error('Failed to refresh crew list after adding:', refreshError);
+          toast.warning(language === 'vi' 
+            ? 'Thêm thành công nhưng không thể tải lại danh sách' 
+            : 'Added successfully but failed to refresh list');
         }
-        console.log('✅ Crew list refreshed successfully after adding crew');
       }
       
     } catch (error) {
