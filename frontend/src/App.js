@@ -8557,7 +8557,18 @@ const HomePage = () => {
                       type="text"
                       required
                       value={editCrewData.place_of_birth}
-                      onChange={(e) => setEditCrewData({...editCrewData, place_of_birth: e.target.value})}
+                      onChange={(e) => {
+                        const vietnamesePlaceName = e.target.value;
+                        const englishPlaceName = autoFillEnglishField(vietnamesePlaceName);
+                        setEditCrewData({
+                          ...editCrewData, 
+                          place_of_birth: vietnamesePlaceName,
+                          // Auto-fill English place name only if it's currently empty or was auto-generated
+                          place_of_birth_en: editCrewData.place_of_birth_en === autoFillEnglishField(editCrewData.place_of_birth) || editCrewData.place_of_birth_en === '' 
+                            ? englishPlaceName 
+                            : editCrewData.place_of_birth_en
+                        });
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder={language === 'vi' ? 'Nhập nơi sinh bằng tiếng Việt' : 'Enter Vietnamese birthplace'}
                     />
