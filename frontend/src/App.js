@@ -3939,9 +3939,11 @@ const HomePage = () => {
           date_sign_off: newCrewData.date_sign_off,
           // Fill with NEW analysis data
           full_name: analysis.full_name || '',
+          full_name_en: autoFillEnglishField(analysis.full_name || ''),
           sex: analysis.sex || 'M',
           date_of_birth: convertedDate,
           place_of_birth: analysis.place_of_birth || '',
+          place_of_birth_en: autoFillEnglishField(analysis.place_of_birth || ''),
           passport: analysis.passport_number || ''
         };
         
