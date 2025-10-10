@@ -3243,6 +3243,9 @@ const HomePage = () => {
       if (seamenBookContextMenu.show) {
         setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
       }
+      if (rankContextMenu.show) {
+        setRankContextMenu({ show: false, x: 0, y: 0, crew: null });
+      }
     };
     
     document.addEventListener('click', handleClickOutside);
