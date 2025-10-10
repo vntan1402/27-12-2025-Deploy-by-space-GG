@@ -1893,6 +1893,7 @@ const HomePage = () => {
       seamen_book: crew.seamen_book || '',
       status: crew.status || 'Sign on',
       ship_sign_on: crew.ship_sign_on || selectedShip?.name || '-',
+      place_sign_on: crew.place_sign_on || '',
       date_sign_on: formatDateForInput(crew.date_sign_on) || '',
       date_sign_off: formatDateForInput(crew.date_sign_off) || ''
     });
