@@ -1902,12 +1902,19 @@ const HomePage = () => {
         
         // Refresh crew list
         console.log('🔄 Refreshing crew list after updating crew...');
-        if (selectedShip?.id) {
-          await fetchCrewMembers(selectedShip.id);
-        } else {
-          await fetchCrewMembers();
+        try {
+          if (selectedShip?.id) {
+            await fetchCrewMembers(selectedShip.id);
+          } else {
+            await fetchCrewMembers();
+          }
+          console.log('✅ Crew list refreshed successfully after updating crew');
+        } catch (refreshError) {
+          console.error('Failed to refresh crew list after update:', refreshError);
+          toast.warning(language === 'vi' 
+            ? 'Cập nhật thành công nhưng không thể tải lại danh sách' 
+            : 'Updated successfully but failed to refresh list');
         }
-        console.log('✅ Crew list refreshed successfully after updating crew');
         
         // Close modal and reset state
         setShowEditCrewModal(false);
