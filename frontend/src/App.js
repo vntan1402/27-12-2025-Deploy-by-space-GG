@@ -788,6 +788,15 @@ const HomePage = () => {
     search: ''
   });
 
+  // Crew Selection and Context Menu States
+  const [selectedCrewMembers, setSelectedCrewMembers] = useState(new Set());
+  const [crewContextMenu, setCrewContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    crew: null
+  });
+
   // Mock Crew Data (TODO: Replace with actual API data)
   const mockCrewData = [
     {
