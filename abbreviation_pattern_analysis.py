@@ -16,7 +16,7 @@ try:
     else:
         raise Exception("Internal URL not working")
 except:
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mariner-scan.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipcrew-manager.preview.emergentagent.com') + '/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""
