@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "System AI Passport Expiry Date Extraction and Auto-Fill Functionality Testing"
+    - "Crew Auto-Refresh Fixes Testing for Add and Edit Operations"
   stuck_tasks: 
     - "Multi Certificate Upload Google Drive Debug Testing"
   test_all: false
