@@ -4020,11 +4020,7 @@ const HomePage = () => {
       if (response.data) {
         toast.success(language === 'vi' ? 'Thuyền viên đã được thêm thành công!' : 'Crew member added successfully!');
         
-        // Reset form and close modal
-        resetAddCrewForm();
-        setShowAddCrewModal(false);
-        
-        // Refresh crew list
+        // Refresh crew list FIRST
         console.log('🔄 Refreshing crew list after adding new crew...');
         try {
           if (selectedShip?.name) {
@@ -4039,6 +4035,10 @@ const HomePage = () => {
             ? 'Thêm thành công nhưng không thể tải lại danh sách' 
             : 'Added successfully but failed to refresh list');
         }
+        
+        // Then reset form and close modal
+        resetAddCrewForm();
+        setShowAddCrewModal(false);
       }
       
     } catch (error) {
