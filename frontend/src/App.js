@@ -6346,7 +6346,11 @@ const HomePage = () => {
                                     >
                                       {crew.passport || '-'}
                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                    <td 
+                                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-context-menu hover:bg-green-50"
+                                      onContextMenu={(e) => handleSeamenBookRightClick(e, crew)}
+                                      title={crew.seamen_book && crew.seamen_book !== '-' ? (language === 'vi' ? 'Chuột phải để xem sổ thuyền viên' : 'Right-click for seamen book options') : ''}
+                                    >
                                       {crew.seamen_book || '-'}
                                     </td>
                                     <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
