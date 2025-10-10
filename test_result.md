@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Vietnamese Diacritic Removal Auto-Fill Functionality Testing - COMPLETED"
+    - "System AI Passport Expiry Date Extraction and Auto-Fill Functionality Testing"
   stuck_tasks: 
     - "Multi Certificate Upload Google Drive Debug Testing"
   test_all: false
