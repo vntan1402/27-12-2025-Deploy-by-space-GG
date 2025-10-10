@@ -15011,6 +15011,7 @@ const AddRecordModal = ({
                               key={ship.id}
                               onClick={() => {
                                 setSelectedShip(ship);
+                                setCrewFilters({...crewFilters, ship_sign_on: ship.name});
                                 setShowShipDropdown(false);
                                 toast.success(language === 'vi' 
                                   ? `✅ Đã chọn tàu: ${ship.name}`
