@@ -588,9 +588,11 @@ class CompanyUpdate(BaseModel):
 # Crew Models
 class CrewBase(BaseModel):
     full_name: str
+    full_name_en: Optional[str] = None  # English version of full name
     sex: str  # M or F
     date_of_birth: Union[str, datetime]
     place_of_birth: str
+    place_of_birth_en: Optional[str] = None  # English version of place of birth
     passport: str
     nationality: Optional[str] = None
     rank: Optional[str] = None
