@@ -1883,7 +1883,7 @@ const HomePage = () => {
       full_name: crew.full_name || '',
       full_name_en: autoFilledFullNameEn,
       sex: crew.sex || 'M',
-      date_of_birth: formatDateForInput(crew.date_of_birth) || '',
+      date_of_birth: crew.date_of_birth ? crew.date_of_birth.split('T')[0] : '',
       place_of_birth: crew.place_of_birth || '',
       place_of_birth_en: autoFilledPlaceOfBirthEn,
       passport: crew.passport || '',
