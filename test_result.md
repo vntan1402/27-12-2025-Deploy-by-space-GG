@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Crew Auto-Refresh Fixes Testing for Add and Edit Operations"
+    - "Rank Quick Edit Context Menu Functionality Testing"
   stuck_tasks: 
     - "Multi Certificate Upload Google Drive Debug Testing"
   test_all: false
