@@ -1383,6 +1383,126 @@ const HomePage = () => {
     }
   }, [selectedShip]);
 
+  // Crew selection functions
+  const handleSelectCrewMember = (crewId) => {
+    const newSelected = new Set(selectedCrewMembers);
+    if (newSelected.has(crewId)) {
+      newSelected.delete(crewId);
+    } else {
+      newSelected.add(crewId);
+    }
+    setSelectedCrewMembers(newSelected);
+  };
+
+  const handleSelectAllCrewMembers = (checked) => {
+    if (checked) {
+      const allVisibleIds = new Set(filteredCrewData.map(crew => crew.id));
+      setSelectedCrewMembers(allVisibleIds);
+    } else {
+      setSelectedCrewMembers(new Set());
+    }
+  };
+
+  // Crew context menu function
+  const handleCrewRightClick = (e, crew) => {
+    e.preventDefault();
+    
+    // Check if user has proper role for crew management
+    const allowedRoles = ['company_officer', 'manager', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(user?.role)) {
+      return; // Don't show context menu for unauthorized users
+    }
+    
+    // If crew is not selected, add it to current selection
+    if (!selectedCrewMembers.has(crew.id)) {
+      const newSelected = new Set(selectedCrewMembers);
+      newSelected.add(crew.id);
+      setSelectedCrewMembers(newSelected);
+    }
+    
+    // Calculate context menu position with viewport boundary checking
+    const contextMenuWidth = 200;
+    const contextMenuHeight = 100;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust position if menu would overflow viewport
+    if (x + contextMenuWidth > viewportWidth) {
+      x = viewportWidth - contextMenuWidth - 10;
+    }
+    if (y + contextMenuHeight > viewportHeight) {
+      y = y - contextMenuHeight;
+      if (y < 0) {
+        y = viewportHeight - contextMenuHeight - 10;
+      }
+    }
+    if (x < 0) x = 10;
+    if (y < 0) y = 10;
+    
+    setCrewContextMenu({
+      show: true,
+      x: x,
+      y: y,
+      crew: crew
+    });
+  };
+
+  // Delete selected crew members
+  const handleDeleteSelectedCrewMembers = async () => {
+    try {
+      if (selectedCrewMembers.size === 0) return;
+      
+      // Show confirmation
+      const confirmed = window.confirm(
+        language === 'vi' 
+          ? `Bạn có chắc chắn muốn xóa ${selectedCrewMembers.size} thuyền viên đã chọn?`
+          : `Are you sure you want to delete ${selectedCrewMembers.size} selected crew member(s)?`
+      );
+      
+      if (!confirmed) return;
+      
+      const selectedCrewData = crewList.filter(crew => selectedCrewMembers.has(crew.id));
+      
+      // Delete each crew member
+      for (const crew of selectedCrewData) {
+        try {
+          const response = await axios.delete(`${API}/crew/${crew.id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.status === 200) {
+            console.log(`✅ Deleted crew member: ${crew.full_name}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to delete crew member: ${crew.full_name}`, error);
+          toast.error(language === 'vi' 
+            ? `Không thể xóa: ${crew.full_name}` 
+            : `Failed to delete: ${crew.full_name}`);
+        }
+      }
+      
+      // Refresh crew list
+      if (selectedShip?.id) {
+        await fetchCrewMembers(selectedShip.id);
+      }
+      
+      // Clear selection
+      setSelectedCrewMembers(new Set());
+      
+      toast.success(language === 'vi' 
+        ? `Đã xóa ${selectedCrewMembers.size} thuyền viên` 
+        : `Deleted ${selectedCrewMembers.size} crew member(s)`);
+        
+    } catch (error) {
+      console.error('Delete crew error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xóa thuyền viên' : 'Error deleting crew members');
+    }
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
   const fetchAiConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
