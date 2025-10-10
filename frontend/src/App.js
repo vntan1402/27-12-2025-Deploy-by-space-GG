@@ -4105,6 +4105,8 @@ const HomePage = () => {
       place_of_birth: '',
       place_of_birth_en: '',
       passport: '',
+      nationality: '',
+      passport_expiry_date: '',
       rank: '',
       seamen_book: '',
       status: 'Sign on',
