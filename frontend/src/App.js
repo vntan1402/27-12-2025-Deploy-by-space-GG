@@ -3247,7 +3247,7 @@ const HomePage = () => {
     
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [contextMenu.show, crewContextMenu.show, passportContextMenu.show, seamenBookContextMenu.show]);
+  }, [contextMenu.show, crewContextMenu.show, passportContextMenu.show, seamenBookContextMenu.show, rankContextMenu.show]);
 
   // Handle duplicate resolution
   const handleDuplicateResolution = async (action, resetAnalyzingState) => {
