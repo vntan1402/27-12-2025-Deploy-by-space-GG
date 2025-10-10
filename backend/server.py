@@ -11143,7 +11143,7 @@ def convert_structured_passport_fields(structured_data: dict) -> dict:
         date_fields = {
             "Date_of_Birth": "date_of_birth",
             "Date_of_Issue": "issue_date", 
-            "Date_of_Expiry": "expiry_date"
+            "Date_of_Expiry": "passport_expiry_date"  # Updated field name for frontend compatibility
         }
         
         for iso_field, old_field in date_fields.items():
