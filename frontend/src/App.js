@@ -6613,9 +6613,11 @@ const HomePage = () => {
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                   {language === 'vi' ? 'Hộ chiếu' : 'Passport'}
                                 </th>
+                                {/* Seamen Book column - Hidden as requested
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                   {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
                                 </th>
+                                */}
                                 <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                   {language === 'vi' ? 'Trạng thái' : 'Status'}
                                 </th>
