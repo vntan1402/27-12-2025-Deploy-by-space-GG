@@ -3946,7 +3946,13 @@ const HomePage = () => {
         setShowAddCrewModal(false);
         
         // Refresh crew list
-        await fetchCrewMembers();
+        console.log('🔄 Refreshing crew list after adding new crew...');
+        if (selectedShip?.id) {
+          await fetchCrewMembers(selectedShip.id);
+        } else {
+          await fetchCrewMembers();
+        }
+        console.log('✅ Crew list refreshed successfully after adding crew');
       }
       
     } catch (error) {
