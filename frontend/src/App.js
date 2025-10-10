@@ -3948,7 +3948,9 @@ const HomePage = () => {
           date_of_birth: convertedDate,
           place_of_birth: analysis.place_of_birth || '',
           place_of_birth_en: autoFillEnglishField(analysis.place_of_birth || ''),
-          passport: analysis.passport_number || ''
+          passport: analysis.passport_number || '',
+          nationality: analysis.nationality || '',
+          passport_expiry_date: analysis.passport_expiry_date ? convertPassportDateToInputFormat(analysis.passport_expiry_date) : ''
         };
         
         console.log('   📋 Setting new crew data:', newData);
