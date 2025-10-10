@@ -1570,8 +1570,8 @@ const HomePage = () => {
       
       // Always refresh crew list after deletion attempts
       console.log('🔄 Refreshing crew list after deletion...');
-      if (selectedShip?.id) {
-        await fetchCrewMembers(selectedShip.id);
+      if (selectedShip?.name) {
+        await fetchCrewMembers(selectedShip.name);
         console.log('✅ Crew list refreshed successfully');
       }
       
