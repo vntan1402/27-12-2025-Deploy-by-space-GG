@@ -8282,7 +8282,7 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 4: Passport No. + Status + Seamen Book + Ship Sign On (each span-1) */}
+                  {/* Row 4: Passport No. + Nationality + Passport Expiry + Status (each span-1) */}
                   {/* Passport No. - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -8295,6 +8295,33 @@ const HomePage = () => {
                       onChange={(e) => setNewCrewData({...newCrewData, passport: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder={language === 'vi' ? 'Nhập số hộ chiếu' : 'Enter passport number'}
+                    />
+                  </div>
+
+                  {/* Nationality - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Quốc tịch' : 'Nationality'}
+                    </label>
+                    <input
+                      type="text"
+                      value={newCrewData.nationality}
+                      onChange={(e) => setNewCrewData({...newCrewData, nationality: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập quốc tịch' : 'Enter nationality'}
+                    />
+                  </div>
+
+                  {/* Passport Expiry Date - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Hạn hộ chiếu' : 'Passport Expiry'}
+                    </label>
+                    <input
+                      type="date"
+                      value={newCrewData.passport_expiry_date}
+                      onChange={(e) => setNewCrewData({...newCrewData, passport_expiry_date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
