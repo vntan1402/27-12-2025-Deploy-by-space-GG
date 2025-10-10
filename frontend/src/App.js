@@ -1923,10 +1923,11 @@ const HomePage = () => {
       const updateData = {
         ...rankContextMenu.crew,
         rank: newRank,
-        date_of_birth: convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.date_of_birth)),
-        date_sign_on: rankContextMenu.crew.date_sign_on ? convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.date_sign_on)) : null,
-        date_sign_off: rankContextMenu.crew.date_sign_off ? convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.date_sign_off)) : null,
-        passport_expiry_date: rankContextMenu.crew.passport_expiry_date ? convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.passport_expiry_date)) : null
+        // Use Certificate approach to avoid timezone shift
+        date_of_birth: rankContextMenu.crew.date_of_birth ? convertDateInputToUTC(rankContextMenu.crew.date_of_birth.split('T')[0]) : null,
+        date_sign_on: rankContextMenu.crew.date_sign_on ? convertDateInputToUTC(rankContextMenu.crew.date_sign_on.split('T')[0]) : null,
+        date_sign_off: rankContextMenu.crew.date_sign_off ? convertDateInputToUTC(rankContextMenu.crew.date_sign_off.split('T')[0]) : null,
+        passport_expiry_date: rankContextMenu.crew.passport_expiry_date ? convertDateInputToUTC(rankContextMenu.crew.passport_expiry_date.split('T')[0]) : null
       };
       
       const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
