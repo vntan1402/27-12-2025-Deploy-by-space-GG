@@ -1847,9 +1847,13 @@ const HomePage = () => {
           : 'Crew member updated successfully');
         
         // Refresh crew list
+        console.log('🔄 Refreshing crew list after updating crew...');
         if (selectedShip?.id) {
           await fetchCrewMembers(selectedShip.id);
+        } else {
+          await fetchCrewMembers();
         }
+        console.log('✅ Crew list refreshed successfully after updating crew');
         
         // Close modal and reset state
         setShowEditCrewModal(false);
