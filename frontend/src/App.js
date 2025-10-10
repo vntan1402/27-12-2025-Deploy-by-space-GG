@@ -6630,7 +6630,11 @@ const HomePage = () => {
                                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                       {crew.sex}
                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                    <td 
+                                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-pointer hover:bg-gray-50"
+                                      onContextMenu={(e) => handleRankRightClick(e, crew)}
+                                      title={language === 'vi' ? 'Chuột phải để thay đổi rank' : 'Right-click to change rank'}
+                                    >
                                       {crew.rank || '-'}
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
