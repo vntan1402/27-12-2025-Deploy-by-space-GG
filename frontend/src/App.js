@@ -6667,7 +6667,13 @@ const HomePage = () => {
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                       {formatDateDisplay(crew.date_of_birth) || '-'}
                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 uppercase">
+                                    <td 
+                                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 uppercase hover:bg-yellow-50"
+                                      title={crew.nationality ? 
+                                        (language === 'vi' ? `Quốc tịch: ${crew.nationality}` : `Nationality: ${crew.nationality}`) : 
+                                        (language === 'vi' ? 'Chưa có thông tin quốc tịch' : 'No nationality information')
+                                      }
+                                    >
                                       {language === 'vi' ? crew.place_of_birth : (crew.place_of_birth_en || crew.place_of_birth)}
                                     </td>
                                     <td 
