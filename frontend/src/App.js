@@ -1855,6 +1855,8 @@ const HomePage = () => {
       place_of_birth: crew.place_of_birth || '',
       place_of_birth_en: autoFilledPlaceOfBirthEn,
       passport: crew.passport || '',
+      nationality: crew.nationality || '',
+      passport_expiry_date: formatDateForInput(crew.passport_expiry_date) || '',
       rank: crew.rank || '',
       seamen_book: crew.seamen_book || '',
       status: crew.status || 'Sign on',
