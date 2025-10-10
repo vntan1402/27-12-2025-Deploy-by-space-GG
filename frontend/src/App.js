@@ -1764,6 +1764,95 @@ const HomePage = () => {
     setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
+  // Handle edit crew
+  const handleEditCrew = (crew) => {
+    setEditingCrew(crew);
+    setEditCrewData({
+      full_name: crew.full_name || '',
+      sex: crew.sex || 'M',
+      date_of_birth: crew.date_of_birth || '',
+      place_of_birth: crew.place_of_birth || '',
+      passport: crew.passport || '',
+      rank: crew.rank || '',
+      seamen_book: crew.seamen_book || '',
+      status: crew.status || 'Sign on',
+      ship_sign_on: crew.ship_sign_on || selectedShip?.name || '-',
+      date_sign_on: crew.date_sign_on || '',
+      date_sign_off: crew.date_sign_off || ''
+    });
+    setShowEditCrewModal(true);
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
+  // Handle update crew
+  const handleUpdateCrew = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (!editingCrew) return;
+      
+      // Validate required fields
+      if (!editCrewData.full_name || !editCrewData.date_of_birth || !editCrewData.place_of_birth || !editCrewData.passport) {
+        toast.error(language === 'vi' 
+          ? 'Vui lòng điền đầy đủ các trường bắt buộc' 
+          : 'Please fill in all required fields');
+        return;
+      }
+      
+      // Prepare data for API
+      const updateData = {
+        ...editCrewData,
+        // Convert date fields to proper format if needed
+        date_of_birth: editCrewData.date_of_birth ? new Date(editCrewData.date_of_birth).toISOString() : null,
+        date_sign_on: editCrewData.date_sign_on ? new Date(editCrewData.date_sign_on).toISOString() : null,
+        date_sign_off: editCrewData.date_sign_off ? new Date(editCrewData.date_sign_off).toISOString() : null,
+        ship_id: selectedShip?.id
+      };
+      
+      // Call API to update crew member
+      const response = await axios.put(`${API}/crew/${editingCrew.id}`, updateData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 200) {
+        toast.success(language === 'vi' 
+          ? 'Đã cập nhật thông tin thuyền viên thành công' 
+          : 'Crew member updated successfully');
+        
+        // Refresh crew list
+        if (selectedShip?.id) {
+          await fetchCrewMembers(selectedShip.id);
+        }
+        
+        // Close modal and reset state
+        setShowEditCrewModal(false);
+        setEditingCrew(null);
+        setEditCrewData({
+          full_name: '',
+          sex: 'M',
+          date_of_birth: '',
+          place_of_birth: '',
+          passport: '',
+          rank: '',
+          seamen_book: '',
+          status: 'Sign on',
+          ship_sign_on: '-',
+          date_sign_on: '',
+          date_sign_off: ''
+        });
+      }
+      
+    } catch (error) {
+      console.error('Update crew error:', error);
+      const errorMessage = error.response?.data?.message || 
+        (language === 'vi' ? 'Lỗi khi cập nhật thuyền viên' : 'Error updating crew member');
+      toast.error(errorMessage);
+    }
+  };
+
   const fetchAiConfig = async () => {
     try {
       const response = await axios.get(`${API}/ai-config`);
