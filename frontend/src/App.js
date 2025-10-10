@@ -1874,6 +1874,70 @@ const HomePage = () => {
     setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
+  // Handle rank right-click
+  const handleRankRightClick = (e, crew) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setRankContextMenu({
+      show: true,
+      x: e.clientX,
+      y: e.clientY,
+      crew: crew
+    });
+  };
+
+  // Handle rank quick update
+  const handleRankUpdate = async (newRank) => {
+    if (!rankContextMenu.crew) return;
+    
+    try {
+      const crewId = rankContextMenu.crew.id;
+      const updateData = {
+        ...rankContextMenu.crew,
+        rank: newRank,
+        date_of_birth: convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.date_of_birth)),
+        date_sign_on: rankContextMenu.crew.date_sign_on ? convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.date_sign_on)) : null,
+        date_sign_off: rankContextMenu.crew.date_sign_off ? convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.date_sign_off)) : null,
+        passport_expiry_date: rankContextMenu.crew.passport_expiry_date ? convertDateInputToUTC(formatDateForInput(rankContextMenu.crew.passport_expiry_date)) : null
+      };
+      
+      const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.status === 200) {
+        toast.success(language === 'vi' 
+          ? `Đã cập nhật rank thành: ${newRank}` 
+          : `Rank updated to: ${newRank}`);
+        
+        // Refresh crew list
+        console.log('🔄 Refreshing crew list after rank update...');
+        try {
+          if (selectedShip?.name) {
+            await fetchCrewMembers(selectedShip.name);
+          } else {
+            await fetchCrewMembers();
+          }
+          console.log('✅ Crew list refreshed successfully after rank update');
+        } catch (refreshError) {
+          console.error('Failed to refresh crew list after rank update:', refreshError);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error updating rank:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi cập nhật rank' 
+        : 'Error updating rank');
+    } finally {
+      setRankContextMenu({ show: false, x: 0, y: 0, crew: null });
+    }
+  };
+
   // Handle update crew
   const handleUpdateCrew = async (e) => {
     e.preventDefault();
