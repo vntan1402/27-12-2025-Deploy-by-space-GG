@@ -83,6 +83,11 @@ The text already contains all relevant information about the document, so focus 
 6. Do not infer or fabricate any missing information.
 7. Ensure names are written in correct Vietnamese format (Surname first, Given names after).
 
+=== SPECIAL ATTENTION FOR DATE EXTRACTION ===
+- Date_of_Issue: Look for phrases like "The passport was issued on [DATE]", "Date of issue", "Issued", "Date d'emission"
+- Date_of_Expiry: Look for phrases like "valid until [DATE]", "expires on [DATE]", "Date of expiry", "Expiry date", "Date d'expiration", "The passport...is valid until [DATE]"
+- Pay special attention to text patterns: "The passport was issued on [ISSUE_DATE] and is valid until [EXPIRY_DATE]"
+
 === FIELDS TO EXTRACT ===
 {{
   "Passport_Number": "",
