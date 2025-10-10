@@ -1838,13 +1838,18 @@ const HomePage = () => {
   // Handle edit crew
   const handleEditCrew = (crew) => {
     setEditingCrew(crew);
+    
+    // Auto-fill English fields if they are empty
+    const autoFilledFullNameEn = crew.full_name_en || autoFillEnglishField(crew.full_name || '');
+    const autoFilledPlaceOfBirthEn = crew.place_of_birth_en || autoFillEnglishField(crew.place_of_birth || '');
+    
     setEditCrewData({
       full_name: crew.full_name || '',
-      full_name_en: crew.full_name_en || '',
+      full_name_en: autoFilledFullNameEn,
       sex: crew.sex || 'M',
       date_of_birth: formatDateForInput(crew.date_of_birth) || '',
       place_of_birth: crew.place_of_birth || '',
-      place_of_birth_en: crew.place_of_birth_en || '',
+      place_of_birth_en: autoFilledPlaceOfBirthEn,
       passport: crew.passport || '',
       rank: crew.rank || '',
       seamen_book: crew.seamen_book || '',
