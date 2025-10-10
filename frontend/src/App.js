@@ -6896,6 +6896,52 @@ const HomePage = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Rank Context Menu */}
+                      {rankContextMenu.show && (
+                        <div 
+                          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[100]"
+                          style={{
+                            position: 'fixed',
+                            top: `${rankContextMenu.y}px`,
+                            left: `${rankContextMenu.x}px`,
+                            minWidth: '200px',
+                            maxHeight: '300px',
+                            overflowY: 'auto'
+                          }}
+                        >
+                          <div className="py-1">
+                            <div className="px-4 py-2 text-xs font-semibold text-gray-500 border-b border-gray-200">
+                              {rankContextMenu.crew?.full_name} - {language === 'vi' ? 'Chọn Rank' : 'Select Rank'}
+                            </div>
+                            
+                            {RANK_OPTIONS.map((rank) => (
+                              <button
+                                key={rank.value}
+                                onClick={() => handleRankUpdate(rank.value)}
+                                className={`w-full text-left px-4 py-2 text-sm hover:bg-blue-50 flex items-center justify-between ${
+                                  rankContextMenu.crew?.rank === rank.value 
+                                    ? 'bg-blue-100 text-blue-700 font-medium' 
+                                    : 'text-gray-700'
+                                }`}
+                              >
+                                <span className="flex items-center">
+                                  <span className="w-2 h-2 rounded-full mr-3 bg-blue-500"></span>
+                                  <span className="font-mono text-sm mr-2">{rank.value}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {language === 'vi' ? rank.label_vi : rank.label_en}
+                                  </span>
+                                </span>
+                                {rankContextMenu.crew?.rank === rank.value && (
+                                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     /* Other categories content */
