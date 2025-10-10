@@ -1494,6 +1494,8 @@ const HomePage = () => {
       if (!confirmed) return;
       
       const selectedCrewData = crewList.filter(crew => selectedCrewMembers.has(crew.id));
+      let deletedCount = 0;
+      let errorCount = 0;
       
       // Delete each crew member
       for (const crew of selectedCrewData) {
@@ -1504,31 +1506,53 @@ const HomePage = () => {
           
           if (response.status === 200) {
             console.log(`✅ Deleted crew member: ${crew.full_name}`);
+            deletedCount++;
           }
         } catch (error) {
           console.error(`❌ Failed to delete crew member: ${crew.full_name}`, error);
+          errorCount++;
           toast.error(language === 'vi' 
             ? `Không thể xóa: ${crew.full_name}` 
             : `Failed to delete: ${crew.full_name}`);
         }
       }
       
-      // Refresh crew list
+      // Always refresh crew list after deletion attempts
+      console.log('🔄 Refreshing crew list after deletion...');
       if (selectedShip?.id) {
         await fetchCrewMembers(selectedShip.id);
+        console.log('✅ Crew list refreshed successfully');
       }
       
       // Clear selection
       setSelectedCrewMembers(new Set());
       
-      toast.success(language === 'vi' 
-        ? `Đã xóa ${selectedCrewMembers.size} thuyền viên` 
-        : `Deleted ${selectedCrewMembers.size} crew member(s)`);
+      // Show appropriate success message
+      if (deletedCount > 0) {
+        toast.success(language === 'vi' 
+          ? `Đã xóa thành công ${deletedCount} thuyền viên` 
+          : `Successfully deleted ${deletedCount} crew member(s)`);
+      }
+      
+      if (errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `${errorCount} thuyền viên không thể xóa được` 
+          : `${errorCount} crew member(s) could not be deleted`);
+      }
         
     } catch (error) {
       console.error('Delete crew error:', error);
       toast.error(language === 'vi' ? 'Lỗi khi xóa thuyền viên' : 'Error deleting crew members');
+      
+      // Still refresh the list even if there was an error
+      if (selectedShip?.id) {
+        console.log('🔄 Refreshing crew list after error...');
+        await fetchCrewMembers(selectedShip.id);
+      }
+      setSelectedCrewMembers(new Set());
     }
+    
+    // Close context menu
     setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
