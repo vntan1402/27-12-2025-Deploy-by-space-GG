@@ -1888,7 +1888,7 @@ const HomePage = () => {
       place_of_birth_en: autoFilledPlaceOfBirthEn,
       passport: crew.passport || '',
       nationality: crew.nationality || '',
-      passport_expiry_date: formatDateForInput(crew.passport_expiry_date) || '',
+      passport_expiry_date: crew.passport_expiry_date ? crew.passport_expiry_date.split('T')[0] : '',
       rank: crew.rank || '',
       seamen_book: crew.seamen_book || '',
       status: crew.status || 'Sign on',
