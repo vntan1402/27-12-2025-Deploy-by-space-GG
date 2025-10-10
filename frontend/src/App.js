@@ -758,10 +758,12 @@ const HomePage = () => {
   // Add Crew Modal States
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
   const [newCrewData, setNewCrewData] = useState({
-    full_name: '',           // Required
+    full_name: '',           // Required - Vietnamese name
+    full_name_en: '',        // Optional - English name
     sex: 'M',               // Required 
     date_of_birth: '',      // Required
-    place_of_birth: '',     // Required
+    place_of_birth: '',     // Required - Vietnamese place
+    place_of_birth_en: '',  // Optional - English place
     passport: '',           // Required (PASSPORT No.)
     rank: '',               // Optional
     seamen_book: '',        // Optional
