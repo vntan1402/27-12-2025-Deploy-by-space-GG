@@ -808,6 +808,8 @@ const HomePage = () => {
     place_of_birth: '',     // Required - Vietnamese place
     place_of_birth_en: '',  // Optional - English place
     passport: '',           // Required (PASSPORT No.)
+    nationality: '',        // Optional - Nationality
+    passport_expiry_date: '', // Optional - Passport expiry date
     rank: '',               // Optional
     seamen_book: '',        // Optional
     status: 'Sign on',      // Optional - Default to 'Sign on'
