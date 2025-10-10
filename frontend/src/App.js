@@ -8587,6 +8587,9 @@ const HomePage = () => {
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Nơi sinh (Tiếng Anh)' : 'Place of Birth (English)'}
+                      <span className="text-xs text-blue-500 ml-1">
+                        {language === 'vi' ? '(Tự động điền)' : '(Auto-filled)'}
+                      </span>
                     </label>
                     <input
                       type="text"
