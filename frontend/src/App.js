@@ -6162,6 +6162,40 @@ const HomePage = () => {
                           </div>
                         </div>
                       </div>
+
+                      {/* Crew Context Menu */}
+                      {crewContextMenu.show && (
+                        <div 
+                          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[100]"
+                          style={{
+                            position: 'fixed',
+                            top: `${crewContextMenu.y}px`,
+                            left: `${crewContextMenu.x}px`,
+                            minWidth: '180px'
+                          }}
+                        >
+                          <div className="py-1">
+                            {selectedCrewMembers.size > 1 && (
+                              <div className="px-4 py-2 text-xs font-semibold text-gray-500 border-b border-gray-200">
+                                {selectedCrewMembers.size} {language === 'vi' ? 'thuyền viên đã chọn' : 'crew members selected'}
+                              </div>
+                            )}
+                            
+                            <button
+                              onClick={handleDeleteSelectedCrewMembers}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              {selectedCrewMembers.size > 1 
+                                ? (language === 'vi' ? `Xóa ${selectedCrewMembers.size} thuyền viên` : `Delete ${selectedCrewMembers.size} crew members`)
+                                : (language === 'vi' ? 'Xóa thuyền viên' : 'Delete Crew')
+                              }
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     /* Other categories content */
