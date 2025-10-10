@@ -6535,7 +6535,7 @@ const HomePage = () => {
                                       {crew.rank || '-'}
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                      {formatDateForInput(crew.date_of_birth) || '-'}
+                                      {formatDateDisplay(crew.date_of_birth) || '-'}
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                       {language === 'vi' ? crew.place_of_birth : (crew.place_of_birth_en || crew.place_of_birth)}
