@@ -6008,7 +6008,15 @@ const HomePage = () => {
                             <thead className="bg-gray-50">
                               <tr>
                                 <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
-                                  {language === 'vi' ? 'STT' : 'No.'}
+                                  <div className="flex items-center space-x-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={filteredCrewData.length > 0 && filteredCrewData.every(crew => selectedCrewMembers.has(crew.id))}
+                                      onChange={(e) => handleSelectAllCrewMembers(e.target.checked)}
+                                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <span>{language === 'vi' ? 'STT' : 'No.'}</span>
+                                  </div>
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                   {language === 'vi' ? 'Họ tên' : 'Full Name'}
