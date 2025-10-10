@@ -6679,7 +6679,12 @@ const HomePage = () => {
                                     <td 
                                       className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-context-menu hover:bg-blue-50"
                                       onContextMenu={(e) => handlePassportRightClick(e, crew)}
-                                      title={crew.passport ? (language === 'vi' ? 'Chuột phải để xem hộ chiếu' : 'Right-click for passport options') : ''}
+                                      title={crew.passport ? 
+                                        (crew.passport_expiry_date ? 
+                                          (language === 'vi' ? `Hạn hộ chiếu: ${formatDateDisplay(crew.passport_expiry_date)} | Chuột phải để xem hộ chiếu` : `Passport Expiry: ${formatDateDisplay(crew.passport_expiry_date)} | Right-click for options`) :
+                                          (language === 'vi' ? 'Chưa có thông tin hạn hộ chiếu | Chuột phải để xem hộ chiếu' : 'No expiry information | Right-click for options')
+                                        ) : ''
+                                      }
                                     >
                                       {crew.passport || '-'}
                                     </td>
