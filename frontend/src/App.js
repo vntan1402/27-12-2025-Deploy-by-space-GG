@@ -8684,6 +8684,33 @@ const HomePage = () => {
                     />
                   </div>
 
+                  {/* Nationality - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Quốc tịch' : 'Nationality'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editCrewData.nationality}
+                      onChange={(e) => setEditCrewData({...editCrewData, nationality: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Nhập quốc tịch' : 'Enter nationality'}
+                    />
+                  </div>
+
+                  {/* Passport Expiry Date - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Hạn hộ chiếu' : 'Passport Expiry'}
+                    </label>
+                    <input
+                      type="date"
+                      value={editCrewData.passport_expiry_date}
+                      onChange={(e) => setEditCrewData({...editCrewData, passport_expiry_date: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
                   {/* Status - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
