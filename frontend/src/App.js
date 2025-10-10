@@ -809,6 +809,23 @@ const HomePage = () => {
     crew: null
   });
 
+  // Edit Crew Modal States
+  const [showEditCrewModal, setShowEditCrewModal] = useState(false);
+  const [editingCrew, setEditingCrew] = useState(null);
+  const [editCrewData, setEditCrewData] = useState({
+    full_name: '',
+    sex: 'M',
+    date_of_birth: '',
+    place_of_birth: '',
+    passport: '',
+    rank: '',
+    seamen_book: '',
+    status: 'Sign on',
+    ship_sign_on: '-',
+    date_sign_on: '',
+    date_sign_off: ''
+  });
+
   // Mock Crew Data (TODO: Replace with actual API data)
   const mockCrewData = [
     {
