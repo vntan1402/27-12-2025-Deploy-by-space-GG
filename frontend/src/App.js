@@ -6056,9 +6056,23 @@ const HomePage = () => {
                             <tbody className="bg-white divide-y divide-gray-200">
                               {filteredCrewData.length > 0 ? (
                                 filteredCrewData.map((crew, index) => (
-                                  <tr key={crew.id} className="hover:bg-gray-50">
+                                  <tr 
+                                    key={crew.id} 
+                                    className="hover:bg-gray-50 cursor-pointer"
+                                    onContextMenu={(e) => handleCrewRightClick(e, crew)}
+                                    title={language === 'vi' ? 'Chuột phải để xóa thuyền viên' : 'Right-click to delete crew member'}
+                                  >
                                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                      {index + 1}
+                                      <div className="flex items-center space-x-2">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedCrewMembers.has(crew.id)}
+                                          onChange={() => handleSelectCrewMember(crew.id)}
+                                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                          onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span>{index + 1}</span>
+                                      </div>
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200">
                                       {crew.full_name}
