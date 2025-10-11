@@ -6720,7 +6720,26 @@ const HomePage = () => {
                                         ) : ''
                                       }
                                     >
-                                      {crew.passport || '-'}
+                                      <div className="flex items-center space-x-2">
+                                        <span>{crew.passport || '-'}</span>
+                                        {/* File status indicators */}
+                                        {crew.passport_file_id && (
+                                          <span 
+                                            className="text-green-500 text-xs" 
+                                            title={language === 'vi' ? 'File gốc có sẵn' : 'Original file available'}
+                                          >
+                                            📄
+                                          </span>
+                                        )}
+                                        {crew.summary_file_id && (
+                                          <span 
+                                            className="text-blue-500 text-xs" 
+                                            title={language === 'vi' ? 'File tóm tắt có sẵn' : 'Summary file available'}
+                                          >
+                                            📋
+                                          </span>
+                                        )}
+                                      </div>
                                     </td>
                                     {/* Seamen Book column - Hidden as requested
                                     <td 
