@@ -2208,8 +2208,8 @@ const HomePage = () => {
       // Show results
       if (successCount > 0 && errorCount === 0) {
         toast.success(language === 'vi' 
-          ? `Đã cập nhật ngày rời tàu cho ${successCount} thuyền viên`
-          : `Updated date sign off for ${successCount} crew members`);
+          ? `Đã cập nhật ngày rời tàu, trạng thái và tàu cho ${successCount} thuyền viên`
+          : `Updated date sign off, status and ship assignment for ${successCount} crew members`);
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
