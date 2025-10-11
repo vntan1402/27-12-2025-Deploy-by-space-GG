@@ -12569,12 +12569,17 @@ async def rename_crew_files(
         if not passport_file_id and not summary_file_id:
             raise HTTPException(status_code=400, detail="No files associated with this crew member")
         
-        # Get company Apps Script URL
-        company = await mongo_db.find_one("companies", {"id": company_uuid})
-        if not company or not (company.get("company_apps_script_url") or company.get("web_app_url")):
-            raise HTTPException(status_code=400, detail="Company Apps Script not configured")
+        # Get company Google Drive configuration (same pattern as certificate rename)
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
         
-        company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        # Get the Apps Script URL
+        company_apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        
+        if not company_apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
         renamed_files = []
         
         # Extract file extension from original filename
