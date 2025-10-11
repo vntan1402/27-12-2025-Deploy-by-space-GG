@@ -2053,6 +2053,88 @@ const HomePage = () => {
     }
   };
 
+  // Handle bulk Date Sign On update
+  const handleBulkUpdateDateSignOn = async () => {
+    if (!bulkDateSignOn.trim()) {
+      toast.error(language === 'vi' 
+        ? 'Vui lòng chọn ngày lên tàu'
+        : 'Please select date sign on');
+      return;
+    }
+
+    if (selectedCrewMembers.size === 0) {
+      toast.error(language === 'vi' 
+        ? 'Không có thuyền viên nào được chọn'
+        : 'No crew members selected');
+      return;
+    }
+
+    try {
+      const selectedCrewIds = Array.from(selectedCrewMembers);
+      let successCount = 0;
+      let errorCount = 0;
+
+      console.log(`📅 Bulk updating Date Sign On to "${bulkDateSignOn}" for ${selectedCrewIds.length} crew members...`);
+
+      // Convert date to proper format to avoid timezone shift
+      const processedDate = convertDateInputToUTC(bulkDateSignOn);
+      console.log(`📅 Converted date: ${bulkDateSignOn} → ${processedDate}`);
+
+      for (const crewId of selectedCrewIds) {
+        try {
+          const updateData = { date_sign_on: processedDate };
+          
+          const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.data) {
+            successCount++;
+            console.log(`✅ Updated Date Sign On for crew ${crewId}`);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`❌ Failed to update crew ${crewId}:`, error);
+        }
+      }
+
+      // Show results
+      if (successCount > 0 && errorCount === 0) {
+        toast.success(language === 'vi' 
+          ? `Đã cập nhật ngày lên tàu cho ${successCount} thuyền viên`
+          : `Updated date sign on for ${successCount} crew members`);
+      } else if (successCount > 0 && errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
+          : `Updated ${successCount} crew members, ${errorCount} failed`);
+      } else {
+        toast.error(language === 'vi' 
+          ? 'Không thể cập nhật thuyền viên nào'
+          : 'Failed to update any crew members');
+      }
+
+      // Refresh crew list and close modal
+      if (successCount > 0) {
+        if (selectedShip?.name) {
+          await fetchCrewMembers(selectedShip.name);
+        }
+      }
+
+      setShowBulkEditDateSignOn(false);
+      setBulkDateSignOn('');
+      setSelectedCrewMembers(new Set()); // Clear selection after bulk update
+      
+    } catch (error) {
+      console.error('Bulk Date Sign On update error:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi cập nhật hàng loạt'
+        : 'Bulk update error');
+    }
+  };
+
   // Helper function to close edit crew modal and deselect crew
   const closeEditCrewModal = () => {
     setShowEditCrewModal(false);
