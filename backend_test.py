@@ -1120,39 +1120,494 @@ class PassportWorkflowTester:
         except Exception as e:
             self.log(f"❌ Error printing test summary: {str(e)}", "ERROR")
 
+class CrewRenameFilesTester:
+    def __init__(self):
+        self.session = requests.Session()
+        self.auth_token = None
+        self.current_user = None
+        self.test_results = {}
+        self.backend_logs = []
+        
+        # Test tracking for crew rename functionality
+        self.rename_tests = {
+            # Authentication and setup
+            'authentication_successful': False,
+            'user_company_identified': False,
+            'test_crew_found': False,
+            
+            # Apps Script capability check
+            'apps_script_capability_check_working': False,
+            'capability_check_logs_found': False,
+            'available_actions_detected': False,
+            'rename_file_action_supported': False,
+            
+            # Apps Script support detection
+            'apps_script_support_detection_working': False,
+            'unsupported_returns_501': False,
+            'supported_proceeds_with_rename': False,
+            
+            # Enhanced success/failure logic
+            'success_only_when_files_renamed': False,
+            'no_files_renamed_raises_exception': False,
+            'proper_error_message_shown': False,
+            
+            # Certificate function comparison
+            'identical_capability_check_pattern': False,
+            'consistent_error_handling': False,
+            'same_status_codes': False,
+            
+            # Error handling enhancement
+            'proper_http_501_response': False,
+            'suggested_filename_in_error': False,
+            'no_files_shows_appropriate_error': False,
+            
+            # Backend logging
+            'comprehensive_logging_present': False,
+            'capability_check_logs': False,
+            'rename_attempt_logs': False,
+            'success_failure_tracking': False,
+        }
+        
+        # Store test data
+        self.test_crew_id = None
+        self.test_crew_name = None
+        
+    def log(self, message, level="INFO"):
+        """Log messages with timestamp"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        formatted_message = f"[{timestamp}] [{level}] {message}"
+        print(formatted_message)
+        
+        # Also store in our log collection
+        self.backend_logs.append({
+            'timestamp': timestamp,
+            'level': level,
+            'message': message
+        })
+        
+    def authenticate(self):
+        """Authenticate with admin1/123456 credentials"""
+        try:
+            self.log("🔐 Authenticating with admin1/123456...")
+            
+            login_data = {
+                "username": "admin1",
+                "password": "123456",
+                "remember_me": False
+            }
+            
+            endpoint = f"{BACKEND_URL}/auth/login"
+            self.log(f"   POST {endpoint}")
+            
+            response = requests.post(endpoint, json=login_data, timeout=60)
+            self.log(f"   Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.auth_token = data.get("access_token")
+                self.current_user = data.get("user", {})
+                
+                # Set authorization header for future requests
+                self.session.headers.update({
+                    "Authorization": f"Bearer {self.auth_token}"
+                })
+                
+                self.log("✅ Authentication successful")
+                self.log(f"   User ID: {self.current_user.get('id')}")
+                self.log(f"   User Role: {self.current_user.get('role')}")
+                self.log(f"   Company: {self.current_user.get('company')}")
+                
+                self.rename_tests['authentication_successful'] = True
+                self.rename_tests['user_company_identified'] = bool(self.current_user.get('company'))
+                return True
+            else:
+                self.log(f"❌ Authentication failed: {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Authentication error: {str(e)}", "ERROR")
+            return False
+    
+    def find_test_crew_with_files(self):
+        """Find a crew member with files for testing"""
+        try:
+            self.log("🔍 Finding crew member with files for testing...")
+            
+            # Get crew list
+            response = self.session.get(f"{BACKEND_URL}/crew")
+            
+            if response.status_code == 200:
+                crew_list = response.json()
+                self.log(f"   Found {len(crew_list)} crew members")
+                
+                # Look for crew with files
+                for crew in crew_list:
+                    passport_file_id = crew.get("passport_file_id")
+                    summary_file_id = crew.get("summary_file_id")
+                    
+                    if passport_file_id or summary_file_id:
+                        self.test_crew_id = crew.get("id")
+                        self.test_crew_name = crew.get("full_name")
+                        self.log(f"✅ Found test crew: {self.test_crew_name} (ID: {self.test_crew_id})")
+                        self.log(f"   Passport file ID: {passport_file_id}")
+                        self.log(f"   Summary file ID: {summary_file_id}")
+                        self.rename_tests['test_crew_found'] = True
+                        return True
+                
+                self.log("❌ No crew members with files found", "ERROR")
+                return False
+            else:
+                self.log(f"❌ Failed to get crew list: {response.status_code}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error finding test crew: {str(e)}", "ERROR")
+            return False
+    
+    def test_apps_script_capability_check(self):
+        """Test Apps Script capability check functionality"""
+        try:
+            self.log("🔍 Testing Apps Script capability check...")
+            
+            if not self.test_crew_id:
+                self.log("❌ No test crew available", "ERROR")
+                return False
+            
+            # Prepare test data
+            test_filename = "Test_Crew_Rename_File.pdf"
+            
+            # Make request to crew rename endpoint
+            endpoint = f"{BACKEND_URL}/crew/{self.test_crew_id}/rename-files"
+            self.log(f"   POST {endpoint}")
+            
+            # Use form data as expected by the endpoint
+            data = {"new_filename": test_filename}
+            
+            start_time = time.time()
+            response = self.session.post(endpoint, data=data, timeout=60)
+            end_time = time.time()
+            
+            processing_time = end_time - start_time
+            self.log(f"⏱️ Processing time: {processing_time:.1f} seconds")
+            self.log(f"   Response status: {response.status_code}")
+            
+            # Check backend logs for capability check messages
+            self.check_backend_logs_for_capability_check()
+            
+            if response.status_code == 501:
+                # Apps Script doesn't support rename - this is expected behavior
+                self.log("✅ Apps Script capability check working - returned 501 for unsupported feature")
+                self.rename_tests['apps_script_capability_check_working'] = True
+                self.rename_tests['unsupported_returns_501'] = True
+                
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get("detail", "")
+                    self.log(f"   Error message: {error_detail}")
+                    
+                    # Check if suggested filename is in error message
+                    if test_filename in error_detail:
+                        self.log("✅ Suggested filename included in error message")
+                        self.rename_tests['suggested_filename_in_error'] = True
+                    
+                    # Check for proper error message format
+                    if "not yet supported" in error_detail.lower():
+                        self.log("✅ Proper error message format")
+                        self.rename_tests['proper_http_501_response'] = True
+                        
+                except Exception as e:
+                    self.log(f"   Could not parse error response: {e}")
+                
+                return True
+                
+            elif response.status_code == 200:
+                # Apps Script supports rename - check if files were actually renamed
+                self.log("✅ Apps Script supports rename functionality")
+                self.rename_tests['rename_file_action_supported'] = True
+                self.rename_tests['supported_proceeds_with_rename'] = True
+                
+                try:
+                    result = response.json()
+                    success = result.get("success", False)
+                    renamed_files = result.get("renamed_files", [])
+                    
+                    self.log(f"   Success: {success}")
+                    self.log(f"   Renamed files: {renamed_files}")
+                    
+                    # Test enhanced success/failure logic
+                    if success and renamed_files:
+                        self.log("✅ Success only returned when files actually renamed")
+                        self.rename_tests['success_only_when_files_renamed'] = True
+                    elif not success and not renamed_files:
+                        self.log("✅ Failure returned when no files renamed")
+                        self.rename_tests['no_files_renamed_raises_exception'] = True
+                    
+                except Exception as e:
+                    self.log(f"   Could not parse success response: {e}")
+                
+                return True
+                
+            elif response.status_code == 500:
+                # Check if this is the enhanced error handling
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get("detail", "")
+                    self.log(f"   Error message: {error_detail}")
+                    
+                    if "Failed to rename any files" in error_detail:
+                        self.log("✅ Enhanced error handling - proper error when no files renamed")
+                        self.rename_tests['no_files_renamed_raises_exception'] = True
+                        self.rename_tests['proper_error_message_shown'] = True
+                        return True
+                        
+                except Exception as e:
+                    self.log(f"   Could not parse error response: {e}")
+                
+                return False
+                
+            else:
+                self.log(f"❌ Unexpected response status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error testing Apps Script capability check: {str(e)}", "ERROR")
+            return False
+    
+    def check_backend_logs_for_capability_check(self):
+        """Check backend logs for capability check messages"""
+        try:
+            self.log("📋 Checking backend logs for capability check messages...")
+            
+            # Check supervisor backend logs
+            log_files = [
+                "/var/log/supervisor/backend.out.log",
+                "/var/log/supervisor/backend.err.log"
+            ]
+            
+            capability_check_patterns = [
+                "🔍 Checking Apps Script capabilities",
+                "📋 Apps Script available actions",
+                "⚠️ Apps Script does not support 'rename_file' action",
+                "✅ Apps Script supports 'rename_file' action"
+            ]
+            
+            found_patterns = []
+            
+            for log_file in log_files:
+                if os.path.exists(log_file):
+                    self.log(f"📄 Checking {log_file}...")
+                    
+                    try:
+                        # Get last 200 lines to capture recent activity
+                        result = os.popen(f"tail -n 200 {log_file}").read()
+                        
+                        if result.strip():
+                            lines = result.strip().split('\n')
+                            
+                            for line in lines:
+                                for pattern in capability_check_patterns:
+                                    if pattern in line:
+                                        found_patterns.append(pattern)
+                                        self.log(f"   🔍 Found: {line.strip()}")
+                        
+                    except Exception as e:
+                        self.log(f"   Error reading {log_file}: {e}")
+            
+            # Update test results based on found patterns
+            if any("Checking Apps Script capabilities" in pattern for pattern in found_patterns):
+                self.rename_tests['capability_check_logs_found'] = True
+                self.log("✅ Capability check logs found")
+            
+            if any("Apps Script available actions" in pattern for pattern in found_patterns):
+                self.rename_tests['available_actions_detected'] = True
+                self.log("✅ Available actions detection logs found")
+            
+            if found_patterns:
+                self.rename_tests['comprehensive_logging_present'] = True
+                self.log("✅ Comprehensive logging present")
+            
+            return len(found_patterns) > 0
+            
+        except Exception as e:
+            self.log(f"❌ Error checking backend logs: {str(e)}", "ERROR")
+            return False
+    
+    def compare_with_certificate_function(self):
+        """Compare crew rename with certificate function patterns"""
+        try:
+            self.log("🔍 Comparing crew rename with certificate function patterns...")
+            
+            # Test certificate auto-rename endpoint for comparison
+            # First, find a certificate to test with
+            response = self.session.get(f"{BACKEND_URL}/certificates")
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                
+                if certificates:
+                    test_cert = certificates[0]
+                    cert_id = test_cert.get("id")
+                    
+                    self.log(f"   Testing certificate auto-rename for comparison: {cert_id}")
+                    
+                    # Test certificate auto-rename endpoint
+                    cert_endpoint = f"{BACKEND_URL}/certificates/{cert_id}/auto-rename-file"
+                    cert_response = self.session.post(cert_endpoint, timeout=60)
+                    
+                    self.log(f"   Certificate response status: {cert_response.status_code}")
+                    
+                    # Compare response patterns
+                    if cert_response.status_code == 501:
+                        self.log("✅ Certificate function also returns 501 for unsupported Apps Script")
+                        self.rename_tests['identical_capability_check_pattern'] = True
+                        self.rename_tests['consistent_error_handling'] = True
+                        self.rename_tests['same_status_codes'] = True
+                        
+                        try:
+                            cert_error = cert_response.json()
+                            cert_detail = cert_error.get("detail", "")
+                            
+                            if "not yet supported" in cert_detail.lower():
+                                self.log("✅ Certificate function uses same error message pattern")
+                            
+                        except Exception as e:
+                            self.log(f"   Could not parse certificate error: {e}")
+                    
+                    return True
+                else:
+                    self.log("   No certificates found for comparison")
+                    return False
+            else:
+                self.log(f"   Failed to get certificates: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Error comparing with certificate function: {str(e)}", "ERROR")
+            return False
+    
+    def run_crew_rename_test(self):
+        """Run crew rename files test"""
+        try:
+            self.log("🚀 STARTING ENHANCED CREW RENAME FILES FUNCTIONALITY TEST")
+            self.log("=" * 80)
+            
+            # Step 1: Authentication
+            self.log("\nSTEP 1: Authentication")
+            if not self.authenticate():
+                self.log("❌ CRITICAL: Authentication failed - cannot proceed")
+                return False
+            
+            # Step 2: Find test crew with files
+            self.log("\nSTEP 2: Find test crew with files")
+            if not self.find_test_crew_with_files():
+                self.log("❌ CRITICAL: No test crew with files found - cannot proceed")
+                return False
+            
+            # Step 3: Test Apps Script capability check
+            self.log("\nSTEP 3: Test Apps Script capability check")
+            self.test_apps_script_capability_check()
+            
+            # Step 4: Compare with certificate function
+            self.log("\nSTEP 4: Compare with certificate function")
+            self.compare_with_certificate_function()
+            
+            self.log("\n" + "=" * 80)
+            self.log("✅ ENHANCED CREW RENAME FILES FUNCTIONALITY TEST COMPLETED")
+            return True
+            
+        except Exception as e:
+            self.log(f"❌ CRITICAL ERROR in crew rename test: {str(e)}", "ERROR")
+            traceback.print_exc()
+            return False
+    
+    def print_crew_rename_summary(self):
+        """Print summary of crew rename test results"""
+        try:
+            self.log("\n" + "=" * 80)
+            self.log("📊 ENHANCED CREW RENAME FILES FUNCTIONALITY TEST SUMMARY")
+            self.log("=" * 80)
+            
+            # Count passed tests
+            total_tests = len(self.rename_tests)
+            passed_tests = sum(1 for result in self.rename_tests.values() if result)
+            success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+            
+            self.log(f"Overall Success Rate: {success_rate:.1f}% ({passed_tests}/{total_tests} tests passed)")
+            self.log("")
+            
+            # Key test results
+            key_tests = [
+                ('apps_script_capability_check_working', '🔍 Apps Script capability check working'),
+                ('capability_check_logs_found', '📋 Capability check logs found'),
+                ('unsupported_returns_501', '🚫 Unsupported returns HTTP 501'),
+                ('proper_http_501_response', '✅ Proper HTTP 501 response'),
+                ('suggested_filename_in_error', '📝 Suggested filename in error'),
+                ('identical_capability_check_pattern', '🔄 Identical to certificate pattern'),
+                ('consistent_error_handling', '🚨 Consistent error handling'),
+                ('success_only_when_files_renamed', '✅ Success only when files renamed'),
+            ]
+            
+            for test_key, description in key_tests:
+                status = "✅ PASS" if self.rename_tests.get(test_key, False) else "❌ FAIL"
+                self.log(f"   {status} - {description}")
+            
+            # Overall Assessment
+            self.log("\n🎯 OVERALL ASSESSMENT:")
+            
+            critical_tests = [
+                'apps_script_capability_check_working',
+                'identical_capability_check_pattern',
+                'proper_http_501_response'
+            ]
+            
+            critical_passed = sum(1 for test_key in critical_tests if self.rename_tests.get(test_key, False))
+            
+            if critical_passed == len(critical_tests):
+                self.log("   ✅ CRITICAL REQUIREMENTS MET")
+                self.log("   ✅ Enhanced crew rename functionality working correctly")
+                self.log("   ✅ Matches certificate function pattern")
+                self.log("   ✅ Apps Script capability check implemented")
+            else:
+                self.log("   ❌ SOME CRITICAL REQUIREMENTS NOT MET")
+                self.log(f"   ❌ Only {critical_passed}/{len(critical_tests)} critical tests passed")
+            
+            self.log("=" * 80)
+            
+        except Exception as e:
+            self.log(f"❌ Error printing crew rename summary: {str(e)}", "ERROR")
+
 def main():
-    """Main function to run the passport workflow tests"""
-    print("🧪 Backend Test: Add Crew From Passport Workflow")
-    print("📄 Testing with REAL passport file: 3. 2O THUONG - PP.pdf")
-    print("🎯 Focus: Debug upload failure 'Lỗi không upload được file'")
+    """Main function to run the tests"""
+    print("🧪 Backend Test: Enhanced Crew Rename Files Functionality")
+    print("🎯 Focus: Test enhanced crew rename that matches certificate function pattern")
     print("=" * 80)
     print("Testing requirements:")
-    print("1. Download and verify actual passport PDF file")
-    print("2. Test complete workflow with real file")
-    print("3. Check Document AI processing with real passport content")
-    print("4. Verify file upload to Google Drive")
-    print("5. Examine backend logs for upload errors")
-    print("6. Check Apps Script response analysis")
-    print("7. Verify file format and size validation")
+    print("1. Apps Script capability check working correctly")
+    print("2. Apps Script support detection (501 for unsupported)")
+    print("3. Enhanced success/failure logic (only success when files renamed)")
+    print("4. Consistency with certificate function behavior")
+    print("5. Enhanced error handling with proper messages")
+    print("6. Comprehensive backend logging throughout process")
     print("=" * 80)
     
-    tester = PassportWorkflowTester()
+    # Run crew rename files test
+    crew_tester = CrewRenameFilesTester()
     
     try:
-        # Run comprehensive test
-        success = tester.run_comprehensive_passport_workflow_test()
+        # Run crew rename test
+        crew_success = crew_tester.run_crew_rename_test()
         
-        # Print summary
-        tester.print_test_summary()
+        # Print crew rename summary
+        crew_tester.print_crew_rename_summary()
         
         # Return appropriate exit code
-        sys.exit(0 if success else 1)
+        sys.exit(0 if crew_success else 1)
         
     except KeyboardInterrupt:
-        tester.log("\n❌ Test interrupted by user", "ERROR")
+        print("\n❌ Test interrupted by user")
         sys.exit(1)
     except Exception as e:
-        tester.log(f"❌ Unexpected error: {str(e)}", "ERROR")
+        print(f"❌ Unexpected error: {str(e)}")
         traceback.print_exc()
         sys.exit(1)
 
