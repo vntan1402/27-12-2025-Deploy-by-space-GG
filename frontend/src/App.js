@@ -5535,6 +5535,7 @@ const HomePage = () => {
                   onMouseLeave={handleCategoryMouseLeave}
                 >
                   <button 
+                    onClick={() => handleCategoryClick(category.key)}
                     className="w-full text-left p-3 rounded-lg bg-blue-500 hover:bg-blue-400 transition-all border border-blue-400 text-white font-medium"
                     style={{
                       background: 'linear-gradient(135deg, #4a90e2, #357abd)',
