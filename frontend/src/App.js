@@ -2048,26 +2048,7 @@ const HomePage = () => {
         }
         
         // Close modal and reset state
-        setShowEditCrewModal(false);
-        setEditingCrew(null);
-        setEditCrewData({
-          full_name: '',
-          full_name_en: '',
-          sex: 'M',
-          date_of_birth: '',
-          place_of_birth: '',
-          place_of_birth_en: '',
-          passport: '',
-          nationality: '',
-          passport_expiry_date: '',
-          rank: '',
-          seamen_book: '',
-          status: 'Sign on',
-          ship_sign_on: '-',
-          place_sign_on: '',
-          date_sign_on: '',
-          date_sign_off: ''
-        });
+        closeEditCrewModal();
       }
       
     } catch (error) {
