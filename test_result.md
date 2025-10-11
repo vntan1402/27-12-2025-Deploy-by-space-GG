@@ -49,9 +49,9 @@
 ##
 ## test_plan:
   current_focus:
-    - "Auto-Fill Status Logic Based on Ship Sign On and Date Sign Off Testing"
+    - "File Linking Functionality Testing"
   stuck_tasks: 
-    - "Multi Certificate Upload Google Drive Debug Testing"
+    - "Document AI Passport Analysis Integration"
   test_all: false
   test_priority: "high_first"
 
