@@ -8641,7 +8641,16 @@ const HomePage = () => {
                     <input
                       type="date"
                       value={newCrewData.date_sign_off}
-                      onChange={(e) => setNewCrewData({...newCrewData, date_sign_off: e.target.value})}
+                      onChange={(e) => {
+                        const signOffDate = e.target.value;
+                        setNewCrewData({
+                          ...newCrewData, 
+                          date_sign_off: signOffDate,
+                          // Auto-update Status and Ship Sign On when Date Sign Off is filled
+                          status: signOffDate ? 'Standby' : newCrewData.status,
+                          ship_sign_on: signOffDate ? '-' : newCrewData.ship_sign_on
+                        });
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
