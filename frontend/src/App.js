@@ -8310,14 +8310,15 @@ const HomePage = () => {
                       id="passport-upload"
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
+                      multiple
                       onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          handlePassportUpload(file);
+                        const files = Array.from(e.target.files);
+                        if (files.length > 0) {
+                          handleMultiplePassportUpload(files);
                         }
                       }}
                       className="hidden"
-                      disabled={isAnalyzingPassport}
+                      disabled={isAnalyzingPassport || isBatchProcessing}
                     />
                     
                     {isAnalyzingPassport && (
