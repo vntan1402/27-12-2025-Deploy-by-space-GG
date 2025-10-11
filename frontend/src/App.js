@@ -9590,7 +9590,7 @@ const HomePage = () => {
                 </div>
                 
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {language === 'vi' ? 'Nơi đăng ký' : 'Place Sign On'}
+                  {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
                 </label>
                 <input
                   type="text"
