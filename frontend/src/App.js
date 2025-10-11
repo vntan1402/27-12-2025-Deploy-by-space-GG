@@ -4147,10 +4147,14 @@ const HomePage = () => {
     setIsBatchProcessing(false);
     setCurrentFileIndex(0);
     
-    const successCount = batchResults.filter(r => r.success).length;
-    toast.success(language === 'vi' 
-      ? `Hoàn thành xử lý batch: ${successCount}/${files.length} file thành công` 
-      : `Batch processing complete: ${successCount}/${files.length} files successful`);
+    // Get final results count
+    setBatchResults(currentResults => {
+      const successCount = currentResults.filter(r => r.success).length;
+      toast.success(language === 'vi' 
+        ? `Hoàn thành xử lý batch: ${successCount}/${files.length} file thành công` 
+        : `Batch processing complete: ${successCount}/${files.length} files successful`);
+      return currentResults;
+    });
     
     // Refresh crew list
     if (selectedShip?.name) {
