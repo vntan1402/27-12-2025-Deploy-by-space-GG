@@ -7050,7 +7050,14 @@ const HomePage = () => {
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                       {crew.ship_sign_on}
                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                    <td 
+                                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-context-menu hover:bg-blue-50"
+                                      onContextMenu={(e) => handlePlaceSignOnRightClick(e)}
+                                      title={selectedCrewMembers.size > 0 ? 
+                                        (language === 'vi' ? 'Chuột phải để chỉnh sửa hàng loạt' : 'Right-click to bulk edit') : 
+                                        (language === 'vi' ? 'Chọn crew trước khi chỉnh sửa hàng loạt' : 'Select crew to bulk edit')
+                                      }
+                                    >
                                       {crew.place_sign_on || '-'}
                                     </td>
                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
