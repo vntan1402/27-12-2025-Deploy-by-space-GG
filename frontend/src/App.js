@@ -6913,6 +6913,19 @@ const HomePage = () => {
                               </svg>
                               {language === 'vi' ? 'Tải xuống' : 'Download'}
                             </button>
+                            
+                            {/* Rename option - only show if files are available */}
+                            {(passportContextMenu.crew?.passport_file_id || passportContextMenu.crew?.summary_file_id) && (
+                              <button
+                                onClick={() => handleRenamePassportFiles(passportContextMenu.crew)}
+                                className="w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 flex items-center"
+                              >
+                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                {language === 'vi' ? 'Đổi tên file' : 'Rename Files'}
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
