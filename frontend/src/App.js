@@ -2175,7 +2175,18 @@ const HomePage = () => {
 
       for (const crewId of selectedCrewIds) {
         try {
-          const updateData = { date_sign_off: processedDate };
+          // Auto-update Status and Ship Sign On when Date Sign Off is filled
+          const updateData = {
+            date_sign_off: processedDate,
+            status: 'Standby', // Auto-set to Standby when crew signs off
+            ship_sign_on: '-' // Clear ship assignment when crew signs off
+          };
+          
+          console.log(`📋 Auto-updating for crew ${crewId}:`, {
+            date_sign_off: processedDate,
+            status: 'Standby',
+            ship_sign_on: '-'
+          });
           
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
@@ -2186,7 +2197,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ Updated Date Sign Off for crew ${crewId}`);
+            console.log(`✅ Updated Date Sign Off, Status, and Ship Sign On for crew ${crewId}`);
           }
         } catch (error) {
           errorCount++;
