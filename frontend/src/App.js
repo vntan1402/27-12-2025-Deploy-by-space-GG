@@ -9582,7 +9582,7 @@ const HomePage = () => {
                     </svg>
                     <span>
                       {language === 'vi' 
-                        ? `Cập nhật nơi đăng ký cho ${selectedCrewMembers.size} thuyền viên được chọn`
+                        ? `Cập nhật nơi xuống tàu cho ${selectedCrewMembers.size} thuyền viên được chọn`
                         : `Update place sign on for ${selectedCrewMembers.size} selected crew members`
                       }
                     </span>
