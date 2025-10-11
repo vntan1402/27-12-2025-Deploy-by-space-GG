@@ -4127,6 +4127,13 @@ const HomePage = () => {
         passport_expiry_date: newCrewData.passport_expiry_date ? convertDateInputToUTC(newCrewData.passport_expiry_date.split('T')[0]) : null
       };
       
+      // Include file IDs if passport was analyzed
+      if (passportAnalysis?.file_ids) {
+        processedData.passport_file_id = passportAnalysis.file_ids.passport_file_id;
+        processedData.summary_file_id = passportAnalysis.file_ids.summary_file_id;
+        console.log('📎 Including file IDs in crew creation:', passportAnalysis.file_ids);
+      }
+      
       // Call backend API to create crew member
       const response = await axios.post(`${API}/crew`, processedData, {
         headers: {
