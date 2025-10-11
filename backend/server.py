@@ -12543,6 +12543,140 @@ async def delete_crew_member(
         logger.error(f"Error deleting crew member {crew_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete crew member: {str(e)}")
 
+@api_router.post("/crew/{crew_id}/rename-files")
+async def rename_crew_files(
+    crew_id: str,
+    new_filename: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Rename crew passport and summary files"""
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Get crew member
+        crew = await mongo_db.find_one("crew_members", {
+            "id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        passport_file_id = crew.get("passport_file_id")
+        summary_file_id = crew.get("summary_file_id")
+        
+        if not passport_file_id and not summary_file_id:
+            raise HTTPException(status_code=400, detail="No files associated with this crew member")
+        
+        # Get company Apps Script URL
+        company = await mongo_db.find_one("companies", {"id": company_uuid})
+        if not company or not (company.get("company_apps_script_url") or company.get("web_app_url")):
+            raise HTTPException(status_code=400, detail="Company Apps Script not configured")
+        
+        company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+        renamed_files = []
+        
+        # Extract file extension from original filename
+        original_filename = new_filename
+        if "." not in original_filename:
+            # If no extension provided, try to guess from passport field or use default
+            original_filename += ".pdf"  # Default extension for passport files
+        
+        # Rename passport file
+        if passport_file_id:
+            try:
+                logger.info(f"🔄 Renaming passport file {passport_file_id} to {original_filename}")
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "rename_file",
+                        "file_id": passport_file_id,
+                        "new_name": original_filename
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ Passport file renamed successfully")
+                                renamed_files.append("passport")
+                            else:
+                                logger.warning(f"⚠️ Failed to rename passport file: {result.get('message')}")
+                        else:
+                            logger.warning(f"⚠️ Failed to rename passport file: HTTP {response.status}")
+            except Exception as e:
+                logger.error(f"❌ Error renaming passport file {passport_file_id}: {e}")
+        
+        # Rename summary file
+        if summary_file_id:
+            try:
+                # Generate summary filename
+                base_name = original_filename.rsplit('.', 1)[0]
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                logger.info(f"🔄 Renaming summary file {summary_file_id} to {summary_filename}")
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "rename_file",
+                        "file_id": summary_file_id,
+                        "new_name": summary_filename
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ Summary file renamed successfully")
+                                renamed_files.append("summary")
+                            else:
+                                logger.warning(f"⚠️ Failed to rename summary file: {result.get('message')}")
+                        else:
+                            logger.warning(f"⚠️ Failed to rename summary file: HTTP {response.status}")
+            except Exception as e:
+                logger.error(f"❌ Error renaming summary file {summary_file_id}: {e}")
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="RENAME_CREW_FILES",
+            resource_type="crew_member",
+            resource_id=crew_id,
+            details={
+                "crew_name": crew.get("full_name"),
+                "new_filename": original_filename,
+                "renamed_files": renamed_files,
+                "renamed_at": datetime.now(timezone.utc).isoformat()
+            },
+            company_id=company_uuid
+        )
+        
+        # Construct response message
+        if renamed_files:
+            file_list = ", ".join(renamed_files)
+            message = f"Files renamed successfully: {file_list}"
+        else:
+            message = "No files were renamed"
+        
+        return {
+            "success": True,
+            "message": message,
+            "renamed_files": renamed_files,
+            "new_filename": original_filename
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error renaming files for crew {crew_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to rename files: {str(e)}")
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
