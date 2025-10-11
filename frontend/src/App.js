@@ -8680,28 +8680,7 @@ const HomePage = () => {
                   {language === 'vi' ? 'Chỉnh sửa thông tin thuyền viên' : 'Edit Crew Member'}
                 </h3>
                 <button
-                  onClick={() => {
-                    setShowEditCrewModal(false);
-                    setEditingCrew(null);
-                    setEditCrewData({
-                      full_name: '',
-                      full_name_en: '',
-                      sex: 'M',
-                      date_of_birth: '',
-                      place_of_birth: '',
-                      place_of_birth_en: '',
-                      passport: '',
-                      nationality: '',
-                      passport_expiry_date: '',
-                      rank: '',
-                      seamen_book: '',
-                      status: 'Sign on',
-                      ship_sign_on: '-',
-                      place_sign_on: '',
-                      date_sign_on: '',
-                      date_sign_off: ''
-                    });
-                  }}
+                  onClick={closeEditCrewModal}
                   className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
                 >
                   ×
