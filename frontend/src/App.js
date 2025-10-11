@@ -4807,6 +4807,8 @@ const HomePage = () => {
     // Reset bulk edit states
     setShowBulkEditDateSignOn(false);
     setBulkDateSignOn('');
+    setShowBulkEditDateSignOff(false);
+    setBulkDateSignOff('');
   };
 
   // Load crew members when component mounts or filters change
