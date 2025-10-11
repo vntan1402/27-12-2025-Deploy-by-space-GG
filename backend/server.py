@@ -11547,7 +11547,19 @@ This summary was generated using Google Document AI for crew management purposes
             passport_upload = upload_results.get('uploads', {}).get('passport', {})
             summary_upload = upload_results.get('uploads', {}).get('summary', {})
             
+            # Extract file IDs for linking
+            passport_file_id = passport_upload.get('file_id') if passport_upload.get('success') else None
+            summary_file_id = summary_upload.get('file_id') if summary_upload.get('success') else None
+            
             logger.info("✅ Dual Apps Script processing completed successfully")
+            logger.info(f"📎 File IDs - Passport: {passport_file_id}, Summary: {summary_file_id}")
+            
+            # Include file IDs in analysis result for crew creation
+            if passport_file_id or summary_file_id:
+                analysis_result['file_ids'] = {
+                    'passport_file_id': passport_file_id,
+                    'summary_file_id': summary_file_id
+                }
             
             return {
                 "success": True,
@@ -11556,12 +11568,14 @@ This summary was generated using Google Document AI for crew management purposes
                     "passport": {
                         "filename": filename,
                         "folder": f"{ship_name}/Crew records",
-                        "upload_result": passport_upload
+                        "upload_result": passport_upload,
+                        "file_id": passport_file_id
                     },
                     "summary": {
                         "filename": f"{filename.rsplit('.', 1)[0]}_Summary.txt",
                         "folder": "SUMMARY", 
-                        "upload_result": summary_upload
+                        "upload_result": summary_upload,
+                        "file_id": summary_file_id
                     }
                 },
                 "processing_method": "dual_apps_script",
