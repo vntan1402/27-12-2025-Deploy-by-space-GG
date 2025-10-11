@@ -1764,46 +1764,45 @@ const HomePage = () => {
 
   const handleDownloadPassport = async (crew) => {
     try {
-      // This would typically download the passport file from server
-      // For now, we'll simulate a download action
-      toast.info(language === 'vi' ? 'Đang tải xuống hộ chiếu...' : 'Downloading passport...');
-      
-      // Simulate API call to download passport
-      const response = await axios.get(`${API}/crew/${crew.id}/passport/download`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob'
-      });
-      
-      // Create download link
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${crew.full_name}_Passport_${crew.passport}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success(language === 'vi' ? 'Đã tải xuống hộ chiếu' : 'Passport downloaded successfully');
+      // Check if crew has passport file ID for original file
+      if (crew.passport_file_id) {
+        // Download original passport file from Google Drive
+        toast.info(language === 'vi' ? 'Đang tải xuống file hộ chiếu gốc...' : 'Downloading original passport file...');
+        
+        // Open Google Drive download link in new tab
+        const googleDriveDownloadUrl = `https://drive.google.com/uc?export=download&id=${crew.passport_file_id}`;
+        window.open(googleDriveDownloadUrl, '_blank');
+        
+        console.log(`📥 Downloading original passport file for ${crew.full_name}: ${googleDriveDownloadUrl}`);
+        
+        toast.success(language === 'vi' 
+          ? 'Đang tải xuống file hộ chiếu gốc từ Google Drive' 
+          : 'Downloading original passport file from Google Drive');
+        
+      } else {
+        // Fallback: Create text file with passport information if no original file
+        console.log(`⚠️ No passport_file_id for ${crew.full_name}, creating fallback download`);
+        
+        const passportInfo = `Passport Information (No original file available)\n\nName: ${crew.full_name}\nPassport No: ${crew.passport || 'Not specified'}\nDate of Birth: ${crew.date_of_birth || 'Not specified'}\nPlace of Birth: ${crew.place_of_birth || 'Not specified'}\nNationality: ${crew.nationality || 'Not specified'}\nPassport Expiry: ${crew.passport_expiry_date ? formatDateDisplay(crew.passport_expiry_date) : 'Not specified'}\nSex: ${crew.sex || 'Not specified'}\nStatus: ${crew.status || 'Not specified'}\nRank: ${crew.rank || 'Not specified'}`;
+        
+        const blob = new Blob([passportInfo], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${crew.full_name}_Passport_Info.txt`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        toast.warning(language === 'vi' 
+          ? 'Không có file gốc, đã tải xuống thông tin hộ chiếu' 
+          : 'No original file available, downloaded passport information');
+      }
       
     } catch (error) {
       console.error('Download passport error:', error);
-      
-      // For demo purposes, create a text file with passport info
-      const passportInfo = `Passport Information\n\nName: ${crew.full_name}\nPassport No: ${crew.passport}\nDate of Birth: ${crew.date_of_birth}\nPlace of Birth: ${crew.place_of_birth}\nSex: ${crew.sex}\nStatus: ${crew.status}`;
-      
-      const blob = new Blob([passportInfo], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${crew.full_name}_Passport_Info.txt`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.info(language === 'vi' ? 'Đã tải xuống thông tin hộ chiếu' : 'Passport information downloaded');
+      toast.error(language === 'vi' ? 'Lỗi khi tải xuống hộ chiếu' : 'Error downloading passport');
     }
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
