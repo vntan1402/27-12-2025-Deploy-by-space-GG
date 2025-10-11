@@ -1485,12 +1485,13 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
-  // Update newCrewData ship_sign_on when selectedShip changes
+  // Update newCrewData ship_sign_on and status when selectedShip changes
   useEffect(() => {
     if (selectedShip?.name) {
       setNewCrewData(prevData => ({
         ...prevData,
-        ship_sign_on: selectedShip.name
+        ship_sign_on: selectedShip.name,
+        status: 'Sign on' // Auto-set status to Sign on when ship is selected
       }));
     }
   }, [selectedShip]);
