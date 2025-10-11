@@ -8,7 +8,7 @@ import json
 import time
 
 # Configuration
-BACKEND_URL = "https://shipcrew-manager.preview.emergentagent.com/api"
+BACKEND_URL = "https://maritime-ai-crew-1.preview.emergentagent.com/api"
 
 def test_certificate_delete():
     print("🗑️ Testing Certificate Delete Fix...")
