@@ -7351,7 +7351,15 @@ const HomePage = () => {
                                         <span>{index + 1}</span>
                                       </div>
                                     </td>
-                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase">
+                                    <td 
+                                      className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase cursor-pointer hover:bg-gray-50"
+                                      title={crew.full_name ? 
+                                        (language === 'vi' 
+                                          ? `Tên tiếng Việt: ${crew.full_name}${crew.full_name_en ? ` | Tên tiếng Anh: ${crew.full_name_en}` : ''}`
+                                          : `Vietnamese Name: ${crew.full_name}${crew.full_name_en ? ` | English Name: ${crew.full_name_en}` : ''}`
+                                        ) : ''
+                                      }
+                                    >
                                       {language === 'vi' ? crew.full_name : (crew.full_name_en || crew.full_name)}
                                     </td>
                                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
