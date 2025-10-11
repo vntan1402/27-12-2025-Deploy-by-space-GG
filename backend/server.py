@@ -12620,6 +12620,7 @@ async def rename_crew_files(
         # Rename summary file
         if summary_file_id:
             try:
+                import aiohttp
                 # Generate summary filename
                 base_name = original_filename.rsplit('.', 1)[0]
                 summary_filename = f"{base_name}_Summary.txt"
