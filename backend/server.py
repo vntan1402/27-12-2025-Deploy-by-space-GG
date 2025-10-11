@@ -12442,6 +12442,71 @@ async def delete_crew_member(
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
+        # Delete associated files from Google Drive before deleting crew record
+        passport_file_id = crew.get("passport_file_id")
+        summary_file_id = crew.get("summary_file_id")
+        deleted_files = []
+        
+        if passport_file_id or summary_file_id:
+            logger.info(f"🗑️ Deleting associated files for crew {crew.get('full_name')}")
+            
+            # Get company Apps Script URL for file deletion
+            company = await mongo_db.find_one("companies", {"id": company_uuid})
+            if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
+                company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+                
+                # Delete passport file
+                if passport_file_id:
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": passport_file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Passport file {passport_file_id} deleted successfully")
+                                        deleted_files.append("passport")
+                                    else:
+                                        logger.warning(f"⚠️ Failed to delete passport file: {result.get('message')}")
+                                else:
+                                    logger.warning(f"⚠️ Failed to delete passport file: HTTP {response.status}")
+                    except Exception as e:
+                        logger.error(f"❌ Error deleting passport file {passport_file_id}: {e}")
+                
+                # Delete summary file
+                if summary_file_id:
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": summary_file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Summary file {summary_file_id} deleted successfully")
+                                        deleted_files.append("summary")
+                                    else:
+                                        logger.warning(f"⚠️ Failed to delete summary file: {result.get('message')}")
+                                else:
+                                    logger.warning(f"⚠️ Failed to delete summary file: HTTP {response.status}")
+                    except Exception as e:
+                        logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
+        
         # Delete from database
         await mongo_db.delete("crew_members", {"id": crew_id})
         
