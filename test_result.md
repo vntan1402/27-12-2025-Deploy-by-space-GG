@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Edit Place Sign On Context Menu Integration Testing"
+    - "Bulk Edit Date Sign On Functionality Testing"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
