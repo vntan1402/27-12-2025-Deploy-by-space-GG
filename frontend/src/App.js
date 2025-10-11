@@ -8969,7 +8969,15 @@ const HomePage = () => {
                     </label>
                     <select
                       value={editCrewData.ship_sign_on}
-                      onChange={(e) => setEditCrewData({...editCrewData, ship_sign_on: e.target.value})}
+                      onChange={(e) => {
+                        const selectedShip = e.target.value;
+                        setEditCrewData({
+                          ...editCrewData, 
+                          ship_sign_on: selectedShip,
+                          // Auto-update Status based on Ship Sign On selection
+                          status: selectedShip === '-' ? 'Standby' : 'Sign on'
+                        });
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="-">{language === 'vi' ? '- (Chưa chọn tàu)' : '- (Not assigned)'}</option>
