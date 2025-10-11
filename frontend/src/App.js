@@ -3426,9 +3426,6 @@ const HomePage = () => {
       if (seamenBookContextMenu.show) {
         setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
       }
-      if (placeSignOnContextMenu.show) {
-        setPlaceSignOnContextMenu({ show: false, x: 0, y: 0 });
-      }
       if (rankContextMenu.show) {
         setRankContextMenu({ show: false, x: 0, y: 0, crew: null });
       }
