@@ -9692,6 +9692,90 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* Bulk Edit Date Sign On Modal */}
+      {showBulkEditDateSignOn && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {language === 'vi' ? 'Chỉnh sửa ngày lên tàu' : 'Edit Date Sign On'}
+                </h3>
+                <button
+                  onClick={() => setShowBulkEditDateSignOn(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <div className="text-sm text-gray-600 mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                      {language === 'vi' 
+                        ? `Cập nhật ngày lên tàu cho ${selectedCrewMembers.size} thuyền viên được chọn`
+                        : `Update date sign on for ${selectedCrewMembers.size} selected crew members`
+                      }
+                    </span>
+                  </div>
+                </div>
+                
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Ngày lên tàu' : 'Date Sign On'}
+                </label>
+                <input
+                  type="date"
+                  value={bulkDateSignOn}
+                  onChange={(e) => setBulkDateSignOn(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  autoFocus
+                />
+                
+                {/* Date format info */}
+                <div className="mt-2 text-xs text-gray-500">
+                  {language === 'vi' 
+                    ? 'Định dạng: DD/MM/YYYY (hiển thị) - Dữ liệu sẽ được xử lý để tránh lỗi múi giờ'
+                    : 'Format: DD/MM/YYYY (display) - Data processed to prevent timezone shifts'
+                  }
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowBulkEditDateSignOn(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  {language === 'vi' ? 'Hủy' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleBulkUpdateDateSignOn}
+                  disabled={!bulkDateSignOn.trim()}
+                  className={`px-4 py-2 rounded-lg transition-all flex items-center ${
+                    bulkDateSignOn.trim() 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'vi' ? 'Cập nhật' : 'Update'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
