@@ -9118,7 +9118,7 @@ const HomePage = () => {
                   {/* Place Sign On - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Nơi đăng ký' : 'Place Sign On'}
+                      {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
                     </label>
                     <input
                       type="text"
@@ -9480,7 +9480,7 @@ const HomePage = () => {
                   {/* Place Sign On - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Nơi đăng ký' : 'Place Sign On'}
+                      {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
                     </label>
                     <input
                       type="text"
