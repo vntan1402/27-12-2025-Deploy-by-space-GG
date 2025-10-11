@@ -1732,13 +1732,28 @@ const HomePage = () => {
 
   const handleCopyPassportLink = async (crew) => {
     try {
-      // Generate a shareable link for the crew member's passport
-      const passportLink = `${window.location.origin}/crew/${crew.id}/passport`;
-      
-      // Copy to clipboard
-      await navigator.clipboard.writeText(passportLink);
-      
-      toast.success(language === 'vi' ? 'Đã sao chép link hộ chiếu' : 'Passport link copied to clipboard');
+      // Check if crew has passport file ID for original file
+      if (crew.passport_file_id) {
+        // Copy Google Drive link for original passport file
+        const googleDriveLink = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
+        
+        await navigator.clipboard.writeText(googleDriveLink);
+        
+        console.log(`🔗 Copied original passport file link for ${crew.full_name}: ${googleDriveLink}`);
+        
+        toast.success(language === 'vi' 
+          ? 'Đã sao chép link file hộ chiếu gốc' 
+          : 'Original passport file link copied to clipboard');
+      } else {
+        // Fallback: Copy application link if no original file
+        const fallbackLink = `${window.location.origin}/crew/${crew.id}/passport`;
+        
+        await navigator.clipboard.writeText(fallbackLink);
+        
+        toast.warning(language === 'vi' 
+          ? 'Không có file gốc, đã sao chép link thông tin hộ chiếu' 
+          : 'No original file available, copied passport info link');
+      }
       
     } catch (error) {
       console.error('Copy passport link error:', error);
