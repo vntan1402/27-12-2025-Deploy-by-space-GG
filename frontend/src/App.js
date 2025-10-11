@@ -7629,16 +7629,17 @@ const HomePage = () => {
                               )}
                             </button>
                             
-                            {/* Rename option - only show if files are available */}
+                            {/* Automatic Rename option - only show if files are available */}
                             {(passportContextMenu.crew?.passport_file_id || passportContextMenu.crew?.summary_file_id) && (
                               <button
-                                onClick={() => handleRenamePassportFiles(passportContextMenu.crew)}
-                                className="w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-orange-50 flex items-center"
+                                onClick={() => handleAutomaticRenamePassportFiles(passportContextMenu.crew)}
+                                className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center"
                               >
                                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                {language === 'vi' ? 'Đổi tên file' : 'Rename Files'}
+                                {language === 'vi' ? 'Tự động đổi tên file' : 'Automatic Rename Files'}
+                                <span className="ml-auto text-xs bg-purple-100 text-purple-600 px-1 rounded">⚡</span>
                               </button>
                             )}
                           </div>
