@@ -1968,6 +1968,13 @@ const HomePage = () => {
     setShowBulkEditPlaceSignOn(true);
   };
 
+  // Handle bulk edit Date Sign On
+  const handleBulkEditDateSignOn = () => {
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null }); // Close existing crew context menu
+    setBulkDateSignOn('');
+    setShowBulkEditDateSignOn(true);
+  };
+
   // Handle bulk Place Sign On update
   const handleBulkUpdatePlaceSignOn = async () => {
     if (!bulkPlaceSignOn.trim()) {
