@@ -5559,14 +5559,25 @@ const HomePage = () => {
                 >
                   <button 
                     onClick={() => handleCategoryClick(category.key)}
-                    className="w-full text-left p-3 rounded-lg bg-blue-500 hover:bg-blue-400 transition-all border border-blue-400 text-white font-medium"
+                    className={`w-full text-left p-3 rounded-lg transition-all border text-white font-medium ${
+                      selectedCategory === category.key 
+                        ? 'bg-blue-400 border-blue-300 ring-2 ring-blue-200' 
+                        : 'bg-blue-500 hover:bg-blue-400 border-blue-400'
+                    }`}
                     style={{
-                      background: 'linear-gradient(135deg, #4a90e2, #357abd)',
-                      border: '2px solid #2c5282'
+                      background: selectedCategory === category.key 
+                        ? 'linear-gradient(135deg, #60a5fa, #3b82f6)' 
+                        : 'linear-gradient(135deg, #4a90e2, #357abd)',
+                      border: selectedCategory === category.key 
+                        ? '2px solid #93c5fd' 
+                        : '2px solid #2c5282'
                     }}
                   >
                     <span className="mr-3">{category.icon}</span>
                     {category.name}
+                    {selectedCategory === category.key && (
+                      <span className="ml-auto">✓</span>
+                    )}
                   </button>
                   
                   {/* Ships dropdown - now uses hoveredCategory instead of selectedCategory */}
