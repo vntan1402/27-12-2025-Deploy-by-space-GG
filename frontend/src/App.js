@@ -891,6 +891,10 @@ const HomePage = () => {
   // Bulk edit Place Sign On states  
   const [showBulkEditPlaceSignOn, setShowBulkEditPlaceSignOn] = useState(false);
   const [bulkPlaceSignOn, setBulkPlaceSignOn] = useState('');
+  
+  // Bulk edit Date Sign On states
+  const [showBulkEditDateSignOn, setShowBulkEditDateSignOn] = useState(false);
+  const [bulkDateSignOn, setBulkDateSignOn] = useState('');
   const [rankContextMenu, setRankContextMenu] = useState({
     show: false,
     x: 0,
