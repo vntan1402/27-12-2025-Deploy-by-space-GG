@@ -848,6 +848,13 @@ const HomePage = () => {
   const [passportAnalysis, setPassportAnalysis] = useState(null);
   const [isAnalyzingPassport, setIsAnalyzingPassport] = useState(false);
   const [passportError, setPassportError] = useState('');
+  
+  // Batch processing states
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const [batchResults, setBatchResults] = useState([]);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
 
   // Crew Submission States
   const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
