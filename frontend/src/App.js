@@ -9596,7 +9596,7 @@ const HomePage = () => {
                   type="text"
                   value={bulkPlaceSignOn}
                   onChange={(e) => setBulkPlaceSignOn(e.target.value)}
-                  placeholder={language === 'vi' ? 'Nhập nơi đăng ký (ví dụ: Hải Phòng, Vietnam)' : 'Enter place sign on (e.g: Ho Chi Minh City, Vietnam)'}
+                  placeholder={language === 'vi' ? 'Nhập nơi xuống tàu (ví dụ: Hải Phòng, Vietnam)' : 'Enter place sign on (e.g: Ho Chi Minh City, Vietnam)'}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   autoFocus
                 />
