@@ -2913,7 +2913,7 @@ agent_communication:
 
 ## test_plan:
   current_focus:
-    - "Delete Ship functionality testing completed successfully"
+    - "Multiple Passport File Upload Functionality Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
