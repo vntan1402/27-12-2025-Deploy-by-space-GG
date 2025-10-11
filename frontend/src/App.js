@@ -1872,6 +1872,31 @@ const HomePage = () => {
     setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
+  // Helper function to close edit crew modal and deselect crew
+  const closeEditCrewModal = () => {
+    setShowEditCrewModal(false);
+    setEditingCrew(null);
+    setSelectedCrewMembers(new Set()); // Deselect all crew members
+    setEditCrewData({
+      full_name: '',
+      full_name_en: '',
+      sex: 'M',
+      date_of_birth: '',
+      place_of_birth: '',
+      place_of_birth_en: '',
+      passport: '',
+      nationality: '',
+      passport_expiry_date: '',
+      rank: '',
+      seamen_book: '',
+      status: 'Sign on',
+      ship_sign_on: '-',
+      place_sign_on: '',
+      date_sign_on: '',
+      date_sign_off: ''
+    });
+  };
+
   // Handle edit crew
   const handleEditCrew = (crew) => {
     setEditingCrew(crew);
