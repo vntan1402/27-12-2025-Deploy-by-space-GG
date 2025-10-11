@@ -12588,6 +12588,39 @@ async def rename_crew_files(
             # If no extension provided, try to guess from passport field or use default
             original_filename += ".pdf"  # Default extension for passport files
         
+        # First check if Apps Script supports rename_file action (same as certificate function)
+        logger.info(f"🔍 Checking Apps Script capabilities for crew file rename functionality...")
+        
+        # Make request to Apps Script to check available actions
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                company_apps_script_url,
+                json={},  # Empty payload to get default response with available actions
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    test_result = await response.json()
+                    available_actions = test_result.get("available_actions", [])
+                    supported_actions = test_result.get("supported_actions", [])
+                    
+                    # Check both possible keys for available actions
+                    all_actions = available_actions + supported_actions
+                    
+                    logger.info(f"📋 Apps Script available actions: {all_actions}")
+                    
+                    if "rename_file" not in all_actions:
+                        logger.warning(f"⚠️ Apps Script does not support 'rename_file' action")
+                        logger.warning(f"   Available actions: {all_actions}")
+                        
+                        # Return informative error with the suggested filename
+                        raise HTTPException(
+                            status_code=501, 
+                            detail=f"Auto-rename feature not yet supported by Google Drive integration. Suggested filename: {original_filename}"
+                        )
+                    else:
+                        logger.info(f"✅ Apps Script supports 'rename_file' action")
+        
         # Rename passport file
         if passport_file_id:
             try:
