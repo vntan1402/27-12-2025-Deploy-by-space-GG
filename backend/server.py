@@ -12519,12 +12519,23 @@ async def delete_crew_member(
             details={
                 "crew_name": crew.get("full_name"),
                 "passport": crew.get("passport"),
+                "deleted_files": deleted_files,
                 "deleted_at": datetime.now(timezone.utc).isoformat()
             },
             company_id=company_uuid
         )
         
-        return {"success": True, "message": "Crew member deleted successfully"}
+        # Construct success message
+        message = "Crew member deleted successfully"
+        if deleted_files:
+            file_list = ", ".join(deleted_files)
+            message += f" (files deleted: {file_list})"
+        
+        return {
+            "success": True, 
+            "message": message,
+            "deleted_files": deleted_files
+        }
         
     except HTTPException:
         raise
