@@ -1985,7 +1985,7 @@ const HomePage = () => {
   const handleBulkUpdatePlaceSignOn = async () => {
     if (!bulkPlaceSignOn.trim()) {
       toast.error(language === 'vi' 
-        ? 'Vui lòng nhập nơi đăng ký'
+        ? 'Vui lòng nhập nơi xuống tàu'
         : 'Please enter place sign on');
       return;
     }
