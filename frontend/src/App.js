@@ -4066,6 +4066,190 @@ const HomePage = () => {
     return language === 'vi' ? 'HỒ SƠ TÀI LIỆU' : 'CLASS & FLAG CERT';
   };
 
+  // Handle multiple passport file upload
+  const handleMultiplePassportUpload = (files) => {
+    console.log(`📁 Selected ${files.length} file(s) for passport analysis`);
+    
+    // Validate files
+    const validFiles = files.filter(file => {
+      const isValidType = file.type === 'application/pdf' || file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      
+      if (!isValidType) {
+        toast.error(language === 'vi' 
+          ? `File ${file.name} không đúng định dạng` 
+          : `File ${file.name} has invalid format`);
+        return false;
+      }
+      
+      if (!isValidSize) {
+        toast.error(language === 'vi' 
+          ? `File ${file.name} quá lớn (>10MB)` 
+          : `File ${file.name} is too large (>10MB)`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (validFiles.length === 0) {
+      return;
+    }
+    
+    setSelectedFiles(validFiles);
+    
+    if (validFiles.length === 1) {
+      // Single file: use existing behavior (review before adding)
+      console.log('📄 Single file selected - using review mode');
+      handlePassportUpload(validFiles[0]);
+    } else {
+      // Multiple files: batch process (auto-add after each analysis)
+      console.log(`📄📄 Multiple files selected (${validFiles.length}) - starting batch processing`);
+      startBatchProcessing(validFiles);
+    }
+  };
+
+  // Start batch processing for multiple files
+  const startBatchProcessing = async (files) => {
+    setIsBatchProcessing(true);
+    setCurrentFileIndex(0);
+    setBatchResults([]);
+    setBatchProgress({ current: 0, total: files.length });
+    
+    toast.info(language === 'vi' 
+      ? `Bắt đầu xử lý ${files.length} file hộ chiếu...` 
+      : `Starting batch processing of ${files.length} passport files...`);
+    
+    for (let i = 0; i < files.length; i++) {
+      setCurrentFileIndex(i);
+      setBatchProgress({ current: i + 1, total: files.length });
+      
+      console.log(`🔄 Processing file ${i + 1}/${files.length}: ${files[i].name}`);
+      
+      try {
+        const result = await processSinglePassportInBatch(files[i], i + 1, files.length);
+        setBatchResults(prev => [...prev, result]);
+      } catch (error) {
+        console.error(`❌ Error processing file ${files[i].name}:`, error);
+        setBatchResults(prev => [...prev, {
+          filename: files[i].name,
+          success: false,
+          error: error.message,
+          index: i + 1
+        }]);
+      }
+      
+      // Small delay between files
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // Batch processing complete
+    setIsBatchProcessing(false);
+    setCurrentFileIndex(0);
+    
+    const successCount = batchResults.filter(r => r.success).length;
+    toast.success(language === 'vi' 
+      ? `Hoàn thành xử lý batch: ${successCount}/${files.length} file thành công` 
+      : `Batch processing complete: ${successCount}/${files.length} files successful`);
+    
+    // Refresh crew list
+    if (selectedShip?.name) {
+      await fetchCrewMembers(selectedShip.name);
+    }
+    
+    // Reset states
+    setSelectedFiles([]);
+    setBatchResults([]);
+    setBatchProgress({ current: 0, total: 0 });
+  };
+
+  // Process single passport file in batch mode (auto-add crew)
+  const processSinglePassportInBatch = async (file, current, total) => {
+    try {
+      // Set current file for UI display
+      setPassportFile(file);
+      
+      console.log(`🔄 Batch processing ${current}/${total}: ${file.name}`);
+      
+      // Analyze passport
+      const formData = new FormData();
+      formData.append('passport_file', file);
+      formData.append('ship_name', selectedShip?.name || 'Unknown Ship');
+      
+      const response = await axios.post(`${API}/crew/analyze-passport`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success && response.data.analysis) {
+        const analysis = response.data.analysis;
+        
+        // Prepare crew data from analysis
+        const crewData = {
+          full_name: analysis.full_name || '',
+          full_name_en: analysis.full_name_en || '',
+          sex: analysis.sex || 'M',
+          date_of_birth: analysis.date_of_birth ? convertPassportDateToInputFormat(analysis.date_of_birth) : '',
+          place_of_birth: analysis.place_of_birth || '',
+          place_of_birth_en: analysis.place_of_birth_en || '',
+          passport: analysis.passport_number || '',
+          nationality: analysis.nationality || '',
+          passport_expiry_date: analysis.passport_expiry_date ? convertPassportDateToInputFormat(analysis.passport_expiry_date) : '',
+          rank: '',
+          seamen_book: '',
+          status: 'Sign on',
+          ship_sign_on: selectedShip?.name || '-',
+          place_sign_on: '',
+          date_sign_on: '',
+          date_sign_off: ''
+        };
+        
+        // Include file IDs if present
+        if (analysis.file_ids) {
+          crewData.passport_file_id = analysis.file_ids.passport_file_id;
+          crewData.summary_file_id = analysis.file_ids.summary_file_id;
+        }
+        
+        // Auto-create crew member
+        const processedData = {
+          ...crewData,
+          date_of_birth: crewData.date_of_birth ? convertDateInputToUTC(crewData.date_of_birth.split('T')[0]) : null,
+          date_sign_on: crewData.date_sign_on ? convertDateInputToUTC(crewData.date_sign_on.split('T')[0]) : null,
+          date_sign_off: crewData.date_sign_off ? convertDateInputToUTC(crewData.date_sign_off.split('T')[0]) : null,
+          passport_expiry_date: crewData.passport_expiry_date ? convertDateInputToUTC(crewData.passport_expiry_date.split('T')[0]) : null
+        };
+        
+        const createResponse = await axios.post(`${API}/crew`, processedData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (createResponse.data) {
+          console.log(`✅ Crew member created successfully from ${file.name}`);
+          return {
+            filename: file.name,
+            success: true,
+            crewName: analysis.full_name || 'Unknown',
+            passport: analysis.passport_number || 'No passport',
+            index: current
+          };
+        } else {
+          throw new Error('Failed to create crew member');
+        }
+        
+      } else {
+        throw new Error(response.data.message || 'Analysis failed');
+      }
+      
+    } catch (error) {
+      console.error(`❌ Batch processing error for ${file.name}:`, error);
+      throw error;
+    }
+  };
   // Handle passport file upload and analysis
   const handlePassportUpload = async (file) => {
     if (!file) return;
