@@ -1702,9 +1702,26 @@ const HomePage = () => {
   // Handle passport actions
   const handleViewPassport = async (crew) => {
     try {
-      // This would typically open passport file or show passport details
-      // For now, we'll show an alert with passport info
-      alert(`Passport Information:\nName: ${crew.full_name}\nPassport No: ${crew.passport}\nDate of Birth: ${crew.date_of_birth}\nPlace of Birth: ${crew.place_of_birth}`);
+      // Check if crew has passport file ID for original file
+      if (crew.passport_file_id) {
+        // Open original passport file from Google Drive in new tab
+        const googleDriveViewUrl = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
+        window.open(googleDriveViewUrl, '_blank');
+        console.log(`📄 Opening original passport file for ${crew.full_name}: ${googleDriveViewUrl}`);
+        
+        toast.info(language === 'vi' 
+          ? 'Đang mở file hộ chiếu gốc...' 
+          : 'Opening original passport file...');
+      } else {
+        // Fallback: Show passport information summary if no file available
+        const passportInfo = `Passport Information (No original file available)\n\nName: ${crew.full_name}\nPassport No: ${crew.passport || 'Not specified'}\nDate of Birth: ${crew.date_of_birth || 'Not specified'}\nPlace of Birth: ${crew.place_of_birth || 'Not specified'}\nNationality: ${crew.nationality || 'Not specified'}\nPassport Expiry: ${crew.passport_expiry_date ? formatDateDisplay(crew.passport_expiry_date) : 'Not specified'}`;
+        
+        alert(passportInfo);
+        
+        toast.warning(language === 'vi' 
+          ? 'Không có file hộ chiếu gốc, hiển thị thông tin có sẵn' 
+          : 'No original passport file available, showing available information');
+      }
       
     } catch (error) {
       console.error('View passport error:', error);
