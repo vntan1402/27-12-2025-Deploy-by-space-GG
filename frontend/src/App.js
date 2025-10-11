@@ -4070,7 +4070,14 @@ const HomePage = () => {
         console.log('   📋 Setting new crew data:', newData);
         setNewCrewData(newData);
         
-        setPassportAnalysis(analysis);
+        // Include file IDs in analysis data for crew creation
+        const analysisWithFiles = {
+          ...analysis,
+          files: response.data.files, // Include file information with IDs
+          file_ids: analysis.file_ids || {} // Include file IDs if present
+        };
+        
+        setPassportAnalysis(analysisWithFiles);
         setPassportFile(file);
         
         toast.success(language === 'vi' 
