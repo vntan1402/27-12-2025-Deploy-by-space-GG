@@ -1830,25 +1830,43 @@ const HomePage = () => {
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
-  // Handle rename passport files
-  const handleRenamePassportFiles = async (crew) => {
+  // Handle automatic rename passport files
+  const handleAutomaticRenamePassportFiles = async (crew) => {
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
     
-    const currentFilename = crew.full_name || 'passport';
-    const newFilename = prompt(
-      language === 'vi' 
-        ? 'Nhập tên file mới (không cần đuôi file):' 
-        : 'Enter new filename (without extension):',
-      currentFilename
-    );
-    
-    if (!newFilename || newFilename.trim() === '') {
+    // Check if crew has files to rename
+    if (!crew.passport_file_id && !crew.summary_file_id) {
+      toast.warning(language === 'vi' 
+        ? 'Không có file nào để đổi tên cho thuyền viên này'
+        : 'No files available to rename for this crew member');
       return;
     }
     
+    // Generate automatic filename format: Rank + Full Name + Passport
+    const rank = crew.rank || 'Unknown';
+    const fullName = crew.full_name || 'Unknown';
+    const passport = crew.passport || 'NoPassport';
+    
+    // Clean strings to be file-system friendly
+    const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanName = fullName.replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanPassport = passport.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    const autoFilename = `${cleanRank}_${cleanName}_${cleanPassport}`;
+    
+    console.log(`🔄 Auto-generating filename for ${crew.full_name}:`);
+    console.log(`   Rank: "${rank}" → "${cleanRank}"`);
+    console.log(`   Name: "${fullName}" → "${cleanName}"`);
+    console.log(`   Passport: "${passport}" → "${cleanPassport}"`);
+    console.log(`   Final: "${autoFilename}"`);
+    
     try {
+      toast.info(language === 'vi' 
+        ? 'Đang tự động đổi tên files...' 
+        : 'Auto-renaming files...');
+      
       const formData = new FormData();
-      formData.append('new_filename', newFilename.trim());
+      formData.append('new_filename', autoFilename);
       
       const response = await axios.post(`${API}/crew/${crew.id}/rename-files`, formData, {
         headers: {
@@ -1859,23 +1877,30 @@ const HomePage = () => {
       
       if (response.data.success) {
         toast.success(language === 'vi' 
-          ? `Files đã được đổi tên thành công: ${response.data.renamed_files.join(', ')}`
-          : `Files renamed successfully: ${response.data.renamed_files.join(', ')}`
+          ? `Đã tự động đổi tên files thành công: ${response.data.renamed_files.join(', ')}`
+          : `Files automatically renamed successfully: ${response.data.renamed_files.join(', ')}`
         );
+        
+        console.log(`✅ Files automatically renamed:`, {
+          original_format: autoFilename,
+          passport_file: `${autoFilename}.pdf (or original extension)`,
+          summary_file: `${autoFilename}_Summary.txt`,
+          renamed_files: response.data.renamed_files
+        });
         
         // Refresh crew list to show any updated information
         if (selectedShip?.name) {
           await fetchCrewMembers(selectedShip.name);
         }
       } else {
-        toast.error(language === 'vi' ? 'Không thể đổi tên files' : 'Failed to rename files');
+        toast.error(language === 'vi' ? 'Không thể tự động đổi tên files' : 'Failed to auto-rename files');
       }
       
     } catch (error) {
-      console.error('Rename files error:', error);
+      console.error('Auto rename files error:', error);
       toast.error(language === 'vi' 
-        ? `Lỗi đổi tên files: ${error.response?.data?.detail || error.message}`
-        : `Rename files error: ${error.response?.data?.detail || error.message}`
+        ? `Lỗi tự động đổi tên files: ${error.response?.data?.detail || error.message}`
+        : `Auto rename files error: ${error.response?.data?.detail || error.message}`
       );
     }
   };
