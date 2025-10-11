@@ -7046,7 +7046,7 @@ const HomePage = () => {
                                   {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
-                                  {language === 'vi' ? 'Nơi đăng ký' : 'Place Sign On'}
+                                  {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
                                 </th>
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                   {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
