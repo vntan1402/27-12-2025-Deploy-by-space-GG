@@ -4326,6 +4326,29 @@ const HomePage = () => {
     }
   };
 
+  // Handle category click - change category while preserving selected ship
+  const handleCategoryClick = (categoryKey) => {
+    console.log(`🏷️ Category clicked: ${categoryKey}, Current ship: ${selectedShip?.name || 'None'}`);
+    
+    // Update category
+    setSelectedCategory(categoryKey);
+    setHoveredCategory(null); // Hide any open dropdown
+    
+    // Set default submenu based on category
+    if (categoryKey === 'documents') {
+      setSelectedSubMenu('certificates');
+    } else {
+      const categorySubMenus = subMenuItems[categoryKey];
+      if (categorySubMenus && categorySubMenus.length > 0) {
+        setSelectedSubMenu(categorySubMenus[0].key);
+      }
+    }
+    
+    // Keep selectedShip intact - this is the key improvement
+    // The selected ship will be preserved and the new category will show data for this ship
+    console.log(`✅ Category changed to ${categoryKey}, Ship still selected: ${selectedShip?.name || 'None'}`);
+  };
+
   const categories = [
     { key: 'documents', name: language === 'vi' ? 'Hồ sơ tài liệu' : 'Class & Flag Cert', icon: '📁' },
     { key: 'crew', name: language === 'vi' ? 'Thuyền viên' : 'Crew Records', icon: '👥' },
