@@ -1976,7 +1976,7 @@ const HomePage = () => {
   };
   // Handle bulk edit Place Sign On
   const handleBulkEditPlaceSignOn = () => {
-    setPlaceSignOnContextMenu({ show: false, x: 0, y: 0 });
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null }); // Close existing crew context menu
     setBulkPlaceSignOn('');
     setShowBulkEditPlaceSignOn(true);
   };
