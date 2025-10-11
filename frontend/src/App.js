@@ -8281,9 +8281,9 @@ const HomePage = () => {
                       onDrop={(e) => {
                         e.preventDefault();
                         e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
-                        const file = e.dataTransfer.files[0];
-                        if (file) {
-                          handlePassportUpload(file);
+                        const files = Array.from(e.dataTransfer.files);
+                        if (files.length > 0) {
+                          handleMultiplePassportUpload(files);
                         }
                       }}
                     >
