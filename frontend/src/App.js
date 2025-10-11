@@ -4509,6 +4509,13 @@ const HomePage = () => {
     setPassportFile(null);
     setPassportAnalysis(null);
     setPassportError('');
+    
+    // Reset batch processing states
+    setSelectedFiles([]);
+    setIsBatchProcessing(false);
+    setCurrentFileIndex(0);
+    setBatchResults([]);
+    setBatchProgress({ current: 0, total: 0 });
   };
 
   // Load crew members when component mounts or filters change
