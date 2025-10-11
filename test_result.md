@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Date Field Time Shift Fix in Edit Crew Modal Testing"
+    - "Auto-Fill Status Logic Based on Ship Sign On and Date Sign Off Testing"
   stuck_tasks: 
     - "Multi Certificate Upload Google Drive Debug Testing"
   test_all: false
