@@ -895,6 +895,10 @@ const HomePage = () => {
   // Bulk edit Date Sign On states
   const [showBulkEditDateSignOn, setShowBulkEditDateSignOn] = useState(false);
   const [bulkDateSignOn, setBulkDateSignOn] = useState('');
+  
+  // Bulk edit Date Sign Off states
+  const [showBulkEditDateSignOff, setShowBulkEditDateSignOff] = useState(false);
+  const [bulkDateSignOff, setBulkDateSignOff] = useState('');
   const [rankContextMenu, setRankContextMenu] = useState({
     show: false,
     x: 0,
