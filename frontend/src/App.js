@@ -4250,7 +4250,7 @@ const HomePage = () => {
       throw error;
     }
   };
-  // Handle passport file upload and analysis
+  // Handle passport file upload and analysis (single file mode)
   const handlePassportUpload = async (file) => {
     if (!file) return;
     
