@@ -4191,13 +4191,16 @@ const HomePage = () => {
         const analysis = response.data.analysis;
         
         // Prepare crew data from analysis
+        const vietnameseFullName = analysis.full_name || '';
+        const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
+        
         const crewData = {
-          full_name: analysis.full_name || '',
-          full_name_en: analysis.full_name_en || '',
+          full_name: vietnameseFullName,
+          full_name_en: analysis.full_name_en || autoFillEnglishField(vietnameseFullName),
           sex: analysis.sex || 'M',
           date_of_birth: analysis.date_of_birth ? convertPassportDateToInputFormat(analysis.date_of_birth) : '',
-          place_of_birth: analysis.place_of_birth || '',
-          place_of_birth_en: analysis.place_of_birth_en || '',
+          place_of_birth: vietnamesePlaceOfBirth,
+          place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
           passport: analysis.passport_number || '',
           nationality: analysis.nationality || '',
           passport_expiry_date: analysis.passport_expiry_date ? convertPassportDateToInputFormat(analysis.passport_expiry_date) : '',
@@ -4209,6 +4212,10 @@ const HomePage = () => {
           date_sign_on: '',
           date_sign_off: ''
         };
+        
+        console.log(`🔤 Auto-filled English fields for batch processing:`);
+        console.log(`   Vietnamese Full Name: "${vietnameseFullName}" → English: "${crewData.full_name_en}"`);
+        console.log(`   Vietnamese Place of Birth: "${vietnamesePlaceOfBirth}" → English: "${crewData.place_of_birth_en}"`);
         
         // Include file IDs if present
         if (analysis.file_ids) {
