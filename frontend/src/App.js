@@ -1881,23 +1881,7 @@ const HomePage = () => {
     });
   };
 
-  // Place Sign On context menu function  
-  const handlePlaceSignOnRightClick = (e) => {
-    e.preventDefault();
-    
-    if (selectedCrewMembers.size === 0) {
-      toast.warning(language === 'vi' 
-        ? 'Vui lòng chọn ít nhất một thuyền viên để chỉnh sửa hàng loạt'
-        : 'Please select at least one crew member to bulk edit');
-      return;
-    }
-    
-    setPlaceSignOnContextMenu({ 
-      show: true, 
-      x: e.pageX, 
-      y: e.pageY 
-    });
-  };
+  // Place Sign On right-click functionality is now integrated into crew context menu
 
   // Handle seamen book actions
   const handleViewSeamenBook = async (crew) => {
