@@ -12665,19 +12665,26 @@ async def rename_crew_files(
             company_id=company_uuid
         )
         
-        # Construct response message
+        # Construct response message - only return success if files were actually renamed
         if renamed_files:
             file_list = ", ".join(renamed_files)
             message = f"Files renamed successfully: {file_list}"
+            
+            return {
+                "success": True,
+                "message": message,
+                "renamed_files": renamed_files,
+                "new_filename": original_filename
+            }
         else:
-            message = "No files were renamed"
-        
-        return {
-            "success": True,
-            "message": message,
-            "renamed_files": renamed_files,
-            "new_filename": original_filename
-        }
+            # No files were successfully renamed - return failure
+            error_message = "Failed to rename any files. Check Google Drive configuration and file permissions."
+            logger.error(f"❌ {error_message} for crew {crew_id}")
+            
+            raise HTTPException(
+                status_code=500, 
+                detail=error_message
+            )
         
     except HTTPException:
         raise
