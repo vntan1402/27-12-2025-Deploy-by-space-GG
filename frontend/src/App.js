@@ -2028,7 +2028,7 @@ const HomePage = () => {
       // Show results
       if (successCount > 0 && errorCount === 0) {
         toast.success(language === 'vi' 
-          ? `Đã cập nhật nơi đăng ký cho ${successCount} thuyền viên`
+          ? `Đã cập nhật nơi xuống tàu cho ${successCount} thuyền viên`
           : `Updated place sign on for ${successCount} crew members`);
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
