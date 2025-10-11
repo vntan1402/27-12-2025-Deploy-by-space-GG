@@ -888,8 +888,7 @@ const HomePage = () => {
     crew: null
   });
   
-  // Place Sign On context menu and bulk edit states
-  const [placeSignOnContextMenu, setPlaceSignOnContextMenu] = useState({ show: false, x: 0, y: 0 });
+  // Bulk edit Place Sign On states  
   const [showBulkEditPlaceSignOn, setShowBulkEditPlaceSignOn] = useState(false);
   const [bulkPlaceSignOn, setBulkPlaceSignOn] = useState('');
   const [rankContextMenu, setRankContextMenu] = useState({
