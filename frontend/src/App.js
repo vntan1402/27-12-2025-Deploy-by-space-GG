@@ -1974,6 +1974,90 @@ const HomePage = () => {
     }
     setSeamenBookContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
+  // Handle bulk edit Place Sign On
+  const handleBulkEditPlaceSignOn = () => {
+    setPlaceSignOnContextMenu({ show: false, x: 0, y: 0 });
+    setBulkPlaceSignOn('');
+    setShowBulkEditPlaceSignOn(true);
+  };
+
+  // Handle bulk Place Sign On update
+  const handleBulkUpdatePlaceSignOn = async () => {
+    if (!bulkPlaceSignOn.trim()) {
+      toast.error(language === 'vi' 
+        ? 'Vui lòng nhập nơi đăng ký'
+        : 'Please enter place sign on');
+      return;
+    }
+
+    if (selectedCrewMembers.size === 0) {
+      toast.error(language === 'vi' 
+        ? 'Không có thuyền viên nào được chọn'
+        : 'No crew members selected');
+      return;
+    }
+
+    try {
+      const selectedCrewIds = Array.from(selectedCrewMembers);
+      let successCount = 0;
+      let errorCount = 0;
+
+      console.log(`🚢 Bulk updating Place Sign On to "${bulkPlaceSignOn}" for ${selectedCrewIds.length} crew members...`);
+
+      for (const crewId of selectedCrewIds) {
+        try {
+          const updateData = { place_sign_on: bulkPlaceSignOn.trim() };
+          
+          const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.data) {
+            successCount++;
+            console.log(`✅ Updated Place Sign On for crew ${crewId}`);
+          }
+        } catch (error) {
+          errorCount++;
+          console.error(`❌ Failed to update crew ${crewId}:`, error);
+        }
+      }
+
+      // Show results
+      if (successCount > 0 && errorCount === 0) {
+        toast.success(language === 'vi' 
+          ? `Đã cập nhật nơi đăng ký cho ${successCount} thuyền viên`
+          : `Updated place sign on for ${successCount} crew members`);
+      } else if (successCount > 0 && errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
+          : `Updated ${successCount} crew members, ${errorCount} failed`);
+      } else {
+        toast.error(language === 'vi' 
+          ? 'Không thể cập nhật thuyền viên nào'
+          : 'Failed to update any crew members');
+      }
+
+      // Refresh crew list and close modal
+      if (successCount > 0) {
+        if (selectedShip?.name) {
+          await fetchCrewMembers(selectedShip.name);
+        }
+      }
+
+      setShowBulkEditPlaceSignOn(false);
+      setBulkPlaceSignOn('');
+      setSelectedCrewMembers(new Set()); // Clear selection after bulk update
+      
+    } catch (error) {
+      console.error('Bulk Place Sign On update error:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi cập nhật hàng loạt'
+        : 'Bulk update error');
+    }
+  };
 
   // Helper function to close edit crew modal and deselect crew
   const closeEditCrewModal = () => {
