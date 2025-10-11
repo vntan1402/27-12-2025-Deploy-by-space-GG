@@ -4710,6 +4710,10 @@ const HomePage = () => {
     setCurrentFileIndex(0);
     setBatchResults([]);
     setBatchProgress({ current: 0, total: 0 });
+    
+    // Reset bulk edit states
+    setShowBulkEditDateSignOn(false);
+    setBulkDateSignOn('');
   };
 
   // Load crew members when component mounts or filters change
