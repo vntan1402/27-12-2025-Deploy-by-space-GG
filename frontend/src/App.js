@@ -9125,7 +9125,7 @@ const HomePage = () => {
                       value={newCrewData.place_sign_on}
                       onChange={(e) => setNewCrewData({...newCrewData, place_sign_on: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Nhập nơi đăng ký' : 'Enter place sign on'}
+                      placeholder={language === 'vi' ? 'Nhập nơi xuống tàu' : 'Enter place sign on'}
                     />
                   </div>
 
@@ -9487,7 +9487,7 @@ const HomePage = () => {
                       value={editCrewData.place_sign_on}
                       onChange={(e) => setEditCrewData({...editCrewData, place_sign_on: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Nhập nơi đăng ký' : 'Enter place sign on'}
+                      placeholder={language === 'vi' ? 'Nhập nơi xuống tàu' : 'Enter place sign on'}
                     />
                   </div>
 
