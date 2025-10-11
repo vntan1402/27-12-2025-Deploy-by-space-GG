@@ -1756,6 +1756,79 @@ const HomePage = () => {
     }
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
+  const handleCopyPassportText = async (crew) => {
+    try {
+      const passportInfo = `Passport Information\n\nName: ${crew.full_name}\nPassport No: ${crew.passport}\nDate of Birth: ${crew.date_of_birth}\nPlace of Birth: ${crew.place_of_birth}\nSex: ${crew.sex}\nStatus: ${crew.status}`;
+      
+      const blob = new Blob([passportInfo], { type: 'text/plain' });
+      
+      // Check if Clipboard API is available
+      if (navigator.clipboard && navigator.clipboard.write) {
+        const item = new ClipboardItem({ 'text/plain': blob });
+        await navigator.clipboard.write([item]);
+      } else {
+        // Fallback for older browsers
+        await navigator.clipboard.writeText(passportInfo);
+      }
+      
+      toast.success(language === 'vi' ? 'Thông tin hộ chiếu đã được sao chép!' : 'Passport information copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy passport info:', error);
+      toast.error(language === 'vi' ? 'Không thể sao chép thông tin!' : 'Failed to copy information!');
+    }
+    
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+
+  // Handle rename passport files
+  const handleRenamePassportFiles = async (crew) => {
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    const currentFilename = crew.full_name || 'passport';
+    const newFilename = prompt(
+      language === 'vi' 
+        ? 'Nhập tên file mới (không cần đuôi file):' 
+        : 'Enter new filename (without extension):',
+      currentFilename
+    );
+    
+    if (!newFilename || newFilename.trim() === '') {
+      return;
+    }
+    
+    try {
+      const formData = new FormData();
+      formData.append('new_filename', newFilename.trim());
+      
+      const response = await axios.post(`${API}/crew/${crew.id}/rename-files`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        toast.success(language === 'vi' 
+          ? `Files đã được đổi tên thành công: ${response.data.renamed_files.join(', ')}`
+          : `Files renamed successfully: ${response.data.renamed_files.join(', ')}`
+        );
+        
+        // Refresh crew list to show any updated information
+        if (selectedShip?.name) {
+          await fetchCrewMembers(selectedShip.name);
+        }
+      } else {
+        toast.error(language === 'vi' ? 'Không thể đổi tên files' : 'Failed to rename files');
+      }
+      
+    } catch (error) {
+      console.error('Rename files error:', error);
+      toast.error(language === 'vi' 
+        ? `Lỗi đổi tên files: ${error.response?.data?.detail || error.message}`
+        : `Rename files error: ${error.response?.data?.detail || error.message}`
+      );
+    }
+  };
 
   // Seamen Book context menu function
   const handleSeamenBookRightClick = (e, crew) => {
