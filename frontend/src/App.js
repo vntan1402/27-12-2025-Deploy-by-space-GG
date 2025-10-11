@@ -8517,6 +8517,51 @@ const HomePage = () => {
                       </div>
                     )}
                     
+                    {isBatchProcessing && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                            <span className="font-medium text-blue-800">
+                              {language === 'vi' ? 'Xử lý batch' : 'Batch Processing'}
+                            </span>
+                          </div>
+                          <span className="text-sm text-blue-600 font-medium">
+                            {batchProgress.current}/{batchProgress.total}
+                          </span>
+                        </div>
+                        
+                        {/* Progress bar */}
+                        <div className="w-full bg-blue-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
+                          ></div>
+                        </div>
+                        
+                        {/* Current file being processed */}
+                        {selectedFiles[currentFileIndex] && (
+                          <div className="text-sm text-blue-700">
+                            {language === 'vi' ? 'Đang xử lý:' : 'Processing:'} {selectedFiles[currentFileIndex].name}
+                          </div>
+                        )}
+                        
+                        {/* Results summary */}
+                        {batchResults.length > 0 && (
+                          <div className="text-xs space-y-1">
+                            <div className="text-green-600">
+                              ✅ {language === 'vi' ? 'Thành công:' : 'Success:'} {batchResults.filter(r => r.success).length}
+                            </div>
+                            {batchResults.filter(r => !r.success).length > 0 && (
+                              <div className="text-red-600">
+                                ❌ {language === 'vi' ? 'Lỗi:' : 'Failed:'} {batchResults.filter(r => !r.success).length}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     {passportError && (
                       <div className="text-red-600 text-sm bg-red-50 p-3 rounded border border-red-200">
                         <div className="flex items-center space-x-2">
