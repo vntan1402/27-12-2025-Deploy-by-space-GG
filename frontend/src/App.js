@@ -7580,12 +7580,15 @@ const HomePage = () => {
                             
                             <button
                               onClick={() => handleCopyPassportLink(passportContextMenu.crew)}
-                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                              className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center"
                             >
                               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>
-                              {language === 'vi' ? 'Sao chép link' : 'Copy Link'}
+                              {language === 'vi' ? 'Sao chép link file gốc' : 'Copy Original File Link'}
+                              {passportContextMenu.crew?.passport_file_id && (
+                                <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-1 rounded">🔗</span>
+                              )}
                             </button>
                             
                             <button
