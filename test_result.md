@@ -49,7 +49,7 @@
 ##
 ## test_plan:
   current_focus:
-    - "Enhanced Bulk Edit Date Sign Off Functionality with Auto-Update Logic Testing"
+    - "Enhanced Category Navigation Functionality with Ship Selection Preservation Testing"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
