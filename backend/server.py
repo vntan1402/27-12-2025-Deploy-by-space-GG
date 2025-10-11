@@ -12591,6 +12591,7 @@ async def rename_crew_files(
         # Rename passport file
         if passport_file_id:
             try:
+                import aiohttp
                 logger.info(f"🔄 Renaming passport file {passport_file_id} to {original_filename}")
                 async with aiohttp.ClientSession() as session:
                     payload = {
