@@ -9004,7 +9004,7 @@ const HomePage = () => {
                   <div className="flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-200 md:col-span-4">
                     <button
                       type="button"
-                      onClick={() => setShowEditCrewModal(false)}
+                      onClick={closeEditCrewModal}
                       className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
                     >
                       {language === 'vi' ? 'Hủy' : 'Cancel'}
