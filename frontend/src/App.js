@@ -9550,6 +9550,84 @@ const HomePage = () => {
           </div>
         </div>
       )}
+
+      {/* Bulk Edit Place Sign On Modal */}
+      {showBulkEditPlaceSignOn && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {language === 'vi' ? 'Chỉnh sửa nơi đăng ký' : 'Edit Place Sign On'}
+                </h3>
+                <button
+                  onClick={() => setShowBulkEditPlaceSignOn(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <div className="text-sm text-gray-600 mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>
+                      {language === 'vi' 
+                        ? `Cập nhật nơi đăng ký cho ${selectedCrewMembers.size} thuyền viên được chọn`
+                        : `Update place sign on for ${selectedCrewMembers.size} selected crew members`
+                      }
+                    </span>
+                  </div>
+                </div>
+                
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Nơi đăng ký' : 'Place Sign On'}
+                </label>
+                <input
+                  type="text"
+                  value={bulkPlaceSignOn}
+                  onChange={(e) => setBulkPlaceSignOn(e.target.value)}
+                  placeholder={language === 'vi' ? 'Nhập nơi đăng ký (ví dụ: Hải Phòng, Vietnam)' : 'Enter place sign on (e.g: Ho Chi Minh City, Vietnam)'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowBulkEditPlaceSignOn(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  {language === 'vi' ? 'Hủy' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleBulkUpdatePlaceSignOn}
+                  disabled={!bulkPlaceSignOn.trim()}
+                  className={`px-4 py-2 rounded-lg transition-all flex items-center ${
+                    bulkPlaceSignOn.trim() 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'vi' ? 'Cập nhật' : 'Update'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
