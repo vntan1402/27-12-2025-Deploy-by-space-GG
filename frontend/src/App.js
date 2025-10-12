@@ -1838,7 +1838,7 @@ const HomePage = () => {
     if (selectedCrewMembers.size > 0) {
       // Bulk rename with confirmation
       const selectedCrewIds = Array.from(selectedCrewMembers);
-      const selectedCrewData = crewMembers.filter(c => selectedCrewIds.includes(c.id));
+      const selectedCrewData = crewList.filter(c => selectedCrewIds.includes(c.id));
       
       // Count how many have files
       const crewWithFiles = selectedCrewData.filter(c => c.passport_file_id || c.summary_file_id);
@@ -1875,7 +1875,7 @@ const HomePage = () => {
       return;
     }
     
-    // Single crew rename (when no crew selected via checkbox)
+    // Single crew rename with confirmation
     if (!crew.passport_file_id && !crew.summary_file_id) {
       toast.warning(language === 'vi' 
         ? 'Không có file nào để đổi tên cho thuyền viên này'
@@ -1883,13 +1883,26 @@ const HomePage = () => {
       return;
     }
     
-    // Generate automatic filename format: Rank + Full Name (English) + "Passport"
+    // Generate automatic filename format for preview
     const rank = crew.rank || 'Unknown';
     const fullNameEn = crew.full_name_en || crew.full_name || 'Unknown';
     const passportSuffix = 'Passport';
-    
-    // Keep both rank and name as-is (no character replacement)
     const autoFilename = `${rank}_${fullNameEn}_${passportSuffix}`;
+    
+    // Show confirmation dialog for single crew
+    const confirmMessage = language === 'vi'
+      ? `Bạn có chắc chắn muốn tự động đổi tên file cho thuyền viên này?\n\n` +
+        `Định dạng: Chức vụ_Tên (Tiếng Anh)_Passport\n\n` +
+        `Ví dụ:\n• ${crew.full_name} → ${autoFilename}.pdf\n\n` +
+        `⚠️ Hành động này không thể hoàn tác!`
+      : `Are you sure you want to automatically rename files for this crew member?\n\n` +
+        `Format: Rank_Name (English)_Passport\n\n` +
+        `Example:\n• ${crew.full_name} → ${autoFilename}.pdf\n\n` +
+        `⚠️ This action cannot be undone!`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
     
     console.log(`🔄 Auto-generating filename for ${crew.full_name}:`);
     console.log(`   Rank: "${rank}" (kept as-is)`);
