@@ -11543,6 +11543,31 @@ This summary was generated using Google Document AI for crew management purposes
             else:
                 logger.warning("⚠️ Field extraction returned empty result")
             
+            # ⚠️ CRITICAL: Check for duplicate passport BEFORE uploading files to Drive
+            passport_number = analysis_result.get('passport_number', '').strip()
+            if passport_number:
+                logger.info(f"🔍 Checking for duplicate passport: {passport_number}")
+                existing_crew = await mongo_db.find_one("crew_members", {
+                    "company_id": company_uuid,
+                    "passport": passport_number
+                })
+                
+                if existing_crew:
+                    logger.warning(f"❌ Duplicate passport found: {passport_number} (Crew: {existing_crew.get('full_name')})")
+                    return {
+                        "success": False,
+                        "message": f"Duplicate passport: {passport_number} already exists for crew member {existing_crew.get('full_name')}",
+                        "error": "DUPLICATE_PASSPORT",
+                        "duplicate": True,
+                        "existing_crew": {
+                            "full_name": existing_crew.get('full_name'),
+                            "passport": existing_crew.get('passport')
+                        }
+                    }
+                logger.info(f"✅ No duplicate found for passport: {passport_number}")
+            else:
+                logger.warning("⚠️ No passport number extracted, skipping duplicate check")
+            
             # Extract upload results
             upload_results = dual_result.get('file_uploads', {})
             passport_upload = upload_results.get('uploads', {}).get('passport', {})
