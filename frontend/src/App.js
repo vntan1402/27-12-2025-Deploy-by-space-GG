@@ -1834,7 +1834,52 @@ const HomePage = () => {
   const handleAutomaticRenamePassportFiles = async (crew) => {
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
     
-    // Check if crew has files to rename
+    // Check if multiple crew members are selected
+    if (selectedCrewMembers.size > 0) {
+      // Bulk rename with confirmation
+      const selectedCrewIds = Array.from(selectedCrewMembers);
+      const selectedCrewData = crewMembers.filter(c => selectedCrewIds.includes(c.id));
+      
+      // Count how many have files
+      const crewWithFiles = selectedCrewData.filter(c => c.passport_file_id || c.summary_file_id);
+      
+      if (crewWithFiles.length === 0) {
+        toast.warning(language === 'vi' 
+          ? 'Không có thuyền viên nào có file để đổi tên'
+          : 'No crew members have files to rename');
+        return;
+      }
+
+      // Show confirmation dialog with preview
+      const confirmMessage = language === 'vi' 
+        ? `Bạn có chắc chắn muốn tự động đổi tên file cho ${crewWithFiles.length} thuyền viên được chọn?\n\n` +
+          `Định dạng: Chức vụ_Tên (Tiếng Anh)_Passport\n\n` +
+          `Ví dụ:\n${crewWithFiles.slice(0, 3).map(c => {
+            const rank = c.rank || 'Unknown';
+            const nameEn = c.full_name_en || c.full_name || 'Unknown';
+            const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+            const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
+            return `• ${c.full_name} → ${cleanRank}_${cleanName}_Passport.pdf`;
+          }).join('\n')}${crewWithFiles.length > 3 ? `\n... và ${crewWithFiles.length - 3} thuyền viên khác` : ''}\n\n` +
+          `⚠️ Hành động này không thể hoàn tác!`
+        : `Are you sure you want to automatically rename files for ${crewWithFiles.length} selected crew members?\n\n` +
+          `Format: Rank_Name (English)_Passport\n\n` +
+          `Examples:\n${crewWithFiles.slice(0, 3).map(c => {
+            const rank = c.rank || 'Unknown';
+            const nameEn = c.full_name_en || c.full_name || 'Unknown';
+            const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+            const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
+            return `• ${c.full_name} → ${cleanRank}_${cleanName}_Passport.pdf`;
+          }).join('\n')}${crewWithFiles.length > 3 ? `\n... and ${crewWithFiles.length - 3} more crew members` : ''}\n\n` +
+          `⚠️ This action cannot be undone!`;
+
+      if (confirm(confirmMessage)) {
+        performBulkAutomaticRename(crewWithFiles);
+      }
+      return;
+    }
+    
+    // Single crew rename (when no crew selected via checkbox)
     if (!crew.passport_file_id && !crew.summary_file_id) {
       toast.warning(language === 'vi' 
         ? 'Không có file nào để đổi tên cho thuyền viên này'
@@ -1845,12 +1890,12 @@ const HomePage = () => {
     // Generate automatic filename format: Rank + Full Name (English) + "Passport"
     const rank = crew.rank || 'Unknown';
     const fullNameEn = crew.full_name_en || crew.full_name || 'Unknown';
-    const passportSuffix = 'Passport'; // Fixed string instead of passport field value
+    const passportSuffix = 'Passport';
     
     // Clean strings to be file-system friendly
     const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
     const cleanNameEn = fullNameEn.replace(/[^a-zA-Z0-9]/g, '_');
-    const cleanPassportSuffix = passportSuffix; // Already clean
+    const cleanPassportSuffix = passportSuffix;
     
     const autoFilename = `${cleanRank}_${cleanNameEn}_${cleanPassportSuffix}`;
     
