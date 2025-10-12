@@ -1701,10 +1701,40 @@ const HomePage = () => {
 
   // Handle passport actions
   const handleViewPassport = async (crew) => {
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
     try {
-      // Check if crew has passport file ID for original file
+      // Check if multiple crew members are selected
+      if (selectedCrewMembers.size > 0) {
+        const selectedCrewIds = Array.from(selectedCrewMembers);
+        const selectedCrewData = crewList.filter(c => selectedCrewIds.includes(c.id));
+        const crewWithFiles = selectedCrewData.filter(c => c.passport_file_id);
+        
+        if (crewWithFiles.length === 0) {
+          toast.warning(language === 'vi' 
+            ? 'Không có thuyền viên nào có file hộ chiếu'
+            : 'No crew members have passport files');
+          return;
+        }
+        
+        toast.info(language === 'vi' 
+          ? `Đang mở ${crewWithFiles.length} file hộ chiếu...`
+          : `Opening ${crewWithFiles.length} passport files...`);
+        
+        // Open all passport files in new tabs
+        crewWithFiles.forEach((c, index) => {
+          setTimeout(() => {
+            const googleDriveViewUrl = `https://drive.google.com/file/d/${c.passport_file_id}/view`;
+            window.open(googleDriveViewUrl, '_blank');
+            console.log(`📄 Opening passport ${index + 1}/${crewWithFiles.length} for ${c.full_name}`);
+          }, index * 300); // Delay to prevent browser popup blocking
+        });
+        
+        return;
+      }
+      
+      // Single crew view
       if (crew.passport_file_id) {
-        // Open original passport file from Google Drive in new tab
         const googleDriveViewUrl = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
         window.open(googleDriveViewUrl, '_blank');
         console.log(`📄 Opening original passport file for ${crew.full_name}: ${googleDriveViewUrl}`);
@@ -1713,7 +1743,6 @@ const HomePage = () => {
           ? 'Đang mở file hộ chiếu gốc...' 
           : 'Opening original passport file...');
       } else {
-        // Fallback: Show passport information summary if no file available
         const passportInfo = `Passport Information (No original file available)\n\nName: ${crew.full_name}\nPassport No: ${crew.passport || 'Not specified'}\nDate of Birth: ${crew.date_of_birth || 'Not specified'}\nPlace of Birth: ${crew.place_of_birth || 'Not specified'}\nNationality: ${crew.nationality || 'Not specified'}\nPassport Expiry: ${crew.passport_expiry_date ? formatDateDisplay(crew.passport_expiry_date) : 'Not specified'}`;
         
         alert(passportInfo);
@@ -1727,7 +1756,6 @@ const HomePage = () => {
       console.error('View passport error:', error);
       toast.error(language === 'vi' ? 'Lỗi khi xem hộ chiếu' : 'Error viewing passport');
     }
-    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
   const handleCopyPassportLink = async (crew) => {
