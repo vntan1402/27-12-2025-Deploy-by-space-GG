@@ -4734,6 +4734,9 @@ const HomePage = () => {
       ? `Bắt đầu xử lý ${files.length} file hộ chiếu...` 
       : `Starting batch processing of ${files.length} passport files...`);
     
+    // Collect results in local array
+    const collectedResults = [];
+    
     for (let i = 0; i < files.length; i++) {
       setCurrentFileIndex(i);
       setBatchProgress({ current: i + 1, total: files.length });
@@ -4742,15 +4745,18 @@ const HomePage = () => {
       
       try {
         const result = await processSinglePassportInBatch(files[i], i + 1, files.length);
+        collectedResults.push(result);
         setBatchResults(prev => [...prev, result]);
       } catch (error) {
         console.error(`❌ Error processing file ${files[i].name}:`, error);
-        setBatchResults(prev => [...prev, {
+        const errorResult = {
           filename: files[i].name,
           success: false,
           error: error.message,
           index: i + 1
-        }]);
+        };
+        collectedResults.push(errorResult);
+        setBatchResults(prev => [...prev, errorResult]);
       }
       
       // Small delay between files
@@ -4761,15 +4767,14 @@ const HomePage = () => {
     setIsBatchProcessing(false);
     setCurrentFileIndex(0);
     
-    // Get final results
-    const finalResults = batchResults.length > 0 ? batchResults : [];
-    const allResults = [...finalResults];
+    console.log(`✅ Batch processing complete. Results count: ${collectedResults.length}`);
+    console.log('Collected results:', collectedResults);
     
     // Close Add Crew Modal
     setShowAddCrewModal(false);
     
-    // Show Processing Results Modal
-    setProcessingResults(allResults);
+    // Show Processing Results Modal with collected results
+    setProcessingResults(collectedResults);
     setShowProcessingResultsModal(true);
     
     // Refresh crew list
