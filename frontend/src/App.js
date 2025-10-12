@@ -1890,15 +1890,14 @@ const HomePage = () => {
     const fullNameEn = crew.full_name_en || crew.full_name || 'Unknown';
     const passportSuffix = 'Passport';
     
-    // Clean strings to be file-system friendly
-    const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+    // Clean strings to be file-system friendly (keep rank as-is, only clean name)
     const cleanNameEn = fullNameEn.replace(/[^a-zA-Z0-9]/g, '_');
     const cleanPassportSuffix = passportSuffix;
     
-    const autoFilename = `${cleanRank}_${cleanNameEn}_${cleanPassportSuffix}`;
+    const autoFilename = `${rank}_${cleanNameEn}_${cleanPassportSuffix}`;
     
     console.log(`🔄 Auto-generating filename for ${crew.full_name}:`);
-    console.log(`   Rank: "${rank}" → "${cleanRank}"`);
+    console.log(`   Rank: "${rank}" (kept as-is)`);
     console.log(`   Name (English): "${fullNameEn}" → "${cleanNameEn}"`);
     console.log(`   Passport Suffix: "${passportSuffix}" → "${cleanPassportSuffix}"`);
     console.log(`   Final: "${autoFilename}"`);
