@@ -7851,8 +7851,13 @@ const HomePage = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                               </svg>
-                              {language === 'vi' ? 'Xem file hộ chiếu gốc' : 'View Original Passport'}
-                              {passportContextMenu.crew?.passport_file_id && (
+                              {selectedCrewMembers.size > 0 
+                                ? (language === 'vi' 
+                                  ? `Xem file hộ chiếu gốc (${selectedCrewMembers.size} thuyền viên)` 
+                                  : `View Original Passport (${selectedCrewMembers.size} crew)`)
+                                : (language === 'vi' ? 'Xem file hộ chiếu gốc' : 'View Original Passport')
+                              }
+                              {passportContextMenu.crew?.passport_file_id && selectedCrewMembers.size === 0 && (
                                 <span className="ml-auto text-xs bg-green-100 text-green-600 px-1 rounded">📄</span>
                               )}
                             </button>
@@ -7864,8 +7869,13 @@ const HomePage = () => {
                               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>
-                              {language === 'vi' ? 'Sao chép link file gốc' : 'Copy Original File Link'}
-                              {passportContextMenu.crew?.passport_file_id && (
+                              {selectedCrewMembers.size > 0 
+                                ? (language === 'vi' 
+                                  ? `Sao chép link file gốc (${selectedCrewMembers.size} thuyền viên)` 
+                                  : `Copy Original File Link (${selectedCrewMembers.size} crew)`)
+                                : (language === 'vi' ? 'Sao chép link file gốc' : 'Copy Original File Link')
+                              }
+                              {passportContextMenu.crew?.passport_file_id && selectedCrewMembers.size === 0 && (
                                 <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-1 rounded">🔗</span>
                               )}
                             </button>
@@ -7877,8 +7887,13 @@ const HomePage = () => {
                               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
-                              {language === 'vi' ? 'Tải xuống file gốc' : 'Download Original'}
-                              {passportContextMenu.crew?.passport_file_id && (
+                              {selectedCrewMembers.size > 0 
+                                ? (language === 'vi' 
+                                  ? `Tải xuống file gốc (${selectedCrewMembers.size} thuyền viên)` 
+                                  : `Download Original (${selectedCrewMembers.size} crew)`)
+                                : (language === 'vi' ? 'Tải xuống file gốc' : 'Download Original')
+                              }
+                              {passportContextMenu.crew?.passport_file_id && selectedCrewMembers.size === 0 && (
                                 <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-1 rounded">📥</span>
                               )}
                             </button>
