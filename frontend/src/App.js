@@ -1759,10 +1759,40 @@ const HomePage = () => {
   };
 
   const handleCopyPassportLink = async (crew) => {
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
     try {
-      // Check if crew has passport file ID for original file
+      // Check if multiple crew members are selected
+      if (selectedCrewMembers.size > 0) {
+        const selectedCrewIds = Array.from(selectedCrewMembers);
+        const selectedCrewData = crewList.filter(c => selectedCrewIds.includes(c.id));
+        const crewWithFiles = selectedCrewData.filter(c => c.passport_file_id);
+        
+        if (crewWithFiles.length === 0) {
+          toast.warning(language === 'vi' 
+            ? 'Không có thuyền viên nào có file hộ chiếu'
+            : 'No crew members have passport files');
+          return;
+        }
+        
+        // Create list of all links with crew names
+        const links = crewWithFiles.map(c => 
+          `${c.full_name}: https://drive.google.com/file/d/${c.passport_file_id}/view`
+        ).join('\n');
+        
+        await navigator.clipboard.writeText(links);
+        
+        console.log(`🔗 Copied ${crewWithFiles.length} passport file links`);
+        
+        toast.success(language === 'vi' 
+          ? `Đã sao chép ${crewWithFiles.length} link file hộ chiếu` 
+          : `Copied ${crewWithFiles.length} passport file links`);
+        
+        return;
+      }
+      
+      // Single crew copy
       if (crew.passport_file_id) {
-        // Copy Google Drive link for original passport file
         const googleDriveLink = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
         
         await navigator.clipboard.writeText(googleDriveLink);
@@ -1773,7 +1803,6 @@ const HomePage = () => {
           ? 'Đã sao chép link file hộ chiếu gốc' 
           : 'Original passport file link copied to clipboard');
       } else {
-        // Fallback: Copy application link if no original file
         const fallbackLink = `${window.location.origin}/crew/${crew.id}/passport`;
         
         await navigator.clipboard.writeText(fallbackLink);
@@ -1787,7 +1816,6 @@ const HomePage = () => {
       console.error('Copy passport link error:', error);
       toast.error(language === 'vi' ? 'Lỗi khi sao chép link' : 'Error copying link');
     }
-    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
 
   const handleDownloadPassport = async (crew) => {
