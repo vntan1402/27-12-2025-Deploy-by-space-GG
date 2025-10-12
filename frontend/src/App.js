@@ -9802,6 +9802,145 @@ const HomePage = () => {
         </div>
       )}
 
+      {/* Processing Results Modal */}
+      {showProcessingResultsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Kết quả xử lý Passport' : 'Passport Processing Results'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowProcessingResultsModal(false);
+                    setProcessingResults([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="mt-2 text-sm text-gray-600">
+                {language === 'vi' 
+                  ? `Tổng số: ${processingResults.length} file | Thành công: ${processingResults.filter(r => r.success).length} | Thất bại: ${processingResults.filter(r => !r.success).length}`
+                  : `Total: ${processingResults.length} files | Success: ${processingResults.filter(r => r.success).length} | Failed: ${processingResults.filter(r => !r.success).length}`
+                }
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100 border-b-2 border-gray-300">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'STT' : 'No.'}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Tên File' : 'Filename'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Tạo Record' : 'Record Created'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Upload File' : 'File Uploaded'}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Vị trí lưu' : 'Saved Location'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Tạo Summary' : 'Summary Created'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Duplicate' : 'Duplicate'}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Thông tin' : 'Details'}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {processingResults.map((result, idx) => (
+                      <tr key={idx} className={`border-b ${result.success ? 'bg-green-50' : 'bg-red-50'} hover:bg-opacity-75`}>
+                        <td className="px-4 py-3 text-sm text-gray-700">{idx + 1}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 font-medium">{result.filename}</td>
+                        <td className="px-4 py-3 text-center">
+                          {result.recordCreated ? (
+                            <span className="text-green-600 font-bold">✓</span>
+                          ) : (
+                            <span className="text-red-600 font-bold">✗</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {result.fileUploaded ? (
+                            <span className="text-green-600 font-bold">✓</span>
+                          ) : (
+                            <span className="text-red-600 font-bold">✗</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          <div className="max-w-xs truncate" title={result.filePath}>
+                            {result.filePath}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {result.summaryCreated ? (
+                            <span className="text-green-600 font-bold">✓</span>
+                          ) : (
+                            <span className="text-gray-400 font-bold">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {result.isDuplicate ? (
+                            <span className="text-red-600 font-bold">⚠</span>
+                          ) : (
+                            <span className="text-green-600 font-bold">✓</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          {result.success ? (
+                            <div className="text-green-700">
+                              <div><strong>{language === 'vi' ? 'Thuyền viên:' : 'Crew:'}</strong> {result.crewName}</div>
+                              <div><strong>{language === 'vi' ? 'Tàu:' : 'Ship:'}</strong> {result.ship}</div>
+                            </div>
+                          ) : result.isDuplicate ? (
+                            <div className="text-red-700">
+                              <div className="font-semibold">{language === 'vi' ? 'Trùng Passport!' : 'Duplicate Passport!'}</div>
+                              <div><strong>{language === 'vi' ? 'Trùng với:' : 'Duplicate with:'}</strong> {result.duplicateWith}</div>
+                              <div><strong>{language === 'vi' ? 'Tàu:' : 'Ship:'}</strong> {result.duplicateShip}</div>
+                            </div>
+                          ) : (
+                            <div className="text-red-700">
+                              <div className="font-semibold">{language === 'vi' ? 'Lỗi:' : 'Error:'}</div>
+                              <div className="text-xs">{result.error}</div>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowProcessingResultsModal(false);
+                    setProcessingResults([]);
+                  }}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                >
+                  {language === 'vi' ? 'Đóng' : 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Crew Modal */}
       {showEditCrewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
