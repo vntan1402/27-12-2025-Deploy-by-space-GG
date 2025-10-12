@@ -855,6 +855,8 @@ const HomePage = () => {
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
   const [batchResults, setBatchResults] = useState([]);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [showProcessingResultsModal, setShowProcessingResultsModal] = useState(false);
+  const [processingResults, setProcessingResults] = useState([]);
 
   // Crew Submission States
   const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
