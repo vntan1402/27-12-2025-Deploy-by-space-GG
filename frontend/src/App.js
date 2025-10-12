@@ -1857,8 +1857,7 @@ const HomePage = () => {
           `Ví dụ:\n${crewWithFiles.slice(0, 3).map(c => {
             const rank = c.rank || 'Unknown';
             const nameEn = c.full_name_en || c.full_name || 'Unknown';
-            const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
-            return `• ${c.full_name} → ${rank}_${cleanName}_Passport.pdf`;
+            return `• ${c.full_name} → ${rank}_${nameEn}_Passport.pdf`;
           }).join('\n')}${crewWithFiles.length > 3 ? `\n... và ${crewWithFiles.length - 3} thuyền viên khác` : ''}\n\n` +
           `⚠️ Hành động này không thể hoàn tác!`
         : `Are you sure you want to automatically rename files for ${crewWithFiles.length} selected crew members?\n\n` +
@@ -1866,8 +1865,7 @@ const HomePage = () => {
           `Examples:\n${crewWithFiles.slice(0, 3).map(c => {
             const rank = c.rank || 'Unknown';
             const nameEn = c.full_name_en || c.full_name || 'Unknown';
-            const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
-            return `• ${c.full_name} → ${rank}_${cleanName}_Passport.pdf`;
+            return `• ${c.full_name} → ${rank}_${nameEn}_Passport.pdf`;
           }).join('\n')}${crewWithFiles.length > 3 ? `\n... and ${crewWithFiles.length - 3} more crew members` : ''}\n\n` +
           `⚠️ This action cannot be undone!`;
 
