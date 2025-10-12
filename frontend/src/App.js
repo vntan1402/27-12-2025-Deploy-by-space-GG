@@ -1918,7 +1918,7 @@ const HomePage = () => {
 
     // Get selected crew data to show preview
     const selectedCrewIds = Array.from(selectedCrewMembers);
-    const selectedCrewData = crewList.filter(crew => selectedCrewIds.includes(crew.id));
+    const selectedCrewData = crewMembers.filter(crew => selectedCrewIds.includes(crew.id));
     
     // Count how many have files
     const crewWithFiles = selectedCrewData.filter(crew => crew.passport_file_id || crew.summary_file_id);
