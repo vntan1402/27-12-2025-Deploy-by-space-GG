@@ -11452,6 +11452,25 @@ async def analyze_passport_for_crew(
             # Don't use old cached data - return empty analysis
             logger.info("Will return empty analysis data due to Apps Script error")
         
+        # ⚠️ CRITICAL: Check for duplicate passport BEFORE uploading files to Drive
+        passport_number = analysis_result.get('passport_number', '').strip()
+        if passport_number:
+            logger.info(f"🔍 Checking for duplicate passport: {passport_number}")
+            existing_crew = await mongo_db.find_one("crew_members", {
+                "company_id": company_uuid,
+                "passport": passport_number
+            })
+            
+            if existing_crew:
+                logger.warning(f"❌ Duplicate passport found: {passport_number} (Crew: {existing_crew.get('full_name')})")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Duplicate passport: {passport_number} already exists for crew member {existing_crew.get('full_name')}"
+                )
+            logger.info(f"✅ No duplicate found for passport: {passport_number}")
+        else:
+            logger.warning("⚠️ No passport number extracted from AI analysis")
+        
         # Generate summary text
         summary_content = f"""PASSPORT ANALYSIS SUMMARY
 Generated on: {datetime.now(timezone.utc).isoformat()}
