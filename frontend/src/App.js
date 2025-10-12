@@ -7771,20 +7771,6 @@ const HomePage = () => {
                               </button>
                             )}
                             
-                            {/* Bulk Automatic Rename Files option - available for multiple crew selection */}
-                            {selectedCrewMembers.size > 0 && (
-                              <button
-                                onClick={handleBulkAutomaticRenameFiles}
-                                className="w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 flex items-center"
-                              >
-                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                {language === 'vi' ? 'Tự động đổi tên file hàng loạt' : 'Bulk Automatic Rename Files'}
-                                <span className="ml-auto text-xs bg-purple-100 text-purple-600 px-1 rounded">⚡</span>
-                              </button>
-                            )}
-                            
                             <button
                               onClick={handleDeleteSelectedCrewMembers}
                               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
