@@ -1950,58 +1950,7 @@ const HomePage = () => {
     }
   };
 
-  // Handle bulk automatic rename files with confirmation
-  const handleBulkAutomaticRenameFiles = () => {
-    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null }); // Close context menu
-    
-    if (selectedCrewMembers.size === 0) {
-      toast.warning(language === 'vi' 
-        ? 'Vui lòng chọn ít nhất một thuyền viên'
-        : 'Please select at least one crew member');
-      return;
-    }
-
-    // Get selected crew data to show preview
-    const selectedCrewIds = Array.from(selectedCrewMembers);
-    const selectedCrewData = crewMembers.filter(crew => selectedCrewIds.includes(crew.id));
-    
-    // Count how many have files
-    const crewWithFiles = selectedCrewData.filter(crew => crew.passport_file_id || crew.summary_file_id);
-    
-    if (crewWithFiles.length === 0) {
-      toast.warning(language === 'vi' 
-        ? 'Không có thuyền viên nào có file để đổi tên'
-        : 'No crew members have files to rename');
-      return;
-    }
-
-    // Show confirmation dialog with preview
-    const confirmMessage = language === 'vi' 
-      ? `Bạn có chắc chắn muốn tự động đổi tên file cho ${crewWithFiles.length} thuyền viên được chọn?\n\n` +
-        `Định dạng: Chức vụ_Tên (Tiếng Anh)_Passport\n\n` +
-        `Ví dụ:\n${crewWithFiles.slice(0, 3).map(crew => {
-          const rank = crew.rank || 'Unknown';
-          const nameEn = crew.full_name_en || crew.full_name || 'Unknown';
-          const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
-          const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
-          return `• ${crew.full_name} → ${cleanRank}_${cleanName}_Passport.pdf`;
-        }).join('\n')}${crewWithFiles.length > 3 ? `\n... và ${crewWithFiles.length - 3} thuyền viên khác` : ''}\n\n` +
-        `⚠️ Hành động này không thể hoàn tác!`
-      : `Are you sure you want to automatically rename files for ${crewWithFiles.length} selected crew members?\n\n` +
-        `Format: Rank_Name (English)_Passport\n\n` +
-        `Examples:\n${crewWithFiles.slice(0, 3).map(crew => {
-          const rank = crew.rank || 'Unknown';
-          const nameEn = crew.full_name_en || crew.full_name || 'Unknown';
-          const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
-          const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
-          return `• ${crew.full_name} → ${cleanRank}_${cleanName}_Passport.pdf`;
-        }).join('\n')}${crewWithFiles.length > 3 ? `\n... and ${crewWithFiles.length - 3} more crew members` : ''}\n\n` +
-        `⚠️ This action cannot be undone!`;
-
-    if (confirm(confirmMessage)) {
-      performBulkAutomaticRename(crewWithFiles);
-    }
-  };
+  // Function removed - logic integrated into handleAutomaticRenamePassportFiles
 
   // Perform bulk automatic rename for selected crew
   const performBulkAutomaticRename = async (crewList) => {
