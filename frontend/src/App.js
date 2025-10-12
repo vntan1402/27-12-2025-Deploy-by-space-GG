@@ -1968,9 +1968,8 @@ const HomePage = () => {
           const fullNameEn = crew.full_name_en || crew.full_name || 'Unknown';
           const passportSuffix = 'Passport';
           
-          // Keep rank as-is, only clean name
-          const cleanNameEn = fullNameEn.replace(/[^a-zA-Z0-9]/g, '_');
-          const autoFilename = `${rank}_${cleanNameEn}_${passportSuffix}`;
+          // Keep both rank and name as-is (no character replacement)
+          const autoFilename = `${rank}_${fullNameEn}_${passportSuffix}`;
 
           console.log(`   Generated filename: ${autoFilename}`);
 
