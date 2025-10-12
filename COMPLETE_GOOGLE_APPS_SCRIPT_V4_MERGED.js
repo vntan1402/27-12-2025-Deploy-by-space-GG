@@ -173,9 +173,15 @@ function handleUploadFixed(requestData) {
       targetFolder = createFolderPathSafe(shipFolder, [parentCategory, category]);
       folderPath = shipName + "/" + parentCategory + "/" + category;
     } else if (category) {
-      // Single level: Ship/Category OR fallback to Class & Flag Cert structure
-      if (category && !parentCategory) {
-        // Try to find "Class & Flag Cert" parent category first (legacy compatibility)
+      // Single level: Ship/Category
+      // IMPORTANT: Crew Records should upload directly to Ship/Crew Records, NOT Ship/Class & Flag Cert/Crew Records
+      if (category === "Crew Records") {
+        // Create direct path: Ship/Crew Records
+        Logger.log("📁 Creating Crew Records: " + shipName + "/Crew Records");
+        targetFolder = createFolderPathSafe(shipFolder, [category]);
+        folderPath = shipName + "/Crew Records";
+      } else if (category && !parentCategory) {
+        // For other categories, try to find "Class & Flag Cert" parent category first (legacy compatibility)
         var classFlagFolder = findFolderByNameSafe(shipFolder, "Class & Flag Cert");
         if (classFlagFolder) {
           Logger.log("📁 Using Class & Flag Cert structure: " + shipName + "/Class & Flag Cert/" + category);
