@@ -1819,13 +1819,46 @@ const HomePage = () => {
   };
 
   const handleDownloadPassport = async (crew) => {
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
     try {
-      // Check if crew has passport file ID for original file
+      // Check if multiple crew members are selected
+      if (selectedCrewMembers.size > 0) {
+        const selectedCrewIds = Array.from(selectedCrewMembers);
+        const selectedCrewData = crewList.filter(c => selectedCrewIds.includes(c.id));
+        const crewWithFiles = selectedCrewData.filter(c => c.passport_file_id);
+        
+        if (crewWithFiles.length === 0) {
+          toast.warning(language === 'vi' 
+            ? 'Không có thuyền viên nào có file hộ chiếu'
+            : 'No crew members have passport files');
+          return;
+        }
+        
+        toast.info(language === 'vi' 
+          ? `Đang tải xuống ${crewWithFiles.length} file hộ chiếu...`
+          : `Downloading ${crewWithFiles.length} passport files...`);
+        
+        // Download all passport files
+        crewWithFiles.forEach((c, index) => {
+          setTimeout(() => {
+            const googleDriveDownloadUrl = `https://drive.google.com/uc?export=download&id=${c.passport_file_id}`;
+            window.open(googleDriveDownloadUrl, '_blank');
+            console.log(`📥 Downloading passport ${index + 1}/${crewWithFiles.length} for ${c.full_name}`);
+          }, index * 300); // Delay to prevent browser popup blocking
+        });
+        
+        toast.success(language === 'vi' 
+          ? `Đã bắt đầu tải xuống ${crewWithFiles.length} file từ Google Drive` 
+          : `Started downloading ${crewWithFiles.length} files from Google Drive`);
+        
+        return;
+      }
+      
+      // Single crew download
       if (crew.passport_file_id) {
-        // Download original passport file from Google Drive
         toast.info(language === 'vi' ? 'Đang tải xuống file hộ chiếu gốc...' : 'Downloading original passport file...');
         
-        // Open Google Drive download link in new tab
         const googleDriveDownloadUrl = `https://drive.google.com/uc?export=download&id=${crew.passport_file_id}`;
         window.open(googleDriveDownloadUrl, '_blank');
         
@@ -1836,7 +1869,6 @@ const HomePage = () => {
           : 'Downloading original passport file from Google Drive');
         
       } else {
-        // Fallback: Create text file with passport information if no original file
         console.log(`⚠️ No passport_file_id for ${crew.full_name}, creating fallback download`);
         
         const passportInfo = `Passport Information (No original file available)\n\nName: ${crew.full_name}\nPassport No: ${crew.passport || 'Not specified'}\nDate of Birth: ${crew.date_of_birth || 'Not specified'}\nPlace of Birth: ${crew.place_of_birth || 'Not specified'}\nNationality: ${crew.nationality || 'Not specified'}\nPassport Expiry: ${crew.passport_expiry_date ? formatDateDisplay(crew.passport_expiry_date) : 'Not specified'}\nSex: ${crew.sex || 'Not specified'}\nStatus: ${crew.status || 'Not specified'}\nRank: ${crew.rank || 'Not specified'}`;
@@ -1860,7 +1892,6 @@ const HomePage = () => {
       console.error('Download passport error:', error);
       toast.error(language === 'vi' ? 'Lỗi khi tải xuống hộ chiếu' : 'Error downloading passport');
     }
-    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
   const handleCopyPassportText = async (crew) => {
     try {
