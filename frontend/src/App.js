@@ -4803,6 +4803,7 @@ const HomePage = () => {
       
       if (response.data.success && response.data.analysis) {
         const analysis = response.data.analysis;
+        const fileIds = analysis.file_ids || {};
         
         // Prepare crew data from analysis
         const vietnameseFullName = analysis.full_name || '';
@@ -4832,9 +4833,11 @@ const HomePage = () => {
         console.log(`   Vietnamese Place of Birth: "${vietnamesePlaceOfBirth}" → English: "${crewData.place_of_birth_en}"`);
         
         // Include file IDs if present
-        if (analysis.file_ids) {
-          crewData.passport_file_id = analysis.file_ids.passport_file_id;
-          crewData.summary_file_id = analysis.file_ids.summary_file_id;
+        if (fileIds.passport_file_id) {
+          crewData.passport_file_id = fileIds.passport_file_id;
+        }
+        if (fileIds.summary_file_id) {
+          crewData.summary_file_id = fileIds.summary_file_id;
         }
         
         // Auto-create crew member
@@ -4858,14 +4861,37 @@ const HomePage = () => {
           return {
             filename: file.name,
             success: true,
+            recordCreated: true,
+            fileUploaded: !!fileIds.passport_file_id,
+            filePath: fileIds.passport_file_id ? `${selectedShip?.name}/Crew Records/${file.name}` : 'N/A',
+            summaryCreated: !!fileIds.summary_file_id,
+            isDuplicate: false,
             crewName: analysis.full_name || 'Unknown',
             passport: analysis.passport_number || 'No passport',
+            ship: selectedShip?.name || '-',
             index: current
           };
         } else {
           throw new Error('Failed to create crew member');
         }
         
+      } else if (response.data.duplicate || response.data.error === 'DUPLICATE_PASSPORT') {
+        // Handle duplicate passport
+        const existingCrew = response.data.existing_crew || {};
+        return {
+          filename: file.name,
+          success: false,
+          recordCreated: false,
+          fileUploaded: false,
+          filePath: 'Not uploaded (duplicate)',
+          summaryCreated: false,
+          isDuplicate: true,
+          duplicateWith: existingCrew.full_name || 'Unknown',
+          duplicateShip: existingCrew.ship_sign_on || 'Unknown',
+          passport: response.data.existing_crew?.passport || 'Unknown',
+          error: response.data.message || 'Duplicate passport',
+          index: current
+        };
       } else {
         throw new Error(response.data.message || 'Analysis failed');
       }
