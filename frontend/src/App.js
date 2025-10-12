@@ -1905,6 +1905,167 @@ const HomePage = () => {
     }
   };
 
+  // Handle bulk automatic rename files with confirmation
+  const handleBulkAutomaticRenameFiles = () => {
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null }); // Close context menu
+    
+    if (selectedCrewMembers.size === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Vui lòng chọn ít nhất một thuyền viên'
+        : 'Please select at least one crew member');
+      return;
+    }
+
+    // Get selected crew data to show preview
+    const selectedCrewIds = Array.from(selectedCrewMembers);
+    const selectedCrewData = crewList.filter(crew => selectedCrewIds.includes(crew.id));
+    
+    // Count how many have files
+    const crewWithFiles = selectedCrewData.filter(crew => crew.passport_file_id || crew.summary_file_id);
+    
+    if (crewWithFiles.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Không có thuyền viên nào có file để đổi tên'
+        : 'No crew members have files to rename');
+      return;
+    }
+
+    // Show confirmation dialog with preview
+    const confirmMessage = language === 'vi' 
+      ? `Bạn có chắc chắn muốn tự động đổi tên file cho ${crewWithFiles.length} thuyền viên được chọn?\n\n` +
+        `Định dạng: Chức vụ_Tên (Tiếng Anh)_Passport\n\n` +
+        `Ví dụ:\n${crewWithFiles.slice(0, 3).map(crew => {
+          const rank = crew.rank || 'Unknown';
+          const nameEn = crew.full_name_en || crew.full_name || 'Unknown';
+          const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+          const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
+          return `• ${crew.full_name} → ${cleanRank}_${cleanName}_Passport.pdf`;
+        }).join('\n')}${crewWithFiles.length > 3 ? `\n... và ${crewWithFiles.length - 3} thuyền viên khác` : ''}\n\n` +
+        `⚠️ Hành động này không thể hoàn tác!`
+      : `Are you sure you want to automatically rename files for ${crewWithFiles.length} selected crew members?\n\n` +
+        `Format: Rank_Name (English)_Passport\n\n` +
+        `Examples:\n${crewWithFiles.slice(0, 3).map(crew => {
+          const rank = crew.rank || 'Unknown';
+          const nameEn = crew.full_name_en || crew.full_name || 'Unknown';
+          const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+          const cleanName = nameEn.replace(/[^a-zA-Z0-9]/g, '_');
+          return `• ${crew.full_name} → ${cleanRank}_${cleanName}_Passport.pdf`;
+        }).join('\n')}${crewWithFiles.length > 3 ? `\n... and ${crewWithFiles.length - 3} more crew members` : ''}\n\n` +
+        `⚠️ This action cannot be undone!`;
+
+    if (confirm(confirmMessage)) {
+      performBulkAutomaticRename(crewWithFiles);
+    }
+  };
+
+  // Perform bulk automatic rename for selected crew
+  const performBulkAutomaticRename = async (crewList) => {
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+      const results = [];
+
+      toast.info(language === 'vi' 
+        ? `Bắt đầu tự động đổi tên file cho ${crewList.length} thuyền viên...`
+        : `Starting automatic rename for ${crewList.length} crew members...`);
+
+      console.log(`🔄 Starting bulk automatic rename for ${crewList.length} crew members`);
+
+      for (let i = 0; i < crewList.length; i++) {
+        const crew = crewList[i];
+        
+        try {
+          console.log(`📋 Processing ${i + 1}/${crewList.length}: ${crew.full_name}`);
+          
+          // Generate filename same as single crew logic
+          const rank = crew.rank || 'Unknown';
+          const fullNameEn = crew.full_name_en || crew.full_name || 'Unknown';
+          const passportSuffix = 'Passport';
+          
+          const cleanRank = rank.replace(/[^a-zA-Z0-9]/g, '_');
+          const cleanNameEn = fullNameEn.replace(/[^a-zA-Z0-9]/g, '_');
+          const autoFilename = `${cleanRank}_${cleanNameEn}_${passportSuffix}`;
+
+          console.log(`   Generated filename: ${autoFilename}`);
+
+          // Call rename API
+          const formData = new FormData();
+          formData.append('new_filename', autoFilename);
+          
+          const response = await axios.post(`${API}/crew/${crew.id}/rename-files`, formData, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          });
+          
+          if (response.data.success) {
+            successCount++;
+            results.push({
+              crew_name: crew.full_name,
+              success: true,
+              filename: autoFilename,
+              renamed_files: response.data.renamed_files
+            });
+            console.log(`   ✅ Success: ${crew.full_name}`);
+          } else {
+            errorCount++;
+            results.push({
+              crew_name: crew.full_name,
+              success: false,
+              error: response.data.message || 'Unknown error'
+            });
+            console.log(`   ❌ Failed: ${crew.full_name}`);
+          }
+          
+        } catch (error) {
+          errorCount++;
+          results.push({
+            crew_name: crew.full_name,
+            success: false,
+            error: error.response?.data?.detail || error.message
+          });
+          console.error(`   ❌ Error for ${crew.full_name}:`, error);
+        }
+
+        // Small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      // Show final results
+      console.log(`📊 Bulk rename completed: ${successCount} success, ${errorCount} errors`);
+
+      if (successCount > 0 && errorCount === 0) {
+        toast.success(language === 'vi' 
+          ? `Đã tự động đổi tên file thành công cho ${successCount} thuyền viên`
+          : `Successfully renamed files for ${successCount} crew members`);
+      } else if (successCount > 0 && errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `Hoàn thành: ${successCount} thành công, ${errorCount} lỗi`
+          : `Completed: ${successCount} successful, ${errorCount} failed`);
+      } else {
+        toast.error(language === 'vi' 
+          ? 'Không thể đổi tên file nào'
+          : 'Failed to rename any files');
+      }
+
+      // Refresh crew list and clear selection
+      if (successCount > 0) {
+        if (selectedShip?.name) {
+          await fetchCrewMembers(selectedShip.name);
+        }
+      }
+
+      setSelectedCrewMembers(new Set()); // Clear selection
+
+    } catch (error) {
+      console.error('Bulk automatic rename error:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi xử lý hàng loạt'
+        : 'Bulk processing error');
+    }
+  };
+
   // Seamen Book context menu function
   const handleSeamenBookRightClick = (e, crew) => {
     e.preventDefault();
