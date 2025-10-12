@@ -7792,8 +7792,8 @@ const HomePage = () => {
                               )}
                             </button>
                             
-                            {/* Automatic Rename option - only show if files are available */}
-                            {(passportContextMenu.crew?.passport_file_id || passportContextMenu.crew?.summary_file_id) && (
+                            {/* Automatic Rename option - works for single or multiple selected crew */}
+                            {(passportContextMenu.crew?.passport_file_id || passportContextMenu.crew?.summary_file_id || selectedCrewMembers.size > 0) && (
                               <button
                                 onClick={() => handleAutomaticRenamePassportFiles(passportContextMenu.crew)}
                                 className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center"
@@ -7801,7 +7801,12 @@ const HomePage = () => {
                                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                 </svg>
-                                {language === 'vi' ? 'Tự động đổi tên file' : 'Automatic Rename Files'}
+                                {selectedCrewMembers.size > 0 
+                                  ? (language === 'vi' 
+                                    ? `Tự động đổi tên file (${selectedCrewMembers.size} thuyền viên)` 
+                                    : `Automatic Rename Files (${selectedCrewMembers.size} crew)`)
+                                  : (language === 'vi' ? 'Tự động đổi tên file' : 'Automatic Rename Files')
+                                }
                                 <span className="ml-auto text-xs bg-purple-100 text-purple-600 px-1 rounded">⚡</span>
                               </button>
                             )}
