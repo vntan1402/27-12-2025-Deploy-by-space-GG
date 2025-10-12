@@ -4898,7 +4898,24 @@ const HomePage = () => {
       
     } catch (error) {
       console.error(`❌ Batch processing error for ${file.name}:`, error);
-      throw error;
+      
+      // Check if it's a duplicate error from backend
+      const isDuplicate = error.response?.status === 400 && 
+                         error.response?.data?.detail?.includes('Duplicate passport');
+      
+      return {
+        filename: file.name,
+        success: false,
+        recordCreated: false,
+        fileUploaded: false,
+        filePath: 'N/A',
+        summaryCreated: false,
+        isDuplicate: isDuplicate,
+        duplicateWith: isDuplicate ? 'Unknown' : '',
+        duplicateShip: isDuplicate ? 'Unknown' : '',
+        error: error.response?.data?.detail || error.message || 'Unknown error',
+        index: current
+      };
     }
   };
   // Handle passport file upload and analysis (single file mode)
