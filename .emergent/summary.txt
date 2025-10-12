@@ -1,93 +1,63 @@
 <analysis>
-The AI engineer's work revolved around the Add Crew From Passport feature, initially focusing on date standardization and fixing Google Drive upload issues. A key challenge was the Dual Apps Script architecture to handle cross-account Drive access, which itself required significant debugging for configuration loading, asynchronous calls, and permission issues. A critical Apps Script bug was identified where folders existed but couldn't be found during file upload. Concurrently, AI extraction for passport fields faced persistent accuracy problems, leading to prompt engineering, manual regex fallbacks, and ultimately, a direct regex extraction as the primary method to bypass AI interpretation issues. The latest work focuses on re-enabling System AI as the primary extraction method with a highly structured prompt, but an  in parsing the LlmChat response is currently blocking progress.
+The AI engineer's work in this trajectory significantly enhanced the Ship Management System, focusing on crew record management and file handling. Initial efforts addressed UI/UX issues, ensuring consistent deselection of crew after modal closure. A major undertaking was implementing comprehensive file linking, enabling storage of original and summary file IDs, synchronized deletion, and renaming of files on Google Drive via a new Apps Script. Subsequently, the engineer implemented multiple passport file uploads with batch processing, including auto-fill for English names. Bulk editing features for Place Sign On, Date Sign On, and Date Sign Off were added, integrating into existing context menus and including auto-status updates. UI refinements included text changes, tooltips, and improved category navigation. The engineer also debugged and consolidated Google Apps Scripts, resolving several file management errors, leading to a robust, feature-rich application.
 </analysis>
 
 <product_requirements>
-The Ship Management System needs to manage maritime certificates and crew records. The Add Crew From Passport feature is critical, allowing users to upload passports, use Google Document AI for summarization, save original and summary files to specific Google Drive folders (e.g.,  and ), and extract structured crew data using an application-configured AI (Gemini). Document AI configuration (Project ID, Location, Processor ID, Apps Script URL) must be in System Settings. Initial implementation faced challenges: date format standardization (DD/MM/YYYY), accurate AI field extraction, and robust Google Drive file management across different Google accounts. The user has specifically requested consistent date formatting, precise AI extraction (especially for Vietnamese names and places), and a refined folder structure for uploaded files, with System AI being the primary extraction method.
+The Ship Management System requires robust maritime certificate and crew record management. The Add Crew From Passport feature needs to support passport uploads, Google Document AI for summarization, Google Drive storage (original and summary files), and structured crew data extraction using System AI (Gemini). Key challenges included date format standardization (DD/MM/YYYY and YYYY-MM-DD), accurate AI field extraction (especially for Vietnamese names), and dynamic Google Drive file management. The user explicitly requested consistent  date formatting for inputs and  for display, refined folder structure, and System AI as the primary extraction method. Recent requests expanded to: specific frontend form layouts (3-row, col-span configurations), dynamic text/icon placement, default values in dropdowns, localized Vietnamese rank names, checkboxes with context menus for Delete Crew, View/Copy/Download Passport, and View/Copy/Download Seamen Book, an Edit Crew modal, auto-refreshing lists after CRUD, and multilingual support (Vietnamese/English) for Full Name and Place of Birth fields in both backend and frontend. Further requirements included auto-filling English fields by de-diacriticizing Vietnamese input, adding Nationality and Passport Expiry Date with AI extraction/auto-fill, uppercase display for Full Name and Place of Birth, a Place Sign On field and column, hover tooltips for nationality and passport expiry, auto-fill logic for Status based on ship sign-on/off dates, and removal of duplicate form fields. Subsequent requests focused on implementing file linking for original and summary files (delete/rename in sync), multi-file passport upload with batch processing, auto-fill for English names in batch, bulk editing for Place Sign On, Date Sign On, and Date Sign Off (with auto-status update), improved category navigation, and displaying Vietnamese full names on hover. The latest request is for bulk automatic file renaming with confirmation.
 </product_requirements>
 
 <key_technical_concepts>
--   **Full-stack Architecture:** React frontend, FastAPI backend, MongoDB.
--   **AI Integration:** Google Document AI (for text summarization), Google Gemini (via  for field extraction).
--   **Google Apps Script:** Secure intermediary for Google Drive operations.
--   **Dual Apps Script Architecture:** Separate Apps Scripts for Document AI processing (System) and file uploads (Company).
--   **Data Handling:** Base64, JSON, regex, ISO date standardization, UUIDs (instead of MongoDB ObjectIDs).
+-   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
+-   **AI Integration**: Google Document AI (summarization), Google Gemini ( for field extraction).
+-   **Google Apps Script**: Secure intermediary for Google Drive operations (upload, rename, delete, move, folder structure).
+-   **Data Handling**: Base64, JSON, regex, ISO date standardization, UUIDs, Vietnamese diacritic removal.
+-   **Frontend UI**: Tailwind CSS, React components, context menus, modals.
 </key_technical_concepts>
 
 <code_architecture>
 
 
 -   ****
-    -   **Summary:** Core FastAPI application, defines API endpoints and business logic.
+    -   **Summary:** Serves as the FastAPI backend, handling API endpoints, AI integration, and database operations.
     -   **Changes:**
-        -   Refined  and extraction prompts.
-        -    was implemented.
-        -    uses .
-        -   Fixed  for .
-        -   Added  for regex-based extraction.
-        -   Introduced an endpoint  for debugging Apps Script.
-        -   Fixed  function's date conversion logic to handle  and  and store as UTC ISO strings.
-        -   Removed old logic to reject AI results if EACH STARTING WITH was found.
-        -   Implemented  to use  instead of mock data.
-        -   Added  to map new structured AI output to existing backend fields.
-        -   Modified  to incorporate the new structured prompt and conversion.
+        -    model updated with , , and .
+        -    endpoint modified to save  and .
+        -    endpoint enhanced to delete linked Google Drive files.
+        -    endpoint created and later fixed to correctly fetch Apps Script configuration and validate rename success from Apps Script response.
+
 -   ****
-    -   **Summary:** Manages Google Drive and Apps Script interactions.
-    -   **Changes:** No direct changes in the trajectory, but its functionality for file upload was superseded by the dual apps script approach.
--   ** (New File)**
-    -   **Summary:** Placeholder, functionality integrated into .
-    -   **Changes:** No direct changes, its role was absorbed.
--   ** (New File)**
-    -   **Summary:** Orchestrates calls to two separate Google Apps Scripts.
+    -   **Summary:** The main React application file, managing UI components, state, and user interactions.
     -   **Changes:**
-        -   Fixed  issue and configuration loading (from  to , later ).
-        -   Updated  to fetch  correctly from MongoDB.
-        -   Modified  to send  and use the  action.
-        -   Adjusted parameters for passport and summary file uploads (, , ) to control folder structure:
-            -   Passport:  (actual ship), , 
-            -   Summary: , ,  (initially , then changed)
+        -    added to consistently clear  and .
+        -   UI updated for multiple passport file uploads, including new states, drag & drop support, and progress indicators.
+        -   Batch processing  updated for English name auto-fill using diacritic removal.
+        -   Bulk edit functionalities for , , and  added via modals and integrated into , with auto-status updates for Date Sign Off.
+        -   Vietnamese text for Place Sign On updated to Nơi xuống tàu.
+        -   Category navigation enhanced to preserve selected ship context.
+        -   View Passport, Copy link, Download actions updated to target original passport files.
+        -   Rename Files option renamed to Automatic Rename Files with auto-generated naming logic for original and summary files.
+        -   Tooltip added to Full Name column to display Vietnamese and English names on hover.
+        -   An Automatic Rename Files option was added to the  for bulk operations, with related handler.
+
 -   ****
-    -   **Summary:** Main React UI, handles state and API calls.
-    -   **Changes:** Implemented UI for Add Crew Modal and Document AI configuration. Auto-fill logic for extracted crew data. Removed Crew List, Crew Certificates, Medical Records from CREW RECORD section. The date input format  was implicitly mentioned.
--   ** (Initial User Provided Code - Chat Message 5)**
-    -   **Summary:** Google Apps Script for handling various Drive operations, including .
-    -   **Changes:** This was the base script that needed modifications.
+    -   **Summary:** Manages interactions with two separate Google Apps Scripts, facilitating various Google Drive operations.
+    -   **Changes:** No direct code changes, but its functions are leveraged by  for file operations.
+
 -   ** (New File)**
-    -   **Summary:** Initial AI-generated Apps Script to support passport workflow, handling dynamic folder paths.
-    -   **Changes:** Introduced  to receive , , ,  from backend. This was later deprecated in favor of re-using .
--   ** (New File)**
-    -   **Summary:** Refined Company Apps Script to retrieve  from backend, supporting dynamic folder creation for passports/summaries using .
-    -   **Changes:** Updated to make  optional in  for direct folder uploads. Contains robust folder creation (, ).
--   ** (New File)**
-    -   **Summary:** Manifest to declare  and  OAuth scopes.
-    -   **Changes:** Created to guide user on proper permission configuration.
--   ** (New File)**
-    -   **Summary:** Apps Script with enhanced debugging, error handling, and file verification.
-    -   **Changes:** Added , detailed logging, and better error messages.
--   ** (New File)**
-    -   **Summary:** Apps Script with robust folder lookup functions to fix Category folder not found bug.
-    -   **Changes:** Introduced , , , and .
+    -   **Summary:** This file consolidates all Google Apps Script functionalities, including file upload (passport and generic), file management (rename, move, delete), ship structure creation/deletion, and various debugging utilities. It's the backend's interface to Google Drive.
+    -   **Changes:** Created by merging two previous Apps Script versions to provide a unified, enhanced script.
 
 </code_architecture>
 
 <pending_tasks>
--   Fix  when parsing the  response in the backend. This is preventing the System AI's structured prompt from being correctly processed.
--   Ensure the new structured prompt for System AI is fully utilized and extracts all required fields accurately.
+-   Implement the confirmation dialog for the Automatic Rename Files bulk operation.
+-   Fix a bug in the  function where  was used instead of .
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was implementing the user's request to revert the primary field extraction method back to **System AI**, using a newly provided, highly structured prompt. This new prompt defines all required passport fields in a JSON format and provides a clear example output.
-
-The  file was updated:
-1.  The  function was modified to use the user's detailed structured prompt.
-2.  A  function was implemented to map the fields from the new structured AI output (e.g., , ) to the existing backend's internal field names (e.g., , ).
-3.  The logic was adjusted to ensure the System AI call (using  and Gemini) is the primary extraction method.
-4.  An old logic that rejected AI responses containing EACH STARTING WITH was removed as it's no longer relevant with the new structured output format.
-5.  Indentation errors were fixed in .
-
-During testing, it was confirmed that the System AI is indeed being called with the new prompt and communicating with the Gemini API. However, a critical  was encountered when the backend attempted to process the response object returned by , indicating a parsing issue with the AI's output in the backend.
+Immediately prior to this summary, the AI engineer was implementing the bulk automatic rename functionality for multiple selected crew members. The user requested to add an Automatic Rename Files option to the existing  (the same one that contains Delete Crew member) and to display a confirmation dialog before proceeding with the rename, mirroring the behavior of the certificate auto-rename feature. The engineer successfully added the Automatic Rename Files option to the  in . A new handler function, , was also created to manage this operation. The current state involves the presence of this new functionality, but the engineer identified an immediate bug within : it incorrectly references  instead of  when processing the selected crew. The next step is to address this specific bug.
 </current_work>
 
 <optional_next_step>
-Investigate and fix the  when parsing the  response in .
+Fix the bug in  where  was used instead of .
 </optional_next_step>

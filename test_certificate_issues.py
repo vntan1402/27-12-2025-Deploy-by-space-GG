@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Configuration
-BACKEND_URL = 'https://maritime-ai-crew-1.preview.emergentagent.com/api'
+BACKEND_URL = 'https://passport-upload.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""
