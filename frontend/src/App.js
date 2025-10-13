@@ -7140,8 +7140,20 @@ const HomePage = () => {
                   {/* Edit Certificate Modal */}
                   {showEditCertModal && editingCertificate && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
-                      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-                        <div className="mb-6">
+                      <div 
+                        ref={editCertDrag.modalRef}
+                        className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+                        style={{
+                          transform: `translate(${editCertDrag.position.x}px, ${editCertDrag.position.y}px)`,
+                          cursor: editCertDrag.isDragging ? 'grabbing' : 'default',
+                          transition: editCertDrag.isDragging ? 'none' : 'transform 0.2s ease-out'
+                        }}
+                      >
+                        <div 
+                          className="mb-6"
+                          onMouseDown={editCertDrag.handleMouseDown}
+                          style={{ cursor: 'grab' }}
+                        >
                           <h3 className="text-xl font-bold text-gray-800 mb-2">
                             {editingCertificate?.manual_input_mode
                               ? (language === 'vi' ? 'Nhập thủ công chứng chỉ' : 'Manual Certificate Input')
