@@ -8378,6 +8378,229 @@ const HomePage = () => {
                           </div>
                         </div>
                       )}
+                        </>
+                      ) : (
+                        /* Crew Certificates View */
+                        <>
+                          {/* Header with Back Button */}
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-4">
+                              <button
+                                onClick={handleBackToCrewList}
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all flex items-center"
+                                title={language === 'vi' ? 'Quay lại danh sách thuyền viên' : 'Back to crew list'}
+                              >
+                                <span className="mr-2">←</span>
+                                {language === 'vi' ? 'Quay lại' : 'Back'}
+                              </button>
+                              <div>
+                                <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                                  {language === 'vi' ? 'Chứng chỉ thuyền viên' : 'Crew Certificates'}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {selectedCrewForCertificates ? (
+                                    language === 'vi' 
+                                      ? `Chứng chỉ của ${selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})` 
+                                      : `Certificates for ${selectedCrewForCertificates.full_name_en || selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})`
+                                  ) : (
+                                    language === 'vi' ? 'Tất cả chứng chỉ' : 'All certificates'
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                            {/* Action Buttons */}
+                            <div className="flex items-center space-x-3">
+                              {user && (user.role === 'manager' || user.role === 'admin') && (
+                                <button 
+                                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
+                                >
+                                  <span className="mr-2">📜</span>
+                                  {language === 'vi' ? 'Thêm chứng chỉ' : 'Add Crew Cert'}
+                                </button>
+                              )}
+                              <button 
+                                onClick={() => fetchCrewCertificates(selectedCrewForCertificates?.id)}
+                                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all flex items-center"
+                                title={language === 'vi' ? 'Làm mới' : 'Refresh'}
+                              >
+                                <span className="mr-2">🔄</span>
+                                {language === 'vi' ? 'Làm mới' : 'Refresh'}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Search Bar */}
+                          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <div className="flex items-center space-x-2">
+                              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
+                              </label>
+                              <div className="relative flex-1 max-w-md">
+                                <input
+                                  type="text"
+                                  placeholder={language === 'vi' ? 'Tìm theo tên chứng chỉ, số chứng chỉ...' : 'Search by cert name, cert no...'}
+                                  value={certificatesSearch}
+                                  onChange={(e) => setCertificatesSearch(e.target.value)}
+                                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                />
+                                <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                              </div>
+                              <div className="flex items-center ml-auto">
+                                <p className="text-sm text-gray-600 whitespace-nowrap">
+                                  {language === 'vi' ? 'Hiển thị' : 'Showing'} <span className="font-semibold">{crewCertificates.length}</span> {language === 'vi' ? 'chứng chỉ' : 'certificates'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Certificates Table */}
+                          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                            <div className="overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                      {language === 'vi' ? 'STT' : 'No.'}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('crew_name')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Tên thuyền viên' : 'Crew Name'}
+                                      {getCertificateSortIcon('crew_name')}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('passport')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Hộ chiếu' : 'Passport'}
+                                      {getCertificateSortIcon('passport')}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('cert_name')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Tên chứng chỉ' : 'Crew Cert Name'}
+                                      {getCertificateSortIcon('cert_name')}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('cert_no')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Số chứng chỉ' : 'Crew Cert No.'}
+                                      {getCertificateSortIcon('cert_no')}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('issued_by')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
+                                      {getCertificateSortIcon('issued_by')}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('issued_date')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Ngày cấp' : 'Issued Date'}
+                                      {getCertificateSortIcon('issued_date')}
+                                    </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('cert_expiry')}
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Ngày hết hạn' : 'Crew Cert Expiry'}
+                                      {getCertificateSortIcon('cert_expiry')}
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                      {language === 'vi' ? 'Ghi chú' : 'Note'}
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                  {crewCertificates.length > 0 ? (
+                                    crewCertificates
+                                      .filter(cert => {
+                                        if (!certificatesSearch) return true;
+                                        const search = certificatesSearch.toLowerCase();
+                                        return (
+                                          cert.crew_name?.toLowerCase().includes(search) ||
+                                          cert.cert_name?.toLowerCase().includes(search) ||
+                                          cert.cert_no?.toLowerCase().includes(search) ||
+                                          cert.issued_by?.toLowerCase().includes(search)
+                                        );
+                                      })
+                                      .sort((a, b) => {
+                                        if (!certificateSort.column) return 0;
+                                        const aVal = a[certificateSort.column] || '';
+                                        const bVal = b[certificateSort.column] || '';
+                                        const comparison = aVal.toString().localeCompare(bVal.toString());
+                                        return certificateSort.direction === 'asc' ? comparison : -comparison;
+                                      })
+                                      .map((cert, index) => (
+                                        <tr 
+                                          key={cert.id} 
+                                          className="hover:bg-gray-50"
+                                        >
+                                          <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {index + 1}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase">
+                                            {cert.crew_name}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {cert.passport}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            <div className="flex items-center space-x-2">
+                                              <span>{cert.cert_name}</span>
+                                              {cert.cert_file_id && (
+                                                <span 
+                                                  className="text-green-500 text-xs" 
+                                                  title={language === 'vi' ? 'File có sẵn' : 'File available'}
+                                                >
+                                                  📄
+                                                </span>
+                                              )}
+                                            </div>
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {cert.cert_no}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {cert.issued_by || '-'}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {formatDateDisplay(cert.issued_date) || '-'}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {formatDateDisplay(cert.cert_expiry) || '-'}
+                                          </td>
+                                          <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200">
+                                            <div className="max-w-xs truncate" title={cert.note}>
+                                              {cert.note || '-'}
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      ))
+                                  ) : (
+                                    <tr>
+                                      <td colSpan="9" className="px-6 py-12 text-center">
+                                        <div className="text-gray-400 text-lg mb-2">📜</div>
+                                        <p className="text-gray-500">
+                                          {language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates found'}
+                                        </p>
+                                        <p className="text-sm text-gray-400 mt-1">
+                                          {language === 'vi' ? 'Thêm chứng chỉ mới cho thuyền viên này' : 'Add new certificates for this crew member'}
+                                        </p>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : selectedCategory === 'certificates' ? (
                     /* Crew Certificates View (Steps 6-7) */
