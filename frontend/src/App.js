@@ -8539,11 +8539,11 @@ const HomePage = () => {
                             <div className="flex items-center space-x-3">
                               {user && (user.role === 'manager' || user.role === 'admin') && (
                                 <button 
-                                  onClick={handleOpenAddCertModal}
+                                  onClick={handleOpenAddCrewCertModal}
                                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
                                 >
                                   <span className="mr-2">📜</span>
-                                  {language === 'vi' ? 'Thêm chứng chỉ' : 'Add Crew Cert'}
+                                  {language === 'vi' ? 'Thêm chứng chỉ thuyền viên' : 'Add Crew Cert'}
                                 </button>
                               )}
                               <button 
