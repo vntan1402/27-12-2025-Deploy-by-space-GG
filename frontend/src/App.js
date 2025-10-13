@@ -8399,8 +8399,20 @@ const HomePage = () => {
       {/* Edit Ship Modal */}
       {showEditShipModal && editingShipData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+          <div 
+            ref={editShipDrag.modalRef}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden"
+            style={{
+              transform: `translate(${editShipDrag.position.x}px, ${editShipDrag.position.y}px)`,
+              cursor: editShipDrag.isDragging ? 'grabbing' : 'default',
+              transition: editShipDrag.isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+          >
+            <div 
+              className="flex justify-between items-center px-6 py-4 border-b border-gray-200"
+              onMouseDown={editShipDrag.handleMouseDown}
+              style={{ cursor: 'grab' }}
+            >
               <h3 className="text-xl font-bold text-gray-800">
                 {language === 'vi' ? 'Chỉnh sửa thông tin tàu' : 'Edit Ship Information'}
               </h3>
@@ -8408,6 +8420,7 @@ const HomePage = () => {
                 onClick={() => {
                   setShowEditShipModal(false);
                   setEditingShipData(null);
+                  editShipDrag.resetPosition();
                 }}
                 className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
               >
