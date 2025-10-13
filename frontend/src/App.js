@@ -8582,6 +8582,19 @@ const HomePage = () => {
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {formatDateDisplay(cert.cert_expiry) || '-'}
                                           </td>
+                                          <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                              cert.status === 'Valid' ? 'bg-green-100 text-green-800' :
+                                              cert.status === 'Expiring Soon' ? 'bg-yellow-100 text-yellow-800' :
+                                              cert.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                                              'bg-gray-100 text-gray-800'
+                                            }`}>
+                                              {cert.status === 'Valid' ? (language === 'vi' ? 'Còn hạn' : 'Valid') :
+                                               cert.status === 'Expiring Soon' ? (language === 'vi' ? 'Sắp hết hạn' : 'Expiring Soon') :
+                                               cert.status === 'Expired' ? (language === 'vi' ? 'Hết hạn' : 'Expired') :
+                                               cert.status || '-'}
+                                            </span>
+                                          </td>
                                           <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200">
                                             <div className="max-w-xs truncate" title={cert.note}>
                                               {cert.note || '-'}
