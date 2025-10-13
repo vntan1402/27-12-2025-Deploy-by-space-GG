@@ -7774,23 +7774,47 @@ const HomePage = () => {
                                     <span>{language === 'vi' ? 'STT' : 'No.'}</span>
                                   </div>
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('full_name')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Họ tên' : 'Full Name'}
+                                  {getCrewSortIcon('full_name')}
                                 </th>
-                                <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('sex')}
+                                  className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Giới tính' : 'Sex'}
+                                  {getCrewSortIcon('sex')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('rank')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Chức vụ' : 'Rank'}
+                                  {getCrewSortIcon('rank')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('date_of_birth')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
+                                  {getCrewSortIcon('date_of_birth')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('place_of_birth')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Nơi sinh' : 'Place of Birth'}
+                                  {getCrewSortIcon('place_of_birth')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('passport')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Hộ chiếu' : 'Passport'}
+                                  {getCrewSortIcon('passport')}
                                 </th>
                                 {/* Seamen Book column - Hidden as requested
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
