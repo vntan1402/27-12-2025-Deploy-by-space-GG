@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
 """
-Crew Certificates Backend Test - Focus on /api/crew-certificates/analyze-file endpoint
+Crew Certificates Analyze File Endpoint Test
+Testing the /api/crew-certificates/analyze-file endpoint after ship company_id data fix
 
 REVIEW REQUEST REQUIREMENTS:
-Test the crew certificates backend functionality specifically the `/api/crew-certificates/analyze-file` endpoint.
-
-Context:
-- The endpoint was returning 404 errors but should now be fixed
-- The endpoint expects multipart/form-data with: cert_file (file), ship_id (string, required), crew_id (string, optional)
-- User credentials: admin1 / admin123
-- Test with ship_id from the user's company
+- Test the crew certificates `/api/crew-certificates/analyze-file` endpoint again after fixing the ship company_id data issue
+- Ships BROTHER 36 and MINH ANH 09 now have company_id = cd1951d0-223e-4a09-865b-593047ed8c2d
+- The endpoint should now work and NOT return "Ship not found" error
+- Test with ship_id = 7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7 (BROTHER 36)
+- Login with admin1/123456 (password might be admin123, try both)
+- Expected Result: Should NOT get "Ship not found" error, may get AI configuration errors (that's fine)
 
 Test Plan:
-1. Login with admin1/admin123
-2. Get list of ships for the user's company
-3. Test POST /api/crew-certificates/analyze-file with a sample file, valid ship_id, and optional crew_id
-4. Verify the endpoint returns 200 status (not 404)
-5. Check if the response includes certificate analysis data
-
-Note: The endpoint may fail with other errors (like AI configuration issues) but should NOT return 404. 
-We're specifically testing that the endpoint is properly registered and accessible.
+1. Login with admin1/123456 (try admin123 if needed)
+2. Get list of ships and verify BROTHER 36 and MINH ANH 09 have correct company_id
+3. Test POST /api/crew-certificates/analyze-file with:
+   - A sample PDF file
+   - ship_id = 7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7 (BROTHER 36)
+   - crew_id = optional
+4. Verify the endpoint no longer returns "Ship not found" 404 error
+5. The endpoint may fail with AI configuration or Document AI errors (that's expected), but it should get past the ship validation
+6. Status code should be 200, 400, or 500 (NOT 404)
 """
 
 import requests
