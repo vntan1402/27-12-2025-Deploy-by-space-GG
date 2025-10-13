@@ -8542,7 +8542,8 @@ const HomePage = () => {
                             </div>
                             {/* Action Buttons */}
                             <div className="flex items-center space-x-3">
-                              {user && (user.role === 'manager' || user.role === 'admin') && (
+                              {console.log('👤 User role check:', { user, role: user?.role, canAdd: user && (user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') })}
+                              {user && (user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') && (
                                 <button 
                                   onClick={handleOpenAddCrewCertModal}
                                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
