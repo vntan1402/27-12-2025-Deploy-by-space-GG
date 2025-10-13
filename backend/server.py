@@ -13543,6 +13543,39 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 4. Normalize all dates to ISO format "YYYY-MM-DD".
 5. Do not infer or fabricate any missing information.
 
+=== CRITICAL FIELD EXTRACTION RULES ===
+
+**cert_name**: 
+- For STCW Endorsements or Recognition certificates, use: "Certificate of Competency (COC) - Endorsement"
+- For COC certificates, use: "Certificate of Competency (COC)"
+- For COE certificates, use: "Certificate of Endorsement (COE)"
+- For Medical certificates, use: "Medical Certificate"
+- DO NOT use the capacity/rank (e.g., "Master", "Captain") as the certificate name
+
+**cert_no**: 
+- PRIORITY 1: Look for "CT No." or "CT Number" or "CT-XXXXXX" format (e.g., CT-585639/24-HCV)
+- PRIORITY 2: Look for "Certificate No." or "Certificate Number"
+- PRIORITY 3: Look for "Endorsement No." or "Endorsement Number"
+- DO NOT use "Document No." or "Document Number" as cert_no
+- DO NOT use "Seafarers ID" or "ID Number" as cert_no
+
+**issued_by**: 
+- Extract the main issuing authority name (e.g., "Panama Maritime Authority")
+- Keep it concise, do not include full department names unless necessary
+
+**issued_date** and **expiry_date**: 
+- Convert to ISO format "YYYY-MM-DD"
+- Common formats: DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY
+
+**note**: 
+- Include important details such as:
+  * Original certificate country (e.g., "Original COC from Vietnam")
+  * Capacity/Rank (e.g., "MASTER-II/2", "Captain - II/2")
+  * Level (e.g., "MANAGEMENT level", "OPERATIONAL level")
+  * Functions covered (e.g., "Navigation, Cargo Handling, Ship Operation Control")
+  * Any limitations or special conditions
+- Combine all relevant information into a concise note
+
 === FIELDS TO EXTRACT ===
 {{
   "cert_name": "",
@@ -13550,8 +13583,7 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   "issued_by": "",
   "issued_date": "",
   "expiry_date": "",
-  "holder_name": "",
-  "additional_info": ""
+  "note": ""
 }}
 
 === DOCUMENT SUMMARY ===
