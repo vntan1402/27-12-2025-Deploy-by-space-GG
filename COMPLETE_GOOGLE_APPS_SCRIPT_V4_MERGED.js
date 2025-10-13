@@ -907,3 +907,92 @@ function createNestedFolders(parentFolder, folderNames) {
     return null;
   }
 }
+
+/**
+ * CREW CERTIFICATES UPLOAD HANDLER (Step 5 - Google Drive Integration)
+ * Upload crew certificate files to: ShipName > Crew Records folder
+ */
+function handleCrewCertificateUpload(requestData) {
+  try {
+    Logger.log("📋 Starting crew certificate upload...");
+    
+    // Validate required parameters
+    if (!requestData.ship_name) {
+      return createResponse(false, "Missing ship_name parameter", null);
+    }
+    
+    if (!requestData.filename) {
+      return createResponse(false, "Missing filename parameter", null);
+    }
+    
+    if (!requestData.file_content) {
+      return createResponse(false, "Missing file_content parameter", null);
+    }
+    
+    var shipName = requestData.ship_name;
+    var filename = requestData.filename;
+    var crewName = requestData.crew_name || "Unknown";
+    var contentType = requestData.content_type || 'application/octet-stream';
+    var fileContent = requestData.file_content;
+    
+    Logger.log("📄 Certificate file: " + filename);
+    Logger.log("🚢 Ship: " + shipName);
+    Logger.log("👤 Crew: " + crewName);
+    
+    // Decode base64 file content
+    var decodedContent = Utilities.base64Decode(fileContent);
+    var blob = Utilities.newBlob(decodedContent, contentType, filename);
+    
+    Logger.log("✅ File decoded successfully, size: " + blob.getBytes().length + " bytes");
+    
+    // Get root folder
+    var rootFolder = DriveApp.getRootFolder();
+    
+    // Find or create ship folder
+    var shipFolder = null;
+    var shipFolders = rootFolder.getFoldersByName(shipName);
+    
+    if (shipFolders.hasNext()) {
+      shipFolder = shipFolders.next();
+      Logger.log("📁 Found existing ship folder: " + shipName);
+    } else {
+      shipFolder = rootFolder.createFolder(shipName);
+      Logger.log("📁 Created new ship folder: " + shipName);
+    }
+    
+    // Find or create "Crew Records" folder inside ship folder
+    var crewRecordsFolder = null;
+    var crewRecordsFolders = shipFolder.getFoldersByName("Crew Records");
+    
+    if (crewRecordsFolders.hasNext()) {
+      crewRecordsFolder = crewRecordsFolders.next();
+      Logger.log("📁 Found existing Crew Records folder");
+    } else {
+      crewRecordsFolder = shipFolder.createFolder("Crew Records");
+      Logger.log("📁 Created new Crew Records folder");
+    }
+    
+    // Upload certificate file to Crew Records folder
+    Logger.log("📤 Uploading certificate file to Crew Records folder...");
+    var uploadedFile = crewRecordsFolder.createFile(blob);
+    var fileId = uploadedFile.getId();
+    var fileUrl = uploadedFile.getUrl();
+    
+    Logger.log("✅ Certificate file uploaded successfully!");
+    Logger.log("   File ID: " + fileId);
+    Logger.log("   File URL: " + fileUrl);
+    
+    return createResponse(true, "Certificate file uploaded successfully to " + shipName + " > Crew Records", {
+      file_id: fileId,
+      file_url: fileUrl,
+      file_name: filename,
+      folder_path: shipName + " > Crew Records",
+      crew_name: crewName
+    });
+    
+  } catch (error) {
+    Logger.log("❌ Error uploading crew certificate: " + error.toString());
+    return createResponse(false, "Failed to upload crew certificate: " + error.toString(), null);
+  }
+
+}
