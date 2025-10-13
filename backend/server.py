@@ -12870,6 +12870,11 @@ async def create_crew_certificate_manual(
                         logger.error(f"❌ Could not parse {date_field}: '{cert_doc[date_field]}' - Error: {e}")
                         cert_doc[date_field] = None
         
+        # Auto-calculate status based on cert_expiry
+        if cert_doc.get('cert_expiry'):
+            cert_doc['status'] = calculate_certificate_status(cert_doc['cert_expiry'])
+            logger.info(f"🔄 Auto-calculated status: {cert_doc['status']}")
+        
         # Save to database
         await mongo_db.create("crew_certificates", cert_doc)
         
