@@ -13603,7 +13603,7 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 === EXAMPLE OUTPUT FOR COC ENDORSEMENT ===
 {{
   "cert_name": "Certificate of Competency (COC) - Endorsement",
-  "cert_no": "CT-585639/24-HCV",
+  "cert_no": "P0196554A",
   "issued_by": "Panama Maritime Authority",
   "issued_date": "2025-01-15",
   "expiry_date": "2028-02-27",
