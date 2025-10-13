@@ -13579,6 +13579,44 @@ def standardize_certificate_dates(data: dict) -> dict:
     return data
 
 
+def calculate_certificate_status(cert_expiry) -> str:
+    """
+    Calculate certificate status based on expiry date
+    Returns: "Valid", "Expiring Soon" (within 90 days), or "Expired"
+    """
+    if not cert_expiry:
+        return "Valid"  # Default if no expiry date
+    
+    try:
+        # Convert to datetime if string
+        if isinstance(cert_expiry, str):
+            if 'T' in cert_expiry:
+                expiry_date = datetime.fromisoformat(cert_expiry.replace('Z', '+00:00'))
+            else:
+                expiry_date = datetime.strptime(cert_expiry, '%Y-%m-%d').replace(tzinfo=timezone.utc)
+        elif isinstance(cert_expiry, datetime):
+            expiry_date = cert_expiry
+        else:
+            return "Valid"
+        
+        # Get current date in UTC
+        now = datetime.now(timezone.utc)
+        
+        # Calculate difference
+        days_until_expiry = (expiry_date - now).days
+        
+        if days_until_expiry < 0:
+            return "Expired"
+        elif days_until_expiry <= 90:  # Expiring within 90 days
+            return "Expiring Soon"
+        else:
+            return "Valid"
+            
+    except Exception as e:
+        logger.error(f"Error calculating certificate status: {e}")
+        return "Valid"  # Default on error
+
+
 
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
