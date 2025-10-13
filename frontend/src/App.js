@@ -8914,146 +8914,138 @@ const HomePage = () => {
                                   </div>
                                 </div>
 
-                                {/* Tab Selector */}
-                                <div className="border-b border-gray-200 bg-gray-50">
-                                  <div className="flex">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        handleResetCertFile();
-                                        setCertAnalysis(null);
-                                      }}
-                                      className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                                        !certFile 
-                                          ? 'border-blue-600 text-blue-600' 
-                                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                                      }`}
-                                    >
-                                      <span className="mr-2">✏️</span>
-                                      {language === 'vi' ? 'Nhập thủ công' : 'Manual Entry'}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        document.getElementById('cert-file-upload')?.click();
-                                      }}
-                                      className={`flex-1 py-3 px-4 text-sm font-medium border-b-2 transition-colors ${
-                                        certFile || isAnalyzingCert
-                                          ? 'border-blue-600 text-blue-600' 
-                                          : 'border-transparent text-gray-500 hover:text-gray-700'
-                                      }`}
-                                    >
-                                      <span className="mr-2">📄</span>
-                                      {language === 'vi' ? 'Từ file (AI)' : 'From File (AI)'}
-                                    </button>
-                                  </div>
-                                </div>
-
                                 {/* Modal Body */}
                                 <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
                                   
-                                  {/* File Upload Section */}
-                                  {!certFile && !certAnalysis ? (
-                                    <div className="mb-6">
-                                      <div 
-                                        className="border-2 border-dashed border-blue-300 rounded-lg p-8 hover:border-blue-400 cursor-pointer transition-colors bg-blue-50"
-                                        onClick={() => document.getElementById('cert-file-upload')?.click()}
-                                        onDragOver={(e) => {
-                                          e.preventDefault();
-                                          e.currentTarget.classList.add('border-blue-500', 'bg-blue-100');
-                                        }}
-                                        onDragLeave={(e) => {
-                                          e.currentTarget.classList.remove('border-blue-500', 'bg-blue-100');
-                                        }}
-                                        onDrop={(e) => {
-                                          e.preventDefault();
-                                          e.currentTarget.classList.remove('border-blue-500', 'bg-blue-100');
-                                          const file = e.dataTransfer.files[0];
-                                          if (file) {
-                                            handleCertFileUpload(file);
-                                          }
-                                        }}
-                                      >
-                                        <div className="text-center">
-                                          <div className="text-5xl mb-3">📄</div>
-                                          <p className="text-blue-700 font-medium mb-2">
-                                            {language === 'vi' 
-                                              ? 'Kéo thả file chứng chỉ hoặc click để chọn' 
-                                              : 'Drag & drop certificate file or click to select'}
-                                          </p>
-                                          <p className="text-blue-600 text-sm">
-                                            {language === 'vi' 
-                                              ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' 
-                                              : 'Supports: PDF, JPG, PNG (max 10MB)'}
-                                          </p>
-                                          <p className="text-blue-500 text-xs mt-2">
-                                            {language === 'vi' 
-                                              ? '🤖 AI sẽ tự động trích xuất thông tin từ file' 
-                                              : '🤖 AI will automatically extract information from file'}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      
-                                      <input
-                                        id="cert-file-upload"
-                                        type="file"
-                                        accept=".pdf,.jpg,.jpeg,.png"
-                                        onChange={(e) => {
-                                          const file = e.target.files[0];
-                                          if (file) {
-                                            handleCertFileUpload(file);
-                                          }
-                                        }}
-                                        className="hidden"
-                                        disabled={isAnalyzingCert}
-                                      />
-
-                                      {isAnalyzingCert && (
-                                        <div className="mt-4 flex items-center justify-center space-x-2 text-blue-600">
-                                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                          <span className="text-sm">
-                                            {language === 'vi' ? 'Đang phân tích file với AI...' : 'Analyzing file with AI...'}
-                                          </span>
-                                        </div>
-                                      )}
-
-                                      {certError && (
-                                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                          <p className="text-red-600 text-sm flex items-center">
-                                            <span className="mr-2">❌</span>
-                                            {certError}
-                                          </p>
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : certFile && (
-                                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                                      <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                          <p className="text-green-800 font-medium mb-1 flex items-center">
-                                            <span className="mr-2">✅</span>
-                                            {language === 'vi' ? 'File đã được phân tích' : 'File analyzed'}
-                                          </p>
-                                          <p className="text-green-700 text-sm">
-                                            <strong>{language === 'vi' ? 'File:' : 'File:'}</strong> {certFile.name}
-                                          </p>
-                                          <p className="text-green-700 text-sm">
-                                            <strong>{language === 'vi' ? 'Kích thước:' : 'Size:'}</strong> {(certFile.size / 1024 / 1024).toFixed(2)} MB
-                                          </p>
-                                        </div>
+                                  {/* Section 1: From Certificate File (AI Analysis) */}
+                                  <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <h4 className="font-semibold text-gray-800 flex items-center">
+                                        <span className="mr-2">📄</span>
+                                        {language === 'vi' ? 'Từ file chứng chỉ (AI phân tích)' : 'From Certificate File (AI Analysis)'}
+                                      </h4>
+                                      {certFile && (
                                         <button
                                           type="button"
                                           onClick={handleResetCertFile}
-                                          className="text-red-600 hover:text-red-700 font-medium text-sm"
+                                          className="text-sm text-red-600 hover:text-red-700 font-medium"
                                         >
-                                          {language === 'vi' ? 'Xóa' : 'Remove'}
+                                          {language === 'vi' ? 'Xóa file' : 'Remove file'}
                                         </button>
-                                      </div>
+                                      )}
                                     </div>
-                                  )}
+                                    
+                                    <p className="text-sm text-gray-600 mb-3">
+                                      {language === 'vi' 
+                                        ? 'Tải lên file chứng chỉ để tự động điền thông tin hoặc nhập thủ công bên dưới'
+                                        : 'Upload certificate file to automatically fill information or enter manually below'}
+                                    </p>
+                                    
+                                    {!certFile ? (
+                                      <div className="space-y-3">
+                                        {/* Drag & Drop Area */}
+                                        <div 
+                                          className="border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-400 cursor-pointer transition-colors"
+                                          onClick={() => document.getElementById('cert-file-upload')?.click()}
+                                          onDragOver={(e) => {
+                                            e.preventDefault();
+                                            e.currentTarget.classList.add('border-blue-400', 'bg-blue-100');
+                                          }}
+                                          onDragLeave={(e) => {
+                                            e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
+                                          }}
+                                          onDrop={(e) => {
+                                            e.preventDefault();
+                                            e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
+                                            const file = e.dataTransfer.files[0];
+                                            if (file) {
+                                              handleCertFileUpload(file);
+                                            }
+                                          }}
+                                        >
+                                          {/* Flex container with text on left and icon on right */}
+                                          <div className="flex items-center justify-between">
+                                            {/* Text content on left */}
+                                            <div className="flex-1">
+                                              <p className="text-blue-700 font-medium text-left">
+                                                {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
+                                              </p>
+                                              <p className="text-blue-600 text-sm text-left mt-1">
+                                                {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
+                                              </p>
+                                            </div>
+                                            
+                                            {/* Icon on right */}
+                                            <div className="flex-shrink-0 ml-4">
+                                              <div className="text-blue-500 text-4xl">📁</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        
+                                        <input
+                                          id="cert-file-upload"
+                                          type="file"
+                                          accept=".pdf,.jpg,.jpeg,.png"
+                                          onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                              handleCertFileUpload(file);
+                                            }
+                                          }}
+                                          className="hidden"
+                                          disabled={isAnalyzingCert}
+                                        />
+                                        
+                                        {isAnalyzingCert && (
+                                          <div className="flex items-center justify-center space-x-2 text-blue-600 py-4">
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                            <span className="text-sm">
+                                              {language === 'vi' ? 'Đang phân tích file với AI...' : 'Analyzing file with AI...'}
+                                            </span>
+                                          </div>
+                                        )}
+                                        
+                                        {certError && (
+                                          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                            <p className="text-red-600 text-sm flex items-center">
+                                              <span className="mr-2">❌</span>
+                                              {certError}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                                        <div className="flex items-start justify-between">
+                                          <div className="flex-1">
+                                            <p className="text-green-800 font-medium mb-1 flex items-center">
+                                              <span className="mr-2">✅</span>
+                                              {language === 'vi' ? 'File đã được phân tích' : 'File analyzed'}
+                                            </p>
+                                            <p className="text-green-700 text-sm">
+                                              <strong>{language === 'vi' ? 'File:' : 'File:'}</strong> {certFile.name}
+                                            </p>
+                                            <p className="text-green-700 text-sm">
+                                              <strong>{language === 'vi' ? 'Kích thước:' : 'Size:'}</strong> {(certFile.size / 1024 / 1024).toFixed(2)} MB
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
 
-                                  {/* Form */}
+                                  {/* Section 2: Certificate Information (Manual Entry) */}
                                   <form onSubmit={handleAddCrewCertificateSubmit} className="space-y-6">
+                                    <div className="border-t border-gray-200 pt-6">
+                                      <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
+                                        <span className="mr-2">✏️</span>
+                                        {language === 'vi' ? 'Thông tin chứng chỉ (Nhập thủ công)' : 'Certificate Information (Manual Entry)'}
+                                      </h4>
+                                      <p className="text-sm text-gray-600 mb-4">
+                                        {language === 'vi' 
+                                          ? 'Điền hoặc chỉnh sửa thông tin chứng chỉ được trích xuất từ file' 
+                                          : 'Fill in or edit the certificate information extracted from file'}
+                                      </p>
                                     {/* Crew Information */}
                                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                       <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
