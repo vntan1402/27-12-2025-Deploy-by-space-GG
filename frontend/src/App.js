@@ -5433,6 +5433,9 @@ const HomePage = () => {
   // ============================================
   
   const handleOpenAddCrewCertModal = () => {
+    console.log('🔵 handleOpenAddCrewCertModal called');
+    console.log('📋 selectedCrewForCertificates:', selectedCrewForCertificates);
+    
     // Pre-fill crew info if viewing specific crew's certificates
     if (selectedCrewForCertificates) {
       setNewCrewCertificate({
@@ -5449,6 +5452,8 @@ const HomePage = () => {
     } else {
       resetAddCrewCertForm();
     }
+    
+    console.log('✅ Setting showAddCrewCertModal to true');
     setShowAddCrewCertModal(true);
   };
 
