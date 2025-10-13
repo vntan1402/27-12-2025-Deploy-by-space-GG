@@ -11463,10 +11463,19 @@ async def analyze_passport_for_crew(
             
             if existing_crew:
                 logger.warning(f"❌ Duplicate passport found: {passport_number} (Crew: {existing_crew.get('full_name')})")
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Duplicate passport: {passport_number} already exists for crew member {existing_crew.get('full_name')}"
-                )
+                
+                # Return detailed duplicate information instead of throwing exception
+                return {
+                    "success": False,
+                    "duplicate": True,
+                    "error": "DUPLICATE_PASSPORT",
+                    "message": f"Duplicate passport: {passport_number} already exists for crew member {existing_crew.get('full_name')}",
+                    "existing_crew": {
+                        "full_name": existing_crew.get('full_name', 'Unknown'),
+                        "passport": existing_crew.get('passport', passport_number),
+                        "ship_sign_on": existing_crew.get('ship_sign_on', 'Unknown')
+                    }
+                }
             logger.info(f"✅ No duplicate found for passport: {passport_number}")
         else:
             logger.warning("⚠️ No passport number extracted from AI analysis")
