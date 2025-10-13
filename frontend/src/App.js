@@ -5552,6 +5552,123 @@ const HomePage = () => {
     }
   };
 
+  // ============================================
+  // CERTIFICATE FILE UPLOAD HANDLERS (Step 11)
+  // ============================================
+  
+  const handleCertFileUpload = async (file) => {
+    console.log('📄 Certificate file selected:', file.name);
+    
+    // Reset previous states
+    setCertFile(null);
+    setCertAnalysis(null);
+    setCertError('');
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setCertError(language === 'vi' 
+        ? 'File quá lớn! Vui lòng chọn file nhỏ hơn 10MB.' 
+        : 'File too large! Please select a file smaller than 10MB.'
+      );
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      setCertError(language === 'vi' 
+        ? 'Định dạng file không hỗ trợ! Vui lòng chọn PDF, JPG hoặc PNG.' 
+        : 'Unsupported file format! Please select PDF, JPG or PNG.'
+      );
+      return;
+    }
+
+    setCertFile(file);
+    setIsAnalyzingCert(true);
+
+    try {
+      console.log('🤖 Starting AI analysis for certificate...');
+
+      const formData = new FormData();
+      formData.append('cert_file', file);
+      formData.append('ship_id', selectedShip.id);
+      
+      // Add crew_id if available
+      if (selectedCrewForCertificates) {
+        formData.append('crew_id', selectedCrewForCertificates.id);
+      }
+
+      const response = await axios.post(
+        `${API}/crew-certificates/analyze-file`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 120000 // 2 minutes timeout
+        }
+      );
+
+      if (response.data && response.data.success) {
+        console.log('✅ Certificate analysis completed:', response.data);
+        
+        const analysis = response.data.analysis || {};
+        
+        // Pre-fill form with AI extracted data
+        setNewCrewCertificate(prev => ({
+          ...prev,
+          crew_name: response.data.crew_name || prev.crew_name,
+          passport: response.data.passport || prev.passport,
+          cert_name: analysis.cert_name || '',
+          cert_no: analysis.cert_no || '',
+          issued_by: analysis.issued_by || '',
+          issued_date: analysis.issued_date || '',
+          cert_expiry: analysis.expiry_date || analysis.cert_expiry || '',
+          note: analysis.note || '',
+          cert_file_id: analysis.cert_file_id || ''
+        }));
+
+        setCertAnalysis(response.data);
+        
+        toast.success(language === 'vi' 
+          ? '✅ Phân tích file thành công! Vui lòng kiểm tra và xác nhận thông tin.' 
+          : '✅ File analyzed successfully! Please review and confirm the information.'
+        );
+      } else {
+        throw new Error('Invalid response from server');
+      }
+
+    } catch (error) {
+      console.error('❌ Error analyzing certificate:', error);
+      
+      const errorMsg = error.response?.data?.detail || error.message;
+      setCertError(language === 'vi' 
+        ? `Lỗi phân tích file: ${errorMsg}` 
+        : `Error analyzing file: ${errorMsg}`
+      );
+      
+      toast.error(language === 'vi' 
+        ? `Không thể phân tích file: ${errorMsg}` 
+        : `Cannot analyze file: ${errorMsg}`
+      );
+    } finally {
+      setIsAnalyzingCert(false);
+    }
+  };
+
+  const handleResetCertFile = () => {
+    setCertFile(null);
+    setCertAnalysis(null);
+    setCertError('');
+    
+    // Reset file input
+    const fileInput = document.getElementById('cert-file-upload');
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
 
   // Reset add crew form
   const resetAddCrewForm = () => {
