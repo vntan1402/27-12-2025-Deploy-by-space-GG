@@ -5588,14 +5588,31 @@ const HomePage = () => {
 
     try {
       console.log('🤖 Starting AI analysis for certificate...');
+      console.log('📊 Context data:', {
+        selectedShip,
+        selectedCrewForCertificates,
+        hasShipId: !!selectedShip?.id,
+        hasCrewId: !!selectedCrewForCertificates?.id
+      });
+
+      // Validate ship is selected
+      if (!selectedShip || !selectedShip.id) {
+        throw new Error(language === 'vi' 
+          ? 'Vui lòng chọn tàu trước khi upload file' 
+          : 'Please select a ship before uploading file'
+        );
+      }
 
       const formData = new FormData();
       formData.append('cert_file', file);
       formData.append('ship_id', selectedShip.id);
       
+      console.log('✅ Ship ID:', selectedShip.id);
+      
       // Add crew_id if available
       if (selectedCrewForCertificates) {
         formData.append('crew_id', selectedCrewForCertificates.id);
+        console.log('✅ Crew ID:', selectedCrewForCertificates.id);
       }
 
       const response = await axios.post(
