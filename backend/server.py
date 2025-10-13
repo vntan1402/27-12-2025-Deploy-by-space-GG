@@ -13597,6 +13597,16 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   "note": ""
 }}
 
+=== EXAMPLE OUTPUT FOR COC ENDORSEMENT ===
+{{
+  "cert_name": "Certificate of Competency (COC) - Endorsement",
+  "cert_no": "CT-585639/24-HCV",
+  "issued_by": "Panama Maritime Authority",
+  "issued_date": "2025-01-15",
+  "expiry_date": "2028-02-27",
+  "note": "Original COC from Vietnam, MASTER-II/2, MANAGEMENT level"
+}}
+
 === DOCUMENT SUMMARY ===
 {summary_text}
 
