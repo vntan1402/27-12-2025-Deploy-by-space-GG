@@ -13,7 +13,7 @@ echo ""
 echo "Step 1: Authenticating..."
 LOGIN_RESPONSE=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin1@amcsc.com","password":"123456"}')
+  -d '{"username":"admin1","password":"123456"}')
 
 TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"token":"[^"]*' | sed 's/"token":"//')
 
