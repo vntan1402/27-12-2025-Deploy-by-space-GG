@@ -5427,6 +5427,116 @@ const HomePage = () => {
     setCertificateSort({ column: null, direction: 'asc' });
   };
 
+
+  // ============================================
+  // ADD CREW CERTIFICATE HANDLERS (Step 10)
+  // ============================================
+  
+  const handleOpenAddCertModal = () => {
+    // Pre-fill crew info if viewing specific crew's certificates
+    if (selectedCrewForCertificates) {
+      setNewCertificate({
+        crew_id: selectedCrewForCertificates.id,
+        crew_name: selectedCrewForCertificates.full_name,
+        passport: selectedCrewForCertificates.passport,
+        cert_name: '',
+        cert_no: '',
+        issued_by: '',
+        issued_date: '',
+        cert_expiry: '',
+        note: ''
+      });
+    } else {
+      resetAddCertForm();
+    }
+    setShowAddCertModal(true);
+  };
+
+  const resetAddCertForm = () => {
+    setNewCertificate({
+      crew_id: '',
+      crew_name: '',
+      passport: '',
+      cert_name: '',
+      cert_no: '',
+      issued_by: '',
+      issued_date: '',
+      cert_expiry: '',
+      note: ''
+    });
+  };
+
+  const handleCloseAddCertModal = () => {
+    setShowAddCertModal(false);
+    resetAddCertForm();
+  };
+
+  const handleAddCertificateSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+      return;
+    }
+
+    // Validation
+    if (!newCertificate.crew_name || !newCertificate.passport || !newCertificate.cert_name || !newCertificate.cert_no) {
+      toast.error(language === 'vi' 
+        ? 'Vui lòng điền đầy đủ thông tin bắt buộc' 
+        : 'Please fill in all required fields'
+      );
+      return;
+    }
+
+    setIsSubmittingCert(true);
+
+    try {
+      console.log('📤 Submitting new certificate:', newCertificate);
+
+      const response = await axios.post(
+        `${API}/crew-certificates/manual?ship_id=${selectedShip.id}`,
+        newCertificate,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data) {
+        console.log('✅ Certificate created successfully:', response.data);
+        
+        toast.success(language === 'vi' 
+          ? '✅ Đã thêm chứng chỉ thành công!' 
+          : '✅ Certificate added successfully!'
+        );
+
+        // Close modal and reset form
+        handleCloseAddCertModal();
+
+        // Refresh certificates list
+        if (selectedCrewForCertificates) {
+          await fetchCrewCertificates(selectedCrewForCertificates.id);
+        } else {
+          await fetchCrewCertificates();
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ Error adding certificate:', error);
+      
+      const errorMsg = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' 
+        ? `Lỗi khi thêm chứng chỉ: ${errorMsg}` 
+        : `Error adding certificate: ${errorMsg}`
+      );
+    } finally {
+      setIsSubmittingCert(false);
+    }
+  };
+
+
   // Reset add crew form
   const resetAddCrewForm = () => {
     setNewCrewData({
