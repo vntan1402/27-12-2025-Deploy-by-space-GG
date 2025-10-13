@@ -1,52 +1,25 @@
 #!/usr/bin/env python3
 """
-Crew Certificates Backend Endpoint Testing
-Testing crew certificates endpoints that are returning 404 error.
+Crew Certificates Backend Test - Focus on /api/crew-certificates/analyze-file endpoint
 
 REVIEW REQUEST REQUIREMENTS:
-Test crew certificates backend endpoint that is returning 404 error.
+Test the crew certificates backend functionality specifically the `/api/crew-certificates/analyze-file` endpoint.
 
-**Issue:** Frontend uploading file to `/api/crew-certificates/analyze-file` but getting 404 Not Found.
+Context:
+- The endpoint was returning 404 errors but should now be fixed
+- The endpoint expects multipart/form-data with: cert_file (file), ship_id (string, required), crew_id (string, optional)
+- User credentials: admin1 / admin123
+- Test with ship_id from the user's company
 
-**What to test:**
+Test Plan:
+1. Login with admin1/admin123
+2. Get list of ships for the user's company
+3. Test POST /api/crew-certificates/analyze-file with a sample file, valid ship_id, and optional crew_id
+4. Verify the endpoint returns 200 status (not 404)
+5. Check if the response includes certificate analysis data
 
-1. **Check if endpoint exists:**
-   - Test: `POST /api/crew-certificates/analyze-file`
-   - With valid token
-   - With multipart/form-data
-   - Check if endpoint is registered in FastAPI
-
-2. **Test other crew-certificate endpoints:**
-   - `POST /api/crew-certificates/manual?ship_id=crew-cert-tracker`
-   - `GET /api/crew-certificates/7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7`
-   
-3. **Check backend logs:**
-   - Look for endpoint registration logs
-   - Check if api_router is properly configured
-   
-4. **Test with sample request:**
-   ```
-   Login: admin1/123456
-   Ship ID: 7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7
-   Crew ID: d4e75288-986b-43ea-8be5-2a9b987c3515
-   ```
-
-5. **If 404 persists:**
-   - Check if endpoint path has typo
-   - Verify @api_router decorator
-   - Check if endpoint function is async
-   - Verify FastAPI app includes api_router
-
-**Expected:**
-- Manual endpoint should work (200 OK)
-- GET endpoint should work (200 OK) 
-- analyze-file endpoint should accept multipart/form-data (200 OK or proper error, NOT 404)
-
-**Files to check:**
-- /app/backend/server.py (lines 12900-13000 for analyze-file endpoint)
-- Backend logs at /var/log/supervisor/backend.err.log
-
-Please test and identify why analyze-file endpoint returns 404.
+Note: The endpoint may fail with other errors (like AI configuration issues) but should NOT return 404. 
+We're specifically testing that the endpoint is properly registered and accessible.
 """
 
 import requests
