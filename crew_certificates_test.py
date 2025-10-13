@@ -73,14 +73,18 @@ try:
         raise Exception("Internal URL not working")
 except:
     # Fallback to external URL from frontend/.env
-    with open('/app/frontend/.env', 'r') as f:
-        for line in f:
-            if line.startswith('REACT_APP_BACKEND_URL='):
-                external_url = line.split('=')[1].strip()
-                BACKEND_URL = external_url + '/api'
-                print(f"Using external backend URL: {BACKEND_URL}")
-                break
-    else:
+    try:
+        with open('/app/frontend/.env', 'r') as f:
+            for line in f:
+                if line.startswith('REACT_APP_BACKEND_URL='):
+                    external_url = line.split('=')[1].strip()
+                    BACKEND_URL = external_url + '/api'
+                    print(f"Using external backend URL: {BACKEND_URL}")
+                    break
+            else:
+                BACKEND_URL = 'https://vessel-crew-system.preview.emergentagent.com/api'
+                print(f"Using fallback backend URL: {BACKEND_URL}")
+    except:
         BACKEND_URL = 'https://vessel-crew-system.preview.emergentagent.com/api'
         print(f"Using fallback backend URL: {BACKEND_URL}")
 
