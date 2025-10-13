@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Modal State</title>
+</head>
+<body>
+    <h1>Test Instructions</h1>
+    <ol>
+        <li>Login: admin1 / 123456</li>
+        <li>Click "Crew Records"</li>
+        <li>Select ship "BROTHER 36"</li>
+        <li>Double-click on crew name (HỒ SỸ CHƯƠNG)</li>
+        <li>Click "Add Crew Cert" button</li>
+        <li>Open browser console (F12)</li>
+        <li>Look for these logs:
+            <ul>
+                <li>🔵 handleOpenAddCrewCertModal called</li>
+                <li>📋 selectedCrewForCertificates: {...}</li>
+                <li>✅ Setting showAddCrewCertModal to true</li>
+                <li>🔍 showAddCrewCertModal: true</li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h2>If modal doesn't appear:</h2>
+    <ul>
+        <li>Check if you see the console logs above</li>
+        <li>Check if showAddCrewCertModal is true</li>
+        <li>Check for any JavaScript errors in console</li>
+        <li>Check if user role is 'manager' or 'admin'</li>
+    </ul>
+</body>
+</html>
