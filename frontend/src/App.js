@@ -5455,6 +5455,11 @@ const HomePage = () => {
     
     console.log('✅ Setting showAddCrewCertModal to true');
     setShowAddCrewCertModal(true);
+    
+    // Force check after state update
+    setTimeout(() => {
+      console.log('⏰ State after 100ms:', showAddCrewCertModal);
+    }, 100);
   };
 
   const resetAddCrewCertForm = () => {
