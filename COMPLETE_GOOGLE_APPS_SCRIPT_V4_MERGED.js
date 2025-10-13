@@ -37,6 +37,8 @@ function handleRequest(e) {
         return handlePassportUpload(requestData);
       case "upload_file_with_folder_creation":
         return handleUploadFixed(requestData);
+      case "upload_crew_certificate":
+        return handleCrewCertificateUpload(requestData);
       
       // File management actions
       case "rename_file":
