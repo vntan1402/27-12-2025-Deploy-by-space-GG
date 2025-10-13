@@ -9901,6 +9901,7 @@ const HomePage = () => {
                   onClick={() => {
                     setShowProcessingResultsModal(false);
                     setProcessingResults([]);
+                    processingResultsDrag.resetPosition();
                   }}
                   className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
                 >
