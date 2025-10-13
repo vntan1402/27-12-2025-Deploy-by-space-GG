@@ -65,11 +65,12 @@ function handleRequest(e) {
         return debugFolderStructure(requestData);
       
       default:
-        return createResponse(true, "Complete Ship Management Apps Script v4.2 MERGED", {
-          version: "4.2-complete-merged",
+        return createResponse(true, "Complete Ship Management Apps Script v4.3 MERGED", {
+          version: "4.3-complete-merged-crew-certificates",
           supported_actions: [
             "passport_upload",
             "upload_file_with_folder_creation",
+            "upload_crew_certificate",
             "rename_file",
             "move_file", 
             "delete_file",
