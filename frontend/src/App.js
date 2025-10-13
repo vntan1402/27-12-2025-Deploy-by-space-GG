@@ -987,8 +987,8 @@ const HomePage = () => {
   // ============================================
   // ADD CREW CERTIFICATE MODAL STATES (Step 10)
   // ============================================
-  const [showAddCertModal, setShowAddCertModal] = useState(false);
-  const [newCertificate, setNewCertificate] = useState({
+  const [showAddCrewCertModal, setShowAddCrewCertModal] = useState(false);
+  const [newCrewCertificate, setNewCrewCertificate] = useState({
     crew_id: '',
     crew_name: '',
     passport: '',
