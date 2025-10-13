@@ -15,7 +15,7 @@ LOGIN_RESPONSE=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"admin1","password":"123456"}')
 
-TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"token":"[^"]*' | sed 's/"token":"//')
+TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"access_token":"[^"]*' | sed 's/"access_token":"//')
 
 if [ -z "$TOKEN" ]; then
   echo "❌ Login failed!"
