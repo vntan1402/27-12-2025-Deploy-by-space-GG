@@ -5490,8 +5490,14 @@ const HomePage = () => {
   const handleAddCrewCertificateSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedShip) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+    // Try to get ship_id from multiple sources
+    let shipId = selectedShip?.id || selectedCrewForCertificates?.ship_id || companyShips?.[0]?.id;
+    
+    if (!shipId) {
+      toast.error(language === 'vi' 
+        ? 'Không tìm thấy thông tin tàu. Vui lòng quay lại và chọn tàu.' 
+        : 'Ship information not found. Please go back and select a ship.'
+      );
       return;
     }
 
@@ -5508,9 +5514,10 @@ const HomePage = () => {
 
     try {
       console.log('📤 Submitting new crew certificate:', newCrewCertificate);
+      console.log('🚢 Using ship ID:', shipId);
 
       const response = await axios.post(
-        `${API}/crew-certificates/manual?ship_id=${selectedShip.id}`,
+        `${API}/crew-certificates/manual?ship_id=${shipId}`,
         newCrewCertificate,
         {
           headers: {
