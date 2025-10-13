@@ -4884,8 +4884,11 @@ const HomePage = () => {
         
       } else if (response.data.duplicate || response.data.error === 'DUPLICATE_PASSPORT') {
         // Handle duplicate passport
+        console.log('🔍 Duplicate detected, response data:', response.data);
         const existingCrew = response.data.existing_crew || {};
-        return {
+        console.log('🔍 Existing crew info:', existingCrew);
+        
+        const result = {
           filename: file.name,
           success: false,
           recordCreated: false,
@@ -4895,10 +4898,13 @@ const HomePage = () => {
           isDuplicate: true,
           duplicateWith: existingCrew.full_name || 'Unknown',
           duplicateShip: existingCrew.ship_sign_on || 'Unknown',
-          passport: response.data.existing_crew?.passport || 'Unknown',
+          passport: existingCrew.passport || 'Unknown',
           error: response.data.message || 'Duplicate passport',
           index: current
         };
+        
+        console.log('🔍 Returning duplicate result:', result);
+        return result;
       } else {
         throw new Error(response.data.message || 'Analysis failed');
       }
