@@ -13553,11 +13553,13 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 - DO NOT use the capacity/rank (e.g., "Master", "Captain") as the certificate name
 
 **cert_no**: 
-- PRIORITY 1: Look for "CT No." or "CT Number" or "CT-XXXXXX" format (e.g., CT-585639/24-HCV)
+- PRIORITY 1: Look for "CT No." or "CT Number" or "CT-XXXXXX" format (e.g., CT-585639/24-HCV, CT-585639/24 - HCV)
+- Extract the COMPLETE number including ALL parts after "CT" (including suffixes like "-HCV", "- HCV", "/HCV")
 - PRIORITY 2: Look for "Certificate No." or "Certificate Number"
 - PRIORITY 3: Look for "Endorsement No." or "Endorsement Number"
 - DO NOT use "Document No." or "Document Number" as cert_no
 - DO NOT use "Seafarers ID" or "ID Number" as cert_no
+- DO NOT truncate the certificate number - extract it in full
 
 **issued_by**: 
 - Extract the main issuing authority name (e.g., "Panama Maritime Authority")
