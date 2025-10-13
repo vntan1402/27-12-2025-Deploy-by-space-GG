@@ -7721,18 +7721,21 @@ const HomePage = () => {
                   {/* Crew Records Section */}
                   {selectedCategory === 'crew' ? (
                     <div className="space-y-6">
-                      {/* Header with Add Crew Button */}
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                            {language === 'vi' ? 'Danh sách thuyền viên công ty' : 'Company Crew List'}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            {language === 'vi' 
-                              ? `Quản lý thuyền viên cho ${selectedShip ? selectedShip.name : 'tàu được chọn'}` 
-                              : `Manage crew members for ${selectedShip ? selectedShip.name : 'selected ship'}`}
-                          </p>
-                        </div>
+                      {!showCertificatesView ? (
+                        /* Crew List View */
+                        <>
+                          {/* Header with Add Crew Button */}
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                                {language === 'vi' ? 'Danh sách thuyền viên công ty' : 'Company Crew List'}
+                              </h3>
+                              <p className="text-sm text-gray-600">
+                                {language === 'vi' 
+                                  ? `Quản lý thuyền viên cho ${selectedShip ? selectedShip.name : 'tàu được chọn'}` 
+                                  : `Manage crew members for ${selectedShip ? selectedShip.name : 'selected ship'}`}
+                              </p>
+                            </div>
                         {/* Action Buttons */}
                         <div className="flex items-center space-x-3">
                           {/* Only show Add Crew button for manager and admin roles */}
