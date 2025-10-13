@@ -13129,6 +13129,11 @@ async def get_crew_certificates(
         # Get certificates from database
         certificates = await mongo_db.find_all("crew_certificates", query_filter)
         
+        # Recalculate status for each certificate
+        for cert in certificates:
+            if cert.get('cert_expiry'):
+                cert['status'] = calculate_certificate_status(cert['cert_expiry'])
+        
         logger.info(f"📋 Retrieved {len(certificates)} certificates for ship {ship_id}")
         
         return [CrewCertificateResponse(**cert) for cert in certificates]
