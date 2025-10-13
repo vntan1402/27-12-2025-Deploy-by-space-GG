@@ -13571,11 +13571,12 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 
 **note**: 
 - Include important details such as:
-  * Original certificate country (e.g., "Original COC from Vietnam")
+  * Original certificate country (MUST include if mentioned, e.g., "Original COC from Vietnam", "Original certificate issued by Vietnam")
   * Capacity/Rank (e.g., "MASTER-II/2", "Captain - II/2")
   * Level (e.g., "MANAGEMENT level", "OPERATIONAL level")
   * Functions covered (e.g., "Navigation, Cargo Handling, Ship Operation Control")
   * Any limitations or special conditions
+- IMPORTANT: If the document mentions recognition of a certificate from another country (e.g., Vietnam, Philippines), ALWAYS include "Original COC from [Country]" at the beginning of the note
 - Combine all relevant information into a concise note
 
 === FIELDS TO EXTRACT ===
