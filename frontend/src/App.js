@@ -9879,8 +9879,20 @@ const HomePage = () => {
       {/* Processing Results Modal */}
       {showProcessingResultsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-200">
+          <div 
+            ref={processingResultsDrag.modalRef}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+            style={{
+              transform: `translate(${processingResultsDrag.position.x}px, ${processingResultsDrag.position.y}px)`,
+              cursor: processingResultsDrag.isDragging ? 'grabbing' : 'default',
+              transition: processingResultsDrag.isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+          >
+            <div 
+              className="p-6 border-b border-gray-200"
+              onMouseDown={processingResultsDrag.handleMouseDown}
+              style={{ cursor: 'grab' }}
+            >
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-gray-800">
                   {language === 'vi' ? 'Kết quả xử lý Passport' : 'Passport Processing Results'}
