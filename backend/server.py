@@ -657,6 +657,7 @@ class CrewCertificateBase(BaseModel):
     issued_by: Optional[str] = None
     issued_date: Optional[Union[str, datetime]] = None
     cert_expiry: Optional[Union[str, datetime]] = None
+    status: Optional[str] = "Valid"  # Valid, Expiring Soon, Expired
     note: Optional[str] = None
     # File reference
     cert_file_id: Optional[str] = None
