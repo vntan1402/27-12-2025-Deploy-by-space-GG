@@ -9215,6 +9215,7 @@ const HomePage = () => {
                                           </>
                                         )}
                                       </button>
+                                      </div>
                                     </div>
                                   </form>
                                 </div>
