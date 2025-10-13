@@ -7821,20 +7821,40 @@ const HomePage = () => {
                                   {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
                                 </th>
                                 */}
-                                <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('status')}
+                                  className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Trạng thái' : 'Status'}
+                                  {getCrewSortIcon('status')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('ship_sign_on')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                                  {getCrewSortIcon('ship_sign_on')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('place_sign_on')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
+                                  {getCrewSortIcon('place_sign_on')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
+                                <th 
+                                  onClick={() => handleCrewSort('date_sign_on')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
+                                  {getCrewSortIcon('date_sign_on')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider">
+                                <th 
+                                  onClick={() => handleCrewSort('date_sign_off')}
+                                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider cursor-pointer hover:bg-gray-100"
+                                >
                                   {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
+                                  {getCrewSortIcon('date_sign_off')}
                                 </th>
                               </tr>
                             </thead>
