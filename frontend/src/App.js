@@ -954,6 +954,36 @@ const HomePage = () => {
   const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
   const [crewList, setCrewList] = useState([]);
 
+  // ============================================
+  // CREW CERTIFICATES STATES (Steps 6-7)
+  // ============================================
+  const [showCertificatesView, setShowCertificatesView] = useState(false);
+  const [selectedCrewForCertificates, setSelectedCrewForCertificates] = useState(null);
+  const [crewCertificates, setCrewCertificates] = useState([]);
+  const [certificatesSearch, setCertificatesSearch] = useState('');
+  const [certificateSort, setCertificateSort] = useState({
+    column: null,
+    direction: 'asc'
+  });
+
+  const handleCertificateSort = (column) => {
+    setCertificateSort(prev => ({
+      column: column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getCertificateSortIcon = (column) => {
+    if (certificateSort.column !== column) {
+      return null;
+    }
+    return (
+      <span className="ml-1 text-blue-600 text-sm font-bold">
+        {certificateSort.direction === 'asc' ? '▲' : '▼'}
+      </span>
+    );
+  };
+
   // Crew List Filters
   const [crewFilters, setCrewFilters] = useState({
     ship_sign_on: 'All',
