@@ -8511,6 +8511,13 @@ const HomePage = () => {
                                       {language === 'vi' ? 'Ngày hết hạn' : 'Crew Cert Expiry'}
                                       {getCertificateSortIcon('cert_expiry')}
                                     </th>
+                                    <th 
+                                      onClick={() => handleCertificateSort('status')}
+                                      className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                                    >
+                                      {language === 'vi' ? 'Trạng thái' : 'Status'}
+                                      {getCertificateSortIcon('status')}
+                                    </th>
                                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                       {language === 'vi' ? 'Ghi chú' : 'Note'}
                                     </th>
