@@ -12999,7 +12999,8 @@ async def analyze_certificate_file_for_crew(
         try:
             # Call Google Apps Script to analyze certificate with Document AI
             apps_script_payload = {
-                "action": "analyze_passport_document_ai",  # Reuse same action
+                "action": "analyze_passport_document_ai",
+                "document_type": "certificate",  # Specify this is a certificate, not a passport
                 "file_content": base64.b64encode(file_content).decode('utf-8'),
                 "filename": filename,
                 "content_type": cert_file.content_type or 'application/octet-stream',
