@@ -644,6 +644,45 @@ class CrewResponse(CrewBase):
     updated_at: Optional[datetime] = None
     updated_by: Optional[str] = None
 
+# ============================================
+# CREW CERTIFICATES MODELS
+# ============================================
+class CrewCertificateBase(BaseModel):
+    crew_id: str
+    crew_name: str
+    passport: str
+    cert_name: str
+    cert_no: str
+    issued_by: Optional[str] = None
+    issued_date: Optional[Union[str, datetime]] = None
+    cert_expiry: Optional[Union[str, datetime]] = None
+    note: Optional[str] = None
+    # File reference
+    cert_file_id: Optional[str] = None
+
+class CrewCertificateCreate(CrewCertificateBase):
+    pass
+
+class CrewCertificateUpdate(BaseModel):
+    crew_name: Optional[str] = None
+    passport: Optional[str] = None
+    cert_name: Optional[str] = None
+    cert_no: Optional[str] = None
+    issued_by: Optional[str] = None
+    issued_date: Optional[Union[str, datetime]] = None
+    cert_expiry: Optional[Union[str, datetime]] = None
+    note: Optional[str] = None
+    cert_file_id: Optional[str] = None
+
+class CrewCertificateResponse(CrewCertificateBase):
+    id: str
+    ship_id: str
+    company_id: str
+    created_at: datetime
+    created_by: str
+    updated_at: Optional[datetime] = None
+    updated_by: Optional[str] = None
+
 class CompanyResponse(CompanyBase):
     id: str
     created_at: datetime
