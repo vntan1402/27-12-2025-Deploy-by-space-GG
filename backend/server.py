@@ -12908,7 +12908,7 @@ async def create_crew_certificate_manual(
 async def analyze_certificate_file_for_crew(
     cert_file: UploadFile = File(...),
     ship_id: str = Form(...),
-    crew_id: str = Form(...),
+    crew_id: str = Form(None),
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
@@ -12947,17 +12947,21 @@ async def analyze_certificate_file_for_crew(
         
         ship_name = ship.get("name", "Unknown Ship")
         
-        # Get crew information
-        crew = await mongo_db.find_one("crew_members", {
-            "id": crew_id,
-            "company_id": company_uuid
-        })
+        # Get crew information (optional)
+        crew_name = "Unknown"
+        passport = "Unknown"
         
-        if not crew:
-            raise HTTPException(status_code=404, detail="Crew member not found")
-        
-        crew_name = crew.get("full_name", "Unknown")
-        passport = crew.get("passport", "Unknown")
+        if crew_id:
+            crew = await mongo_db.find_one("crew_members", {
+                "id": crew_id,
+                "company_id": company_uuid
+            })
+            
+            if crew:
+                crew_name = crew.get("full_name", "Unknown")
+                passport = crew.get("passport", "Unknown")
+            else:
+                logger.warning(f"⚠️ Crew member with id {crew_id} not found, continuing with default values")
             
         # Get AI configuration for Document AI
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
