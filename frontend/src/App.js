@@ -16362,6 +16362,7 @@ const AddRecordModal = ({
     } else {
       // Cancel - just close modal
       setShowShipConfirmModal(false);
+      shipConfirmDrag.resetPosition();
       toast.info(
         language === 'vi' 
           ? 'Đã hủy thêm certificate' 
