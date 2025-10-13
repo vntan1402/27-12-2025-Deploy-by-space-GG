@@ -1221,19 +1221,7 @@ const HomePage = () => {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   
-  // Certificate table sorting state
-  const [certificateSort, setCertificateSort] = useState({
-    column: null,
-    direction: 'asc' // 'asc' or 'desc'
-  });
-  
-  // Certificate table sorting functions
-  const handleCertificateSort = (column) => {
-    setCertificateSort(prev => ({
-      column: column,
-      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
+  // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
 
   const getSortIcon = (column) => {
     if (certificateSort.column !== column) {
