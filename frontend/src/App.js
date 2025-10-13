@@ -1108,6 +1108,80 @@ const HomePage = () => {
 
     return true;
   });
+
+  // Apply sorting to filtered crew data
+  const sortedCrewData = (() => {
+    if (!crewSort.column) return filteredCrewData;
+    
+    return [...filteredCrewData].sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (crewSort.column) {
+        case 'full_name':
+          aValue = (a.full_name || '').toLowerCase();
+          bValue = (b.full_name || '').toLowerCase();
+          break;
+        case 'rank':
+          aValue = (a.rank || '').toLowerCase();
+          bValue = (b.rank || '').toLowerCase();
+          break;
+        case 'sex':
+          aValue = (a.sex || '').toLowerCase();
+          bValue = (b.sex || '').toLowerCase();
+          break;
+        case 'date_of_birth':
+          aValue = a.date_of_birth ? new Date(a.date_of_birth) : new Date(0);
+          bValue = b.date_of_birth ? new Date(b.date_of_birth) : new Date(0);
+          break;
+        case 'place_of_birth':
+          aValue = (a.place_of_birth || '').toLowerCase();
+          bValue = (b.place_of_birth || '').toLowerCase();
+          break;
+        case 'passport':
+          aValue = (a.passport || '').toLowerCase();
+          bValue = (b.passport || '').toLowerCase();
+          break;
+        case 'nationality':
+          aValue = (a.nationality || '').toLowerCase();
+          bValue = (b.nationality || '').toLowerCase();
+          break;
+        case 'passport_expiry_date':
+          aValue = a.passport_expiry_date ? new Date(a.passport_expiry_date) : new Date(0);
+          bValue = b.passport_expiry_date ? new Date(b.passport_expiry_date) : new Date(0);
+          break;
+        case 'seamen_book':
+          aValue = (a.seamen_book || '').toLowerCase();
+          bValue = (b.seamen_book || '').toLowerCase();
+          break;
+        case 'status':
+          aValue = (a.status || '').toLowerCase();
+          bValue = (b.status || '').toLowerCase();
+          break;
+        case 'ship_sign_on':
+          aValue = (a.ship_sign_on || '').toLowerCase();
+          bValue = (b.ship_sign_on || '').toLowerCase();
+          break;
+        case 'place_sign_on':
+          aValue = (a.place_sign_on || '').toLowerCase();
+          bValue = (b.place_sign_on || '').toLowerCase();
+          break;
+        case 'date_sign_on':
+          aValue = a.date_sign_on ? new Date(a.date_sign_on) : new Date(0);
+          bValue = b.date_sign_on ? new Date(b.date_sign_on) : new Date(0);
+          break;
+        case 'date_sign_off':
+          aValue = a.date_sign_off ? new Date(a.date_sign_off) : new Date(0);
+          bValue = b.date_sign_off ? new Date(b.date_sign_off) : new Date(0);
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aValue < bValue) return crewSort.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return crewSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  })();
   
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
