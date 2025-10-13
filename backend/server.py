@@ -13570,14 +13570,15 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 - Common formats: DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY
 
 **note**: 
+- CRITICAL: Look for phrases like "issued by the Government of [COUNTRY]" or "certificate issued by [COUNTRY]" or "original certificate from [COUNTRY]"
+- If you find such phrases, START the note with "Original COC from [COUNTRY]" (e.g., "Original COC from Vietnam")
 - Include important details such as:
-  * Original certificate country (MUST include if mentioned, e.g., "Original COC from Vietnam", "Original certificate issued by Vietnam")
+  * Original certificate country (MUST be FIRST if found)
   * Capacity/Rank (e.g., "MASTER-II/2", "Captain - II/2")
   * Level (e.g., "MANAGEMENT level", "OPERATIONAL level")
   * Functions covered (e.g., "Navigation, Cargo Handling, Ship Operation Control")
   * Any limitations or special conditions
-- IMPORTANT: If the document mentions recognition of a certificate from another country (e.g., Vietnam, Philippines), ALWAYS include "Original COC from [Country]" at the beginning of the note
-- Combine all relevant information into a concise note
+- Example format: "Original COC from Vietnam, MASTER-II/2, MANAGEMENT level, Navigation, Cargo Handling"
 
 === FIELDS TO EXTRACT ===
 {{
