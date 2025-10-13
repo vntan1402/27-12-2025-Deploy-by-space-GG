@@ -44,9 +44,9 @@ except:
                     BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                     break
             else:
-                BACKEND_URL = 'https://passport-upload.preview.emergentagent.com/api'
+                BACKEND_URL = 'https://vessel-crew-system.preview.emergentagent.com/api'
     except:
-        BACKEND_URL = 'https://passport-upload.preview.emergentagent.com/api'
+        BACKEND_URL = 'https://vessel-crew-system.preview.emergentagent.com/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
 class PythonErrorFixTester:
