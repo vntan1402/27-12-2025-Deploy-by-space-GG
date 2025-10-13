@@ -9243,8 +9243,20 @@ const HomePage = () => {
       {/* Add Crew Modal */}
       {showAddCrewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-6 border-b border-gray-200">
+          <div 
+            ref={addCrewDrag.modalRef}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+            style={{
+              transform: `translate(${addCrewDrag.position.x}px, ${addCrewDrag.position.y}px)`,
+              cursor: addCrewDrag.isDragging ? 'grabbing' : 'default',
+              transition: addCrewDrag.isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+          >
+            <div 
+              className="p-6 border-b border-gray-200"
+              onMouseDown={addCrewDrag.handleMouseDown}
+              style={{ cursor: 'grab' }}
+            >
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-gray-800">
                   {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
@@ -9252,6 +9264,7 @@ const HomePage = () => {
                 <button
                   onClick={() => {
                     setShowAddCrewModal(false);
+                    addCrewDrag.resetPosition();
                     // Reset all states
                     setPassportFile(null);
                     setPassportAnalysis(null);
