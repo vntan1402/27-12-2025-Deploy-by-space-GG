@@ -12800,12 +12800,13 @@ async def rename_crew_files(
 
 @api_router.post("/crew-certificates/manual", response_model=CrewCertificateResponse)
 async def create_crew_certificate_manual(
+    ship_id: str,
     cert_data: CrewCertificateCreate,
-    ship_id: str = Form(...),
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
     Step 2: Create a new crew certificate manually (without file upload)
+    ship_id is now a query parameter
     """
     try:
         logger.info(f"📋 Creating crew certificate manually for crew: {cert_data.crew_name}")
