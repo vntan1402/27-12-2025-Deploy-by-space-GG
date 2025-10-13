@@ -8604,7 +8604,7 @@ const HomePage = () => {
                                       ))
                                   ) : (
                                     <tr>
-                                      <td colSpan="9" className="px-6 py-12 text-center">
+                                      <td colSpan="10" className="px-6 py-12 text-center">
                                         <div className="text-gray-400 text-lg mb-2">📜</div>
                                         <p className="text-gray-500">
                                           {language === 'vi' ? 'Chưa có chứng chỉ nào' : 'No certificates found'}
