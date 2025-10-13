@@ -5432,10 +5432,10 @@ const HomePage = () => {
   // ADD CREW CERTIFICATE HANDLERS (Step 10)
   // ============================================
   
-  const handleOpenAddCertModal = () => {
+  const handleOpenAddCrewCertModal = () => {
     // Pre-fill crew info if viewing specific crew's certificates
     if (selectedCrewForCertificates) {
-      setNewCertificate({
+      setNewCrewCertificate({
         crew_id: selectedCrewForCertificates.id,
         crew_name: selectedCrewForCertificates.full_name,
         passport: selectedCrewForCertificates.passport,
@@ -5447,13 +5447,13 @@ const HomePage = () => {
         note: ''
       });
     } else {
-      resetAddCertForm();
+      resetAddCrewCertForm();
     }
-    setShowAddCertModal(true);
+    setShowAddCrewCertModal(true);
   };
 
-  const resetAddCertForm = () => {
-    setNewCertificate({
+  const resetAddCrewCertForm = () => {
+    setNewCrewCertificate({
       crew_id: '',
       crew_name: '',
       passport: '',
@@ -5466,12 +5466,12 @@ const HomePage = () => {
     });
   };
 
-  const handleCloseAddCertModal = () => {
-    setShowAddCertModal(false);
-    resetAddCertForm();
+  const handleCloseAddCrewCertModal = () => {
+    setShowAddCrewCertModal(false);
+    resetAddCrewCertForm();
   };
 
-  const handleAddCertificateSubmit = async (e) => {
+  const handleAddCrewCertificateSubmit = async (e) => {
     e.preventDefault();
     
     if (!selectedShip) {
@@ -5480,7 +5480,7 @@ const HomePage = () => {
     }
 
     // Validation
-    if (!newCertificate.crew_name || !newCertificate.passport || !newCertificate.cert_name || !newCertificate.cert_no) {
+    if (!newCrewCertificate.crew_name || !newCrewCertificate.passport || !newCrewCertificate.cert_name || !newCrewCertificate.cert_no) {
       toast.error(language === 'vi' 
         ? 'Vui lòng điền đầy đủ thông tin bắt buộc' 
         : 'Please fill in all required fields'
@@ -5491,11 +5491,11 @@ const HomePage = () => {
     setIsSubmittingCert(true);
 
     try {
-      console.log('📤 Submitting new certificate:', newCertificate);
+      console.log('📤 Submitting new crew certificate:', newCrewCertificate);
 
       const response = await axios.post(
         `${API}/crew-certificates/manual?ship_id=${selectedShip.id}`,
-        newCertificate,
+        newCrewCertificate,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -5505,15 +5505,15 @@ const HomePage = () => {
       );
 
       if (response.data) {
-        console.log('✅ Certificate created successfully:', response.data);
+        console.log('✅ Crew certificate created successfully:', response.data);
         
         toast.success(language === 'vi' 
-          ? '✅ Đã thêm chứng chỉ thành công!' 
-          : '✅ Certificate added successfully!'
+          ? '✅ Đã thêm chứng chỉ thuyền viên thành công!' 
+          : '✅ Crew certificate added successfully!'
         );
 
         // Close modal and reset form
-        handleCloseAddCertModal();
+        handleCloseAddCrewCertModal();
 
         // Refresh certificates list
         if (selectedCrewForCertificates) {
@@ -5524,12 +5524,12 @@ const HomePage = () => {
       }
 
     } catch (error) {
-      console.error('❌ Error adding certificate:', error);
+      console.error('❌ Error adding crew certificate:', error);
       
       const errorMsg = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
-        ? `Lỗi khi thêm chứng chỉ: ${errorMsg}` 
-        : `Error adding certificate: ${errorMsg}`
+        ? `Lỗi khi thêm chứng chỉ thuyền viên: ${errorMsg}` 
+        : `Error adding crew certificate: ${errorMsg}`
       );
     } finally {
       setIsSubmittingCert(false);
