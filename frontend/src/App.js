@@ -984,6 +984,23 @@ const HomePage = () => {
     );
   };
 
+  // ============================================
+  // ADD CREW CERTIFICATE MODAL STATES (Step 10)
+  // ============================================
+  const [showAddCertModal, setShowAddCertModal] = useState(false);
+  const [newCertificate, setNewCertificate] = useState({
+    crew_id: '',
+    crew_name: '',
+    passport: '',
+    cert_name: '',
+    cert_no: '',
+    issued_by: '',
+    issued_date: '',
+    cert_expiry: '',
+    note: ''
+  });
+  const [isSubmittingCert, setIsSubmittingCert] = useState(false);
+
   // Crew List Filters
   const [crewFilters, setCrewFilters] = useState({
     ship_sign_on: 'All',
