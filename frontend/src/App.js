@@ -1000,6 +1000,12 @@ const HomePage = () => {
     note: ''
   });
   const [isSubmittingCert, setIsSubmittingCert] = useState(false);
+  
+  // File upload states (Step 11)
+  const [certFile, setCertFile] = useState(null);
+  const [isAnalyzingCert, setIsAnalyzingCert] = useState(false);
+  const [certAnalysis, setCertAnalysis] = useState(null);
+  const [certError, setCertError] = useState('');
 
   // Crew List Filters
   const [crewFilters, setCrewFilters] = useState({
