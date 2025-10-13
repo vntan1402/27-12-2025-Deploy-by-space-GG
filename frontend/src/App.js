@@ -7859,8 +7859,8 @@ const HomePage = () => {
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                              {filteredCrewData.length > 0 ? (
-                                filteredCrewData.map((crew, index) => (
+                              {sortedCrewData.length > 0 ? (
+                                sortedCrewData.map((crew, index) => (
                                   <tr 
                                     key={crew.id} 
                                     className="hover:bg-gray-50 cursor-pointer"
