@@ -12792,6 +12792,790 @@ async def rename_crew_files(
         logger.error(f"Error renaming files for crew {crew_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to rename files: {str(e)}")
 
+
+# ============================================
+# CREW CERTIFICATES ENDPOINTS (Steps 1-5)
+# ============================================
+
+@api_router.post("/crew-certificates/manual", response_model=CrewCertificateResponse)
+async def create_crew_certificate_manual(
+    cert_data: CrewCertificateCreate,
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Step 2: Create a new crew certificate manually (without file upload)
+    """
+    try:
+        logger.info(f"📋 Creating crew certificate manually for crew: {cert_data.crew_name}")
+        
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Validate ship exists
+        ship = await mongo_db.find_one("ships", {
+            "id": ship_id,
+            "company_id": company_uuid
+        })
+        
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Prepare certificate document
+        cert_doc = cert_data.dict()
+        cert_doc.update({
+            "id": str(uuid.uuid4()),
+            "ship_id": ship_id,
+            "company_id": company_uuid,
+            "created_at": datetime.now(timezone.utc),
+            "created_by": current_user.username,
+            "updated_at": None,
+            "updated_by": None
+        })
+        
+        # Convert date strings to datetime objects for storage
+        for date_field in ['issued_date', 'cert_expiry']:
+            if cert_doc.get(date_field):
+                if isinstance(cert_doc[date_field], str):
+                    try:
+                        date_str = cert_doc[date_field]
+                        logger.info(f"🔧 Converting {date_field}: '{date_str}'")
+                        
+                        if 'T' in date_str:
+                            if date_str.endswith('Z'):
+                                cert_doc[date_field] = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                            else:
+                                cert_doc[date_field] = datetime.fromisoformat(date_str)
+                        else:
+                            if '/' in date_str:
+                                try:
+                                    parsed_date = datetime.strptime(date_str, '%d/%m/%Y')
+                                    cert_doc[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                                except ValueError:
+                                    parsed_date = datetime.strptime(date_str, '%m/%d/%Y')
+                                    cert_doc[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                            else:
+                                try:
+                                    parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
+                                    cert_doc[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                                except ValueError:
+                                    cert_doc[date_field] = datetime.fromisoformat(date_str + "T00:00:00+00:00")
+                        
+                        logger.info(f"✅ Successfully converted {date_field}: {cert_doc[date_field]}")
+                        
+                    except (ValueError, TypeError) as e:
+                        logger.error(f"❌ Could not parse {date_field}: '{cert_doc[date_field]}' - Error: {e}")
+                        cert_doc[date_field] = None
+        
+        # Save to database
+        await mongo_db.create("crew_certificates", cert_doc)
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="CREATE_CREW_CERTIFICATE",
+            resource_type="crew_certificate",
+            resource_id=cert_doc["id"],
+            details={
+                "crew_name": cert_data.crew_name,
+                "cert_name": cert_data.cert_name,
+                "cert_no": cert_data.cert_no,
+                "ship_id": ship_id
+            },
+            company_id=company_uuid
+        )
+        
+        logger.info(f"✅ Created crew certificate: {cert_data.cert_name} for {cert_data.crew_name}")
+        
+        return CrewCertificateResponse(**cert_doc)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating crew certificate: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create crew certificate: {str(e)}")
+
+
+@api_router.post("/crew-certificates/analyze-file")
+async def analyze_certificate_file_for_crew(
+    cert_file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    crew_id: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Step 3: Analyze crew certificate file using Google Document AI and save to Google Drive
+    1. Analyze certificate with Google Document AI
+    2. Extract fields with System AI (COC, COE, STCW, Medical, etc.)
+    3. Save certificate file to: ShipName > Crew Records folder
+    4. Return extracted data for frontend to use
+    """
+    try:
+        logger.info(f"📋 Starting crew certificate analysis for ship_id: {ship_id}, crew_id: {crew_id}")
+        
+        # Read file content
+        file_content = await cert_file.read()
+        filename = cert_file.filename
+        
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+            
+        logger.info(f"📄 Processing certificate file: {filename} ({len(file_content)} bytes)")
+        
+        # Get company information
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get ship information for folder structure
+        ship = await mongo_db.find_one("ships", {
+            "id": ship_id,
+            "company_id": company_uuid
+        })
+        
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        
+        # Get crew information
+        crew = await mongo_db.find_one("crew_members", {
+            "id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        crew_name = crew.get("full_name", "Unknown")
+        passport = crew.get("passport", "Unknown")
+            
+        # Get AI configuration for Document AI
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration.")
+        
+        # Get Google Drive manager
+        google_drive_manager = GoogleDriveManager()
+        
+        logger.info("🤖 Analyzing crew certificate with Google Document AI...")
+        
+        # Initialize empty analysis data
+        analysis_result = {
+            "cert_name": "",
+            "cert_no": "",
+            "issued_by": "",
+            "issued_date": "",
+            "expiry_date": "",
+            "confidence_score": 0.0,
+            "processing_method": "clean_analysis"
+        }
+        
+        try:
+            # Call Google Apps Script to analyze certificate with Document AI
+            apps_script_payload = {
+                "action": "analyze_passport_document_ai",  # Reuse same action
+                "file_content": base64.b64encode(file_content).decode('utf-8'),
+                "filename": filename,
+                "content_type": cert_file.content_type or 'application/octet-stream',
+                "project_id": document_ai_config.get("project_id"),
+                "location": document_ai_config.get("location", "us"),
+                "processor_id": document_ai_config.get("processor_id")
+            }
+            
+            # Make request to Google Apps Script
+            analysis_response = await google_drive_manager.call_apps_script(
+                apps_script_payload, 
+                company_id=company_uuid
+            )
+            
+            if analysis_response.get("success"):
+                document_summary = analysis_response.get("data", {}).get("summary", "")
+                
+                if document_summary:
+                    logger.info("✅ Document AI summary generated successfully for certificate")
+                    logger.info(f"   📝 Summary length: {len(document_summary)} characters")
+                    
+                    # Use System AI to extract certificate fields from summary
+                    try:
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        logger.info(f"🤖 Using {ai_provider} {ai_model} to extract certificate fields...")
+                        
+                        # Determine certificate type from filename or content
+                        cert_type = detect_certificate_type(filename, document_summary)
+                        logger.info(f"📋 Detected certificate type: {cert_type}")
+                        
+                        # Extract document fields using system AI
+                        extracted_fields = await extract_crew_certificate_fields_from_summary(
+                            document_summary, cert_type, ai_provider, ai_model, use_emergent_key
+                        )
+                        
+                        if extracted_fields:
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "summary_to_ai_extraction"
+                            logger.info("✅ AI certificate field extraction completed")
+                            logger.info(f"   📋 Extracted Cert Name: '{analysis_result.get('cert_name')}'")
+                            logger.info(f"   🔢 Extracted Cert No: '{analysis_result.get('cert_no')}'")
+                        else:
+                            logger.warning("AI certificate field extraction returned empty results")
+                        
+                    except Exception as ai_error:
+                        logger.error(f"AI certificate field extraction failed: {ai_error}")
+                        analysis_result["processing_method"] = "summary_only"
+                        analysis_result["raw_summary"] = document_summary
+                else:
+                    logger.warning("Apps Script succeeded but returned empty summary")
+            else:
+                logger.warning(f"Apps Script summary generation failed: {analysis_response.get('message')}")
+                
+        except Exception as apps_script_error:
+            logger.error(f"Google Apps Script call failed: {apps_script_error}")
+        
+        # Step 5: Upload file to Google Drive (ShipName > Crew Records folder)
+        logger.info(f"📤 Uploading certificate file to Google Drive: {ship_name} > Crew Records")
+        
+        try:
+            # Upload certificate file using Apps Script
+            upload_payload = {
+                "action": "upload_crew_certificate",
+                "ship_name": ship_name,
+                "crew_name": crew_name,
+                "filename": filename,
+                "content_type": cert_file.content_type or 'application/octet-stream',
+                "file_content": base64.b64encode(file_content).decode('utf-8')
+            }
+            
+            upload_response = await google_drive_manager.call_apps_script(
+                upload_payload,
+                company_id=company_uuid
+            )
+            
+            if upload_response.get("success"):
+                cert_file_id = upload_response.get("data", {}).get("file_id")
+                if cert_file_id:
+                    analysis_result["cert_file_id"] = cert_file_id
+                    logger.info(f"✅ Certificate file uploaded successfully: {cert_file_id}")
+                else:
+                    logger.warning("⚠️ File uploaded but no file_id returned")
+            else:
+                logger.warning(f"⚠️ Failed to upload certificate file: {upload_response.get('message')}")
+                
+        except Exception as upload_error:
+            logger.error(f"❌ Error uploading certificate file: {upload_error}")
+        
+        # Return analysis result with file_id for frontend to create certificate record
+        return {
+            "success": True,
+            "analysis": analysis_result,
+            "crew_name": crew_name,
+            "passport": passport,
+            "message": "Certificate analyzed successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing crew certificate: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze crew certificate: {str(e)}")
+
+
+@api_router.get("/crew-certificates/{ship_id}", response_model=List[CrewCertificateResponse])
+async def get_crew_certificates(
+    ship_id: str,
+    crew_id: Optional[str] = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Step 4: Get all crew certificates for a ship with optional crew filter
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Build query filter
+        query_filter = {
+            "company_id": company_uuid,
+            "ship_id": ship_id
+        }
+        
+        # Add crew filter if specified
+        if crew_id:
+            query_filter["crew_id"] = crew_id
+        
+        # Get certificates from database
+        certificates = await mongo_db.find_all("crew_certificates", query_filter)
+        
+        logger.info(f"📋 Retrieved {len(certificates)} certificates for ship {ship_id}")
+        
+        return [CrewCertificateResponse(**cert) for cert in certificates]
+        
+    except Exception as e:
+        logger.error(f"Error getting crew certificates: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get crew certificates: {str(e)}")
+
+
+@api_router.put("/crew-certificates/{cert_id}", response_model=CrewCertificateResponse)
+async def update_crew_certificate(
+    cert_id: str,
+    cert_update: CrewCertificateUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Step 4: Update an existing crew certificate
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Check if certificate exists
+        cert = await mongo_db.find_one("crew_certificates", {
+            "id": cert_id,
+            "company_id": company_uuid
+        })
+        
+        if not cert:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # Prepare update data
+        update_data = {k: v for k, v in cert_update.dict(exclude_unset=True).items() if v is not None}
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        # Convert date strings to datetime objects
+        for date_field in ['issued_date', 'cert_expiry']:
+            if date_field in update_data and update_data[date_field]:
+                if isinstance(update_data[date_field], str):
+                    try:
+                        date_str = update_data[date_field]
+                        logger.info(f"🔧 Converting {date_field}: '{date_str}'")
+                        
+                        if 'T' in date_str:
+                            if date_str.endswith('Z'):
+                                update_data[date_field] = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+                            else:
+                                update_data[date_field] = datetime.fromisoformat(date_str)
+                        else:
+                            if '/' in date_str:
+                                try:
+                                    parsed_date = datetime.strptime(date_str, '%d/%m/%Y')
+                                    update_data[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                                except ValueError:
+                                    parsed_date = datetime.strptime(date_str, '%m/%d/%Y')
+                                    update_data[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                            else:
+                                try:
+                                    parsed_date = datetime.strptime(date_str, '%Y-%m-%d')
+                                    update_data[date_field] = parsed_date.replace(tzinfo=timezone.utc)
+                                except ValueError:
+                                    update_data[date_field] = datetime.fromisoformat(date_str + "T00:00:00+00:00")
+                        
+                        logger.info(f"✅ Successfully converted {date_field}")
+                        
+                    except (ValueError, TypeError) as e:
+                        logger.error(f"❌ Could not parse {date_field}: {e}")
+                        update_data[date_field] = None
+        
+        # Add metadata
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        update_data["updated_by"] = current_user.username
+        
+        # Update in database
+        await mongo_db.update("crew_certificates", {"id": cert_id}, update_data)
+        
+        # Get updated certificate
+        updated_cert = await mongo_db.find_one("crew_certificates", {"id": cert_id})
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="UPDATE_CREW_CERTIFICATE",
+            resource_type="crew_certificate",
+            resource_id=cert_id,
+            details={
+                "cert_name": updated_cert.get("cert_name"),
+                "updated_fields": list(update_data.keys())
+            },
+            company_id=company_uuid
+        )
+        
+        logger.info(f"✅ Updated crew certificate: {cert_id}")
+        
+        return CrewCertificateResponse(**updated_cert)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating crew certificate: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update crew certificate: {str(e)}")
+
+
+@api_router.delete("/crew-certificates/{cert_id}")
+async def delete_crew_certificate(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Step 4: Delete a crew certificate (single)
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Check if certificate exists
+        cert = await mongo_db.find_one("crew_certificates", {
+            "id": cert_id,
+            "company_id": company_uuid
+        })
+        
+        if not cert:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # Delete associated file from Google Drive if exists
+        cert_file_id = cert.get("cert_file_id")
+        file_deleted = False
+        
+        if cert_file_id:
+            logger.info(f"🗑️ Deleting associated file for certificate {cert.get('cert_name')}")
+            
+            # Get company Apps Script URL for file deletion
+            company = await mongo_db.find_one("companies", {"id": company_uuid})
+            if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
+                company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+                
+                try:
+                    import aiohttp
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": cert_file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ Certificate file {cert_file_id} deleted successfully")
+                                    file_deleted = True
+                                else:
+                                    logger.warning(f"⚠️ Failed to delete certificate file: {result.get('message')}")
+                            else:
+                                logger.warning(f"⚠️ Failed to delete certificate file: HTTP {response.status}")
+                except Exception as e:
+                    logger.error(f"❌ Error deleting certificate file {cert_file_id}: {e}")
+        
+        # Delete from database
+        await mongo_db.delete("crew_certificates", {"id": cert_id})
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="DELETE_CREW_CERTIFICATE",
+            resource_type="crew_certificate",
+            resource_id=cert_id,
+            details={
+                "cert_name": cert.get("cert_name"),
+                "crew_name": cert.get("crew_name"),
+                "file_deleted": file_deleted
+            },
+            company_id=company_uuid
+        )
+        
+        message = "Certificate deleted successfully"
+        if file_deleted:
+            message += " (file deleted from Google Drive)"
+        
+        return {
+            "success": True,
+            "message": message
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting crew certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete crew certificate: {str(e)}")
+
+
+@api_router.post("/crew-certificates/bulk-delete")
+async def bulk_delete_crew_certificates(
+    cert_ids: List[str],
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Step 4: Bulk delete crew certificates
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        deleted_count = 0
+        files_deleted = 0
+        errors = []
+        
+        for cert_id in cert_ids:
+            try:
+                # Check if certificate exists
+                cert = await mongo_db.find_one("crew_certificates", {
+                    "id": cert_id,
+                    "company_id": company_uuid
+                })
+                
+                if not cert:
+                    errors.append(f"Certificate {cert_id} not found")
+                    continue
+                
+                # Delete associated file from Google Drive if exists
+                cert_file_id = cert.get("cert_file_id")
+                
+                if cert_file_id:
+                    company = await mongo_db.find_one("companies", {"id": company_uuid})
+                    if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
+                        company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+                        
+                        try:
+                            import aiohttp
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": cert_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"Error deleting file {cert_file_id}: {e}")
+                
+                # Delete from database
+                await mongo_db.delete("crew_certificates", {"id": cert_id})
+                deleted_count += 1
+                
+            except Exception as e:
+                errors.append(f"Error deleting certificate {cert_id}: {str(e)}")
+                logger.error(f"Error in bulk delete for {cert_id}: {e}")
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="BULK_DELETE_CREW_CERTIFICATES",
+            resource_type="crew_certificate",
+            resource_id="bulk",
+            details={
+                "deleted_count": deleted_count,
+                "files_deleted": files_deleted,
+                "errors": errors
+            },
+            company_id=company_uuid
+        )
+        
+        message = f"Deleted {deleted_count} certificate(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        return {
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
+            "errors": errors if errors else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in bulk delete crew certificates: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to bulk delete certificates: {str(e)}")
+
+
+# Helper functions for crew certificates
+
+def detect_certificate_type(filename: str, summary: str) -> str:
+    """
+    Detect certificate type from filename or summary content
+    Returns: coc, coe, stcw, medical, or other
+    """
+    filename_lower = filename.lower()
+    summary_lower = summary.lower()
+    
+    # Check filename and summary for certificate type keywords
+    if any(keyword in filename_lower or keyword in summary_lower for keyword in ['coc', 'competency', 'certificate of competency']):
+        return "coc"
+    elif any(keyword in filename_lower or keyword in summary_lower for keyword in ['coe', 'endorsement', 'certificate of endorsement']):
+        return "coe"
+    elif any(keyword in filename_lower or keyword in summary_lower for keyword in ['stcw', 'standards of training']):
+        return "stcw"
+    elif any(keyword in filename_lower or keyword in summary_lower for keyword in ['medical', 'health', 'fitness']):
+        return "medical"
+    else:
+        return "other"
+
+
+async def extract_crew_certificate_fields_from_summary(
+    summary_text: str, 
+    cert_type: str, 
+    ai_provider: str, 
+    ai_model: str, 
+    use_emergent_key: bool
+) -> dict:
+    """
+    Extract crew certificate fields from Document AI summary using System AI
+    Supports: COC, COE, STCW, Medical, and other maritime certificates
+    """
+    try:
+        logger.info(f"🤖 Extracting {cert_type.upper()} certificate fields from summary")
+        
+        # Create certificate-specific extraction prompt
+        prompt = create_certificate_extraction_prompt(summary_text, cert_type)
+        
+        if not prompt:
+            logger.error(f"Failed to create prompt for certificate type: {cert_type}")
+            return {}
+        
+        # Use System AI for extraction
+        if use_emergent_key and ai_provider == "google":
+            try:
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                
+                emergent_key = get_emergent_llm_key()
+                chat = LlmChat(
+                    api_key=emergent_key,
+                    session_id=f"cert_extraction_{int(time.time())}",
+                    system_message="You are a maritime certificate analysis expert."
+                ).with_model("gemini", ai_model)
+                
+                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+                
+                user_message = UserMessage(text=prompt)
+                ai_response = await chat.send_message(user_message)
+                
+                if ai_response and ai_response.strip():
+                    content = ai_response.strip()
+                    logger.info(f"🤖 Certificate AI response received")
+                    
+                    # Parse JSON response
+                    try:
+                        clean_content = content.replace('```json', '').replace('```', '').strip()
+                        extracted_data = json.loads(clean_content)
+                        
+                        # Standardize date formats
+                        extracted_data = standardize_certificate_dates(extracted_data)
+                        
+                        logger.info(f"✅ Certificate field extraction successful")
+                        logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name')}'")
+                        logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no')}'")
+                        
+                        return extracted_data
+                        
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to parse certificate extraction JSON: {e}")
+                        return {}
+                else:
+                    logger.error("No content in certificate AI extraction response")
+                    return {}
+                    
+            except Exception as e:
+                logger.error(f"Certificate AI extraction error: {e}")
+                return {}
+        else:
+            logger.warning("AI extraction not supported for non-Emergent configurations")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Certificate field extraction error: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        return {}
+
+
+def create_certificate_extraction_prompt(summary_text: str, cert_type: str) -> str:
+    """
+    Create AI prompt for extracting certificate fields based on certificate type
+    """
+    base_prompt = f"""You are an AI specialized in maritime certificate information extraction.
+
+Your task:
+Analyze the following text summary of a {cert_type.upper()} certificate and extract all key fields.
+
+=== INSTRUCTIONS ===
+1. Extract only the certificate-related fields listed below.
+2. Return the output strictly in valid JSON format.
+3. If a field is not found, leave it as an empty string "".
+4. Normalize all dates to ISO format "YYYY-MM-DD".
+5. Do not infer or fabricate any missing information.
+
+=== FIELDS TO EXTRACT ===
+{{
+  "cert_name": "",
+  "cert_no": "",
+  "issued_by": "",
+  "issued_date": "",
+  "expiry_date": "",
+  "holder_name": "",
+  "additional_info": ""
+}}
+
+=== DOCUMENT SUMMARY ===
+{summary_text}
+
+=== OUTPUT ===
+Return ONLY the JSON object with extracted fields, no additional text or explanation."""
+
+    return base_prompt
+
+
+def standardize_certificate_dates(data: dict) -> dict:
+    """
+    Standardize date formats in certificate data to YYYY-MM-DD
+    """
+    date_fields = ['issued_date', 'expiry_date']
+    
+    for field in date_fields:
+        if field in data and data[field]:
+            try:
+                date_value = data[field]
+                
+                # If already in YYYY-MM-DD format, keep it
+                if re.match(r'^\d{4}-\d{2}-\d{2}$', str(date_value)):
+                    continue
+                
+                # Try to parse various date formats
+                for fmt in ['%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d', '%d-%m-%Y', '%m-%d-%Y']:
+                    try:
+                        parsed_date = datetime.strptime(str(date_value), fmt)
+                        data[field] = parsed_date.strftime('%Y-%m-%d')
+                        break
+                    except ValueError:
+                        continue
+                
+            except Exception as e:
+                logger.error(f"Error standardizing date {field}: {e}")
+    
+    return data
+
+
+
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script"""
