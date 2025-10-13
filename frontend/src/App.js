@@ -915,6 +915,11 @@ const HomePage = () => {
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [showProcessingResultsModal, setShowProcessingResultsModal] = useState(false);
   const [processingResults, setProcessingResults] = useState([]);
+  
+  // Draggable modal hooks
+  const processingResultsDrag = useDraggable();
+  const addCrewDrag = useDraggable();
+  const editCrewDrag = useDraggable();
 
   // Crew Submission States
   const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
