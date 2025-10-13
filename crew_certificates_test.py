@@ -17,7 +17,7 @@ Test crew certificates backend endpoint that is returning 404 error.
    - Check if endpoint is registered in FastAPI
 
 2. **Test other crew-certificate endpoints:**
-   - `POST /api/crew-certificates/manual?ship_id=7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7`
+   - `POST /api/crew-certificates/manual?ship_id=crew-cert-tracker`
    - `GET /api/crew-certificates/7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7`
    
 3. **Check backend logs:**
@@ -82,10 +82,10 @@ except:
                     print(f"Using external backend URL: {BACKEND_URL}")
                     break
             else:
-                BACKEND_URL = 'https://vessel-crew-system.preview.emergentagent.com/api'
+                BACKEND_URL = 'https://crew-cert-tracker.preview.emergentagent.com/api'
                 print(f"Using fallback backend URL: {BACKEND_URL}")
     except:
-        BACKEND_URL = 'https://vessel-crew-system.preview.emergentagent.com/api'
+        BACKEND_URL = 'https://crew-cert-tracker.preview.emergentagent.com/api'
         print(f"Using fallback backend URL: {BACKEND_URL}")
 
 class CrewCertificatesTester:

@@ -12284,7 +12284,7 @@ const AccountControlPage = () => {
         payload = {
           client_id: systemGdriveConfig.client_id,
           client_secret: systemGdriveConfig.client_secret,
-          redirect_uri: 'https://vessel-crew-system.preview.emergentagent.com/oauth2callback',
+          redirect_uri: 'https://crew-cert-tracker.preview.emergentagent.com/oauth2callback',
           folder_id: systemGdriveConfig.folder_id
         };
       } else {
@@ -12559,7 +12559,7 @@ const AccountControlPage = () => {
         payload = {
           client_id: companyGdriveConfig.client_id,
           client_secret: companyGdriveConfig.client_secret,
-          redirect_uri: 'https://vessel-crew-system.preview.emergentagent.com/oauth2callback',
+          redirect_uri: 'https://crew-cert-tracker.preview.emergentagent.com/oauth2callback',
           folder_id: companyGdriveConfig.folder_id
         };
       } else {
@@ -13988,7 +13988,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
       const oauthConfig = {
         client_id: config.client_id,
         client_secret: config.client_secret,
-        redirect_uri: 'https://vessel-crew-system.preview.emergentagent.com/oauth2callback',
+        redirect_uri: 'https://crew-cert-tracker.preview.emergentagent.com/oauth2callback',
         folder_id: config.folder_id
       };
 
@@ -14264,7 +14264,7 @@ const GoogleDriveModal = ({ config, setConfig, currentConfig, onClose, onSave, o
                 <ol className="text-sm text-green-700 space-y-1">
                   <li>1. {language === 'vi' ? 'Truy cập Google Cloud Console' : 'Go to Google Cloud Console'}</li>
                   <li>2. {language === 'vi' ? 'Tạo OAuth 2.0 Client IDs' : 'Create OAuth 2.0 Client IDs'}</li>
-                  <li>3. {language === 'vi' ? 'Thêm Authorized redirect URI:' : 'Add Authorized redirect URI:'} <code>https://vessel-crew-system.preview.emergentagent.com/oauth2callback</code></li>
+                  <li>3. {language === 'vi' ? 'Thêm Authorized redirect URI:' : 'Add Authorized redirect URI:'} <code>https://crew-cert-tracker.preview.emergentagent.com/oauth2callback</code></li>
                   <li>4. {language === 'vi' ? 'Copy Client ID và Client Secret' : 'Copy Client ID and Client Secret'}</li>
                   <li>5. {language === 'vi' ? 'Tạo folder trong Google Drive và copy Folder ID' : 'Create folder in Google Drive and copy Folder ID'}</li>
                   <li>6. {language === 'vi' ? 'Nhấn "Xác thực với Google" để kết nối' : 'Click "Authorize with Google" to connect'}</li>
@@ -14445,7 +14445,7 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
       const oauthConfig = {
         client_id: config.client_id,
         client_secret: config.client_secret,
-        redirect_uri: 'https://vessel-crew-system.preview.emergentagent.com/oauth2callback',
+        redirect_uri: 'https://crew-cert-tracker.preview.emergentagent.com/oauth2callback',
         folder_id: config.folder_id
       };
 
