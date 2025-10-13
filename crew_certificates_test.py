@@ -117,13 +117,13 @@ class CrewCertificatesTester:
         })
         
     def authenticate(self):
-        """Authenticate with admin1/123456 credentials"""
+        """Authenticate with admin1/admin123 credentials"""
         try:
-            self.log("🔐 Authenticating with admin1/123456...")
+            self.log("🔐 Authenticating with admin1/admin123...")
             
             login_data = {
                 "username": "admin1",
-                "password": "123456",
+                "password": "admin123",
                 "remember_me": False
             }
             
