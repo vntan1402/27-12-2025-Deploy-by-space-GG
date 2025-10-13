@@ -7969,11 +7969,12 @@ const HomePage = () => {
                                       </div>
                                     </td>
                                     <td 
-                                      className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase cursor-pointer hover:bg-gray-50"
+                                      className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase cursor-pointer hover:bg-blue-50"
+                                      onDoubleClick={() => handleCrewNameDoubleClick(crew)}
                                       title={crew.full_name ? 
                                         (language === 'vi' 
-                                          ? `Tên tiếng Việt: ${crew.full_name}${crew.full_name_en ? ` | Tên tiếng Anh: ${crew.full_name_en}` : ''}`
-                                          : `Vietnamese Name: ${crew.full_name}${crew.full_name_en ? ` | English Name: ${crew.full_name_en}` : ''}`
+                                          ? `Tên tiếng Việt: ${crew.full_name}${crew.full_name_en ? ` | Tên tiếng Anh: ${crew.full_name_en}` : ''}\n\n💡 Nhấp đúp để xem chứng chỉ của thuyền viên`
+                                          : `Vietnamese Name: ${crew.full_name}${crew.full_name_en ? ` | English Name: ${crew.full_name_en}` : ''}\n\n💡 Double-click to view crew certificates`
                                         ) : ''
                                       }
                                     >
