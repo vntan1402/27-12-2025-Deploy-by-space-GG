@@ -13553,16 +13553,20 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 - DO NOT use the capacity/rank (e.g., "Master", "Captain") as the certificate name
 
 **cert_no**: 
-- CRITICAL: Look for patterns starting with "CT" followed by numbers/dashes/slashes
-- Search for these exact patterns in order:
-  1. "CT No." or "CT Number:" or "CT-" or "CT " followed by the number (e.g., "CT-585639/24-HCV", "CT 585639/24 - HCV", "CT No. 585639/24-HCV")
-  2. If found, extract the COMPLETE number including ALL parts (numbers, slashes, dashes, letters)
-  3. If NOT found, then look for "Certificate No." or "Certificate Number:"
-  4. If NOT found, then look for "Endorsement No." or "Endorsement Number:"
-- NEVER use "Document No." or "Document Number" as cert_no
-- NEVER use "Seafarers ID" or plain numbers like "001569768" without "CT" prefix
-- Example: If you see "CT-585639/24 - HCV" anywhere in the text, use exactly that
-- DO NOT shorten or truncate the certificate number
+- CRITICAL PRIORITY: Search for "CT" followed by numbers in these formats:
+  * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV"
+  * "CT No." or "CT Number:" followed by the number
+  * "CT No. 585639/24-HCV" or similar patterns
+- The CT number may contain: numbers, slashes (/), dashes (-), and letters
+- Extract the COMPLETE CT number with ALL its parts
+- If CT number is NOT found, search for:
+  * "Certificate No." or "Certificate Number:" (not starting with plain numbers like 001xxx)
+  * "Endorsement No." or "Endorsement Number:"
+- BLACKLIST - NEVER use these as cert_no:
+  * "Document No." or "Document Number:" (like 001569768)
+  * "Seafarers ID" or plain ID numbers
+  * Numbers that appear to be document/reference IDs without "CT" prefix
+- Example: Text says "CT No. 585639/24-HCV" → Extract: "CT-585639/24-HCV"
 
 **issued_by**: 
 - Extract the main issuing authority name (e.g., "Panama Maritime Authority")
