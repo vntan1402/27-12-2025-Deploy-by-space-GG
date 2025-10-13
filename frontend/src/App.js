@@ -8268,13 +8268,28 @@ const HomePage = () => {
       {/* Ship List Modal */}
       {showShipListModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <div 
+            ref={shipListDrag.modalRef}
+            className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden"
+            style={{
+              transform: `translate(${shipListDrag.position.x}px, ${shipListDrag.position.y}px)`,
+              cursor: shipListDrag.isDragging ? 'grabbing' : 'default',
+              transition: shipListDrag.isDragging ? 'none' : 'transform 0.2s ease-out'
+            }}
+          >
+            <div 
+              className="flex justify-between items-center p-6 border-b border-gray-200"
+              onMouseDown={shipListDrag.handleMouseDown}
+              style={{ cursor: 'grab' }}
+            >
               <h3 className="text-xl font-bold text-gray-800">
                 {language === 'vi' ? 'Danh mục tàu công ty' : 'Company Ship List'}
               </h3>
               <button
-                onClick={() => setShowShipListModal(false)}
+                onClick={() => {
+                  setShowShipListModal(false);
+                  shipListDrag.resetPosition();
+                }}
                 className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
               >
                 ×
