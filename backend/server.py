@@ -13553,20 +13553,23 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 - DO NOT use the capacity/rank (e.g., "Master", "Captain") as the certificate name
 
 **cert_no**: 
-- CRITICAL PRIORITY: Search for "CT" followed by numbers in these formats:
+- CRITICAL PRIORITY 1: For COC/Endorsement certificates, search for "Seaman's Book" number or "Libreta de embarque" number:
+  * Look for patterns like "P0196554A", "P" followed by 7 digits and a letter
+  * Search for "Seaman's Book number", "Libreta de embarque" text nearby
+  * This is the PRIMARY certificate number for Panama COC endorsements
+  * Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
+- PRIORITY 2: If Seaman's Book number NOT found, search for "CT" number:
   * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV"
   * "CT No." or "CT Number:" followed by the number
-  * "CT No. 585639/24-HCV" or similar patterns
-- The CT number may contain: numbers, slashes (/), dashes (-), and letters
-- Extract the COMPLETE CT number with ALL its parts
-- If CT number is NOT found, search for:
-  * "Certificate No." or "Certificate Number:" (not starting with plain numbers like 001xxx)
+  * Extract the COMPLETE CT number with ALL its parts
+- PRIORITY 3: If neither found, search for:
+  * "Certificate No." or "Certificate Number:" (not plain numbers like 001xxx)
   * "Endorsement No." or "Endorsement Number:"
 - BLACKLIST - NEVER use these as cert_no:
   * "Document No." or "Document Number:" (like 001569768)
-  * "Seafarers ID" or plain ID numbers
-  * Numbers that appear to be document/reference IDs without "CT" prefix
-- Example: Text says "CT No. 585639/24-HCV" → Extract: "CT-585639/24-HCV"
+  * "Seafarers ID" or "ID Number" (like 510156939)
+  * Numbers that appear to be document/reference IDs without proper prefix
+- Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
 
 **issued_by**: 
 - Extract the main issuing authority name (e.g., "Panama Maritime Authority")
