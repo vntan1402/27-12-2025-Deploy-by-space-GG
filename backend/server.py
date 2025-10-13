@@ -673,6 +673,7 @@ class CrewCertificateUpdate(BaseModel):
     issued_by: Optional[str] = None
     issued_date: Optional[Union[str, datetime]] = None
     cert_expiry: Optional[Union[str, datetime]] = None
+    status: Optional[str] = None
     note: Optional[str] = None
     cert_file_id: Optional[str] = None
 
