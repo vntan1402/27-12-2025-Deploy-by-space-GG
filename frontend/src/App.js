@@ -7518,6 +7518,7 @@ const HomePage = () => {
                                   // Close modal first
                                   setShowEditCertModal(false);
                                   setEditingCertificate(null);
+                                  editCertDrag.resetPosition();
                                   
                                   // Add small delay to ensure backend has processed the update
                                   await new Promise(resolve => setTimeout(resolve, 500));
