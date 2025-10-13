@@ -920,6 +920,11 @@ const HomePage = () => {
   const processingResultsDrag = useDraggable();
   const addCrewDrag = useDraggable();
   const editCrewDrag = useDraggable();
+  const shipListDrag = useDraggable();
+  const editShipDrag = useDraggable();
+  const deleteShipDrag = useDraggable();
+  const editCertDrag = useDraggable();
+  const shipConfirmDrag = useDraggable();
 
   // Crew Submission States
   const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
