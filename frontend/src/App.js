@@ -5595,19 +5595,42 @@ const HomePage = () => {
         hasCrewId: !!selectedCrewForCertificates?.id
       });
 
-      // Validate ship is selected
-      if (!selectedShip || !selectedShip.id) {
+      // Try to get ship_id from multiple sources
+      let shipId = null;
+      
+      // Priority 1: selectedShip
+      if (selectedShip?.id) {
+        shipId = selectedShip.id;
+        console.log('✅ Got ship ID from selectedShip:', shipId);
+      }
+      // Priority 2: crew's ship_id
+      else if (selectedCrewForCertificates?.ship_id) {
+        shipId = selectedCrewForCertificates.ship_id;
+        console.log('✅ Got ship ID from crew data:', shipId);
+      }
+      // Priority 3: crew's company_id + first ship
+      else if (selectedCrewForCertificates?.company_id) {
+        // Try to get from companyShips
+        const firstShip = companyShips?.[0];
+        if (firstShip?.id) {
+          shipId = firstShip.id;
+          console.log('✅ Got ship ID from first company ship:', shipId);
+        }
+      }
+
+      // Validate ship_id
+      if (!shipId) {
         throw new Error(language === 'vi' 
-          ? 'Vui lòng chọn tàu trước khi upload file' 
-          : 'Please select a ship before uploading file'
+          ? 'Không tìm thấy thông tin tàu. Vui lòng quay lại và chọn tàu.' 
+          : 'Ship information not found. Please go back and select a ship.'
         );
       }
 
       const formData = new FormData();
       formData.append('cert_file', file);
-      formData.append('ship_id', selectedShip.id);
+      formData.append('ship_id', shipId);
       
-      console.log('✅ Ship ID:', selectedShip.id);
+      console.log('✅ Using ship ID:', shipId);
       
       // Add crew_id if available
       if (selectedCrewForCertificates) {
