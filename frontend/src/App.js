@@ -926,6 +926,30 @@ const HomePage = () => {
   const editCertDrag = useDraggable();
   const shipConfirmDrag = useDraggable();
 
+  // Crew table sorting
+  const [crewSort, setCrewSort] = useState({
+    column: null,
+    direction: 'asc' // 'asc' or 'desc'
+  });
+  
+  const handleCrewSort = (column) => {
+    setCrewSort(prev => ({
+      column: column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getCrewSortIcon = (column) => {
+    if (crewSort.column !== column) {
+      return null; // No icon when not sorted
+    }
+    return (
+      <span className="ml-1 text-blue-600 text-sm font-bold">
+        {crewSort.direction === 'asc' ? '▲' : '▼'}
+      </span>
+    );
+  };
+
   // Crew Submission States
   const [isSubmittingCrew, setIsSubmittingCrew] = useState(false);
   const [crewList, setCrewList] = useState([]);
