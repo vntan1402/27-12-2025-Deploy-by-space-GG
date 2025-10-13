@@ -16334,6 +16334,7 @@ const AddRecordModal = ({
     if (createNewShip && pendingShipData) {
       // Close modal first
       setShowShipConfirmModal(false);
+      shipConfirmDrag.resetPosition();
       
       // Switch to Ship tab and use Add Ship from Certificate
       setRecordType('ship');
