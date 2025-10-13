@@ -5363,6 +5363,65 @@ const HomePage = () => {
     }
   };
 
+  // ============================================
+  // CREW CERTIFICATES FUNCTIONS (Steps 6-7)
+  // ============================================
+  
+  // Fetch crew certificates for current ship
+  const fetchCrewCertificates = async (crewId = null) => {
+    if (!selectedShip) {
+      console.error('No ship selected');
+      return;
+    }
+
+    try {
+      let url = `${API}/crew-certificates/${selectedShip.id}`;
+      
+      // Add crew_id filter if specified
+      if (crewId) {
+        url += `?crew_id=${crewId}`;
+      }
+      
+      const response = await axios.get(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.data) {
+        setCrewCertificates(response.data);
+        console.log(`📋 Loaded ${response.data.length} crew certificates`);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching crew certificates:', error);
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi tải danh sách chứng chỉ'
+        : 'Error loading certificates'
+      );
+    }
+  };
+
+  // Handle double-click on crew name to show certificates
+  const handleCrewNameDoubleClick = (crew) => {
+    console.log(`🔀 Switching to certificates view for crew: ${crew.full_name}`);
+    setSelectedCrewForCertificates(crew);
+    setShowCertificatesView(true);
+    
+    // Fetch certificates for this crew (filtered by default)
+    fetchCrewCertificates(crew.id);
+  };
+
+  // Handle back button to return to crew list
+  const handleBackToCrewList = () => {
+    console.log('🔙 Returning to crew list view');
+    setShowCertificatesView(false);
+    setSelectedCrewForCertificates(null);
+    setCrewCertificates([]);
+    setCertificatesSearch('');
+    setCertificateSort({ column: null, direction: 'asc' });
+  };
+
   // Reset add crew form
   const resetAddCrewForm = () => {
     setNewCrewData({
