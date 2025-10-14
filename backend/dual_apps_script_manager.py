@@ -378,6 +378,195 @@ class DualAppsScriptManager:
             }
         
         return results
+    
+    async def analyze_certificate_with_dual_scripts(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str,
+        document_ai_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Process crew certificate using both Apps Scripts
+        Similar to passport but for certificates
+        
+        Args:
+            file_content: Certificate file content
+            filename: File name
+            content_type: MIME type
+            ship_name: Ship name for folder structure
+            document_ai_config: Document AI configuration
+            
+        Returns:
+            dict: Combined results from both Apps Scripts
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            logger.info(f"🔄 Starting dual Apps Script processing for certificate: {filename}")
+            
+            # Step 1: Document AI Analysis via System Apps Script
+            logger.info("📡 Step 1: Certificate analysis via System Apps Script...")
+            ai_result = await self._call_system_apps_script_for_certificate_ai(
+                file_content, filename, content_type, document_ai_config
+            )
+            
+            if not ai_result.get('success'):
+                logger.error(f"❌ Certificate Document AI analysis failed: {ai_result.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Certificate Document AI analysis failed',
+                    'error': ai_result.get('message'),
+                    'step': 'document_ai_analysis'
+                }
+            
+            # Step 2: File Upload via Company Apps Script
+            logger.info("📁 Step 2: Certificate file upload via Company Apps Script...")
+            upload_result = await self._upload_certificate_via_company_script(
+                file_content, filename, content_type, ship_name
+            )
+            
+            if not upload_result.get('success'):
+                logger.error(f"❌ Certificate file upload failed: {upload_result.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Certificate file upload failed',
+                    'error': upload_result.get('message'),
+                    'step': 'file_upload',
+                    'ai_result': ai_result  # Still return AI results
+                }
+            
+            # Combine results
+            logger.info("✅ Dual Apps Script processing completed successfully for certificate")
+            return {
+                'success': True,
+                'message': 'Certificate processing completed successfully',
+                'ai_analysis': ai_result,
+                'file_uploads': upload_result,
+                'processing_method': 'dual_apps_script',
+                'workflow': 'system_ai_analysis + company_file_upload'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error in dual Apps Script processing for certificate: {e}")
+            return {
+                'success': False,
+                'message': f'Dual Apps Script processing failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _call_system_apps_script_for_certificate_ai(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        document_ai_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Call System Apps Script for Certificate Document AI processing"""
+        try:
+            if not self.system_apps_script_url:
+                raise ValueError("System Apps Script URL not configured")
+            
+            # Prepare payload for Document AI analysis (certificate)
+            payload = {
+                "action": "analyze_certificate_document_ai",  # ✅ Use certificate action
+                "file_content": base64.b64encode(file_content).decode('utf-8'),
+                "filename": filename,
+                "content_type": content_type,
+                "project_id": document_ai_config.get("project_id"),
+                "location": document_ai_config.get("location", "us"),
+                "processor_id": document_ai_config.get("processor_id")
+            }
+            
+            logger.info(f"📡 Calling System Apps Script for Certificate Document AI: {filename}")
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.system_apps_script_url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                    timeout=aiohttp.ClientTimeout(total=120)
+                ) as response:
+                    
+                    if response.status == 200:
+                        result = await response.json()
+                        logger.info("✅ System Apps Script (Certificate Document AI) completed successfully")
+                        return result
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ System Apps Script error: {response.status} - {error_text}")
+                        return {
+                            'success': False,
+                            'message': f'System Apps Script error: {response.status}',
+                            'error': error_text
+                        }
+        
+        except Exception as e:
+            logger.error(f"❌ Error calling System Apps Script for certificate: {e}")
+            return {
+                'success': False,
+                'message': f'System Apps Script call failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _upload_certificate_via_company_script(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """Upload certificate file via Company Apps Script to ShipName/Crew Records"""
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            # Upload certificate file to Ship/Crew Records
+            logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/{filename}")
+            cert_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,
+                'ship_name': ship_name,
+                'category': 'Crew Records',  # Upload directly to Crew Records
+                'filename': filename,
+                'file_content': base64.b64encode(file_content).decode('utf-8'),
+                'content_type': content_type
+            })
+            
+            # Check upload result
+            if cert_upload.get('success'):
+                logger.info("✅ Certificate file uploaded successfully")
+                return {
+                    'success': True,
+                    'message': 'Certificate file uploaded successfully to Company Google Drive',
+                    'uploads': {
+                        'certificate': cert_upload
+                    },
+                    'upload_method': 'company_apps_script'
+                }
+            else:
+                logger.error("❌ Certificate file upload failed")
+                return {
+                    'success': False,
+                    'message': 'Certificate file upload failed',
+                    'uploads': {
+                        'certificate': cert_upload
+                    },
+                    'error': 'Certificate upload failed'
+                }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading certificate via Company Apps Script: {e}")
+            return {
+                'success': False,
+                'message': f'Company file upload failed: {str(e)}',
+                'error': str(e)
+            }
 
 
 def create_dual_apps_script_manager(company_id: str) -> DualAppsScriptManager:
