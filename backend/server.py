@@ -13586,24 +13586,29 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   * Search for "Seaman's Book number", "Libreta de embarque" text nearby
   * This is the PRIMARY certificate number for Panama COC endorsements
   * Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
-- PRIORITY 2: If Seaman's Book number NOT found, search for "CT" number:
-  * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV" (with or without spaces around dash)
-  * "CT-585651/24 - HCV" or "CT-585651/24-HCV" 
+- PRIORITY 2: If Seaman's Book number NOT found, search for Certificate/Endorsement numbers:
+  * "Certificate No." or "Certificate Number:"
+  * "Endorsement No." or "Endorsement Number:" or "Refrendo N°"
+  * "Document No." or "Document Number:" or "N° Documento"
+  * Look for numbers following these certificate-specific labels
+  * Extract the complete number as it appears
+  * Example: "Certificate No. 9162-GOC/BTTTT" → Extract: "9162-GOC/BTTTT"
+  * Example: "Endorsement No. 206129551" → Extract: "206129551"
+  * Example: "N° Documento 001569771" → Extract: "001569771"
+- PRIORITY 3: If neither found, search for "CT" number:
+  * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV"
+  * "CT-585651/24 - HCV" or "CT-585651/24-HCV" (with or without spaces)
   * "CT No." or "CT Number:" followed by the number
   * Extract the COMPLETE CT number including ALL parts (digits, slashes, dashes, letters)
-  * Be flexible with spacing around dashes: "24-HCV" or "24 - HCV" are both valid
+  * Be FLEXIBLE with spacing around dashes: "24-HCV" or "24 - HCV" are both valid
   * Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
-- PRIORITY 3: If neither found, search for:
-  * "Certificate No." or "Certificate Number:" (look for actual certificate number, not document number)
-  * "Endorsement No." or "Endorsement Number:" or "Refrendo N°" (endorsement number)
-  * Numbers following certificate-specific labels
 - BLACKLIST - NEVER use these as cert_no:
-  * "Document No." or "Document Number:" or "N° Documento" (like 001569768, 001569771)
   * "Seafarers ID" or "ID Number" (like 510156939)
-  * Plain numbers without proper prefix or context
-  * Numbers that appear to be document/reference IDs without certificate context
-- Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
+  * Plain numbers without proper certificate label or context
+  * Numbers that appear to be personal IDs without certificate context
 - Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
+- Example: "Certificate No. 9162-GOC/BTTTT" → Extract: "9162-GOC/BTTTT"
+- Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
 
 **issued_by**: 
 - Extract the main issuing authority name (e.g., "Panama Maritime Authority")
