@@ -5482,7 +5482,6 @@ const HomePage = () => {
   
   const handleOpenAddCrewCertModal = () => {
     console.log('🔵 handleOpenAddCrewCertModal called');
-    console.log('📋 selectedCrewForCertificates:', selectedCrewForCertificates);
     console.log('🔍 certFilters.crewName:', certFilters.crewName);
     console.log('👥 crewList:', crewList);
     
@@ -5512,27 +5511,9 @@ const HomePage = () => {
         resetAddCrewCertForm();
       }
     }
-    // Priority 2: Pre-fill from selectedCrewForCertificates (when double-clicked from crew list)
-    else if (selectedCrewForCertificates) {
-      console.log('✅ Priority 2: Using selectedCrewForCertificates:', selectedCrewForCertificates);
-      setSelectedCrewForCert(selectedCrewForCertificates);
-      setNewCrewCertificate({
-        crew_id: selectedCrewForCertificates.id,
-        crew_name: selectedCrewForCertificates.full_name,
-        crew_name_en: selectedCrewForCertificates.full_name_en || '',
-        passport: selectedCrewForCertificates.passport,
-        rank: selectedCrewForCertificates.rank || '',
-        cert_name: '',
-        cert_no: '',
-        issued_by: '',
-        issued_date: '',
-        cert_expiry: '',
-        note: ''
-      });
-    } 
-    // Priority 3: Show dropdown for crew selection (no specific crew selected)
+    // Priority 2: Show dropdown for crew selection (no specific crew selected)
     else {
-      console.log('✅ Priority 3: No crew pre-selected, show dropdown');
+      console.log('✅ Priority 2: No crew pre-selected, show dropdown');
       setSelectedCrewForCert(null);
       resetAddCrewCertForm();
     }
