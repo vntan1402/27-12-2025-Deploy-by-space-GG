@@ -13587,16 +13587,22 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   * This is the PRIMARY certificate number for Panama COC endorsements
   * Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
 - PRIORITY 2: If Seaman's Book number NOT found, search for "CT" number:
-  * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV"
+  * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV" (with or without spaces around dash)
+  * "CT-585651/24 - HCV" or "CT-585651/24-HCV" 
   * "CT No." or "CT Number:" followed by the number
-  * Extract the COMPLETE CT number with ALL its parts
+  * Extract the COMPLETE CT number including ALL parts (digits, slashes, dashes, letters)
+  * Be flexible with spacing around dashes: "24-HCV" or "24 - HCV" are both valid
+  * Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
 - PRIORITY 3: If neither found, search for:
-  * "Certificate No." or "Certificate Number:" (not plain numbers like 001xxx)
-  * "Endorsement No." or "Endorsement Number:"
+  * "Certificate No." or "Certificate Number:" (look for actual certificate number, not document number)
+  * "Endorsement No." or "Endorsement Number:" or "Refrendo N°" (endorsement number)
+  * Numbers following certificate-specific labels
 - BLACKLIST - NEVER use these as cert_no:
-  * "Document No." or "Document Number:" (like 001569768)
+  * "Document No." or "Document Number:" or "N° Documento" (like 001569768, 001569771)
   * "Seafarers ID" or "ID Number" (like 510156939)
-  * Numbers that appear to be document/reference IDs without proper prefix
+  * Plain numbers without proper prefix or context
+  * Numbers that appear to be document/reference IDs without certificate context
+- Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
 - Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
 
 **issued_by**: 
