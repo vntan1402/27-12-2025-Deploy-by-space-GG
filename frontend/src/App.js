@@ -5827,6 +5827,42 @@ const HomePage = () => {
     }
   };
 
+  // Handle file upload area click with crew selection validation
+  const handleCertFileAreaClick = () => {
+    // Check if crew is selected
+    if (!newCrewCertificate.crew_id) {
+      toast.warning(language === 'vi' 
+        ? '⚠️ Vui lòng chọn thuyền viên trước khi upload file!' 
+        : '⚠️ Please select a crew member before uploading file!'
+      );
+      return;
+    }
+    
+    // If crew is selected, trigger file input
+    document.getElementById('cert-file-upload')?.click();
+  };
+
+  // Handle file drop with crew selection validation
+  const handleCertFileDrop = (e) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
+    
+    // Check if crew is selected
+    if (!newCrewCertificate.crew_id) {
+      toast.warning(language === 'vi' 
+        ? '⚠️ Vui lòng chọn thuyền viên trước khi upload file!' 
+        : '⚠️ Please select a crew member before uploading file!'
+      );
+      return;
+    }
+    
+    // If crew is selected, process file
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleCertFileUpload(file);
+    }
+  };
+
   // ============================================
   // CERTIFICATE CONTEXT MENU HANDLERS
   // ============================================
