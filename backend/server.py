@@ -667,6 +667,7 @@ class CrewCertificateBase(BaseModel):
     crew_name: str
     crew_name_en: Optional[str] = None  # English name for bilingual support
     passport: str
+    rank: Optional[str] = None  # Crew rank/position
     cert_name: str
     cert_no: str
     issued_by: Optional[str] = None
