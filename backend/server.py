@@ -13728,6 +13728,25 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
                 return extracted_data
         
         # ===================================================
+        # PRIORITY 2.5: Check for Officer in Charge certificates → COC
+        # "Officer in Charge of a Navigational Watch" (OIC-NW) = COC
+        # Must check BEFORE general rank keywords
+        # ===================================================
+        OIC_KEYWORDS = [
+            'OFFICER IN CHARGE OF A NAVIGATIONAL WATCH',
+            'OFFICER IN CHARGE OF NAVIGATIONAL WATCH',
+            'OIC NAVIGATIONAL WATCH',
+            'OIC-NW',
+            'OICNW'
+        ]
+        
+        for keyword in OIC_KEYWORDS:
+            if keyword in note_upper or keyword in summary_upper:
+                logger.info(f"✅ PRIORITY 2.5: Found OIC keyword '{keyword}' → Setting cert_name to COC")
+                extracted_data['cert_name'] = 'Certificate of Competency (COC)'
+                return extracted_data
+        
+        # ===================================================
         # PRIORITY 3: Check for Rank keywords → COC
         # ===================================================
         RANK_KEYWORDS = [
