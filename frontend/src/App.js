@@ -8801,16 +8801,28 @@ const HomePage = () => {
                                     className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white max-w-xs"
                                   >
                                     <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
-                                    {crewMembers
-                                      .filter(crew => crew.ship_sign_on === selectedShip?.name)
-                                      .map(crew => crew.full_name)
-                                      .sort()
-                                      .map(crewName => (
-                                        <option key={crewName} value={crewName}>
-                                          {crewName}
-                                        </option>
-                                      ))
-                                    }
+                                    {(() => {
+                                      // Get crew names from crew list (ship_sign_on = selected ship)
+                                      if (selectedShip && crewMembers.length > 0) {
+                                        return crewMembers
+                                          .filter(crew => crew.ship_sign_on === selectedShip.name)
+                                          .map(crew => crew.full_name)
+                                          .sort()
+                                          .map(crewName => (
+                                            <option key={crewName} value={crewName}>
+                                              {crewName}
+                                            </option>
+                                          ));
+                                      }
+                                      // Fallback: get from certificates if no crew list available
+                                      return [...new Set(crewCertificates.map(cert => cert.crew_name))]
+                                        .sort()
+                                        .map(crewName => (
+                                          <option key={crewName} value={crewName}>
+                                            {crewName}
+                                          </option>
+                                        ));
+                                    })()}
                                   </select>
                                 </div>
                                 
