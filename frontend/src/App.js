@@ -5748,10 +5748,14 @@ const HomePage = () => {
       
       console.log('✅ Using ship ID:', shipId);
       
-      // Add crew_id if available
-      if (selectedCrewForCertificates) {
-        formData.append('crew_id', selectedCrewForCertificates.id);
-        console.log('✅ Crew ID:', selectedCrewForCertificates.id);
+      // Add crew_id if available (from selectedCrewForCert, not selectedCrewForCertificates)
+      if (selectedCrewForCert) {
+        formData.append('crew_id', selectedCrewForCert.id);
+        console.log('✅ Crew ID:', selectedCrewForCert.id);
+      } else if (newCrewCertificate.crew_id) {
+        // Fallback: use crew_id from form if selectedCrewForCert not set
+        formData.append('crew_id', newCrewCertificate.crew_id);
+        console.log('✅ Crew ID (from form):', newCrewCertificate.crew_id);
       }
 
       const response = await axios.post(
