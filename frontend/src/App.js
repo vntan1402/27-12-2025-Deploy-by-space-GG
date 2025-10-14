@@ -5648,10 +5648,11 @@ const HomePage = () => {
         handleCloseAddCrewCertModal();
 
         // Refresh certificates list
-        if (selectedCrewForCertificates) {
-          await fetchCrewCertificates(selectedCrewForCertificates.id);
+        // Use selectedCrewForCert if available, otherwise fetch all
+        if (selectedCrewForCert) {
+          await fetchCrewCertificates(selectedCrewForCert.id);
         } else {
-          await fetchCrewCertificates();
+          await fetchCrewCertificates(null);
         }
       }
 
