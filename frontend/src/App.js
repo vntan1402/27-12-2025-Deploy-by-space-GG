@@ -8806,22 +8806,30 @@ const HomePage = () => {
                                       if (selectedShip && crewList.length > 0) {
                                         return crewList
                                           .filter(crew => crew.ship_sign_on === selectedShip.name)
-                                          .map(crew => crew.full_name)
-                                          .sort()
-                                          .map(crewName => (
-                                            <option key={crewName} value={crewName}>
-                                              {crewName}
+                                          .map(crew => ({
+                                            value: crew.full_name,  // Always filter by Vietnamese name
+                                            displayName: language === 'en' && crew.full_name_en ? crew.full_name_en : crew.full_name
+                                          }))
+                                          .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                                          .map(item => (
+                                            <option key={item.value} value={item.value}>
+                                              {item.displayName}
                                             </option>
                                           ));
                                       }
                                       // Fallback: get from certificates if no crew list available
                                       return [...new Set(crewCertificates.map(cert => cert.crew_name))]
                                         .sort()
-                                        .map(crewName => (
-                                          <option key={crewName} value={crewName}>
-                                            {crewName}
-                                          </option>
-                                        ));
+                                        .map(crewName => {
+                                          // Find corresponding crew_name_en from certificates
+                                          const cert = crewCertificates.find(c => c.crew_name === crewName);
+                                          const displayName = language === 'en' && cert?.crew_name_en ? cert.crew_name_en : crewName;
+                                          return (
+                                            <option key={crewName} value={crewName}>
+                                              {displayName}
+                                            </option>
+                                          );
+                                        });
                                     })()}
                                   </select>
                                 </div>
