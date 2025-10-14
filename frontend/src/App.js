@@ -4169,11 +4169,14 @@ const HomePage = () => {
       if (rankContextMenu.show) {
         setRankContextMenu({ show: false, x: 0, y: 0, crew: null });
       }
+      if (certContextMenu.show) {
+        setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+      }
     };
     
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [contextMenu.show, crewContextMenu.show, passportContextMenu.show, seamenBookContextMenu.show, rankContextMenu.show]);
+  }, [contextMenu.show, crewContextMenu.show, passportContextMenu.show, seamenBookContextMenu.show, rankContextMenu.show, certContextMenu.show]);
 
   // Handle duplicate resolution
   const handleDuplicateResolution = async (action, resetAnalyzingState) => {
