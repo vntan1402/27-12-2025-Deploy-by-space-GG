@@ -8757,8 +8757,9 @@ const HomePage = () => {
                                   {language === 'vi' ? 'Thêm chứng chỉ thuyền viên' : 'Add Crew Cert'}
                                 </button>
                               )}
+                              {/* Refresh button - fetches all certificates for ship */}
                               <button 
-                                onClick={() => fetchCrewCertificates(null)}  {/* Fetch all certificates for ship */}
+                                onClick={() => fetchCrewCertificates(null)}
                                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all flex items-center"
                                 title={language === 'vi' ? 'Làm mới' : 'Refresh'}
                               >
