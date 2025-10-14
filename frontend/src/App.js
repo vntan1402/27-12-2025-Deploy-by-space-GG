@@ -8933,14 +8933,28 @@ const HomePage = () => {
                                   {crewCertificates.length > 0 ? (
                                     crewCertificates
                                       .filter(cert => {
-                                        if (!certificatesSearch) return true;
-                                        const search = certificatesSearch.toLowerCase();
-                                        return (
-                                          cert.crew_name?.toLowerCase().includes(search) ||
-                                          cert.cert_name?.toLowerCase().includes(search) ||
-                                          cert.cert_no?.toLowerCase().includes(search) ||
-                                          cert.issued_by?.toLowerCase().includes(search)
-                                        );
+                                        // Apply search filter
+                                        if (certificatesSearch) {
+                                          const search = certificatesSearch.toLowerCase();
+                                          if (!(
+                                            cert.crew_name?.toLowerCase().includes(search) ||
+                                            cert.cert_name?.toLowerCase().includes(search) ||
+                                            cert.cert_no?.toLowerCase().includes(search) ||
+                                            cert.issued_by?.toLowerCase().includes(search)
+                                          )) return false;
+                                        }
+                                        
+                                        // Apply status filter
+                                        if (certFilters.status !== 'all' && cert.status !== certFilters.status) {
+                                          return false;
+                                        }
+                                        
+                                        // Apply crew name filter
+                                        if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) {
+                                          return false;
+                                        }
+                                        
+                                        return true;
                                       })
                                       .sort((a, b) => {
                                         if (!certificateSort.column) return 0;
