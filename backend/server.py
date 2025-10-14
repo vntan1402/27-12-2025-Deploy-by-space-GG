@@ -12844,6 +12844,10 @@ async def create_crew_certificate_manual(
         
         # Prepare certificate document
         cert_doc = cert_data.dict()
+        
+        # Normalize issued_by to standard maritime authority names
+        cert_doc = normalize_issued_by(cert_doc)
+        
         cert_doc.update({
             "id": str(uuid.uuid4()),
             "ship_id": ship_id,
