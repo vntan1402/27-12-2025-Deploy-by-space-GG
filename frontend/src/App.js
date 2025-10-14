@@ -5594,6 +5594,7 @@ const HomePage = () => {
     setShowAddCrewCertModal(false);
     setSelectedCrewForCert(null);  // Reset selected crew
     resetAddCrewCertForm();
+    handleResetCertFile();  // Clear uploaded file from previous session
   };
 
   const handleAddCrewCertificateSubmit = async (e) => {
