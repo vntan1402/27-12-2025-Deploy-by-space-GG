@@ -111,6 +111,21 @@ const formatDateDisplay = (dateValue) => {
   return dateStr; // Return original value if all parsing fails
 };
 
+// Get abbreviation from full organization name (first letters of each word)
+const getAbbreviation = (fullName) => {
+  if (!fullName || fullName === '-') return '-';
+  
+  // Split by spaces and get first letter of each word
+  const words = fullName.trim().split(/\s+/);
+  
+  // Get first letter of each word (uppercase)
+  const abbreviation = words
+    .map(word => word.charAt(0).toUpperCase())
+    .join('');
+  
+  return abbreviation;
+};
+
 // Vietnamese diacritic removal function
 const removeVietnameseDiacritics = (str) => {
   if (!str) return '';
