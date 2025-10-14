@@ -5488,7 +5488,9 @@ const HomePage = () => {
       setNewCrewCertificate({
         crew_id: selectedCrewForCertificates.id,
         crew_name: selectedCrewForCertificates.full_name,
+        crew_name_en: selectedCrewForCertificates.full_name_en || '',  // Pre-fill English name
         passport: selectedCrewForCertificates.passport,
+        rank: selectedCrewForCertificates.rank || '',  // Pre-fill rank
         cert_name: '',
         cert_no: '',
         issued_by: '',
