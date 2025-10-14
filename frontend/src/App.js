@@ -5546,6 +5546,38 @@ const HomePage = () => {
     }, 100);
   };
 
+  // Handle crew selection from dropdown in Add Crew Certificate modal
+  const handleCrewSelectionInCertModal = (crewId) => {
+    console.log('🔍 Crew selected in modal:', crewId);
+    
+    if (!crewId) {
+      // Reset if empty selection
+      setSelectedCrewForCert(null);
+      resetAddCrewCertForm();
+      return;
+    }
+    
+    // Find crew in crewList
+    const selectedCrew = crewList.find(crew => crew.id === crewId);
+    
+    if (selectedCrew) {
+      console.log('✅ Found crew:', selectedCrew);
+      setSelectedCrewForCert(selectedCrew);
+      
+      // Auto-fill crew information
+      setNewCrewCertificate(prev => ({
+        ...prev,
+        crew_id: selectedCrew.id,
+        crew_name: selectedCrew.full_name,
+        crew_name_en: selectedCrew.full_name_en || '',
+        passport: selectedCrew.passport,
+        rank: selectedCrew.rank || ''
+      }));
+    } else {
+      console.log('⚠️ Crew not found');
+    }
+  };
+
   const resetAddCrewCertForm = () => {
     setNewCrewCertificate({
       crew_id: '',
