@@ -1023,10 +1023,10 @@ const HomePage = () => {
   const [certAnalysis, setCertAnalysis] = useState(null);
   const [certError, setCertError] = useState('');
 
-  // Edit Certificate Modal States
-  const [showEditCertModal, setShowEditCertModal] = useState(false);
-  const [editingCert, setEditingCert] = useState(null);
-  const [editCertData, setEditCertData] = useState({
+  // Edit Crew Certificate Modal States
+  const [showEditCrewCertModal, setShowEditCrewCertModal] = useState(false);
+  const [editingCrewCert, setEditingCrewCert] = useState(null);
+  const [editCrewCertData, setEditCrewCertData] = useState({
     crew_id: '',
     crew_name: '',
     crew_name_en: '',
