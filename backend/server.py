@@ -651,6 +651,7 @@ class CrewResponse(CrewBase):
 class CrewCertificateBase(BaseModel):
     crew_id: str
     crew_name: str
+    crew_name_en: Optional[str] = None  # English name for bilingual support
     passport: str
     cert_name: str
     cert_no: str
