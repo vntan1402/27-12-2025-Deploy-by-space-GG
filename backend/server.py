@@ -13586,15 +13586,20 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   * Search for "Seaman's Book number", "Libreta de embarque" text nearby
   * This is the PRIMARY certificate number for Panama COC endorsements
   * Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
-- PRIORITY 2: If Seaman's Book number NOT found, search for Certificate/Endorsement numbers:
-  * "Certificate No." or "Certificate Number:"
-  * "Endorsement No." or "Endorsement Number:" or "Refrendo N°"
-  * "Document No." or "Document Number:" or "N° Documento"
-  * Look for numbers following these certificate-specific labels
-  * Extract the complete number as it appears
-  * Example: "Certificate No. 9162-GOC/BTTTT" → Extract: "9162-GOC/BTTTT"
-  * Example: "Endorsement No. 206129551" → Extract: "206129551"
-  * Example: "N° Documento 001569771" → Extract: "001569771"
+- PRIORITY 2: If Seaman's Book number NOT found, search for Certificate/Endorsement/Document numbers:
+  * "Certificate No." or "Certificate Number:" → Extract the number (e.g., "9162-GOC/BTTTT")
+  * "Endorsement No." or "Endorsement Number:" or "Refrendo N°" → Extract the number
+    - Accept pure numeric sequences like "206129551" (9 digits)
+    - These are VALID certificate numbers for Panama endorsements
+  * "Document No." or "Document Number:" or "N° Documento" → Extract the number
+    - Accept pure numeric sequences like "001569771" (9 digits)
+    - These are VALID certificate numbers for official documents
+  * Extract the COMPLETE number exactly as it appears after the label
+  * Examples:
+    - "Certificate No. 9162-GOC/BTTTT" → Extract: "9162-GOC/BTTTT"
+    - "Endorsement No. 206129551" → Extract: "206129551" (VALID - accept numeric)
+    - "N° Documento 001569771" → Extract: "001569771" (VALID - accept numeric)
+    - "Refrendo N° 206129551" → Extract: "206129551" (VALID - accept numeric)
 - PRIORITY 3: If neither found, search for "CT" number:
   * "CT-585639/24-HCV" or "CT 585639/24-HCV" or "CT-585639/24 - HCV"
   * "CT-585651/24 - HCV" or "CT-585651/24-HCV" (with or without spaces)
@@ -13603,11 +13608,13 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   * Be FLEXIBLE with spacing around dashes: "24-HCV" or "24 - HCV" are both valid
   * Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
 - BLACKLIST - NEVER use these as cert_no:
-  * "Seafarers ID" or "ID Number" (like 510156939)
-  * Plain numbers without proper certificate label or context
-  * Numbers that appear to be personal IDs without certificate context
+  * "Seafarers ID" or "ID Number" (personal identification numbers)
+  * Plain numbers WITHOUT any certificate label (like standalone "510156939")
+  * Numbers preceded by personal ID keywords only
+- IMPORTANT: Numbers after "Endorsement No.", "Document No.", "Certificate No." ARE VALID even if purely numeric
 - Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
-- Example: "Certificate No. 9162-GOC/BTTTT" → Extract: "9162-GOC/BTTTT"
+- Example: "Endorsement No. 206129551" → Extract: "206129551" (VALID numeric endorsement)
+- Example: "N° Documento 001569771" → Extract: "001569771" (VALID numeric document)
 - Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
 
 **issued_by**: 
