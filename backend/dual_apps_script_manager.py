@@ -425,7 +425,7 @@ class DualAppsScriptManager:
             # Step 2: File Upload via Company Apps Script
             logger.info("📁 Step 2: Certificate file upload via Company Apps Script...")
             upload_result = await self._upload_certificate_via_company_script(
-                file_content, filename, content_type, ship_name
+                file_content, filename, content_type, ship_name, ai_result  # Pass ai_result for summary
             )
             
             if not upload_result.get('success'):
