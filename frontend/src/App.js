@@ -9813,6 +9813,12 @@ const HomePage = () => {
                                             <option value="Certificate of Endorsement (COE)">
                                               {language === 'vi' ? 'Chứng chỉ Phê chuẩn (COE)' : 'Certificate of Endorsement (COE)'}
                                             </option>
+                                            <option value="Seaman Book for COC">
+                                              {language === 'vi' ? 'Seaman Book cho COC' : 'Seaman Book for COC'}
+                                            </option>
+                                            <option value="Seaman book for GMDSS">
+                                              {language === 'vi' ? 'Seaman Book cho GMDSS' : 'Seaman book for GMDSS'}
+                                            </option>
                                             <option value="GMDSS Certificate">
                                               {language === 'vi' ? 'Chứng chỉ GMDSS' : 'GMDSS Certificate'}
                                             </option>
