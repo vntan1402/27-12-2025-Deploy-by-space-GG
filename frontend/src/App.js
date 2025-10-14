@@ -9560,10 +9560,11 @@ const HomePage = () => {
                                         <span className="mr-2">👤</span>
                                         {language === 'vi' ? 'Thông tin thuyền viên' : 'Crew Information'}
                                       </h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Row 1: Crew Name (Vietnamese) and Crew Name (English) */}
                                         <div>
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            {language === 'vi' ? 'Tên thuyền viên' : 'Crew Name'} <span className="text-red-500">*</span>
+                                            {language === 'vi' ? 'Tên thuyền viên (Tiếng Việt)' : 'Crew Name (Vietnamese)'} <span className="text-red-500">*</span>
                                           </label>
                                           <input
                                             type="text"
@@ -9575,6 +9576,21 @@ const HomePage = () => {
                                             disabled={!!selectedCrewForCertificates}
                                           />
                                         </div>
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {language === 'vi' ? 'Tên thuyền viên (Tiếng Anh)' : 'Crew Name (English)'}
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={newCrewCertificate.crew_name_en}
+                                            onChange={(e) => setNewCrewCertificate({...newCrewCertificate, crew_name_en: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                                            placeholder={language === 'vi' ? 'Nhập tên tiếng Anh' : 'Enter English name'}
+                                            disabled={!!selectedCrewForCertificates}
+                                          />
+                                        </div>
+
+                                        {/* Row 2: Passport and Rank */}
                                         <div>
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
                                             {language === 'vi' ? 'Số hộ chiếu' : 'Passport'} <span className="text-red-500">*</span>
@@ -9590,6 +9606,21 @@ const HomePage = () => {
                                           />
                                         </div>
                                         <div>
+                                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {language === 'vi' ? 'Chức danh' : 'Rank'}
+                                          </label>
+                                          <input
+                                            type="text"
+                                            value={newCrewCertificate.rank || ''}
+                                            onChange={(e) => setNewCrewCertificate({...newCrewCertificate, rank: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder={language === 'vi' ? 'Nhập chức danh' : 'Enter rank'}
+                                            disabled={!!selectedCrewForCertificates}
+                                          />
+                                        </div>
+
+                                        {/* Row 3: Crew ID (full width) */}
+                                        <div className="md:col-span-2">
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
                                             {language === 'vi' ? 'ID Thuyền viên' : 'Crew ID'}
                                           </label>
