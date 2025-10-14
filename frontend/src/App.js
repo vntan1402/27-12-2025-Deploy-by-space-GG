@@ -9286,11 +9286,11 @@ const HomePage = () => {
                                       {getCertificateSortIcon('crew_name')}
                                     </th>
                                     <th 
-                                      onClick={() => handleCertificateSort('passport')}
+                                      onClick={() => handleCertificateSort('rank')}
                                       className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
                                     >
-                                      {language === 'vi' ? 'Hộ chiếu' : 'Passport'}
-                                      {getCertificateSortIcon('passport')}
+                                      {language === 'vi' ? 'Chức danh' : 'Rank'}
+                                      {getCertificateSortIcon('rank')}
                                     </th>
                                     <th 
                                       onClick={() => handleCertificateSort('cert_name')}
