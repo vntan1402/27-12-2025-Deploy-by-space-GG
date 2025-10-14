@@ -9564,7 +9564,7 @@ const HomePage = () => {
                                         {/* Drag & Drop Area */}
                                         <div 
                                           className="border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-400 cursor-pointer transition-colors"
-                                          onClick={() => document.getElementById('cert-file-upload')?.click()}
+                                          onClick={handleCertFileAreaClick}
                                           onDragOver={(e) => {
                                             e.preventDefault();
                                             e.currentTarget.classList.add('border-blue-400', 'bg-blue-100');
@@ -9572,14 +9572,7 @@ const HomePage = () => {
                                           onDragLeave={(e) => {
                                             e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
                                           }}
-                                          onDrop={(e) => {
-                                            e.preventDefault();
-                                            e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
-                                            const file = e.dataTransfer.files[0];
-                                            if (file) {
-                                              handleCertFileUpload(file);
-                                            }
-                                          }}
+                                          onDrop={handleCertFileDrop}
                                         >
                                           {/* Flex container with text on left and icon on right */}
                                           <div className="flex items-center justify-between">
