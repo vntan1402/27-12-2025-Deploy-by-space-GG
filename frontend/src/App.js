@@ -5427,8 +5427,12 @@ const HomePage = () => {
     setSelectedCrewForCertificates(crew);
     setShowCertificatesView(true);
     
-    // Fetch certificates for this crew (filtered by default)
-    fetchCrewCertificates(crew.id);
+    // Fetch ALL certificates for the ship (not filtered by crew)
+    // This allows filter dropdown to work with all crew's certificates
+    fetchCrewCertificates(null);  // null = fetch all certificates
+    
+    // Set filter to show this crew's certificates by default
+    setCertFilters({ status: 'all', crewName: crew.full_name });
   };
 
   // Handle back button to return to crew list
