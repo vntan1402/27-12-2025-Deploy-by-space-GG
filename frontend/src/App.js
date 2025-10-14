@@ -5596,6 +5596,7 @@ const HomePage = () => {
 
   const handleCloseAddCrewCertModal = () => {
     setShowAddCrewCertModal(false);
+    setSelectedCrewForCert(null);  // Reset selected crew
     resetAddCrewCertForm();
   };
 
