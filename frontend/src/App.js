@@ -8989,7 +8989,7 @@ const HomePage = () => {
                                             {index + 1}
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase">
-                                            {cert.crew_name}
+                                            {language === 'en' && cert.crew_name_en ? cert.crew_name_en : cert.crew_name}
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {cert.passport}
