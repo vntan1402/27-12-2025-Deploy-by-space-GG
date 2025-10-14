@@ -9731,7 +9731,7 @@ const HomePage = () => {
                             </div>
                           )}
 
-                          {/* Certificate Context Menu */}
+                          {/* Crew Certificate Context Menu */}
                           {certContextMenu.show && (
                             <div 
                               className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[100]"
