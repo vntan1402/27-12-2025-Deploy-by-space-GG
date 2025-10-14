@@ -9598,6 +9598,16 @@ const HomePage = () => {
                                           type="file"
                                           accept=".pdf,.jpg,.jpeg,.png"
                                           onChange={(e) => {
+                                            // Check if crew is selected
+                                            if (!newCrewCertificate.crew_id) {
+                                              toast.warning(language === 'vi' 
+                                                ? '⚠️ Vui lòng chọn thuyền viên trước khi upload file!' 
+                                                : '⚠️ Please select a crew member before uploading file!'
+                                              );
+                                              e.target.value = ''; // Reset file input
+                                              return;
+                                            }
+                                            
                                             const file = e.target.files[0];
                                             if (file) {
                                               handleCertFileUpload(file);
