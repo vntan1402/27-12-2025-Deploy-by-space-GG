@@ -991,6 +991,14 @@ const HomePage = () => {
     );
   };
 
+  // Certificate Context Menu State
+  const [certContextMenu, setCertContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    cert: null
+  });
+
   // ============================================
   // ADD CREW CERTIFICATE MODAL STATES (Step 10)
   // ============================================
