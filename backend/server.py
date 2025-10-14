@@ -13529,9 +13529,13 @@ async def extract_crew_certificate_fields_from_summary(
                         # Normalize certificate name based on business rules
                         extracted_data = normalize_certificate_name(extracted_data, summary_text)
                         
+                        # Normalize issued_by to standard maritime authority names
+                        extracted_data = normalize_issued_by(extracted_data)
+                        
                         logger.info(f"✅ Certificate field extraction successful")
                         logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name')}'")
                         logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no')}'")
+                        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
                         
                         return extracted_data
                         
