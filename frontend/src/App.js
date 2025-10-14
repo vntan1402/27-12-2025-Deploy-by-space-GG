@@ -9633,6 +9633,39 @@ const HomePage = () => {
                                         <span className="mr-2">👤</span>
                                         {language === 'vi' ? 'Thông tin thuyền viên' : 'Crew Information'}
                                       </h4>
+                                      
+                                      {/* Crew Selection Dropdown - Only show when no crew pre-selected */}
+                                      {!selectedCrewForCert && crewList && crewList.length > 0 && (
+                                        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <span className="mr-1">🔍</span>
+                                            {language === 'vi' ? 'Chọn thuyền viên' : 'Select Crew Member'} <span className="text-red-500">*</span>
+                                          </label>
+                                          <select
+                                            value={newCrewCertificate.crew_id}
+                                            onChange={(e) => handleCrewSelectionInCertModal(e.target.value)}
+                                            className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                                            required
+                                          >
+                                            <option value="">
+                                              {language === 'vi' ? '-- Chọn thuyền viên từ tàu --' : '-- Select crew from ship --'}
+                                            </option>
+                                            {crewList
+                                              .filter(crew => crew.ship_sign_on === selectedShip?.name)
+                                              .map(crew => (
+                                                <option key={crew.id} value={crew.id}>
+                                                  {crew.full_name} ({crew.passport}) - {crew.rank || 'N/A'}
+                                                </option>
+                                              ))}
+                                          </select>
+                                          <p className="text-xs text-gray-600 mt-1">
+                                            {language === 'vi' 
+                                              ? '💡 Chọn thuyền viên để tự động điền thông tin' 
+                                              : '💡 Select crew to auto-fill information'}
+                                          </p>
+                                        </div>
+                                      )}
+
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Row 1: Crew Name (Vietnamese) and Crew Name (English) */}
                                         <div>
@@ -9646,7 +9679,7 @@ const HomePage = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                                             placeholder={language === 'vi' ? 'Nhập tên thuyền viên' : 'Enter crew name'}
                                             required
-                                            disabled={!!selectedCrewForCertificates}
+                                            disabled={!!selectedCrewForCert}
                                           />
                                         </div>
                                         <div>
@@ -9659,7 +9692,7 @@ const HomePage = () => {
                                             onChange={(e) => setNewCrewCertificate({...newCrewCertificate, crew_name_en: e.target.value})}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                                             placeholder={language === 'vi' ? 'Nhập tên tiếng Anh' : 'Enter English name'}
-                                            disabled={!!selectedCrewForCertificates}
+                                            disabled={!!selectedCrewForCert}
                                           />
                                         </div>
 
@@ -9675,7 +9708,7 @@ const HomePage = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             placeholder={language === 'vi' ? 'Nhập số hộ chiếu' : 'Enter passport'}
                                             required
-                                            disabled={!!selectedCrewForCertificates}
+                                            disabled={!!selectedCrewForCert}
                                           />
                                         </div>
                                         <div>
@@ -9688,7 +9721,7 @@ const HomePage = () => {
                                             onChange={(e) => setNewCrewCertificate({...newCrewCertificate, rank: e.target.value})}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                             placeholder={language === 'vi' ? 'Nhập chức danh' : 'Enter rank'}
-                                            disabled={!!selectedCrewForCertificates}
+                                            disabled={!!selectedCrewForCert}
                                           />
                                         </div>
 
