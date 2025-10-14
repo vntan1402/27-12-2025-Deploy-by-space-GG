@@ -5482,15 +5482,17 @@ const HomePage = () => {
   const handleOpenAddCrewCertModal = () => {
     console.log('🔵 handleOpenAddCrewCertModal called');
     console.log('📋 selectedCrewForCertificates:', selectedCrewForCertificates);
+    console.log('🔍 certFilters.crewName:', certFilters.crewName);
+    console.log('👥 crewList:', crewList);
     
-    // Pre-fill crew info if viewing specific crew's certificates
+    // Priority 1: Pre-fill from selectedCrewForCertificates (when double-clicked from crew list)
     if (selectedCrewForCertificates) {
       setNewCrewCertificate({
         crew_id: selectedCrewForCertificates.id,
         crew_name: selectedCrewForCertificates.full_name,
-        crew_name_en: selectedCrewForCertificates.full_name_en || '',  // Pre-fill English name
+        crew_name_en: selectedCrewForCertificates.full_name_en || '',
         passport: selectedCrewForCertificates.passport,
-        rank: selectedCrewForCertificates.rank || '',  // Pre-fill rank
+        rank: selectedCrewForCertificates.rank || '',
         cert_name: '',
         cert_no: '',
         issued_by: '',
@@ -5498,7 +5500,34 @@ const HomePage = () => {
         cert_expiry: '',
         note: ''
       });
-    } else {
+    } 
+    // Priority 2: Pre-fill from filtered crew (when crew filter is not 'all')
+    else if (certFilters.crewName && certFilters.crewName !== 'all' && crewList && crewList.length > 0) {
+      // Find the crew from crewList by matching crew_name
+      const filteredCrew = crewList.find(crew => crew.full_name === certFilters.crewName);
+      
+      if (filteredCrew) {
+        console.log('✅ Found filtered crew:', filteredCrew);
+        setNewCrewCertificate({
+          crew_id: filteredCrew.id,
+          crew_name: filteredCrew.full_name,
+          crew_name_en: filteredCrew.full_name_en || '',
+          passport: filteredCrew.passport,
+          rank: filteredCrew.rank || '',
+          cert_name: '',
+          cert_no: '',
+          issued_by: '',
+          issued_date: '',
+          cert_expiry: '',
+          note: ''
+        });
+      } else {
+        console.log('⚠️ Filtered crew not found in crewList');
+        resetAddCrewCertForm();
+      }
+    } 
+    // Priority 3: Reset form (no specific crew selected)
+    else {
       resetAddCrewCertForm();
     }
     
