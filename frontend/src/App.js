@@ -5755,6 +5755,264 @@ const HomePage = () => {
     }
   };
 
+  // ============================================
+  // CERTIFICATE CONTEXT MENU HANDLERS
+  // ============================================
+  
+  const handleCertRightClick = (e, cert) => {
+    e.preventDefault();
+    
+    // Check if user has proper role
+    const allowedRoles = ['company_officer', 'manager', 'admin', 'super_admin'];
+    if (!allowedRoles.includes(user?.role)) {
+      return;
+    }
+    
+    // Calculate context menu position with viewport boundary checking
+    const contextMenuWidth = 200;
+    const contextMenuHeight = 250;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust position if menu would overflow viewport
+    if (x + contextMenuWidth > viewportWidth) {
+      x = viewportWidth - contextMenuWidth - 10;
+    }
+    if (y + contextMenuHeight > viewportHeight) {
+      y = y - contextMenuHeight;
+      if (y < 0) {
+        y = viewportHeight - contextMenuHeight - 10;
+      }
+    }
+    if (x < 0) x = 10;
+    if (y < 0) y = 10;
+    
+    setCertContextMenu({
+      show: true,
+      x: x,
+      y: y,
+      cert: cert
+    });
+  };
+
+  const handleEditCertificate = (cert) => {
+    console.log('✏️ Editing certificate:', cert);
+    
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
+    // Set editing cert
+    setEditingCert(cert);
+    
+    // Pre-fill form with certificate data
+    setEditCertData({
+      crew_id: cert.crew_id || '',
+      crew_name: cert.crew_name || '',
+      crew_name_en: cert.crew_name_en || '',
+      passport: cert.passport || '',
+      cert_name: cert.cert_name || '',
+      cert_no: cert.cert_no || '',
+      issued_by: cert.issued_by || '',
+      issued_date: cert.issued_date ? cert.issued_date.split('T')[0] : '',
+      cert_expiry: cert.cert_expiry ? cert.cert_expiry.split('T')[0] : '',
+      note: cert.note || ''
+    });
+    
+    // Open edit modal
+    setShowEditCertModal(true);
+  };
+
+  const handleUpdateCertificate = async (e) => {
+    e.preventDefault();
+    
+    if (!editingCert) return;
+    
+    try {
+      console.log('📤 Updating certificate:', editCertData);
+      
+      const response = await axios.put(
+        `${API}/crew-certificates/${editingCert.id}`,
+        editCertData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data) {
+        console.log('✅ Certificate updated successfully:', response.data);
+        
+        toast.success(language === 'vi' 
+          ? '✅ Đã cập nhật chứng chỉ thành công!' 
+          : '✅ Certificate updated successfully!'
+        );
+
+        // Close modal
+        closeEditCertModal();
+
+        // Refresh certificates list
+        await fetchCrewCertificates(null);
+      }
+
+    } catch (error) {
+      console.error('❌ Error updating certificate:', error);
+      
+      const errorMsg = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' 
+        ? `Lỗi khi cập nhật chứng chỉ: ${errorMsg}` 
+        : `Error updating certificate: ${errorMsg}`
+      );
+    }
+  };
+
+  const closeEditCertModal = () => {
+    setShowEditCertModal(false);
+    setEditingCert(null);
+    setEditCertData({
+      crew_id: '',
+      crew_name: '',
+      crew_name_en: '',
+      passport: '',
+      cert_name: '',
+      cert_no: '',
+      issued_by: '',
+      issued_date: '',
+      cert_expiry: '',
+      note: ''
+    });
+  };
+
+  const handleDeleteCertificate = async (cert) => {
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
+    // Show confirmation
+    const confirmed = window.confirm(
+      language === 'vi' 
+        ? `Bạn có chắc chắn muốn xóa chứng chỉ "${cert.cert_name}" của ${cert.crew_name}?` 
+        : `Are you sure you want to delete certificate "${cert.cert_name}" for ${cert.crew_name}?`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      console.log('🗑️ Deleting certificate:', cert.id);
+      
+      await axios.delete(
+        `${API}/crew-certificates/${cert.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      toast.success(language === 'vi' 
+        ? '✅ Đã xóa chứng chỉ thành công!' 
+        : '✅ Certificate deleted successfully!'
+      );
+
+      // Refresh certificates list
+      await fetchCrewCertificates(null);
+
+    } catch (error) {
+      console.error('❌ Error deleting certificate:', error);
+      
+      const errorMsg = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' 
+        ? `Lỗi khi xóa chứng chỉ: ${errorMsg}` 
+        : `Error deleting certificate: ${errorMsg}`
+      );
+    }
+  };
+
+  const handleViewCertFile = (cert) => {
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
+    if (cert.cert_file_id) {
+      const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
+      console.log('📄 Opening certificate file:', fileUrl);
+      
+      toast.info(language === 'vi' 
+        ? 'Đang mở file chứng chỉ...' 
+        : 'Opening certificate file...'
+      );
+      
+      window.open(fileUrl, '_blank');
+    } else {
+      toast.warning(language === 'vi' 
+        ? 'Chứng chỉ này chưa có file đính kèm' 
+        : 'This certificate has no attached file'
+      );
+    }
+  };
+
+  const handleDownloadCertFile = async (cert) => {
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
+    if (cert.cert_file_id) {
+      const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.cert_file_id}`;
+      console.log('⬇️ Downloading certificate file:', downloadUrl);
+      
+      toast.info(language === 'vi' 
+        ? 'Đang tải xuống file chứng chỉ...' 
+        : 'Downloading certificate file...'
+      );
+      
+      // Create temporary link to trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${cert.cert_name}_${cert.crew_name}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      toast.warning(language === 'vi' 
+        ? 'Chứng chỉ này chưa có file đính kèm' 
+        : 'This certificate has no attached file'
+      );
+    }
+  };
+
+  const handleCopyCertLink = async (cert) => {
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
+    if (cert.cert_file_id) {
+      const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
+      
+      try {
+        await navigator.clipboard.writeText(fileUrl);
+        
+        toast.success(language === 'vi' 
+          ? '✅ Đã sao chép link chứng chỉ!' 
+          : '✅ Certificate link copied to clipboard!'
+        );
+        
+        console.log('📋 Copied certificate link:', fileUrl);
+      } catch (error) {
+        console.error('❌ Error copying link:', error);
+        
+        toast.error(language === 'vi' 
+          ? 'Không thể sao chép link' 
+          : 'Cannot copy link'
+        );
+      }
+    } else {
+      toast.warning(language === 'vi' 
+        ? 'Chứng chỉ này chưa có file đính kèm' 
+        : 'This certificate has no attached file'
+      );
+    }
+  };
+
 
   // Reset add crew form
   const resetAddCrewForm = () => {
