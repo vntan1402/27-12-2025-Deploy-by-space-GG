@@ -1023,6 +1023,22 @@ const HomePage = () => {
   const [certAnalysis, setCertAnalysis] = useState(null);
   const [certError, setCertError] = useState('');
 
+  // Edit Certificate Modal States
+  const [showEditCertModal, setShowEditCertModal] = useState(false);
+  const [editingCert, setEditingCert] = useState(null);
+  const [editCertData, setEditCertData] = useState({
+    crew_id: '',
+    crew_name: '',
+    crew_name_en: '',
+    passport: '',
+    cert_name: '',
+    cert_no: '',
+    issued_by: '',
+    issued_date: '',
+    cert_expiry: '',
+    note: ''
+  });
+
   // Crew List Filters
   const [crewFilters, setCrewFilters] = useState({
     ship_sign_on: 'All',
