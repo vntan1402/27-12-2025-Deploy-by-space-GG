@@ -5437,6 +5437,7 @@ const HomePage = () => {
     setSelectedCrewForCertificates(null);
     setCrewCertificates([]);
     setCertificatesSearch('');
+    setCertFilters({ status: 'all', crewName: 'all' });
     setCertificateSort({ column: null, direction: 'asc' });
   };
 
