@@ -668,6 +668,7 @@ class CrewCertificateCreate(CrewCertificateBase):
 
 class CrewCertificateUpdate(BaseModel):
     crew_name: Optional[str] = None
+    crew_name_en: Optional[str] = None  # English name
     passport: Optional[str] = None
     cert_name: Optional[str] = None
     cert_no: Optional[str] = None
