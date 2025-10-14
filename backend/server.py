@@ -12996,100 +12996,97 @@ async def analyze_certificate_file_for_crew(
             "processing_method": "clean_analysis"
         }
         
-        try:
-            # Call Google Apps Script to analyze certificate with Document AI
-            apps_script_payload = {
-                "action": "analyze_certificate_document_ai",  # ✅ Use correct action for certificates
-                "file_content": base64.b64encode(file_content).decode('utf-8'),
-                "filename": filename,
-                "content_type": cert_file.content_type or 'application/octet-stream',
-                "project_id": document_ai_config.get("project_id"),
-                "location": document_ai_config.get("location", "us"),
-                "processor_id": document_ai_config.get("processor_id")
-            }
-            
-            # Make request to Google Apps Script
-            analysis_response = await google_drive_manager.call_apps_script(
-                apps_script_payload, 
-                company_id=company_uuid
-            )
-            
-            if analysis_response.get("success"):
-                document_summary = analysis_response.get("data", {}).get("summary", "")
-                
-                if document_summary:
-                    logger.info("✅ Document AI summary generated successfully for certificate")
-                    logger.info(f"   📝 Summary length: {len(document_summary)} characters")
-                    
-                    # Use System AI to extract certificate fields from summary
-                    try:
-                        ai_provider = ai_config_doc.get("provider", "google")
-                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
-                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
-                        
-                        logger.info(f"🤖 Using {ai_provider} {ai_model} to extract certificate fields...")
-                        
-                        # Determine certificate type from filename or content
-                        cert_type = detect_certificate_type(filename, document_summary)
-                        logger.info(f"📋 Detected certificate type: {cert_type}")
-                        
-                        # Extract document fields using system AI
-                        extracted_fields = await extract_crew_certificate_fields_from_summary(
-                            document_summary, cert_type, ai_provider, ai_model, use_emergent_key
-                        )
-                        
-                        if extracted_fields:
-                            analysis_result.update(extracted_fields)
-                            analysis_result["processing_method"] = "summary_to_ai_extraction"
-                            logger.info("✅ AI certificate field extraction completed")
-                            logger.info(f"   📋 Extracted Cert Name: '{analysis_result.get('cert_name')}'")
-                            logger.info(f"   🔢 Extracted Cert No: '{analysis_result.get('cert_no')}'")
-                        else:
-                            logger.warning("AI certificate field extraction returned empty results")
-                        
-                    except Exception as ai_error:
-                        logger.error(f"AI certificate field extraction failed: {ai_error}")
-                        analysis_result["processing_method"] = "summary_only"
-                        analysis_result["raw_summary"] = document_summary
-                else:
-                    logger.warning("Apps Script succeeded but returned empty summary")
-            else:
-                logger.warning(f"Apps Script summary generation failed: {analysis_response.get('message')}")
-                
-        except Exception as apps_script_error:
-            logger.error(f"Google Apps Script call failed: {apps_script_error}")
-        
-        # Step 5: Upload file to Google Drive (ShipName > Crew Records folder)
-        logger.info(f"📤 Uploading certificate file to Google Drive: {ship_name} > Crew Records")
+        # Use Dual Apps Script Manager (same as passport workflow)
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
         
         try:
-            # Upload certificate file using Apps Script
-            upload_payload = {
-                "action": "upload_crew_certificate",
-                "ship_name": ship_name,
-                "crew_name": crew_name,
-                "filename": filename,
-                "content_type": cert_file.content_type or 'application/octet-stream',
-                "file_content": base64.b64encode(file_content).decode('utf-8')
-            }
+            # Process certificate using both Apps Scripts
+            logger.info(f"🔄 Processing certificate with dual Apps Scripts: {filename}")
             
-            upload_response = await google_drive_manager.call_apps_script(
-                upload_payload,
-                company_id=company_uuid
+            dual_result = await dual_manager.analyze_certificate_with_dual_scripts(
+                file_content=file_content,
+                filename=filename,
+                content_type=cert_file.content_type or 'application/octet-stream',
+                ship_name=ship_name,
+                document_ai_config=document_ai_config
             )
             
-            if upload_response.get("success"):
-                cert_file_id = upload_response.get("data", {}).get("file_id")
-                if cert_file_id:
-                    analysis_result["cert_file_id"] = cert_file_id
-                    logger.info(f"✅ Certificate file uploaded successfully: {cert_file_id}")
-                else:
-                    logger.warning("⚠️ File uploaded but no file_id returned")
+            if not dual_result.get('success'):
+                logger.error(f"❌ Dual Apps Script processing failed: {dual_result.get('message')}")
+                return {
+                    "success": False,
+                    "message": dual_result.get('message', 'Dual Apps Script processing failed'),
+                    "error": dual_result.get('error'),
+                    "step": dual_result.get('step', 'unknown')
+                }
+            
+            # Extract AI analysis results
+            ai_analysis = dual_result.get('ai_analysis', {})
+            if not ai_analysis.get('success'):
+                logger.error("❌ Certificate Document AI analysis failed in dual processing")
+                return {
+                    "success": False,
+                    "message": "Certificate Document AI analysis failed",
+                    "error": ai_analysis.get('message')
+                }
+            
+            # Get summary for field extraction
+            summary_text = ai_analysis.get('data', {}).get('summary', '')
+            if not summary_text:
+                logger.error("❌ No summary received from Certificate Document AI")
+                return {
+                    "success": False,
+                    "message": "No summary generated by Certificate Document AI",
+                    "error": "Empty summary"
+                }
+            
+            # Extract fields from AI summary using our enhanced extraction
+            logger.info("🧠 Extracting certificate fields from Document AI summary using system AI...")
+            
+            # Get AI configuration for field extraction
+            ai_provider = ai_config_doc.get("provider", "google")
+            ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+            
+            # Determine certificate type from filename or content
+            cert_type = detect_certificate_type(filename, summary_text)
+            logger.info(f"📋 Detected certificate type: {cert_type}")
+            
+            extracted_fields = await extract_crew_certificate_fields_from_summary(
+                summary_text,
+                cert_type,
+                ai_provider,
+                ai_model,
+                use_emergent_key
+            )
+            
+            if extracted_fields:
+                logger.info("✅ System AI certificate extraction completed successfully")
+                analysis_result.update(extracted_fields)
+                analysis_result["processing_method"] = "dual_apps_script_summary_to_ai_extraction"
+                logger.info(f"   📋 Extracted Cert Name: '{analysis_result.get('cert_name')}'")
+                logger.info(f"   🔢 Extracted Cert No: '{analysis_result.get('cert_no')}'")
             else:
-                logger.warning(f"⚠️ Failed to upload certificate file: {upload_response.get('message')}")
+                logger.warning("⚠️ Certificate field extraction returned empty result")
+            
+            # Extract upload results
+            upload_results = dual_result.get('file_uploads', {})
+            cert_upload = upload_results.get('uploads', {}).get('certificate', {})
+            
+            # Extract file ID for linking
+            cert_file_id = cert_upload.get('file_id') if cert_upload.get('success') else None
+            
+            logger.info("✅ Dual Apps Script certificate processing completed successfully")
+            logger.info(f"📎 Certificate File ID: {cert_file_id}")
+            
+            # Include file ID in analysis result
+            if cert_file_id:
+                analysis_result['cert_file_id'] = cert_file_id
                 
-        except Exception as upload_error:
-            logger.error(f"❌ Error uploading certificate file: {upload_error}")
+        except Exception as dual_error:
+            logger.error(f"❌ Dual Apps Script certificate processing error: {dual_error}")
+            # Continue with empty file_id if upload fails
         
         # Return analysis result with file_id for frontend to create certificate record
         return {
