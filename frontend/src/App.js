@@ -9457,11 +9457,11 @@ const HomePage = () => {
                                         <span className="mr-2">📜</span>
                                         {language === 'vi' ? 'Thêm chứng chỉ thuyền viên' : 'Add Crew Certificate'}
                                       </h3>
-                                      {selectedCrewForCertificates && (
+                                      {selectedCrewForCert && (
                                         <p className="text-sm text-gray-600 mt-1">
                                           {language === 'vi' ? 'Thuyền viên: ' : 'Crew: '}
-                                          <span className="font-semibold">
-                                            {selectedCrewForCertificates.full_name} ({selectedCrewForCertificates.passport})
+                                          <span className="font-semibold uppercase">
+                                            {selectedCrewForCert.full_name} ({selectedCrewForCert.passport})
                                           </span>
                                         </p>
                                       )}
