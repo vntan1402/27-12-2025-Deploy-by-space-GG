@@ -9412,8 +9412,13 @@ const HomePage = () => {
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {cert.cert_no}
                                           </td>
-                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                            {cert.issued_by || '-'}
+                                          <td 
+                                            className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-help"
+                                            title={cert.issued_by || ''}
+                                          >
+                                            <span className="font-medium">
+                                              {getAbbreviation(cert.issued_by)}
+                                            </span>
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {formatDateDisplay(cert.issued_date) || '-'}
