@@ -5515,6 +5515,7 @@ const HomePage = () => {
       crew_name: '',
       crew_name_en: '',  // Reset English name
       passport: '',
+      rank: '',  // Reset rank
       cert_name: '',
       cert_no: '',
       issued_by: '',
