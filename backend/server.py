@@ -13714,6 +13714,42 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
         summary_upper = summary_text.upper()
         
         # ===================================================
+        # PRIORITY 0.5: Check for Seaman Book combinations (SPECIAL CASES)
+        # Seaman Book + GMDSS → "Seaman book for GMDSS"
+        # Seaman Book + Rank keywords → "Seaman Book for COC"
+        # ===================================================
+        SEAMAN_BOOK_KEYWORDS = ['SEAMAN BOOK', 'SEAMAN\'S BOOK', 'LIBRETA DE EMBARQUE', 'P0196554A', 'P-NUMBER', 'P NUMBER']
+        
+        # Check if Seaman Book is mentioned
+        has_seaman_book = any(keyword in note_upper or keyword in summary_upper for keyword in SEAMAN_BOOK_KEYWORDS)
+        
+        if has_seaman_book:
+            logger.info("📖 Found Seaman Book reference, checking combination...")
+            
+            # Check for GMDSS + Seaman Book → "Seaman book for GMDSS"
+            GMDSS_KEYWORDS = ['GMDSS', 'GLOBAL MARITIME DISTRESS', 'RADIO OPERATOR', 'RADIO COMMUNICATION']
+            has_gmdss = any(keyword in note_upper or keyword in summary_upper for keyword in GMDSS_KEYWORDS)
+            
+            if has_gmdss:
+                logger.info("✅ PRIORITY 0.5: Found Seaman Book + GMDSS → Setting cert_name to 'Seaman book for GMDSS'")
+                extracted_data['cert_name'] = 'Seaman book for GMDSS'
+                return extracted_data
+            
+            # Check for Rank + Seaman Book → "Seaman Book for COC"
+            RANK_KEYWORDS = [
+                'MASTER', 'CAPTAIN', 'CHIEF MATE', 'CHIEF OFFICER', 
+                'SECOND MATE', 'SECOND OFFICER', 'THIRD MATE', 'THIRD OFFICER',
+                'CHIEF ENGINEER', 'SECOND ENGINEER', 'THIRD ENGINEER',
+                'DECK OFFICER', 'ENGINE OFFICER', 'OFFICER', 'OOW'
+            ]
+            has_rank = any(keyword in note_upper or keyword in summary_upper for keyword in RANK_KEYWORDS)
+            
+            if has_rank:
+                logger.info("✅ PRIORITY 0.5: Found Seaman Book + Rank → Setting cert_name to 'Seaman Book for COC'")
+                extracted_data['cert_name'] = 'Seaman Book for COC'
+                return extracted_data
+        
+        # ===================================================
         # PRIORITY 1: Check for GMDSS keywords (HIGHEST)
         # ===================================================
         GMDSS_KEYWORDS = ['GMDSS', 'GLOBAL MARITIME DISTRESS', 'RADIO OPERATOR', 'RADIO COMMUNICATION']
