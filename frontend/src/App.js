@@ -8801,11 +8801,16 @@ const HomePage = () => {
                                     className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white max-w-xs"
                                   >
                                     <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
-                                    {[...new Set(crewCertificates.map(cert => cert.crew_name))].sort().map(crewName => (
-                                      <option key={crewName} value={crewName}>
-                                        {crewName}
-                                      </option>
-                                    ))}
+                                    {crewMembers
+                                      .filter(crew => crew.ship_sign_on === selectedShip?.name)
+                                      .map(crew => crew.full_name)
+                                      .sort()
+                                      .map(crewName => (
+                                        <option key={crewName} value={crewName}>
+                                          {crewName}
+                                        </option>
+                                      ))
+                                    }
                                   </select>
                                 </div>
                                 
