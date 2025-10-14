@@ -8803,8 +8803,8 @@ const HomePage = () => {
                                     <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
                                     {(() => {
                                       // Get crew names from crew list (ship_sign_on = selected ship)
-                                      if (selectedShip && crewMembers.length > 0) {
-                                        return crewMembers
+                                      if (selectedShip && crewList.length > 0) {
+                                        return crewList
                                           .filter(crew => crew.ship_sign_on === selectedShip.name)
                                           .map(crew => crew.full_name)
                                           .sort()
