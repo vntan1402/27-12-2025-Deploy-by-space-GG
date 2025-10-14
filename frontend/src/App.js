@@ -8729,18 +8729,18 @@ const HomePage = () => {
                                         : certFilters.crewName;
                                       
                                       return language === 'vi' 
-                                        ? `Đang lọc: ${displayName}` 
-                                        : `Filtered: ${displayName}`;
+                                        ? `Quản lý chứng chỉ thuyền viên: ${displayName}` 
+                                        : `Manage Crew Cert for: ${displayName}`;
                                     }
                                     
-                                    // When filter is "All", show ship name instead of crew name
+                                    // When filter is "All", show ship name
                                     if (selectedShip) {
                                       return language === 'vi' 
-                                        ? `Chứng chỉ của tàu: ${selectedShip.name}` 
-                                        : `Certificates for Ship: ${selectedShip.name}`;
+                                        ? `Quản lý chứng chỉ thuyền viên của tàu: ${selectedShip.name}` 
+                                        : `Manage Crew Cert for: ${selectedShip.name}`;
                                     }
                                     
-                                    return language === 'vi' ? 'Tất cả chứng chỉ' : 'All certificates';
+                                    return language === 'vi' ? 'Tất cả chứng chỉ thuyền viên' : 'All Crew certificates';
                                   })()}
                                 </p>
                               </div>
