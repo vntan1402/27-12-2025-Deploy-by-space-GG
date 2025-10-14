@@ -9315,7 +9315,8 @@ const HomePage = () => {
                                       .map((cert, index) => (
                                         <tr 
                                           key={cert.id} 
-                                          className="hover:bg-gray-50"
+                                          className="hover:bg-gray-50 cursor-pointer"
+                                          onContextMenu={(e) => handleCertRightClick(e, cert)}
                                         >
                                           <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {index + 1}
