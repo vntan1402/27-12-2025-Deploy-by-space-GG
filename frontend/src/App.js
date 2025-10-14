@@ -961,6 +961,13 @@ const HomePage = () => {
   const [selectedCrewForCertificates, setSelectedCrewForCertificates] = useState(null);
   const [crewCertificates, setCrewCertificates] = useState([]);
   const [certificatesSearch, setCertificatesSearch] = useState('');
+  
+  // Certificate Filters
+  const [certFilters, setCertFilters] = useState({
+    status: 'all',     // all, Valid, Expiring Soon, Expired, Unknown
+    crewName: 'all'    // all, or specific crew name
+  });
+  
   const [certificateSort, setCertificateSort] = useState({
     column: null,
     direction: 'asc'
