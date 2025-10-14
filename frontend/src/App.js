@@ -8987,6 +8987,14 @@ const HomePage = () => {
                                         
                                         // Apply crew name filter
                                         if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) {
+                                          // Debug: log filter mismatch
+                                          if (certFilters.crewName !== 'all') {
+                                            console.log('🔍 Crew filter check:', {
+                                              filterValue: certFilters.crewName,
+                                              certCrewName: cert.crew_name,
+                                              match: cert.crew_name === certFilters.crewName
+                                            });
+                                          }
                                           return false;
                                         }
                                         
