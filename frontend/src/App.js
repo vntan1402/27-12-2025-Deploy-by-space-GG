@@ -8716,13 +8716,28 @@ const HomePage = () => {
                                   {language === 'vi' ? 'Chứng chỉ thuyền viên' : 'Crew Certificates'}
                                 </h3>
                                 <p className="text-sm text-gray-600">
-                                  {selectedCrewForCertificates ? (
-                                    language === 'vi' 
-                                      ? `Chứng chỉ của ${selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})` 
-                                      : `Certificates for ${selectedCrewForCertificates.full_name_en || selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})`
-                                  ) : (
-                                    language === 'vi' ? 'Tất cả chứng chỉ' : 'All certificates'
-                                  )}
+                                  {(() => {
+                                    // If crew filter is active, show filtered crew name
+                                    if (certFilters.crewName !== 'all') {
+                                      const filteredCrew = crewList.find(c => c.full_name === certFilters.crewName);
+                                      const displayName = language === 'en' && filteredCrew?.full_name_en 
+                                        ? filteredCrew.full_name_en 
+                                        : certFilters.crewName;
+                                      
+                                      return language === 'vi' 
+                                        ? `Đang lọc: ${displayName}` 
+                                        : `Filtered: ${displayName}`;
+                                    }
+                                    
+                                    // Otherwise show selected crew from double-click or all
+                                    if (selectedCrewForCertificates) {
+                                      return language === 'vi' 
+                                        ? `Chứng chỉ của ${selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})` 
+                                        : `Certificates for ${selectedCrewForCertificates.full_name_en || selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})`;
+                                    }
+                                    
+                                    return language === 'vi' ? 'Tất cả chứng chỉ' : 'All certificates';
+                                  })()}
                                 </p>
                               </div>
                             </div>
