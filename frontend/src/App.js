@@ -5801,17 +5801,17 @@ const HomePage = () => {
     });
   };
 
-  const handleEditCertificate = (cert) => {
-    console.log('✏️ Editing certificate:', cert);
+  const handleEditCrewCertificate = (cert) => {
+    console.log('✏️ Editing crew certificate:', cert);
     
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
     // Set editing cert
-    setEditingCert(cert);
+    setEditingCrewCert(cert);
     
     // Pre-fill form with certificate data
-    setEditCertData({
+    setEditCrewCertData({
       crew_id: cert.crew_id || '',
       crew_name: cert.crew_name || '',
       crew_name_en: cert.crew_name_en || '',
@@ -5825,20 +5825,20 @@ const HomePage = () => {
     });
     
     // Open edit modal
-    setShowEditCertModal(true);
+    setShowEditCrewCertModal(true);
   };
 
-  const handleUpdateCertificate = async (e) => {
+  const handleUpdateCrewCertificate = async (e) => {
     e.preventDefault();
     
-    if (!editingCert) return;
+    if (!editingCrewCert) return;
     
     try {
-      console.log('📤 Updating certificate:', editCertData);
+      console.log('📤 Updating crew certificate:', editCrewCertData);
       
       const response = await axios.put(
-        `${API}/crew-certificates/${editingCert.id}`,
-        editCertData,
+        `${API}/crew-certificates/${editingCrewCert.id}`,
+        editCrewCertData,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -5848,35 +5848,35 @@ const HomePage = () => {
       );
 
       if (response.data) {
-        console.log('✅ Certificate updated successfully:', response.data);
+        console.log('✅ Crew certificate updated successfully:', response.data);
         
         toast.success(language === 'vi' 
-          ? '✅ Đã cập nhật chứng chỉ thành công!' 
-          : '✅ Certificate updated successfully!'
+          ? '✅ Đã cập nhật chứng chỉ thuyền viên thành công!' 
+          : '✅ Crew certificate updated successfully!'
         );
 
         // Close modal
-        closeEditCertModal();
+        closeEditCrewCertModal();
 
         // Refresh certificates list
         await fetchCrewCertificates(null);
       }
 
     } catch (error) {
-      console.error('❌ Error updating certificate:', error);
+      console.error('❌ Error updating crew certificate:', error);
       
       const errorMsg = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
-        ? `Lỗi khi cập nhật chứng chỉ: ${errorMsg}` 
-        : `Error updating certificate: ${errorMsg}`
+        ? `Lỗi khi cập nhật chứng chỉ thuyền viên: ${errorMsg}` 
+        : `Error updating crew certificate: ${errorMsg}`
       );
     }
   };
 
-  const closeEditCertModal = () => {
-    setShowEditCertModal(false);
-    setEditingCert(null);
-    setEditCertData({
+  const closeEditCrewCertModal = () => {
+    setShowEditCrewCertModal(false);
+    setEditingCrewCert(null);
+    setEditCrewCertData({
       crew_id: '',
       crew_name: '',
       crew_name_en: '',
@@ -5890,7 +5890,7 @@ const HomePage = () => {
     });
   };
 
-  const handleDeleteCertificate = async (cert) => {
+  const handleDeleteCrewCertificate = async (cert) => {
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
@@ -5904,7 +5904,7 @@ const HomePage = () => {
     if (!confirmed) return;
     
     try {
-      console.log('🗑️ Deleting certificate:', cert.id);
+      console.log('🗑️ Deleting crew certificate:', cert.id);
       
       await axios.delete(
         `${API}/crew-certificates/${cert.id}`,
@@ -5916,20 +5916,20 @@ const HomePage = () => {
       );
 
       toast.success(language === 'vi' 
-        ? '✅ Đã xóa chứng chỉ thành công!' 
-        : '✅ Certificate deleted successfully!'
+        ? '✅ Đã xóa chứng chỉ thuyền viên thành công!' 
+        : '✅ Crew certificate deleted successfully!'
       );
 
       // Refresh certificates list
       await fetchCrewCertificates(null);
 
     } catch (error) {
-      console.error('❌ Error deleting certificate:', error);
+      console.error('❌ Error deleting crew certificate:', error);
       
       const errorMsg = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
-        ? `Lỗi khi xóa chứng chỉ: ${errorMsg}` 
-        : `Error deleting certificate: ${errorMsg}`
+        ? `Lỗi khi xóa chứng chỉ thuyền viên: ${errorMsg}` 
+        : `Error deleting crew certificate: ${errorMsg}`
       );
     }
   };
