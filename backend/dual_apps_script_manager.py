@@ -516,9 +516,10 @@ class DualAppsScriptManager:
         file_content: bytes,
         filename: str,
         content_type: str,
-        ship_name: str
+        ship_name: str,
+        ai_result: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Upload certificate file via Company Apps Script to ShipName/Crew Records"""
+        """Upload certificate file and summary via Company Apps Script (same as passport)"""
         try:
             if not self.company_apps_script_url:
                 raise ValueError("Company Apps Script URL not configured")
@@ -526,7 +527,9 @@ class DualAppsScriptManager:
             if not self.parent_folder_id:
                 raise ValueError("Company Google Drive Folder ID not configured")
             
-            # Upload certificate file to Ship/Crew Records
+            upload_results = {}
+            
+            # Upload 1: Certificate file to Ship/Crew Records
             logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/{filename}")
             cert_upload = await self._call_company_apps_script({
                 'action': 'upload_file_with_folder_creation',
@@ -537,16 +540,37 @@ class DualAppsScriptManager:
                 'file_content': base64.b64encode(file_content).decode('utf-8'),
                 'content_type': content_type
             })
+            upload_results['certificate'] = cert_upload
             
-            # Check upload result
-            if cert_upload.get('success'):
-                logger.info("✅ Certificate file uploaded successfully")
+            # Upload 2: Summary file to SUMMARY folder (same as passport)
+            if ai_result.get('success') and ai_result.get('data', {}).get('summary'):
+                summary_content = ai_result['data']['summary']
+                base_name = filename.rsplit('.', 1)[0]
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                logger.info(f"📋 Uploading certificate summary file: SUMMARY/Crew Records/{summary_filename}")
+                # For summary, upload to SUMMARY/Crew Records folder
+                summary_upload = await self._call_company_apps_script({
+                    'action': 'upload_file_with_folder_creation',
+                    'parent_folder_id': self.parent_folder_id,
+                    'ship_name': 'SUMMARY',  # Use SUMMARY as "ship_name" to create root-level SUMMARY folder
+                    'category': 'Crew Records',  # Create Crew Records subfolder inside SUMMARY
+                    'filename': summary_filename,
+                    'file_content': base64.b64encode(summary_content.encode('utf-8')).decode('utf-8'),
+                    'content_type': 'text/plain'
+                })
+                upload_results['summary'] = summary_upload
+            
+            # Check upload results
+            cert_success = upload_results.get('certificate', {}).get('success', False)
+            summary_success = upload_results.get('summary', {}).get('success', False)
+            
+            if cert_success:
+                logger.info("✅ All certificate file uploads completed successfully")
                 return {
                     'success': True,
-                    'message': 'Certificate file uploaded successfully to Company Google Drive',
-                    'uploads': {
-                        'certificate': cert_upload
-                    },
+                    'message': 'Certificate files uploaded successfully to Company Google Drive',
+                    'uploads': upload_results,
                     'upload_method': 'company_apps_script'
                 }
             else:
@@ -554,9 +578,7 @@ class DualAppsScriptManager:
                 return {
                     'success': False,
                     'message': 'Certificate file upload failed',
-                    'uploads': {
-                        'certificate': cert_upload
-                    },
+                    'uploads': upload_results,
                     'error': 'Certificate upload failed'
                 }
             
