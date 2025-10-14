@@ -13681,9 +13681,10 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
     
     Priority Logic:
     1. Check GMDSS keywords in Note/Summary (HIGHEST PRIORITY)
-    2. Check Rank keywords in Note/Summary
-    3. Check if AI-extracted name matches standard certificates
-    4. Keep original name
+    2. Check specific certificate training keywords (Ship Security Officer, Fire Fighting, etc.)
+    3. Check Rank keywords in Note/Summary → COC
+    4. Check if AI-extracted name matches standard certificates
+    5. Keep original name
     """
     try:
         cert_name = extracted_data.get('cert_name', '').strip()
@@ -13704,7 +13705,30 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
                 return extracted_data
         
         # ===================================================
-        # PRIORITY 2: Check for Rank keywords → COC
+        # PRIORITY 2: Check for specific training/certificate keywords
+        # Must check BEFORE rank keywords to avoid false matches
+        # (e.g., "Ship Security Officer" contains "Officer")
+        # ===================================================
+        SPECIFIC_CERT_KEYWORDS = {
+            'SHIP SECURITY OFFICER': 'Ship Security Officer',
+            'SSO': 'Ship Security Officer',
+            'ADVANCED FIRE FIGHTING': 'Advanced Fire Fighting',
+            'FIRE FIGHTING': 'Advanced Fire Fighting',
+            'BASIC SAFETY TRAINING': 'Basic Safety Training',
+            'BASIC SAFETY': 'Basic Safety Training',
+            'MEDICAL CERTIFICATE': 'Medical Certificate',
+            'MEDICAL EXAMINATION': 'Medical Certificate',
+            'STCW': 'STCW Certificate'
+        }
+        
+        for keyword, cert_name_value in SPECIFIC_CERT_KEYWORDS.items():
+            if keyword in note_upper or keyword in summary_upper:
+                logger.info(f"✅ PRIORITY 2: Found specific cert keyword '{keyword}' → Setting cert_name to {cert_name_value}")
+                extracted_data['cert_name'] = cert_name_value
+                return extracted_data
+        
+        # ===================================================
+        # PRIORITY 3: Check for Rank keywords → COC
         # ===================================================
         RANK_KEYWORDS = [
             'MASTER', 'CAPTAIN', 'CHIEF MATE', 'CHIEF OFFICER', 
@@ -13715,41 +13739,32 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
         
         for rank in RANK_KEYWORDS:
             if rank in note_upper or rank in summary_upper:
-                logger.info(f"✅ PRIORITY 2: Found rank keyword '{rank}' → Setting cert_name to COC")
+                logger.info(f"✅ PRIORITY 3: Found rank keyword '{rank}' → Setting cert_name to COC")
                 extracted_data['cert_name'] = 'Certificate of Competency (COC)'
                 return extracted_data
         
         # ===================================================
-        # PRIORITY 3: Check standard certificate mappings
+        # PRIORITY 4: Check standard certificate mappings
         # ===================================================
         STANDARD_CERTS = {
             'COC': 'Certificate of Competency (COC)',
             'CERTIFICATE OF COMPETENCY': 'Certificate of Competency (COC)',
             'COE': 'Certificate of Endorsement (COE)', 
             'CERTIFICATE OF ENDORSEMENT': 'Certificate of Endorsement (COE)',
-            'STCW': 'STCW Certificate',
-            'MEDICAL': 'Medical Certificate',
-            'MEDICAL CERTIFICATE': 'Medical Certificate',
-            'BASIC SAFETY': 'Basic Safety Training',
-            'BASIC SAFETY TRAINING': 'Basic Safety Training',
-            'ADVANCED FIRE FIGHTING': 'Advanced Fire Fighting',
-            'FIRE FIGHTING': 'Advanced Fire Fighting',
-            'SHIP SECURITY OFFICER': 'Ship Security Officer',
-            'SSO': 'Ship Security Officer'
         }
         
         cert_name_upper = cert_name.upper()
         
         for key, standard_name in STANDARD_CERTS.items():
             if key in cert_name_upper:
-                logger.info(f"✅ PRIORITY 3: Found standard cert name: {standard_name}")
+                logger.info(f"✅ PRIORITY 4: Found standard cert name: {standard_name}")
                 extracted_data['cert_name'] = standard_name
                 return extracted_data
         
         # ===================================================
-        # PRIORITY 4: Keep original if no rules match
+        # PRIORITY 5: Keep original if no rules match
         # ===================================================
-        logger.info(f"ℹ️ PRIORITY 4: No matching rules, keeping original cert_name: {cert_name}")
+        logger.info(f"ℹ️ PRIORITY 5: No matching rules, keeping original cert_name: {cert_name}")
         
         return extracted_data
         
