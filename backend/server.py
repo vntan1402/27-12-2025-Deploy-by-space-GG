@@ -13104,6 +13104,7 @@ async def analyze_certificate_file_for_crew(
             "success": True,
             "analysis": analysis_result,
             "crew_name": crew_name,
+            "crew_name_en": crew_name_en,  # Include English name
             "passport": passport,
             "message": "Certificate analyzed successfully"
         }
