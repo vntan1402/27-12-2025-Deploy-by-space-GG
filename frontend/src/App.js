@@ -9394,7 +9394,7 @@ const HomePage = () => {
                                             {language === 'en' && cert.crew_name_en ? cert.crew_name_en : cert.crew_name}
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                            {cert.passport}
+                                            {cert.rank || '-'}
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             <div className="flex items-center space-x-2">
