@@ -13672,6 +13672,86 @@ def standardize_certificate_dates(data: dict) -> dict:
     return data
 
 
+def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
+    """
+    Normalize certificate name based on AI extraction and business rules
+    
+    Rules:
+    1. If AI found standard cert name, use standardized value
+    2. If not found, analyze Note field for hints
+    3. Check for rank keywords → COC
+    4. Check for GMDSS keywords → GMDSS
+    """
+    try:
+        cert_name = extracted_data.get('cert_name', '').strip()
+        note = extracted_data.get('note', '').strip()
+        
+        # Define standard certificate mappings
+        STANDARD_CERTS = {
+            'COC': 'Certificate of Competency (COC)',
+            'CERTIFICATE OF COMPETENCY': 'Certificate of Competency (COC)',
+            'COE': 'Certificate of Endorsement (COE)', 
+            'CERTIFICATE OF ENDORSEMENT': 'Certificate of Endorsement (COE)',
+            'STCW': 'STCW Certificate',
+            'MEDICAL': 'Medical Certificate',
+            'MEDICAL CERTIFICATE': 'Medical Certificate',
+            'GMDSS': 'GMDSS Certificate',
+            'BASIC SAFETY': 'Basic Safety Training',
+            'BASIC SAFETY TRAINING': 'Basic Safety Training',
+            'ADVANCED FIRE FIGHTING': 'Advanced Fire Fighting',
+            'FIRE FIGHTING': 'Advanced Fire Fighting',
+            'SHIP SECURITY OFFICER': 'Ship Security Officer',
+            'SSO': 'Ship Security Officer'
+        }
+        
+        # Step 1: Check if cert_name matches any standard certificate
+        cert_name_upper = cert_name.upper()
+        
+        for key, standard_name in STANDARD_CERTS.items():
+            if key in cert_name_upper:
+                logger.info(f"✅ Found standard cert name: {standard_name}")
+                extracted_data['cert_name'] = standard_name
+                return extracted_data
+        
+        # Step 2: If no match, analyze Note field for hints
+        logger.info(f"⚠️ No standard cert name found, analyzing Note field...")
+        
+        # Check for rank keywords (Master, Chief Mate, etc.) → COC
+        RANK_KEYWORDS = [
+            'MASTER', 'CAPTAIN', 'CHIEF MATE', 'CHIEF OFFICER', 
+            'SECOND MATE', 'SECOND OFFICER', 'THIRD MATE', 'THIRD OFFICER',
+            'CHIEF ENGINEER', 'SECOND ENGINEER', 'THIRD ENGINEER',
+            'DECK OFFICER', 'ENGINE OFFICER', 'OFFICER', 'OOW'
+        ]
+        
+        note_upper = note.upper()
+        summary_upper = summary_text.upper()
+        
+        for rank in RANK_KEYWORDS:
+            if rank in note_upper or rank in summary_upper:
+                logger.info(f"✅ Found rank keyword '{rank}' in Note/Summary → Setting cert_name to COC")
+                extracted_data['cert_name'] = 'Certificate of Competency (COC)'
+                return extracted_data
+        
+        # Check for GMDSS keywords → GMDSS
+        GMDSS_KEYWORDS = ['GMDSS', 'GLOBAL MARITIME DISTRESS', 'RADIO OPERATOR']
+        
+        for keyword in GMDSS_KEYWORDS:
+            if keyword in note_upper or keyword in summary_upper:
+                logger.info(f"✅ Found GMDSS keyword '{keyword}' in Note/Summary → Setting cert_name to GMDSS")
+                extracted_data['cert_name'] = 'GMDSS Certificate'
+                return extracted_data
+        
+        # Step 3: If still no match, keep original cert_name from AI
+        logger.info(f"ℹ️ No matching rules, keeping original cert_name: {cert_name}")
+        
+        return extracted_data
+        
+    except Exception as e:
+        logger.error(f"Error normalizing certificate name: {e}")
+        return extracted_data
+
+
 def calculate_certificate_status(cert_expiry) -> str:
     """
     Calculate certificate status based on expiry date
