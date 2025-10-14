@@ -13073,16 +13073,24 @@ async def analyze_certificate_file_for_crew(
             # Extract upload results
             upload_results = dual_result.get('file_uploads', {})
             cert_upload = upload_results.get('uploads', {}).get('certificate', {})
+            summary_upload = upload_results.get('uploads', {}).get('summary', {})
             
-            # Extract file ID for linking
+            # Extract file IDs for linking
             cert_file_id = cert_upload.get('file_id') if cert_upload.get('success') else None
+            summary_file_id = summary_upload.get('file_id') if summary_upload.get('success') else None
             
             logger.info("✅ Dual Apps Script certificate processing completed successfully")
-            logger.info(f"📎 Certificate File ID: {cert_file_id}")
+            logger.info(f"📎 File IDs - Certificate: {cert_file_id}, Summary: {summary_file_id}")
             
-            # Include file ID in analysis result
-            if cert_file_id:
-                analysis_result['cert_file_id'] = cert_file_id
+            # Include file IDs in analysis result
+            if cert_file_id or summary_file_id:
+                analysis_result['file_ids'] = {
+                    'cert_file_id': cert_file_id,
+                    'summary_file_id': summary_file_id
+                }
+                # Also keep cert_file_id at root level for backward compatibility
+                if cert_file_id:
+                    analysis_result['cert_file_id'] = cert_file_id
                 
         except Exception as dual_error:
             logger.error(f"❌ Dual Apps Script certificate processing error: {dual_error}")
