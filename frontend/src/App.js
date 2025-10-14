@@ -5481,6 +5481,7 @@ const HomePage = () => {
     setNewCrewCertificate({
       crew_id: '',
       crew_name: '',
+      crew_name_en: '',  // Reset English name
       passport: '',
       cert_name: '',
       cert_no: '',
