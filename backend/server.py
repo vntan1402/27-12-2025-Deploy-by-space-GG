@@ -12961,6 +12961,7 @@ async def analyze_certificate_file_for_crew(
             
             if crew:
                 crew_name = crew.get("full_name", "Unknown")
+                crew_name_en = crew.get("full_name_en", "")  # Get English name
                 passport = crew.get("passport", "Unknown")
             else:
                 logger.warning(f"⚠️ Crew member with id {crew_id} not found, continuing with default values")
