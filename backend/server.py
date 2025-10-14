@@ -13524,6 +13524,9 @@ async def extract_crew_certificate_fields_from_summary(
                         # Standardize date formats
                         extracted_data = standardize_certificate_dates(extracted_data)
                         
+                        # Normalize certificate name based on business rules
+                        extracted_data = normalize_certificate_name(extracted_data, summary_text)
+                        
                         logger.info(f"✅ Certificate field extraction successful")
                         logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name')}'")
                         logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no')}'")
