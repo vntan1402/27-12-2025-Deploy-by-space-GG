@@ -13203,6 +13203,10 @@ async def update_crew_certificate(
         if not update_data:
             raise HTTPException(status_code=400, detail="No fields to update")
         
+        # Normalize issued_by if it's being updated
+        if 'issued_by' in update_data:
+            update_data = normalize_issued_by(update_data)
+        
         # Convert date strings to datetime objects
         for date_field in ['issued_date', 'cert_expiry']:
             if date_field in update_data and update_data[date_field]:
