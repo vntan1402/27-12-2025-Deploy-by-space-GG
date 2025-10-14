@@ -8746,26 +8746,115 @@ const HomePage = () => {
                             </div>
                           </div>
 
-                          {/* Search Bar */}
+                          {/* Search Bar and Filters */}
                           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                            <div className="flex items-center space-x-2">
-                              <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                                {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
-                              </label>
-                              <div className="relative flex-1 max-w-md">
-                                <input
-                                  type="text"
-                                  placeholder={language === 'vi' ? 'Tìm theo tên chứng chỉ, số chứng chỉ...' : 'Search by cert name, cert no...'}
-                                  value={certificatesSearch}
-                                  onChange={(e) => setCertificatesSearch(e.target.value)}
-                                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                                />
-                                <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                            <div className="flex flex-col space-y-3">
+                              {/* Search Row */}
+                              <div className="flex items-center space-x-2">
+                                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                  {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
+                                </label>
+                                <div className="relative flex-1 max-w-md">
+                                  <input
+                                    type="text"
+                                    placeholder={language === 'vi' ? 'Tìm theo tên chứng chỉ, số chứng chỉ, tên thuyền viên...' : 'Search by cert name, cert no, crew name...'}
+                                    value={certificatesSearch}
+                                    onChange={(e) => setCertificatesSearch(e.target.value)}
+                                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                  />
+                                  <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                                </div>
                               </div>
-                              <div className="flex items-center ml-auto">
-                                <p className="text-sm text-gray-600 whitespace-nowrap">
-                                  {language === 'vi' ? 'Hiển thị' : 'Showing'} <span className="font-semibold">{crewCertificates.length}</span> {language === 'vi' ? 'chứng chỉ' : 'certificates'}
-                                </p>
+                              
+                              {/* Filters Row */}
+                              <div className="flex items-center space-x-4">
+                                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                                  {language === 'vi' ? 'Lọc theo:' : 'Filter by:'}
+                                </label>
+                                
+                                {/* Status Filter */}
+                                <div className="flex items-center space-x-2">
+                                  <label className="text-sm text-gray-600 whitespace-nowrap">
+                                    {language === 'vi' ? 'Trạng thái:' : 'Status:'}
+                                  </label>
+                                  <select
+                                    value={certFilters.status}
+                                    onChange={(e) => setCertFilters({...certFilters, status: e.target.value})}
+                                    className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                                  >
+                                    <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                                    <option value="Valid">✅ {language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
+                                    <option value="Expiring Soon">⚠️ {language === 'vi' ? 'Sắp hết hạn' : 'Expiring Soon'}</option>
+                                    <option value="Expired">❌ {language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
+                                    <option value="Unknown">❓ {language === 'vi' ? 'Không xác định' : 'Unknown'}</option>
+                                  </select>
+                                </div>
+                                
+                                {/* Crew Name Filter */}
+                                <div className="flex items-center space-x-2">
+                                  <label className="text-sm text-gray-600 whitespace-nowrap">
+                                    {language === 'vi' ? 'Thuyền viên:' : 'Crew:'}
+                                  </label>
+                                  <select
+                                    value={certFilters.crewName}
+                                    onChange={(e) => setCertFilters({...certFilters, crewName: e.target.value})}
+                                    className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white max-w-xs"
+                                  >
+                                    <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                                    {[...new Set(crewCertificates.map(cert => cert.crew_name))].sort().map(crewName => (
+                                      <option key={crewName} value={crewName}>
+                                        {crewName}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                
+                                {/* Reset Filters Button */}
+                                {(certFilters.status !== 'all' || certFilters.crewName !== 'all' || certificatesSearch) && (
+                                  <button
+                                    onClick={() => {
+                                      setCertFilters({ status: 'all', crewName: 'all' });
+                                      setCertificatesSearch('');
+                                    }}
+                                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center transition-colors"
+                                    title={language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
+                                  >
+                                    <span className="mr-1">🔄</span>
+                                    {language === 'vi' ? 'Xóa bộ lọc' : 'Clear'}
+                                  </button>
+                                )}
+                                
+                                {/* Results Count */}
+                                <div className="flex items-center ml-auto">
+                                  <p className="text-sm text-gray-600 whitespace-nowrap">
+                                    {language === 'vi' ? 'Hiển thị' : 'Showing'} <span className="font-semibold">
+                                      {crewCertificates.filter(cert => {
+                                        // Apply search filter
+                                        if (certificatesSearch) {
+                                          const search = certificatesSearch.toLowerCase();
+                                          if (!(
+                                            cert.crew_name?.toLowerCase().includes(search) ||
+                                            cert.cert_name?.toLowerCase().includes(search) ||
+                                            cert.cert_no?.toLowerCase().includes(search) ||
+                                            cert.issued_by?.toLowerCase().includes(search)
+                                          )) return false;
+                                        }
+                                        
+                                        // Apply status filter
+                                        if (certFilters.status !== 'all' && cert.status !== certFilters.status) {
+                                          return false;
+                                        }
+                                        
+                                        // Apply crew name filter
+                                        if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) {
+                                          return false;
+                                        }
+                                        
+                                        return true;
+                                      }).length}
+                                    </span> / <span className="font-semibold">{crewCertificates.length}</span> {language === 'vi' ? 'chứng chỉ' : 'certificates'}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           </div>
