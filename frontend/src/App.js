@@ -998,6 +998,7 @@ const HomePage = () => {
   const [newCrewCertificate, setNewCrewCertificate] = useState({
     crew_id: '',
     crew_name: '',
+    crew_name_en: '',  // English name
     passport: '',
     cert_name: '',
     cert_no: '',
