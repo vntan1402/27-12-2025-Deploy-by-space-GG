@@ -23,7 +23,7 @@ import tempfile
 from urllib.parse import urlparse
 
 # Configuration - Use environment variable for backend URL
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-cert-tracker.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maritime-docs-1.preview.emergentagent.com') + '/api'
 
 class EnhancedShipAnalysisTester:
     def __init__(self):
