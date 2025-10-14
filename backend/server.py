@@ -75,6 +75,18 @@ Your task:
 Analyze the following text summary of a passport and extract all key passport fields. 
 The text already contains all relevant information about the document, so focus only on extracting and normalizing it into a structured JSON format.
 
+=== CRITICAL INSTRUCTIONS FOR VIETNAMESE NAMES ===
+**EXTREMELY IMPORTANT**: Vietnamese passports contain BOTH Vietnamese name (with diacritics) AND English name (without diacritics).
+- Surname: Extract the VIETNAMESE surname WITH Vietnamese diacritics (ĐỖ, VŨ, NGUYỄN, etc.) - NOT the English version
+- Given_Names: Extract the VIETNAMESE given names WITH Vietnamese diacritics (ÁNH BẢO, NGỌC TÂN, etc.) - NOT the English version
+- DO NOT extract English transliteration (DO, VU, NGUYEN without diacritics)
+- Vietnamese names are typically found in the main document content, NOT in the MRZ line
+- MRZ line contains English transliteration - DO NOT use it for name extraction
+
+Example:
+✅ CORRECT: Surname: "ĐỖ", Given_Names: "ÁNH BẢO" (Vietnamese with diacritics)
+❌ WRONG: Surname: "DO", Given_Names: "ANH BAO" (English transliteration)
+
 === INSTRUCTIONS ===
 1. Extract only the passport-related fields listed below.
 2. Return the output strictly in valid JSON format.
@@ -82,7 +94,7 @@ The text already contains all relevant information about the document, so focus 
 4. Normalize all dates to the ISO format "YYYY-MM-DD".
 5. Use uppercase for country codes and names.
 6. Do not infer or fabricate any missing information.
-7. Ensure names are written in correct Vietnamese format (Surname first, Given names after).
+7. Ensure names are written in correct Vietnamese format WITH DIACRITICS (Surname first, Given names after).
 
 === SPECIAL ATTENTION FOR DATE EXTRACTION ===
 - Date_of_Issue: Look for phrases like "The passport was issued on [DATE]", "Date of issue", "Issued", "Date d'emission"
@@ -95,8 +107,8 @@ The text already contains all relevant information about the document, so focus 
   "Type": "",
   "Issuing_Country_Code": "",
   "Country_Name": "",
-  "Surname": "",
-  "Given_Names": "",
+  "Surname": "",  // MUST be Vietnamese name WITH diacritics (ĐỖ, VŨ, NGUYỄN, etc.)
+  "Given_Names": "",  // MUST be Vietnamese name WITH diacritics (ÁNH BẢO, NGỌC TÂN, etc.)
   "Sex": "",
   "Date_of_Birth": "",
   "Place_of_Birth": "",
@@ -111,23 +123,25 @@ The text already contains all relevant information about the document, so focus 
 
 === EXAMPLE OUTPUT FORMAT ===
 {{
-  "Passport_Number": "C9575554",
+  "Passport_Number": "C9780204",
   "Type": "P",
   "Issuing_Country_Code": "VNM",
   "Country_Name": "VIET NAM",
-  "Surname": "TRAN",
-  "Given_Names": "VAN DUC",
+  "Surname": "ĐỖ",
+  "Given_Names": "ÁNH BẢO",
   "Sex": "M",
-  "Date_of_Birth": "1979-02-19",
-  "Place_of_Birth": "NAM DINH",
+  "Date_of_Birth": "1989-08-15",
+  "Place_of_Birth": "HÀ NỘI",
   "Nationality": "VIETNAMESE",
-  "Date_of_Issue": "2021-03-02",
-  "Date_of_Expiry": "2031-03-02",
-  "Place_of_Issue": "CUC QUAN LY XUAT NHAP CANH",
+  "Date_of_Issue": "2022-06-08",
+  "Date_of_Expiry": "2032-06-08",
+  "Place_of_Issue": "CỤC QUẢN LÝ XUẤT NHẬP CẢNH",
   "Authority": "DEPUTY CHIEF TA THI HUONG GIANG - IMMIGRATION DEPARTMENT",
-  "MRZ_Line_1": "P<VNMTRAN<<VAN<DUC<<<",
-  "MRZ_Line_2": "C9575554<2VNM7902192M3103027162166702<<<<<96"
+  "MRZ_Line_1": "P<VNMDO<<ANH<BAO<<<",
+  "MRZ_Line_2": "C9780204<2VNM8908152M3206087162166702<<<<<96"
 }}
+
+Note: In the example above, "ĐỖ ÁNH BẢO" is the Vietnamese name (correct), while "DO ANH BAO" in MRZ is English transliteration (do not use for Surname/Given_Names).
 
 === TEXT INPUT (Passport Summary) ===
 {summary_text}
