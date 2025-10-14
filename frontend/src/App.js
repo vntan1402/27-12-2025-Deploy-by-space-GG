@@ -8733,11 +8733,11 @@ const HomePage = () => {
                                         : `Filtered: ${displayName}`;
                                     }
                                     
-                                    // Otherwise show selected crew from double-click or all
-                                    if (selectedCrewForCertificates) {
+                                    // When filter is "All", show ship name instead of crew name
+                                    if (selectedShip) {
                                       return language === 'vi' 
-                                        ? `Chứng chỉ của ${selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})` 
-                                        : `Certificates for ${selectedCrewForCertificates.full_name_en || selectedCrewForCertificates.full_name} (${selectedCrewForCertificates.passport})`;
+                                        ? `Chứng chỉ của tàu: ${selectedShip.name}` 
+                                        : `Certificates for Ship: ${selectedShip.name}`;
                                     }
                                     
                                     return language === 'vi' ? 'Tất cả chứng chỉ' : 'All certificates';
