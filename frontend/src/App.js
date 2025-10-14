@@ -9798,14 +9798,55 @@ const HomePage = () => {
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
                                             {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
                                           </label>
-                                          <input
-                                            type="text"
+                                          <select
                                             value={newCrewCertificate.cert_name}
                                             onChange={(e) => setNewCrewCertificate({...newCrewCertificate, cert_name: e.target.value})}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            placeholder={language === 'vi' ? 'VD: COC, COE, STCW...' : 'e.g. COC, COE, STCW...'}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                                             required
-                                          />
+                                          >
+                                            <option value="">
+                                              {language === 'vi' ? '-- Chọn loại chứng chỉ --' : '-- Select certificate type --'}
+                                            </option>
+                                            <option value="Certificate of Competency (COC)">
+                                              {language === 'vi' ? 'Chứng chỉ Chuyên môn (COC)' : 'Certificate of Competency (COC)'}
+                                            </option>
+                                            <option value="Certificate of Endorsement (COE)">
+                                              {language === 'vi' ? 'Chứng chỉ Phê chuẩn (COE)' : 'Certificate of Endorsement (COE)'}
+                                            </option>
+                                            <option value="GMDSS Certificate">
+                                              {language === 'vi' ? 'Chứng chỉ GMDSS' : 'GMDSS Certificate'}
+                                            </option>
+                                            <option value="Medical Certificate">
+                                              {language === 'vi' ? 'Chứng nhận Sức khỏe' : 'Medical Certificate'}
+                                            </option>
+                                            <option value="Basic Safety Training">
+                                              {language === 'vi' ? 'Huấn luyện An toàn Cơ bản' : 'Basic Safety Training'}
+                                            </option>
+                                            <option value="Advanced Fire Fighting">
+                                              {language === 'vi' ? 'Chữa cháy Nâng cao' : 'Advanced Fire Fighting'}
+                                            </option>
+                                            <option value="Ship Security Officer">
+                                              {language === 'vi' ? 'Sĩ quan An ninh Tàu' : 'Ship Security Officer'}
+                                            </option>
+                                            <option value="Survival Craft and Rescue Boats">
+                                              {language === 'vi' ? 'Xuồng cứu sinh và Cứu nạn' : 'Survival Craft and Rescue Boats'}
+                                            </option>
+                                            <option value="Medical First Aid">
+                                              {language === 'vi' ? 'Sơ cấp cứu Y tế' : 'Medical First Aid'}
+                                            </option>
+                                            <option value="Medical Care">
+                                              {language === 'vi' ? 'Chăm sóc Y tế' : 'Medical Care'}
+                                            </option>
+                                            <option value="Crowd Management">
+                                              {language === 'vi' ? 'Quản lý Đám đông' : 'Crowd Management'}
+                                            </option>
+                                            <option value="Crisis Management and Human Behaviour">
+                                              {language === 'vi' ? 'Quản lý Khủng hoảng' : 'Crisis Management and Human Behaviour'}
+                                            </option>
+                                            <option value="Designated Security Duties">
+                                              {language === 'vi' ? 'Nhiệm vụ An ninh được chỉ định' : 'Designated Security Duties'}
+                                            </option>
+                                          </select>
                                         </div>
                                         <div>
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
