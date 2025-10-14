@@ -5486,29 +5486,13 @@ const HomePage = () => {
     console.log('🔍 certFilters.crewName:', certFilters.crewName);
     console.log('👥 crewList:', crewList);
     
-    // Priority 1: Pre-fill from selectedCrewForCertificates (when double-clicked from crew list)
-    if (selectedCrewForCertificates) {
-      setNewCrewCertificate({
-        crew_id: selectedCrewForCertificates.id,
-        crew_name: selectedCrewForCertificates.full_name,
-        crew_name_en: selectedCrewForCertificates.full_name_en || '',
-        passport: selectedCrewForCertificates.passport,
-        rank: selectedCrewForCertificates.rank || '',
-        cert_name: '',
-        cert_no: '',
-        issued_by: '',
-        issued_date: '',
-        cert_expiry: '',
-        note: ''
-      });
-    } 
-    // Priority 2: Pre-fill from filtered crew (when crew filter is not 'all')
-    else if (certFilters.crewName && certFilters.crewName !== 'all' && crewList && crewList.length > 0) {
-      // Find the crew from crewList by matching crew_name
+    // Priority 1: Pre-fill from filtered crew (when crew filter is not 'all')
+    if (certFilters.crewName && certFilters.crewName !== 'all' && crewList && crewList.length > 0) {
       const filteredCrew = crewList.find(crew => crew.full_name === certFilters.crewName);
       
       if (filteredCrew) {
-        console.log('✅ Found filtered crew:', filteredCrew);
+        console.log('✅ Priority 1: Found filtered crew:', filteredCrew);
+        setSelectedCrewForCert(filteredCrew);
         setNewCrewCertificate({
           crew_id: filteredCrew.id,
           crew_name: filteredCrew.full_name,
@@ -5524,11 +5508,32 @@ const HomePage = () => {
         });
       } else {
         console.log('⚠️ Filtered crew not found in crewList');
+        setSelectedCrewForCert(null);
         resetAddCrewCertForm();
       }
+    }
+    // Priority 2: Pre-fill from selectedCrewForCertificates (when double-clicked from crew list)
+    else if (selectedCrewForCertificates) {
+      console.log('✅ Priority 2: Using selectedCrewForCertificates:', selectedCrewForCertificates);
+      setSelectedCrewForCert(selectedCrewForCertificates);
+      setNewCrewCertificate({
+        crew_id: selectedCrewForCertificates.id,
+        crew_name: selectedCrewForCertificates.full_name,
+        crew_name_en: selectedCrewForCertificates.full_name_en || '',
+        passport: selectedCrewForCertificates.passport,
+        rank: selectedCrewForCertificates.rank || '',
+        cert_name: '',
+        cert_no: '',
+        issued_by: '',
+        issued_date: '',
+        cert_expiry: '',
+        note: ''
+      });
     } 
-    // Priority 3: Reset form (no specific crew selected)
+    // Priority 3: Show dropdown for crew selection (no specific crew selected)
     else {
+      console.log('✅ Priority 3: No crew pre-selected, show dropdown');
+      setSelectedCrewForCert(null);
       resetAddCrewCertForm();
     }
     
