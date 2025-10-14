@@ -5674,6 +5674,7 @@ const HomePage = () => {
         setNewCrewCertificate(prev => ({
           ...prev,
           crew_name: response.data.crew_name || prev.crew_name,
+          crew_name_en: response.data.crew_name_en || prev.crew_name_en || '',  // Include English name
           passport: response.data.passport || prev.passport,
           cert_name: analysis.cert_name || '',
           cert_no: analysis.cert_no || '',
