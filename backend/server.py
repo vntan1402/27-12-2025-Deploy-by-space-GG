@@ -13559,10 +13559,10 @@ async def auto_rename_crew_certificate_file(
                     raise HTTPException(status_code=500, detail=f"Failed to rename file: {error_msg}")
         
         # Update certificate with new filename
-        await mongo_db.update_one(
+        await mongo_db.update(
             "crew_certificates",
             {"id": cert_id},
-            {"$set": {"cert_file_name": new_filename}}
+            {"cert_file_name": new_filename}
         )
         
         logger.info(f"✅ Crew certificate file renamed successfully: {new_filename}")
