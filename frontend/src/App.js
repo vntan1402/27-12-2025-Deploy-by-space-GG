@@ -6173,7 +6173,7 @@ const HomePage = () => {
       console.log(`🗑️ Bulk deleting ${selectedCrewCertificates.size} certificates`);
       
       // Call backend bulk delete endpoint
-      await axios.delete(
+      const response = await axios.delete(
         `${API}/crew-certificates/bulk-delete`,
         {
           data: {
@@ -6186,10 +6186,18 @@ const HomePage = () => {
         }
       );
 
-      toast.success(language === 'vi' 
-        ? `✅ Đã xóa ${selectedCrewCertificates.size} chứng chỉ thành công!` 
-        : `✅ Successfully deleted ${selectedCrewCertificates.size} certificate(s)!`
-      );
+      // Check if partial success (some deleted, some failed)
+      if (response.data.partial_success) {
+        toast.warning(language === 'vi' 
+          ? `⚠️ Đã xóa ${response.data.deleted_count} chứng chỉ, ${response.data.errors.length} lỗi` 
+          : `⚠️ Deleted ${response.data.deleted_count} certificate(s), ${response.data.errors.length} error(s)`
+        );
+      } else {
+        toast.success(language === 'vi' 
+          ? `✅ Đã xóa ${response.data.deleted_count} chứng chỉ thành công!` 
+          : `✅ Successfully deleted ${response.data.deleted_count} certificate(s)!`
+        );
+      }
 
       // Clear selection
       setSelectedCrewCertificates(new Set());
