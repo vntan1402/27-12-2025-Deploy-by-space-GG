@@ -10032,9 +10032,9 @@ const HomePage = () => {
                               
                               {/* Divider */}
                               <div className="h-8 w-px bg-gray-300"></div>
-                                
-                                {/* Status Filter */}
-                                <div className="flex items-center space-x-2">
+                              
+                              {/* Status Filter */}
+                              <div className="flex items-center space-x-2">
                                   <label className="text-sm text-gray-600 whitespace-nowrap">
                                     {language === 'vi' ? 'Trạng thái:' : 'Status:'}
                                   </label>
