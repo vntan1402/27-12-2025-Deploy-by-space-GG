@@ -1071,6 +1071,9 @@ const HomePage = () => {
     y: 0,
     crew: null
   });
+  
+  // Crew Certificates Selection State
+  const [selectedCertificates, setSelectedCertificates] = useState(new Set());
   const [passportContextMenu, setPassportContextMenu] = useState({
     show: false,
     x: 0,
