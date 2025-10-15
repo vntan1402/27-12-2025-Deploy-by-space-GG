@@ -13347,6 +13347,15 @@ async def update_crew_certificate(
         update_data["updated_at"] = datetime.now(timezone.utc)
         update_data["updated_by"] = current_user.username
         
+        # Auto-recalculate status if cert_expiry is being updated
+        if 'cert_expiry' in update_data and update_data['cert_expiry']:
+            update_data['status'] = calculate_certificate_status(update_data['cert_expiry'])
+            logger.info(f"🔄 Auto-recalculated status after update: {update_data['status']}")
+        elif 'cert_expiry' in update_data and not update_data['cert_expiry']:
+            # If cert_expiry is being cleared
+            update_data['status'] = "Valid"
+            logger.info(f"🔄 Reset status to Valid (no expiry date)")
+        
         # Update in database
         await mongo_db.update("crew_certificates", {"id": cert_id}, update_data)
         
