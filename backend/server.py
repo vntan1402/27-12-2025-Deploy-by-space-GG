@@ -13526,34 +13526,38 @@ async def auto_rename_crew_certificate_file(
         if not gdrive_config_doc:
             raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
         
-        deployment_id = gdrive_config_doc.get("deployment_id")
+        # Get the Apps Script URL (same pattern as crew passport rename)
+        company_apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
         
-        if not deployment_id:
-            raise HTTPException(status_code=500, detail="Apps Script deployment ID not found in configuration")
-        
-        # Rename file on Google Drive
-        rename_url = f"https://script.google.com/macros/s/{deployment_id}/exec"
-        rename_payload = {
-            "action": "rename_file",
-            "file_id": file_id,
-            "new_name": new_filename
-        }
+        if not company_apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
         
         logger.info(f"📤 Calling Apps Script to rename file: {file_id} → {new_filename}")
         
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(rename_url, json=rename_payload)
+        # Rename file on Google Drive using aiohttp (consistent with passport rename)
+        async with aiohttp.ClientSession() as session:
+            rename_payload = {
+                "action": "rename_file",
+                "file_id": file_id,
+                "new_name": new_filename
+            }
             
-            if response.status_code != 200:
-                logger.error(f"❌ Apps Script rename failed: {response.text}")
-                raise HTTPException(status_code=500, detail=f"Failed to rename file on Google Drive: {response.text}")
-            
-            result = response.json()
-            
-            if not result.get("success"):
-                error_msg = result.get("error", "Unknown error")
-                logger.error(f"❌ Rename failed: {error_msg}")
-                raise HTTPException(status_code=500, detail=f"Failed to rename file: {error_msg}")
+            async with session.post(
+                company_apps_script_url,
+                json=rename_payload,
+                timeout=aiohttp.ClientTimeout(total=60)
+            ) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    logger.error(f"❌ Apps Script rename failed: {error_text}")
+                    raise HTTPException(status_code=500, detail=f"Failed to rename file on Google Drive: {error_text}")
+                
+                result = await response.json()
+                
+                if not result.get("success"):
+                    error_msg = result.get("error", "Unknown error")
+                    logger.error(f"❌ Rename failed: {error_msg}")
+                    raise HTTPException(status_code=500, detail=f"Failed to rename file: {error_msg}")
         
         # Update certificate with new filename
         await mongo_db.update_one(
