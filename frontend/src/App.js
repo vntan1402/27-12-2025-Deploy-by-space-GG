@@ -5635,6 +5635,55 @@ const HomePage = () => {
     handleResetCertFile();  // Clear uploaded file from previous session
   };
 
+  // Confirm add certificate despite duplicate
+  const handleConfirmAddDuplicateCert = async () => {
+    setShowDuplicateCertWarning(false);
+    setIsSubmittingCert(true);
+
+    try {
+      const shipId = selectedShip?.id || selectedCrewForCertificates?.ship_id || companyShips?.[0]?.id;
+      
+      console.log('✅ User confirmed: Adding duplicate certificate');
+      
+      const response = await axios.post(
+        `${API}/crew-certificates/manual?ship_id=${shipId}`,
+        newCrewCertificate,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data) {
+        console.log('✅ Duplicate certificate added successfully:', response.data);
+        
+        toast.success(language === 'vi' 
+          ? '✅ Đã thêm chứng chỉ thuyền viên thành công!' 
+          : '✅ Crew certificate added successfully!'
+        );
+
+        handleCloseAddCrewCertModal();
+        
+        if (selectedCrewForCert) {
+          await fetchCrewCertificates(selectedCrewForCert.id);
+        } else {
+          await fetchCrewCertificates(null);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error adding duplicate certificate:', error);
+      toast.error(language === 'vi' 
+        ? `Lỗi: ${error.response?.data?.detail || error.message}` 
+        : `Error: ${error.response?.data?.detail || error.message}`
+      );
+    } finally {
+      setIsSubmittingCert(false);
+      setDuplicateCertInfo(null);
+    }
+  };
+
   const handleAddCrewCertificateSubmit = async (e) => {
     e.preventDefault();
     
