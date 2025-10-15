@@ -5611,7 +5611,9 @@ const HomePage = () => {
       issued_by: '',
       issued_date: '',
       cert_expiry: '',
-      note: ''
+      note: '',
+      cert_file_id: '',
+      cert_summary_file_id: ''  // Reset summary file ID
     });
   };
 
