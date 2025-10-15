@@ -108,6 +108,7 @@ def test_manual_normalization():
         
         # Create certificate with unnormalized issued_by
         cert_data = {
+            "crew_id": "d4e75288-986b-43ea-8be5-2a9b987c3515",  # HỒ SỸ CHƯƠNG
             "crew_name": f"Test Crew {i+1}",
             "passport": f"TEST{i+1:03d}",
             "cert_name": f"Test Certificate {i+1}",
