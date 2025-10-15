@@ -6084,8 +6084,8 @@ const HomePage = () => {
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
-    if (cert.cert_file_id) {
-      const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
+    if (cert.crew_cert_file_id) {
+      const fileUrl = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
       console.log('📄 Opening certificate file:', fileUrl);
       
       toast.info(language === 'vi' 
@@ -6106,8 +6106,8 @@ const HomePage = () => {
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
-    if (cert.cert_file_id) {
-      const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.cert_file_id}`;
+    if (cert.crew_cert_file_id) {
+      const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`;
       console.log('⬇️ Downloading certificate file:', downloadUrl);
       
       toast.info(language === 'vi' 
@@ -6134,8 +6134,8 @@ const HomePage = () => {
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
-    if (cert.cert_file_id) {
-      const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
+    if (cert.crew_cert_file_id) {
+      const fileUrl = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
       navigator.clipboard.writeText(fileUrl)
         .then(() => {
           toast.success(language === 'vi' 
@@ -6231,7 +6231,7 @@ const HomePage = () => {
     
     // Get selected certificates with file IDs
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCrewCertificates.has(cert.id) && cert.cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && cert.crew_cert_file_id
     );
     
     if (certsWithFiles.length === 0) {
@@ -6244,7 +6244,7 @@ const HomePage = () => {
     
     // Open each file in a new tab
     certsWithFiles.forEach(cert => {
-      const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
+      const fileUrl = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
       window.open(fileUrl, '_blank');
     });
     
@@ -6262,7 +6262,7 @@ const HomePage = () => {
     
     // Get selected certificates with file IDs
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCrewCertificates.has(cert.id) && cert.cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && cert.crew_cert_file_id
     );
     
     if (certsWithFiles.length === 0) {
@@ -6276,7 +6276,7 @@ const HomePage = () => {
     // Download each file
     certsWithFiles.forEach((cert, index) => {
       setTimeout(() => {
-        const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.cert_file_id}`;
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`;
         const link = document.createElement('a');
         link.href = downloadUrl;
         link.download = `${cert.cert_name}_${cert.crew_name}.pdf`;
@@ -6300,7 +6300,7 @@ const HomePage = () => {
     
     // Get selected certificates with file IDs
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCrewCertificates.has(cert.id) && cert.cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && cert.crew_cert_file_id
     );
     
     if (certsWithFiles.length === 0) {
@@ -6313,7 +6313,7 @@ const HomePage = () => {
     
     // Create list of links with certificate names
     const links = certsWithFiles.map(cert => 
-      `${cert.crew_name} - ${cert.cert_name}: https://drive.google.com/file/d/${cert.cert_file_id}/view`
+      `${cert.crew_name} - ${cert.cert_name}: https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`
     ).join('\n');
     
     navigator.clipboard.writeText(links)
@@ -9915,7 +9915,7 @@ const HomePage = () => {
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             <div className="flex items-center space-x-2">
                                               <span>{cert.cert_name}</span>
-                                              {cert.cert_file_id && (
+                                              {cert.crew_cert_file_id && (
                                                 <span 
                                                   className="text-green-500 text-xs" 
                                                   title={language === 'vi' ? 'File có sẵn' : 'File available'}
