@@ -1796,6 +1796,26 @@ const HomePage = () => {
     }
   };
 
+  // Crew Certificates selection functions
+  const handleSelectCertificate = (certId) => {
+    const newSelected = new Set(selectedCertificates);
+    if (newSelected.has(certId)) {
+      newSelected.delete(certId);
+    } else {
+      newSelected.add(certId);
+    }
+    setSelectedCertificates(newSelected);
+  };
+
+  const handleSelectAllCertificates = (checked, filteredCerts) => {
+    if (checked) {
+      const allVisibleIds = new Set(filteredCerts.map(cert => cert.id));
+      setSelectedCertificates(allVisibleIds);
+    } else {
+      setSelectedCertificates(new Set());
+    }
+  };
+
   // Crew context menu function
   const handleCrewRightClick = (e, crew) => {
     e.preventDefault();
