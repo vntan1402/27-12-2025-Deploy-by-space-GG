@@ -12349,9 +12349,16 @@ const HomePage = () => {
               style={{ cursor: 'grab' }}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">
-                  {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
-                </h3>
+                <div className="flex items-center space-x-3">
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
+                  </h3>
+                  {selectedShip && (
+                    <span className="text-xl font-medium text-blue-600">
+                      {language === 'vi' ? 'cho' : 'for'}: <span className="font-bold">{selectedShip.name}</span>
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={() => {
                     setShowAddCrewModal(false);
