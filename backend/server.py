@@ -13418,16 +13418,21 @@ async def bulk_delete_crew_certificates(
                 
                 logger.info(f"✅ Found certificate: {cert.get('cert_name')} for {cert.get('crew_name')}")
                 
-                # Delete associated file from Google Drive if exists
+                # Delete associated files from Google Drive if exist (both certificate and summary)
                 cert_file_id = cert.get("crew_cert_file_id")
+                summary_file_id = cert.get("crew_cert_summary_file_id")
                 
-                if cert_file_id:
-                    company = await mongo_db.find_one("companies", {"id": company_uuid})
-                    if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
-                        company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
-                        
+                # Get company Apps Script URL
+                company = await mongo_db.find_one("companies", {"id": company_uuid})
+                if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
+                    company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+                    
+                    import aiohttp
+                    
+                    # Delete certificate file
+                    if cert_file_id:
+                        logger.info(f"🗑️ Deleting certificate file: {cert_file_id}")
                         try:
-                            import aiohttp
                             async with aiohttp.ClientSession() as session:
                                 payload = {
                                     "action": "delete_file",
@@ -13442,9 +13447,33 @@ async def bulk_delete_crew_certificates(
                                     if response.status == 200:
                                         result = await response.json()
                                         if result.get("success"):
+                                            logger.info(f"✅ Certificate file deleted: {cert_file_id}")
                                             files_deleted += 1
                         except Exception as e:
-                            logger.error(f"Error deleting file {cert_file_id}: {e}")
+                            logger.error(f"❌ Error deleting certificate file {cert_file_id}: {e}")
+                    
+                    # Delete summary file
+                    if summary_file_id:
+                        logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": summary_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
                 
                 # Delete from database
                 await mongo_db.delete("crew_certificates", {"id": cert_id})
