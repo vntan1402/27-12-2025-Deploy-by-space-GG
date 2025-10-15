@@ -6510,15 +6510,15 @@ const HomePage = () => {
         console.log(`   📋 Cert Name: ${analysis.cert_name}`);
         console.log(`   🔢 Cert No: ${analysis.cert_no}`);
         console.log(`   👤 Crew: ${response.data.crew_name || crewName}`);
+        console.log(`   📕 Passport: ${response.data.passport}`);
         
-        // Prepare certificate data from analysis
+        // Prepare certificate data from analysis (NO ship_id in body - it's a query param)
         const certData = {
-          ship_id: selectedShip?.id || '',
           crew_id: crewId || '',
-          crew_name: response.data.crew_name || crewName,
-          crew_name_en: response.data.crew_name_en || crewNameEn,
-          passport: response.data.passport || '',
-          rank: analysis.rank || rank,
+          crew_name: response.data.crew_name || crewName || 'Unknown',
+          crew_name_en: response.data.crew_name_en || crewNameEn || '',
+          passport: response.data.passport || 'Unknown',  // Required field - use 'Unknown' if not available
+          rank: analysis.rank || rank || '',
           cert_name: analysis.cert_name || '',
           cert_no: analysis.cert_no || '',
           issued_by: analysis.issued_by || '',
@@ -6529,9 +6529,19 @@ const HomePage = () => {
           crew_cert_summary_file_id: analysis.crew_cert_summary_file_id || fileIds.crew_cert_summary_file_id || ''
         };
         
-        // Auto-create certificate
+        // Validate required fields
+        if (!certData.crew_name || !certData.passport || !certData.cert_name || !certData.cert_no) {
+          throw new Error(`Missing required fields: crew_name=${certData.crew_name}, passport=${certData.passport}, cert_name=${certData.cert_name}, cert_no=${certData.cert_no}`);
+        }
+        
+        // Auto-create certificate (ship_id as query parameter)
+        const shipId = selectedShip?.id || '';
+        if (!shipId) {
+          throw new Error('Ship ID is required');
+        }
+        
         const createResponse = await axios.post(
-          `${API}/crew-certificates/manual`,
+          `${API}/crew-certificates/manual?ship_id=${shipId}`,
           certData,
           {
             headers: {
