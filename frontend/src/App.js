@@ -6118,36 +6118,184 @@ const HomePage = () => {
     }
   };
 
-  const handleCopyCertLink = async (cert) => {
+  const handleCopyCertLink = (cert) => {
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
     if (cert.cert_file_id) {
       const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
-      
-      try {
-        await navigator.clipboard.writeText(fileUrl);
-        
-        toast.success(language === 'vi' 
-          ? '✅ Đã sao chép link chứng chỉ!' 
-          : '✅ Certificate link copied to clipboard!'
-        );
-        
-        console.log('📋 Copied certificate link:', fileUrl);
-      } catch (error) {
-        console.error('❌ Error copying link:', error);
-        
-        toast.error(language === 'vi' 
-          ? 'Không thể sao chép link' 
-          : 'Cannot copy link'
-        );
-      }
+      navigator.clipboard.writeText(fileUrl)
+        .then(() => {
+          toast.success(language === 'vi' 
+            ? '✅ Đã sao chép liên kết chứng chỉ!' 
+            : '✅ Certificate link copied to clipboard!'
+          );
+        })
+        .catch(err => {
+          console.error('Failed to copy link:', err);
+          toast.error(language === 'vi' 
+            ? 'Lỗi khi sao chép liên kết' 
+            : 'Error copying link'
+          );
+        });
     } else {
       toast.warning(language === 'vi' 
         ? 'Chứng chỉ này chưa có file đính kèm' 
         : 'This certificate has no attached file'
       );
     }
+  };
+
+  // Bulk Operations for Crew Certificates
+  const handleBulkDeleteCertificates = async () => {
+    if (selectedCertificates.size === 0) return;
+    
+    // Show confirmation
+    const confirmed = window.confirm(
+      language === 'vi' 
+        ? `Bạn có chắc chắn muốn xóa ${selectedCertificates.size} chứng chỉ đã chọn?`
+        : `Are you sure you want to delete ${selectedCertificates.size} selected certificate(s)?`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      console.log(`🗑️ Bulk deleting ${selectedCertificates.size} certificates`);
+      
+      // Call backend bulk delete endpoint
+      await axios.delete(
+        `${API}/crew-certificates/bulk-delete`,
+        {
+          data: {
+            certificate_ids: Array.from(selectedCertificates)
+          },
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      toast.success(language === 'vi' 
+        ? `✅ Đã xóa ${selectedCertificates.size} chứng chỉ thành công!` 
+        : `✅ Successfully deleted ${selectedCertificates.size} certificate(s)!`
+      );
+
+      // Clear selection
+      setSelectedCertificates(new Set());
+
+      // Refresh certificates list
+      await fetchCrewCertificates(null);
+
+    } catch (error) {
+      console.error('❌ Error bulk deleting certificates:', error);
+      
+      const errorMsg = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' 
+        ? `Lỗi khi xóa chứng chỉ: ${errorMsg}` 
+        : `Error deleting certificates: ${errorMsg}`
+      );
+    }
+  };
+
+  const handleBulkOpenInDrive = () => {
+    if (selectedCertificates.size === 0) return;
+    
+    // Get selected certificates with file IDs
+    const certsWithFiles = crewCertificates.filter(
+      cert => selectedCertificates.has(cert.id) && cert.cert_file_id
+    );
+    
+    if (certsWithFiles.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Không có chứng chỉ nào có file đính kèm' 
+        : 'No certificates have attached files'
+      );
+      return;
+    }
+    
+    // Open each file in a new tab
+    certsWithFiles.forEach(cert => {
+      const fileUrl = `https://drive.google.com/file/d/${cert.cert_file_id}/view`;
+      window.open(fileUrl, '_blank');
+    });
+    
+    toast.success(language === 'vi' 
+      ? `✅ Đã mở ${certsWithFiles.length} file chứng chỉ` 
+      : `✅ Opened ${certsWithFiles.length} certificate file(s)`
+    );
+  };
+
+  const handleBulkDownloadCertificates = () => {
+    if (selectedCertificates.size === 0) return;
+    
+    // Get selected certificates with file IDs
+    const certsWithFiles = crewCertificates.filter(
+      cert => selectedCertificates.has(cert.id) && cert.cert_file_id
+    );
+    
+    if (certsWithFiles.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Không có chứng chỉ nào có file đính kèm' 
+        : 'No certificates have attached files'
+      );
+      return;
+    }
+    
+    // Download each file
+    certsWithFiles.forEach((cert, index) => {
+      setTimeout(() => {
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.cert_file_id}`;
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${cert.cert_name}_${cert.crew_name}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, index * 500); // Stagger downloads by 500ms to avoid browser blocking
+    });
+    
+    toast.success(language === 'vi' 
+      ? `✅ Đang tải xuống ${certsWithFiles.length} file chứng chỉ` 
+      : `✅ Downloading ${certsWithFiles.length} certificate file(s)`
+    );
+  };
+
+  const handleBulkCopyCertLinks = () => {
+    if (selectedCertificates.size === 0) return;
+    
+    // Get selected certificates with file IDs
+    const certsWithFiles = crewCertificates.filter(
+      cert => selectedCertificates.has(cert.id) && cert.cert_file_id
+    );
+    
+    if (certsWithFiles.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Không có chứng chỉ nào có file đính kèm' 
+        : 'No certificates have attached files'
+      );
+      return;
+    }
+    
+    // Create list of links with certificate names
+    const links = certsWithFiles.map(cert => 
+      `${cert.crew_name} - ${cert.cert_name}: https://drive.google.com/file/d/${cert.cert_file_id}/view`
+    ).join('\n');
+    
+    navigator.clipboard.writeText(links)
+      .then(() => {
+        toast.success(language === 'vi' 
+          ? `✅ Đã sao chép ${certsWithFiles.length} liên kết chứng chỉ!` 
+          : `✅ Copied ${certsWithFiles.length} certificate link(s)!`
+        );
+      })
+      .catch(err => {
+        console.error('Failed to copy links:', err);
+        toast.error(language === 'vi' 
+          ? 'Lỗi khi sao chép liên kết' 
+          : 'Error copying links'
+        );
+      });
   };
 
 
