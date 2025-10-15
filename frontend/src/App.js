@@ -6490,7 +6490,7 @@ const HomePage = () => {
         formData.append('crew_id', crewId);
       }
       
-      const analyzeResponse = await axios.post(
+      const response = await axios.post(
         `${API}/crew-certificates/analyze-file`,
         formData,
         {
@@ -6501,25 +6501,23 @@ const HomePage = () => {
         }
       );
       
-      // Check if the response indicates success
-      if (!analyzeResponse.data || !analyzeResponse.data.success) {
-        const errorMsg = analyzeResponse.data?.message || 'Failed to analyze certificate';
-        console.error(`❌ Analysis failed: ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
-      
-      if (analyzeResponse.data.analysis && analyzeResponse.data.analysis.cert_name) {
-        const analysis = analyzeResponse.data.analysis;
-        const responseData = analyzeResponse.data;
+      // Follow the same pattern as passport processing
+      if (response.data.success && response.data.analysis) {
+        const analysis = response.data.analysis;
+        const fileIds = analysis.file_ids || {};
         
-        // Prepare certificate data
-        // Note: crew_name, crew_name_en, passport are at root level of response, not in analysis
+        console.log(`✅ Certificate analysis completed for ${file.name}`);
+        console.log(`   📋 Cert Name: ${analysis.cert_name}`);
+        console.log(`   🔢 Cert No: ${analysis.cert_no}`);
+        console.log(`   👤 Crew: ${response.data.crew_name || crewName}`);
+        
+        // Prepare certificate data from analysis
         const certData = {
           ship_id: selectedShip?.id || '',
           crew_id: crewId || '',
-          crew_name: responseData.crew_name || crewName,
-          crew_name_en: responseData.crew_name_en || crewNameEn,
-          passport: responseData.passport || '',
+          crew_name: response.data.crew_name || crewName,
+          crew_name_en: response.data.crew_name_en || crewNameEn,
+          passport: response.data.passport || '',
           rank: analysis.rank || rank,
           cert_name: analysis.cert_name || '',
           cert_no: analysis.cert_no || '',
@@ -6527,8 +6525,8 @@ const HomePage = () => {
           issued_date: analysis.issued_date || '',
           cert_expiry: analysis.expiry_date || '',
           note: analysis.note || '',
-          crew_cert_file_id: analysis.crew_cert_file_id || '',
-          crew_cert_summary_file_id: analysis.crew_cert_summary_file_id || ''
+          crew_cert_file_id: analysis.crew_cert_file_id || fileIds.crew_cert_file_id || '',
+          crew_cert_summary_file_id: analysis.crew_cert_summary_file_id || fileIds.crew_cert_summary_file_id || ''
         };
         
         // Auto-create certificate
@@ -6549,8 +6547,8 @@ const HomePage = () => {
             filename: file.name,
             success: true,
             certCreated: true,
-            fileUploaded: !!analysis.crew_cert_file_id,
-            summaryCreated: !!analysis.crew_cert_summary_file_id,
+            fileUploaded: !!certData.crew_cert_file_id,
+            summaryCreated: !!certData.crew_cert_summary_file_id,
             certName: analysis.cert_name || 'Unknown',
             certNo: analysis.cert_no || 'N/A',
             crewName: certData.crew_name,
@@ -6559,13 +6557,23 @@ const HomePage = () => {
         } else {
           throw new Error('Failed to create certificate');
         }
+        
       } else {
-        throw new Error('Failed to analyze certificate');
+        throw new Error(response.data.message || 'Analysis failed');
       }
       
     } catch (error) {
-      console.error(`❌ Error in batch cert processing:`, error);
-      throw error;
+      console.error(`❌ Batch processing error for ${file.name}:`, error);
+      
+      return {
+        filename: file.name,
+        success: false,
+        certCreated: false,
+        fileUploaded: false,
+        summaryCreated: false,
+        error: error.response?.data?.detail || error.message || 'Unknown error',
+        index: current
+      };
     }
   };
 
