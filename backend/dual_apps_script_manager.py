@@ -742,6 +742,155 @@ class DualAppsScriptManager:
             }
 
 
+    async def analyze_passport_only(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        document_ai_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Analyze passport using Document AI WITHOUT uploading to Drive
+        Upload happens only after successful crew creation
+        
+        Args:
+            file_content: Passport file content
+            filename: File name
+            content_type: MIME type
+            document_ai_config: Document AI configuration
+            
+        Returns:
+            dict: Analysis results only (no file IDs)
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"🔄 Analyzing passport (no upload): {filename}")
+            
+            # Document AI Analysis via System Apps Script ONLY
+            logger.info("📡 Passport analysis via System Apps Script...")
+            ai_result = await self._call_system_apps_script_for_ai(
+                file_content, filename, content_type, document_ai_config
+            )
+            
+            if not ai_result.get('success'):
+                logger.error(f"❌ Passport Document AI analysis failed: {ai_result.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Passport Document AI analysis failed',
+                    'error': ai_result.get('message'),
+                    'step': 'document_ai_analysis'
+                }
+            
+            logger.info("✅ Passport analysis completed successfully (no upload)")
+            return {
+                'success': True,
+                'message': 'Passport analysis completed successfully',
+                'ai_analysis': ai_result,
+                'processing_method': 'analysis_only',
+                'workflow': 'system_ai_analysis_without_upload'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error in passport analysis: {e}")
+            return {
+                'success': False,
+                'message': f'Passport analysis failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def upload_passport_files(
+        self,
+        passport_file_content: bytes,
+        passport_filename: str,
+        passport_content_type: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Upload passport files to Drive AFTER successful crew creation
+        
+        Args:
+            passport_file_content: Passport file content
+            passport_filename: Passport filename
+            passport_content_type: Passport MIME type
+            ship_name: Ship name for folder structure
+            summary_text: Summary text (optional)
+            
+        Returns:
+            dict: Upload results with file IDs
+        """
+        try:
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📤 Uploading passport files to Drive: {passport_filename}")
+            
+            upload_results = {}
+            
+            # Upload 1: Passport file to Ship/Crew records
+            logger.info(f"📤 Uploading passport file: {ship_name}/Crew records/{passport_filename}")
+            passport_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,
+                'ship_name': ship_name,
+                'category': 'Crew records',
+                'filename': passport_filename,
+                'file_content': base64.b64encode(passport_file_content).decode('utf-8'),
+                'content_type': passport_content_type
+            })
+            upload_results['passport'] = passport_upload
+            
+            # Upload 2: Summary file to SUMMARY folder (if provided)
+            if summary_text:
+                base_name = passport_filename.rsplit('.', 1)[0]
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                logger.info(f"📋 Uploading passport summary file: SUMMARY/Crew records/{summary_filename}")
+                summary_upload = await self._call_company_apps_script({
+                    'action': 'upload_file_with_folder_creation',
+                    'parent_folder_id': self.parent_folder_id,
+                    'ship_name': 'SUMMARY',
+                    'category': 'Crew records',
+                    'filename': summary_filename,
+                    'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                    'content_type': 'text/plain'
+                })
+                upload_results['summary'] = summary_upload
+            
+            # Check upload results
+            passport_success = upload_results.get('passport', {}).get('success', False)
+            
+            if passport_success:
+                logger.info("✅ Passport file uploads completed successfully")
+                return {
+                    'success': True,
+                    'message': 'Passport files uploaded successfully',
+                    'uploads': upload_results
+                }
+            else:
+                logger.error("❌ Passport file upload failed")
+                return {
+                    'success': False,
+                    'message': 'Passport file upload failed',
+                    'uploads': upload_results,
+                    'error': 'Passport upload failed'
+                }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading passport files: {e}")
+            return {
+                'success': False,
+                'message': f'File upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+
 def create_dual_apps_script_manager(company_id: str) -> DualAppsScriptManager:
     """Factory function to create DualAppsScriptManager"""
     return DualAppsScriptManager(company_id)
