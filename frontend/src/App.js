@@ -10515,6 +10515,22 @@ const HomePage = () => {
                                     <span className="ml-auto text-xs bg-gray-100 text-gray-600 px-1 rounded">🔗</span>
                                   )}
                                 </button>
+                                
+                                {/* Auto Rename - works for single and multiple */}
+                                <div className="border-t border-gray-200 my-1"></div>
+                                <button
+                                  onClick={() => handleAutoRenameCrewCertFiles(certContextMenu.cert)}
+                                  className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center"
+                                >
+                                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  {selectedCrewCertificates.size > 1 
+                                    ? (language === 'vi' ? `Tự động đổi tên file (${selectedCrewCertificates.size} chứng chỉ)` : `Auto Rename Files (${selectedCrewCertificates.size} certificates)`)
+                                    : (language === 'vi' ? 'Tự động đổi tên file' : 'Auto Rename File')
+                                  }
+                                  <span className="ml-auto text-xs bg-purple-100 text-purple-600 px-1 rounded">⚡</span>
+                                </button>
                               </div>
                             </div>
                           )}
