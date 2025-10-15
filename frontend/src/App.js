@@ -10095,10 +10095,10 @@ const HomePage = () => {
                                     })()}
                                   </select>
                                 </div>
-                                
-                                {/* Reset Filters Button */}
-                                {(certFilters.status !== 'all' || certFilters.crewName !== 'all' || certificatesSearch) && (
-                                  <button
+                              
+                              {/* Reset Filters Button */}
+                              {(certFilters.status !== 'all' || certFilters.crewName !== 'all' || certificatesSearch) && (
+                                <button
                                     onClick={() => {
                                       setCertFilters({ status: 'all', crewName: 'all' });
                                       setCertificatesSearch('');
