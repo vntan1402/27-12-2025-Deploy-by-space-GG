@@ -6277,7 +6277,8 @@ const HomePage = () => {
     // Download each file
     certsWithFiles.forEach((cert, index) => {
       setTimeout(() => {
-        const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`;
+        const fileId = cert.crew_cert_file_id || cert.cert_file_id; // Backward compatible
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
         const link = document.createElement('a');
         link.href = downloadUrl;
         link.download = `${cert.cert_name}_${cert.crew_name}.pdf`;
