@@ -11652,23 +11652,9 @@ This summary was generated using Google Document AI for crew management purposes
             return {
                 "success": True,
                 "analysis": analysis_result,
-                "files": {
-                    "passport": {
-                        "filename": filename,
-                        "folder": f"{ship_name}/Crew records",
-                        "upload_result": passport_upload,
-                        "file_id": passport_file_id
-                    },
-                    "summary": {
-                        "filename": f"{filename.rsplit('.', 1)[0]}_Summary.txt",
-                        "folder": "SUMMARY", 
-                        "upload_result": summary_upload,
-                        "file_id": summary_file_id
-                    }
-                },
-                "processing_method": "dual_apps_script",
-                "workflow": "system_document_ai + company_file_upload",
-                "message": "Passport analyzed and uploaded successfully via dual Apps Scripts"
+                "processing_method": "analysis_only_no_upload",
+                "workflow": "system_document_ai_without_upload",
+                "message": "Passport analyzed successfully (files will be uploaded after crew creation)"
             }
             
         except Exception as drive_error:
