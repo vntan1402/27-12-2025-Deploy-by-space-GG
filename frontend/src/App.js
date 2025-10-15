@@ -5905,6 +5905,13 @@ const HomePage = () => {
       return;
     }
     
+    // If certificate is not selected, add it to current selection
+    if (!selectedCrewCertificates.has(cert.id)) {
+      const newSelected = new Set(selectedCrewCertificates);
+      newSelected.add(cert.id);
+      setSelectedCrewCertificates(newSelected);
+    }
+    
     // Calculate context menu position with viewport boundary checking
     const contextMenuWidth = 200;
     const contextMenuHeight = 250;
