@@ -1078,15 +1078,12 @@ const HomePage = () => {
   const [selectedCrewCertificates, setSelectedCrewCertificates] = useState(new Set());
   
   // Batch Upload State for Crew Certificates
-  const [batchUploadProgress, setBatchUploadProgress] = useState({
-    isUploading: false,
-    total: 0,
-    current: 0,
-    currentFileName: '',
-    successCount: 0,
-    errorCount: 0,
-    errors: []
-  });
+  const [isBatchProcessingCerts, setIsBatchProcessingCerts] = useState(false);
+  const [certBatchProgress, setCertBatchProgress] = useState({ current: 0, total: 0 });
+  const [certBatchResults, setCertBatchResults] = useState([]);
+  const [currentCertFileIndex, setCurrentCertFileIndex] = useState(0);
+  const [showCertProcessingResultsModal, setShowCertProcessingResultsModal] = useState(false);
+  const [certProcessingResults, setCertProcessingResults] = useState([]);
   const [passportContextMenu, setPassportContextMenu] = useState({
     show: false,
     x: 0,
