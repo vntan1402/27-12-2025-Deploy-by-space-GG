@@ -12367,6 +12367,105 @@ async def create_crew_member(
         logger.error(f"Error creating crew member: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create crew member: {str(e)}")
 
+
+@api_router.post("/crew/{crew_id}/upload-passport-files")
+async def upload_passport_files_after_creation(
+    crew_id: str,
+    file_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload passport files to Google Drive AFTER successful crew creation
+    This endpoint is called after the crew is saved to database
+    """
+    try:
+        logger.info(f"📤 Uploading passport files for crew: {crew_id}")
+        
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Verify crew exists
+        crew = await mongo_db.find_one("crew_members", {
+            "id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Extract file data from request
+        file_content_b64 = file_data.get('file_content')
+        filename = file_data.get('filename')
+        content_type = file_data.get('content_type')
+        summary_text = file_data.get('summary_text')
+        ship_name = file_data.get('ship_name')
+        
+        if not file_content_b64 or not filename or not ship_name:
+            raise HTTPException(status_code=400, detail="Missing file data or ship name")
+        
+        # Decode file content
+        file_content = base64.b64decode(file_content_b64)
+        
+        # Upload files using dual manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        upload_result = await dual_manager.upload_passport_files(
+            passport_file_content=file_content,
+            passport_filename=filename,
+            passport_content_type=content_type,
+            ship_name=ship_name,
+            summary_text=summary_text
+        )
+        
+        if not upload_result.get('success'):
+            logger.error(f"❌ Passport file upload failed: {upload_result.get('message')}")
+            return {
+                "success": False,
+                "message": upload_result.get('message', 'File upload failed'),
+                "error": upload_result.get('error')
+            }
+        
+        # Extract file IDs from upload results
+        uploads = upload_result.get('uploads', {})
+        passport_upload = uploads.get('passport', {})
+        summary_upload = uploads.get('summary', {})
+        
+        passport_file_id = passport_upload.get('file_id') if passport_upload.get('success') else None
+        summary_file_id = summary_upload.get('file_id') if summary_upload.get('success') else None
+        
+        # Update crew with file IDs
+        update_data = {}
+        if passport_file_id:
+            update_data['passport_file_id'] = passport_file_id
+        if summary_file_id:
+            update_data['summary_file_id'] = summary_file_id
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now(timezone.utc)
+            update_data['updated_by'] = current_user.username
+            
+            await mongo_db.update("crew_members", {"id": crew_id}, update_data)
+            logger.info(f"✅ Updated crew {crew_id} with file IDs")
+        
+        logger.info(f"✅ Passport files uploaded successfully for crew {crew_id}")
+        logger.info(f"   📎 Passport File ID: {passport_file_id}")
+        logger.info(f"   📋 Summary File ID: {summary_file_id}")
+        
+        return {
+            "success": True,
+            "message": "Passport files uploaded successfully",
+            "passport_file_id": passport_file_id,
+            "summary_file_id": summary_file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading passport files: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload passport files: {str(e)}")
+
+
 @api_router.get("/crew", response_model=List[CrewResponse])
 async def get_crew_members(
     ship_name: Optional[str] = None,
