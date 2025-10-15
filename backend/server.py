@@ -14402,9 +14402,9 @@ def normalize_issued_by(extracted_data: dict) -> dict:
         return extracted_data
 
 
-def calculate_certificate_status(cert_expiry) -> str:
+def calculate_crew_certificate_status(cert_expiry) -> str:
     """
-    Calculate certificate status based on expiry date
+    Calculate crew certificate status based on expiry date
     Returns: "Valid", "Expiring Soon" (within 90 days), or "Expired"
     """
     if not cert_expiry:
