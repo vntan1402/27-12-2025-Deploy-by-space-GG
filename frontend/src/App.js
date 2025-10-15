@@ -6387,7 +6387,7 @@ const HomePage = () => {
       
     } else {
       // Single certificate rename
-      if (!cert?.cert_file_id) {
+      if (!cert?.crew_cert_file_id && !cert?.cert_file_id) {
         toast.warning(language === 'vi' 
           ? 'Chứng chỉ này không có file đính kèm'
           : 'This certificate has no attached file');
