@@ -13027,30 +13027,30 @@ async def analyze_certificate_file_for_crew(
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         try:
-            # Process certificate using both Apps Scripts
-            logger.info(f"🔄 Processing certificate with dual Apps Scripts: {filename}")
+            # ✅ NEW: Analyze certificate WITHOUT uploading to Drive
+            # Upload will happen AFTER successful certificate creation
+            logger.info(f"🔄 Analyzing certificate (no upload): {filename}")
             
-            dual_result = await dual_manager.analyze_certificate_with_dual_scripts(
+            analysis_only_result = await dual_manager.analyze_certificate_only(
                 file_content=file_content,
                 filename=filename,
                 content_type=cert_file.content_type or 'application/octet-stream',
-                ship_name=ship_name,
                 document_ai_config=document_ai_config
             )
             
-            if not dual_result.get('success'):
-                logger.error(f"❌ Dual Apps Script processing failed: {dual_result.get('message')}")
+            if not analysis_only_result.get('success'):
+                logger.error(f"❌ Certificate analysis failed: {analysis_only_result.get('message')}")
                 return {
                     "success": False,
-                    "message": dual_result.get('message', 'Dual Apps Script processing failed'),
-                    "error": dual_result.get('error'),
-                    "step": dual_result.get('step', 'unknown')
+                    "message": analysis_only_result.get('message', 'Certificate analysis failed'),
+                    "error": analysis_only_result.get('error'),
+                    "step": analysis_only_result.get('step', 'unknown')
                 }
             
             # Extract AI analysis results
-            ai_analysis = dual_result.get('ai_analysis', {})
+            ai_analysis = analysis_only_result.get('ai_analysis', {})
             if not ai_analysis.get('success'):
-                logger.error("❌ Certificate Document AI analysis failed in dual processing")
+                logger.error("❌ Certificate Document AI analysis failed")
                 return {
                     "success": False,
                     "message": "Certificate Document AI analysis failed",
@@ -13090,39 +13090,25 @@ async def analyze_certificate_file_for_crew(
             if extracted_fields:
                 logger.info("✅ System AI certificate extraction completed successfully")
                 analysis_result.update(extracted_fields)
-                analysis_result["processing_method"] = "dual_apps_script_summary_to_ai_extraction"
+                analysis_result["processing_method"] = "analysis_only_no_upload"
                 logger.info(f"   📋 Extracted Cert Name: '{analysis_result.get('cert_name')}'")
                 logger.info(f"   🔢 Extracted Cert No: '{analysis_result.get('cert_no')}'")
             else:
                 logger.warning("⚠️ Certificate field extraction returned empty result")
             
-            # Extract upload results
-            upload_results = dual_result.get('file_uploads', {})
-            cert_upload = upload_results.get('uploads', {}).get('certificate', {})
-            summary_upload = upload_results.get('uploads', {}).get('summary', {})
+            # ✅ Store file content and summary for later upload
+            # These will be used by the upload endpoint after successful certificate creation
+            analysis_result['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+            analysis_result['_filename'] = filename
+            analysis_result['_content_type'] = cert_file.content_type or 'application/octet-stream'
+            analysis_result['_summary_text'] = summary_text
+            analysis_result['_ship_name'] = ship_name
             
-            # Extract file IDs for linking
-            cert_file_id = cert_upload.get('file_id') if cert_upload.get('success') else None
-            summary_file_id = summary_upload.get('file_id') if summary_upload.get('success') else None
-            
-            logger.info("✅ Dual Apps Script certificate processing completed successfully")
-            logger.info(f"📎 File IDs - Certificate: {cert_file_id}, Summary: {summary_file_id}")
-            
-            # Include file IDs in analysis result
-            if cert_file_id or summary_file_id:
-                analysis_result['file_ids'] = {
-                    'crew_cert_file_id': cert_file_id,
-                    'crew_cert_summary_file_id': summary_file_id
-                }
-                # Keep both at root level for easy access
-                if cert_file_id:
-                    analysis_result['crew_cert_file_id'] = cert_file_id
-                if summary_file_id:
-                    analysis_result['crew_cert_summary_file_id'] = summary_file_id
+            logger.info("✅ Certificate analysis completed successfully (files NOT uploaded yet)")
                 
-        except Exception as dual_error:
-            logger.error(f"❌ Dual Apps Script certificate processing error: {dual_error}")
-            # Continue with empty file_id if upload fails
+        except Exception as analysis_error:
+            logger.error(f"❌ Certificate analysis error: {analysis_error}")
+            # Continue with empty analysis if error occurs
         
         # Normalize analysis_result before returning to frontend
         analysis_result = normalize_issued_by(analysis_result)
