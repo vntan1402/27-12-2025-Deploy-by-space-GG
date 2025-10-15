@@ -13394,6 +13394,8 @@ async def bulk_delete_crew_certificates(
         
         for cert_id in cert_ids:
             try:
+                logger.info(f"🔍 Checking certificate: {cert_id}")
+                
                 # Check if certificate exists
                 cert = await mongo_db.find_one("crew_certificates", {
                     "id": cert_id,
@@ -13401,8 +13403,11 @@ async def bulk_delete_crew_certificates(
                 })
                 
                 if not cert:
+                    logger.warning(f"⚠️ Certificate not found: {cert_id} (company: {company_uuid})")
                     errors.append(f"Certificate {cert_id} not found")
                     continue
+                
+                logger.info(f"✅ Found certificate: {cert.get('cert_name')} for {cert.get('crew_name')}")
                 
                 # Delete associated file from Google Drive if exists
                 cert_file_id = cert.get("cert_file_id")
