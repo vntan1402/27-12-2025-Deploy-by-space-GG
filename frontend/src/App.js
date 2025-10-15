@@ -9554,6 +9554,63 @@ const HomePage = () => {
                               <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                   <tr>
+                                    {/* Checkbox Column for Select All */}
+                                    <th className="px-3 py-3 text-center border-r border-gray-200">
+                                      <input
+                                        type="checkbox"
+                                        checked={
+                                          crewCertificates.filter(cert => {
+                                            // Apply same filters as the table
+                                            if (certificatesSearch) {
+                                              const search = certificatesSearch.toLowerCase();
+                                              if (!(
+                                                cert.crew_name?.toLowerCase().includes(search) ||
+                                                cert.cert_name?.toLowerCase().includes(search) ||
+                                                cert.cert_no?.toLowerCase().includes(search) ||
+                                                cert.issued_by?.toLowerCase().includes(search)
+                                              )) return false;
+                                            }
+                                            if (certFilters.status !== 'all' && cert.status !== certFilters.status) return false;
+                                            if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) return false;
+                                            return true;
+                                          }).length > 0 && 
+                                          crewCertificates.filter(cert => {
+                                            // Apply same filters
+                                            if (certificatesSearch) {
+                                              const search = certificatesSearch.toLowerCase();
+                                              if (!(
+                                                cert.crew_name?.toLowerCase().includes(search) ||
+                                                cert.cert_name?.toLowerCase().includes(search) ||
+                                                cert.cert_no?.toLowerCase().includes(search) ||
+                                                cert.issued_by?.toLowerCase().includes(search)
+                                              )) return false;
+                                            }
+                                            if (certFilters.status !== 'all' && cert.status !== certFilters.status) return false;
+                                            if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) return false;
+                                            return true;
+                                          }).every(cert => selectedCertificates.has(cert.id))
+                                        }
+                                        onChange={(e) => {
+                                          const filteredCerts = crewCertificates.filter(cert => {
+                                            // Apply same filters
+                                            if (certificatesSearch) {
+                                              const search = certificatesSearch.toLowerCase();
+                                              if (!(
+                                                cert.crew_name?.toLowerCase().includes(search) ||
+                                                cert.cert_name?.toLowerCase().includes(search) ||
+                                                cert.cert_no?.toLowerCase().includes(search) ||
+                                                cert.issued_by?.toLowerCase().includes(search)
+                                              )) return false;
+                                            }
+                                            if (certFilters.status !== 'all' && cert.status !== certFilters.status) return false;
+                                            if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) return false;
+                                            return true;
+                                          });
+                                          handleSelectAllCertificates(e.target.checked, filteredCerts);
+                                        }}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                      />
+                                    </th>
                                     <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
                                       {language === 'vi' ? 'STT' : 'No.'}
                                     </th>
