@@ -5531,13 +5531,13 @@ const HomePage = () => {
     console.log(`🚢 Crew's ship sign on: ${crew.ship_sign_on}`);
     
     // Set selectedShip based on crew's ship_sign_on
-    if (crew.ship_sign_on && companyShips) {
-      const crewShip = companyShips.find(ship => ship.name === crew.ship_sign_on);
+    if (crew.ship_sign_on && ships) {
+      const crewShip = ships.find(ship => ship.name === crew.ship_sign_on);
       if (crewShip) {
         console.log(`✅ Setting selected ship to: ${crewShip.name}`);
         setSelectedShip(crewShip);
       } else {
-        console.warn(`⚠️ Ship "${crew.ship_sign_on}" not found in company ships`);
+        console.warn(`⚠️ Ship "${crew.ship_sign_on}" not found in ships list`);
       }
     }
     
