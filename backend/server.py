@@ -11567,16 +11567,19 @@ This summary was generated using Google Document AI for crew management purposes
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         try:
-            # Process passport using both Apps Scripts
-            logger.info(f"🔄 Processing passport with dual Apps Scripts: {filename}")
+            # ✅ NEW: Analyze passport WITHOUT uploading to Drive
+            # Upload will happen AFTER successful crew creation
+            logger.info(f"🔄 Analyzing passport (no upload): {filename}")
             
-            dual_result = await dual_manager.analyze_passport_with_dual_scripts(
+            analysis_only_result = await dual_manager.analyze_passport_only(
                 file_content=file_content,
                 filename=filename,
                 content_type=passport_file.content_type or 'application/octet-stream',
-                ship_name=ship_name,
                 document_ai_config=document_ai_config
             )
+            
+            # Rename for consistency with old code
+            dual_result = analysis_only_result
             
             if not dual_result.get('success'):
                 logger.error(f"❌ Dual Apps Script processing failed: {dual_result.get('message')}")
