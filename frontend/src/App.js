@@ -6170,14 +6170,16 @@ const HomePage = () => {
     if (!confirmed) return;
     
     try {
+      const certIds = Array.from(selectedCrewCertificates);
       console.log(`🗑️ Bulk deleting ${selectedCrewCertificates.size} certificates`);
+      console.log(`📋 Certificate IDs to delete:`, certIds);
       
       // Call backend bulk delete endpoint
       const response = await axios.delete(
         `${API}/crew-certificates/bulk-delete`,
         {
           data: {
-            certificate_ids: Array.from(selectedCrewCertificates)
+            certificate_ids: certIds
           },
           headers: {
             'Authorization': `Bearer ${token}`,
