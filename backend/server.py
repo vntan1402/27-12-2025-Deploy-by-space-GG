@@ -13114,9 +13114,11 @@ async def analyze_certificate_file_for_crew(
                     'cert_file_id': cert_file_id,
                     'summary_file_id': summary_file_id
                 }
-                # Also keep cert_file_id at root level for backward compatibility
+                # Keep both at root level for easy access
                 if cert_file_id:
                     analysis_result['cert_file_id'] = cert_file_id
+                if summary_file_id:
+                    analysis_result['cert_summary_file_id'] = summary_file_id
                 
         except Exception as dual_error:
             logger.error(f"❌ Dual Apps Script certificate processing error: {dual_error}")
