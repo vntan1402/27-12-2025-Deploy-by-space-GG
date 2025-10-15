@@ -9720,14 +9720,14 @@ const HomePage = () => {
                                       .map((cert, index) => (
                                         <tr 
                                           key={cert.id} 
-                                          className={`hover:bg-gray-50 ${selectedCertificates.has(cert.id) ? 'bg-blue-50' : ''}`}
+                                          className={`hover:bg-gray-50 ${selectedCrewCertificates.has(cert.id) ? 'bg-blue-50' : ''}`}
                                           onContextMenu={(e) => handleCertRightClick(e, cert)}
                                         >
                                           {/* Checkbox Cell */}
                                           <td className="px-3 py-4 whitespace-nowrap text-center border-r border-gray-200">
                                             <input
                                               type="checkbox"
-                                              checked={selectedCertificates.has(cert.id)}
+                                              checked={selectedCrewCertificates.has(cert.id)}
                                               onChange={(e) => {
                                                 e.stopPropagation();
                                                 handleSelectCertificate(cert.id);
