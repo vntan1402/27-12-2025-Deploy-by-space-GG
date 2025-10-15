@@ -6346,6 +6346,7 @@ const HomePage = () => {
   // Handle multiple certificate file upload
   const handleMultipleCertificateUpload = (files) => {
     console.log(`📁 Selected ${files.length} certificate file(s) for analysis`);
+    console.log(`🔍 Current modal state: showAddCrewCertModal =`, showAddCrewCertModal);
     
     // Validate crew selection first
     if (!selectedCrewForCert && certFilters.crewName === 'all') {
