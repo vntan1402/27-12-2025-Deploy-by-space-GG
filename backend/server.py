@@ -14419,13 +14419,16 @@ def calculate_crew_certificate_status(cert_expiry) -> str:
                 expiry_date = datetime.strptime(cert_expiry, '%Y-%m-%d').replace(tzinfo=timezone.utc)
         elif isinstance(cert_expiry, datetime):
             expiry_date = cert_expiry
+            # Ensure expiry_date is timezone-aware
+            if expiry_date.tzinfo is None:
+                expiry_date = expiry_date.replace(tzinfo=timezone.utc)
         else:
             return "Valid"
         
-        # Get current date in UTC
+        # Get current date in UTC (timezone-aware)
         now = datetime.now(timezone.utc)
         
-        # Calculate difference
+        # Calculate difference (both should be timezone-aware now)
         days_until_expiry = (expiry_date - now).days
         
         if days_until_expiry < 0:
