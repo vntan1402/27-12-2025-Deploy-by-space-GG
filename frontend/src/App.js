@@ -10295,12 +10295,13 @@ const HomePage = () => {
                                         </div>
                                         
                                         <input
-                                          id="cert-file-upload"
+                                          ref={certFileInputRef}
                                           type="file"
                                           accept=".pdf,.jpg,.jpeg,.png"
+                                          multiple
                                           onChange={(e) => {
                                             // Check if crew is selected
-                                            if (!newCrewCertificate.crew_id) {
+                                            if (!selectedCrewForCert && certFilters.crewName === 'all') {
                                               toast.warning(language === 'vi' 
                                                 ? '⚠️ Vui lòng chọn thuyền viên trước khi upload file!' 
                                                 : '⚠️ Please select a crew member before uploading file!'
@@ -10309,13 +10310,14 @@ const HomePage = () => {
                                               return;
                                             }
                                             
-                                            const file = e.target.files[0];
-                                            if (file) {
-                                              handleCertFileUpload(file);
+                                            const files = Array.from(e.target.files);
+                                            if (files.length > 0) {
+                                              handleMultipleCertificateUpload(files);
                                             }
+                                            e.target.value = ''; // Reset for next selection
                                           }}
                                           className="hidden"
-                                          disabled={isAnalyzingCert}
+                                          disabled={isAnalyzingCert || isBatchProcessingCerts}
                                         />
                                         
                                         {isAnalyzingCert && (
