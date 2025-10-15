@@ -13119,6 +13119,9 @@ async def analyze_certificate_file_for_crew(
             logger.error(f"❌ Dual Apps Script certificate processing error: {dual_error}")
             # Continue with empty file_id if upload fails
         
+        # Normalize analysis_result before returning to frontend
+        analysis_result = normalize_issued_by(analysis_result)
+        
         # Return analysis result with file_id for frontend to create certificate record
         return {
             "success": True,
