@@ -6261,9 +6261,9 @@ const HomePage = () => {
     
     if (selectedCrewCertificates.size === 0) return;
     
-    // Get selected certificates with file IDs
+    // Get selected certificates with file IDs (check both old and new field names)
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCrewCertificates.has(cert.id) && cert.crew_cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && (cert.crew_cert_file_id || cert.cert_file_id)
     );
     
     if (certsWithFiles.length === 0) {
