@@ -13422,7 +13422,7 @@ async def delete_crew_certificate(
             raise HTTPException(status_code=404, detail="Certificate not found")
         
         # Delete associated file from Google Drive if exists
-        cert_file_id = cert.get("cert_file_id")
+        cert_file_id = cert.get("crew_cert_file_id")
         file_deleted = False
         
         if cert_file_id:
