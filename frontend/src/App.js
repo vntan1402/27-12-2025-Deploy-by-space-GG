@@ -6155,6 +6155,9 @@ const HomePage = () => {
 
   // Bulk Operations for Crew Certificates
   const handleBulkDeleteCertificates = async () => {
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
     if (selectedCrewCertificates.size === 0) return;
     
     // Show confirmation
