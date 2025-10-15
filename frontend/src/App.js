@@ -1031,8 +1031,8 @@ const HomePage = () => {
     issued_date: '',
     cert_expiry: '',
     note: '',
-    cert_file_id: '',
-    cert_summary_file_id: ''  // Summary file ID
+    crew_cert_file_id: '',
+    crew_cert_summary_file_id: ''  // Summary file ID
   });
   const [isSubmittingCert, setIsSubmittingCert] = useState(false);
   
