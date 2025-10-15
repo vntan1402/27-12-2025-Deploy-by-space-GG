@@ -12820,6 +12820,63 @@ async def rename_crew_files(
 # CREW CERTIFICATES ENDPOINTS (Steps 1-5)
 # ============================================
 
+@api_router.post("/crew-certificates/check-duplicate")
+async def check_crew_certificate_duplicate(
+    check_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Check if a crew certificate is duplicate based on crew_id + cert_no
+    Returns existing certificate info if duplicate found
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        crew_id = check_data.get('crew_id')
+        cert_no = check_data.get('cert_no')
+        
+        if not crew_id or not cert_no:
+            return {
+                "is_duplicate": False,
+                "message": "Missing crew_id or cert_no"
+            }
+        
+        logger.info(f"🔍 Checking duplicate for crew_id: {crew_id}, cert_no: {cert_no}")
+        
+        # Check if certificate already exists with same crew_id + cert_no
+        existing_cert = await mongo_db.find_one("crew_certificates", {
+            "company_id": company_uuid,
+            "crew_id": crew_id,
+            "cert_no": cert_no
+        })
+        
+        if existing_cert:
+            logger.warning(f"⚠️ Duplicate found: {existing_cert.get('cert_name')} - {cert_no}")
+            return {
+                "is_duplicate": True,
+                "existing_certificate": {
+                    "id": existing_cert.get("id"),
+                    "cert_name": existing_cert.get("cert_name"),
+                    "cert_no": existing_cert.get("cert_no"),
+                    "crew_name": existing_cert.get("crew_name"),
+                    "issued_date": existing_cert.get("issued_date"),
+                    "cert_expiry": existing_cert.get("cert_expiry"),
+                    "issued_by": existing_cert.get("issued_by")
+                },
+                "message": f"Certificate with number '{cert_no}' already exists for this crew member"
+            }
+        else:
+            logger.info("✅ No duplicate found")
+            return {
+                "is_duplicate": False,
+                "message": "No duplicate found"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking duplicate: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check duplicate: {str(e)}")
+
+
 @api_router.post("/crew-certificates/manual", response_model=CrewCertificateResponse)
 async def create_crew_certificate_manual(
     ship_id: str,
