@@ -13369,9 +13369,13 @@ async def delete_crew_certificate(
         raise HTTPException(status_code=500, detail=f"Failed to delete crew certificate: {str(e)}")
 
 
-@api_router.post("/crew-certificates/bulk-delete")
+class BulkDeleteRequest(BaseModel):
+    certificate_ids: List[str]
+
+
+@api_router.delete("/crew-certificates/bulk-delete")
 async def bulk_delete_crew_certificates(
-    cert_ids: List[str],
+    request: BulkDeleteRequest,
     current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
@@ -13379,6 +13383,7 @@ async def bulk_delete_crew_certificates(
     """
     try:
         company_uuid = await resolve_company_id(current_user)
+        cert_ids = request.certificate_ids
         
         deleted_count = 0
         files_deleted = 0
