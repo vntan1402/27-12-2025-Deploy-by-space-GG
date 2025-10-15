@@ -1797,7 +1797,7 @@ const HomePage = () => {
   };
 
   // Crew Certificates selection functions
-  const handleSelectCertificate = (certId) => {
+  const handleSelectCrewCertificate = (certId) => {
     const newSelected = new Set(selectedCrewCertificates);
     if (newSelected.has(certId)) {
       newSelected.delete(certId);
