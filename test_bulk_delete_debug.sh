@@ -16,7 +16,7 @@ LOGIN_RESPONSE=$(curl -s -X POST "$API/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"admin1","password":"123456"}')
 
-TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.token')
+TOKEN=$(echo $LOGIN_RESPONSE | jq -r '.access_token')
 
 if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
   echo "❌ Login failed"
