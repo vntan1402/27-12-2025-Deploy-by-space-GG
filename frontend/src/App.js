@@ -6341,21 +6341,23 @@ const HomePage = () => {
       // Show confirmation dialog with preview
       const confirmMessage = language === 'vi' 
         ? `Bạn có chắc chắn muốn tự động đổi tên file cho ${certsWithFiles.length} chứng chỉ đã chọn?\n\n` +
-          `Định dạng: Chức vụ_Tên (Tiếng Anh)_Tên chứng chỉ\n\n` +
+          `Định dạng: Chức vụ_Tên người_Tên chứng chỉ\n` +
+          `(Chỉ dùng _ để ngăn cách 3 phần, giữ nguyên dấu cách trong tên)\n\n` +
           `Ví dụ:\n${certsWithFiles.slice(0, 3).map(c => {
-            const rank = c.rank || 'Unknown';
-            const nameEn = c.crew_name_en || c.crew_name || 'Unknown';
-            const certName = c.cert_name || 'Certificate';
-            return `• ${c.crew_name} - ${c.cert_name} → ${rank}_${nameEn}_${certName}.pdf`;
+            const rank = (c.rank || 'Unknown').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+            const nameEn = (c.crew_name_en || c.crew_name || 'Unknown').replace(/[^\w\s-]/g, '');
+            const certName = (c.cert_name || 'Certificate').replace(/[^\w\s-]/g, '');
+            return `• ${c.crew_name} - ${c.cert_name}\n  → ${rank}_${nameEn}_${certName}.pdf`;
           }).join('\n')}${certsWithFiles.length > 3 ? `\n... và ${certsWithFiles.length - 3} chứng chỉ khác` : ''}\n\n` +
           `⚠️ Hành động này không thể hoàn tác!`
         : `Are you sure you want to automatically rename files for ${certsWithFiles.length} selected certificates?\n\n` +
-          `Format: Rank_Name (English)_Certificate Name\n\n` +
+          `Format: Rank_PersonName_CertificateName\n` +
+          `(Use _ only between main parts, keep spaces within names)\n\n` +
           `Examples:\n${certsWithFiles.slice(0, 3).map(c => {
-            const rank = c.rank || 'Unknown';
-            const nameEn = c.crew_name_en || c.crew_name || 'Unknown';
-            const certName = c.cert_name || 'Certificate';
-            return `• ${c.crew_name} - ${c.cert_name} → ${rank}_${nameEn}_${certName}.pdf`;
+            const rank = (c.rank || 'Unknown').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+            const nameEn = (c.crew_name_en || c.crew_name || 'Unknown').replace(/[^\w\s-]/g, '');
+            const certName = (c.cert_name || 'Certificate').replace(/[^\w\s-]/g, '');
+            return `• ${c.crew_name} - ${c.cert_name}\n  → ${rank}_${nameEn}_${certName}.pdf`;
           }).join('\n')}${certsWithFiles.length > 3 ? `\n... and ${certsWithFiles.length - 3} more` : ''}\n\n` +
           `⚠️ This action cannot be undone!`;
       
