@@ -13191,6 +13191,14 @@ const HomePage = () => {
                               <div><strong>{language === 'vi' ? 'Trùng với:' : 'Duplicate with:'}</strong> {result.duplicateWith}</div>
                               <div><strong>{language === 'vi' ? 'Tàu:' : 'Ship:'}</strong> {result.duplicateShip}</div>
                             </div>
+                          ) : result.error === 'NOT_PASSPORT' ? (
+                            <div className="text-orange-700 bg-orange-50 p-2 rounded">
+                              <div className="font-semibold flex items-center space-x-1">
+                                <span>⚠️</span>
+                                <span>{language === 'vi' ? 'Không phải Passport' : 'Not a Passport'}</span>
+                              </div>
+                              <div className="text-xs mt-1">{result.validationReason}</div>
+                            </div>
                           ) : (
                             <div className="text-red-700">
                               <div className="font-semibold">{language === 'vi' ? 'Lỗi:' : 'Error:'}</div>
