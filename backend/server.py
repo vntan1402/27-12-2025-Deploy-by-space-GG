@@ -676,8 +676,8 @@ class CrewCertificateBase(BaseModel):
     status: Optional[str] = "Valid"  # Valid, Expiring Soon, Expired
     note: Optional[str] = None
     # File reference
-    cert_file_id: Optional[str] = None
-    cert_summary_file_id: Optional[str] = None  # Summary file ID from Google Drive
+    crew_cert_file_id: Optional[str] = None
+    crew_cert_summary_file_id: Optional[str] = None  # Summary file ID from Google Drive
 
 class CrewCertificateCreate(CrewCertificateBase):
     pass
