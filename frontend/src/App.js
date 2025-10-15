@@ -10010,31 +10010,28 @@ const HomePage = () => {
                             </div>
                           </div>
 
-                          {/* Search Bar and Filters */}
+                          {/* Search Bar and Filters - All in One Row */}
                           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                            <div className="flex flex-col space-y-3">
-                              {/* Search Row */}
+                            <div className="flex items-center space-x-4 flex-wrap">
+                              {/* Search */}
                               <div className="flex items-center space-x-2">
-                                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                                  {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
+                                <label className="text-sm text-gray-600 whitespace-nowrap">
+                                  {language === 'vi' ? '🔍 Tìm kiếm:' : '🔍 Search:'}
                                 </label>
-                                <div className="relative flex-1 max-w-md">
+                                <div className="relative w-64">
                                   <input
                                     type="text"
-                                    placeholder={language === 'vi' ? 'Tìm theo tên chứng chỉ, số chứng chỉ, tên thuyền viên...' : 'Search by cert name, cert no, crew name...'}
+                                    placeholder={language === 'vi' ? 'Tên chứng chỉ, số...' : 'Cert name, no...'}
                                     value={certificatesSearch}
                                     onChange={(e) => setCertificatesSearch(e.target.value)}
-                                    className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                                    className="w-full px-3 py-1.5 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                   />
-                                  <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                                  <span className="absolute left-3 top-2 text-gray-400">🔍</span>
                                 </div>
                               </div>
                               
-                              {/* Filters Row */}
-                              <div className="flex items-center space-x-4">
-                                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                                  {language === 'vi' ? 'Lọc theo:' : 'Filter by:'}
-                                </label>
+                              {/* Divider */}
+                              <div className="h-8 w-px bg-gray-300"></div>
                                 
                                 {/* Status Filter */}
                                 <div className="flex items-center space-x-2">
