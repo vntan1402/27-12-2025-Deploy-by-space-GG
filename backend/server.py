@@ -13470,6 +13470,113 @@ async def bulk_delete_crew_certificates(
         raise HTTPException(status_code=500, detail=f"Failed to bulk delete certificates: {str(e)}")
 
 
+@api_router.post("/crew-certificates/{cert_id}/auto-rename-file")
+async def auto_rename_crew_certificate_file(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Auto rename crew certificate file on Google Drive using naming convention:
+    Rank_CrewNameEn_CertificateName.pdf"""
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Get certificate data
+        certificate = await mongo_db.find_one("crew_certificates", {"id": cert_id})
+        
+        if not certificate:
+            raise HTTPException(status_code=404, detail="Crew certificate not found")
+        
+        # Check if certificate has Google Drive file
+        file_id = certificate.get("cert_file_id")
+        if not file_id:
+            raise HTTPException(status_code=400, detail="Certificate has no associated Google Drive file")
+        
+        # Get crew data
+        crew_id = certificate.get("crew_id")
+        crew = None
+        if crew_id:
+            crew = await mongo_db.find_one("crew_members", {"id": crew_id})
+        
+        # Build new filename: Rank_CrewNameEn_CertificateName.pdf
+        rank = certificate.get("rank") or (crew.get("rank") if crew else None) or "Unknown"
+        crew_name_en = certificate.get("crew_name_en") or (crew.get("full_name_en") if crew else None) or certificate.get("crew_name") or "Unknown"
+        cert_name = certificate.get("cert_name", "Certificate")
+        
+        # Clean up values (remove special characters except underscores)
+        import re
+        rank_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', rank)
+        crew_name_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', crew_name_en)
+        cert_name_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', cert_name)
+        
+        # Get original file extension
+        original_filename = certificate.get("cert_file_name", "")
+        file_extension = ".pdf"  # Default
+        if original_filename and "." in original_filename:
+            file_extension = "." + original_filename.split(".")[-1]
+        
+        # Build new filename
+        new_filename = f"{rank_clean}_{crew_name_clean}_{cert_name_clean}{file_extension}"
+        
+        logger.info(f"🔄 AUTO-RENAME Crew Certificate: {original_filename} → {new_filename}")
+        
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        deployment_id = gdrive_config_doc.get("deployment_id")
+        
+        if not deployment_id:
+            raise HTTPException(status_code=500, detail="Apps Script deployment ID not found in configuration")
+        
+        # Rename file on Google Drive
+        rename_url = f"https://script.google.com/macros/s/{deployment_id}/exec"
+        rename_payload = {
+            "action": "rename_file",
+            "file_id": file_id,
+            "new_name": new_filename
+        }
+        
+        logger.info(f"📤 Calling Apps Script to rename file: {file_id} → {new_filename}")
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(rename_url, json=rename_payload)
+            
+            if response.status_code != 200:
+                logger.error(f"❌ Apps Script rename failed: {response.text}")
+                raise HTTPException(status_code=500, detail=f"Failed to rename file on Google Drive: {response.text}")
+            
+            result = response.json()
+            
+            if not result.get("success"):
+                error_msg = result.get("error", "Unknown error")
+                logger.error(f"❌ Rename failed: {error_msg}")
+                raise HTTPException(status_code=500, detail=f"Failed to rename file: {error_msg}")
+        
+        # Update certificate with new filename
+        await mongo_db.update_one(
+            "crew_certificates",
+            {"id": cert_id},
+            {"$set": {"cert_file_name": new_filename}}
+        )
+        
+        logger.info(f"✅ Crew certificate file renamed successfully: {new_filename}")
+        
+        return {
+            "success": True,
+            "message": "File renamed successfully",
+            "new_filename": new_filename,
+            "file_id": file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error auto-renaming crew certificate file: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to auto-rename file: {str(e)}")
+
+
 # Helper functions for crew certificates
 
 def detect_certificate_type(filename: str, summary: str) -> str:
