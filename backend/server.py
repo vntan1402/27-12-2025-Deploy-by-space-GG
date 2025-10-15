@@ -13502,11 +13502,17 @@ async def auto_rename_crew_certificate_file(
         crew_name_en = certificate.get("crew_name_en") or (crew.get("full_name_en") if crew else None) or certificate.get("crew_name") or "Unknown"
         cert_name = certificate.get("cert_name", "Certificate")
         
-        # Clean up values (remove special characters except underscores)
+        # Clean up values:
+        # - Rank: Remove ALL spaces (C/O → CO, 2nd Officer → 2ndOfficer)
+        # - Crew Name: Keep spaces, only remove special chars
+        # - Cert Name: Keep spaces, only remove special chars
         import re
-        rank_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', rank)
-        crew_name_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', crew_name_en)
-        cert_name_clean = re.sub(r'[^a-zA-Z0-9_-]', '_', cert_name)
+        rank_clean = re.sub(r'\s+', '', rank)  # Remove all whitespace from rank
+        rank_clean = re.sub(r'[^a-zA-Z0-9]', '', rank_clean)  # Remove special chars from rank
+        
+        # For crew name and cert name: keep spaces, remove only problematic special chars
+        crew_name_clean = re.sub(r'[^\w\s-]', '', crew_name_en)  # Keep alphanumeric, spaces, hyphens
+        cert_name_clean = re.sub(r'[^\w\s-]', '', cert_name)  # Keep alphanumeric, spaces, hyphens
         
         # Get original file extension
         original_filename = certificate.get("cert_file_name", "")
@@ -13514,7 +13520,8 @@ async def auto_rename_crew_certificate_file(
         if original_filename and "." in original_filename:
             file_extension = "." + original_filename.split(".")[-1]
         
-        # Build new filename
+        # Build new filename: Use underscore ONLY between main parts
+        # Format: Rank_Crew Name_Certificate Name.pdf
         new_filename = f"{rank_clean}_{crew_name_clean}_{cert_name_clean}{file_extension}"
         
         logger.info(f"🔄 AUTO-RENAME Crew Certificate: {original_filename} → {new_filename}")
