@@ -6342,6 +6342,216 @@ const HomePage = () => {
       });
   };
 
+  // Handle multiple certificate file upload
+  const handleMultipleCertificateUpload = (files) => {
+    console.log(`📁 Selected ${files.length} certificate file(s) for analysis`);
+    
+    // Validate crew selection first
+    if (!selectedCrewForCert && certFilters.crewName === 'all') {
+      toast.warning(language === 'vi'
+        ? 'Vui lòng chọn thuyền viên trước khi upload chứng chỉ'
+        : 'Please select a crew member before uploading certificates');
+      return;
+    }
+    
+    // Validate files
+    const validFiles = files.filter(file => {
+      const isValidType = file.type === 'application/pdf' || file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      
+      if (!isValidType) {
+        toast.error(language === 'vi' 
+          ? `File ${file.name} không đúng định dạng` 
+          : `File ${file.name} has invalid format`);
+        return false;
+      }
+      
+      if (!isValidSize) {
+        toast.error(language === 'vi' 
+          ? `File ${file.name} quá lớn (>10MB)` 
+          : `File ${file.name} is too large (>10MB)`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (validFiles.length === 0) {
+      return;
+    }
+    
+    if (validFiles.length === 1) {
+      // Single file: use existing behavior (review before adding)
+      console.log('📄 Single file selected - using review mode');
+      handleCertFileUpload(validFiles[0]);
+    } else {
+      // Multiple files: batch process (auto-add after each analysis)
+      console.log(`📄📄 Multiple files selected (${validFiles.length}) - starting batch processing`);
+      startCertBatchProcessing(validFiles);
+    }
+  };
+
+  // Start batch processing for multiple certificate files
+  const startCertBatchProcessing = async (files) => {
+    setIsBatchProcessingCerts(true);
+    setCurrentCertFileIndex(0);
+    setCertBatchResults([]);
+    setCertBatchProgress({ current: 0, total: files.length });
+    
+    toast.info(language === 'vi' 
+      ? `Bắt đầu xử lý ${files.length} file chứng chỉ...` 
+      : `Starting batch processing of ${files.length} certificate files...`);
+    
+    // Collect results
+    const collectedResults = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      setCurrentCertFileIndex(i);
+      setCertBatchProgress({ current: i + 1, total: files.length });
+      
+      console.log(`🔄 Processing certificate ${i + 1}/${files.length}: ${files[i].name}`);
+      
+      try {
+        const result = await processSingleCertInBatch(files[i], i + 1, files.length);
+        collectedResults.push(result);
+        setCertBatchResults(prev => [...prev, result]);
+      } catch (error) {
+        console.error(`❌ Error processing file ${files[i].name}:`, error);
+        const errorResult = {
+          filename: files[i].name,
+          success: false,
+          error: error.message,
+          index: i + 1
+        };
+        collectedResults.push(errorResult);
+        setCertBatchResults(prev => [...prev, errorResult]);
+      }
+      
+      // 2 second delay between files (as requested)
+      if (i < files.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+    
+    // Batch processing complete
+    setIsBatchProcessingCerts(false);
+    setCurrentCertFileIndex(0);
+    
+    console.log(`✅ Batch certificate processing complete. Results: ${collectedResults.length}`);
+    
+    // Close Add Crew Cert Modal
+    setShowAddCrewCertModal(false);
+    
+    // Show Processing Results Modal
+    setCertProcessingResults(collectedResults);
+    setShowCertProcessingResultsModal(true);
+    
+    // Refresh certificates list
+    await fetchCrewCertificates(null);
+    
+    // Reset states
+    setCertBatchResults([]);
+    setCertBatchProgress({ current: 0, total: 0 });
+  };
+
+  // Process single certificate file in batch mode (auto-add certificate)
+  const processSingleCertInBatch = async (file, current, total) => {
+    try {
+      console.log(`🔄 Batch processing cert ${current}/${total}: ${file.name}`);
+      
+      // Get crew info
+      const crewId = selectedCrewForCert || (certFilters.crewName !== 'all' ? certFilters.crewName : null);
+      let crewName = '';
+      let crewNameEn = '';
+      let rank = '';
+      
+      if (crewId) {
+        const crew = crewData.find(c => c.id === crewId);
+        if (crew) {
+          crewName = crew.full_name;
+          crewNameEn = crew.full_name_en || '';
+          rank = crew.rank || '';
+        }
+      }
+      
+      // Analyze certificate
+      const formData = new FormData();
+      formData.append('cert_file', file);
+      formData.append('ship_id', selectedShip?.id || '');
+      if (crewId) {
+        formData.append('crew_id', crewId);
+      }
+      
+      const analyzeResponse = await axios.post(
+        `${API}/crew-certificates/analyze-file`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+      
+      if (analyzeResponse.data && analyzeResponse.data.cert_name) {
+        const analysis = analyzeResponse.data;
+        
+        // Prepare certificate data
+        const certData = {
+          ship_id: selectedShip?.id || '',
+          crew_id: crewId || '',
+          crew_name: analysis.crew_name || crewName,
+          crew_name_en: analysis.crew_name_en || crewNameEn,
+          passport: analysis.passport || '',
+          rank: analysis.rank || rank,
+          cert_name: analysis.cert_name || '',
+          cert_no: analysis.cert_no || '',
+          issued_by: analysis.issued_by || '',
+          issued_date: analysis.issued_date || '',
+          cert_expiry: analysis.expiry_date || '',
+          note: analysis.note || '',
+          crew_cert_file_id: analysis.crew_cert_file_id || '',
+          crew_cert_summary_file_id: analysis.crew_cert_summary_file_id || ''
+        };
+        
+        // Auto-create certificate
+        const createResponse = await axios.post(
+          `${API}/crew-certificates/manual`,
+          certData,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        if (createResponse.data) {
+          console.log(`✅ Certificate created successfully from ${file.name}`);
+          return {
+            filename: file.name,
+            success: true,
+            certCreated: true,
+            fileUploaded: !!analysis.crew_cert_file_id,
+            summaryCreated: !!analysis.crew_cert_summary_file_id,
+            certName: analysis.cert_name || 'Unknown',
+            certNo: analysis.cert_no || 'N/A',
+            crewName: certData.crew_name,
+            index: current
+          };
+        } else {
+          throw new Error('Failed to create certificate');
+        }
+      } else {
+        throw new Error('Failed to analyze certificate');
+      }
+      
+    } catch (error) {
+      console.error(`❌ Error in batch cert processing:`, error);
+      throw error;
+    }
+  };
+
   // Auto rename crew certificate files
   const handleAutoRenameCrewCertFiles = async (cert) => {
     // Close context menu
