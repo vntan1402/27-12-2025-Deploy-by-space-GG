@@ -6345,8 +6345,8 @@ const HomePage = () => {
       const selectedCertIds = Array.from(selectedCrewCertificates);
       const selectedCerts = crewCertificates.filter(c => selectedCertIds.includes(c.id));
       
-      // Count how many have files
-      const certsWithFiles = selectedCerts.filter(c => c.cert_file_id);
+      // Count how many have files (check both old and new field names for backward compatibility)
+      const certsWithFiles = selectedCerts.filter(c => c.crew_cert_file_id || c.cert_file_id);
       
       if (certsWithFiles.length === 0) {
         toast.warning(language === 'vi' 
