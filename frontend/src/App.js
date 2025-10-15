@@ -9392,7 +9392,7 @@ const HomePage = () => {
 
                                   {/* Clear Selection */}
                                   <button
-                                    onClick={() => setSelectedCertificates(new Set())}
+                                    onClick={() => setSelectedCrewCertificates(new Set())}
                                     className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-md transition-all"
                                   >
                                     {language === 'vi' ? 'Bỏ chọn' : 'Clear'}
