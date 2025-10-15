@@ -5166,6 +5166,24 @@ const HomePage = () => {
         const analysis = response.data.analysis;
         const fileIds = analysis.file_ids || {};
         
+        // ✅ Validate if document is a passport
+        const validation = validatePassportDocument(analysis);
+        if (!validation.isValid) {
+          console.warn(`⚠️ File ${file.name} is not a valid passport: ${validation.reason}`);
+          return {
+            filename: file.name,
+            success: false,
+            crewCreated: false,
+            fileUploaded: false,
+            summaryCreated: false,
+            error: 'NOT_PASSPORT',
+            validationReason: validation.reason,
+            index: current
+          };
+        }
+        
+        console.log(`✅ ${file.name} validated as passport document`);
+        
         // Prepare crew data from analysis
         const vietnameseFullName = analysis.full_name || '';
         const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
