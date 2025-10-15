@@ -10051,9 +10051,9 @@ const HomePage = () => {
                                     <option value="Unknown">❓ {language === 'vi' ? 'Không xác định' : 'Unknown'}</option>
                                   </select>
                                 </div>
-                                
-                                {/* Crew Name Filter */}
-                                <div className="flex items-center space-x-2">
+                              
+                              {/* Crew Name Filter */}
+                              <div className="flex items-center space-x-2">
                                   <label className="text-sm text-gray-600 whitespace-nowrap">
                                     {language === 'vi' ? 'Thuyền viên:' : 'Crew:'}
                                   </label>
