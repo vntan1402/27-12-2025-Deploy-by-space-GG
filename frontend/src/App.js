@@ -10149,7 +10149,6 @@ const HomePage = () => {
                                       }).length}
                                     </span> / <span className="font-semibold">{crewCertificates.length}</span> {language === 'vi' ? 'chứng chỉ' : 'certificates'}
                                   </p>
-                                </div>
                               </div>
                             </div>
                           </div>
