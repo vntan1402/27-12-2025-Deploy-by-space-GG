@@ -5107,6 +5107,41 @@ const HomePage = () => {
     setBatchProgress({ current: 0, total: 0 });
   };
 
+  // Validate if file is a passport (not seaman book or other document)
+  const validatePassportDocument = (analysis) => {
+    const summary = (analysis.raw_summary || '').toLowerCase();
+    const hasPassportNumber = !!analysis.passport_number;
+    const hasDateOfBirth = !!analysis.date_of_birth;
+    const hasNationality = !!analysis.nationality;
+    
+    // Check for seaman book keywords
+    const seamanBookKeywords = ['seaman book', 'seamanbook', 'seaman\'s book', 'cdc', 'continuous discharge certificate'];
+    const hasSeamanBookKeyword = seamanBookKeywords.some(keyword => summary.includes(keyword));
+    
+    // Passport should have these key fields
+    const hasRequiredFields = hasPassportNumber && (hasDateOfBirth || hasNationality);
+    
+    if (hasSeamanBookKeyword) {
+      return {
+        isValid: false,
+        reason: language === 'vi' 
+          ? 'File này có vẻ là Seaman Book, không phải Passport' 
+          : 'This appears to be a Seaman Book, not a Passport'
+      };
+    }
+    
+    if (!hasRequiredFields) {
+      return {
+        isValid: false,
+        reason: language === 'vi'
+          ? 'Không tìm thấy thông tin Passport (thiếu số hộ chiếu hoặc ngày sinh/quốc tịch)'
+          : 'Passport information not found (missing passport number or date of birth/nationality)'
+      };
+    }
+    
+    return { isValid: true };
+  };
+
   // Process single passport file in batch mode (auto-add crew)
   const processSinglePassportInBatch = async (file, current, total) => {
     try {
