@@ -695,6 +695,7 @@ class CrewCertificateUpdate(BaseModel):
     status: Optional[str] = None
     note: Optional[str] = None
     cert_file_id: Optional[str] = None
+    cert_summary_file_id: Optional[str] = None  # Summary file ID
 
 class CrewCertificateResponse(CrewCertificateBase):
     id: str
