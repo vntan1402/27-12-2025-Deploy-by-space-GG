@@ -6385,10 +6385,13 @@ const HomePage = () => {
     if (validFiles.length === 1) {
       // Single file: use existing behavior (review before adding)
       console.log('📄 Single file selected - using review mode');
+      console.log('⚠️ Modal should stay OPEN for review');
       handleCertFileUpload(validFiles[0]);
+      console.log('✅ handleCertFileUpload called, modal should still be open');
     } else {
       // Multiple files: batch process (auto-add after each analysis)
       console.log(`📄📄 Multiple files selected (${validFiles.length}) - starting batch processing`);
+      console.log('⚠️ Modal will CLOSE after batch processing');
       startCertBatchProcessing(validFiles);
     }
   };
