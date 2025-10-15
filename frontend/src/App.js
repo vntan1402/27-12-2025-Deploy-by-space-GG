@@ -9931,6 +9931,7 @@ const HomePage = () => {
                                   >
                                     <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
                                     <option value="Valid">✅ {language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
+                                    <option value="Critical">🟠 {language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
                                     <option value="Expiring Soon">⚠️ {language === 'vi' ? 'Sắp hết hạn' : 'Expiring Soon'}</option>
                                     <option value="Expired">❌ {language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
                                     <option value="Unknown">❓ {language === 'vi' ? 'Không xác định' : 'Unknown'}</option>
