@@ -6639,6 +6639,48 @@ const HomePage = () => {
           throw new Error(`Missing required fields: crew_name=${certData.crew_name}, passport=${certData.passport}, cert_name=${certData.cert_name}, cert_no=${certData.cert_no}`);
         }
         
+        // Check for duplicate in batch mode
+        console.log(`🔍 Checking for duplicate: crew_id=${certData.crew_id}, cert_no=${certData.cert_no}`);
+        const duplicateCheck = await axios.post(
+          `${API}/crew-certificates/check-duplicate`,
+          {
+            crew_id: certData.crew_id,
+            cert_no: certData.cert_no
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (duplicateCheck.data.is_duplicate) {
+          console.warn(`⚠️ Duplicate detected for ${file.name}, skipping...`);
+          const existingCert = duplicateCheck.data.existing_certificate;
+          return {
+            filename: file.name,
+            success: false,
+            certCreated: false,
+            fileUploaded: false,
+            summaryCreated: false,
+            certName: certData.cert_name,
+            certNo: certData.cert_no,
+            crewName: certData.crew_name,
+            error: 'DUPLICATE',
+            duplicateInfo: {
+              cert_name: existingCert.cert_name,
+              cert_no: existingCert.cert_no,
+              issued_date: existingCert.issued_date,
+              cert_expiry: existingCert.cert_expiry,
+              issued_by: existingCert.issued_by
+            },
+            index: current
+          };
+        }
+        
+        console.log('✅ No duplicate found, proceeding to create...');
+        
         // Auto-create certificate (ship_id as query parameter)
         const shipId = selectedShip?.id || '';
         if (!shipId) {
