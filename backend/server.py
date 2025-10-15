@@ -23,6 +23,7 @@ import time
 import traceback
 import asyncio
 import aiohttp
+import httpx
 from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
 
 # Import our MongoDB database modules
