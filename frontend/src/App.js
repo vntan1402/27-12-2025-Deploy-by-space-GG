@@ -12354,8 +12354,8 @@ const HomePage = () => {
                     {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
                   </h3>
                   {selectedShip && (
-                    <span className="text-xl font-medium text-blue-600">
-                      {language === 'vi' ? 'cho' : 'for'}: <span className="font-bold">{selectedShip.name}</span>
+                    <span className="text-xl font-medium text-gray-800">
+                      {language === 'vi' ? 'cho' : 'for'}: <span className="font-bold text-blue-600">{selectedShip.name}</span>
                     </span>
                   )}
                 </div>
