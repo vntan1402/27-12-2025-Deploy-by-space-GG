@@ -9337,13 +9337,13 @@ const HomePage = () => {
                           </div>
 
                           {/* Bulk Actions Bar - shown when certificates are selected */}
-                          {selectedCertificates.size > 0 && (
+                          {selectedCrewCertificates.size > 0 && (
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                               <div className="flex items-center justify-between">
                                 <span className="text-sm font-medium text-blue-900">
                                   {language === 'vi' 
-                                    ? `Đã chọn ${selectedCertificates.size} chứng chỉ` 
-                                    : `${selectedCertificates.size} certificate(s) selected`}
+                                    ? `Đã chọn ${selectedCrewCertificates.size} chứng chỉ` 
+                                    : `${selectedCrewCertificates.size} certificate(s) selected`}
                                 </span>
                                 <div className="flex items-center space-x-2">
                                   {/* Bulk Delete */}
