@@ -12971,6 +12971,7 @@ async def analyze_certificate_file_for_crew(
         
         # Get crew information (optional)
         crew_name = "Unknown"
+        crew_name_en = ""  # Initialize English name
         passport = "Unknown"
         
         if crew_id:
