@@ -1807,7 +1807,7 @@ const HomePage = () => {
     setSelectedCrewCertificates(newSelected);
   };
 
-  const handleSelectAllCertificates = (checked, filteredCerts) => {
+  const handleSelectAllCrewCertificates = (checked, filteredCerts) => {
     if (checked) {
       const allVisibleIds = new Set(filteredCerts.map(cert => cert.id));
       setSelectedCrewCertificates(allVisibleIds);
