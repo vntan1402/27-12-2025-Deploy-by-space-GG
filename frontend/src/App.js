@@ -6148,26 +6148,26 @@ const HomePage = () => {
 
   // Bulk Operations for Crew Certificates
   const handleBulkDeleteCertificates = async () => {
-    if (selectedCertificates.size === 0) return;
+    if (selectedCrewCertificates.size === 0) return;
     
     // Show confirmation
     const confirmed = window.confirm(
       language === 'vi' 
-        ? `Bạn có chắc chắn muốn xóa ${selectedCertificates.size} chứng chỉ đã chọn?`
-        : `Are you sure you want to delete ${selectedCertificates.size} selected certificate(s)?`
+        ? `Bạn có chắc chắn muốn xóa ${selectedCrewCertificates.size} chứng chỉ đã chọn?`
+        : `Are you sure you want to delete ${selectedCrewCertificates.size} selected certificate(s)?`
     );
     
     if (!confirmed) return;
     
     try {
-      console.log(`🗑️ Bulk deleting ${selectedCertificates.size} certificates`);
+      console.log(`🗑️ Bulk deleting ${selectedCrewCertificates.size} certificates`);
       
       // Call backend bulk delete endpoint
       await axios.delete(
         `${API}/crew-certificates/bulk-delete`,
         {
           data: {
-            certificate_ids: Array.from(selectedCertificates)
+            certificate_ids: Array.from(selectedCrewCertificates)
           },
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -6177,12 +6177,12 @@ const HomePage = () => {
       );
 
       toast.success(language === 'vi' 
-        ? `✅ Đã xóa ${selectedCertificates.size} chứng chỉ thành công!` 
-        : `✅ Successfully deleted ${selectedCertificates.size} certificate(s)!`
+        ? `✅ Đã xóa ${selectedCrewCertificates.size} chứng chỉ thành công!` 
+        : `✅ Successfully deleted ${selectedCrewCertificates.size} certificate(s)!`
       );
 
       // Clear selection
-      setSelectedCertificates(new Set());
+      setSelectedCrewCertificates(new Set());
 
       // Refresh certificates list
       await fetchCrewCertificates(null);
@@ -6199,11 +6199,11 @@ const HomePage = () => {
   };
 
   const handleBulkOpenInDrive = () => {
-    if (selectedCertificates.size === 0) return;
+    if (selectedCrewCertificates.size === 0) return;
     
     // Get selected certificates with file IDs
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCertificates.has(cert.id) && cert.cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && cert.cert_file_id
     );
     
     if (certsWithFiles.length === 0) {
@@ -6227,11 +6227,11 @@ const HomePage = () => {
   };
 
   const handleBulkDownloadCertificates = () => {
-    if (selectedCertificates.size === 0) return;
+    if (selectedCrewCertificates.size === 0) return;
     
     // Get selected certificates with file IDs
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCertificates.has(cert.id) && cert.cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && cert.cert_file_id
     );
     
     if (certsWithFiles.length === 0) {
@@ -6262,11 +6262,11 @@ const HomePage = () => {
   };
 
   const handleBulkCopyCertLinks = () => {
-    if (selectedCertificates.size === 0) return;
+    if (selectedCrewCertificates.size === 0) return;
     
     // Get selected certificates with file IDs
     const certsWithFiles = crewCertificates.filter(
-      cert => selectedCertificates.has(cert.id) && cert.cert_file_id
+      cert => selectedCrewCertificates.has(cert.id) && cert.cert_file_id
     );
     
     if (certsWithFiles.length === 0) {
