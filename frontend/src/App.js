@@ -9588,7 +9588,7 @@ const HomePage = () => {
                                             if (certFilters.status !== 'all' && cert.status !== certFilters.status) return false;
                                             if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) return false;
                                             return true;
-                                          }).every(cert => selectedCertificates.has(cert.id))
+                                          }).every(cert => selectedCrewCertificates.has(cert.id))
                                         }
                                         onChange={(e) => {
                                           const filteredCerts = crewCertificates.filter(cert => {
