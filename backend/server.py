@@ -14405,7 +14405,13 @@ def normalize_issued_by(extracted_data: dict) -> dict:
 def calculate_crew_certificate_status(cert_expiry) -> str:
     """
     Calculate crew certificate status based on expiry date
-    Returns: "Valid", "Expiring Soon" (within 90 days), or "Expired"
+    Returns: "Valid", "Expiring Soon" (within 90 days), "Critical" (within 15 days), or "Expired"
+    
+    Status levels:
+    - Expired: < 0 days (Red)
+    - Critical: 0-15 days (Orange)
+    - Expiring Soon: 16-90 days (Yellow)
+    - Valid: > 90 days or no expiry (Green)
     """
     if not cert_expiry:
         return "Valid"  # Default if no expiry date
@@ -14432,11 +14438,13 @@ def calculate_crew_certificate_status(cert_expiry) -> str:
         days_until_expiry = (expiry_date - now).days
         
         if days_until_expiry < 0:
-            return "Expired"
-        elif days_until_expiry <= 90:  # Expiring within 90 days
-            return "Expiring Soon"
+            return "Expired"  # 🔴 Red - Already expired
+        elif days_until_expiry <= 15:  # Critical: 0-15 days
+            return "Critical"  # 🟠 Orange - Very urgent!
+        elif days_until_expiry <= 90:  # Expiring Soon: 16-90 days
+            return "Expiring Soon"  # 🟡 Yellow - Need to prepare
         else:
-            return "Valid"
+            return "Valid"  # 🟢 Green - Still valid for a while
             
     except Exception as e:
         logger.error(f"Error calculating certificate status: {e}")
