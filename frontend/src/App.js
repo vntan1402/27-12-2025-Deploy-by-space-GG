@@ -6375,10 +6375,10 @@ const HomePage = () => {
         return;
       }
 
-      // Generate preview filename
-      const rank = cert.rank || 'Unknown';
-      const nameEn = cert.crew_name_en || cert.crew_name || 'Unknown';
-      const certName = cert.cert_name || 'Certificate';
+      // Generate preview filename (matching backend format)
+      const rank = (cert.rank || 'Unknown').replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, ''); // Remove all spaces and special chars
+      const nameEn = (cert.crew_name_en || cert.crew_name || 'Unknown').replace(/[^\w\s-]/g, ''); // Keep spaces
+      const certName = (cert.cert_name || 'Certificate').replace(/[^\w\s-]/g, ''); // Keep spaces
       const previewFilename = `${rank}_${nameEn}_${certName}.pdf`;
 
       const confirmMessage = language === 'vi'
