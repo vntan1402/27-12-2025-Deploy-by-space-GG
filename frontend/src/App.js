@@ -12975,6 +12975,155 @@ const HomePage = () => {
         </div>
       )}
 
+      {/* Crew Certificate Processing Results Modal */}
+      {showCertProcessingResultsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Kết quả xử lý Crew Certificate' : 'Crew Certificate Processing Results'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowCertProcessingResultsModal(false);
+                    setCertProcessingResults([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="mt-2 text-sm text-gray-600">
+                {language === 'vi' 
+                  ? `Tổng số: ${certProcessingResults.length} file | Thành công: ${certProcessingResults.filter(r => r.success).length} | Thất bại: ${certProcessingResults.filter(r => !r.success).length}`
+                  : `Total: ${certProcessingResults.length} files | Success: ${certProcessingResults.filter(r => r.success).length} | Failed: ${certProcessingResults.filter(r => !r.success).length}`
+                }
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100 border-b-2 border-gray-300">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'STT' : 'No.'}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Tên File' : 'Filename'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Tạo Certificate' : 'Cert Created'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Upload File' : 'File Uploaded'}
+                      </th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Tạo Summary' : 'Summary Created'}
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                        {language === 'vi' ? 'Thông tin' : 'Details'}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {certProcessingResults.map((result, idx) => (
+                      <tr key={idx} className={`border-b ${result.success ? 'bg-green-50' : 'bg-red-50'} hover:bg-opacity-75`}>
+                        <td className="px-4 py-3 text-sm text-gray-700">{idx + 1}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 font-medium">{result.filename}</td>
+                        <td className="px-4 py-3 text-center">
+                          {result.certCreated ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              ✓ {language === 'vi' ? 'Đã tạo' : 'Created'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              ✗ {language === 'vi' ? 'Thất bại' : 'Failed'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {result.fileUploaded ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              ✓ {language === 'vi' ? 'Đã upload' : 'Uploaded'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              ✗ {language === 'vi' ? 'Chưa upload' : 'Not uploaded'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {result.summaryCreated ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                              ✓ {language === 'vi' ? 'Đã tạo' : 'Created'}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              ✗ {language === 'vi' ? 'Chưa tạo' : 'Not created'}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {result.success ? (
+                            <div className="space-y-1">
+                              <div className="font-medium text-green-700">
+                                ✅ {language === 'vi' ? 'Thành công' : 'Success'}
+                              </div>
+                              {result.certName && (
+                                <div className="text-xs">
+                                  <span className="font-semibold">{language === 'vi' ? 'Chứng chỉ:' : 'Certificate:'}</span> {result.certName}
+                                </div>
+                              )}
+                              {result.certNo && (
+                                <div className="text-xs">
+                                  <span className="font-semibold">{language === 'vi' ? 'Số:' : 'No:'}</span> {result.certNo}
+                                </div>
+                              )}
+                              {result.crewName && (
+                                <div className="text-xs">
+                                  <span className="font-semibold">{language === 'vi' ? 'Thuyền viên:' : 'Crew:'}</span> {result.crewName}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-red-600 text-xs">
+                              <div className="font-medium">❌ {language === 'vi' ? 'Thất bại' : 'Failed'}</div>
+                              {result.error && (
+                                <div className="mt-1 text-xs">
+                                  {language === 'vi' ? 'Lỗi:' : 'Error:'} {result.error}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    setShowCertProcessingResultsModal(false);
+                    setCertProcessingResults([]);
+                  }}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                >
+                  {language === 'vi' ? 'Đóng' : 'Close'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit Crew Modal */}
       {showEditCrewModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
