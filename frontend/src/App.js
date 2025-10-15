@@ -6404,48 +6404,71 @@ const HomePage = () => {
     setCertBatchProgress({ current: 0, total: files.length });
     
     toast.info(language === 'vi' 
-      ? `Bắt đầu xử lý ${files.length} file chứng chỉ...` 
-      : `Starting batch processing of ${files.length} certificate files...`);
+      ? `Bắt đầu xử lý ${files.length} file chứng chỉ (song song)...` 
+      : `Starting parallel processing of ${files.length} certificate files...`);
     
     // Capture current crew data for batch processing (avoid state access issues in async)
     const currentCrewData = filteredCrewData || [];
     
-    // Collect results
-    const collectedResults = [];
+    console.log(`🚀 Starting PARALLEL processing with 2s staggered delays`);
     
-    for (let i = 0; i < files.length; i++) {
-      setCurrentCertFileIndex(i);
-      setCertBatchProgress({ current: i + 1, total: files.length });
-      
-      console.log(`🔄 Processing certificate ${i + 1}/${files.length}: ${files[i].name}`);
-      
-      try {
-        const result = await processSingleCertInBatch(files[i], i + 1, files.length, currentCrewData);
-        collectedResults.push(result);
-        setCertBatchResults(prev => [...prev, result]);
-      } catch (error) {
-        console.error(`❌ Error processing file ${files[i].name}:`, error);
-        const errorResult = {
-          filename: files[i].name,
-          success: false,
-          error: error.message,
-          index: i + 1
-        };
-        collectedResults.push(errorResult);
-        setCertBatchResults(prev => [...prev, errorResult]);
-      }
-      
-      // 2 second delay between files (as requested)
-      if (i < files.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
+    // Create promises for all files with staggered start (2s delay between starts)
+    const processingPromises = files.map((file, index) => {
+      return new Promise(async (resolve) => {
+        // Wait before starting this file (0s for first, 2s for second, 4s for third, etc.)
+        const delayMs = index * 2000;
+        if (delayMs > 0) {
+          console.log(`⏰ File ${index + 1} will start in ${delayMs / 1000}s`);
+          await new Promise(r => setTimeout(r, delayMs));
+        }
+        
+        // Start processing this file
+        console.log(`🔄 Starting certificate ${index + 1}/${files.length}: ${file.name}`);
+        setCurrentCertFileIndex(index);
+        
+        try {
+          const result = await processSingleCertInBatch(file, index + 1, files.length, currentCrewData);
+          
+          // Update progress
+          setCertBatchResults(prev => {
+            const updated = [...prev, result];
+            setCertBatchProgress({ current: updated.length, total: files.length });
+            return updated;
+          });
+          
+          resolve(result);
+        } catch (error) {
+          console.error(`❌ Error processing file ${file.name}:`, error);
+          const errorResult = {
+            filename: file.name,
+            success: false,
+            error: error.message,
+            index: index + 1
+          };
+          
+          // Update progress
+          setCertBatchResults(prev => {
+            const updated = [...prev, errorResult];
+            setCertBatchProgress({ current: updated.length, total: files.length });
+            return updated;
+          });
+          
+          resolve(errorResult);
+        }
+      });
+    });
+    
+    // Wait for ALL files to complete
+    console.log(`⏳ Waiting for all ${files.length} files to complete...`);
+    const collectedResults = await Promise.all(processingPromises);
     
     // Batch processing complete
     setIsBatchProcessingCerts(false);
     setCurrentCertFileIndex(0);
     
     console.log(`✅ Batch certificate processing complete. Results: ${collectedResults.length}`);
+    console.log(`   Success: ${collectedResults.filter(r => r.success).length}`);
+    console.log(`   Failed: ${collectedResults.filter(r => !r.success).length}`);
     
     // Close Add Crew Cert Modal
     setShowAddCrewCertModal(false);
