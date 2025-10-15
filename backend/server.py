@@ -13508,7 +13508,7 @@ async def auto_rename_crew_certificate_file(
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
         # Check if certificate has Google Drive file
-        file_id = certificate.get("cert_file_id")
+        file_id = certificate.get("crew_cert_file_id")
         if not file_id:
             raise HTTPException(status_code=400, detail="Certificate has no associated Google Drive file")
         
