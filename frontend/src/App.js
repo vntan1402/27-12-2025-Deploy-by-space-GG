@@ -6468,12 +6468,19 @@ const HomePage = () => {
       console.log(`🔄 Batch processing cert ${current}/${total}: ${file.name}`);
       
       // Get crew info
-      const crewId = selectedCrewForCert || (certFilters.crewName !== 'all' ? certFilters.crewName : null);
+      // selectedCrewForCert is an object, so extract the ID
+      const crewId = selectedCrewForCert?.id || (certFilters.crewName !== 'all' ? certFilters.crewName : null);
       let crewName = '';
       let crewNameEn = '';
       let rank = '';
       
-      if (crewId && crewDataList) {
+      // If we have selectedCrewForCert object, use it directly
+      if (selectedCrewForCert) {
+        crewName = selectedCrewForCert.full_name || '';
+        crewNameEn = selectedCrewForCert.full_name_en || '';
+        rank = selectedCrewForCert.rank || '';
+      } else if (crewId && crewDataList) {
+        // Otherwise find in crewDataList
         const crew = crewDataList.find(c => c.id === crewId);
         if (crew) {
           crewName = crew.full_name;
