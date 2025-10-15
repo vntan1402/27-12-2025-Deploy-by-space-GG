@@ -13596,14 +13596,22 @@ async def delete_crew_certificate(
             details={
                 "cert_name": cert.get("cert_name"),
                 "crew_name": cert.get("crew_name"),
-                "file_deleted": file_deleted
+                "cert_file_deleted": cert_file_deleted,
+                "summary_file_deleted": summary_file_deleted
             },
             company_id=company_uuid
         )
         
+        # Build success message
         message = "Certificate deleted successfully"
-        if file_deleted:
-            message += " (file deleted from Google Drive)"
+        files_deleted = []
+        if cert_file_deleted:
+            files_deleted.append("certificate file")
+        if summary_file_deleted:
+            files_deleted.append("summary file")
+        
+        if files_deleted:
+            message += f" ({' and '.join(files_deleted)} deleted from Google Drive)"
         
         return {
             "success": True,
