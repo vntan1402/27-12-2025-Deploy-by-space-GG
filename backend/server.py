@@ -13590,7 +13590,7 @@ async def auto_rename_crew_certificate_file(
         renamed_files = ["certificate"]
         
         # Rename summary file if exists
-        summary_file_id = certificate.get("cert_summary_file_id")
+        summary_file_id = certificate.get("crew_cert_summary_file_id")
         if summary_file_id:
             try:
                 # Generate summary filename: remove extension, add _Summary.txt
