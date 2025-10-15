@@ -6510,14 +6510,16 @@ const HomePage = () => {
       
       if (analyzeResponse.data.analysis && analyzeResponse.data.analysis.cert_name) {
         const analysis = analyzeResponse.data.analysis;
+        const responseData = analyzeResponse.data;
         
         // Prepare certificate data
+        // Note: crew_name, crew_name_en, passport are at root level of response, not in analysis
         const certData = {
           ship_id: selectedShip?.id || '',
           crew_id: crewId || '',
-          crew_name: analysis.crew_name || crewName,
-          crew_name_en: analysis.crew_name_en || crewNameEn,
-          passport: analysis.passport || '',
+          crew_name: responseData.crew_name || crewName,
+          crew_name_en: responseData.crew_name_en || crewNameEn,
+          passport: responseData.passport || '',
           rank: analysis.rank || rank,
           cert_name: analysis.cert_name || '',
           cert_no: analysis.cert_no || '',
