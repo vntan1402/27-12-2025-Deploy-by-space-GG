@@ -13170,6 +13170,114 @@ async def get_crew_certificates(
         raise HTTPException(status_code=500, detail=f"Failed to get crew certificates: {str(e)}")
 
 
+@api_router.post("/crew-certificates/{cert_id}/upload-files")
+async def upload_certificate_files_after_creation(
+    cert_id: str,
+    file_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload certificate files to Google Drive AFTER successful certificate creation
+    This endpoint is called after the certificate is saved to database
+    """
+    try:
+        logger.info(f"📤 Uploading files for certificate: {cert_id}")
+        
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Verify certificate exists
+        cert = await mongo_db.find_one("crew_certificates", {
+            "id": cert_id,
+            "company_id": company_uuid
+        })
+        
+        if not cert:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # Get ship info
+        ship = await mongo_db.find_one("ships", {
+            "id": cert.get("ship_id"),
+            "company_id": company_uuid
+        })
+        
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        
+        # Extract file data from request
+        file_content_b64 = file_data.get('file_content')
+        filename = file_data.get('filename')
+        content_type = file_data.get('content_type')
+        summary_text = file_data.get('summary_text')
+        
+        if not file_content_b64 or not filename:
+            raise HTTPException(status_code=400, detail="Missing file data")
+        
+        # Decode file content
+        file_content = base64.b64decode(file_content_b64)
+        
+        # Upload files using dual manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        upload_result = await dual_manager.upload_certificate_files(
+            cert_file_content=file_content,
+            cert_filename=filename,
+            cert_content_type=content_type,
+            ship_name=ship_name,
+            summary_text=summary_text
+        )
+        
+        if not upload_result.get('success'):
+            logger.error(f"❌ File upload failed: {upload_result.get('message')}")
+            return {
+                "success": False,
+                "message": upload_result.get('message', 'File upload failed'),
+                "error": upload_result.get('error')
+            }
+        
+        # Extract file IDs from upload results
+        uploads = upload_result.get('uploads', {})
+        cert_upload = uploads.get('certificate', {})
+        summary_upload = uploads.get('summary', {})
+        
+        cert_file_id = cert_upload.get('file_id') if cert_upload.get('success') else None
+        summary_file_id = summary_upload.get('file_id') if summary_upload.get('success') else None
+        
+        # Update certificate with file IDs
+        update_data = {}
+        if cert_file_id:
+            update_data['crew_cert_file_id'] = cert_file_id
+        if summary_file_id:
+            update_data['crew_cert_summary_file_id'] = summary_file_id
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now(timezone.utc)
+            update_data['updated_by'] = current_user.username
+            
+            await mongo_db.update("crew_certificates", {"id": cert_id}, update_data)
+            logger.info(f"✅ Updated certificate {cert_id} with file IDs")
+        
+        logger.info(f"✅ Files uploaded successfully for certificate {cert_id}")
+        logger.info(f"   📎 Certificate File ID: {cert_file_id}")
+        logger.info(f"   📋 Summary File ID: {summary_file_id}")
+        
+        return {
+            "success": True,
+            "message": "Files uploaded successfully",
+            "crew_cert_file_id": cert_file_id,
+            "crew_cert_summary_file_id": summary_file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading certificate files: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload files: {str(e)}")
+
+
 @api_router.put("/crew-certificates/{cert_id}", response_model=CrewCertificateResponse)
 async def update_crew_certificate(
     cert_id: str,
