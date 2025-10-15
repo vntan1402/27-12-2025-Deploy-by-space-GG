@@ -5813,7 +5813,8 @@ const HomePage = () => {
           issued_date: analysis.issued_date || '',
           cert_expiry: analysis.expiry_date || analysis.cert_expiry || '',
           note: analysis.note || '',
-          cert_file_id: analysis.cert_file_id || ''
+          cert_file_id: analysis.cert_file_id || '',
+          cert_summary_file_id: analysis.cert_summary_file_id || prev.cert_summary_file_id  // Save summary file ID
         }));
 
         setCertAnalysis(response.data);
