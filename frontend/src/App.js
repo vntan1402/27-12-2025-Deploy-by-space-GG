@@ -5110,35 +5110,68 @@ const HomePage = () => {
   // Validate if file is a passport (not seaman book or other document)
   const validatePassportDocument = (analysis) => {
     const summary = (analysis.raw_summary || '').toLowerCase();
+    const fullName = (analysis.full_name || '').toLowerCase();
     const hasPassportNumber = !!analysis.passport_number;
     const hasDateOfBirth = !!analysis.date_of_birth;
     const hasNationality = !!analysis.nationality;
     
-    // Check for seaman book keywords
-    const seamanBookKeywords = ['seaman book', 'seamanbook', 'seaman\'s book', 'cdc', 'continuous discharge certificate'];
-    const hasSeamanBookKeyword = seamanBookKeywords.some(keyword => summary.includes(keyword));
+    console.log('🔍 Validating document type...');
+    console.log('   Summary snippet:', summary.substring(0, 200));
+    console.log('   Has passport_number:', hasPassportNumber);
+    console.log('   Has date_of_birth:', hasDateOfBirth);
+    console.log('   Has nationality:', hasNationality);
     
-    // Passport should have these key fields
-    const hasRequiredFields = hasPassportNumber && (hasDateOfBirth || hasNationality);
+    // Enhanced seaman book detection keywords
+    const seamanBookKeywords = [
+      'seaman book', 'seamanbook', 'seaman\'s book', 'seamans book',
+      'libreta de embarque', // Spanish for Seaman's Book
+      'cdc', 'continuous discharge certificate',
+      'certificate of competency', 'coc',
+      'endorsement', 'refrendo',
+      'panama maritime authority', 'maritime authority',
+      'seafarer', 'seafarers id', 'marino',
+      'management level', 'master ii', // Ranks
+      'capacity:', 'nivel:', 'cargo:' // Field labels in seaman books
+    ];
+    
+    const hasSeamanBookKeyword = seamanBookKeywords.some(keyword => 
+      summary.includes(keyword) || fullName.includes(keyword)
+    );
     
     if (hasSeamanBookKeyword) {
+      console.warn('⚠️ Detected Seaman Book keywords in document');
       return {
         isValid: false,
         reason: language === 'vi' 
-          ? 'File này có vẻ là Seaman Book, không phải Passport' 
-          : 'This appears to be a Seaman Book, not a Passport'
+          ? 'File này là Seaman Book hoặc Certificate of Competency, không phải Passport' 
+          : 'This is a Seaman Book or Certificate of Competency, not a Passport'
       };
     }
     
-    if (!hasRequiredFields) {
+    // Passport should have passport_number field
+    // Note: Some seaman books might have passport-like numbers, so this isn't foolproof
+    if (!hasPassportNumber) {
+      console.warn('⚠️ Missing passport_number field');
       return {
         isValid: false,
         reason: language === 'vi'
-          ? 'Không tìm thấy thông tin Passport (thiếu số hộ chiếu hoặc ngày sinh/quốc tịch)'
-          : 'Passport information not found (missing passport number or date of birth/nationality)'
+          ? 'Không tìm thấy số hộ chiếu (Passport Number)'
+          : 'Passport number not found'
       };
     }
     
+    // Additional check: Passport should have basic personal info
+    if (!hasDateOfBirth && !hasNationality) {
+      console.warn('⚠️ Missing both date_of_birth and nationality');
+      return {
+        isValid: false,
+        reason: language === 'vi'
+          ? 'Thiếu thông tin cơ bản: ngày sinh và quốc tịch'
+          : 'Missing basic information: date of birth and nationality'
+      };
+    }
+    
+    console.log('✅ Document validated as passport');
     return { isValid: true };
   };
 
