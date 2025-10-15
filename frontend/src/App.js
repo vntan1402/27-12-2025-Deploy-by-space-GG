@@ -5348,6 +5348,18 @@ const HomePage = () => {
           return;
         }
         
+        // ✅ Validate if document is a passport
+        const validation = validatePassportDocument(analysis);
+        if (!validation.isValid) {
+          console.warn(`⚠️ File ${file.name} is not a valid passport: ${validation.reason}`);
+          setPassportError(validation.reason);
+          toast.error(validation.reason);
+          setIsAnalyzingPassport(false);
+          return; // Stop processing
+        }
+        
+        console.log(`✅ ${file.name} validated as passport document`);
+        
         // Log individual field extractions
         console.log('   📄 Extracting fields:');
         console.log('     full_name:', analysis.full_name);
