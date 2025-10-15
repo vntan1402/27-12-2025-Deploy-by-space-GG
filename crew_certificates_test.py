@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 """
-Crew Certificates Analyze File Endpoint Test
-Testing the /api/crew-certificates/analyze-file endpoint after ship company_id data fix
+Crew Certificates Issued By Normalization Testing
 
 REVIEW REQUEST REQUIREMENTS:
-- Test the crew certificates `/api/crew-certificates/analyze-file` endpoint again after fixing the ship company_id data issue
-- Ships BROTHER 36 and MINH ANH 09 now have company_id = cd1951d0-223e-4a09-865b-593047ed8c2d
-- The endpoint should now work and NOT return "Ship not found" error
-- Test with ship_id = 7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7 (BROTHER 36)
-- Login with admin1/123456 (password might be admin123, try both)
-- Expected Result: Should NOT get "Ship not found" error, may get AI configuration errors (that's fine)
+Test the `/api/crew-certificates/analyze-file` endpoint to verify that the `normalize_issued_by()` 
+function returns normalized "Issued By" values for frontend auto-fill.
 
-Test Plan:
-1. Login with admin1/123456 (try admin123 if needed)
-2. Get list of ships and verify BROTHER 36 and MINH ANH 09 have correct company_id
-3. Test POST /api/crew-certificates/analyze-file with:
-   - A sample PDF file
-   - ship_id = 7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7 (BROTHER 36)
-   - crew_id = optional
-4. Verify the endpoint no longer returns "Ship not found" 404 error
-5. The endpoint may fail with AI configuration or Document AI errors (that's expected), but it should get past the ship validation
-6. Status code should be 200, 400, or 500 (NOT 404)
+Testing Focus:
+1. Authentication with admin1/123456
+2. Ship selection (BROTHER 36 for AMCSC company)
+3. PDF file upload testing with "2. CO DUC - PNM GMDSS SB.pdf"
+4. AI extraction verification
+5. Issued By normalization verification
+6. Certificate name and number extraction verification
+
+Expected Results:
+- `issued_by` should be normalized (e.g., "Panama Maritime Authority" instead of full long names)
+- `cert_name` should follow priority rules (GMDSS, COC phrases, rank-based)
+- `cert_no` should extract correct certificate number
+- Response should be ready for frontend auto-fill
 """
 
 import requests
