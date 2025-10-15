@@ -6420,7 +6420,7 @@ const HomePage = () => {
       console.log(`🔄 Processing certificate ${i + 1}/${files.length}: ${files[i].name}`);
       
       try {
-        const result = await processSingleCertInBatch(files[i], i + 1, files.length);
+        const result = await processSingleCertInBatch(files[i], i + 1, files.length, currentCrewData);
         collectedResults.push(result);
         setCertBatchResults(prev => [...prev, result]);
       } catch (error) {
