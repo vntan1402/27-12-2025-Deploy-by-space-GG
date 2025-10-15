@@ -5885,13 +5885,13 @@ const HomePage = () => {
     certFileInputRef.current?.click();
   };
 
-  // Handle file drop with crew selection validation
+  // Handle file drop with crew selection validation (support multiple files)
   const handleCertFileDrop = (e) => {
     e.preventDefault();
     e.currentTarget.classList.remove('border-blue-400', 'bg-blue-100');
     
-    // Check if crew is selected
-    if (!newCrewCertificate.crew_id) {
+    // Check if crew is selected (use updated validation logic)
+    if (!selectedCrewForCert && certFilters.crewName === 'all') {
       toast.warning(language === 'vi' 
         ? '⚠️ Vui lòng chọn thuyền viên trước khi upload file!' 
         : '⚠️ Please select a crew member before uploading file!'
@@ -5899,10 +5899,10 @@ const HomePage = () => {
       return;
     }
     
-    // If crew is selected, process file
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleCertFileUpload(file);
+    // If crew is selected, process dropped files (support multiple)
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleMultipleCertificateUpload(files);
     }
   };
 
