@@ -12896,7 +12896,7 @@ async def create_crew_certificate_manual(
         
         # Auto-calculate status based on cert_expiry
         if cert_doc.get('cert_expiry'):
-            cert_doc['status'] = calculate_certificate_status(cert_doc['cert_expiry'])
+            cert_doc['status'] = calculate_crew_certificate_status(cert_doc['cert_expiry'])
             logger.info(f"🔄 Auto-calculated status: {cert_doc['status']}")
         
         # Save to database
