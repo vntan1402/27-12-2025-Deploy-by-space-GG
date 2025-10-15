@@ -5872,8 +5872,8 @@ const HomePage = () => {
 
   // Handle file upload area click with crew selection validation
   const handleCertFileAreaClick = () => {
-    // Check if crew is selected
-    if (!newCrewCertificate.crew_id) {
+    // Check if crew is selected (use updated validation logic)
+    if (!selectedCrewForCert && certFilters.crewName === 'all') {
       toast.warning(language === 'vi' 
         ? '⚠️ Vui lòng chọn thuyền viên trước khi upload file!' 
         : '⚠️ Please select a crew member before uploading file!'
@@ -5881,8 +5881,8 @@ const HomePage = () => {
       return;
     }
     
-    // If crew is selected, trigger file input
-    document.getElementById('cert-file-upload')?.click();
+    // If crew is selected, trigger file input using ref
+    certFileInputRef.current?.click();
   };
 
   // Handle file drop with crew selection validation
