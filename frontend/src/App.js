@@ -894,6 +894,7 @@ const HomePage = () => {
   const [aiConfig, setAiConfig] = useState({ provider: 'Unknown', model: 'Unknown' });
   const [showShipSelector, setShowShipSelector] = useState(false);
   const shipSelectorRef = useRef(null);
+  const certFileInputRef = useRef(null);
   
   // Add Crew Modal States
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
