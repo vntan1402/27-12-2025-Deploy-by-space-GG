@@ -9336,6 +9336,72 @@ const HomePage = () => {
                             </div>
                           </div>
 
+                          {/* Bulk Actions Bar - shown when certificates are selected */}
+                          {selectedCertificates.size > 0 && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-blue-900">
+                                  {language === 'vi' 
+                                    ? `Đã chọn ${selectedCertificates.size} chứng chỉ` 
+                                    : `${selectedCertificates.size} certificate(s) selected`}
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                  {/* Bulk Delete */}
+                                  <button
+                                    onClick={handleBulkDeleteCertificates}
+                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-md transition-all flex items-center"
+                                  >
+                                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    {language === 'vi' ? 'Xóa' : 'Delete'}
+                                  </button>
+
+                                  {/* Bulk Open in Drive */}
+                                  <button
+                                    onClick={handleBulkOpenInDrive}
+                                    className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition-all flex items-center"
+                                  >
+                                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    {language === 'vi' ? 'Mở Drive' : 'Open in Drive'}
+                                  </button>
+
+                                  {/* Bulk Download */}
+                                  <button
+                                    onClick={handleBulkDownloadCertificates}
+                                    className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-md transition-all flex items-center"
+                                  >
+                                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    {language === 'vi' ? 'Tải xuống' : 'Download'}
+                                  </button>
+
+                                  {/* Bulk Copy Links */}
+                                  <button
+                                    onClick={handleBulkCopyCertLinks}
+                                    className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md transition-all flex items-center"
+                                  >
+                                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    {language === 'vi' ? 'Sao chép link' : 'Copy Link'}
+                                  </button>
+
+                                  {/* Clear Selection */}
+                                  <button
+                                    onClick={() => setSelectedCertificates(new Set())}
+                                    className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded-md transition-all"
+                                  >
+                                    {language === 'vi' ? 'Bỏ chọn' : 'Clear'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Search Bar and Filters */}
                           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                             <div className="flex flex-col space-y-3">
