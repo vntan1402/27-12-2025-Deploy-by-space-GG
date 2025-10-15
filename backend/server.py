@@ -13550,11 +13550,12 @@ async def delete_crew_certificate(
         cert_file_deleted = False
         summary_file_deleted = False
         
-        # Get company Apps Script URL for file deletion
-        company = await mongo_db.find_one("companies", {"id": company_uuid})
+        # Get company Apps Script URL for file deletion from company_gdrive_config
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
         company_apps_script_url = None
-        if company:
-            company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+            logger.info(f"📋 Found company Apps Script URL: {bool(company_apps_script_url)}")
         
         if company_apps_script_url:
             import aiohttp
