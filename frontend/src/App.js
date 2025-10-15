@@ -6558,14 +6558,53 @@ const HomePage = () => {
           }
         );
         
-        if (createResponse.data) {
-          console.log(`✅ Certificate created successfully from ${file.name}`);
+        if (createResponse.data && createResponse.data.id) {
+          const certId = createResponse.data.id;
+          console.log(`✅ Certificate created successfully: ${certId}`);
+          
+          // ✅ NOW upload files to Drive AFTER successful database save
+          console.log(`📤 Uploading files to Drive for certificate ${certId}...`);
+          
+          let uploadedFileId = null;
+          let uploadedSummaryId = null;
+          
+          try {
+            const uploadResponse = await axios.post(
+              `${API}/crew-certificates/${certId}/upload-files`,
+              {
+                file_content: analysis._file_content,
+                filename: analysis._filename,
+                content_type: analysis._content_type,
+                summary_text: analysis._summary_text
+              },
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+            
+            if (uploadResponse.data && uploadResponse.data.success) {
+              uploadedFileId = uploadResponse.data.crew_cert_file_id;
+              uploadedSummaryId = uploadResponse.data.crew_cert_summary_file_id;
+              console.log(`✅ Files uploaded successfully to Drive`);
+              console.log(`   📎 Certificate File ID: ${uploadedFileId}`);
+              console.log(`   📋 Summary File ID: ${uploadedSummaryId}`);
+            } else {
+              console.warn(`⚠️ File upload failed but certificate was saved: ${uploadResponse.data?.message}`);
+            }
+          } catch (uploadError) {
+            console.error(`❌ File upload failed (certificate still saved):`, uploadError);
+            // Don't throw - certificate is already saved, upload failure is not critical
+          }
+          
           return {
             filename: file.name,
             success: true,
             certCreated: true,
-            fileUploaded: !!certData.crew_cert_file_id,
-            summaryCreated: !!certData.crew_cert_summary_file_id,
+            fileUploaded: !!uploadedFileId,
+            summaryCreated: !!uploadedSummaryId,
             certName: analysis.cert_name || 'Unknown',
             certNo: analysis.cert_no || 'N/A',
             crewName: certData.crew_name,
