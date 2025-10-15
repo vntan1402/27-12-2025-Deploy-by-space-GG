@@ -694,8 +694,8 @@ class CrewCertificateUpdate(BaseModel):
     cert_expiry: Optional[Union[str, datetime]] = None
     status: Optional[str] = None
     note: Optional[str] = None
-    cert_file_id: Optional[str] = None
-    cert_summary_file_id: Optional[str] = None  # Summary file ID
+    crew_cert_file_id: Optional[str] = None
+    crew_cert_summary_file_id: Optional[str] = None  # Summary file ID
 
 class CrewCertificateResponse(CrewCertificateBase):
     id: str
