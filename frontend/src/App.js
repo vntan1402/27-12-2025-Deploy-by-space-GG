@@ -1076,6 +1076,17 @@ const HomePage = () => {
   
   // Crew Certificates Selection State
   const [selectedCrewCertificates, setSelectedCrewCertificates] = useState(new Set());
+  
+  // Batch Upload State for Crew Certificates
+  const [batchUploadProgress, setBatchUploadProgress] = useState({
+    isUploading: false,
+    total: 0,
+    current: 0,
+    currentFileName: '',
+    successCount: 0,
+    errorCount: 0,
+    errors: []
+  });
   const [passportContextMenu, setPassportContextMenu] = useState({
     show: false,
     x: 0,
