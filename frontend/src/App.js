@@ -13338,9 +13338,29 @@ const HomePage = () => {
                               )}
                             </div>
                           ) : (
-                            <div className="text-red-600 text-xs">
-                              <div className="font-medium">❌ {language === 'vi' ? 'Thất bại' : 'Failed'}</div>
-                              {result.error && (
+                            <div className={`text-xs ${result.error === 'DUPLICATE' ? 'text-orange-600' : 'text-red-600'}`}>
+                              <div className="font-medium">
+                                {result.error === 'DUPLICATE' ? '⚠️' : '❌'} 
+                                {' '}
+                                {result.error === 'DUPLICATE' 
+                                  ? (language === 'vi' ? 'Trùng lặp (đã bỏ qua)' : 'Duplicate (skipped)')
+                                  : (language === 'vi' ? 'Thất bại' : 'Failed')
+                                }
+                              </div>
+                              {result.error === 'DUPLICATE' && result.duplicateInfo && (
+                                <div className="mt-2 space-y-1 bg-orange-50 p-2 rounded">
+                                  <div className="text-xs text-orange-800">
+                                    <strong>{language === 'vi' ? 'Chứng chỉ hiện có:' : 'Existing:'}</strong>
+                                  </div>
+                                  <div className="text-xs">
+                                    {result.duplicateInfo.cert_name} - {result.duplicateInfo.cert_no}
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    {language === 'vi' ? 'Hết hạn:' : 'Expiry:'} {formatDateDisplay(result.duplicateInfo.cert_expiry)}
+                                  </div>
+                                </div>
+                              )}
+                              {result.error !== 'DUPLICATE' && result.error && (
                                 <div className="mt-1 text-xs">
                                   {language === 'vi' ? 'Lỗi:' : 'Error:'} {result.error}
                                 </div>
