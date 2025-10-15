@@ -9730,7 +9730,7 @@ const HomePage = () => {
                                               checked={selectedCrewCertificates.has(cert.id)}
                                               onChange={(e) => {
                                                 e.stopPropagation();
-                                                handleSelectCertificate(cert.id);
+                                                handleSelectCrewCertificate(cert.id);
                                               }}
                                               onClick={(e) => e.stopPropagation()}
                                               className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
