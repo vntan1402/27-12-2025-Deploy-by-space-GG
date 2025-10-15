@@ -13889,7 +13889,8 @@ def normalize_issued_by(extracted_data: dict) -> dict:
                 'MARITIME AUTHORITY OF PANAMA',
                 'REPUBLIC OF PANAMA MARITIME',
                 'PANAMA MARITIME',
-                'AMP PANAMA'
+                'AMP PANAMA',
+                'RERL MARITIME AUTHORITY OF THE REPUBLIC OF PANAMA'
             ],
             'Vietnam Maritime Administration': [
                 'VIETNAM MARITIME ADMINISTRATION',
