@@ -5018,7 +5018,7 @@ const HomePage = () => {
     }
   };
 
-  // Start batch processing for multiple files
+  // Start batch processing for multiple files (Parallel with Staggered Start)
   const startBatchProcessing = async (files) => {
     setIsBatchProcessing(true);
     setCurrentFileIndex(0);
@@ -5026,44 +5026,68 @@ const HomePage = () => {
     setBatchProgress({ current: 0, total: files.length });
     
     toast.info(language === 'vi' 
-      ? `Bắt đầu xử lý ${files.length} file hộ chiếu...` 
-      : `Starting batch processing of ${files.length} passport files...`);
+      ? `Bắt đầu xử lý ${files.length} file hộ chiếu (song song)...` 
+      : `Starting parallel processing of ${files.length} passport files...`);
     
-    // Collect results in local array
-    const collectedResults = [];
+    console.log(`🚀 Starting PARALLEL processing with 1s staggered delays`);
     
-    for (let i = 0; i < files.length; i++) {
-      setCurrentFileIndex(i);
-      setBatchProgress({ current: i + 1, total: files.length });
-      
-      console.log(`🔄 Processing file ${i + 1}/${files.length}: ${files[i].name}`);
-      
-      try {
-        const result = await processSinglePassportInBatch(files[i], i + 1, files.length);
-        collectedResults.push(result);
-        setBatchResults(prev => [...prev, result]);
-      } catch (error) {
-        console.error(`❌ Error processing file ${files[i].name}:`, error);
-        const errorResult = {
-          filename: files[i].name,
-          success: false,
-          error: error.message,
-          index: i + 1
-        };
-        collectedResults.push(errorResult);
-        setBatchResults(prev => [...prev, errorResult]);
-      }
-      
-      // Small delay between files
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
+    // Create promises for all files with staggered start (1s delay between starts)
+    const processingPromises = files.map((file, index) => {
+      return new Promise(async (resolve) => {
+        // Wait before starting this file (0s for first, 1s for second, 2s for third, etc.)
+        const delayMs = index * 1000;
+        if (delayMs > 0) {
+          console.log(`⏰ File ${index + 1} will start in ${delayMs / 1000}s`);
+          await new Promise(r => setTimeout(r, delayMs));
+        }
+        
+        // Start processing this file
+        console.log(`🔄 Starting passport ${index + 1}/${files.length}: ${file.name}`);
+        setCurrentFileIndex(index);
+        
+        try {
+          const result = await processSinglePassportInBatch(file, index + 1, files.length);
+          
+          // Update progress
+          setBatchResults(prev => {
+            const updated = [...prev, result];
+            setBatchProgress({ current: updated.length, total: files.length });
+            return updated;
+          });
+          
+          resolve(result);
+        } catch (error) {
+          console.error(`❌ Error processing file ${file.name}:`, error);
+          const errorResult = {
+            filename: file.name,
+            success: false,
+            error: error.message,
+            index: index + 1
+          };
+          
+          // Update progress
+          setBatchResults(prev => {
+            const updated = [...prev, errorResult];
+            setBatchProgress({ current: updated.length, total: files.length });
+            return updated;
+          });
+          
+          resolve(errorResult);
+        }
+      });
+    });
+    
+    // Wait for ALL files to complete
+    console.log(`⏳ Waiting for all ${files.length} files to complete...`);
+    const collectedResults = await Promise.all(processingPromises);
     
     // Batch processing complete
     setIsBatchProcessing(false);
     setCurrentFileIndex(0);
     
-    console.log(`✅ Batch processing complete. Results count: ${collectedResults.length}`);
-    console.log('Collected results:', collectedResults);
+    console.log(`✅ Batch passport processing complete. Results: ${collectedResults.length}`);
+    console.log(`   Success: ${collectedResults.filter(r => r.success).length}`);
+    console.log(`   Failed: ${collectedResults.filter(r => !r.success).length}`);
     
     // Close Add Crew Modal
     setShowAddCrewModal(false);
