@@ -9720,9 +9720,22 @@ const HomePage = () => {
                                       .map((cert, index) => (
                                         <tr 
                                           key={cert.id} 
-                                          className="hover:bg-gray-50 cursor-pointer"
+                                          className={`hover:bg-gray-50 ${selectedCertificates.has(cert.id) ? 'bg-blue-50' : ''}`}
                                           onContextMenu={(e) => handleCertRightClick(e, cert)}
                                         >
+                                          {/* Checkbox Cell */}
+                                          <td className="px-3 py-4 whitespace-nowrap text-center border-r border-gray-200">
+                                            <input
+                                              type="checkbox"
+                                              checked={selectedCertificates.has(cert.id)}
+                                              onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleSelectCertificate(cert.id);
+                                              }}
+                                              onClick={(e) => e.stopPropagation()}
+                                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                            />
+                                          </td>
                                           <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {index + 1}
                                           </td>
