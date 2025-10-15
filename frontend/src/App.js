@@ -1073,7 +1073,7 @@ const HomePage = () => {
   });
   
   // Crew Certificates Selection State
-  const [selectedCertificates, setSelectedCertificates] = useState(new Set());
+  const [selectedCrewCertificates, setSelectedCrewCertificates] = useState(new Set());
   const [passportContextMenu, setPassportContextMenu] = useState({
     show: false,
     x: 0,
