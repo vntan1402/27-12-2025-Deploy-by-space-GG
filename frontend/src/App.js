@@ -13279,7 +13279,11 @@ const HomePage = () => {
                   </thead>
                   <tbody>
                     {certProcessingResults.map((result, idx) => (
-                      <tr key={idx} className={`border-b ${result.success ? 'bg-green-50' : 'bg-red-50'} hover:bg-opacity-75`}>
+                      <tr key={idx} className={`border-b ${
+                        result.success ? 'bg-green-50' : 
+                        result.error === 'DUPLICATE' ? 'bg-orange-50' : 
+                        'bg-red-50'
+                      } hover:bg-opacity-75`}>
                         <td className="px-4 py-3 text-sm text-gray-700">{idx + 1}</td>
                         <td className="px-4 py-3 text-sm text-gray-700 font-medium">{result.filename}</td>
                         <td className="px-4 py-3 text-center">
