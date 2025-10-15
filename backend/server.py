@@ -11636,27 +11636,18 @@ This summary was generated using Google Document AI for crew management purposes
             else:
                 logger.warning("⚠️ Field extraction returned empty result")
             
-            # Extract upload results
-            upload_results = dual_result.get('file_uploads', {})
-            passport_upload = upload_results.get('uploads', {}).get('passport', {})
-            summary_upload = upload_results.get('uploads', {}).get('summary', {})
-            
-            # Extract file IDs for linking
-            passport_file_id = passport_upload.get('file_id') if passport_upload.get('success') else None
-            summary_file_id = summary_upload.get('file_id') if summary_upload.get('success') else None
-            
-            logger.info("✅ Dual Apps Script processing completed successfully")
-            logger.info(f"📎 File IDs - Passport: {passport_file_id}, Summary: {summary_file_id}")
-            
-            # Include file IDs in analysis result for crew creation
-            if passport_file_id or summary_file_id:
-                analysis_result['file_ids'] = {
-                    'passport_file_id': passport_file_id,
-                    'summary_file_id': summary_file_id
-                }
+            # ✅ No file uploads yet - store file content and summary for later upload
+            logger.info("✅ Passport analysis completed successfully (files NOT uploaded yet)")
             
             # Add raw_summary to analysis result for frontend validation
             analysis_result['raw_summary'] = summary_text
+            
+            # ✅ Store file content and summary for later upload after crew creation
+            analysis_result['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+            analysis_result['_filename'] = filename
+            analysis_result['_content_type'] = passport_file.content_type or 'application/octet-stream'
+            analysis_result['_summary_text'] = summary_text
+            analysis_result['_ship_name'] = ship_name
             
             return {
                 "success": True,
