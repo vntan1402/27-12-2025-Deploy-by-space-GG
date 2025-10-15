@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Configuration
-BACKEND_URL = 'https://crew-cert-manager.preview.emergentagent.com/api'
+BACKEND_URL = 'https://crewdocai.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""

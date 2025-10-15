@@ -9,7 +9,7 @@ import io
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = 'https://crew-cert-manager.preview.emergentagent.com/api'
+BACKEND_URL = 'https://crewdocai.preview.emergentagent.com/api'
 
 def test_endpoint_registration():
     """Test if the endpoint is registered (not 404)"""
