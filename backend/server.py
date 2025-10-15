@@ -13422,10 +13422,10 @@ async def bulk_delete_crew_certificates(
                 cert_file_id = cert.get("crew_cert_file_id")
                 summary_file_id = cert.get("crew_cert_summary_file_id")
                 
-                # Get company Apps Script URL
-                company = await mongo_db.find_one("companies", {"id": company_uuid})
-                if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
-                    company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+                # Get company Apps Script URL from company_gdrive_config
+                gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+                if gdrive_config and (gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")):
+                    company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
                     
                     import aiohttp
                     
