@@ -13376,7 +13376,7 @@ class BulkDeleteRequest(BaseModel):
 @api_router.delete("/crew-certificates/bulk-delete")
 async def bulk_delete_crew_certificates(
     request: BulkDeleteRequest,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
     Step 4: Bulk delete crew certificates
