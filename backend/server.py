@@ -13565,20 +13565,65 @@ async def auto_rename_crew_certificate_file(
                     logger.error(f"❌ Rename failed: {error_msg}")
                     raise HTTPException(status_code=500, detail=f"Failed to rename file: {error_msg}")
         
-        # Update certificate with new filename
+        # Track renamed files
+        renamed_files = ["certificate"]
+        
+        # Rename summary file if exists
+        summary_file_id = certificate.get("cert_summary_file_id")
+        if summary_file_id:
+            try:
+                # Generate summary filename: remove extension, add _Summary.txt
+                base_name = new_filename.rsplit('.', 1)[0]
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                logger.info(f"🔄 Renaming certificate summary file {summary_file_id} to {summary_filename}")
+                
+                async with aiohttp.ClientSession() as session:
+                    summary_payload = {
+                        "action": "rename_file",
+                        "file_id": summary_file_id,
+                        "new_name": summary_filename
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=summary_payload,
+                        timeout=aiohttp.ClientTimeout(total=60)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ Summary file renamed successfully: {summary_filename}")
+                                renamed_files.append("summary")
+                                
+                                # Update certificate with new summary filename
+                                await mongo_db.update(
+                                    "crew_certificates",
+                                    {"id": cert_id},
+                                    {"cert_summary_file_name": summary_filename}
+                                )
+                            else:
+                                logger.warning(f"⚠️ Failed to rename summary file: {result.get('message')}")
+                        else:
+                            logger.warning(f"⚠️ Failed to rename summary file: HTTP {response.status}")
+            except Exception as e:
+                logger.error(f"❌ Error renaming summary file {summary_file_id}: {e}")
+                # Don't fail the whole operation if summary rename fails
+        
+        # Update certificate with new cert filename
         await mongo_db.update(
             "crew_certificates",
             {"id": cert_id},
             {"cert_file_name": new_filename}
         )
         
-        logger.info(f"✅ Crew certificate file renamed successfully: {new_filename}")
+        logger.info(f"✅ Crew certificate file(s) renamed successfully: {', '.join(renamed_files)}")
         
         return {
             "success": True,
-            "message": "File renamed successfully",
+            "message": f"File(s) renamed successfully: {', '.join(renamed_files)}",
             "new_filename": new_filename,
-            "file_id": file_id
+            "file_id": file_id,
+            "renamed_files": renamed_files
         }
         
     except HTTPException:
