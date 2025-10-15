@@ -6244,7 +6244,8 @@ const HomePage = () => {
     
     // Open each file in a new tab
     certsWithFiles.forEach(cert => {
-      const fileUrl = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
+      const fileId = cert.crew_cert_file_id || cert.cert_file_id; // Backward compatible
+      const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
       window.open(fileUrl, '_blank');
     });
     
