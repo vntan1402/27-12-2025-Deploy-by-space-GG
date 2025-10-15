@@ -1036,6 +1036,8 @@ const HomePage = () => {
     crew_cert_summary_file_id: ''  // Summary file ID
   });
   const [isSubmittingCert, setIsSubmittingCert] = useState(false);
+  const [showDuplicateCertWarning, setShowDuplicateCertWarning] = useState(false);
+  const [duplicateCertInfo, setDuplicateCertInfo] = useState(null);
   
   // File upload states (Step 11)
   const [certFile, setCertFile] = useState(null);
