@@ -1798,21 +1798,21 @@ const HomePage = () => {
 
   // Crew Certificates selection functions
   const handleSelectCertificate = (certId) => {
-    const newSelected = new Set(selectedCertificates);
+    const newSelected = new Set(selectedCrewCertificates);
     if (newSelected.has(certId)) {
       newSelected.delete(certId);
     } else {
       newSelected.add(certId);
     }
-    setSelectedCertificates(newSelected);
+    setSelectedCrewCertificates(newSelected);
   };
 
   const handleSelectAllCertificates = (checked, filteredCerts) => {
     if (checked) {
       const allVisibleIds = new Set(filteredCerts.map(cert => cert.id));
-      setSelectedCertificates(allVisibleIds);
+      setSelectedCrewCertificates(allVisibleIds);
     } else {
-      setSelectedCertificates(new Set());
+      setSelectedCrewCertificates(new Set());
     }
   };
 
