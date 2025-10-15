@@ -6406,14 +6406,19 @@ const HomePage = () => {
         );
 
         if (response.data.success) {
+          const renamedFiles = response.data.renamed_files || ['certificate'];
+          const filesCount = renamedFiles.length;
+          const filesText = renamedFiles.join(' + ');
+          
           toast.success(language === 'vi' 
-            ? `✅ Đã tự động đổi tên file thành: ${response.data.new_filename}`
-            : `✅ File automatically renamed to: ${response.data.new_filename}`
+            ? `✅ Đã tự động đổi tên ${filesCount} file: ${filesText}\nTên mới: ${response.data.new_filename}`
+            : `✅ Automatically renamed ${filesCount} file(s): ${filesText}\nNew name: ${response.data.new_filename}`
           );
 
-          console.log(`✅ File renamed successfully:`, {
+          console.log(`✅ File(s) renamed successfully:`, {
             cert_id: cert.id,
-            new_filename: response.data.new_filename
+            new_filename: response.data.new_filename,
+            renamed_files: renamedFiles
           });
 
           // Refresh certificates list
