@@ -6463,7 +6463,7 @@ const HomePage = () => {
   };
 
   // Process single certificate file in batch mode (auto-add certificate)
-  const processSingleCertInBatch = async (file, current, total) => {
+  const processSingleCertInBatch = async (file, current, total, crewDataList) => {
     try {
       console.log(`🔄 Batch processing cert ${current}/${total}: ${file.name}`);
       
@@ -6473,8 +6473,8 @@ const HomePage = () => {
       let crewNameEn = '';
       let rank = '';
       
-      if (crewId) {
-        const crew = crewData.find(c => c.id === crewId);
+      if (crewId && crewDataList) {
+        const crew = crewDataList.find(c => c.id === crewId);
         if (crew) {
           crewName = crew.full_name;
           crewNameEn = crew.full_name_en || '';
