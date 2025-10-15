@@ -10109,10 +10109,10 @@ const HomePage = () => {
                                     <span className="mr-1">🔄</span>
                                     {language === 'vi' ? 'Xóa bộ lọc' : 'Clear'}
                                   </button>
-                                )}
-                                
-                                {/* Results Count */}
-                                <div className="flex items-center ml-auto">
+                              )}
+                              
+                              {/* Results Count */}
+                              <div className="flex items-center ml-auto">
                                   <p className="text-sm text-gray-600 whitespace-nowrap">
                                     {language === 'vi' ? 'Hiển thị' : 'Showing'} <span className="font-semibold">
                                       {crewCertificates.filter(cert => {
