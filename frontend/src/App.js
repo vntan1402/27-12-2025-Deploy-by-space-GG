@@ -6407,6 +6407,9 @@ const HomePage = () => {
       ? `Bắt đầu xử lý ${files.length} file chứng chỉ...` 
       : `Starting batch processing of ${files.length} certificate files...`);
     
+    // Capture current crew data for batch processing (avoid state access issues in async)
+    const currentCrewData = filteredCrewData || [];
+    
     // Collect results
     const collectedResults = [];
     
