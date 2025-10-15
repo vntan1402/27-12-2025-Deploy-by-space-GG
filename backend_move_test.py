@@ -12,7 +12,7 @@ from datetime import datetime
 import time
 
 # Configuration - Use production URL from frontend .env
-BACKEND_URL = "https://shipmate-certs.preview.emergentagent.com/api"
+BACKEND_URL = "https://crew-cert-manager.preview.emergentagent.com/api"
 
 class CertificateMoveTester:
     def __init__(self):

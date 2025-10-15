@@ -14,7 +14,7 @@ import sys
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = 'https://shipmate-certs.preview.emergentagent.com/api'
+BACKEND_URL = 'https://crew-cert-manager.preview.emergentagent.com/api'
 
 class EnhancedSurveyTypeDirectTester:
     def __init__(self):
