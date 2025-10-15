@@ -6317,6 +6317,198 @@ const HomePage = () => {
       });
   };
 
+  // Auto rename crew certificate files
+  const handleAutoRenameCrewCertFiles = async (cert) => {
+    // Close context menu
+    setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
+    
+    // Check if multiple certificates are selected
+    if (selectedCrewCertificates.size > 1) {
+      // Bulk rename with confirmation
+      const selectedCertIds = Array.from(selectedCrewCertificates);
+      const selectedCerts = crewCertificates.filter(c => selectedCertIds.includes(c.id));
+      
+      // Count how many have files
+      const certsWithFiles = selectedCerts.filter(c => c.cert_file_id);
+      
+      if (certsWithFiles.length === 0) {
+        toast.warning(language === 'vi' 
+          ? 'Không có chứng chỉ nào có file để đổi tên'
+          : 'No certificates have files to rename');
+        return;
+      }
+
+      // Show confirmation dialog with preview
+      const confirmMessage = language === 'vi' 
+        ? `Bạn có chắc chắn muốn tự động đổi tên file cho ${certsWithFiles.length} chứng chỉ đã chọn?\n\n` +
+          `Định dạng: Chức vụ_Tên (Tiếng Anh)_Tên chứng chỉ\n\n` +
+          `Ví dụ:\n${certsWithFiles.slice(0, 3).map(c => {
+            const rank = c.rank || 'Unknown';
+            const nameEn = c.crew_name_en || c.crew_name || 'Unknown';
+            const certName = c.cert_name || 'Certificate';
+            return `• ${c.crew_name} - ${c.cert_name} → ${rank}_${nameEn}_${certName}.pdf`;
+          }).join('\n')}${certsWithFiles.length > 3 ? `\n... và ${certsWithFiles.length - 3} chứng chỉ khác` : ''}\n\n` +
+          `⚠️ Hành động này không thể hoàn tác!`
+        : `Are you sure you want to automatically rename files for ${certsWithFiles.length} selected certificates?\n\n` +
+          `Format: Rank_Name (English)_Certificate Name\n\n` +
+          `Examples:\n${certsWithFiles.slice(0, 3).map(c => {
+            const rank = c.rank || 'Unknown';
+            const nameEn = c.crew_name_en || c.crew_name || 'Unknown';
+            const certName = c.cert_name || 'Certificate';
+            return `• ${c.crew_name} - ${c.cert_name} → ${rank}_${nameEn}_${certName}.pdf`;
+          }).join('\n')}${certsWithFiles.length > 3 ? `\n... and ${certsWithFiles.length - 3} more` : ''}\n\n` +
+          `⚠️ This action cannot be undone!`;
+      
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+
+      // Perform bulk rename
+      await performBulkAutoRenameCrewCerts(certsWithFiles);
+      
+    } else {
+      // Single certificate rename
+      if (!cert?.cert_file_id) {
+        toast.warning(language === 'vi' 
+          ? 'Chứng chỉ này không có file đính kèm'
+          : 'This certificate has no attached file');
+        return;
+      }
+
+      // Generate preview filename
+      const rank = cert.rank || 'Unknown';
+      const nameEn = cert.crew_name_en || cert.crew_name || 'Unknown';
+      const certName = cert.cert_name || 'Certificate';
+      const previewFilename = `${rank}_${nameEn}_${certName}.pdf`;
+
+      const confirmMessage = language === 'vi'
+        ? `Bạn có chắc chắn muốn tự động đổi tên file này?\n\nTên mới: ${previewFilename}\n\n⚠️ Hành động này không thể hoàn tác!`
+        : `Are you sure you want to automatically rename this file?\n\nNew name: ${previewFilename}\n\n⚠️ This action cannot be undone!`;
+
+      if (!window.confirm(confirmMessage)) {
+        return;
+      }
+
+      try {
+        console.log(`🔄 Auto-renaming crew certificate file for: ${cert.crew_name} - ${cert.cert_name}`);
+
+        const response = await axios.post(
+          `${API}/crew-certificates/${cert.id}/auto-rename-file`,
+          {},
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response.data.success) {
+          toast.success(language === 'vi' 
+            ? `✅ Đã tự động đổi tên file thành: ${response.data.new_filename}`
+            : `✅ File automatically renamed to: ${response.data.new_filename}`
+          );
+
+          console.log(`✅ File renamed successfully:`, {
+            cert_id: cert.id,
+            new_filename: response.data.new_filename
+          });
+
+          // Refresh certificates list
+          await fetchCrewCertificates(null);
+        } else {
+          toast.error(language === 'vi' ? 'Không thể tự động đổi tên file' : 'Failed to auto-rename file');
+        }
+
+      } catch (error) {
+        console.error('Auto rename file error:', error);
+        toast.error(language === 'vi' 
+          ? `Lỗi tự động đổi tên file: ${error.response?.data?.detail || error.message}`
+          : `Auto rename file error: ${error.response?.data?.detail || error.message}`
+        );
+      }
+    }
+  };
+
+  // Perform bulk automatic rename for selected crew certificates
+  const performBulkAutoRenameCrewCerts = async (certsList) => {
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      toast.info(language === 'vi' 
+        ? `Bắt đầu tự động đổi tên file cho ${certsList.length} chứng chỉ...`
+        : `Starting automatic rename for ${certsList.length} certificates...`);
+
+      console.log(`🔄 Starting bulk automatic rename for ${certsList.length} certificates`);
+
+      for (let i = 0; i < certsList.length; i++) {
+        const cert = certsList[i];
+        
+        try {
+          console.log(`📋 Processing ${i + 1}/${certsList.length}: ${cert.crew_name} - ${cert.cert_name}`);
+
+          const response = await axios.post(
+            `${API}/crew-certificates/${cert.id}/auto-rename-file`,
+            {},
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+
+          if (response.data.success) {
+            successCount++;
+            console.log(`   ✅ Success: ${response.data.new_filename}`);
+          } else {
+            errorCount++;
+            console.log(`   ❌ Failed: ${cert.crew_name} - ${cert.cert_name}`);
+          }
+
+        } catch (error) {
+          errorCount++;
+          console.error(`   ❌ Error processing ${cert.crew_name} - ${cert.cert_name}:`, error.message);
+        }
+
+        // Add small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      console.log(`🏁 Bulk rename completed: ${successCount} success, ${errorCount} errors`);
+
+      // Show final result
+      if (successCount > 0 && errorCount === 0) {
+        toast.success(language === 'vi' 
+          ? `✅ Đã tự động đổi tên thành công ${successCount} file!`
+          : `✅ Successfully renamed ${successCount} file(s)!`
+        );
+      } else if (successCount > 0 && errorCount > 0) {
+        toast.warning(language === 'vi' 
+          ? `⚠️ Đổi tên thành công ${successCount} file, ${errorCount} lỗi`
+          : `⚠️ Renamed ${successCount} file(s), ${errorCount} error(s)`
+        );
+      } else {
+        toast.error(language === 'vi' 
+          ? `❌ Không thể đổi tên file nào`
+          : `❌ Failed to rename any files`
+        );
+      }
+
+      // Clear selection and refresh
+      setSelectedCrewCertificates(new Set());
+      await fetchCrewCertificates(null);
+
+    } catch (error) {
+      console.error('Bulk rename error:', error);
+      toast.error(language === 'vi' 
+        ? `Lỗi khi đổi tên hàng loạt: ${error.message}`
+        : `Bulk rename error: ${error.message}`
+      );
+    }
+  };
+
 
   // Reset add crew form
   const resetAddCrewForm = () => {
