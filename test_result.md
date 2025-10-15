@@ -56,6 +56,18 @@
   test_priority: "high_first"
 
 backend:
+  - task: "Crew Certificates Issued By Normalization in AI Extraction"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implementation added to normalize 'Issued By' field in /api/crew-certificates/analyze-file endpoint response. The normalize_issued_by() function is now called on analysis_result['issued_by'] before returning the response to ensure frontend receives normalized values for auto-fill."
+
   - task: "Crew Certificates Analyze File Endpoint Testing"
     implemented: true
     working: true
