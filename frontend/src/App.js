@@ -13246,8 +13246,8 @@ const HomePage = () => {
               </div>
               <div className="mt-2 text-sm text-gray-600">
                 {language === 'vi' 
-                  ? `Tổng số: ${certProcessingResults.length} file | Thành công: ${certProcessingResults.filter(r => r.success).length} | Thất bại: ${certProcessingResults.filter(r => !r.success).length}`
-                  : `Total: ${certProcessingResults.length} files | Success: ${certProcessingResults.filter(r => r.success).length} | Failed: ${certProcessingResults.filter(r => !r.success).length}`
+                  ? `Tổng số: ${certProcessingResults.length} file | ✅ Thành công: ${certProcessingResults.filter(r => r.success).length} | ⚠️ Trùng lặp: ${certProcessingResults.filter(r => r.error === 'DUPLICATE').length} | ❌ Lỗi: ${certProcessingResults.filter(r => !r.success && r.error !== 'DUPLICATE').length}`
+                  : `Total: ${certProcessingResults.length} files | ✅ Success: ${certProcessingResults.filter(r => r.success).length} | ⚠️ Duplicate: ${certProcessingResults.filter(r => r.error === 'DUPLICATE').length} | ❌ Failed: ${certProcessingResults.filter(r => !r.success && r.error !== 'DUPLICATE').length}`
                 }
               </div>
             </div>
