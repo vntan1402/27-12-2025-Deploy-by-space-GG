@@ -11652,6 +11652,9 @@ This summary was generated using Google Document AI for crew management purposes
                     'summary_file_id': summary_file_id
                 }
             
+            # Add raw_summary to analysis result for frontend validation
+            analysis_result['raw_summary'] = summary_text
+            
             return {
                 "success": True,
                 "analysis": analysis_result,
