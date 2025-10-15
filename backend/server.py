@@ -13385,6 +13385,9 @@ async def bulk_delete_crew_certificates(
         company_uuid = await resolve_company_id(current_user)
         cert_ids = request.certificate_ids
         
+        logger.info(f"🗑️ Bulk delete request received: {len(cert_ids)} certificate(s)")
+        logger.info(f"📋 Certificate IDs: {cert_ids}")
+        
         deleted_count = 0
         files_deleted = 0
         errors = []
