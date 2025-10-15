@@ -13451,6 +13451,11 @@ async def bulk_delete_crew_certificates(
             company_id=company_uuid
         )
         
+        # If no certificates were deleted at all, return error
+        if deleted_count == 0 and len(errors) > 0:
+            error_details = "; ".join(errors)
+            raise HTTPException(status_code=404, detail=f"Certificate not found. {error_details}")
+        
         message = f"Deleted {deleted_count} certificate(s)"
         if files_deleted > 0:
             message += f", {files_deleted} file(s) deleted from Google Drive"
@@ -13462,7 +13467,8 @@ async def bulk_delete_crew_certificates(
             "message": message,
             "deleted_count": deleted_count,
             "files_deleted": files_deleted,
-            "errors": errors if errors else None
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
         }
         
     except Exception as e:
