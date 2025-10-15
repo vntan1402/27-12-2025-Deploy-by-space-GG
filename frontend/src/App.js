@@ -6501,8 +6501,15 @@ const HomePage = () => {
         }
       );
       
-      if (analyzeResponse.data && analyzeResponse.data.cert_name) {
-        const analysis = analyzeResponse.data;
+      // Check if the response indicates success
+      if (!analyzeResponse.data || !analyzeResponse.data.success) {
+        const errorMsg = analyzeResponse.data?.message || 'Failed to analyze certificate';
+        console.error(`❌ Analysis failed: ${errorMsg}`);
+        throw new Error(errorMsg);
+      }
+      
+      if (analyzeResponse.data.analysis && analyzeResponse.data.analysis.cert_name) {
+        const analysis = analyzeResponse.data.analysis;
         
         // Prepare certificate data
         const certData = {
