@@ -5664,6 +5664,30 @@ const HomePage = () => {
       console.log('📤 Submitting new crew certificate:', newCrewCertificate);
       console.log('🚢 Using ship ID:', shipId);
 
+      // Check for duplicate before submitting
+      console.log('🔍 Checking for duplicate certificate...');
+      const duplicateCheck = await axios.post(
+        `${API}/crew-certificates/check-duplicate`,
+        {
+          crew_id: newCrewCertificate.crew_id,
+          cert_no: newCrewCertificate.cert_no
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (duplicateCheck.data.is_duplicate) {
+        console.warn('⚠️ Duplicate certificate found:', duplicateCheck.data.existing_certificate);
+        setDuplicateCertInfo(duplicateCheck.data);
+        setShowDuplicateCertWarning(true);
+        setIsSubmittingCert(false);
+        return; // Stop here, wait for user confirmation
+      }
+
       const response = await axios.post(
         `${API}/crew-certificates/manual?ship_id=${shipId}`,
         newCrewCertificate,
