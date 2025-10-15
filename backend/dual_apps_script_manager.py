@@ -591,6 +591,157 @@ class DualAppsScriptManager:
             }
 
 
+    async def analyze_certificate_only(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        document_ai_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Analyze certificate using Document AI WITHOUT uploading to Drive
+        Used for batch processing where upload happens only after successful DB save
+        
+        Args:
+            file_content: Certificate file content
+            filename: File name
+            content_type: MIME type
+            document_ai_config: Document AI configuration
+            
+        Returns:
+            dict: Analysis results only (no file IDs)
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            logger.info(f"🔄 Analyzing certificate (no upload): {filename}")
+            
+            # Document AI Analysis via System Apps Script ONLY
+            logger.info("📡 Certificate analysis via System Apps Script...")
+            ai_result = await self._call_system_apps_script_for_certificate_ai(
+                file_content, filename, content_type, document_ai_config
+            )
+            
+            if not ai_result.get('success'):
+                logger.error(f"❌ Certificate Document AI analysis failed: {ai_result.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Certificate Document AI analysis failed',
+                    'error': ai_result.get('message'),
+                    'step': 'document_ai_analysis'
+                }
+            
+            logger.info("✅ Certificate analysis completed successfully (no upload)")
+            return {
+                'success': True,
+                'message': 'Certificate analysis completed successfully',
+                'ai_analysis': ai_result,
+                'processing_method': 'analysis_only',
+                'workflow': 'system_ai_analysis_without_upload'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error in certificate analysis: {e}")
+            return {
+                'success': False,
+                'message': f'Certificate analysis failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def upload_certificate_files(
+        self,
+        cert_file_content: bytes,
+        cert_filename: str,
+        cert_content_type: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Upload certificate files to Drive AFTER successful database save
+        
+        Args:
+            cert_file_content: Certificate file content
+            cert_filename: Certificate filename
+            cert_content_type: Certificate MIME type
+            ship_name: Ship name for folder structure
+            summary_text: Summary text (optional)
+            
+        Returns:
+            dict: Upload results with file IDs
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📤 Uploading certificate files to Drive: {cert_filename}")
+            
+            upload_results = {}
+            
+            # Upload 1: Certificate file to Ship/Crew Records
+            logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/{cert_filename}")
+            cert_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,
+                'ship_name': ship_name,
+                'category': 'Crew Records',
+                'filename': cert_filename,
+                'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
+                'content_type': cert_content_type
+            })
+            upload_results['certificate'] = cert_upload
+            
+            # Upload 2: Summary file to SUMMARY folder (if provided)
+            if summary_text:
+                base_name = cert_filename.rsplit('.', 1)[0]
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                logger.info(f"📋 Uploading certificate summary file: SUMMARY/Crew Records/{summary_filename}")
+                summary_upload = await self._call_company_apps_script({
+                    'action': 'upload_file_with_folder_creation',
+                    'parent_folder_id': self.parent_folder_id,
+                    'ship_name': 'SUMMARY',
+                    'category': 'Crew Records',
+                    'filename': summary_filename,
+                    'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                    'content_type': 'text/plain'
+                })
+                upload_results['summary'] = summary_upload
+            
+            # Check upload results
+            cert_success = upload_results.get('certificate', {}).get('success', False)
+            
+            if cert_success:
+                logger.info("✅ Certificate file uploads completed successfully")
+                return {
+                    'success': True,
+                    'message': 'Certificate files uploaded successfully',
+                    'uploads': upload_results
+                }
+            else:
+                logger.error("❌ Certificate file upload failed")
+                return {
+                    'success': False,
+                    'message': 'Certificate file upload failed',
+                    'uploads': upload_results,
+                    'error': 'Certificate upload failed'
+                }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading certificate files: {e}")
+            return {
+                'success': False,
+                'message': f'File upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+
 def create_dual_apps_script_manager(company_id: str) -> DualAppsScriptManager:
     """Factory function to create DualAppsScriptManager"""
     return DualAppsScriptManager(company_id)
