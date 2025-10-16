@@ -3101,20 +3101,11 @@ const HomePage = () => {
     console.log('Ships:', ships);
     console.log('Ships length:', ships.length);
     
-    if (!user?.company) {
-      console.log('No user company found, returning all ships');
-      return ships;
-    }
-    
-    const filtered = ships.filter(ship => {
-      console.log(`Comparing ship "${ship.name}" company "${ship.company}" with user company "${user.company}"`);
-      return ship.company === user.company;
-    });
-    
-    console.log('Filtered ships:', filtered);
-    console.log('Filtered ships length:', filtered.length);
-    
-    return filtered;
+    // IMPORTANT: Backend /ships endpoint already filters by user's company
+    // Ship.company stores UUID, but backend ensures only user's company ships are returned
+    // So we can safely return all ships without additional filtering
+    console.log('Returning all ships (backend already filters by company)');
+    return ships;
   };
 
   const handleEditShip = async (updatedShipData) => {
