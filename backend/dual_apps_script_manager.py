@@ -875,11 +875,13 @@ class DualAppsScriptManager:
                 }
             else:
                 logger.error("❌ Passport file upload failed")
+                logger.error(f"   Passport upload response: {upload_results.get('passport', {})}")
+                logger.error(f"   Summary upload response: {upload_results.get('summary', {})}")
                 return {
                     'success': False,
                     'message': 'Passport file upload failed',
                     'uploads': upload_results,
-                    'error': 'Passport upload failed'
+                    'error': upload_results.get('passport', {}).get('error', 'Passport upload failed')
                 }
             
         except Exception as e:
