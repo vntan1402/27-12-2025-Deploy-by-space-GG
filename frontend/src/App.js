@@ -5244,15 +5244,7 @@ const HomePage = () => {
         console.log(`   Vietnamese Full Name: "${vietnameseFullName}" → English: "${crewData.full_name_en}"`);
         console.log(`   Vietnamese Place of Birth: "${vietnamesePlaceOfBirth}" → English: "${crewData.place_of_birth_en}"`);
         
-        // Include file IDs if present
-        if (fileIds.passport_file_id) {
-          crewData.passport_file_id = fileIds.passport_file_id;
-        }
-        if (fileIds.summary_file_id) {
-          crewData.summary_file_id = fileIds.summary_file_id;
-        }
-        
-        // Auto-create crew member
+        // Auto-create crew member (without file IDs yet)
         const processedData = {
           ...crewData,
           date_of_birth: crewData.date_of_birth ? convertDateInputToUTC(crewData.date_of_birth.split('T')[0]) : null,
@@ -5268,15 +5260,55 @@ const HomePage = () => {
           }
         });
         
-        if (createResponse.data) {
-          console.log(`✅ Crew member created successfully from ${file.name}`);
+        if (createResponse.data && createResponse.data.id) {
+          const crewId = createResponse.data.id;
+          console.log(`✅ Crew member created successfully: ${crewId}`);
+          
+          // ✅ NOW upload passport files to Drive AFTER successful crew creation
+          console.log(`📤 Uploading passport files to Drive for crew ${crewId}...`);
+          
+          let uploadedPassportId = null;
+          let uploadedSummaryId = null;
+          
+          try {
+            const uploadResponse = await axios.post(
+              `${API}/crew/${crewId}/upload-passport-files`,
+              {
+                file_content: analysis._file_content,
+                filename: analysis._filename,
+                content_type: analysis._content_type,
+                summary_text: analysis._summary_text,
+                ship_name: analysis._ship_name || selectedShip?.name || '-'
+              },
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+            
+            if (uploadResponse.data && uploadResponse.data.success) {
+              uploadedPassportId = uploadResponse.data.passport_file_id;
+              uploadedSummaryId = uploadResponse.data.summary_file_id;
+              console.log(`✅ Passport files uploaded successfully to Drive`);
+              console.log(`   📎 Passport File ID: ${uploadedPassportId}`);
+              console.log(`   📋 Summary File ID: ${uploadedSummaryId}`);
+            } else {
+              console.warn(`⚠️ Passport file upload failed but crew was saved: ${uploadResponse.data?.message}`);
+            }
+          } catch (uploadError) {
+            console.error(`❌ Passport file upload failed (crew still saved):`, uploadError);
+            // Don't throw - crew is already saved, upload failure is not critical
+          }
+          
           return {
             filename: file.name,
             success: true,
             recordCreated: true,
-            fileUploaded: !!fileIds.passport_file_id,
-            filePath: fileIds.passport_file_id ? `${selectedShip?.name}/Crew Records/${file.name}` : 'N/A',
-            summaryCreated: !!fileIds.summary_file_id,
+            fileUploaded: !!uploadedPassportId,
+            filePath: uploadedPassportId ? `${selectedShip?.name}/Crew Records/${file.name}` : 'N/A',
+            summaryCreated: !!uploadedSummaryId,
             isDuplicate: false,
             crewName: analysis.full_name || 'Unknown',
             passport: analysis.passport_number || 'No passport',
