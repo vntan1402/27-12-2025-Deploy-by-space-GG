@@ -13453,6 +13453,14 @@ async def update_crew_certificate(
         # Normalize issued_by if it's being updated
         if 'issued_by' in update_data:
             update_data = normalize_issued_by(update_data)
+            # ✅ NEW: Regenerate abbreviation after normalization
+            # If user enters abbreviation (3-5 caps), it will be used as-is
+            issued_by_value = update_data.get('issued_by', '')
+            if issued_by_value:
+                update_data['issued_by_abbreviation'] = generate_organization_abbreviation(issued_by_value)
+                logger.info(f"🔄 Updated abbreviation: '{issued_by_value}' → '{update_data['issued_by_abbreviation']}'")
+            else:
+                update_data['issued_by_abbreviation'] = ''
         
         # Convert date strings to datetime objects
         for date_field in ['issued_date', 'cert_expiry']:
