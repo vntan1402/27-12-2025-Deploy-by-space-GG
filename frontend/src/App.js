@@ -1893,6 +1893,7 @@ const HomePage = () => {
       const selectedCrewData = crewList.filter(crew => selectedCrewMembers.has(crew.id));
       let deletedCount = 0;
       let errorCount = 0;
+      let hasCertificatesErrors = [];
       
       // Delete each crew member
       for (const crew of selectedCrewData) {
@@ -1907,10 +1908,18 @@ const HomePage = () => {
           }
         } catch (error) {
           console.error(`❌ Failed to delete crew member: ${crew.full_name}`, error);
-          errorCount++;
-          toast.error(language === 'vi' 
-            ? `Không thể xóa: ${crew.full_name}` 
-            : `Failed to delete: ${crew.full_name}`);
+          
+          // Check if error is due to existing certificates
+          if (error.response?.status === 400 && error.response?.data?.detail?.error === 'CREW_HAS_CERTIFICATES') {
+            const errorData = error.response.data.detail;
+            hasCertificatesErrors.push({
+              crewName: errorData.crew_name,
+              certificateCount: errorData.certificate_count
+            });
+            console.log(`⚠️ ${errorData.crew_name} has ${errorData.certificate_count} certificate(s)`);
+          } else {
+            errorCount++;
+          }
         }
       }
       
@@ -1929,6 +1938,16 @@ const HomePage = () => {
         toast.success(language === 'vi' 
           ? `Đã xóa thành công ${deletedCount} thuyền viên` 
           : `Successfully deleted ${deletedCount} crew member(s)`);
+      }
+      
+      // Show certificates warning
+      if (hasCertificatesErrors.length > 0) {
+        const crewNames = hasCertificatesErrors.map(e => `"${e.crewName}" (${e.certificateCount} chứng chỉ)`).join(', ');
+        const message = language === 'vi'
+          ? `Không thể xóa thuyền viên: ${crewNames}. Hãy xóa toàn bộ các chứng chỉ trước khi xóa dữ liệu thuyền viên.`
+          : `Cannot delete crew: ${crewNames}. Please delete all certificates before deleting crew member.`;
+        
+        alert(message);
       }
       
       if (errorCount > 0) {
