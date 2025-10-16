@@ -265,27 +265,27 @@ class PassportRefactorTester:
                                 value = analysis.get(field, 'Not found')
                                 self.log(f"   {field}: {value}")
                         
-                        # **CRITICAL**: Check for file storage fields with underscore prefix
+                        # **CRITICAL**: Check for file storage fields with underscore prefix in analysis object
                         file_storage_fields = ['_file_content', '_filename', '_content_type', '_summary_text', '_ship_name']
                         found_storage_fields = []
                         
                         for field in file_storage_fields:
-                            if field in result:
+                            if field in analysis:
                                 found_storage_fields.append(field)
                                 if field == '_file_content':
                                     # Check if it's base64 encoded
-                                    file_content = result[field]
+                                    file_content = analysis[field]
                                     if isinstance(file_content, str) and len(file_content) > 0:
                                         self.log(f"   ✅ {field}: Found (length: {len(file_content)})")
                                     else:
                                         self.log(f"   ❌ {field}: Empty or invalid")
                                 else:
-                                    self.log(f"   ✅ {field}: {result[field]}")
+                                    self.log(f"   ✅ {field}: {analysis[field]}")
                         
                         if len(found_storage_fields) == len(file_storage_fields):
                             self.log("✅ All file storage fields found")
                             self.tests['analyze_passport_includes_file_storage_fields'] = True
-                            self.file_storage_data = {field: result[field] for field in file_storage_fields}
+                            self.file_storage_data = {field: analysis[field] for field in file_storage_fields}
                         else:
                             self.log(f"❌ Missing file storage fields: {set(file_storage_fields) - set(found_storage_fields)}")
                         
