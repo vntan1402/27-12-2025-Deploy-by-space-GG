@@ -7066,13 +7066,37 @@ const HomePage = () => {
     } catch (error) {
       console.error(`❌ Batch processing error for ${file.name}:`, error);
       
+      // Check if error is certificate holder mismatch
+      if (error.response?.status === 400 && error.response?.data?.detail?.error === 'CERTIFICATE_HOLDER_MISMATCH') {
+        const errorData = error.response.data.detail;
+        const holderName = errorData.holder_name || 'Unknown';
+        const crewName = errorData.crew_name || 'Unknown';
+        
+        console.warn(`⚠️ Certificate holder mismatch: ${holderName} vs ${crewName}`);
+        
+        return {
+          filename: file.name,
+          success: false,
+          certCreated: false,
+          fileUploaded: false,
+          summaryCreated: false,
+          error: 'HOLDER_MISMATCH',
+          errorMessage: language === 'vi'
+            ? `Chứng chỉ không thuộc về "${crewName}"`
+            : `Certificate does not belong to "${crewName}"`,
+          holderName: holderName,
+          crewName: crewName,
+          index: current
+        };
+      }
+      
       return {
         filename: file.name,
         success: false,
         certCreated: false,
         fileUploaded: false,
         summaryCreated: false,
-        error: error.response?.data?.detail || error.message || 'Unknown error',
+        error: error.response?.data?.detail?.message || error.response?.data?.detail || error.message || 'Unknown error',
         index: current
       };
     }
