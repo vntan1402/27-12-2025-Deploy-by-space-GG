@@ -5524,12 +5524,7 @@ const HomePage = () => {
         passport_expiry_date: newCrewData.passport_expiry_date ? convertDateInputToUTC(newCrewData.passport_expiry_date.split('T')[0]) : null
       };
       
-      // Include file IDs if passport was analyzed
-      if (passportAnalysis?.file_ids) {
-        processedData.passport_file_id = passportAnalysis.file_ids.passport_file_id;
-        processedData.summary_file_id = passportAnalysis.file_ids.summary_file_id;
-        console.log('📎 Including file IDs in crew creation:', passportAnalysis.file_ids);
-      }
+      // ✅ Do NOT include file IDs - files will be uploaded AFTER crew creation
       
       // Call backend API to create crew member
       const response = await axios.post(`${API}/crew`, processedData, {
@@ -5540,6 +5535,50 @@ const HomePage = () => {
       });
       
       if (response.data) {
+        const crewId = response.data.id;
+        console.log(`✅ Crew member created successfully: ${crewId}`);
+        
+        // ✅ Upload passport files to Drive AFTER successful crew creation
+        if (passportAnalysis?._file_content) {
+          console.log(`📤 Uploading passport files to Drive for crew ${crewId}...`);
+          
+          try {
+            const uploadResponse = await axios.post(
+              `${API}/crew/${crewId}/upload-passport-files`,
+              {
+                file_content: passportAnalysis._file_content,
+                filename: passportAnalysis._filename,
+                content_type: passportAnalysis._content_type,
+                summary_text: passportAnalysis._summary_text,
+                ship_name: passportAnalysis._ship_name || selectedShip?.name || '-'
+              },
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+            
+            if (uploadResponse.data && uploadResponse.data.success) {
+              console.log(`✅ Passport files uploaded successfully to Drive`);
+              console.log(`   📎 Passport File ID: ${uploadResponse.data.passport_file_id}`);
+              console.log(`   📋 Summary File ID: ${uploadResponse.data.summary_file_id}`);
+            } else {
+              console.warn(`⚠️ Passport file upload failed but crew was saved`);
+              toast.warning(language === 'vi' 
+                ? 'Thêm thuyền viên thành công nhưng không thể upload file lên Drive'
+                : 'Crew added successfully but file upload to Drive failed');
+            }
+          } catch (uploadError) {
+            console.error(`❌ Passport file upload failed (crew still saved):`, uploadError);
+            toast.warning(language === 'vi' 
+              ? 'Thêm thuyền viên thành công nhưng không thể upload file lên Drive'
+              : 'Crew added successfully but file upload to Drive failed');
+            // Don't throw - crew is already saved, upload failure is not critical
+          }
+        }
+        
         toast.success(language === 'vi' ? 'Thuyền viên đã được thêm thành công!' : 'Crew member added successfully!');
         
         // Refresh crew list FIRST
