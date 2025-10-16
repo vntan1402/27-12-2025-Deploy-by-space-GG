@@ -14387,11 +14387,22 @@ def normalize_issued_by(extracted_data: dict) -> dict:
     - "the RERL Maritime Authority of the Republic of Panama" → "Panama Maritime Authority"
     - "Socialist Republic of Vietnam Maritime Administration" → "Vietnam Maritime Administration"
     - "The Government of Marshall Islands" → "Marshall Islands Maritime Administrator"
+    
+    Special case:
+    - If value is already an abbreviation (3-5 uppercase letters like "PMA", "VMA"), 
+      skip normalization to preserve user's manual input
     """
     try:
         issued_by = extracted_data.get('issued_by', '').strip()
         
         if not issued_by:
+            return extracted_data
+        
+        # ✅ NEW: Check if value is already an abbreviation (3-5 uppercase letters)
+        # If so, skip normalization - user wants to keep it as-is
+        import re
+        if re.match(r'^[A-Z]{3,5}$', issued_by):
+            logger.info(f"✅ Skipping normalization for abbreviation: '{issued_by}'")
             return extracted_data
         
         issued_by_upper = issued_by.upper()
