@@ -221,7 +221,7 @@ class CertificateHolderValidationTester:
                         break
                 
                 if not self.test_ship_id:
-                    self.log("❌ No suitable ship found with matching company_id", "ERROR")
+                    self.log("❌ No suitable ship found with matching company", "ERROR")
                     return False
             else:
                 self.log(f"❌ Failed to get ships: {response.status_code}", "ERROR")
