@@ -14519,13 +14519,27 @@ def normalize_issued_by(extracted_data: dict) -> dict:
             ]
         }
         
-        # Check for matches
+        # Check for matches with STRICT rules to avoid false positives
         for standard_name, variations in MARITIME_AUTHORITIES.items():
             for variation in variations:
-                if variation in issued_by_upper:
-                    logger.info(f"✅ Normalized issued_by: '{issued_by}' → '{standard_name}'")
+                # ✅ NEW: Use more strict matching to avoid false positives
+                # Only match if:
+                # 1. Exact match, OR
+                # 2. Variation is in issued_by AND issued_by is longer (has more context)
+                
+                if issued_by_upper == variation:
+                    # Exact match - definitely correct
+                    logger.info(f"✅ Normalized issued_by (exact): '{issued_by}' → '{standard_name}'")
                     extracted_data['issued_by'] = standard_name
                     return extracted_data
+                elif variation in issued_by_upper and len(issued_by_upper) > len(variation):
+                    # Substring match but only if issued_by has MORE context
+                    # e.g., "PANAMA MARITIME AUTHORITY..." contains "PANAMA MARITIME"
+                    logger.info(f"✅ Normalized issued_by (contains): '{issued_by}' → '{standard_name}'")
+                    extracted_data['issued_by'] = standard_name
+                    return extracted_data
+                # ❌ Skip if variation is longer or same length as issued_by
+                # e.g., Don't match "PANAMA" with "PANAMA MARITIME" variation
         
         # If no match found, clean up common prefixes/suffixes
         cleaned = issued_by
