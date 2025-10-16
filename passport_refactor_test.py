@@ -567,8 +567,8 @@ class PassportRefactorTester:
                     return False
                     
             finally:
-                if os.path.exists(temp_file.name):
-                    os.unlink(temp_file.name)
+                # No cleanup needed for existing files
+                pass
                     
         except Exception as e:
             self.log(f"❌ Error in duplicate passport test: {str(e)}", "ERROR")
