@@ -5197,7 +5197,6 @@ const HomePage = () => {
       
       if (response.data.success && response.data.analysis) {
         const analysis = response.data.analysis;
-        const fileIds = analysis.file_ids || {};
         
         // ✅ Validate if document is a passport
         const validation = validatePassportDocument(analysis);
