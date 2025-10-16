@@ -6198,7 +6198,32 @@ const HomePage = () => {
     } catch (error) {
       console.error('❌ Error analyzing certificate:', error);
       
-      const errorMsg = error.response?.data?.detail || error.message;
+      // Check if error is certificate holder mismatch
+      if (error.response?.status === 400 && error.response?.data?.detail?.error === 'CERTIFICATE_HOLDER_MISMATCH') {
+        const errorData = error.response.data.detail;
+        const holderName = errorData.holder_name || 'Unknown';
+        const crewName = errorData.crew_name || 'Unknown';
+        
+        logger.warning(`⚠️ Certificate holder mismatch: ${holderName} vs ${crewName}`);
+        
+        // Show detailed error message
+        const detailedMessage = language === 'vi'
+          ? `Chứng chỉ không phải của thuyền viên đang chọn, vui lòng kiểm tra lại\n\n` +
+            `Tên trên chứng chỉ: "${holderName}"\n` +
+            `Thuyền viên đang chọn: "${crewName}"`
+          : `Certificate does not belong to selected crew member\n\n` +
+            `Name on certificate: "${holderName}"\n` +
+            `Selected crew: "${crewName}"`;
+        
+        alert(detailedMessage);
+        
+        // Reset file input
+        handleResetCertFile();
+        return;
+      }
+      
+      // Handle other errors
+      const errorMsg = error.response?.data?.detail?.message || error.response?.data?.detail || error.message;
       setCertError(language === 'vi' 
         ? `Lỗi phân tích file: ${errorMsg}` 
         : `Error analyzing file: ${errorMsg}`
