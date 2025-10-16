@@ -12623,6 +12623,30 @@ async def delete_crew_member(
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
+        # ⚠️ VALIDATION: Check if crew has any certificates
+        crew_certificates = await mongo_db.find_all("crew_certificates", {
+            "crew_id": crew_id,
+            "company_id": company_uuid
+        })
+        
+        if crew_certificates and len(crew_certificates) > 0:
+            crew_name = crew.get("full_name", "Unknown")
+            certificate_count = len(crew_certificates)
+            
+            logger.warning(f"❌ Cannot delete crew {crew_name}: {certificate_count} certificates still exist")
+            
+            raise HTTPException(
+                status_code=400, 
+                detail={
+                    "error": "CREW_HAS_CERTIFICATES",
+                    "message": f"Thuyền viên \"{crew_name}\" hiện vẫn còn chứng chỉ đang lưu trên hệ thống. Hãy xóa toàn bộ các chứng chỉ trước khi xóa dữ liệu thuyền viên",
+                    "crew_name": crew_name,
+                    "certificate_count": certificate_count
+                }
+            )
+        
+        logger.info(f"✅ Crew {crew.get('full_name')} has no certificates, proceeding with deletion")
+        
         # Delete associated files from Google Drive before deleting crew record
         passport_file_id = crew.get("passport_file_id")
         summary_file_id = crew.get("summary_file_id")
