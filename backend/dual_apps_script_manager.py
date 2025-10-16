@@ -274,6 +274,7 @@ class DualAppsScriptManager:
     async def _call_company_apps_script(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Make HTTP call to Company Apps Script"""
         try:
+            logger.info(f"🌐 Calling Company Apps Script: action={payload.get('action')}")
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     self.company_apps_script_url,
@@ -284,10 +285,11 @@ class DualAppsScriptManager:
                     
                     if response.status == 200:
                         result = await response.json()
+                        logger.info(f"✅ Company Apps Script response: success={result.get('success')}, message={result.get('message', 'N/A')[:100]}")
                         return result
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Company Apps Script error: {response.status} - {error_text}")
+                        logger.error(f"❌ Company Apps Script HTTP error: {response.status} - {error_text[:200]}")
                         return {
                             'success': False,
                             'message': f'Company Apps Script error: {response.status}',
@@ -296,6 +298,9 @@ class DualAppsScriptManager:
         
         except Exception as e:
             logger.error(f"❌ Error calling Company Apps Script: {e}")
+            logger.error(f"   Exception type: {type(e).__name__}")
+            import traceback
+            logger.error(f"   Traceback: {traceback.format_exc()}")
             return {
                 'success': False,
                 'message': f'Company Apps Script call failed: {str(e)}',
