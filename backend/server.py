@@ -13134,7 +13134,7 @@ async def analyze_certificate_file_for_crew(
         # Get ship information for folder structure
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
-            "company_id": company_uuid
+            "company": company_uuid
         })
         
         if not ship:
