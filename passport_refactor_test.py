@@ -245,6 +245,9 @@ class PassportRefactorTester:
                     result = response.json()
                     self.log(f"📊 Response keys: {list(result.keys())}")
                     
+                    # Debug: Print the full response to see what we're getting
+                    self.log(f"🔍 Full response: {json.dumps(result, indent=2)}")
+                    
                     # Check for success
                     if result.get("success"):
                         self.log("✅ Passport analysis successful")
