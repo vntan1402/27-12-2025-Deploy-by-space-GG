@@ -37,6 +37,7 @@ class DualAppsScriptManager:
             if ai_config and ai_config.get("document_ai", {}).get("enabled"):
                 self.system_apps_script_url = ai_config["document_ai"].get("apps_script_url")
                 logger.info(f"✅ System Apps Script URL loaded for Document AI")
+                logger.info(f"   URL: {self.system_apps_script_url}")
             
             # Get Company Google Drive configuration (Company Apps Script)
             gdrive_config = await mongo_db.find_one(
@@ -50,6 +51,7 @@ class DualAppsScriptManager:
                 self.parent_folder_id = gdrive_config.get("parent_folder_id") or gdrive_config.get("folder_id")
                 if self.company_apps_script_url:
                     logger.info(f"✅ Company Apps Script URL loaded for file upload")
+                    logger.info(f"   URL: {self.company_apps_script_url}")
                 else:
                     logger.warning("❌ Company Apps Script URL not configured")
                 
