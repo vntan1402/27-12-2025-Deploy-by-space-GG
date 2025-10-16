@@ -7648,7 +7648,7 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
             raise Exception("Parent folder ID not configured")
         
         # Get backend API URL for dynamic structure fetching
-        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://smartcrew.preview.emergentagent.com')
+        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://crew-doc-manager.preview.emergentagent.com')
         
         # Create payload for dynamic folder structure creation
         payload = {
@@ -9303,7 +9303,7 @@ async def create_ship_google_drive_folder(
         logger.info(f"Creating complete ship folder hierarchy: {ship_name} in company folder: {folder_id}")
         
         # Get backend API URL for dynamic structure fetching
-        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://smartcrew.preview.emergentagent.com')
+        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://crew-doc-manager.preview.emergentagent.com')
         
         if folder_structure:
             folder_payload = {

@@ -19,7 +19,7 @@ try:
     else:
         raise Exception("Internal URL not working")
 except:
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://smartcrew.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-doc-manager.preview.emergentagent.com') + '/api'
 
 def create_test_pdf():
     """Create a simple PDF with ship certificate content"""
