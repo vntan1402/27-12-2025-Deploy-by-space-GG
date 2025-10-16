@@ -10761,6 +10761,7 @@ async def call_ai_directly_for_extraction(summary_text: str, document_type: str,
                     extracted_data = json.loads(content)
                     logger.info("✅ System AI extraction successful!")
                     logger.info(f"📋 Extracted fields: {list(extracted_data.keys())}")
+                    logger.info(f"📋 Full extracted data: {json.dumps(extracted_data, indent=2, ensure_ascii=False)}")
                     
                     # Convert new structured format to old format for compatibility
                     if document_type == "passport":
