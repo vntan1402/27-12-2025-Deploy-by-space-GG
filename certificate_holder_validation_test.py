@@ -212,9 +212,9 @@ class CertificateHolderValidationTester:
                 ships = response.json()
                 self.log(f"   Found {len(ships)} ships")
                 
-                # Find a ship with matching company_id
+                # Find a ship with matching company (ships store company as UUID, not company_id)
                 for ship in ships:
-                    if ship.get("company_id") == self.company_id:
+                    if ship.get("company") == self.company_id:
                         self.test_ship_id = ship.get("id")
                         self.log(f"✅ Selected test ship: {ship.get('name')} (ID: {self.test_ship_id})")
                         self.validation_tests['ship_found'] = True
