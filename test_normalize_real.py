@@ -6,7 +6,14 @@ Test Real Normalize Function
 def simulate_normalize(issued_by: str) -> tuple:
     """Simulate the normalize_issued_by logic"""
     
-    issued_by_upper = issued_by.upper().strip()
+    import re
+    
+    issued_by_stripped = issued_by.strip()
+    issued_by_upper = issued_by_stripped.upper()
+    
+    # ✅ NEW: Check if already abbreviation (3-5 uppercase letters)
+    if re.match(r'^[A-Z]{3,5}$', issued_by_stripped):
+        return (issued_by_stripped, "Abbreviation detected, skip normalization")
     
     # Test variations
     MARITIME_AUTHORITIES = {
