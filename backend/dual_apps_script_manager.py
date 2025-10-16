@@ -275,6 +275,12 @@ class DualAppsScriptManager:
         """Make HTTP call to Company Apps Script"""
         try:
             logger.info(f"🌐 Calling Company Apps Script: action={payload.get('action')}")
+            logger.info(f"   URL: {self.company_apps_script_url}")
+            logger.info(f"   Ship Name: {payload.get('ship_name')}")
+            logger.info(f"   Category: {payload.get('category')}")
+            logger.info(f"   Filename: {payload.get('filename')}")
+            logger.info(f"   Parent Folder ID: {payload.get('parent_folder_id')}")
+            
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     self.company_apps_script_url,
