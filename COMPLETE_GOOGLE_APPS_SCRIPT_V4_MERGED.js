@@ -178,28 +178,34 @@ function handleUploadFixed(requestData) {
     } else if (category) {
       // Single level: Ship/Category
       // IMPORTANT: Crew Records should upload directly to Ship/Crew Records, NOT Ship/Class & Flag Cert/Crew Records
-      if (category === "Crew Records") {
-        // Create direct path: Ship/Crew Records
-        Logger.log("📁 Creating Crew Records: " + shipName + "/Crew Records");
-        targetFolder = createFolderPathSafe(shipFolder, [category]);
+      
+      // Normalize category name to handle case sensitivity and whitespace
+      var normalizedCategory = category.trim();
+      
+      // Check if this is Crew Records (case-insensitive for safety)
+      if (normalizedCategory === "Crew Records" || normalizedCategory === "Crew records") {
+        // Create direct path: Ship/Crew Records (always use "Crew Records" with capital R)
+        Logger.log("📁 Creating Crew Records (direct path): " + shipName + "/Crew Records");
+        targetFolder = createFolderPathSafe(shipFolder, ["Crew Records"]);
         folderPath = shipName + "/Crew Records";
-      } else if (category && !parentCategory) {
-        // For other categories, try to find "Class & Flag Cert" parent category first (legacy compatibility)
+      } else if (!parentCategory) {
+        // For other categories WITHOUT parent_category, try to find "Class & Flag Cert" parent category first (legacy compatibility)
         var classFlagFolder = findFolderByNameSafe(shipFolder, "Class & Flag Cert");
         if (classFlagFolder) {
-          Logger.log("📁 Using Class & Flag Cert structure: " + shipName + "/Class & Flag Cert/" + category);
-          targetFolder = findOrCreateFolderSafe(classFlagFolder, category);
-          folderPath = shipName + "/Class & Flag Cert/" + category;
+          Logger.log("📁 Using Class & Flag Cert structure: " + shipName + "/Class & Flag Cert/" + normalizedCategory);
+          targetFolder = findOrCreateFolderSafe(classFlagFolder, normalizedCategory);
+          folderPath = shipName + "/Class & Flag Cert/" + normalizedCategory;
         } else {
           // Create direct single level
-          Logger.log("📁 Creating single level: " + shipName + "/" + category);
-          targetFolder = createFolderPathSafe(shipFolder, [category]);
-          folderPath = shipName + "/" + category;
+          Logger.log("📁 Creating single level: " + shipName + "/" + normalizedCategory);
+          targetFolder = createFolderPathSafe(shipFolder, [normalizedCategory]);
+          folderPath = shipName + "/" + normalizedCategory;
         }
       } else {
-        Logger.log("📁 Creating single level: " + shipName + "/" + category);
-        targetFolder = createFolderPathSafe(shipFolder, [category]);
-        folderPath = shipName + "/" + category;
+        // This shouldn't happen if parentCategory is provided, but handle it anyway
+        Logger.log("📁 Creating single level (fallback): " + shipName + "/" + normalizedCategory);
+        targetFolder = createFolderPathSafe(shipFolder, [normalizedCategory]);
+        folderPath = shipName + "/" + normalizedCategory;
       }
     } else {
       // Direct to ship folder
