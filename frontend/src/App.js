@@ -6136,6 +6136,19 @@ const HomePage = () => {
         
         const analysis = response.data.analysis || {};
         
+        // ✅ Store analysis with FILE CONTENT for later upload
+        const analysisWithFiles = {
+          ...response.data,
+          analysis: {
+            ...analysis,
+            _file_content: analysis._file_content,
+            _filename: analysis._filename,
+            _content_type: analysis._content_type,
+            _summary_text: analysis._summary_text,
+            _ship_name: analysis._ship_name
+          }
+        };
+        
         // Pre-fill form with AI extracted data
         setNewCrewCertificate(prev => ({
           ...prev,
@@ -6149,11 +6162,11 @@ const HomePage = () => {
           issued_date: analysis.issued_date || '',
           cert_expiry: analysis.expiry_date || analysis.cert_expiry || '',
           note: analysis.note || '',
-          crew_cert_file_id: analysis.crew_cert_file_id || '',
-          crew_cert_summary_file_id: analysis.crew_cert_summary_file_id || prev.crew_cert_summary_file_id  // Save summary file ID
+          crew_cert_file_id: '',  // Will be set after upload
+          crew_cert_summary_file_id: ''  // Will be set after upload
         }));
 
-        setCertAnalysis(response.data);
+        setCertAnalysis(analysisWithFiles);
         
         toast.success(language === 'vi' 
           ? '✅ Phân tích file thành công! Vui lòng kiểm tra và xác nhận thông tin.' 
