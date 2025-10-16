@@ -348,7 +348,7 @@ startxref
             self.log(f"   POST {endpoint}")
             
             files = {
-                "cert_file": (filename, BytesIO(file_content), "text/plain")
+                "cert_file": (filename, BytesIO(file_content), "application/pdf")
             }
             data = {
                 "ship_id": self.test_ship_id,
@@ -441,7 +441,7 @@ startxref
             self.log(f"   POST {endpoint}")
             
             files = {
-                "cert_file": (filename, BytesIO(file_content), "text/plain")
+                "cert_file": (filename, BytesIO(file_content), "application/pdf")
             }
             data = {
                 "ship_id": self.test_ship_id,
