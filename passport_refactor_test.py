@@ -532,31 +532,16 @@ class PassportRefactorTester:
         try:
             self.log("🔍 Testing duplicate passport detection...")
             
-            # Create another test passport file with same passport number
-            passport_content = """
-PASSPORT
-REPUBLIC OF VIETNAM
-Type: P
-Passport No: TEST123456
-Surname: TRAN
-Given Names: VAN DUPLICATE
-Nationality: VIETNAMESE
-Date of Birth: 20/12/1985
-Sex: M
-Place of Birth: HO CHI MINH
-Date of Issue: 01/01/2021
-Date of Expiry: 01/01/2031
-Authority: IMMIGRATION DEPARTMENT
-"""
-            
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-            temp_file.write(passport_content)
-            temp_file.close()
+            # Use the same passport file for duplicate test
+            passport_file_path = self.get_test_passport_file()
+            if not passport_file_path:
+                return False
             
             try:
-                with open(temp_file.name, "rb") as f:
+                filename = os.path.basename(passport_file_path)
+                with open(passport_file_path, "rb") as f:
                     files = {
-                        "passport_file": ("duplicate_passport.txt", f, "text/plain")
+                        "passport_file": (filename, f, "application/pdf")
                     }
                     data = {
                         "ship_name": "BROTHER 36"
