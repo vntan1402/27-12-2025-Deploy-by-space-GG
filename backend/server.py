@@ -13265,6 +13265,52 @@ async def analyze_certificate_file_for_crew(
                             analysis_result["processing_method"] = "analysis_only_no_upload"
                             logger.info(f"   📋 Extracted Cert Name: '{analysis_result.get('cert_name')}'")
                             logger.info(f"   🔢 Extracted Cert No: '{analysis_result.get('cert_no')}'")
+                            
+                            # ⚠️ VALIDATION: Check if holder_name matches crew_name
+                            holder_name = extracted_fields.get('holder_name', '').strip()
+                            
+                            if crew_id and holder_name:
+                                # Normalize names for comparison (remove spaces, convert to uppercase)
+                                def normalize_name(name):
+                                    """Normalize name for comparison: uppercase, no spaces, no special chars"""
+                                    import unicodedata
+                                    import re
+                                    # Remove diacritics
+                                    name = ''.join(c for c in unicodedata.normalize('NFD', name) if unicodedata.category(c) != 'Mn')
+                                    # Uppercase and remove spaces/special chars
+                                    name = re.sub(r'[^A-Z0-9]', '', name.upper())
+                                    return name
+                                
+                                normalized_holder = normalize_name(holder_name)
+                                normalized_crew = normalize_name(crew_name)
+                                normalized_crew_en = normalize_name(crew_name_en) if crew_name_en else ""
+                                
+                                logger.info(f"🔍 Name matching validation:")
+                                logger.info(f"   Holder name (from cert): '{holder_name}' → normalized: '{normalized_holder}'")
+                                logger.info(f"   Crew name (Vietnamese): '{crew_name}' → normalized: '{normalized_crew}'")
+                                if crew_name_en:
+                                    logger.info(f"   Crew name (English): '{crew_name_en}' → normalized: '{normalized_crew_en}'")
+                                
+                                # Check if holder matches either Vietnamese or English crew name
+                                is_match = (normalized_holder == normalized_crew) or (normalized_crew_en and normalized_holder == normalized_crew_en)
+                                
+                                if not is_match:
+                                    logger.warning(f"❌ Certificate holder name does NOT match crew name")
+                                    logger.warning(f"   Certificate holder: '{holder_name}'")
+                                    logger.warning(f"   Selected crew: '{crew_name}' / '{crew_name_en}'")
+                                    
+                                    raise HTTPException(
+                                        status_code=400,
+                                        detail={
+                                            "error": "CERTIFICATE_HOLDER_MISMATCH",
+                                            "message": "Chứng chỉ không phải của thuyền viên đang chọn, vui lòng kiểm tra lại",
+                                            "holder_name": holder_name,
+                                            "crew_name": crew_name,
+                                            "crew_name_en": crew_name_en
+                                        }
+                                    )
+                                else:
+                                    logger.info(f"✅ Certificate holder name matches crew name")
                         else:
                             logger.warning("⚠️ Certificate field extraction returned empty result")
                         
