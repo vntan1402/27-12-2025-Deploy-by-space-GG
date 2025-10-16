@@ -172,36 +172,29 @@ class PassportRefactorTester:
             self.log(f"❌ Authentication error: {str(e)}", "ERROR")
             return False
     
-    def create_test_passport_file(self):
-        """Create a simple test passport file for testing"""
+    def get_test_passport_file(self):
+        """Get an existing test passport PDF file for testing"""
         try:
-            # Create a simple text file that mimics passport content
-            passport_content = """
-PASSPORT
-REPUBLIC OF VIETNAM
-Type: P
-Passport No: TEST123456
-Surname: NGUYEN
-Given Names: VAN TEST
-Nationality: VIETNAMESE
-Date of Birth: 15/08/1990
-Sex: M
-Place of Birth: HA NOI
-Date of Issue: 01/01/2020
-Date of Expiry: 01/01/2030
-Authority: IMMIGRATION DEPARTMENT
-"""
+            # Use existing passport PDF files
+            passport_files = [
+                "/app/test_passport.pdf",
+                "/app/PASS_PORT_Tran_Trong_Toan.pdf",
+                "/app/3_2O_THUONG_PP.pdf",
+                "/app/2_CO_DUC_PP.pdf"
+            ]
             
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
-            temp_file.write(passport_content)
-            temp_file.close()
+            for passport_file in passport_files:
+                if os.path.exists(passport_file):
+                    file_size = os.path.getsize(passport_file)
+                    self.log(f"✅ Found test passport file: {passport_file}")
+                    self.log(f"   File size: {file_size:,} bytes ({file_size/1024:.1f} KB)")
+                    return passport_file
             
-            self.log(f"✅ Created test passport file: {temp_file.name}")
-            return temp_file.name
+            self.log("❌ No test passport PDF files found", "ERROR")
+            return None
             
         except Exception as e:
-            self.log(f"❌ Error creating test passport file: {str(e)}", "ERROR")
+            self.log(f"❌ Error finding test passport file: {str(e)}", "ERROR")
             return None
     
     def test_analyze_passport_endpoint(self):
