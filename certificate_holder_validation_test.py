@@ -236,8 +236,8 @@ class CertificateHolderValidationTester:
     def create_test_certificate_file(self, holder_name):
         """Create a test certificate PDF file with specified holder name"""
         try:
-            # Create a simple PDF-like content with the holder name
-            # This is a mock certificate that will be processed by Document AI
+            # Create a simple PDF content with the holder name
+            # This creates a minimal PDF that Document AI can process
             certificate_content = f"""
 CERTIFICATE OF COMPETENCY
 
@@ -256,10 +256,65 @@ Expiry Date: 01/01/2028
 This certificate is valid for maritime operations.
             """.strip()
             
-            # Create a simple text file (Document AI can process text files for testing)
-            file_content = certificate_content.encode('utf-8')
+            # Create a minimal PDF structure
+            # This is a very basic PDF that should be processable by Document AI
+            pdf_content = f"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+
+4 0 obj
+<<
+/Length {len(certificate_content) + 50}
+>>
+stream
+BT
+/F1 12 Tf
+50 700 Td
+({certificate_content}) Tj
+ET
+endstream
+endobj
+
+xref
+0 5
+0000000000 65535 f 
+0000000010 00000 n 
+0000000079 00000 n 
+0000000173 00000 n 
+0000000301 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+{400 + len(certificate_content)}
+%%EOF"""
             
-            return file_content, f"test_certificate_{holder_name.replace(' ', '_')}.txt"
+            file_content = pdf_content.encode('utf-8')
+            
+            return file_content, f"test_certificate_{holder_name.replace(' ', '_')}.pdf"
             
         except Exception as e:
             self.log(f"❌ Error creating test certificate file: {str(e)}", "ERROR")
