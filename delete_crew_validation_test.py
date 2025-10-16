@@ -179,7 +179,7 @@ class DeleteCrewValidationTester:
                     crew_name = crew.get("full_name")
                     
                     # Check if this crew has certificates
-                    cert_response = self.session.get(f"{BACKEND_URL}/crew-certificates?crew_id={crew_id}")
+                    cert_response = self.session.get(f"{BACKEND_URL}/crew-certificates/7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7?crew_id={crew_id}")
                     
                     if cert_response.status_code == 200:
                         certificates = cert_response.json()
@@ -222,7 +222,7 @@ class DeleteCrewValidationTester:
                     crew_name = crew.get("full_name")
                     
                     # Check if this crew has certificates
-                    cert_response = self.session.get(f"{BACKEND_URL}/crew-certificates?crew_id={crew_id}")
+                    cert_response = self.session.get(f"{BACKEND_URL}/crew-certificates/7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7?crew_id={crew_id}")
                     
                     if cert_response.status_code == 200:
                         certificates = cert_response.json()
