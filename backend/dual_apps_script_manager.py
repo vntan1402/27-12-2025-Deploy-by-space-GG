@@ -833,13 +833,13 @@ class DualAppsScriptManager:
             
             upload_results = {}
             
-            # Upload 1: Passport file to Ship/Crew records
-            logger.info(f"📤 Uploading passport file: {ship_name}/Crew records/{passport_filename}")
+            # Upload 1: Passport file to Ship/Crew Records
+            logger.info(f"📤 Uploading passport file: {ship_name}/Crew Records/{passport_filename}")
             passport_upload = await self._call_company_apps_script({
                 'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,
                 'ship_name': ship_name,
-                'category': 'Crew records',
+                'category': 'Crew Records',
                 'filename': passport_filename,
                 'file_content': base64.b64encode(passport_file_content).decode('utf-8'),
                 'content_type': passport_content_type
