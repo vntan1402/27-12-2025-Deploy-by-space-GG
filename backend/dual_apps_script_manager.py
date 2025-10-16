@@ -851,12 +851,12 @@ class DualAppsScriptManager:
                 base_name = passport_filename.rsplit('.', 1)[0]
                 summary_filename = f"{base_name}_Summary.txt"
                 
-                logger.info(f"📋 Uploading passport summary file: SUMMARY/Crew records/{summary_filename}")
+                logger.info(f"📋 Uploading passport summary file: SUMMARY/Crew Records/{summary_filename}")
                 summary_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
                     'ship_name': 'SUMMARY',
-                    'category': 'Crew records',
+                    'category': 'Crew Records',
                     'filename': summary_filename,
                     'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                     'content_type': 'text/plain'
