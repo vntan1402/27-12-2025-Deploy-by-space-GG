@@ -5957,7 +5957,47 @@ const HomePage = () => {
       );
 
       if (response.data) {
-        console.log('✅ Crew certificate created successfully:', response.data);
+        const certId = response.data.id;
+        console.log('✅ Crew certificate created successfully:', certId);
+        
+        // ✅ Upload files to Drive AFTER successful certificate creation
+        if (certAnalysis?.analysis?._file_content) {
+          console.log(`📤 Uploading files to Drive for certificate ${certId}...`);
+          
+          try {
+            const uploadResponse = await axios.post(
+              `${API}/crew-certificates/${certId}/upload-files`,
+              {
+                file_content: certAnalysis.analysis._file_content,
+                filename: certAnalysis.analysis._filename,
+                content_type: certAnalysis.analysis._content_type,
+                summary_text: certAnalysis.analysis._summary_text
+              },
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+            
+            if (uploadResponse.data && uploadResponse.data.success) {
+              console.log(`✅ Files uploaded successfully to Drive`);
+              console.log(`   📎 Certificate File ID: ${uploadResponse.data.crew_cert_file_id}`);
+              console.log(`   📋 Summary File ID: ${uploadResponse.data.crew_cert_summary_file_id}`);
+            } else {
+              console.warn(`⚠️ File upload failed but certificate was saved`);
+              toast.warning(language === 'vi' 
+                ? 'Chứng chỉ đã được lưu nhưng không thể upload file lên Drive' 
+                : 'Certificate saved but file upload to Drive failed');
+            }
+          } catch (uploadError) {
+            console.error(`❌ File upload failed (certificate still saved):`, uploadError);
+            toast.warning(language === 'vi' 
+              ? 'Chứng chỉ đã được lưu nhưng không thể upload file lên Drive' 
+              : 'Certificate saved but file upload to Drive failed');
+          }
+        }
         
         toast.success(language === 'vi' 
           ? '✅ Đã thêm chứng chỉ thuyền viên thành công!' 
