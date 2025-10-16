@@ -150,7 +150,7 @@ class TestDataSetup:
                     "note": "Test certificate for DELETE crew validation testing"
                 }
                 
-                cert_response = self.session.post(f"{BACKEND_URL}/crew-certificates", json=cert_data, timeout=30)
+                cert_response = self.session.post(f"{BACKEND_URL}/crew-certificates/manual", json=cert_data, timeout=30)
                 
                 if cert_response.status_code in [200, 201]:
                     cert_result = cert_response.json()
