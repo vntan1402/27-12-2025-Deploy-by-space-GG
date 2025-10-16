@@ -306,9 +306,8 @@ class PassportRefactorTester:
                     return False
                     
             finally:
-                # Clean up test file
-                if os.path.exists(passport_file_path):
-                    os.unlink(passport_file_path)
+                # No cleanup needed for existing files
+                pass
                     
         except Exception as e:
             self.log(f"❌ Error in analyze passport endpoint test: {str(e)}", "ERROR")
