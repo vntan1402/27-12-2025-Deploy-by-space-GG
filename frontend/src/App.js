@@ -5464,11 +5464,14 @@ const HomePage = () => {
         console.log('   📋 Setting new crew data:', newData);
         setNewCrewData(newData);
         
-        // Include file IDs in analysis data for crew creation
+        // ✅ Store analysis with file content for later upload (after crew creation)
         const analysisWithFiles = {
           ...analysis,
-          files: response.data.files, // Include file information with IDs
-          file_ids: analysis.file_ids || {} // Include file IDs if present
+          _file_content: analysis._file_content,  // base64 file content
+          _filename: analysis._filename,
+          _content_type: analysis._content_type,
+          _summary_text: analysis._summary_text,
+          _ship_name: analysis._ship_name
         };
         
         setPassportAnalysis(analysisWithFiles);
