@@ -49,11 +49,27 @@
 ##
 ## test_plan:
   current_focus:
-    - "Crew Certificates Analyze File Endpoint Testing"
+    - "DELETE Crew Validation Logic Testing"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
   test_priority: "high_first"
+
+backend:
+  - task: "DELETE Crew Validation Logic Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implementation of DELETE crew validation logic completed. Added validation to check if crew has certificates before allowing deletion. If crew has certificates, returns 400 Bad Request with Vietnamese error message including crew name and certificate count. If crew has no certificates, allows deletion with 200 OK response."
+        - working: true
+          agent: "testing"
+          comment: "✅ DELETE CREW VALIDATION LOGIC TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE: Comprehensive end-to-end testing of the DELETE crew validation logic completed with excellent results (17/17 tests passed). REVIEW REQUEST REQUIREMENTS FULLY SATISFIED: ✅ TEST CASE 1 - DELETE crew with certificates (should BLOCK): Successfully found crew 'Trần Văn Đức' with 5 certificates ✓, DELETE request properly blocked with 400 Bad Request status ✓, Error response contains correct structure: error='CREW_HAS_CERTIFICATES', Vietnamese message='Thuyền viên \"Trần Văn Đức\" hiện vẫn còn chứng chỉ đang lưu trên hệ thống. Hãy xóa toàn bộ các chứng chỉ trước khi xóa dữ liệu thuyền viên', crew_name='Trần Văn Đức', certificate_count=5 ✓, Crew NOT deleted from database (validation working correctly) ✓. ✅ TEST CASE 2 - DELETE crew without certificates (should ALLOW): Successfully found crew 'HỒ SỸ CHƯƠNG' with no certificates ✓, DELETE request properly allowed with 200 OK status ✓, Success response contains: success=true, message='Crew member deleted successfully (files deleted: passport, summary)' ✓, Crew successfully deleted from database ✓. ✅ VALIDATION LOGIC VERIFICATION: All critical validation requirements met ✓, Database integrity maintained (crew with certs preserved, crew without certs deleted) ✓, Vietnamese error message format matches requirement ✓, Error response structure exactly as specified in review request ✓. ✅ COMPREHENSIVE TESTING RESULTS: Authentication successful with admin1/123456 ✓, Company verification (AMCSC → cd1951d0-223e-4a09-865b-593047ed8c2d) ✓, Both test scenarios executed successfully ✓, Database operations verified (GET before/after DELETE) ✓, Error handling working correctly ✓, Success handling working correctly ✓. CONCLUSION: **DELETE CREW VALIDATION LOGIC IS WORKING PERFECTLY** - The new validation logic successfully blocks deletion of crew members who have certificates and allows deletion of crew members without certificates. All review request requirements met: proper 400/200 status codes, Vietnamese error messages, correct response structure with crew_name and certificate_count, and database integrity maintained. The validation logic is production-ready and provides excellent data protection. SUCCESS RATE: 100% (17/17 tests passed) - All functionality verified and working correctly."
 
 backend:
   - task: "Crew Certificates Issued By Normalization in AI Extraction"
