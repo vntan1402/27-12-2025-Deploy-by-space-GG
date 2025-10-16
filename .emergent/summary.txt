@@ -1,63 +1,108 @@
 <analysis>
-The AI engineer's work in this trajectory significantly enhanced the Ship Management System, focusing on crew record management and file handling. Initial efforts addressed UI/UX issues, ensuring consistent deselection of crew after modal closure. A major undertaking was implementing comprehensive file linking, enabling storage of original and summary file IDs, synchronized deletion, and renaming of files on Google Drive via a new Apps Script. Subsequently, the engineer implemented multiple passport file uploads with batch processing, including auto-fill for English names. Bulk editing features for Place Sign On, Date Sign On, and Date Sign Off were added, integrating into existing context menus and including auto-status updates. UI refinements included text changes, tooltips, and improved category navigation. The engineer also debugged and consolidated Google Apps Scripts, resolving several file management errors, leading to a robust, feature-rich application.
+The AI engineer has focused on enhancing the Crew Certificates and Add New Crew Member From Passport features. Initially, several bugs were addressed: a  during certificate batch processing, incorrect API payload for certificate creation (422 error), and  being passed as . Core functionality was extended with user-driven refinements, including implementing staggered parallel multi-file uploads for both certificates and passports, separating AI analysis from Drive uploads to occur only after successful database entry, and adding comprehensive duplicate checks for certificates. UI improvements include a dedicated results modal for certificates, updated status calculation with a Critical category and corresponding UI colors, and layout adjustments for search and filters. The engineer also fixed a  in ship selection logic and significantly improved passport file validation to prevent Seaman book uploads. The current work involves updating the frontend to complete the staggered parallel upload for passports, ensuring files are uploaded to Drive only after successful crew creation.
 </analysis>
 
 <product_requirements>
-The Ship Management System requires robust maritime certificate and crew record management. The Add Crew From Passport feature needs to support passport uploads, Google Document AI for summarization, Google Drive storage (original and summary files), and structured crew data extraction using System AI (Gemini). Key challenges included date format standardization (DD/MM/YYYY and YYYY-MM-DD), accurate AI field extraction (especially for Vietnamese names), and dynamic Google Drive file management. The user explicitly requested consistent  date formatting for inputs and  for display, refined folder structure, and System AI as the primary extraction method. Recent requests expanded to: specific frontend form layouts (3-row, col-span configurations), dynamic text/icon placement, default values in dropdowns, localized Vietnamese rank names, checkboxes with context menus for Delete Crew, View/Copy/Download Passport, and View/Copy/Download Seamen Book, an Edit Crew modal, auto-refreshing lists after CRUD, and multilingual support (Vietnamese/English) for Full Name and Place of Birth fields in both backend and frontend. Further requirements included auto-filling English fields by de-diacriticizing Vietnamese input, adding Nationality and Passport Expiry Date with AI extraction/auto-fill, uppercase display for Full Name and Place of Birth, a Place Sign On field and column, hover tooltips for nationality and passport expiry, auto-fill logic for Status based on ship sign-on/off dates, and removal of duplicate form fields. Subsequent requests focused on implementing file linking for original and summary files (delete/rename in sync), multi-file passport upload with batch processing, auto-fill for English names in batch, bulk editing for Place Sign On, Date Sign On, and Date Sign Off (with auto-status update), improved category navigation, and displaying Vietnamese full names on hover. The latest request is for bulk automatic file renaming with confirmation.
+The Ship Management System manages crew records, certificates, and passports. The Crew Certificates feature requires:
+1.  **Display**: A table view with dynamic columns (Passport, Rank), status, and contextual actions.
+2.  **UI**: Header with refresh and Add Crew Cert buttons, and an integrated context menu for single/bulk operations (Edit/Delete/View/Download/Copy link, Auto Rename).
+3.  **Data Scope**: Default filter to show only selected crew member's certificates.
+4.  **Add Form**: Form for adding certificates, including Crew Name (Vietnamese/English), Rank, and a dropdown for Certificate Name.
+5.  **File Storage**: Certificates stored in Google Drive.
+6.  **AI Extraction**: AI to extract data from various certificate types with specific priority rules for , improved logic for , and robust normalization for .
+7.  **Pre-fill Logic**: Add Crew Cert modal should pre-fill crew info based on filters or in-modal selection.
+8.  **Multi-file Upload & Auto-save**: Allow selecting multiple files for Add Crew Certificate with sequential upload, 2-second delay, AI analysis, and auto-saving each certificate without manual review. Later refined to parallel staggered upload and upload to Drive only after successful creation.
+9.  **Validation**: Crew selection required before file upload.
+10. **Cleanup**: Clear uploaded file after closing Add Crew Cert modal.
+11. **Multi-file Upload for Passport**: Allow selecting multiple files for Add New Crew Member From Passport with parallel staggered upload, AI analysis, and auto-save.
+12. **Delete File**: Deleting a Crew Cert should also delete the corresponding original and summary files from Google Drive.
+13. **Status Field**: Clarify how the 'Status' field is updated and introduce a 'Critical' status for certificates expiring within 15 days, with specific UI coloring.
+14. **Duplicate Check**: Implement a duplicate check for Crew Certificates based on  and . For single adds, warn but allow override. For multi-uploads, skip duplicates and report in results.
+15. **UI Layout**: In Crew Certificates View, reduce Search field width and arrange it on the same row as Filter.
+16. **Auto-Select Ship**: When double-clicking a crew member in the Company Crew List, the Crew Certificates view should automatically select the ship associated with that crew member's Ship Sign On.
+17. **Passport Validation**: In Add New Crew Member From Passport, validate that uploaded files are actual passports (contain passport fields, no Seaman book keywords). If not a passport, notify user and stop processing.
+18. **Passport File Upload Flow**: Passport and Summary files should only be uploaded to Drive after successfully adding a Crew Member to the database.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
--   **AI Integration**: Google Document AI (summarization), Google Gemini ( for field extraction).
--   **Google Apps Script**: Secure intermediary for Google Drive operations (upload, rename, delete, move, folder structure).
--   **Data Handling**: Base64, JSON, regex, ISO date standardization, UUIDs, Vietnamese diacritic removal.
--   **Frontend UI**: Tailwind CSS, React components, context menus, modals.
+-   **AI Integration**: Google Document AI, Google Gemini (), custom prompt engineering.
+-   **Google Apps Script**: Secure intermediary for Google Drive operations.
+-   **Frontend UI**: React components, state management, context menus, modals, dynamic tables, tooltips.
+-   **Bulk Operations**: Batch processing for UI actions and API calls.
 </key_technical_concepts>
 
 <code_architecture>
 
 
 -   ****
-    -   **Summary:** Serves as the FastAPI backend, handling API endpoints, AI integration, and database operations.
+    -   **Summary:** FastAPI backend, managing API endpoints, AI integration, and database operations for crew certificates and passports.
     -   **Changes:**
-        -    model updated with , , and .
-        -    endpoint modified to save  and .
-        -    endpoint enhanced to delete linked Google Drive files.
-        -    endpoint created and later fixed to correctly fetch Apps Script configuration and validate rename success from Apps Script response.
+        -   **Issued By Normalization**:  is called on  field from AI analysis before returning in .
+        -   **Bulk Delete**:  endpoint accepts DELETE requests. Route order was corrected. Logic now returns  and detailed errors if certificates are not found.
+        -   **Auto Rename**:  uses Apps Script for renaming, including .
+        -   **CrewCertificate Models**: Renamed  to  and  to  in Pydantic models.
+        -   **Database Update**: Fixed  usage from  to .
+        -   **Certificate File Upload Flow**: Modified  to use  (no Drive upload). Added  import. Created  for uploading files to Drive after certificate creation in DB.
+        -   **Delete Drive Files**: Updated  and  to delete both  and  from Google Drive, correcting the source for  and  from  collection.
+        -   **Status Recalculation**:  endpoint now recalculates  if  is updated.
+        -   **Function Name Conflict Fix**: Renamed  for crew certificates to  to avoid conflict with ship certificate status calculation.
+        -   **Timezone Handling Fix**: Modified  to correctly handle offset-naive and offset-aware datetimes.
+        -   **Critical Status**: Updated  to include Critical status for certificates expiring within 15 days.
+        -   **Duplicate Check**: Added  endpoint to check for existing certificates based on  and .
+        -   **Passport File Upload Flow**: Modified  to use  and removed  from initial response, storing  instead. Created  for uploading passport files after crew creation.
+        -   **Passport Raw Summary**: Modified  endpoint to return  in its response for frontend validation.
 
 -   ****
-    -   **Summary:** The main React application file, managing UI components, state, and user interactions.
+    -   **Summary:** Main React application, handling UI, state, and user interactions for crew certificates and passports.
     -   **Changes:**
-        -    added to consistently clear  and .
-        -   UI updated for multiple passport file uploads, including new states, drag & drop support, and progress indicators.
-        -   Batch processing  updated for English name auto-fill using diacritic removal.
-        -   Bulk edit functionalities for , , and  added via modals and integrated into , with auto-status updates for Date Sign Off.
-        -   Vietnamese text for Place Sign On updated to Nơi xuống tàu.
-        -   Category navigation enhanced to preserve selected ship context.
-        -   View Passport, Copy link, Download actions updated to target original passport files.
-        -   Rename Files option renamed to Automatic Rename Files with auto-generated naming logic for original and summary files.
-        -   Tooltip added to Full Name column to display Vietnamese and English names on hover.
-        -   An Automatic Rename Files option was added to the  for bulk operations, with related handler.
+        -   **Bulk Operations UI/Logic**: Added states (, ), handlers for select, delete, open, copy, download. Checkbox column and Select All functionality added. Bulk action buttons integrated into .
+        -   **Auto Rename UI**: Added Auto Rename file option to . Updated  and toast messages.
+        -   **Field Name Updates**: Updated states (), form reset logic, and AI analysis data handling to use  and .
+        -   **Multi-file Upload & Auto-save (Certificates)**: Added states for , . Implemented  and  for sequential upload with delay, AI analysis, and auto-save. File input and drag & drop handlers updated for  files.
+        -   **Bug Fixes**:
+            -   Renamed  related states/handlers to  to resolve conflicts.
+            -    uses .
+            -    passed  for  lookup.
+            -    filtered by .
+            -   **Fix 1**: Corrected payload for  to convert empty strings for  and  to .
+            -   **Fix 2**: Corrected  being passed as  by using  in .
+        -   **Certificate File Upload Flow**: Updated  to call the new  endpoint after successful certificate creation.
+        -   **Certificate Processing Results Modal**: Added a new JSX modal  to display detailed results for multi-file certificate uploads, using  state.
+        -   **Staggered Parallel Upload (Certificates)**: Modified  to use  with  for a 2-second staggered start for each file's processing.
+        -   **Critical Status UI**: Updated  display logic in table to show Critical status with Tailwind's  (orange-like) styling. Added Critical option to filter dropdown.
+        -   **Duplicate Check UI**: Added states (, ). Modified  to call duplicate check endpoint and show warning modal for single file. Modified  to skip duplicates and record status in . Created  and updated  to display duplicate status with specific styling.
+        -   **Duplicate Modal Z-index Fix**: Increased  of  to appear correctly above .
+        -   **Search & Filter Layout**: Refactored layout in Crew Certificates View to place search bar and filters on the same row, adjusting widths and fixing related JSX syntax/indentation errors.
+        -   **Staggered Parallel Upload (Passports)**: Modified  to use  with  for a 1-second staggered start for each file's processing.
+        -   **Add New Crew Member Modal Title**: Displayed For: {selectedShip.name} next to the title, with the For: text styled in black.
+        -   **Auto-Select Ship**: Modified  to find and set  based on  from the  state.
+        -   **Passport Validation**: Implemented  to check for passport-specific keywords and absence of Seaman book in . Integrated this validation into  and . Updated  to display NOT_PASSPORT error. Refined  with more robust keywords.
+        -   **Passport Raw Summary Usage**: Updated  and  to use the  returned by the backend for validation.
 
 -   ****
-    -   **Summary:** Manages interactions with two separate Google Apps Scripts, facilitating various Google Drive operations.
-    -   **Changes:** No direct code changes, but its functions are leveraged by  for file operations.
-
--   ** (New File)**
-    -   **Summary:** This file consolidates all Google Apps Script functionalities, including file upload (passport and generic), file management (rename, move, delete), ship structure creation/deletion, and various debugging utilities. It's the backend's interface to Google Drive.
-    -   **Changes:** Created by merging two previous Apps Script versions to provide a unified, enhanced script.
-
+    -   **Summary**: Handles communication with Google Apps Script for file operations (analysis, upload, delete).
+    -   **Changes**:
+        -   **Certificate Workflow**: Added  method for AI analysis without Drive upload. Added  method for separate Drive upload.
+        -   **Passport Workflow**: Added  method for AI analysis without Drive upload. Added  method for separate Drive upload.
 </code_architecture>
 
 <pending_tasks>
--   Implement the confirmation dialog for the Automatic Rename Files bulk operation.
--   Fix a bug in the  function where  was used instead of .
+-   Update frontend for Passport batch processing to call the new upload endpoint () after crew creation is successful in the database.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was implementing the bulk automatic rename functionality for multiple selected crew members. The user requested to add an Automatic Rename Files option to the existing  (the same one that contains Delete Crew member) and to display a confirmation dialog before proceeding with the rename, mirroring the behavior of the certificate auto-rename feature. The engineer successfully added the Automatic Rename Files option to the  in . A new handler function, , was also created to manage this operation. The current state involves the presence of this new functionality, but the engineer identified an immediate bug within : it incorrectly references  instead of  when processing the selected crew. The next step is to address this specific bug.
+Immediately prior to this summary, the AI engineer was working on refactoring the Passport multi-file upload flow. The user explicitly requested: Tôi muốn file passport và Summary chỉ được upload lên Drive sau khi Add Crew thành công (I want passport and summary files to be uploaded to Drive only after adding a Crew successfully).
+
+To achieve this, the following backend changes were completed:
+1.  ****: New methods  and  were created, mirroring the certificate file flow.
+2.  ****:
+    *   The  endpoint was modified to use  and updated its response to store  (base64 encoded) instead of directly including Google Drive file IDs, as files are not yet uploaded.
+    *   A new API endpoint, , was created. This endpoint is responsible for taking the  and the  and  to upload the passport and its summary to Google Drive, then updating the newly created crew member's record with the respective  and .
+
+The backend has been restarted successfully, and the next step is to update the frontend to complete this new upload workflow.
 </current_work>
 
 <optional_next_step>
-Fix the bug in  where  was used instead of .
+Update  to call the new  endpoint after successful crew creation.
 </optional_next_step>

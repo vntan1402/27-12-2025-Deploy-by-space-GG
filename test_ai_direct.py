@@ -19,12 +19,12 @@ async def test_ai_direct():
     
     # Authenticate and get certificate text
     login_data = {'username': 'admin1', 'password': '123456', 'remember_me': False}
-    response = requests.post('https://crewdocai.preview.emergentagent.com/api/auth/login', json=login_data)
+    response = requests.post('https://smartcrew.preview.emergentagent.com/api/auth/login', json=login_data)
     token = response.json()['access_token']
     headers = {'Authorization': f'Bearer {token}'}
 
     # Get certificate
-    cert_response = requests.get('https://crewdocai.preview.emergentagent.com/api/certificates?ship_id=vesseldocs', headers=headers)
+    cert_response = requests.get('https://smartcrew.preview.emergentagent.com/api/certificates?ship_id=vesseldocs', headers=headers)
     certificates = cert_response.json()
 
     pm242308_cert = None
