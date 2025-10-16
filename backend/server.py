@@ -1075,7 +1075,15 @@ def generate_organization_abbreviation(org_name: str) -> str:
         return ""
     
     # Clean and normalize organization name for matching
-    org_name_upper = org_name.upper().strip()
+    org_name_stripped = org_name.strip()
+    org_name_upper = org_name_stripped.upper()
+    
+    # ✅ NEW: Check if value is already an abbreviation (3-5 uppercase letters)
+    # If user manually entered abbreviation like "PMA", "VMA", "DNV", use it as-is
+    import re
+    if re.match(r'^[A-Z]{3,5}$', org_name_stripped):
+        logger.info(f"✅ Detected manual abbreviation: '{org_name_stripped}' - using as-is")
+        return org_name_stripped
     
     # Exact mappings for well-known maritime organizations (CORRECT ABBREVIATIONS)
     exact_mappings = {
