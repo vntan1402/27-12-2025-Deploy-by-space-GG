@@ -202,16 +202,17 @@ class PassportRefactorTester:
         try:
             self.log("📄 STEP 1: Testing /crew/analyze-passport endpoint...")
             
-            # Create test passport file
-            passport_file_path = self.create_test_passport_file()
+            # Get test passport file
+            passport_file_path = self.get_test_passport_file()
             if not passport_file_path:
                 return False
             
             try:
                 # Prepare multipart form data
+                filename = os.path.basename(passport_file_path)
                 with open(passport_file_path, "rb") as f:
                     files = {
-                        "passport_file": ("test_passport.txt", f, "text/plain")
+                        "passport_file": (filename, f, "application/pdf")
                     }
                     data = {
                         "ship_name": "BROTHER 36"
