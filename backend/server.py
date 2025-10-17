@@ -13382,6 +13382,66 @@ async def analyze_certificate_file_for_crew(
                                     match_type = "Vietnamese" if is_match_vn else "English"
                                     logger.info(f"✅ Certificate holder name matches crew name ({match_type})")
                                     logger.info(f"   All name parts match (order-insensitive)")
+                                
+                                # ============================================================
+                                # VALIDATION 2: Date of Birth Match (if both exist)
+                                # ============================================================
+                                ai_extracted_dob = extracted_fields.get('date_of_birth', '').strip()
+                                
+                                # Only validate DOB if crew has DOB AND AI extracted DOB
+                                if date_of_birth and ai_extracted_dob:
+                                    # Normalize both DOB for comparison (YYYY-MM-DD format)
+                                    try:
+                                        # Parse crew DOB
+                                        if isinstance(date_of_birth, str):
+                                            crew_dob_str = date_of_birth.split('T')[0]  # Handle datetime strings
+                                        elif isinstance(date_of_birth, (datetime, date)):
+                                            crew_dob_str = date_of_birth.strftime('%Y-%m-%d')
+                                        else:
+                                            crew_dob_str = str(date_of_birth)
+                                        
+                                        # Parse AI extracted DOB (should already be YYYY-MM-DD from standardization)
+                                        ai_dob_str = ai_extracted_dob.strip()
+                                        
+                                        logger.info(f"🔍 Date of Birth validation:")
+                                        logger.info(f"   AI extracted DOB: '{ai_dob_str}'")
+                                        logger.info(f"   Crew DOB (from database): '{crew_dob_str}'")
+                                        
+                                        # Check for bypass DOB validation parameter
+                                        bypass_dob_validation = form_data.get('bypass_dob_validation', 'false')
+                                        should_bypass_dob = bypass_dob_validation.lower() == "true"
+                                        
+                                        # Compare DOB
+                                        if ai_dob_str != crew_dob_str:
+                                            logger.warning(f"❌ Date of Birth MISMATCH detected")
+                                            logger.warning(f"   AI extracted: '{ai_dob_str}'")
+                                            logger.warning(f"   Crew data: '{crew_dob_str}'")
+                                            
+                                            if should_bypass_dob:
+                                                logger.warning(f"⚠️ DOB VALIDATION BYPASSED: User chose to continue despite DOB mismatch")
+                                            else:
+                                                raise HTTPException(
+                                                    status_code=400,
+                                                    detail={
+                                                        "error": "DATE_OF_BIRTH_MISMATCH",
+                                                        "message": "Ngày sinh trên chứng chỉ không khớp với dữ liệu thuyền viên",
+                                                        "ai_extracted_dob": ai_dob_str,
+                                                        "crew_dob": crew_dob_str,
+                                                        "crew_name": crew_name
+                                                    }
+                                                )
+                                        else:
+                                            logger.info(f"✅ Date of Birth matches crew data")
+                                    
+                                    except Exception as dob_error:
+                                        logger.error(f"Error validating date of birth: {dob_error}")
+                                        # Continue without DOB validation if parsing fails
+                                        logger.warning("⚠️ Skipping DOB validation due to parsing error")
+                                else:
+                                    if not date_of_birth:
+                                        logger.info(f"⚠️ Skipping DOB validation: Crew has no date of birth in database")
+                                    elif not ai_extracted_dob:
+                                        logger.info(f"⚠️ Skipping DOB validation: AI did not extract date of birth from certificate")
                         else:
                             logger.warning("⚠️ Certificate field extraction returned empty result")
                         
