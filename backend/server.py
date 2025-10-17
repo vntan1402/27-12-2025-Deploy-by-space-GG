@@ -13433,6 +13433,9 @@ async def analyze_certificate_file_for_crew(
                                         else:
                                             logger.info(f"✅ Date of Birth matches crew data")
                                     
+                                    except HTTPException:
+                                        # Re-raise HTTP exceptions (validation errors) to propagate to client
+                                        raise
                                     except Exception as dob_error:
                                         logger.error(f"Error validating date of birth: {dob_error}")
                                         logger.error(f"Error traceback: {traceback.format_exc()}")
