@@ -14275,6 +14275,7 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 {{
   "cert_name": "",
   "cert_no": "",
+  "holder_name": "",
   "issued_by": "",
   "issued_date": "",
   "expiry_date": "",
@@ -14285,6 +14286,7 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 {{
   "cert_name": "Certificate of Competency (COC) - Endorsement",
   "cert_no": "P0196554A",
+  "holder_name": "HO SY CHUONG",
   "issued_by": "Panama Maritime Authority",
   "issued_date": "2025-01-15",
   "expiry_date": "2028-02-27",
