@@ -5931,7 +5931,7 @@ const HomePage = () => {
     }
 
     // Validation
-    if (!newCrewCertificate.crew_name || !newCrewCertificate.passport || !newCrewCertificate.cert_name || !newCrewCertificate.cert_no) {
+    if (!newCrewCertificate.crew_name || !newCrewCertificate.passport || !newCrewCertificate.date_of_birth || !newCrewCertificate.cert_name || !newCrewCertificate.cert_no) {
       toast.error(language === 'vi' 
         ? 'Vui lòng điền đầy đủ thông tin bắt buộc' 
         : 'Please fill in all required fields'
