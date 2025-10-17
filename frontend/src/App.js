@@ -6464,6 +6464,161 @@ const HomePage = () => {
     }
   };
 
+  // Handle Date of Birth mismatch modal - Skip button
+  const handleDobMismatchSkip = () => {
+    console.log('🚫 User chose to skip certificate upload due to DOB mismatch');
+    
+    // Close modal
+    setCertDobMismatchModal({
+      show: false,
+      aiExtractedDob: '',
+      crewDob: '',
+      crewName: '',
+      file: null,
+      analysisWithFiles: null
+    });
+    
+    // Reset file input
+    handleResetCertFile();
+    
+    toast.info(language === 'vi' 
+      ? 'Đã hủy upload chứng chỉ' 
+      : 'Certificate upload cancelled'
+    );
+  };
+  
+  // Handle Date of Birth mismatch modal - Continue button (bypass DOB validation)
+  const handleDobMismatchContinue = async () => {
+    const { file } = certDobMismatchModal;
+    
+    console.log('⚠️ User chose to continue despite DOB mismatch - bypassing DOB validation');
+    
+    // Close modal first
+    setCertDobMismatchModal({
+      show: false,
+      aiExtractedDob: '',
+      crewDob: '',
+      crewName: '',
+      file: null,
+      analysisWithFiles: null
+    });
+    
+    if (!file) {
+      toast.error(language === 'vi' ? 'Không tìm thấy file' : 'File not found');
+      return;
+    }
+    
+    try {
+      setIsAnalyzingCert(true);
+      setCertError('');
+      
+      if (!token) {
+        throw new Error(language === 'vi' ? 'Không tìm thấy token xác thực' : 'Authentication token not found');
+      }
+
+      // Get ship ID with validation
+      const shipId = selectedShip?.id || currentShipInfo?.id;
+      if (!shipId) {
+        throw new Error(language === 'vi' 
+          ? 'Không tìm thấy thông tin tàu. Vui lòng quay lại và chọn tàu.' 
+          : 'Ship information not found. Please go back and select a ship.'
+        );
+      }
+
+      const formData = new FormData();
+      formData.append('cert_file', file);
+      formData.append('ship_id', shipId);
+      formData.append('bypass_validation', 'true'); // Bypass holder name validation (already passed)
+      formData.append('bypass_dob_validation', 'true'); // ✅ KEY: Bypass DOB validation
+      
+      console.log('✅ Retrying with bypass_dob_validation=true');
+      
+      // Add crew_id if available
+      if (selectedCrewForCert) {
+        formData.append('crew_id', selectedCrewForCert.id);
+        console.log('✅ Crew ID:', selectedCrewForCert.id);
+      } else if (newCrewCertificate.crew_id) {
+        formData.append('crew_id', newCrewCertificate.crew_id);
+        console.log('✅ Crew ID (from form):', newCrewCertificate.crew_id);
+      }
+
+      const response = await axios.post(
+        `${API}/crew-certificates/analyze-file`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data && response.data.success) {
+        console.log('✅ Certificate analysis completed (DOB validation bypassed):', response.data);
+        
+        const analysis = response.data.analysis || {};
+        
+        // Store analysis with FILE CONTENT for later upload
+        const analysisWithFiles = {
+          ...response.data,
+          analysis: {
+            ...analysis,
+            _file_content: analysis._file_content,
+            _filename: analysis._filename,
+            _content_type: analysis._content_type,
+            _summary_text: analysis._summary_text,
+            _ship_name: analysis._ship_name
+          }
+        };
+        
+        // Pre-fill form with AI extracted data
+        setNewCrewCertificate(prev => ({
+          ...prev,
+          crew_name: response.data.crew_name || prev.crew_name,
+          crew_name_en: response.data.crew_name_en || prev.crew_name_en || '',
+          passport: response.data.passport || prev.passport,
+          rank: response.data.rank || prev.rank || '',
+          date_of_birth: response.data.date_of_birth || prev.date_of_birth || '',
+          cert_name: analysis.cert_name || '',
+          cert_no: analysis.cert_no || '',
+          issued_by: analysis.issued_by || '',
+          issued_date: analysis.issued_date || '',
+          expiry_date: analysis.expiry_date || '',
+          note: analysis.note || ''
+        }));
+        
+        // Set certificate analysis for later upload
+        setCertAnalysis(analysisWithFiles);
+        
+        // Open the Add Crew Certificate modal
+        setShowAddCrewCertModal(true);
+        
+        toast.success(language === 'vi' 
+          ? 'File đã được phân tích (đã bỏ qua kiểm tra ngày sinh)' 
+          : 'File analyzed successfully (DOB validation bypassed)'
+        );
+      } else {
+        throw new Error('Invalid response from server');
+      }
+
+    } catch (error) {
+      console.error('❌ Error analyzing certificate after DOB bypass:', error);
+      
+      const errorMsg = error.response?.data?.detail?.message || error.response?.data?.detail || error.message;
+      setCertError(language === 'vi' 
+        ? `Lỗi phân tích file: ${errorMsg}` 
+        : `Error analyzing file: ${errorMsg}`
+      );
+      
+      toast.error(language === 'vi' 
+        ? `Không thể phân tích file: ${errorMsg}` 
+        : `Cannot analyze file: ${errorMsg}`
+      );
+    } finally {
+      setIsAnalyzingCert(false);
+    }
+  };
+
   // Handle file upload area click with crew selection validation
   const handleCertFileAreaClick = () => {
     // Check if crew is selected (use updated validation logic)
