@@ -6203,22 +6203,19 @@ const HomePage = () => {
         const errorData = error.response.data.detail;
         const holderName = errorData.holder_name || 'Unknown';
         const crewName = errorData.crew_name || 'Unknown';
+        const crewNameEn = errorData.crew_name_en || '';
         
         console.warn(`⚠️ Certificate holder mismatch: ${holderName} vs ${crewName}`);
         
-        // Show detailed error message
-        const detailedMessage = language === 'vi'
-          ? `Chứng chỉ không phải của thuyền viên đang chọn, vui lòng kiểm tra lại\n\n` +
-            `Tên trên chứng chỉ: "${holderName}"\n` +
-            `Thuyền viên đang chọn: "${crewName}"`
-          : `Certificate does not belong to selected crew member\n\n` +
-            `Name on certificate: "${holderName}"\n` +
-            `Selected crew: "${crewName}"`;
+        // Show confirmation modal instead of alert
+        setCertHolderMismatchModal({
+          show: true,
+          holderName: holderName,
+          crewName: crewName,
+          crewNameEn: crewNameEn,
+          file: file
+        });
         
-        alert(detailedMessage);
-        
-        // Reset file input
-        handleResetCertFile();
         return;
       }
       
