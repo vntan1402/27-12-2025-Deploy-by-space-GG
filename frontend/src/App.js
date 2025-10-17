@@ -6195,7 +6195,7 @@ const HomePage = () => {
         const holderName = errorData.holder_name || 'Unknown';
         const crewName = errorData.crew_name || 'Unknown';
         
-        logger.warning(`⚠️ Certificate holder mismatch: ${holderName} vs ${crewName}`);
+        console.warn(`⚠️ Certificate holder mismatch: ${holderName} vs ${crewName}`);
         
         // Show detailed error message
         const detailedMessage = language === 'vi'
