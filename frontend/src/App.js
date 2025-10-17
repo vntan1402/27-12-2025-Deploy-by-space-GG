@@ -6360,6 +6360,11 @@ const HomePage = () => {
         
         const analysis = response.data.analysis || {};
         
+        console.log('🔍 Debug file content in analysis:');
+        console.log('   - _file_content exists:', !!analysis._file_content);
+        console.log('   - _filename:', analysis._filename);
+        console.log('   - _content_type:', analysis._content_type);
+        
         // Store analysis with FILE CONTENT for later upload
         const analysisWithFiles = {
           ...response.data,
@@ -6372,6 +6377,8 @@ const HomePage = () => {
             _ship_name: analysis._ship_name
           }
         };
+        
+        console.log('🔍 certAnalysis being set with file content:', !!analysisWithFiles.analysis._file_content);
         
         // Pre-fill form with AI extracted data
         setNewCrewCertificate(prev => ({
