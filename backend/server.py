@@ -14402,7 +14402,7 @@ def standardize_certificate_dates(data: dict) -> dict:
     """
     Standardize date formats in certificate data to YYYY-MM-DD
     """
-    date_fields = ['issued_date', 'expiry_date']
+    date_fields = ['issued_date', 'expiry_date', 'date_of_birth']
     
     for field in date_fields:
         if field in data and data[field]:
