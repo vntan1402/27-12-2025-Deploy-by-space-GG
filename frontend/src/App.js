@@ -7029,6 +7029,10 @@ const HomePage = () => {
       
       // Dismiss loading toast
       toast.dismiss(toastId);
+      
+      // Refresh again after successful delete to ensure data consistency
+      console.log('🔄 Refreshing crew certificates list after bulk delete...');
+      await fetchCrewCertificates(null);
 
       // Check if partial success (some deleted, some failed)
       if (response.data.partial_success) {
