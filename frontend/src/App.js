@@ -1055,6 +1055,16 @@ const HomePage = () => {
     file: null
   });
 
+  // Date of Birth Mismatch Modal State
+  const [certDobMismatchModal, setCertDobMismatchModal] = useState({
+    show: false,
+    aiExtractedDob: '',
+    crewDob: '',
+    crewName: '',
+    file: null,
+    analysisWithFiles: null  // Store analysis result with files for continuation
+  });
+
   // Edit Crew Certificate Modal States
   const [showEditCrewCertModal, setShowEditCrewCertModal] = useState(false);
   const [editingCrewCert, setEditingCrewCert] = useState(null);
