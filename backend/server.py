@@ -13290,54 +13290,70 @@ async def analyze_certificate_file_for_crew(
                             
                             if crew_id and holder_name:
                                 # Normalize names for comparison (remove spaces, convert to uppercase)
-                                def normalize_name(name):
+                                def normalize_name_basic(name):
                                     """
-                                    Normalize name for comparison: uppercase, no spaces, no special chars
-                                    Handles Vietnamese special characters properly
+                                    Basic normalization: remove diacritics, uppercase, keep spaces
+                                    Used for splitting into name parts
                                     """
                                     import unicodedata
-                                    import re
                                     
-                                    # Manual mapping for Vietnamese special characters that don't normalize well
+                                    # Manual mapping for Vietnamese special characters
                                     vietnamese_char_map = {
                                         'Đ': 'D', 'đ': 'd',
-                                        'Ð': 'D', 'ð': 'd',  # Alternative Đ forms
+                                        'Ð': 'D', 'ð': 'd',
                                     }
                                     
-                                    # Replace special Vietnamese characters first
                                     for vn_char, replacement in vietnamese_char_map.items():
                                         name = name.replace(vn_char, replacement)
                                     
-                                    # Remove diacritics (accents) from remaining characters
-                                    # NFD = Canonical Decomposition (separates base char from diacritics)
+                                    # Remove diacritics
                                     name = ''.join(c for c in unicodedata.normalize('NFD', name) 
                                                    if unicodedata.category(c) != 'Mn')
                                     
-                                    # Convert to uppercase
-                                    name = name.upper()
-                                    
-                                    # Remove all spaces and special characters, keep only A-Z and 0-9
-                                    name = re.sub(r'[^A-Z0-9]', '', name)
-                                    
-                                    return name
+                                    return name.upper().strip()
                                 
-                                normalized_holder = normalize_name(holder_name)
-                                normalized_crew = normalize_name(crew_name)
-                                normalized_crew_en = normalize_name(crew_name_en) if crew_name_en else ""
+                                def normalize_name_parts(name):
+                                    """
+                                    Normalize name into sorted parts for permutation-insensitive matching
+                                    Example: "HO SY CHUONG" → ["CHUONG", "HO", "SY"] (sorted)
+                                    """
+                                    import re
+                                    
+                                    # Get basic normalized name (uppercase, no diacritics, with spaces)
+                                    normalized = normalize_name_basic(name)
+                                    
+                                    # Split into parts and remove empty strings
+                                    parts = [part for part in re.split(r'\s+', normalized) if part]
+                                    
+                                    # Sort parts alphabetically for order-insensitive comparison
+                                    # This allows "HO SY CHUONG" to match "CHUONG SY HO"
+                                    sorted_parts = sorted(parts)
+                                    
+                                    return sorted_parts
                                 
-                                logger.info(f"🔍 Name matching validation:")
-                                logger.info(f"   Holder name (from cert): '{holder_name}' → normalized: '{normalized_holder}'")
-                                logger.info(f"   Crew name (Vietnamese): '{crew_name}' → normalized: '{normalized_crew}'")
+                                # Get sorted name parts
+                                holder_parts = normalize_name_parts(holder_name)
+                                crew_parts = normalize_name_parts(crew_name)
+                                crew_parts_en = normalize_name_parts(crew_name_en) if crew_name_en else []
+                                
+                                logger.info(f"🔍 Name matching validation (permutation-insensitive):")
+                                logger.info(f"   Holder name (from cert): '{holder_name}' → parts: {holder_parts}")
+                                logger.info(f"   Crew name (Vietnamese): '{crew_name}' → parts: {crew_parts}")
                                 if crew_name_en:
-                                    logger.info(f"   Crew name (English): '{crew_name_en}' → normalized: '{normalized_crew_en}'")
+                                    logger.info(f"   Crew name (English): '{crew_name_en}' → parts: {crew_parts_en}")
                                 
                                 # Check if holder matches either Vietnamese or English crew name
-                                is_match = (normalized_holder == normalized_crew) or (normalized_crew_en and normalized_holder == normalized_crew_en)
+                                # Match if all parts are present (order doesn't matter)
+                                is_match_vn = (holder_parts == crew_parts)
+                                is_match_en = (crew_parts_en and holder_parts == crew_parts_en)
+                                is_match = is_match_vn or is_match_en
                                 
                                 if not is_match:
                                     logger.warning(f"❌ Certificate holder name does NOT match crew name")
-                                    logger.warning(f"   Certificate holder: '{holder_name}'")
-                                    logger.warning(f"   Selected crew: '{crew_name}' / '{crew_name_en}'")
+                                    logger.warning(f"   Certificate holder: '{holder_name}' → {holder_parts}")
+                                    logger.warning(f"   Selected crew (VN): '{crew_name}' → {crew_parts}")
+                                    if crew_name_en:
+                                        logger.warning(f"   Selected crew (EN): '{crew_name_en}' → {crew_parts_en}")
                                     
                                     raise HTTPException(
                                         status_code=400,
@@ -13350,7 +13366,9 @@ async def analyze_certificate_file_for_crew(
                                         }
                                     )
                                 else:
-                                    logger.info(f"✅ Certificate holder name matches crew name")
+                                    match_type = "Vietnamese" if is_match_vn else "English"
+                                    logger.info(f"✅ Certificate holder name matches crew name ({match_type})")
+                                    logger.info(f"   All name parts match (order-insensitive)")
                         else:
                             logger.warning("⚠️ Certificate field extraction returned empty result")
                         
