@@ -1,53 +1,58 @@
 <analysis>
-The previous AI engineer meticulously addressed several critical issues and feature requests within the Ship Management System. Key accomplishments include resolving the Passport multi-file upload failure by correcting an outdated Google Apps Script URL configuration and fixing backend priority logic. A new validation was implemented to prevent crew deletion if associated certificates exist. For certificate uploads, the AI's  extraction was debugged, leading to the identification of the correct prompt function, its schema update, and a critical fix for  swallowing. Frontend  calls were also rectified. Additionally, Vietnamese character normalization ( to ), permutation-insensitive name matching, and a flexible Issued By normalization logic (allowing PANAMA to normalize to Panama Maritime Authority) were successfully implemented and tested on the backend. The engineer exhibited strong diagnostic and problem-solving skills throughout the trajectory.
+The AI engineer's work primarily focused on refining the Ship Management System's certificate and crew management features. Key accomplishments include implementing a Skip/Continue functionality for the Certificate Holder Name Mismatch validation, allowing users to override the mismatch. A significant feature addition was integrating the Date of Birth field into crew certificates, including backend model updates, frontend form integration (add/edit), pre-fill logic from crew data, and ensuring its persistence in the database. Numerous debugging cycles were involved, resolving issues such as missing backend imports (Fri Oct 17 13:28:17 UTC 2025), incorrect data propagation during pre-filling, and fixing an Authentication token not found error by correctly using frontend state. The engineer demonstrated strong diagnostic and iterative problem-solving, ensuring data integrity and a smoother user experience, particularly for file uploads and data display.
 </analysis>
 
 <product_requirements>
-The Ship Management System manages crew records, certificates, and passports. Key features include multi-file staggered parallel upload with AI analysis for both certificates and passports, duplicate checks, and a Critical status for expiring certificates. The Issued By field now features robust normalization and abbreviation, prioritizing abbreviations in display. For passports, documents are validated (e.g., not Seaman book), and file uploads occur *after* successful database entry. Consistent file storage is maintained in Google Drive under  and . New validations include blocking crew deletion if associated certificates exist and ensuring AI-extracted certificate  matches the selected crew member's name, regardless of word order or Vietnamese diacritics. UI supports search/filters and ship auto-selection.
+The Ship Management System tracks crew records, certificates, and passports. It supports multi-file, staggered parallel uploads with AI analysis, duplicate checks, and highlights Critical expiring certificates. Issued By fields are normalized and abbreviated. For passports, documents are validated, and uploads occur post-database entry. File storage is consistent in Google Drive. New validations prevent crew deletion if certificates exist and ensure AI-extracted  matches the crew member's name, irrespective of word order or Vietnamese diacritics. The UI features search/filters and ship auto-selection. Recently, the system was enhanced to allow bypassing the Certificate Holder Name Mismatch validation with Skip/Continue options. A Date of Birth field was added to crew certificates, pre-filling from crew data (like Passport and Rank) and persisted to the database, supporting both manual entry and AI extraction.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
-- **AI Integration**: Google Document AI for data extraction, custom prompt engineering (Gemini/GPT).
-- **Google Apps Script**: Intermediary for Google Drive file operations and folder management.
-- **Asynchronous Processing**: Staggered parallel file uploads.
-- **Data Normalization**: Standardizing Issued By fields and crew names (including Vietnamese characters).
+-   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
+-   **AI Integration**: Google Document AI for data extraction, custom prompt engineering (Gemini/GPT).
+-   **Google Apps Script**: Intermediary for Google Drive file operations.
+-   **Data Normalization**: Standardizing Issued By fields and crew names (including Vietnamese characters).
+-   **Asynchronous Processing**: Staggered parallel file uploads.
 </key_technical_concepts>
 
 <code_architecture>
 
-- ****
-    - **Summary:** FastAPI backend, managing API endpoints, AI integration, and database operations.
-    - **Changes:**
-        - **Issued By Normalization**: Modified  to remove the strict length comparison () when matching variations, allowing shorter inputs (e.g., PANAMA) to normalize to their full forms (e.g., Panama Maritime Authority).
-        - **Certificate File Upload Flow**:  endpoint was updated to explicitly re-raise  for validation errors (e.g., ), preventing them from being swallowed by a broader  block and ensuring correct error responses to the frontend.
-        - **Delete Crew Validation**: The  endpoint was modified to check for existing  associated with the crew member. If found, it returns a 400 Bad Request with a specific Vietnamese error message, blocking deletion until certificates are removed.
-        - **Holder Name Extraction**: The prompt for  was updated to explicitly request and prioritize extraction of  from structured text, and to avoid including Machine Readable Zone (MRZ) artifacts in the extracted name.
-        - **Name Normalization**: The  function was improved to correctly handle Vietnamese 'Đ' characters by replacing them with 'D' during normalization.
-        - **Name Matching**: A permutation-insensitive logic was implemented within the  and comparison functions to allow  to match  even if the order of given names and surnames differs.
-- ****
-    - **Summary:** Main React application, handling UI, state, and user interactions.
-    - **Changes:**
-        - **Delete Crew UI**:  was updated to correctly handle the 400 Bad Request error returned by the backend when a crew member has associated certificates, displaying the appropriate modal.
-        - **Certificate Holder Name Validation UI**: Error handling for  responses was updated to specifically display an alert for . A runtime error  was fixed by replacing  with .
-        - **Ship List Display**: The  function was modified to correctly filter ships by comparing  (a UUID from the backend) with  (the user's company UUID), resolving an issue where the ship list was empty due to incorrect comparison logic.
-- ****
-    - **Summary**: Handles communication with Google Apps Script for file operations.
-    - **Changes**: The  method was updated to prioritize fetching the  field over  from the  collection in MongoDB. This change fixed the issue where the backend was using an outdated Google Apps Script URL, causing file upload failures.
-- ****
-    - **Summary**: Google Apps Script for handling file uploads, folder creation, and AI analysis integration with Google Drive.
-    - **Changes**: While no direct edits were made to this file in the trajectory, its  version was confirmed to be correctly handling the file upload and folder creation logic (, ) when called with the correct URL. The AI prompt for certificate data extraction (which this script interfaces with) was implicitly refined via changes in  to ensure accurate  extraction.
+-   ****
+    -   **Summary:** FastAPI backend, managing API endpoints, AI integration, and database operations.
+    -   **Changes:**
+        -   **Issued By Normalization**:  updated for flexible matching.
+        -   **Certificate Holder Mismatch Bypass**:  endpoint now accepts  parameter to skip holder name validation.
+        -   **Delete Crew Validation**: Checks for associated  before deletion.
+        -   **Holder Name Extraction**: Prompt for  refined for .
+        -   **Name Normalization**:  handles Vietnamese 'Đ' characters.
+        -   **Name Matching**: Permutation-insensitive logic for  vs. .
+        -   **Date of Birth Field**:  added to  and  models.
+        -   **Date of Birth Pre-fill**:  endpoint modified to return  and  in its response.
+        -   **Date of Birth Persistence**: Fri Oct 17 13:28:18 UTC 2025 imported from .  and  (PUT) endpoints updated to parse and save  to MongoDB, handling both string and datetime object formats.
+-   ****
+    -   **Summary:** Main React application, handling UI, state, and user interactions.
+    -   **Changes:**
+        -   **Delete Crew UI**: Handles 400 Bad Request for crew deletion.
+        -   **Certificate Holder Name Validation UI**: Fixed  calls. Implemented a new  state, and modified  to show this modal with Skip/Continue options for . Added  to resubmit with .
+        -   **Ship List Display**: Corrected filtering logic for .
+        -   **Date of Birth Field**: Added  to  and  states. Added Date of Birth input field to Add Crew Certificate and Edit Crew Certificate modals. Implemented pre-fill logic for  in , , , and  (including fetching from  for older certs). Added validation for  in .
+        -   **Authentication Fix**:  was updated to use the  state variable instead of .
+        -   **File Upload Debugging**: Added console logs to debug file content propagation after Continue click in the mismatch modal.
+-   ****
+    -   **Summary**: Handles communication with Google Apps Script for file operations.
+    -   **Changes**:  updated to prioritize  for Google Apps Script URL.
+-   ****
+    -   **Summary**: Google Apps Script for file uploads and AI analysis.
+    -   **Changes**: No direct edits, but its functionality relies on correct backend configuration and AI prompts.
 </code_architecture>
 
 <pending_tasks>
-- Ask the user to manually test the updated Issued By normalization logic on the frontend, specifically verifying that short inputs like PANAMA normalize correctly to Panama Maritime Authority.
-- User was asked to test the frontend UI for the Certificate holder name mismatch validation to verify the alert message displays correctly.
+-   Ask the user to manually test the updated Issued By normalization logic on the frontend, specifically verifying that short inputs like PANAMA normalize correctly to Panama Maritime Authority.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary request, the AI engineer was finalizing the Issued By field's normalization logic. This involved modifying the  function in  to remove a strict length comparison. Previously, a substring match for Issued By would only occur if the extracted  string was strictly longer than the matched variation. The user explicitly requested to remove this rule so that shorter inputs, such as PANAMA, would correctly normalize to Panama Maritime Authority. The engineer implemented this change and conducted internal backend tests () to confirm that the flexible matching now works as intended for various examples (PANAMA, VIETNAM, etc.) and that no conflicts were introduced in the maritime authorities dictionary. Although an end-to-end frontend test was intended, it was interrupted by a missing file, with the backend functionality confirmed. This work builds upon a series of significant fixes including the correct configuration of the Google Apps Script URL, implementation of validation for crew deletion, and multiple improvements to certificate AI extraction and name matching logic.
+Immediately prior to this summary, the AI engineer was working on ensuring that file uploads occur correctly after a user clicks Continue in the Certificate Holder Mismatch modal. The user had reported that while the crew certificate record was created, the original and summary files were not being uploaded to Google Drive. The AI engineer identified that the backend's  endpoint only handled database storage, not file uploads to Drive. It was confirmed that the frontend's  function already contained logic to call the  endpoint, which is responsible for file uploads. The issue was traced to potential data propagation problems where the  might not have been correctly preserved or passed after the Continue action. Debugging logs were added to  and  in  to inspect the  value. After these debugging steps, the user confirmed that File đã upload thành công. This indicates the data flow issue was resolved, likely due to correct preservation of  (including ) when the  action triggers .
 </current_work>
 
 <optional_next_step>
-Ask the user to manually test the updated Issued By normalization logic on the frontend.
+Ask the user to manually test the Issued By normalization logic on the frontend to confirm functionality.
 </optional_next_step>

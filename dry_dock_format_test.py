@@ -14,7 +14,7 @@ import time
 import traceback
 
 # Configuration - Use external URL from frontend/.env
-BACKEND_URL = "https://shipmate-64.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipmatrix.preview.emergentagent.com/api"
 
 class DryDockFormatTester:
     def __init__(self):

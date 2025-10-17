@@ -12,7 +12,7 @@ from datetime import datetime
 import traceback
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipmate-64.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipmatrix.preview.emergentagent.com') + '/api'
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 
