@@ -6506,7 +6506,7 @@ const HomePage = () => {
     });
   };
 
-  const handleEditCrewCertificate = (cert) => {
+  const handleEditCrewCertificate = async (cert) => {
     console.log('✏️ Editing crew certificate:', cert);
     
     // Close context menu
@@ -6515,6 +6515,23 @@ const HomePage = () => {
     // Set editing cert
     setEditingCrewCert(cert);
     
+    // If date_of_birth is missing from certificate, try to fetch from crew member
+    let dateOfBirth = cert.date_of_birth ? cert.date_of_birth.split('T')[0] : '';
+    
+    if (!dateOfBirth && cert.crew_id) {
+      console.log('⚠️ date_of_birth missing in certificate, fetching from crew member...');
+      try {
+        // Find crew member in crewList to get date_of_birth
+        const crewMember = crewList.find(c => c.id === cert.crew_id);
+        if (crewMember && crewMember.date_of_birth) {
+          dateOfBirth = crewMember.date_of_birth.split('T')[0];
+          console.log('✅ Found date_of_birth from crew member:', dateOfBirth);
+        }
+      } catch (error) {
+        console.warn('Could not fetch date_of_birth from crew member:', error);
+      }
+    }
+    
     // Pre-fill form with certificate data
     setEditCrewCertData({
       crew_id: cert.crew_id || '',
@@ -6522,7 +6539,7 @@ const HomePage = () => {
       crew_name_en: cert.crew_name_en || '',
       passport: cert.passport || '',
       rank: cert.rank || '',
-      date_of_birth: cert.date_of_birth ? cert.date_of_birth.split('T')[0] : '',
+      date_of_birth: dateOfBirth,
       cert_name: cert.cert_name || '',
       cert_no: cert.cert_no || '',
       issued_by: cert.issued_by || '',
