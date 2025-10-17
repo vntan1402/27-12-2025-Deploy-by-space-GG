@@ -6314,7 +6314,6 @@ const HomePage = () => {
       setIsAnalyzingCert(true);
       setCertError('');
       
-      const token = localStorage.getItem('token');
       if (!token) {
         throw new Error(language === 'vi' ? 'Không tìm thấy token xác thực' : 'Authentication token not found');
       }
