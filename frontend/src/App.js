@@ -5833,7 +5833,8 @@ const HomePage = () => {
         crew_name: selectedCrew.full_name,
         crew_name_en: selectedCrew.full_name_en || '',
         passport: selectedCrew.passport,
-        rank: selectedCrew.rank || ''
+        rank: selectedCrew.rank || '',
+        date_of_birth: selectedCrew.date_of_birth ? selectedCrew.date_of_birth.split('T')[0] : ''
       }));
     } else {
       console.log('⚠️ Crew not found');
