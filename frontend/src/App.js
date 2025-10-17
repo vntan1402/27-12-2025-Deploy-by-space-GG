@@ -1044,6 +1044,15 @@ const HomePage = () => {
   const [isAnalyzingCert, setIsAnalyzingCert] = useState(false);
   const [certAnalysis, setCertAnalysis] = useState(null);
   const [certError, setCertError] = useState('');
+  
+  // Certificate Holder Mismatch Modal State
+  const [certHolderMismatchModal, setCertHolderMismatchModal] = useState({
+    show: false,
+    holderName: '',
+    crewName: '',
+    crewNameEn: '',
+    file: null
+  });
 
   // Edit Crew Certificate Modal States
   const [showEditCrewCertModal, setShowEditCrewCertModal] = useState(false);
