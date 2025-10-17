@@ -14359,6 +14359,7 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   "cert_name": "",
   "cert_no": "",
   "holder_name": "",
+  "date_of_birth": "",
   "issued_by": "",
   "issued_date": "",
   "expiry_date": "",
