@@ -10593,7 +10593,8 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
     """
     try:
         logger.info(f"🤖 Starting {document_type.upper()} field extraction from summary")
-        logger.info(f"   Summary length: {len(summary_text)} characters")
+        logger.info(f"📏 Summary length: {len(summary_text)} characters")
+        logger.info(f"📝 Summary preview (first 500 chars): {summary_text[:500]}...")
         logger.info(f"   AI Provider: {ai_provider}")
         logger.info(f"   AI Model: {ai_model}")
         
