@@ -14230,7 +14230,7 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   * Example: "CT-585651/24 - HCV" → Extract: "CT-585651/24 - HCV"
 - BLACKLIST - NEVER use these as cert_no:
   * "Seafarers ID" or "ID Number" (personal identification numbers)
-    * Numbers preceded by personal ID keywords only
+  * Numbers preceded by personal ID keywords only
 - IMPORTANT: Numbers after "Endorsement No.", "Document No.", "Certificate No." ARE VALID even if purely numeric
 - Example: "Seaman's Book P0196554A" → Extract: "P0196554A"
 - Example: "Endorsement No. 206129551" → Extract: "206129551" (VALID numeric endorsement)
