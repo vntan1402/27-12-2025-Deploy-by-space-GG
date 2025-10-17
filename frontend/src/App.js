@@ -6987,13 +6987,27 @@ const HomePage = () => {
     
     if (!confirmed) return;
     
+    const certCount = selectedCrewCertificates.size;
+    
+    // Show immediate processing toast
+    const toastId = toast.loading(language === 'vi' 
+      ? `🗑️ Đang xóa ${certCount} chứng chỉ và files...` 
+      : `🗑️ Deleting ${certCount} certificate(s) and files...`
+    );
+    
+    // Clear selection immediately
+    setSelectedCrewCertificates(new Set());
+    
+    // Refresh list immediately for better UX (optimistic update)
+    const refreshPromise = fetchCrewCertificates(null);
+    
     try {
       const certIds = Array.from(selectedCrewCertificates);
-      console.log(`🗑️ Bulk deleting ${selectedCrewCertificates.size} certificates`);
+      console.log(`🗑️ Bulk deleting ${certCount} certificates`);
       console.log(`📋 Certificate IDs to delete:`, certIds);
       
-      // Call backend bulk delete endpoint
-      const response = await axios.delete(
+      // Delete in background
+      const deletePromise = axios.delete(
         `${API}/crew-certificates/bulk-delete`,
         {
           data: {
@@ -7005,6 +7019,12 @@ const HomePage = () => {
           }
         }
       );
+      
+      // Wait for both refresh and delete
+      const [, response] = await Promise.all([refreshPromise, deletePromise]);
+      
+      // Dismiss loading toast
+      toast.dismiss(toastId);
 
       // Check if partial success (some deleted, some failed)
       if (response.data.partial_success) {
@@ -7014,25 +7034,25 @@ const HomePage = () => {
         );
       } else {
         toast.success(language === 'vi' 
-          ? `✅ Đã xóa ${response.data.deleted_count} chứng chỉ thành công!` 
-          : `✅ Successfully deleted ${response.data.deleted_count} certificate(s)!`
+          ? `✅ Đã xóa ${response.data.deleted_count} chứng chỉ và files thành công!` 
+          : `✅ Successfully deleted ${response.data.deleted_count} certificate(s) and files!`
         );
       }
 
-      // Clear selection
-      setSelectedCrewCertificates(new Set());
-
-      // Refresh certificates list
-      await fetchCrewCertificates(null);
-
     } catch (error) {
       console.error('❌ Error bulk deleting certificates:', error);
+      
+      // Dismiss loading toast
+      toast.dismiss(toastId);
       
       const errorMsg = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
         ? `Lỗi khi xóa chứng chỉ: ${errorMsg}` 
         : `Error deleting certificates: ${errorMsg}`
       );
+      
+      // Refresh again to show correct state
+      await fetchCrewCertificates(null);
     }
   };
 
