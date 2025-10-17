@@ -13409,6 +13409,8 @@ async def analyze_certificate_file_for_crew(
             "crew_name": crew_name,
             "crew_name_en": crew_name_en,  # Include English name
             "passport": passport,
+            "rank": rank,  # Include rank
+            "date_of_birth": date_of_birth.split('T')[0] if date_of_birth else None,  # Include date of birth (YYYY-MM-DD format)
             "message": "Certificate analyzed successfully"
         }
         
