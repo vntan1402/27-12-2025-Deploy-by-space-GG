@@ -5999,6 +5999,12 @@ const HomePage = () => {
         const certId = response.data.id;
         console.log('✅ Crew certificate created successfully:', certId);
         
+        console.log('🔍 Checking certAnalysis for file upload:');
+        console.log('   - certAnalysis exists:', !!certAnalysis);
+        console.log('   - certAnalysis.analysis exists:', !!certAnalysis?.analysis);
+        console.log('   - _file_content exists:', !!certAnalysis?.analysis?._file_content);
+        console.log('   - _filename:', certAnalysis?.analysis?._filename);
+        
         // ✅ Upload files to Drive AFTER successful certificate creation
         if (certAnalysis?.analysis?._file_content) {
           console.log(`📤 Uploading files to Drive for certificate ${certId}...`);
