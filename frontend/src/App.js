@@ -5842,6 +5842,12 @@ const HomePage = () => {
       }));
       
       console.log('   - newCrewCertificate updated with date_of_birth:', dateOfBirth);
+      
+      // Debug: log state after a short delay to see if it's actually set
+      setTimeout(() => {
+        console.log('   - Checking state after 100ms...');
+        // This will be captured in closure, so we need to check in render or use a different approach
+      }, 100);
     } else {
       console.log('⚠️ Crew not found');
     }
