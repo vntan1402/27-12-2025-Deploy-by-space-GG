@@ -14338,6 +14338,18 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
   * WRONG: "CHUONG SY HO SPANCHUONG" ❌ (includes MRZ prefix)
   * WRONG: "CHUONG<SY<<HO" ❌ (includes MRZ characters)
 
+**date_of_birth**: 
+- Extract the date of birth of the certificate holder (the person named in this certificate)
+- Look for phrases like:
+  * "Date of Birth", "DOB", "Birth Date"
+  * "Born on [DATE]", "Date of birth: [DATE]"
+  * "Fecha de nacimiento" (Spanish for Date of Birth)
+  * In the main document body or personal details section
+- Convert to ISO format "YYYY-MM-DD"
+- Common formats: DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY
+- If not found, leave as empty string ""
+- IMPORTANT: This should be the holder's birth date, not issue/expiry dates
+- Example: "Date of Birth: 15/03/1985" → Extract: "1985-03-15"
 
 **issued_date** and **expiry_date**: 
 - Convert to ISO format "YYYY-MM-DD"
