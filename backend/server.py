@@ -705,6 +705,7 @@ class CrewCertificateUpdate(BaseModel):
     crew_name_en: Optional[str] = None  # English name
     passport: Optional[str] = None
     rank: Optional[str] = None  # Crew rank/position
+    date_of_birth: Optional[Union[str, date, datetime]] = None  # Crew date of birth
     cert_name: Optional[str] = None
     cert_no: Optional[str] = None
     issued_by: Optional[str] = None
