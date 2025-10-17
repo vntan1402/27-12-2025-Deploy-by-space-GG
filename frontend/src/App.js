@@ -10304,16 +10304,28 @@ const HomePage = () => {
                                         {/* File status indicators */}
                                         {crew.passport_file_id && (
                                           <span 
-                                            className="text-green-500 text-xs" 
-                                            title={language === 'vi' ? 'File gốc có sẵn' : 'Original file available'}
+                                            className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
+                                            title={language === 'vi' ? 'Click để xem file gốc' : 'Click to view original file'}
+                                            onClick={(e) => {
+                                              e.stopPropagation(); // Prevent row context menu
+                                              if (crew.passport_file_id) {
+                                                window.open(`https://drive.google.com/file/d/${crew.passport_file_id}/view`, '_blank');
+                                              }
+                                            }}
                                           >
                                             📄
                                           </span>
                                         )}
                                         {crew.summary_file_id && (
                                           <span 
-                                            className="text-blue-500 text-xs" 
-                                            title={language === 'vi' ? 'File tóm tắt có sẵn' : 'Summary file available'}
+                                            className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                                            title={language === 'vi' ? 'Click để xem file tóm tắt' : 'Click to view summary file'}
+                                            onClick={(e) => {
+                                              e.stopPropagation(); // Prevent row context menu
+                                              if (crew.summary_file_id) {
+                                                window.open(`https://drive.google.com/file/d/${crew.summary_file_id}/view`, '_blank');
+                                              }
+                                            }}
                                           >
                                             📋
                                           </span>
