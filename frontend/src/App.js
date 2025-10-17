@@ -6504,6 +6504,8 @@ const HomePage = () => {
       crew_name: cert.crew_name || '',
       crew_name_en: cert.crew_name_en || '',
       passport: cert.passport || '',
+      rank: cert.rank || '',
+      date_of_birth: cert.date_of_birth ? cert.date_of_birth.split('T')[0] : '',
       cert_name: cert.cert_name || '',
       cert_no: cert.cert_no || '',
       issued_by: cert.issued_by || '',
