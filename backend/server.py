@@ -13349,6 +13349,9 @@ async def analyze_certificate_file_for_crew(
                                 is_match_en = (crew_parts_en and holder_parts == crew_parts_en)
                                 is_match = is_match_vn or is_match_en
                                 
+                                # Convert bypass_validation string to boolean
+                                should_bypass = bypass_validation.lower() == "true"
+                                
                                 if not is_match:
                                     logger.warning(f"❌ Certificate holder name does NOT match crew name")
                                     logger.warning(f"   Certificate holder: '{holder_name}' → {holder_parts}")
@@ -13356,16 +13359,19 @@ async def analyze_certificate_file_for_crew(
                                     if crew_name_en:
                                         logger.warning(f"   Selected crew (EN): '{crew_name_en}' → {crew_parts_en}")
                                     
-                                    raise HTTPException(
-                                        status_code=400,
-                                        detail={
-                                            "error": "CERTIFICATE_HOLDER_MISMATCH",
-                                            "message": "Chứng chỉ không phải của thuyền viên đang chọn, vui lòng kiểm tra lại",
-                                            "holder_name": holder_name,
-                                            "crew_name": crew_name,
-                                            "crew_name_en": crew_name_en
-                                        }
-                                    )
+                                    if should_bypass:
+                                        logger.warning(f"⚠️ VALIDATION BYPASSED: User chose to continue despite name mismatch")
+                                    else:
+                                        raise HTTPException(
+                                            status_code=400,
+                                            detail={
+                                                "error": "CERTIFICATE_HOLDER_MISMATCH",
+                                                "message": "Chứng chỉ không phải của thuyền viên đang chọn, vui lòng kiểm tra lại",
+                                                "holder_name": holder_name,
+                                                "crew_name": crew_name,
+                                                "crew_name_en": crew_name_en
+                                            }
+                                        )
                                 else:
                                     match_type = "Vietnamese" if is_match_vn else "English"
                                     logger.info(f"✅ Certificate holder name matches crew name ({match_type})")
