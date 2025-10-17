@@ -14277,6 +14277,7 @@ async def extract_crew_certificate_fields_from_summary(
                         logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name')}'")
                         logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no')}'")
                         logger.info(f"   👤 Holder Name: '{extracted_data.get('holder_name', 'NOT EXTRACTED')}'")
+                        logger.info(f"   🎂 Date of Birth: '{extracted_data.get('date_of_birth', 'NOT EXTRACTED')}'")
                         logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
                         
                         return extracted_data
