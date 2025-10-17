@@ -11169,6 +11169,24 @@ const HomePage = () => {
                                           />
                                         </div>
 
+                                        {/* Row 2.5: Date of Birth */}
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'} <span className="text-red-500">*</span>
+                                          </label>
+                                          <input
+                                            type="date"
+                                            value={newCrewCertificate.date_of_birth || ''}
+                                            onChange={(e) => setNewCrewCertificate({...newCrewCertificate, date_of_birth: e.target.value})}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            required
+                                            disabled={!!selectedCrewForCert}
+                                          />
+                                        </div>
+                                        <div>
+                                          {/* Empty space for grid alignment */}
+                                        </div>
+
                                         {/* Row 3: Crew ID (full width) */}
                                         <div className="md:col-span-2">
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
