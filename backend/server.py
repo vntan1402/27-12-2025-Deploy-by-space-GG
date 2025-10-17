@@ -13403,6 +13403,14 @@ async def analyze_certificate_file_for_crew(
         analysis_result = normalize_issued_by(analysis_result)
         
         # Return analysis result with file_id for frontend to create certificate record
+        # Convert date_of_birth to string if it's a datetime object
+        date_of_birth_str = None
+        if date_of_birth:
+            if isinstance(date_of_birth, str):
+                date_of_birth_str = date_of_birth.split('T')[0]
+            elif isinstance(date_of_birth, (datetime, date)):
+                date_of_birth_str = date_of_birth.strftime('%Y-%m-%d')
+        
         return {
             "success": True,
             "analysis": analysis_result,
@@ -13410,7 +13418,7 @@ async def analyze_certificate_file_for_crew(
             "crew_name_en": crew_name_en,  # Include English name
             "passport": passport,
             "rank": rank,  # Include rank
-            "date_of_birth": date_of_birth.split('T')[0] if date_of_birth else None,  # Include date of birth (YYYY-MM-DD format)
+            "date_of_birth": date_of_birth_str,  # Include date of birth (YYYY-MM-DD format)
             "message": "Certificate analyzed successfully"
         }
         
