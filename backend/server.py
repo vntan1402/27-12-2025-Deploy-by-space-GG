@@ -13053,7 +13053,7 @@ async def create_crew_certificate_manual(
         })
         
         # Convert date strings to datetime objects for storage
-        for date_field in ['issued_date', 'cert_expiry']:
+        for date_field in ['issued_date', 'cert_expiry', 'date_of_birth']:
             if cert_doc.get(date_field):
                 if isinstance(cert_doc[date_field], str):
                     try:
