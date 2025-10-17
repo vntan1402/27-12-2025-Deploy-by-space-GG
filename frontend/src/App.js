@@ -6256,6 +6256,28 @@ const HomePage = () => {
         return;
       }
       
+      // Check if error is Date of Birth mismatch
+      if (error.response?.status === 400 && error.response?.data?.detail?.error === 'DATE_OF_BIRTH_MISMATCH') {
+        const errorData = error.response.data.detail;
+        const aiExtractedDob = errorData.ai_extracted_dob || 'Unknown';
+        const crewDob = errorData.crew_dob || 'Unknown';
+        const crewName = errorData.crew_name || 'Unknown';
+        
+        console.warn(`⚠️ Date of Birth mismatch: AI extracted ${aiExtractedDob} vs Crew ${crewDob}`);
+        
+        // Show DOB mismatch modal
+        setCertDobMismatchModal({
+          show: true,
+          aiExtractedDob: aiExtractedDob,
+          crewDob: crewDob,
+          crewName: crewName,
+          file: file,
+          analysisWithFiles: null  // Will be populated later if needed
+        });
+        
+        return;
+      }
+      
       // Handle other errors
       const errorMsg = error.response?.data?.detail?.message || error.response?.data?.detail || error.message;
       setCertError(language === 'vi' 
