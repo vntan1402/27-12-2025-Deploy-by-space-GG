@@ -6246,6 +6246,157 @@ const HomePage = () => {
       fileInput.value = '';
     }
   };
+  
+  // Handle certificate holder mismatch modal - Skip button
+  const handleCertMismatchSkip = () => {
+    console.log('🚫 User chose to skip certificate upload due to name mismatch');
+    
+    // Close modal
+    setCertHolderMismatchModal({
+      show: false,
+      holderName: '',
+      crewName: '',
+      crewNameEn: '',
+      file: null
+    });
+    
+    // Reset file input
+    handleResetCertFile();
+    
+    toast.info(language === 'vi' 
+      ? 'Đã hủy upload chứng chỉ' 
+      : 'Certificate upload cancelled'
+    );
+  };
+  
+  // Handle certificate holder mismatch modal - Continue button (bypass validation)
+  const handleCertMismatchContinue = async () => {
+    const { file } = certHolderMismatchModal;
+    
+    console.log('⚠️ User chose to continue despite name mismatch - bypassing validation');
+    
+    // Close modal first
+    setCertHolderMismatchModal({
+      show: false,
+      holderName: '',
+      crewName: '',
+      crewNameEn: '',
+      file: null
+    });
+    
+    if (!file) {
+      toast.error(language === 'vi' ? 'Không tìm thấy file' : 'File not found');
+      return;
+    }
+    
+    try {
+      setIsAnalyzingCert(true);
+      setCertError('');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error(language === 'vi' ? 'Không tìm thấy token xác thực' : 'Authentication token not found');
+      }
+
+      // Get ship ID with validation
+      const shipId = selectedShip?.id || currentShipInfo?.id;
+      if (!shipId) {
+        throw new Error(language === 'vi' 
+          ? 'Không tìm thấy thông tin tàu. Vui lòng quay lại và chọn tàu.' 
+          : 'Ship information not found. Please go back and select a ship.'
+        );
+      }
+
+      const formData = new FormData();
+      formData.append('cert_file', file);
+      formData.append('ship_id', shipId);
+      formData.append('bypass_validation', 'true'); // ✅ KEY CHANGE: Bypass validation
+      
+      console.log('✅ Retrying with bypass_validation=true');
+      
+      // Add crew_id if available
+      if (selectedCrewForCert) {
+        formData.append('crew_id', selectedCrewForCert.id);
+        console.log('✅ Crew ID:', selectedCrewForCert.id);
+      } else if (newCrewCertificate.crew_id) {
+        formData.append('crew_id', newCrewCertificate.crew_id);
+        console.log('✅ Crew ID (from form):', newCrewCertificate.crew_id);
+      }
+
+      const response = await axios.post(
+        `${API}/crew-certificates/analyze-file`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 120000 // 2 minutes timeout
+        }
+      );
+
+      if (response.data && response.data.success) {
+        console.log('✅ Certificate analysis completed (validation bypassed):', response.data);
+        
+        const analysis = response.data.analysis || {};
+        
+        // Store analysis with FILE CONTENT for later upload
+        const analysisWithFiles = {
+          ...response.data,
+          analysis: {
+            ...analysis,
+            _file_content: analysis._file_content,
+            _filename: analysis._filename,
+            _content_type: analysis._content_type,
+            _summary_text: analysis._summary_text,
+            _ship_name: analysis._ship_name
+          }
+        };
+        
+        // Pre-fill form with AI extracted data
+        setNewCrewCertificate(prev => ({
+          ...prev,
+          crew_name: response.data.crew_name || prev.crew_name,
+          crew_name_en: response.data.crew_name_en || prev.crew_name_en || '',
+          passport: response.data.passport || prev.passport,
+          rank: response.data.rank || prev.rank || '',
+          cert_name: analysis.cert_name || '',
+          cert_no: analysis.cert_no || '',
+          issued_by: analysis.issued_by || '',
+          issued_date: analysis.issued_date || '',
+          cert_expiry: analysis.expiry_date || analysis.cert_expiry || '',
+          note: analysis.note || '',
+          crew_cert_file_id: '',
+          crew_cert_summary_file_id: ''
+        }));
+
+        setCertAnalysis(analysisWithFiles);
+        
+        toast.success(language === 'vi' 
+          ? '✅ Phân tích file thành công (đã bỏ qua kiểm tra tên)! Vui lòng kiểm tra và xác nhận thông tin.' 
+          : '✅ File analyzed successfully (name validation bypassed)! Please review and confirm the information.'
+        );
+      } else {
+        throw new Error('Invalid response from server');
+      }
+
+    } catch (error) {
+      console.error('❌ Error analyzing certificate with bypass:', error);
+      
+      const errorMsg = error.response?.data?.detail?.message || error.response?.data?.detail || error.message;
+      setCertError(language === 'vi' 
+        ? `Lỗi phân tích file: ${errorMsg}` 
+        : `Error analyzing file: ${errorMsg}`
+      );
+      
+      toast.error(language === 'vi' 
+        ? `Không thể phân tích file: ${errorMsg}` 
+        : `Cannot analyze file: ${errorMsg}`
+      );
+    } finally {
+      setIsAnalyzingCert(false);
+    }
+  };
 
   // Handle file upload area click with crew selection validation
   const handleCertFileAreaClick = () => {
