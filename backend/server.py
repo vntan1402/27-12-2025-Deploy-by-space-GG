@@ -13435,6 +13435,7 @@ async def analyze_certificate_file_for_crew(
                                     
                                     except Exception as dob_error:
                                         logger.error(f"Error validating date of birth: {dob_error}")
+                                        logger.error(f"Error traceback: {traceback.format_exc()}")
                                         # Continue without DOB validation if parsing fails
                                         logger.warning("⚠️ Skipping DOB validation due to parsing error")
                                 else:
