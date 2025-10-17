@@ -6009,65 +6009,79 @@ const HomePage = () => {
         const certId = response.data.id;
         console.log('✅ Crew certificate created successfully:', certId);
         
+        // Show success toast immediately for record creation
+        toast.success(language === 'vi' 
+          ? '✅ Đã lưu chứng chỉ thành công!' 
+          : '✅ Certificate saved successfully!'
+        );
+
+        // Close modal and reset form immediately
+        handleCloseAddCrewCertModal();
+
+        // Refresh certificates list immediately
+        const refreshPromise = selectedCrewForCert 
+          ? fetchCrewCertificates(selectedCrewForCert.id)
+          : fetchCrewCertificates(null);
+        
+        await refreshPromise;
+        
         console.log('🔍 Checking certAnalysis for file upload:');
         console.log('   - certAnalysis exists:', !!certAnalysis);
         console.log('   - certAnalysis.analysis exists:', !!certAnalysis?.analysis);
         console.log('   - _file_content exists:', !!certAnalysis?.analysis?._file_content);
         console.log('   - _filename:', certAnalysis?.analysis?._filename);
         
-        // ✅ Upload files to Drive AFTER successful certificate creation
+        // ✅ Upload files to Drive in BACKGROUND (non-blocking)
         if (certAnalysis?.analysis?._file_content) {
-          console.log(`📤 Uploading files to Drive for certificate ${certId}...`);
+          console.log(`📤 Starting background upload for certificate ${certId}...`);
           
-          try {
-            const uploadResponse = await axios.post(
-              `${API}/crew-certificates/${certId}/upload-files`,
-              {
-                file_content: certAnalysis.analysis._file_content,
-                filename: certAnalysis.analysis._filename,
-                content_type: certAnalysis.analysis._content_type,
-                summary_text: certAnalysis.analysis._summary_text
-              },
-              {
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json'
+          // Run upload in background without blocking
+          (async () => {
+            try {
+              const uploadResponse = await axios.post(
+                `${API}/crew-certificates/${certId}/upload-files`,
+                {
+                  file_content: certAnalysis.analysis._file_content,
+                  filename: certAnalysis.analysis._filename,
+                  content_type: certAnalysis.analysis._content_type,
+                  summary_text: certAnalysis.analysis._summary_text
+                },
+                {
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  }
                 }
+              );
+              
+              if (uploadResponse.data && uploadResponse.data.success) {
+                console.log(`✅ Files uploaded successfully to Drive`);
+                console.log(`   📎 Certificate File ID: ${uploadResponse.data.crew_cert_file_id}`);
+                console.log(`   📋 Summary File ID: ${uploadResponse.data.crew_cert_summary_file_id}`);
+                
+                // Show upload success notification
+                toast.success(language === 'vi' 
+                  ? '📎 File đã upload lên Drive thành công!' 
+                  : '📎 File uploaded to Drive successfully!',
+                  { duration: 3000 }
+                );
+              } else {
+                console.warn(`⚠️ File upload failed but certificate was saved`);
+                toast.warning(language === 'vi' 
+                  ? '⚠️ File không thể upload lên Drive (chứng chỉ đã được lưu)' 
+                  : '⚠️ File upload to Drive failed (certificate saved)',
+                  { duration: 4000 }
+                );
               }
-            );
-            
-            if (uploadResponse.data && uploadResponse.data.success) {
-              console.log(`✅ Files uploaded successfully to Drive`);
-              console.log(`   📎 Certificate File ID: ${uploadResponse.data.crew_cert_file_id}`);
-              console.log(`   📋 Summary File ID: ${uploadResponse.data.crew_cert_summary_file_id}`);
-            } else {
-              console.warn(`⚠️ File upload failed but certificate was saved`);
+            } catch (uploadError) {
+              console.error(`❌ File upload failed (certificate still saved):`, uploadError);
               toast.warning(language === 'vi' 
-                ? 'Chứng chỉ đã được lưu nhưng không thể upload file lên Drive' 
-                : 'Certificate saved but file upload to Drive failed');
+                ? '⚠️ File không thể upload lên Drive (chứng chỉ đã được lưu)' 
+                : '⚠️ File upload to Drive failed (certificate saved)',
+                { duration: 4000 }
+              );
             }
-          } catch (uploadError) {
-            console.error(`❌ File upload failed (certificate still saved):`, uploadError);
-            toast.warning(language === 'vi' 
-              ? 'Chứng chỉ đã được lưu nhưng không thể upload file lên Drive' 
-              : 'Certificate saved but file upload to Drive failed');
-          }
-        }
-        
-        toast.success(language === 'vi' 
-          ? '✅ Đã thêm chứng chỉ thuyền viên thành công!' 
-          : '✅ Crew certificate added successfully!'
-        );
-
-        // Close modal and reset form
-        handleCloseAddCrewCertModal();
-
-        // Refresh certificates list
-        // Use selectedCrewForCert if available, otherwise fetch all
-        if (selectedCrewForCert) {
-          await fetchCrewCertificates(selectedCrewForCert.id);
-        } else {
-          await fetchCrewCertificates(null);
+          })();
         }
       }
 
