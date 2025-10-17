@@ -1026,6 +1026,7 @@ const HomePage = () => {
     crew_name_en: '',  // English name
     passport: '',
     rank: '',  // Rank
+    date_of_birth: '',  // Date of birth
     cert_name: '',
     cert_no: '',
     issued_by: '',
