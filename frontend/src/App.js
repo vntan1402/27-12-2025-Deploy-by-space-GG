@@ -12008,6 +12008,103 @@ const HomePage = () => {
                             </div>
                           )}
 
+                          {/* Date of Birth Mismatch Confirmation Modal */}
+                          {certDobMismatchModal.show && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4">
+                              <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+                                {/* Modal Header */}
+                                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50">
+                                  <div className="flex items-start">
+                                    <div className="flex-shrink-0">
+                                      <span className="text-3xl">⚠️</span>
+                                    </div>
+                                    <div className="ml-3 flex-1">
+                                      <h3 className="text-lg font-bold text-gray-800">
+                                        {language === 'vi' ? 'Cảnh báo ngày sinh không khớp' : 'Date of Birth Mismatch Warning'}
+                                      </h3>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="p-6">
+                                  <p className="text-gray-700 mb-4">
+                                    {language === 'vi' 
+                                      ? 'Ngày sinh trên chứng chỉ không khớp với dữ liệu thuyền viên.'
+                                      : 'The date of birth on the certificate does not match the crew member data.'}
+                                  </p>
+                                  
+                                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 mb-4">
+                                    <div>
+                                      <span className="text-sm font-medium text-gray-600">
+                                        {language === 'vi' ? 'Ngày sinh trên chứng chỉ (AI):' : 'Date of Birth on certificate (AI):'}
+                                      </span>
+                                      <p className="text-sm font-semibold text-gray-800 mt-1">
+                                        {certDobMismatchModal.aiExtractedDob}
+                                      </p>
+                                    </div>
+                                    
+                                    <div className="border-t border-gray-200 pt-2">
+                                      <span className="text-sm font-medium text-gray-600">
+                                        {language === 'vi' ? 'Ngày sinh trong hệ thống:' : 'Date of Birth in system:'}
+                                      </span>
+                                      <p className="text-sm font-semibold text-gray-800 mt-1">
+                                        {certDobMismatchModal.crewDob}
+                                      </p>
+                                    </div>
+                                    
+                                    <div className="border-t border-gray-200 pt-2">
+                                      <span className="text-sm font-medium text-gray-600">
+                                        {language === 'vi' ? 'Thuyền viên:' : 'Crew member:'}
+                                      </span>
+                                      <p className="text-sm font-semibold text-gray-800 mt-1">
+                                        {certDobMismatchModal.crewName}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  
+                                  <p className="text-sm text-gray-600">
+                                    {language === 'vi' 
+                                      ? 'Bạn có muốn tiếp tục thêm chứng chỉ này không?'
+                                      : 'Do you want to continue adding this certificate?'}
+                                  </p>
+                                </div>
+
+                                {/* Modal Footer */}
+                                <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
+                                  <button
+                                    type="button"
+                                    onClick={handleDobMismatchSkip}
+                                    className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                                  >
+                                    {language === 'vi' ? 'Bỏ qua' : 'Skip'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleDobMismatchContinue}
+                                    className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-all font-medium flex items-center"
+                                    disabled={isAnalyzingCert}
+                                  >
+                                    {isAnalyzingCert ? (
+                                      <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        {language === 'vi' ? 'Đang xử lý...' : 'Processing...'}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="mr-2">✓</span>
+                                        {language === 'vi' ? 'Tiếp tục' : 'Continue'}
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                         </>
                       )}
                     </div>
