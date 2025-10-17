@@ -6186,6 +6186,7 @@ const HomePage = () => {
           crew_name_en: response.data.crew_name_en || prev.crew_name_en || '',  // Include English name
           passport: response.data.passport || prev.passport,
           rank: response.data.rank || prev.rank || '',  // Include rank
+          date_of_birth: response.data.date_of_birth || prev.date_of_birth || '',  // Include date of birth
           cert_name: analysis.cert_name || '',
           cert_no: analysis.cert_no || '',
           issued_by: analysis.issued_by || '',
