@@ -3841,3 +3841,29 @@ backend:
         - working: "NA"
           agent: "main"
           comment: "✅ DATE OF BIRTH FIELD IMPLEMENTATION COMPLETED: Added date_of_birth field to crew certificates with full CRUD support. **BACKEND CHANGES**: 1) Added date_of_birth field to CrewCertificateBase model (type: Optional[Union[str, date, datetime]]), 2) Added date_of_birth to CrewCertificateUpdate model for edit operations, 3) Field stored in crew_certificates collection in MongoDB. **FRONTEND CHANGES - ADD MODAL**: 1) Added date_of_birth to newCrewCertificate state initialization, 2) Added Date of Birth field to Add Crew Certificate form after Rank field (Row 2.5), 3) Field type: date input with required validation (*), 4) Labels: 'Ngày sinh' (VN) / 'Date of Birth' (EN), 5) Pre-fill behavior: When user selects crew member from dropdown, date_of_birth auto-fills from crew data (selectedCrew.date_of_birth.split('T')[0]), 6) Field disabled when crew is pre-selected, 7) Added to resetAddCrewCertForm function, 8) Updated validation to include date_of_birth as required field. **FRONTEND CHANGES - EDIT MODAL**: 1) Added date_of_birth to editCrewCertData state, 2) Added Date of Birth field to Edit Crew Certificate modal after Passport field, 3) Pre-fill date_of_birth when opening edit modal (cert.date_of_birth.split('T')[0]), 4) Added to closeEditCrewCertModal reset function. **FORM STRUCTURE**: Crew Information section now includes: Crew Name (VN)*, Crew Name (EN), Passport*, Rank, Date of Birth* (NEW), Crew ID (disabled). All changes completed successfully, no linting errors. Ready for testing."
+
+backend:
+  - task: "Date of Birth AI Extraction and Validation for Crew Certificates"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implementation completed for Date of Birth AI extraction and validation. BACKEND CHANGES: (1) Updated create_certificate_extraction_prompt() to include date_of_birth field in AI extraction with detailed instructions for extracting DOB from certificates. (2) Updated standardize_certificate_dates() to normalize date_of_birth field to YYYY-MM-DD format. (3) Added DOB validation logic in /crew-certificates/analyze-file endpoint after holder_name validation passes. (4) Validation only runs if BOTH crew DOB AND AI-extracted DOB exist (skips if either missing). (5) Added bypass_dob_validation parameter to allow users to skip DOB validation. (6) Returns error code DATE_OF_BIRTH_MISMATCH with ai_extracted_dob, crew_dob, and crew_name for frontend display. (7) Added comprehensive logging for DOB extraction and validation process. FRONTEND CHANGES: (1) Added certDobMismatchModal state to manage DOB mismatch modal. (2) Added error handler for DATE_OF_BIRTH_MISMATCH in handleCertFileUpload(). (3) Created handleDobMismatchSkip() to cancel certificate upload. (4) Created handleDobMismatchContinue() to retry analysis with bypass_dob_validation=true. (5) Added DOB mismatch modal UI showing comparison between AI-extracted DOB and Crew DOB with Skip/Continue buttons. VALIDATION FLOW: User uploads cert → AI extracts holder_name + date_of_birth → Validation 1: Holder name match → Validation 2: DOB match (if both exist) → Show mismatch modal with Skip/Continue options if validation fails. Ready for backend testing to verify AI extraction and validation logic."
+
+frontend:
+  - task: "Date of Birth Mismatch Modal UI for Crew Certificates"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Frontend DOB mismatch modal implementation completed. Added certDobMismatchModal state with fields: show, aiExtractedDob, crewDob, crewName, file, analysisWithFiles. Implemented error handler to detect DATE_OF_BIRTH_MISMATCH error and display modal. Created handleDobMismatchSkip() to cancel upload and handleDobMismatchContinue() to retry with bypass_dob_validation=true. Modal UI shows comparison: 'Ngày sinh trên chứng chỉ (AI)' vs 'Ngày sinh trong hệ thống' with crew name display. Skip/Continue buttons with proper styling and loading states during re-analysis. Ready for UI testing to verify modal display and validation bypass functionality."
