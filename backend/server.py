@@ -14285,18 +14285,36 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 
 **holder_name**: 
 - CRITICAL: Extract the FULL NAME of the PERSON who holds this certificate
-- Look for phrases like:
-  * "issued to [NAME]"
-  * "holder: [NAME]"  
-  * "in the name of [NAME]"
-  * "certificate holder: [NAME]"
-  * Names appearing near "holder", "issued to", "bearer"
-- The holder is a PERSON'S NAME (e.g., "HO SY CHUONG", "NGUYEN VAN A", "John Smith")
-- DO NOT confuse with issuing authority or organization names
-- Names are usually in UPPERCASE or Title Case
-- If not found explicitly, look for the largest/most prominent person name in the document
-- Example: "Issued to HO SY CHUONG" → Extract: "HO SY CHUONG"
-- Example: "Certificate holder: TRAN VAN DUC" → Extract: "TRAN VAN DUC"
+- EXTRACTION PRIORITY (follow this order):
+  1. **PRIORITY 1 - Plain Text Fields**: Look for holder name in standard document fields:
+     * "Nombres/Given Names Apellidos/Surname" or "Given Names Surname"
+     * "issued to [NAME]"
+     * "holder: [NAME]"  
+     * "in the name of [NAME]"
+     * "certificate holder: [NAME]"
+     * Names appearing near "holder", "issued to", "bearer"
+     * Look for CLEAR, READABLE text in the main document body
+  2. **PRIORITY 2 - Machine Readable Zone (MRZ)**: ONLY if name NOT found in plain text:
+     * MRZ lines typically contain: `<<` separators, `<` padding characters
+     * Format example: "SPANCHUONG<SY<<HO<<<<<<<<<<<<<<<<<<<<<<<<<"
+     * Extract and CLEAN the name:
+       - Remove ALL `<` characters
+       - Remove prefixes like "SPAN", "PAN", country codes
+       - Split by `<<` to get name parts
+       - Example: "SPANCHUONG<SY<<HO" → Extract: "CHUONG SY HO"
+  3. **PRIORITY 3 - Fallback**: If still not found, look for the largest/most prominent person name
+- IMPORTANT RULES:
+  * DO NOT include MRZ artifacts like `<`, `<<`, or padding characters in the final name
+  * DO NOT confuse with issuing authority or organization names
+  * Names are usually in UPPERCASE or Title Case
+  * Clean and format the name properly (no special MRZ characters)
+- EXAMPLES:
+  * Plain text: "Nombres/Apellidos: CHUONG SY HO" → Extract: "CHUONG SY HO" ✅
+  * Plain text: "Issued to HO SY CHUONG" → Extract: "HO SY CHUONG" ✅
+  * MRZ only: "SPANCHUONG<SY<<HO<<<<<<" → Clean & Extract: "CHUONG SY HO" ✅
+  * WRONG: "CHUONG SY HO SPANCHUONG" ❌ (includes MRZ prefix)
+  * WRONG: "CHUONG<SY<<HO" ❌ (includes MRZ characters)
+
 
 **issued_date** and **expiry_date**: 
 - Convert to ISO format "YYYY-MM-DD"
