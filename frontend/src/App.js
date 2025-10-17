@@ -5824,9 +5824,13 @@ const HomePage = () => {
     
     if (selectedCrew) {
       console.log('✅ Found crew:', selectedCrew);
+      console.log('   - date_of_birth from crew:', selectedCrew.date_of_birth);
       setSelectedCrewForCert(selectedCrew);
       
       // Auto-fill crew information
+      const dateOfBirth = selectedCrew.date_of_birth ? selectedCrew.date_of_birth.split('T')[0] : '';
+      console.log('   - date_of_birth after split:', dateOfBirth);
+      
       setNewCrewCertificate(prev => ({
         ...prev,
         crew_id: selectedCrew.id,
@@ -5834,8 +5838,10 @@ const HomePage = () => {
         crew_name_en: selectedCrew.full_name_en || '',
         passport: selectedCrew.passport,
         rank: selectedCrew.rank || '',
-        date_of_birth: selectedCrew.date_of_birth ? selectedCrew.date_of_birth.split('T')[0] : ''
+        date_of_birth: dateOfBirth
       }));
+      
+      console.log('   - newCrewCertificate updated with date_of_birth:', dateOfBirth);
     } else {
       console.log('⚠️ Crew not found');
     }
