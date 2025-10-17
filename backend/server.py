@@ -13338,6 +13338,9 @@ async def analyze_certificate_file_for_crew(
             
             logger.info("✅ Certificate analysis completed (files ready for upload after cert creation)")
                 
+        except HTTPException:
+            # Re-raise HTTP exceptions (like validation errors) to propagate to client
+            raise
         except Exception as analysis_error:
             logger.error(f"❌ Certificate analysis error: {analysis_error}")
             # Continue with empty analysis but file content preserved
