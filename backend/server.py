@@ -14241,6 +14241,21 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 - Extract the main issuing authority name (e.g., "Panama Maritime Authority")
 - Keep it concise, do not include full department names unless necessary
 
+**holder_name**: 
+- CRITICAL: Extract the FULL NAME of the PERSON who holds this certificate
+- Look for phrases like:
+  * "issued to [NAME]"
+  * "holder: [NAME]"  
+  * "in the name of [NAME]"
+  * "certificate holder: [NAME]"
+  * Names appearing near "holder", "issued to", "bearer"
+- The holder is a PERSON'S NAME (e.g., "HO SY CHUONG", "NGUYEN VAN A", "John Smith")
+- DO NOT confuse with issuing authority or organization names
+- Names are usually in UPPERCASE or Title Case
+- If not found explicitly, look for the largest/most prominent person name in the document
+- Example: "Issued to HO SY CHUONG" → Extract: "HO SY CHUONG"
+- Example: "Certificate holder: TRAN VAN DUC" → Extract: "TRAN VAN DUC"
+
 **issued_date** and **expiry_date**: 
 - Convert to ISO format "YYYY-MM-DD"
 - Common formats: DD/MM/YYYY, DD-MM-YYYY, MM/DD/YYYY
