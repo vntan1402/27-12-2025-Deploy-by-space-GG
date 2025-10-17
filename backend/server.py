@@ -13409,7 +13409,6 @@ async def analyze_certificate_file_for_crew(
                                         logger.info(f"   Crew DOB (from database): '{crew_dob_str}'")
                                         
                                         # Check for bypass DOB validation parameter
-                                        bypass_dob_validation = form_data.get('bypass_dob_validation', 'false')
                                         should_bypass_dob = bypass_dob_validation.lower() == "true"
                                         
                                         # Compare DOB
