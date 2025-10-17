@@ -6870,6 +6870,10 @@ const HomePage = () => {
       // Dismiss loading toast
       toast.dismiss(toastId);
       
+      // Refresh again after successful delete to ensure data consistency
+      console.log('🔄 Refreshing crew certificates list after delete...');
+      await fetchCrewCertificates(null);
+      
       // Show success
       toast.success(language === 'vi' 
         ? '✅ Đã xóa chứng chỉ và files thành công!' 
