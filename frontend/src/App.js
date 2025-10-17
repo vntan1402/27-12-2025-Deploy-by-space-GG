@@ -11086,12 +11086,31 @@ const HomePage = () => {
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             <div className="flex items-center space-x-2">
                                               <span>{cert.cert_name}</span>
+                                              {/* File status indicators */}
                                               {cert.crew_cert_file_id && (
                                                 <span 
-                                                  className="text-green-500 text-xs" 
-                                                  title={language === 'vi' ? 'File có sẵn' : 'File available'}
+                                                  className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
+                                                  title={language === 'vi' ? 'File gốc có sẵn' : 'Original file available'}
+                                                  onClick={() => {
+                                                    if (cert.crew_cert_file_id) {
+                                                      window.open(`https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`, '_blank');
+                                                    }
+                                                  }}
                                                 >
                                                   📄
+                                                </span>
+                                              )}
+                                              {cert.crew_cert_summary_file_id && (
+                                                <span 
+                                                  className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                                                  title={language === 'vi' ? 'File tóm tắt có sẵn' : 'Summary file available'}
+                                                  onClick={() => {
+                                                    if (cert.crew_cert_summary_file_id) {
+                                                      window.open(`https://drive.google.com/file/d/${cert.crew_cert_summary_file_id}/view`, '_blank');
+                                                    }
+                                                  }}
+                                                >
+                                                  📋
                                                 </span>
                                               )}
                                             </div>
