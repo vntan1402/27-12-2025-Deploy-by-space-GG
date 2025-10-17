@@ -13168,6 +13168,8 @@ async def analyze_certificate_file_for_crew(
         crew_name = "Unknown"
         crew_name_en = ""  # Initialize English name
         passport = "Unknown"
+        rank = ""  # Initialize rank
+        date_of_birth = None  # Initialize date of birth
         
         if crew_id:
             crew = await mongo_db.find_one("crew_members", {
@@ -13179,6 +13181,8 @@ async def analyze_certificate_file_for_crew(
                 crew_name = crew.get("full_name", "Unknown")
                 crew_name_en = crew.get("full_name_en", "")  # Get English name
                 passport = crew.get("passport", "Unknown")
+                rank = crew.get("rank", "")  # Get rank
+                date_of_birth = crew.get("date_of_birth")  # Get date of birth
             else:
                 logger.warning(f"⚠️ Crew member with id {crew_id} not found, continuing with default values")
             
