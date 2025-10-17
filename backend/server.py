@@ -14210,10 +14210,10 @@ Analyze the following text summary of a {cert_type.upper()} certificate and extr
 - PRIORITY 2: If Seaman's Book number NOT found, search for Certificate/Endorsement/Document numbers:
   * "Certificate No." or "Certificate Number:" → Extract the number (e.g., "9162-GOC/BTTTT")
   * "Endorsement No." or "Endorsement Number:" or "Refrendo N°" → Extract the number
-    - Accept pure numeric sequences like "206129551" (9 digits)
+    - Accept pure numeric sequences like "206129551" (9-11 digits)
     - These are VALID certificate numbers for Panama endorsements
   * "Document No." or "Document Number:" or "N° Documento" → Extract the number
-    - Accept pure numeric sequences like "001569771" (9 digits)
+    - Accept pure numeric sequences like "001569771" (9 -11 digits)
     - These are VALID certificate numbers for official documents
   * Extract the COMPLETE number exactly as it appears after the label
   * Examples:
