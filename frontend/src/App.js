@@ -5848,6 +5848,7 @@ const HomePage = () => {
       crew_name_en: '',  // Reset English name
       passport: '',
       rank: '',  // Reset rank
+      date_of_birth: '',  // Reset date of birth
       cert_name: '',
       cert_no: '',
       issued_by: '',
