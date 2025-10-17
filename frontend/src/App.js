@@ -5779,12 +5779,15 @@ const HomePage = () => {
           crew_name_en: filteredCrew.full_name_en || '',
           passport: filteredCrew.passport,
           rank: filteredCrew.rank || '',
+          date_of_birth: filteredCrew.date_of_birth ? filteredCrew.date_of_birth.split('T')[0] : '',
           cert_name: '',
           cert_no: '',
           issued_by: '',
           issued_date: '',
           cert_expiry: '',
-          note: ''
+          note: '',
+          crew_cert_file_id: '',
+          crew_cert_summary_file_id: ''
         });
       } else {
         console.log('⚠️ Filtered crew not found in crewList');
