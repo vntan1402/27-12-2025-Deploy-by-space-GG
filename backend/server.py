@@ -182,12 +182,22 @@ DOCUMENT SUMMARY:
 
 DOCUMENT TYPE: {document_type.upper()}
 
-TASK: Extract maritime certificate information. Return ONLY a JSON object:
+TASK: Extract maritime certificate information. Return ONLY a JSON object.
 
+IMPORTANT INSTRUCTIONS FOR HOLDER NAME:
+- The holder_name is the name of the PERSON who holds this certificate
+- Look for phrases like: "issued to", "holder", "name of holder", "certificate holder", "issued in the name of"
+- The holder name is usually a person's full name in UPPERCASE or Title Case
+- Common patterns: "NGUYEN VAN A", "TRAN THI B", "John Smith"
+- DO NOT confuse holder_name with issuing authority or organization names
+- If you see "issued by" or "issuing authority", that is NOT the holder name
+- The holder is the INDIVIDUAL receiving the certificate, not the organization issuing it
+
+REQUIRED JSON FORMAT:
 {{
   "certificate_name": "name of certificate or empty string",
   "certificate_number": "certificate number or empty string",
-  "holder_name": "certificate holder name or empty string",
+  "holder_name": "FULL NAME OF PERSON who holds this certificate (REQUIRED - look carefully for person's name)",
   "issue_date": "DD/MM/YYYY format or empty string",
   "expiry_date": "DD/MM/YYYY format or empty string",
   "issuing_authority": "issuing authority or empty string",
@@ -195,6 +205,13 @@ TASK: Extract maritime certificate information. Return ONLY a JSON object:
   "endorsements": "endorsements or limitations or empty string",
   "confidence_score": 0.0 to 1.0
 }}
+
+EXAMPLES:
+- If summary says "Certificate issued to NGUYEN VAN A" → holder_name: "NGUYEN VAN A"
+- If summary says "Issued in the name of John Smith" → holder_name: "John Smith"
+- If summary says "Holder: TRAN VAN B" → holder_name: "TRAN VAN B"
+
+Return ONLY the JSON object, no other text.
 
 JSON:"""
     
