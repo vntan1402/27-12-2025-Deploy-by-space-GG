@@ -6842,10 +6842,20 @@ const HomePage = () => {
     
     if (!confirmed) return;
     
+    // Show immediate processing toast
+    const toastId = toast.loading(language === 'vi' 
+      ? '🗑️ Đang xóa chứng chỉ và files...' 
+      : '🗑️ Deleting certificate and files...'
+    );
+    
+    // Refresh list immediately for better UX (optimistic update)
+    const refreshPromise = fetchCrewCertificates(null);
+    
     try {
       console.log('🗑️ Deleting crew certificate:', cert.id);
       
-      await axios.delete(
+      // Delete in background
+      const deletePromise = axios.delete(
         `${API}/crew-certificates/${cert.id}`,
         {
           headers: {
@@ -6853,23 +6863,33 @@ const HomePage = () => {
           }
         }
       );
-
+      
+      // Wait for both refresh and delete
+      await Promise.all([refreshPromise, deletePromise]);
+      
+      // Dismiss loading toast
+      toast.dismiss(toastId);
+      
+      // Show success
       toast.success(language === 'vi' 
-        ? '✅ Đã xóa chứng chỉ thuyền viên thành công!' 
-        : '✅ Crew certificate deleted successfully!'
+        ? '✅ Đã xóa chứng chỉ và files thành công!' 
+        : '✅ Certificate and files deleted successfully!'
       );
-
-      // Refresh certificates list
-      await fetchCrewCertificates(null);
 
     } catch (error) {
       console.error('❌ Error deleting crew certificate:', error);
       
+      // Dismiss loading toast
+      toast.dismiss(toastId);
+      
       const errorMsg = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
-        ? `Lỗi khi xóa chứng chỉ thuyền viên: ${errorMsg}` 
-        : `Error deleting crew certificate: ${errorMsg}`
+        ? `Lỗi khi xóa chứng chỉ: ${errorMsg}` 
+        : `Error deleting certificate: ${errorMsg}`
       );
+      
+      // Refresh again to show correct state
+      await fetchCrewCertificates(null);
     }
   };
 
