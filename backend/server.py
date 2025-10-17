@@ -13617,7 +13617,7 @@ async def update_crew_certificate(
                 update_data['issued_by_abbreviation'] = ''
         
         # Convert date strings to datetime objects
-        for date_field in ['issued_date', 'cert_expiry']:
+        for date_field in ['issued_date', 'cert_expiry', 'date_of_birth']:
             if date_field in update_data and update_data[date_field]:
                 if isinstance(update_data[date_field], str):
                     try:
