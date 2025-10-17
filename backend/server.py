@@ -13123,6 +13123,7 @@ async def analyze_certificate_file_for_crew(
     cert_file: UploadFile = File(...),
     ship_id: str = Form(...),
     crew_id: str = Form(None),
+    bypass_validation: str = Form("false"),
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
