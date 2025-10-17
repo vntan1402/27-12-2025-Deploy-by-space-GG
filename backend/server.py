@@ -13291,13 +13291,34 @@ async def analyze_certificate_file_for_crew(
                             if crew_id and holder_name:
                                 # Normalize names for comparison (remove spaces, convert to uppercase)
                                 def normalize_name(name):
-                                    """Normalize name for comparison: uppercase, no spaces, no special chars"""
+                                    """
+                                    Normalize name for comparison: uppercase, no spaces, no special chars
+                                    Handles Vietnamese special characters properly
+                                    """
                                     import unicodedata
                                     import re
-                                    # Remove diacritics
-                                    name = ''.join(c for c in unicodedata.normalize('NFD', name) if unicodedata.category(c) != 'Mn')
-                                    # Uppercase and remove spaces/special chars
-                                    name = re.sub(r'[^A-Z0-9]', '', name.upper())
+                                    
+                                    # Manual mapping for Vietnamese special characters that don't normalize well
+                                    vietnamese_char_map = {
+                                        'Đ': 'D', 'đ': 'd',
+                                        'Ð': 'D', 'ð': 'd',  # Alternative Đ forms
+                                    }
+                                    
+                                    # Replace special Vietnamese characters first
+                                    for vn_char, replacement in vietnamese_char_map.items():
+                                        name = name.replace(vn_char, replacement)
+                                    
+                                    # Remove diacritics (accents) from remaining characters
+                                    # NFD = Canonical Decomposition (separates base char from diacritics)
+                                    name = ''.join(c for c in unicodedata.normalize('NFD', name) 
+                                                   if unicodedata.category(c) != 'Mn')
+                                    
+                                    # Convert to uppercase
+                                    name = name.upper()
+                                    
+                                    # Remove all spaces and special characters, keep only A-Z and 0-9
+                                    name = re.sub(r'[^A-Z0-9]', '', name)
+                                    
                                     return name
                                 
                                 normalized_holder = normalize_name(holder_name)
