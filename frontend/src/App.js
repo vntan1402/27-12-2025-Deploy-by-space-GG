@@ -3090,6 +3090,48 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to get folder location for files
+  const getFileLocation = (cert, fileType) => {
+    // Get crew member for this certificate
+    const crew = crewList.find(c => c.id === cert.crew_id);
+    
+    if (!crew) {
+      return language === 'vi' ? 'Không xác định' : 'Unknown';
+    }
+    
+    const crewStatus = crew.status ? crew.status.toLowerCase() : '';
+    const shipSignOn = crew.ship_sign_on || '';
+    
+    // Determine folder location based on status and ship
+    if (crewStatus === 'standby') {
+      return 'COMPANY DOCUMENT/Standby Crew';
+    } else if (shipSignOn && shipSignOn !== '-') {
+      return `${shipSignOn}/Crew Records`;
+    } else {
+      // Default to ship folder if ship_sign_on is set
+      return shipSignOn || (language === 'vi' ? 'Không xác định' : 'Unknown');
+    }
+  };
+
+  // Helper function to get passport file location
+  const getPassportFileLocation = (crew) => {
+    if (!crew) {
+      return language === 'vi' ? 'Không xác định' : 'Unknown';
+    }
+    
+    const crewStatus = crew.status ? crew.status.toLowerCase() : '';
+    const shipSignOn = crew.ship_sign_on || '';
+    
+    // Determine folder location based on status and ship
+    if (crewStatus === 'standby') {
+      return 'COMPANY DOCUMENT/Standby Crew';
+    } else if (shipSignOn && shipSignOn !== '-') {
+      return `${shipSignOn}/Crew Records`;
+    } else {
+      return shipSignOn || (language === 'vi' ? 'Không xác định' : 'Unknown');
+    }
+  };
+
   // Helper function to close edit crew modal and deselect crew
   const closeEditCrewModal = () => {
     setShowEditCrewModal(false);
