@@ -2671,6 +2671,13 @@ const HomePage = () => {
     setShowBulkEditPlaceSignOn(true);
   };
 
+  // Handle bulk edit Ship Sign On
+  const handleBulkEditShipSignOn = () => {
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null }); // Close existing crew context menu
+    setBulkShipSignOn('');
+    setShowBulkEditShipSignOn(true);
+  };
+
   // Handle bulk edit Date Sign On
   const handleBulkEditDateSignOn = () => {
     setCrewContextMenu({ show: false, x: 0, y: 0, crew: null }); // Close existing crew context menu
