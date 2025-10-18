@@ -14849,12 +14849,8 @@ const HomePage = () => {
                       <option value="4/E">{language === 'vi' ? 'Máy tư' : '4/E'}</option>
                       <option value="BOSUN">{language === 'vi' ? 'Thủy thủ trưởng' : 'BOSUN'}</option>
                       <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
-                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
-                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
-                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
                       <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
                       <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
-                      <option value="ABE">{language === 'vi' ? 'Thợ máy phổ thông' : 'ABE'}</option>
                       <option value="ABE">{language === 'vi' ? 'Thợ máy phổ thông' : 'ABE'}</option>
                       <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
                       <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
@@ -15643,12 +15639,8 @@ const HomePage = () => {
                       <option value="4/E">{language === 'vi' ? 'Máy tư' : '4/E'}</option>
                       <option value="BOSUN">{language === 'vi' ? 'Thủy thủ trưởng' : 'BOSUN'}</option>
                       <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
-                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
-                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
-                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
                       <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
                       <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
-                      <option value="ABE">{language === 'vi' ? 'Thợ máy phổ thông' : 'ABE'}</option>
                       <option value="ABE">{language === 'vi' ? 'Thợ máy phổ thông' : 'ABE'}</option>
                       <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
                       <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
