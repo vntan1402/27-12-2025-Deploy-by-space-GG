@@ -13206,6 +13206,24 @@ async def move_standby_crew_files(
                                     if result.get("success"):
                                         moved_files_count += 1
                                         logger.info(f"✅ Moved {file_info['type']} file: {file_info['file_id']}")
+                                        
+                                        # Update database with folder path
+                                        folder_path = "COMPANY DOCUMENT/Standby Crew"
+                                        
+                                        if file_info['type'] == 'passport':
+                                            await mongo_db.update_one(
+                                                "crew_members",
+                                                {"id": crew_id, "company_id": company_uuid},
+                                                {"$set": {"passport_folder_path": folder_path}}
+                                            )
+                                            logger.info(f"📝 Updated passport folder path: {folder_path}")
+                                        elif file_info['type'] == 'certificate':
+                                            await mongo_db.update_one(
+                                                "crew_certificates",
+                                                {"id": file_info.get('cert_id'), "company_id": company_uuid},
+                                                {"$set": {"cert_folder_path": folder_path}}
+                                            )
+                                            logger.info(f"📝 Updated certificate folder path: {folder_path}")
                                     else:
                                         error_msg = result.get("error", "Unknown error")
                                         logger.error(f"❌ Failed to move {file_info['type']}: {error_msg}")
