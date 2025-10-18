@@ -3236,6 +3236,22 @@ const HomePage = () => {
         const oldDateSignOff = editingCrew.date_sign_off;
         const newDateSignOff = editCrewData.date_sign_off;
         
+        // Debug: Log raw values with types
+        console.log('🔍 RAW VALUES:', {
+          'oldDateSignOff (value)': oldDateSignOff,
+          'oldDateSignOff (type)': typeof oldDateSignOff,
+          'oldDateSignOff (is null)': oldDateSignOff === null,
+          'oldDateSignOff (is undefined)': oldDateSignOff === undefined,
+          'oldDateSignOff (is empty string)': oldDateSignOff === '',
+          'oldDateSignOff (falsy)': !oldDateSignOff,
+          'newDateSignOff (value)': newDateSignOff,
+          'newDateSignOff (type)': typeof newDateSignOff,
+          'newDateSignOff (is null)': newDateSignOff === null,
+          'newDateSignOff (is undefined)': newDateSignOff === undefined,
+          'newDateSignOff (is empty string)': newDateSignOff === '',
+          'newDateSignOff (truthy)': !!newDateSignOff
+        });
+        
         // Check if date_sign_off was newly filled (wasn't there before, now it is)
         const dateSignOffAdded = !oldDateSignOff && newDateSignOff;
         
@@ -3262,13 +3278,20 @@ const HomePage = () => {
           // Call moveStandbyCrewFiles in background (don't await - let it run async)
           moveStandbyCrewFiles([editingCrew.id], editCrewData.full_name);
         } else {
-          console.log('ℹ️ Auto-move not triggered:', {
-            reason: newStatus !== 'standby' 
+          console.log('❌ Auto-move NOT triggered. Analysis:');
+          console.log('   - newStatus === "standby"?', newStatus === 'standby');
+          console.log('   - oldStatus !== "standby"?', oldStatus !== 'standby');
+          console.log('   - statusChangedToStandby?', newStatus === 'standby' && oldStatus !== 'standby');
+          console.log('   - !oldDateSignOff?', !oldDateSignOff);
+          console.log('   - newDateSignOff (truthy)?', !!newDateSignOff);
+          console.log('   - dateSignOffAdded?', dateSignOffAdded);
+          console.log('   Reason:', 
+            newStatus !== 'standby' 
               ? 'new status is not standby' 
               : oldStatus === 'standby' && !dateSignOffAdded
                 ? 'status was already standby and no new date sign off'
-                : 'unknown'
-          });
+                : 'unknown - check raw values above'
+          );
         }
         
         // Refresh crew list
