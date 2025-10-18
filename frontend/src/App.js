@@ -11247,7 +11247,7 @@ const HomePage = () => {
 
                           {/* Add Crew Certificate Modal */}
                           {console.log('🔍 Modal render check - showAddCrewCertModal:', showAddCrewCertModal)}
-                          {showAddCrewCertModal && (
+                          {showAddCrewCertModal && !isAddCrewCertModalMinimized && (
                             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
                               <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
                                 {/* Modal Header */}
@@ -11267,13 +11267,32 @@ const HomePage = () => {
                                         </p>
                                       )}
                                     </div>
-                                    <button
-                                      onClick={handleCloseAddCrewCertModal}
-                                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                                      disabled={isSubmittingCert}
-                                    >
-                                      <span className="text-2xl">×</span>
-                                    </button>
+                                    <div className="flex items-center space-x-2">
+                                      {/* Minimize Button */}
+                                      <button
+                                        onClick={() => {
+                                          console.log('📦 Minimizing Add Crew Certificate modal...');
+                                          setIsAddCrewCertModalMinimized(true);
+                                          toast.info(language === 'vi' 
+                                            ? 'Modal đã được thu nhỏ. Click vào biểu tượng bên dưới để mở lại.' 
+                                            : 'Modal minimized. Click icon below to restore.');
+                                        }}
+                                        className="text-gray-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded"
+                                        title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
+                                        disabled={isSubmittingCert}
+                                      >
+                                        <span className="text-xl">─</span>
+                                      </button>
+                                      {/* Close Button */}
+                                      <button
+                                        onClick={handleCloseAddCrewCertModal}
+                                        className="text-gray-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded"
+                                        title={language === 'vi' ? 'Đóng' : 'Close'}
+                                        disabled={isSubmittingCert}
+                                      >
+                                        <span className="text-2xl">×</span>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
 
