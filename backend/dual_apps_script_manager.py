@@ -667,7 +667,8 @@ class DualAppsScriptManager:
         cert_file_content: bytes,
         cert_filename: str,
         cert_content_type: str,
-        ship_name: str,
+        ship_name: Optional[str],
+        is_standby: bool = False,
         summary_text: Optional[str] = None
     ) -> Dict[str, Any]:
         """
@@ -677,7 +678,8 @@ class DualAppsScriptManager:
             cert_file_content: Certificate file content
             cert_filename: Certificate filename
             cert_content_type: Certificate MIME type
-            ship_name: Ship name for folder structure
+            ship_name: Ship name for folder structure (None if standby)
+            is_standby: If True, upload to COMPANY DOCUMENT/Standby Crew folder
             summary_text: Summary text (optional)
             
         Returns:
@@ -697,18 +699,132 @@ class DualAppsScriptManager:
             
             upload_results = {}
             
-            # Upload 1: Certificate file to Ship/Crew Records
-            logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/{cert_filename}")
-            cert_upload = await self._call_company_apps_script({
-                'action': 'upload_file_with_folder_creation',
-                'parent_folder_id': self.parent_folder_id,
-                'ship_name': ship_name,
-                'category': 'Crew Records',
-                'filename': cert_filename,
-                'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
-                'content_type': cert_content_type
-            })
-            upload_results['certificate'] = cert_upload
+            # Determine upload folder based on is_standby flag
+            if is_standby:
+                # Upload to COMPANY DOCUMENT/Standby Crew
+                logger.info(f"📤 Uploading certificate file to COMPANY DOCUMENT/Standby Crew: {cert_filename}")
+                
+                # Step 1: Find COMPANY DOCUMENT folder
+                import aiohttp
+                company_document_folder_id = None
+                standby_folder_id = None
+                
+                async with aiohttp.ClientSession() as session:
+                    # Find COMPANY DOCUMENT in ROOT
+                    try:
+                        async with session.post(
+                            self.company_apps_script_url,
+                            json={
+                                "action": "debug_folder_structure",
+                                "parent_folder_id": self.parent_folder_id
+                            },
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success") and result.get("folders"):
+                                    for folder in result.get("folders"):
+                                        if folder.get('name', '').strip().lower() == "company document":
+                                            company_document_folder_id = folder.get('id')
+                                            logger.info(f"✅ Found COMPANY DOCUMENT folder: {company_document_folder_id}")
+                                            break
+                    except Exception as e:
+                        logger.error(f"❌ Error finding COMPANY DOCUMENT folder: {e}")
+                
+                if not company_document_folder_id:
+                    raise ValueError("COMPANY DOCUMENT folder not found")
+                
+                # Step 2: Find or create Standby Crew folder in COMPANY DOCUMENT
+                try:
+                    async with session.post(
+                        self.company_apps_script_url,
+                        json={
+                            "action": "debug_folder_structure",
+                            "parent_folder_id": company_document_folder_id
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success") and result.get("folders"):
+                                for folder in result.get("folders"):
+                                    if folder.get('name', '').strip().lower() == "standby crew":
+                                        standby_folder_id = folder.get('id')
+                                        logger.info(f"✅ Found Standby Crew folder: {standby_folder_id}")
+                                        break
+                except Exception as e:
+                    logger.error(f"❌ Error finding Standby Crew folder: {e}")
+                
+                # Create Standby Crew folder if not found
+                if not standby_folder_id:
+                    logger.info("🆕 Creating Standby Crew folder in COMPANY DOCUMENT...")
+                    import base64 as b64
+                    dummy_content = b64.b64encode(b"Placeholder").decode('utf-8')
+                    
+                    try:
+                        async with session.post(
+                            self.company_apps_script_url,
+                            json={
+                                "action": "upload_file_with_folder_creation",
+                                "parent_folder_id": company_document_folder_id,
+                                "ship_name": "",
+                                "category": "Standby Crew",
+                                "filename": ".placeholder",
+                                "file_content": dummy_content
+                            },
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as create_response:
+                            if create_response.status == 200:
+                                create_result = await create_response.json()
+                                if create_result.get("success"):
+                                    standby_folder_id = create_result.get("folder_id")
+                                    logger.info(f"✅ Created Standby Crew folder: {standby_folder_id}")
+                                    
+                                    # Delete placeholder
+                                    placeholder_file_id = create_result.get("file_id")
+                                    if placeholder_file_id:
+                                        try:
+                                            async with session.post(
+                                                self.company_apps_script_url,
+                                                json={
+                                                    "action": "delete_file",
+                                                    "file_id": placeholder_file_id,
+                                                    "permanent_delete": True
+                                                },
+                                                timeout=aiohttp.ClientTimeout(total=10)
+                                            ) as delete_response:
+                                                pass
+                                        except:
+                                            pass
+                    except Exception as e:
+                        logger.error(f"❌ Error creating Standby Crew folder: {e}")
+                
+                if not standby_folder_id:
+                    raise ValueError("Failed to find or create Standby Crew folder")
+                
+                # Upload certificate file directly to Standby Crew folder
+                cert_upload = await self._call_company_apps_script({
+                    'action': 'upload_file_to_folder',
+                    'folder_id': standby_folder_id,
+                    'filename': cert_filename,
+                    'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
+                    'content_type': cert_content_type
+                })
+                upload_results['certificate'] = cert_upload
+                
+            else:
+                # Upload to Ship/Crew Records (existing logic)
+                logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/{cert_filename}")
+                cert_upload = await self._call_company_apps_script({
+                    'action': 'upload_file_with_folder_creation',
+                    'parent_folder_id': self.parent_folder_id,
+                    'ship_name': ship_name,
+                    'category': 'Crew Records',
+                    'filename': cert_filename,
+                    'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
+                    'content_type': cert_content_type
+                })
+                upload_results['certificate'] = cert_upload
             
             # Upload 2: Summary file to SUMMARY folder (if provided)
             if summary_text:
