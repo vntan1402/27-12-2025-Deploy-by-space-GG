@@ -11536,12 +11536,40 @@ const HomePage = () => {
                                   >
                                     <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
                                     {(() => {
-                                      // Get crew names from crew list (ship_sign_on = selected ship)
+                                      // In Certificates View: Filter crew based on Ship Sign On filter selection
+                                      if (showCertificatesView && crewList.length > 0) {
+                                        let filteredCrew = crewList;
+                                        
+                                        // Apply Ship Sign On filter to crew list
+                                        if (certFilters.shipSignOn !== 'all') {
+                                          filteredCrew = crewList.filter(crew => {
+                                            const crewShipSignOn = crew.ship_sign_on || '-';
+                                            return crewShipSignOn === certFilters.shipSignOn;
+                                          });
+                                        }
+                                        
+                                        // Generate dropdown options from filtered crew
+                                        return filteredCrew
+                                          .map(crew => ({
+                                            value: crew.full_name,
+                                            displayName: language === 'en' && crew.full_name_en 
+                                              ? crew.full_name_en 
+                                              : crew.full_name
+                                          }))
+                                          .sort((a, b) => a.displayName.localeCompare(b.displayName))
+                                          .map(item => (
+                                            <option key={item.value} value={item.value}>
+                                              {item.displayName}
+                                            </option>
+                                          ));
+                                      }
+                                      
+                                      // In Crew List View: Filter by selected ship (original logic)
                                       if (selectedShip && crewList.length > 0) {
                                         return crewList
                                           .filter(crew => crew.ship_sign_on === selectedShip.name)
                                           .map(crew => ({
-                                            value: crew.full_name,  // Always filter by Vietnamese name
+                                            value: crew.full_name,
                                             displayName: language === 'en' && crew.full_name_en ? crew.full_name_en : crew.full_name
                                           }))
                                           .sort((a, b) => a.displayName.localeCompare(b.displayName))
@@ -11551,6 +11579,7 @@ const HomePage = () => {
                                             </option>
                                           ));
                                       }
+                                      
                                       // Fallback: get from certificates if no crew list available
                                       return [...new Set(crewCertificates.map(cert => cert.crew_name))]
                                         .sort()
