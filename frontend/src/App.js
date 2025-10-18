@@ -8379,7 +8379,15 @@ const HomePage = () => {
 
   // Load crew members when component mounts or filters change
   React.useEffect(() => {
+    console.log('📊 Crew useEffect triggered:', {
+      token: !!token,
+      selectedCategory,
+      ship_sign_on: crewFilters?.ship_sign_on,
+      status: crewFilters?.status
+    });
+    
     if (token && selectedCategory === 'crew') {
+      console.log('✅ Fetching crew members...');
       fetchCrewMembers(crewFilters?.ship_sign_on, crewFilters?.status);
     }
   }, [token, selectedCategory, crewFilters?.ship_sign_on, crewFilters?.status]);
