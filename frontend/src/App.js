@@ -10885,7 +10885,7 @@ const HomePage = () => {
                                         {crew.passport_file_id && (
                                           <span 
                                             className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
-                                            title={language === 'vi' ? 'Click để xem file gốc' : 'Click to view original file'}
+                                            title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${getPassportFileLocation(crew)}`}
                                             onClick={(e) => {
                                               e.stopPropagation(); // Prevent row context menu
                                               if (crew.passport_file_id) {
@@ -10899,7 +10899,7 @@ const HomePage = () => {
                                         {crew.summary_file_id && (
                                           <span 
                                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
-                                            title={language === 'vi' ? 'Click để xem file tóm tắt' : 'Click to view summary file'}
+                                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${crew.ship_sign_on || selectedShip?.name || 'Unknown'}/Passport`}
                                             onClick={(e) => {
                                               e.stopPropagation(); // Prevent row context menu
                                               if (crew.summary_file_id) {
