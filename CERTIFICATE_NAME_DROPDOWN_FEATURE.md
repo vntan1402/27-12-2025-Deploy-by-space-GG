@@ -229,20 +229,19 @@ className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
 1. Navigate to Crew Certificates
 2. Click Edit on any certificate
 3. Click on "Certificate Name" field
-4. **Expected:** Dropdown shows 40+ certificate names
+4. **Expected:** Dropdown shows 15 certificate names (matching Add Crew Cert modal)
 5. Scroll through list
 6. Click on "GMDSS Certificate"
 7. **Expected:** Field filled with selected value, dropdown closes
 
 ### Test Case 2: Search Filter
 1. Click on "Certificate Name" field
-2. Type "tank"
+2. Type "medical"
 3. **Expected:** Dropdown filters to show:
-   - Oil Tanker
-   - Chemical Tanker
-   - LNG Tanker
-   - Tanker Familiarization
-4. Click on "Oil Tanker"
+   - Medical Care
+   - Medical Certificate
+   - Medical First Aid
+4. Click on "Medical First Aid"
 5. **Expected:** Field filled correctly
 
 ### Test Case 3: Custom Name Input
@@ -259,9 +258,9 @@ className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
 ### Test Case 4: Clear and Reselect
 1. Field has value "GMDSS Certificate"
 2. Click on field, select all text (Ctrl+A), delete
-3. **Expected:** Dropdown shows full list again
-4. Type "medical"
-5. **Expected:** Shows "Medical First Aid" and "Medical Care"
+3. **Expected:** Dropdown shows full list again (15 options)
+4. Type "seaman"
+5. **Expected:** Shows "Seaman Book for COC" and "Seaman book for GMDSS"
 6. Select one
 7. **Expected:** Field updated correctly
 
