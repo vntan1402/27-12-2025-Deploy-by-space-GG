@@ -1839,6 +1839,20 @@ const HomePage = () => {
     }
   }, [selectedShip]);
 
+  // Load custom certificate names from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedCustomNames = localStorage.getItem('customCertificateNames');
+      if (savedCustomNames) {
+        const parsedNames = JSON.parse(savedCustomNames);
+        setCustomCertificateNames(parsedNames);
+        console.log('📚 Loaded custom certificate names from localStorage:', parsedNames);
+      }
+    } catch (error) {
+      console.error('Error loading custom certificate names:', error);
+    }
+  }, []);
+
   // Handle click outside for Certificate Name dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
