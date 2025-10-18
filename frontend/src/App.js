@@ -8686,6 +8686,12 @@ const HomePage = () => {
                                                 ? `Đã chọn tàu: ${ship.name}`
                                                 : `Selected ship: ${ship.name}`
                                             );
+                                            
+                                            // Auto-refresh crew certificates if in certificates view
+                                            if (showCertificatesView) {
+                                              console.log('🔄 Ship changed - refreshing crew certificates list...');
+                                              fetchCrewCertificates(null);
+                                            }
                                           }}
                                           className={`w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
                                             selectedShip && selectedShip.id === ship.id 
