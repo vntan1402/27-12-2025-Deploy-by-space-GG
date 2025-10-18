@@ -8,6 +8,50 @@ import './App.css';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Common Maritime Certificate Names for dropdown
+const COMMON_CERTIFICATE_NAMES = [
+  'Certificate of Competency (COC)',
+  'GMDSS Certificate',
+  'Ship Security Officer',
+  'Ship Security Awareness',
+  'Dangerous Goods',
+  'Advanced Fire Fighting',
+  'Medical First Aid',
+  'Medical Care',
+  'Crowd Management',
+  'Crisis Management',
+  'Bridge Resource Management (BRM)',
+  'Engine Resource Management (ERM)',
+  'ECDIS Generic',
+  'ECDIS Type Specific',
+  'ARPA',
+  'Radar Navigation',
+  'Basic Safety Training (BST)',
+  'Survival Craft',
+  'Fast Rescue Boat',
+  'Tanker Familiarization',
+  'Oil Tanker',
+  'Chemical Tanker',
+  'LNG Tanker',
+  'Passenger Ship',
+  'Ro-Ro Passenger Ship',
+  'High Speed Craft',
+  'Dynamic Positioning',
+  'Ballast Water Management',
+  'Able Seafarer Deck',
+  'Able Seafarer Engine',
+  'Electro-Technical Officer',
+  'Rating Forming Part of a Watch',
+  'SSBT (Ship Security)',
+  'ISPS Code',
+  'ISM Code',
+  'MLC 2006',
+  'STCW Certificate',
+  'Seaman Book',
+  'Yellow Fever Vaccination',
+  'COVID-19 Vaccination'
+].sort();
+
 // Custom hook for draggable modals
 const useDraggable = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
