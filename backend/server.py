@@ -718,7 +718,7 @@ class CrewCertificateUpdate(BaseModel):
 
 class CrewCertificateResponse(CrewCertificateBase):
     id: str
-    ship_id: str
+    ship_id: Optional[str] = None  # Allow None for Standby crew certificates
     company_id: str
     created_at: datetime
     created_by: str
