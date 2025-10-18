@@ -2786,13 +2786,6 @@ const HomePage = () => {
 
   // Handle bulk Date Sign Off update
   const handleBulkUpdateDateSignOff = async () => {
-    if (!bulkDateSignOff.trim()) {
-      toast.error(language === 'vi' 
-        ? 'Vui lòng chọn ngày rời tàu'
-        : 'Please select date sign off');
-      return;
-    }
-
     if (selectedCrewMembers.size === 0) {
       toast.error(language === 'vi' 
         ? 'Không có thuyền viên nào được chọn'
@@ -2805,26 +2798,44 @@ const HomePage = () => {
       let successCount = 0;
       let errorCount = 0;
 
-      console.log(`📅 Bulk updating Date Sign Off to "${bulkDateSignOff}" for ${selectedCrewIds.length} crew members...`);
+      // Check if user wants to clear Date Sign Off (empty input)
+      const isClearingDate = !bulkDateSignOff || bulkDateSignOff.trim() === '';
+      
+      if (isClearingDate) {
+        console.log(`🗑️ Clearing Date Sign Off for ${selectedCrewIds.length} crew members...`);
+      } else {
+        console.log(`📅 Bulk updating Date Sign Off to "${bulkDateSignOff}" for ${selectedCrewIds.length} crew members...`);
+      }
 
-      // Convert date to proper format to avoid timezone shift
-      const processedDate = convertDateInputToUTC(bulkDateSignOff);
-      console.log(`📅 Converted date: ${bulkDateSignOff} → ${processedDate}`);
+      // Process date if not clearing
+      const processedDate = isClearingDate ? null : convertDateInputToUTC(bulkDateSignOff);
+      if (processedDate) {
+        console.log(`📅 Converted date: ${bulkDateSignOff} → ${processedDate}`);
+      }
 
       for (const crewId of selectedCrewIds) {
         try {
-          // Auto-update Status and Ship Sign On when Date Sign Off is filled
-          const updateData = {
-            date_sign_off: processedDate,
-            status: 'Standby', // Auto-set to Standby when crew signs off
-            ship_sign_on: '-' // Clear ship assignment when crew signs off
-          };
+          let updateData;
           
-          console.log(`📋 Auto-updating for crew ${crewId}:`, {
-            date_sign_off: processedDate,
-            status: 'Standby',
-            ship_sign_on: '-'
-          });
+          if (isClearingDate) {
+            // Clear Date Sign Off only (don't change status or ship)
+            updateData = {
+              date_sign_off: null
+            };
+            console.log(`📋 Clearing Date Sign Off for crew ${crewId}`);
+          } else {
+            // Auto-update Status and Ship Sign On when Date Sign Off is filled
+            updateData = {
+              date_sign_off: processedDate,
+              status: 'Standby', // Auto-set to Standby when crew signs off
+              ship_sign_on: '-' // Clear ship assignment when crew signs off
+            };
+            console.log(`📋 Auto-updating for crew ${crewId}:`, {
+              date_sign_off: processedDate,
+              status: 'Standby',
+              ship_sign_on: '-'
+            });
+          }
           
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
@@ -2835,7 +2846,11 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ Updated Date Sign Off, Status, and Ship Sign On for crew ${crewId}`);
+            if (isClearingDate) {
+              console.log(`✅ Cleared Date Sign Off for crew ${crewId}`);
+            } else {
+              console.log(`✅ Updated Date Sign Off, Status, and Ship Sign On for crew ${crewId}`);
+            }
           }
         } catch (error) {
           errorCount++;
@@ -2845,9 +2860,15 @@ const HomePage = () => {
 
       // Show results
       if (successCount > 0 && errorCount === 0) {
-        toast.success(language === 'vi' 
-          ? `Đã cập nhật ngày rời tàu, trạng thái và tàu cho ${successCount} thuyền viên`
-          : `Updated date sign off, status and ship assignment for ${successCount} crew members`);
+        if (isClearingDate) {
+          toast.success(language === 'vi' 
+            ? `Đã xóa ngày rời tàu cho ${successCount} thuyền viên`
+            : `Cleared date sign off for ${successCount} crew members`);
+        } else {
+          toast.success(language === 'vi' 
+            ? `Đã cập nhật ngày rời tàu, trạng thái và tàu cho ${successCount} thuyền viên`
+            : `Updated date sign off, status and ship assignment for ${successCount} crew members`);
+        }
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
