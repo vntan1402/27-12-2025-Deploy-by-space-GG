@@ -14854,7 +14854,7 @@ const HomePage = () => {
                       <option value="ABD">{language === 'vi' ? 'Thuyền viên AB-D' : 'ABD'}</option>
                       <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
                       <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
-                      <option value="ABE-A">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE-A'}</option>
+                      <option value="ABE">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE'}</option>
                       <option value="ABE-B">{language === 'vi' ? 'Thợ máy AB-B' : 'ABE-B'}</option>
                       <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
                       <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
@@ -15648,7 +15648,7 @@ const HomePage = () => {
                       <option value="ABD">{language === 'vi' ? 'Thuyền viên AB-D' : 'ABD'}</option>
                       <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
                       <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
-                      <option value="ABE-A">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE-A'}</option>
+                      <option value="ABE">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE'}</option>
                       <option value="ABE-B">{language === 'vi' ? 'Thợ máy AB-B' : 'ABE-B'}</option>
                       <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
                       <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
