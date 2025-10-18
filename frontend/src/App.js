@@ -3095,6 +3095,42 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to add custom certificate name to localStorage
+  const addCustomCertificateName = (certName) => {
+    if (!certName || certName.trim() === '') return;
+    
+    const trimmedName = certName.trim();
+    
+    // Check if name already exists (case-insensitive)
+    const existsInCommon = COMMON_CERTIFICATE_NAMES.some(
+      name => name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    const existsInCustom = customCertificateNames.some(
+      name => name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (existsInCommon || existsInCustom) {
+      console.log('📝 Certificate name already exists in list, skipping:', trimmedName);
+      return;
+    }
+    
+    // Add to custom names
+    const updatedCustomNames = [...customCertificateNames, trimmedName].sort();
+    setCustomCertificateNames(updatedCustomNames);
+    
+    // Save to localStorage
+    try {
+      localStorage.setItem('customCertificateNames', JSON.stringify(updatedCustomNames));
+      console.log('✅ Saved custom certificate name:', trimmedName);
+      toast.success(language === 'vi' 
+        ? `✅ Đã lưu tên chứng chỉ mới: "${trimmedName}"` 
+        : `✅ Saved new certificate name: "${trimmedName}"`
+      );
+    } catch (error) {
+      console.error('Error saving custom certificate name:', error);
+    }
+  };
+
   // Helper function to automatically move files to Standby Crew folder
   const moveStandbyCrewFiles = async (crewIds, crewName = null) => {
     if (!crewIds || crewIds.length === 0) return;
