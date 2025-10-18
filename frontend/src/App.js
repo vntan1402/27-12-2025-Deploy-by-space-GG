@@ -999,8 +999,9 @@ const HomePage = () => {
   
   // Certificate Filters
   const [certFilters, setCertFilters] = useState({
-    status: 'all',     // all, Valid, Expiring Soon, Expired, Unknown
-    crewName: 'all'    // all, or specific crew name
+    shipSignOn: 'all',  // all, specific ship name, or "-" for Standby
+    status: 'all',      // all, Valid, Expiring Soon, Expired, Unknown
+    crewName: 'all'     // all, or specific crew name
   });
   
   const [certificateSort, setCertificateSort] = useState({
