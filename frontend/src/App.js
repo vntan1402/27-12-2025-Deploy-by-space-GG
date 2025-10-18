@@ -3090,9 +3090,14 @@ const HomePage = () => {
     }
   };
 
-  // Helper function to get folder location for files
-  const getFileLocation = (cert, fileType) => {
-    // Get crew member for this certificate
+  // Helper function to get folder location for files from database
+  const getFileLocation = (cert) => {
+    // Return actual folder path from database if available
+    if (cert.cert_folder_path) {
+      return cert.cert_folder_path;
+    }
+    
+    // Fallback to logic if not in database yet
     const crew = crewList.find(c => c.id === cert.crew_id);
     
     if (!crew) {
@@ -3102,27 +3107,30 @@ const HomePage = () => {
     const crewStatus = crew.status ? crew.status.toLowerCase() : '';
     const shipSignOn = crew.ship_sign_on || '';
     
-    // Determine folder location based on status and ship
     if (crewStatus === 'standby') {
       return 'COMPANY DOCUMENT/Standby Crew';
     } else if (shipSignOn && shipSignOn !== '-') {
       return `${shipSignOn}/Crew Records`;
     } else {
-      // Default to ship folder if ship_sign_on is set
       return shipSignOn || (language === 'vi' ? 'Không xác định' : 'Unknown');
     }
   };
 
-  // Helper function to get passport file location
+  // Helper function to get passport file location from database
   const getPassportFileLocation = (crew) => {
     if (!crew) {
       return language === 'vi' ? 'Không xác định' : 'Unknown';
     }
     
+    // Return actual folder path from database if available
+    if (crew.passport_folder_path) {
+      return crew.passport_folder_path;
+    }
+    
+    // Fallback to logic if not in database yet
     const crewStatus = crew.status ? crew.status.toLowerCase() : '';
     const shipSignOn = crew.ship_sign_on || '';
     
-    // Determine folder location based on status and ship
     if (crewStatus === 'standby') {
       return 'COMPANY DOCUMENT/Standby Crew';
     } else if (shipSignOn && shipSignOn !== '-') {
