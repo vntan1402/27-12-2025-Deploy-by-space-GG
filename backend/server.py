@@ -13125,9 +13125,12 @@ async def move_standby_crew_files(
                     logger.error(f"❌ Error creating Standby Crew folder: {create_error}")
             
             if not standby_folder_id:
-                # Fallback to hardcoded ID if all else fails
-                logger.warning("⚠️ Using fallback hardcoded Standby Crew folder ID")
-                standby_folder_id = "1KU_1o-FcY3g2O9dKO5xxPhv1P2u56aO6"
+                logger.error("❌ Failed to find or create Standby Crew folder")
+                return {
+                    "success": False,
+                    "moved_count": 0,
+                    "message": "Failed to find or create Standby Crew folder in COMPANY DOCUMENT"
+                }
         
         logger.info(f"📂 Using Standby Crew folder ID: {standby_folder_id}")
         
