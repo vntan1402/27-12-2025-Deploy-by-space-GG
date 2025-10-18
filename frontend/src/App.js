@@ -15117,12 +15117,7 @@ const HomePage = () => {
                 </button>
                 <button
                   onClick={handleBulkUpdateDateSignOn}
-                  disabled={!bulkDateSignOn.trim()}
-                  className={`px-4 py-2 rounded-lg transition-all flex items-center ${
-                    bulkDateSignOn.trim() 
-                      ? 'bg-green-600 hover:bg-green-700 text-white' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all flex items-center"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
