@@ -5888,6 +5888,7 @@ const HomePage = () => {
 
   const handleCloseAddCrewCertModal = () => {
     setShowAddCrewCertModal(false);
+    setIsAddCrewCertModalMinimized(false);  // Reset minimize state
     setSelectedCrewForCert(null);  // Reset selected crew
     resetAddCrewCertForm();
     handleResetCertFile();  // Clear uploaded file from previous session
