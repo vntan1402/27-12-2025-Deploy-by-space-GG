@@ -14895,32 +14895,36 @@ const HomePage = () => {
 
                   {/* Ship Sign On field removed - duplicate of field above */}
 
-                  {/* Place Sign On - Optional */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
-                    </label>
-                    <input
-                      type="text"
-                      value={newCrewData.place_sign_on}
-                      onChange={(e) => setNewCrewData({...newCrewData, place_sign_on: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Nhập nơi xuống tàu' : 'Enter place sign on'}
-                    />
-                  </div>
+                  {/* Place Sign On - Optional - Hidden for Standby */}
+                  {newCrewData.status !== 'Standby' && (
+                    <div className="md:col-span-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
+                      </label>
+                      <input
+                        type="text"
+                        value={newCrewData.place_sign_on}
+                        onChange={(e) => setNewCrewData({...newCrewData, place_sign_on: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={language === 'vi' ? 'Nhập nơi xuống tàu' : 'Enter place sign on'}
+                      />
+                    </div>
+                  )}
 
-                  {/* Date Sign On - Optional */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
-                    </label>
-                    <input
-                      type="date"
-                      value={newCrewData.date_sign_on}
-                      onChange={(e) => setNewCrewData({...newCrewData, date_sign_on: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  {/* Date Sign On - Optional - Hidden for Standby */}
+                  {newCrewData.status !== 'Standby' && (
+                    <div className="md:col-span-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
+                      </label>
+                      <input
+                        type="date"
+                        value={newCrewData.date_sign_on}
+                        onChange={(e) => setNewCrewData({...newCrewData, date_sign_on: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
 
                   {/* Date Sign Off - Optional */}
                   <div className="md:col-span-1">
