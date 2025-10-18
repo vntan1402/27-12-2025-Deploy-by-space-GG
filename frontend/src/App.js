@@ -8,49 +8,24 @@ import './App.css';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Common Maritime Certificate Names for dropdown
+// Common Maritime Certificate Names for dropdown (matching Add Crew Certificate modal)
 const COMMON_CERTIFICATE_NAMES = [
   'Certificate of Competency (COC)',
+  'Certificate of Endorsement (COE)',
+  'Seaman Book for COC',
+  'Seaman book for GMDSS',
   'GMDSS Certificate',
-  'Ship Security Officer',
-  'Ship Security Awareness',
-  'Dangerous Goods',
+  'Medical Certificate',
+  'Basic Safety Training',
   'Advanced Fire Fighting',
+  'Ship Security Officer',
+  'Survival Craft and Rescue Boats',
   'Medical First Aid',
   'Medical Care',
   'Crowd Management',
-  'Crisis Management',
-  'Bridge Resource Management (BRM)',
-  'Engine Resource Management (ERM)',
-  'ECDIS Generic',
-  'ECDIS Type Specific',
-  'ARPA',
-  'Radar Navigation',
-  'Basic Safety Training (BST)',
-  'Survival Craft',
-  'Fast Rescue Boat',
-  'Tanker Familiarization',
-  'Oil Tanker',
-  'Chemical Tanker',
-  'LNG Tanker',
-  'Passenger Ship',
-  'Ro-Ro Passenger Ship',
-  'High Speed Craft',
-  'Dynamic Positioning',
-  'Ballast Water Management',
-  'Able Seafarer Deck',
-  'Able Seafarer Engine',
-  'Electro-Technical Officer',
-  'Rating Forming Part of a Watch',
-  'SSBT (Ship Security)',
-  'ISPS Code',
-  'ISM Code',
-  'MLC 2006',
-  'STCW Certificate',
-  'Seaman Book',
-  'Yellow Fever Vaccination',
-  'COVID-19 Vaccination'
-].sort();
+  'Crisis Management and Human Behaviour',
+  'Designated Security Duties'
+];
 
 // Custom hook for draggable modals
 const useDraggable = () => {
