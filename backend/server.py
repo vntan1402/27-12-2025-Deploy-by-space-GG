@@ -13482,6 +13482,24 @@ async def move_crew_files_to_ship(
                                     if move_result.get("success"):
                                         moved_files_count += 1
                                         logger.info(f"✅ Moved {file_info['type']} file: {file_info['file_id']}")
+                                        
+                                        # Update database with folder path
+                                        folder_path = f"{ship_name}/Crew Records"
+                                        
+                                        if file_info['type'] == 'passport':
+                                            await mongo_db.update_one(
+                                                "crew_members",
+                                                {"id": crew_id, "company_id": company_uuid},
+                                                {"$set": {"passport_folder_path": folder_path}}
+                                            )
+                                            logger.info(f"📝 Updated passport folder path: {folder_path}")
+                                        elif file_info['type'] == 'certificate':
+                                            await mongo_db.update_one(
+                                                "crew_certificates",
+                                                {"id": file_info.get('cert_id'), "company_id": company_uuid},
+                                                {"$set": {"cert_folder_path": folder_path}}
+                                            )
+                                            logger.info(f"📝 Updated certificate folder path: {folder_path}")
                                     else:
                                         logger.error(f"❌ Failed to move file: {move_result.get('message')}")
                                         errors.append(f"Failed to move {file_info['type']} for {crew.get('full_name')}")
