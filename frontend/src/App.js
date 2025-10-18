@@ -14711,7 +14711,7 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 2: Sex (span-1) + Rank (span-1) + Date of Birth (span-2) */}
+                  {/* Row 2: Sex (span-1) + Rank (span-1) + Date of Birth (span-1) + Place of Birth VN (span-1) */}
                   {/* Sex - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -14763,7 +14763,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Date of Birth - Required */}
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'}
                     </label>
@@ -14776,9 +14776,8 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 3: Place of Birth VN (span-2) + Place of Birth EN (span-2) */}
                   {/* Place of Birth Vietnamese - Required */}
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <span className="text-red-500">*</span> {language === 'vi' ? 'Nơi sinh (Tiếng Việt)' : 'Place of Birth (Vietnamese)'}
                     </label>
@@ -14803,8 +14802,9 @@ const HomePage = () => {
                     />
                   </div>
 
+                  {/* Row 3: Place of Birth EN (span-1) + Passport No. (span-1) + Nationality (span-1) + Passport Expiry (span-1) */}
                   {/* Place of Birth English - Optional */}
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Nơi sinh (Tiếng Anh)' : 'Place of Birth (English)'}
                       <span className="text-xs text-blue-500 ml-1">
@@ -14820,7 +14820,6 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 4: Passport No. + Nationality + Passport Expiry + Status (each span-1) */}
                   {/* Passport No. - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
