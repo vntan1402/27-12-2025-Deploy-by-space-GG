@@ -128,7 +128,7 @@ Không tìm thấy kết quả. Nhập tên mới: "Custom Certificate"
 
 ```
 1. User click vào "Certificate Name" field
-2. Dropdown hiển thị 40+ options
+2. Dropdown hiển thị 15 options (giống Add Crew Cert modal)
 3. User type "GMDSS"
 4. Dropdown filter → shows "GMDSS Certificate"
 5. User click chọn
@@ -140,9 +140,11 @@ Không tìm thấy kết quả. Nhập tên mới: "Custom Certificate"
 
 ```
 1. User click vào field
-2. User type "fire"
+2. User type "medical"
 3. Dropdown shows:
-   - "Advanced Fire Fighting"
+   - "Medical Care"
+   - "Medical Certificate"
+   - "Medical First Aid"
 4. User click chọn
 5. Field filled
 ```
