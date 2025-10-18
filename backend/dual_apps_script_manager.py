@@ -702,49 +702,18 @@ class DualAppsScriptManager:
             # Determine upload folder based on is_standby flag
             if is_standby:
                 # Upload to COMPANY DOCUMENT/Standby Crew
-                # Use upload_file_with_folder_creation with special parameters:
-                # - parent_folder_id will be ROOT folder
-                # - We need to find COMPANY DOCUMENT folder first, then upload to Standby Crew subfolder
+                # Use upload_file_with_folder_creation with ROOT as parent
+                # and "COMPANY DOCUMENT" as ship_name to create the hierarchy
                 
                 logger.info(f"📤 Uploading certificate to COMPANY DOCUMENT/Standby Crew: {cert_filename}")
                 
-                # Step 1: Find COMPANY DOCUMENT folder ID
-                import aiohttp
-                company_document_folder_id = None
-                
-                async with aiohttp.ClientSession() as session:
-                    try:
-                        async with session.post(
-                            self.company_apps_script_url,
-                            json={
-                                "action": "debug_folder_structure",
-                                "parent_folder_id": self.parent_folder_id
-                            },
-                            timeout=aiohttp.ClientTimeout(total=30)
-                        ) as response:
-                            if response.status == 200:
-                                result = await response.json()
-                                if result.get("success") and result.get("folders"):
-                                    for folder in result.get("folders"):
-                                        if folder.get('name', '').strip().lower() == "company document":
-                                            company_document_folder_id = folder.get('id')
-                                            logger.info(f"✅ Found COMPANY DOCUMENT folder: {company_document_folder_id}")
-                                            break
-                    except Exception as e:
-                        logger.error(f"❌ Error finding COMPANY DOCUMENT folder: {e}")
-                        raise ValueError(f"Failed to find COMPANY DOCUMENT folder: {str(e)}")
-                
-                if not company_document_folder_id:
-                    raise ValueError("COMPANY DOCUMENT folder not found in ROOT")
-                
-                # Step 2: Upload to COMPANY DOCUMENT using upload_file_with_folder_creation
-                # This will create/find Standby Crew subfolder automatically
-                # Use "COMPANY DOCUMENT" as ship_name so Apps Script doesn't reject it
+                # Use ROOT folder as parent, "COMPANY DOCUMENT" as ship_name
+                # Apps Script will create: ROOT/COMPANY DOCUMENT/Standby Crew
                 cert_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
-                    'parent_folder_id': company_document_folder_id,  # Use COMPANY DOCUMENT as parent
-                    'ship_name': 'COMPANY DOCUMENT',  # Set to folder name instead of empty string
-                    'category': 'Standby Crew',  # Will create COMPANY DOCUMENT/Standby Crew
+                    'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                    'ship_name': 'COMPANY DOCUMENT',  # Creates/finds COMPANY DOCUMENT folder
+                    'category': 'Standby Crew',  # Creates/finds Standby Crew subfolder
                     'filename': cert_filename,
                     'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
                     'content_type': cert_content_type
