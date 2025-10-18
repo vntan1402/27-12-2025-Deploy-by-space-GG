@@ -13018,22 +13018,21 @@ async def move_standby_crew_files(
                     # Create folder if not found
                     if not standby_folder_id:
                         logger.info("🆕 Creating Standby Crew folder...")
+                        # Use a simple approach: just create the folder via Apps Script
+                        # We'll use create_complete_ship_structure which creates folders
                         async with session.post(
                             company_apps_script_url,
                             json={
-                                "action": "upload_file_with_folder_creation",
+                                "action": "create_complete_ship_structure",
                                 "parent_folder_id": parent_folder_id,
-                                "ship_name": "Standby Crew",  # Will create this folder
-                                "filename": "_placeholder.txt",
-                                "file_content": Utilities.base64Encode("Standby Crew Folder")  # Dummy file
+                                "ship_name": "Standby Crew"
                             },
                             timeout=aiohttp.ClientTimeout(total=30)
                         ) as create_response:
                             if create_response.status == 200:
                                 create_result = await create_response.json()
                                 if create_result.get("success"):
-                                    # Get the folder ID from upload response
-                                    standby_folder_id = create_result.get("folder_id")
+                                    standby_folder_id = create_result.get("ship_folder_id")
                                     logger.info(f"✅ Created Standby Crew folder: {standby_folder_id}")
                     
                     if not standby_folder_id:
