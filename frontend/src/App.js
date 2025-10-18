@@ -14387,6 +14387,63 @@ const HomePage = () => {
                   ) : null}
                 </div>
                 <div className="flex items-center space-x-3">
+                  {/* Ship Select Dropdown - Only show when NOT in Standby mode */}
+                  {newCrewData.status !== 'Standby' && (
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowShipDropdown(!showShipDropdown);
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-medium text-sm transition-all flex items-center space-x-2 shadow-md"
+                      >
+                        <span>🚢</span>
+                        <span>{language === 'vi' ? 'Chọn tàu' : 'Ship Select'}</span>
+                        <span className="text-xs">▾</span>
+                      </button>
+                      
+                      {/* Ship Dropdown Menu */}
+                      {showShipDropdown && (
+                        <div className="absolute left-0 top-full mt-2 bg-white rounded-lg shadow-2xl border border-gray-200 py-2 min-w-[250px] z-[60] max-h-[400px] overflow-y-auto">
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase border-b border-gray-100">
+                            {language === 'vi' ? 'Chọn tàu từ công ty của bạn' : 'Select ship from your company'}
+                          </div>
+                          {ships.map(ship => (
+                            <button
+                              key={ship.id}
+                              onClick={() => {
+                                setSelectedShip(ship);
+                                setNewCrewData({
+                                  ...newCrewData,
+                                  ship_sign_on: ship.name,
+                                  status: 'Sign on'
+                                });
+                                setShowShipDropdown(false);
+                                console.log(`🚢 Ship changed to: ${ship.name} in Add Crew Modal`);
+                              }}
+                              className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors flex items-center justify-between ${
+                                selectedShip?.id === ship.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                              }`}
+                            >
+                              <div className="flex items-center space-x-3">
+                                <span className="text-xl">🚢</span>
+                                <div>
+                                  <div className="font-semibold text-gray-800">{ship.name}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {ship.imo ? `IMO: ${ship.imo}` : ''} {ship.flag ? `• ${ship.flag}` : ''}
+                                  </div>
+                                </div>
+                              </div>
+                              {selectedShip?.id === ship.id && (
+                                <span className="text-blue-600 font-bold">✓</span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   {/* Standby Mode Quick Toggle Button */}
                   <button
                     onClick={() => {
