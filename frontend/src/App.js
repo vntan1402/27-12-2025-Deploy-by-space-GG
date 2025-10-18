@@ -15147,11 +15147,19 @@ const HomePage = () => {
                       }
                     </span>
                   </div>
-                  <div className="text-xs text-orange-700 font-medium">
-                    {language === 'vi' 
-                      ? '⚡ Tự động: Trạng thái → "Standby", Tàu → "-"'
-                      : '⚡ Auto: Status → "Standby", Ship → "-"'
-                    }
+                  <div className="text-xs text-orange-700 font-medium space-y-1">
+                    <div>
+                      {language === 'vi' 
+                        ? '✅ Nhập ngày: Trạng thái → "Standby", Tàu → "-"'
+                        : '✅ Enter date: Status → "Standby", Ship → "-"'
+                      }
+                    </div>
+                    <div>
+                      {language === 'vi' 
+                        ? '🗑️ Để trống: Xóa ngày rời tàu (không đổi trạng thái/tàu)'
+                        : '🗑️ Leave empty: Clear date sign off (status/ship unchanged)'
+                      }
+                    </div>
                   </div>
                 </div>
                 
