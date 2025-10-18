@@ -5522,6 +5522,12 @@ const HomePage = () => {
         status: 'all'
       });
       
+      // Auto-select first ship if no ship is currently selected
+      if (!selectedShip && ships.length > 0) {
+        setSelectedShip(ships[0]);
+        console.log(`🚢 Auto-selected first ship: ${ships[0].name}`);
+      }
+      
       console.log(`✅ Crew Records category selected - Filters reset to All, Certificates View closed`);
     }
     
