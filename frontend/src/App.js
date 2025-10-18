@@ -14926,27 +14926,29 @@ const HomePage = () => {
                     </div>
                   )}
 
-                  {/* Date Sign Off - Optional */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
-                    </label>
-                    <input
-                      type="date"
-                      value={newCrewData.date_sign_off}
-                      onChange={(e) => {
-                        const signOffDate = e.target.value;
-                        setNewCrewData({
-                          ...newCrewData, 
-                          date_sign_off: signOffDate,
-                          // Auto-update Status and Ship Sign On when Date Sign Off is filled
-                          status: signOffDate ? 'Standby' : newCrewData.status,
-                          ship_sign_on: signOffDate ? '-' : newCrewData.ship_sign_on
-                        });
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                  {/* Date Sign Off - Optional - Hidden for Standby (not applicable for new standby crew) */}
+                  {newCrewData.status !== 'Standby' && (
+                    <div className="md:col-span-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
+                      </label>
+                      <input
+                        type="date"
+                        value={newCrewData.date_sign_off}
+                        onChange={(e) => {
+                          const signOffDate = e.target.value;
+                          setNewCrewData({
+                            ...newCrewData, 
+                            date_sign_off: signOffDate,
+                            // Auto-update Status and Ship Sign On when Date Sign Off is filled
+                            status: signOffDate ? 'Standby' : newCrewData.status,
+                            ship_sign_on: signOffDate ? '-' : newCrewData.ship_sign_on
+                          });
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
 
                 </div>
 
