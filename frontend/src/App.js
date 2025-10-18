@@ -11688,6 +11688,29 @@ const HomePage = () => {
                                       })
                                       .sort((a, b) => {
                                         if (!certificateSort.column) return 0;
+                                        
+                                        // Special handling for ship_status column (computed value)
+                                        if (certificateSort.column === 'ship_status') {
+                                          const aShipStatus = getCertificateShipStatus(a);
+                                          const bShipStatus = getCertificateShipStatus(b);
+                                          
+                                          // Sort: Standby first, then ship names alphabetically
+                                          // Or reverse if descending
+                                          let comparison = 0;
+                                          
+                                          if (aShipStatus.isStandby && !bShipStatus.isStandby) {
+                                            comparison = -1; // Standby comes first
+                                          } else if (!aShipStatus.isStandby && bShipStatus.isStandby) {
+                                            comparison = 1;
+                                          } else {
+                                            // Both same type, compare ship names
+                                            comparison = aShipStatus.ship.localeCompare(bShipStatus.ship);
+                                          }
+                                          
+                                          return certificateSort.direction === 'asc' ? comparison : -comparison;
+                                        }
+                                        
+                                        // Standard sorting for other columns
                                         const aVal = a[certificateSort.column] || '';
                                         const bVal = b[certificateSort.column] || '';
                                         const comparison = aVal.toString().localeCompare(bVal.toString());
