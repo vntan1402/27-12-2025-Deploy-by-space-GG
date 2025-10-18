@@ -10396,52 +10396,6 @@ const HomePage = () => {
                               // Fetch crew list
                               await fetchCrewMembers(crewFilters?.ship_sign_on, crewFilters?.status);
                               
-                              // Check and move files for Standby crew
-                              console.log('🔍 Checking for Standby crew to move files...');
-                              const standbyCrew = crewList.filter(crew => 
-                                crew.status && crew.status.toLowerCase() === 'standby'
-                              );
-                              
-                              if (standbyCrew.length > 0) {
-                                console.log(`📦 Found ${standbyCrew.length} Standby crew members`);
-                                toast.info(language === 'vi' 
-                                  ? `Đang di chuyển files của ${standbyCrew.length} thuyền viên Standby...` 
-                                  : `Moving files for ${standbyCrew.length} Standby crew...`
-                                );
-                                
-                                try {
-                                  // Call backend to move files
-                                  const response = await axios.post(
-                                    `${API}/crew/move-standby-files`,
-                                    {
-                                      crew_ids: standbyCrew.map(c => c.id)
-                                    },
-                                    {
-                                      headers: {
-                                        'Authorization': `Bearer ${token}`,
-                                        'Content-Type': 'application/json'
-                                      }
-                                    }
-                                  );
-                                  
-                                  if (response.data.success) {
-                                    console.log('✅ Files moved successfully:', response.data);
-                                    toast.success(language === 'vi' 
-                                      ? `✅ Đã di chuyển ${response.data.moved_count} files vào Standby Crew folder` 
-                                      : `✅ Moved ${response.data.moved_count} files to Standby Crew folder`
-                                    );
-                                  }
-                                } catch (error) {
-                                  console.error('❌ Error moving Standby crew files:', error);
-                                  toast.warning(language === 'vi' 
-                                    ? '⚠️ Không thể di chuyển một số files' 
-                                    : '⚠️ Could not move some files'
-                                  );
-                                }
-                              } else {
-                                console.log('ℹ️ No Standby crew found');
-                              }
-                              
                               toast.success(language === 'vi' ? 'Đã làm mới danh sách thuyền viên' : 'Crew list refreshed');
                             }}
                             className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all flex items-center"
