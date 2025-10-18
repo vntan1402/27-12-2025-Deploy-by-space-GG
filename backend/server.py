@@ -12989,27 +12989,29 @@ async def move_standby_crew_files(
         if not company_apps_script_url:
             raise HTTPException(status_code=400, detail="Apps Script URL not configured")
         
-        # Get parent folder ID (COMPANY DOCUMENT root folder)
-        parent_folder_id = gdrive_config_doc.get("folder_id")
+        # Get ROOT folder ID from configuration
+        root_folder_id = gdrive_config_doc.get("folder_id")
         
-        if not parent_folder_id:
-            raise HTTPException(status_code=400, detail="Parent folder ID not configured")
+        if not root_folder_id:
+            raise HTTPException(status_code=400, detail="Root folder ID not configured")
         
-        logger.info(f"📁 Finding/creating Standby Crew folder...")
+        logger.info(f"📁 Starting 2-step folder detection for Standby Crew...")
+        logger.info(f"📂 Step 1: Find COMPANY DOCUMENT folder in ROOT folder")
+        logger.info(f"📂 Step 2: Find Standby Crew folder in COMPANY DOCUMENT folder")
         
-        # Step 1: Find or create "Standby Crew" folder in COMPANY DOCUMENT
         import aiohttp
+        company_document_folder_id = None
         standby_folder_id = None
         
         async with aiohttp.ClientSession() as session:
-            # Check if Standby Crew folder exists
+            # STEP 1: Find "COMPANY DOCUMENT" folder in ROOT folder
             try:
-                logger.info(f"🔍 Calling Apps Script to list folders in parent: {parent_folder_id}")
+                logger.info(f"🔍 Step 1: Calling Apps Script to list folders in ROOT: {root_folder_id}")
                 async with session.post(
                     company_apps_script_url,
                     json={
                         "action": "debug_folder_structure",
-                        "parent_folder_id": parent_folder_id
+                        "parent_folder_id": root_folder_id
                     },
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
@@ -13018,15 +13020,89 @@ async def move_standby_crew_files(
                     if response.status == 200:
                         result = await response.json()
                         
-                        logger.info(f"📦 Full API response: {result}")
-                        logger.info(f"📋 Response success: {result.get('success')}")
-                        logger.info(f"📋 Response message: {result.get('message')}")
-                        logger.info(f"📋 Folders in COMPANY DOCUMENT:")
+                        logger.info(f"📋 Folders in ROOT folder:")
                         
-                        # Look for existing "Standby Crew" folder with enhanced matching
                         if result.get("success") and result.get("folders"):
                             folders_list = result.get("folders")
-                            logger.info(f"📊 Total folders found: {len(folders_list)}")
+                            logger.info(f"📊 Total folders found in ROOT: {len(folders_list)}")
+                            
+                            target_folder_name = "COMPANY DOCUMENT"
+                            
+                            for idx, folder in enumerate(folders_list):
+                                folder_name = folder.get('name', '')
+                                folder_id = folder.get('id', '')
+                                
+                                logger.info(f"   [{idx+1}] Name: '{folder_name}' (ID: {folder_id})")
+                                
+                                # Enhanced matching: case-insensitive and whitespace-tolerant
+                                folder_name_normalized = folder_name.strip().lower()
+                                target_name_normalized = target_folder_name.strip().lower()
+                                
+                                logger.info(f"       - Comparing: '{folder_name_normalized}' == '{target_name_normalized}'")
+                                
+                                if folder_name_normalized == target_name_normalized:
+                                    company_document_folder_id = folder_id
+                                    logger.info(f"✅ MATCH FOUND! COMPANY DOCUMENT folder: {company_document_folder_id}")
+                                    logger.info(f"   - Original name: '{folder_name}'")
+                                    break
+                            
+                            if not company_document_folder_id:
+                                logger.error(f"❌ 'COMPANY DOCUMENT' folder NOT FOUND in ROOT after checking {len(folders_list)} folders")
+                                logger.error(f"❌ Available folder names: {[f.get('name') for f in folders_list]}")
+                                return {
+                                    "success": False,
+                                    "moved_count": 0,
+                                    "message": "COMPANY DOCUMENT folder not found in ROOT folder"
+                                }
+                        else:
+                            logger.error("❌ No folders found in ROOT OR response not successful")
+                            return {
+                                "success": False,
+                                "moved_count": 0,
+                                "message": "Failed to list folders in ROOT folder"
+                            }
+                    else:
+                        logger.error(f"❌ Failed to list ROOT folders, HTTP status: {response.status}")
+                        response_text = await response.text()
+                        logger.error(f"❌ Response text: {response_text[:500]}")
+                        return {
+                            "success": False,
+                            "moved_count": 0,
+                            "message": "Failed to access ROOT folder structure"
+                        }
+            
+            except Exception as step1_error:
+                logger.error(f"❌ Error in Step 1 (finding COMPANY DOCUMENT): {step1_error}")
+                logger.error(f"❌ Error type: {type(step1_error).__name__}")
+                import traceback
+                logger.error(f"❌ Full traceback: {traceback.format_exc()}")
+                return {
+                    "success": False,
+                    "moved_count": 0,
+                    "message": f"Error finding COMPANY DOCUMENT folder: {str(step1_error)}"
+                }
+            
+            # STEP 2: Find "Standby Crew" folder in COMPANY DOCUMENT folder
+            try:
+                logger.info(f"🔍 Step 2: Calling Apps Script to list folders in COMPANY DOCUMENT: {company_document_folder_id}")
+                async with session.post(
+                    company_apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": company_document_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    logger.info(f"📡 Apps Script response status: {response.status}")
+                    
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        logger.info(f"📋 Folders in COMPANY DOCUMENT:")
+                        
+                        if result.get("success") and result.get("folders"):
+                            folders_list = result.get("folders")
+                            logger.info(f"📊 Total folders found in COMPANY DOCUMENT: {len(folders_list)}")
                             
                             target_folder_name = "Standby Crew"
                             
@@ -13058,16 +13134,15 @@ async def move_standby_crew_files(
                                 logger.warning(f"⚠️ 'Standby Crew' folder NOT FOUND after checking {len(folders_list)} folders")
                                 logger.warning(f"⚠️ Available folder names: {[f.get('name') for f in folders_list]}")
                         else:
-                            logger.warning("⚠️ No folders found in debug response OR response not successful")
-                            logger.warning(f"⚠️ Result keys: {result.keys() if result else 'None'}")
+                            logger.warning("⚠️ No folders found in COMPANY DOCUMENT OR response not successful")
                     else:
-                        logger.error(f"❌ Debug folder structure failed with HTTP status: {response.status}")
+                        logger.error(f"❌ Failed to list COMPANY DOCUMENT folders, HTTP status: {response.status}")
                         response_text = await response.text()
                         logger.error(f"❌ Response text: {response_text[:500]}")
             
-            except Exception as debug_error:
-                logger.error(f"❌ Error debugging folder structure: {debug_error}")
-                logger.error(f"❌ Error type: {type(debug_error).__name__}")
+            except Exception as step2_error:
+                logger.error(f"❌ Error in Step 2 (finding Standby Crew): {step2_error}")
+                logger.error(f"❌ Error type: {type(step2_error).__name__}")
                 import traceback
                 logger.error(f"❌ Full traceback: {traceback.format_exc()}")
             
