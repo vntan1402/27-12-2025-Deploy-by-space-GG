@@ -14667,6 +14667,8 @@ const HomePage = () => {
               }}>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   
+                  {/* ===== GROUP 1: PERSONAL INFORMATION ===== */}
+                  
                   {/* Row 1: Full Name VN (span-2) + Full Name EN (span-2) */}
                   {/* Full Name Vietnamese - Required */}
                   <div className="md:col-span-2">
@@ -14711,7 +14713,7 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 2: Sex (span-1) + Rank (span-1) + Date of Birth (span-1) + Place of Birth VN (span-1) */}
+                  {/* Row 2: Sex (span-1) + Date of Birth (span-1) + Place of Birth VN (span-1) + Place of Birth EN (span-1) */}
                   {/* Sex - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
