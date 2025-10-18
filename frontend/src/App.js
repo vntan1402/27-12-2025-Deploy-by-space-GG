@@ -2829,10 +2829,21 @@ const HomePage = () => {
         toast.success(language === 'vi' 
           ? `Đã cập nhật tàu đăng ký, trạng thái "Lên tàu" và xóa ngày rời tàu cho ${successCount} thuyền viên`
           : `Updated ship sign on, status "Sign on", and cleared date sign off for ${successCount} crew members`);
+        
+        // ✅ AUTO-MOVE FILES TO SHIP/Crew Records after bulk ship sign on update
+        console.log(`🎯 Bulk Ship Sign On updated to "${bulkShipSignOn}" → Triggering auto-move for crew files...`);
+        console.log(`   Crew IDs to move: ${selectedCrewIds.length} crews`);
+        
+        // Call moveCrewFilesToShip for all successfully updated crews
+        moveCrewFilesToShip(selectedCrewIds, bulkShipSignOn, null);
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
           : `Updated ${successCount} crew members, ${errorCount} failed`);
+        
+        // ✅ AUTO-MOVE FILES even if some failed
+        console.log(`🎯 Partial success bulk update → Triggering auto-move for successfully updated crews...`);
+        moveCrewFilesToShip(selectedCrewIds, bulkShipSignOn, null);
       } else {
         toast.error(language === 'vi' 
           ? 'Không thể cập nhật thuyền viên nào'
