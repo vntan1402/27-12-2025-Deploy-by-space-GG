@@ -11591,6 +11591,11 @@ const HomePage = () => {
                                       {getCertificateSortIcon('crew_name')}
                                     </th>
                                     <th 
+                                      className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200"
+                                    >
+                                      {language === 'vi' ? 'Tàu / Trạng thái' : 'Ship / Status'}
+                                    </th>
+                                    <th 
                                       onClick={() => handleCertificateSort('rank')}
                                       className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
                                     >
