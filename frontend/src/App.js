@@ -14787,6 +14787,9 @@ const HomePage = () => {
                     />
                   </div>
 
+                  {/* ===== GROUP 2: PASSPORT INFORMATION ===== */}
+                  
+                  {/* Row 3: Passport No. (span-1) + Nationality (span-1) + Passport Expiry (span-1) + Rank (span-1) */}
                   {/* Passport No. - Required */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -14829,7 +14832,43 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 4: Status (span-1) + Seaman Book (span-1) + Ship Sign On (span-1) + (Empty or Date fields) (span-1) */}
+                  {/* Rank - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Chức vụ' : 'Rank'}
+                    </label>
+                    <select
+                      value={newCrewData.rank}
+                      onChange={(e) => setNewCrewData({...newCrewData, rank: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
+                      <option value="CAPT">{language === 'vi' ? 'Thuyền trưởng' : 'CAPT'}</option>
+                      <option value="C/O">{language === 'vi' ? 'Đại phó' : 'C/O'}</option>
+                      <option value="2/O">{language === 'vi' ? 'Phó hai' : '2/O'}</option>
+                      <option value="3/O">{language === 'vi' ? 'Phó ba' : '3/O'}</option>
+                      <option value="CE">{language === 'vi' ? 'Máy trưởng' : 'CE'}</option>
+                      <option value="2/E">{language === 'vi' ? 'Máy hai' : '2/E'}</option>
+                      <option value="3/E">{language === 'vi' ? 'Máy ba' : '3/E'}</option>
+                      <option value="4/E">{language === 'vi' ? 'Máy tư' : '4/E'}</option>
+                      <option value="BOSUN">{language === 'vi' ? 'Thủy thủ trưởng' : 'BOSUN'}</option>
+                      <option value="ABD-A">{language === 'vi' ? 'Thuyền viên AB-A' : 'ABD-A'}</option>
+                      <option value="ABD-B">{language === 'vi' ? 'Thuyền viên AB-B' : 'ABD-B'}</option>
+                      <option value="ABD-C">{language === 'vi' ? 'Thuyền viên AB-C' : 'ABD-C'}</option>
+                      <option value="ABD-D">{language === 'vi' ? 'Thuyền viên AB-D' : 'ABD-D'}</option>
+                      <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
+                      <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
+                      <option value="ABE-A">{language === 'vi' ? 'Thợ máy AB-A' : 'ABE-A'}</option>
+                      <option value="ABE-B">{language === 'vi' ? 'Thợ máy AB-B' : 'ABE-B'}</option>
+                      <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
+                      <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
+                      <option value="MESS">{language === 'vi' ? 'Phục vụ' : 'MESS'}</option>
+                    </select>
+                  </div>
+
+                  {/* ===== GROUP 3: EMPLOYMENT INFORMATION ===== */}
+                  
+                  {/* Row 4: Status (span-1) + Ship Sign On (span-1) + Seaman Book (span-1) + [Empty] (span-1) */}
                   {/* Status - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
