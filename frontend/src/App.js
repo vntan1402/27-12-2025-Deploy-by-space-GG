@@ -10917,7 +10917,7 @@ const HomePage = () => {
                                 </th>
                                 {/* Seamen Book column - Hidden as requested
                                 <th className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
-                                  {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                                  {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
                                 </th>
                                 */}
                                 <th 
@@ -14895,7 +14895,7 @@ const HomePage = () => {
                   {/* Seamen Book - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
                     </label>
                     <input
                       type="text"
@@ -14947,7 +14947,7 @@ const HomePage = () => {
                   {/* Seamen Book - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
                     </label>
                     <input
                       type="text"
@@ -15785,7 +15785,7 @@ const HomePage = () => {
                   {/* Seamen Book - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
                     </label>
                     <input
                       type="text"
