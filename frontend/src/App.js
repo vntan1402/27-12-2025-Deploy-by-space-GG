@@ -11501,10 +11501,10 @@ const HomePage = () => {
                                 </div>
                               
                               {/* Reset Filters Button */}
-                              {(certFilters.status !== 'all' || certFilters.crewName !== 'all' || certificatesSearch) && (
+                              {(certFilters.shipSignOn !== 'all' || certFilters.status !== 'all' || certFilters.crewName !== 'all' || certificatesSearch) && (
                                 <button
                                     onClick={() => {
-                                      setCertFilters({ status: 'all', crewName: 'all' });
+                                      setCertFilters({ shipSignOn: 'all', status: 'all', crewName: 'all' });
                                       setCertificatesSearch('');
                                     }}
                                     className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm flex items-center transition-colors"
