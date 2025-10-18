@@ -2945,11 +2945,26 @@ const HomePage = () => {
           toast.success(language === 'vi' 
             ? `Đã cập nhật ngày rời tàu, trạng thái và tàu cho ${successCount} thuyền viên`
             : `Updated date sign off, status and ship assignment for ${successCount} crew members`);
+          
+          // ✅ AUTO-MOVE FILES TO STANDBY FOLDER after bulk date sign off update
+          // When date sign off is filled (not cleared), status is auto-set to Standby
+          console.log('🎯 Bulk Date Sign Off filled → Triggering auto-move for Standby crew files...');
+          console.log(`   Crew IDs to move: ${selectedCrewIds.length} crews`);
+          
+          // Call moveStandbyCrewFiles for all successfully updated crews
+          moveStandbyCrewFiles(selectedCrewIds, null);
         }
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
           : `Updated ${successCount} crew members, ${errorCount} failed`);
+        
+        // ✅ AUTO-MOVE FILES even if some failed
+        if (!isClearingDate) {
+          console.log('🎯 Partial success bulk update → Triggering auto-move for successfully updated crews...');
+          // Note: We're moving all selected IDs - backend will filter for Standby status
+          moveStandbyCrewFiles(selectedCrewIds, null);
+        }
       } else {
         toast.error(language === 'vi' 
           ? 'Không thể cập nhật thuyền viên nào'
