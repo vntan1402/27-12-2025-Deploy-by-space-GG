@@ -15722,6 +15722,40 @@ const HomePage = () => {
                     />
                   </div>
 
+                  {/* Rank - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Chức vụ' : 'Rank'}
+                    </label>
+                    <select
+                      value={editCrewData.rank}
+                      onChange={(e) => setEditCrewData({...editCrewData, rank: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">{language === 'vi' ? 'Chọn chức vụ (tùy chọn)' : 'Select rank (optional)'}</option>
+                      <option value="CAPT">{language === 'vi' ? 'Thuyền trưởng' : 'CAPT'}</option>
+                      <option value="C/O">{language === 'vi' ? 'Đại phó' : 'C/O'}</option>
+                      <option value="2/O">{language === 'vi' ? 'Phó hai' : '2/O'}</option>
+                      <option value="3/O">{language === 'vi' ? 'Phó ba' : '3/O'}</option>
+                      <option value="CE">{language === 'vi' ? 'Máy trưởng' : 'CE'}</option>
+                      <option value="2/E">{language === 'vi' ? 'Máy hai' : '2/E'}</option>
+                      <option value="3/E">{language === 'vi' ? 'Máy ba' : '3/E'}</option>
+                      <option value="4/E">{language === 'vi' ? 'Máy tư' : '4/E'}</option>
+                      <option value="BOSUN">{language === 'vi' ? 'Thủy thủ trưởng' : 'BOSUN'}</option>
+                      <option value="ABD">{language === 'vi' ? 'Thuyền viên' : 'ABD'}</option>
+                      <option value="ELEC">{language === 'vi' ? 'Thợ điện' : 'ELEC'}</option>
+                      <option value="FITTER">{language === 'vi' ? 'Thợ máy' : 'FITTER'}</option>
+                      <option value="ABE">{language === 'vi' ? 'Thợ máy phổ thông' : 'ABE'}</option>
+                      <option value="OSE">{language === 'vi' ? 'Thợ máy tập sự' : 'OSE'}</option>
+                      <option value="C/COOK">{language === 'vi' ? 'Bếp trưởng' : 'C/COOK'}</option>
+                      <option value="MESS">{language === 'vi' ? 'Phục vụ' : 'MESS'}</option>
+                    </select>
+                  </div>
+
+                  {/* ===== GROUP 3: EMPLOYMENT INFORMATION ===== */}
+                  
+                  {/* Row 4: Status (span-1) + Ship Sign On (span-1) + Place Sign On (span-1) + [Empty/Conditional] (span-1) */}
+
                   {/* Status - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
