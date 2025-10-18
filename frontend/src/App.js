@@ -15846,6 +15846,12 @@ const HomePage = () => {
                   type="date"
                   value={bulkDateSignOff}
                   onChange={(e) => setBulkDateSignOff(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleBulkUpdateDateSignOff();
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   autoFocus
                 />
