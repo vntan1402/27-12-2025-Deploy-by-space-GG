@@ -9198,7 +9198,8 @@ const HomePage = () => {
                                 </span>
                               </button>
                             )}
-                            {/* Ship Select Dropdown */}
+                            {/* Ship Select Dropdown - Hidden in Crew Certificates View */}
+                            {!showCertificatesView && (
                             <div className="relative" ref={shipSelectorRef}>
                               <button
                                 onClick={() => setShowShipSelector(!showShipSelector)}
@@ -9271,6 +9272,7 @@ const HomePage = () => {
                                 </div>
                               )}
                             </div>
+                            )}
 
                             {/* Edit Ship Button - Hidden in Crew Records */}
                             {selectedCategory !== 'crew' && (
