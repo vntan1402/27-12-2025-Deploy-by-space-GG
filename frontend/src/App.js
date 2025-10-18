@@ -5825,6 +5825,10 @@ const HomePage = () => {
           // ✅ NOW upload passport files to Drive AFTER successful crew creation
           console.log(`📤 Uploading passport files to Drive for crew ${crewId}...`);
           
+          // Determine ship name based on mode
+          const targetShipName = isStandbyMode ? '-' : (selectedShip?.name || '-');
+          console.log(`📁 Target folder: ${isStandbyMode ? 'COMPANY DOCUMENT > Standby Crew' : `${targetShipName} > Crew Records`}`);
+          
           let uploadedPassportId = null;
           let uploadedSummaryId = null;
           
@@ -5836,7 +5840,7 @@ const HomePage = () => {
                 filename: analysis._filename,
                 content_type: analysis._content_type,
                 summary_text: analysis._summary_text,
-                ship_name: analysis._ship_name || selectedShip?.name || '-'
+                ship_name: targetShipName
               },
               {
                 headers: {
