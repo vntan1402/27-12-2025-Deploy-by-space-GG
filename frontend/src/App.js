@@ -5493,6 +5493,28 @@ const HomePage = () => {
       }
     }
     
+    // Special handling for Crew Records category
+    if (categoryKey === 'crew') {
+      // Close Certificates View if open
+      setShowCertificatesView(false);
+      
+      // Reset all crew filters to "All"
+      setCrewFilters({
+        ship_sign_on: 'All',
+        status: 'All',
+        search: ''
+      });
+      
+      // Reset certificate filters to "All"
+      setCertFilters({
+        shipSignOn: 'all',
+        crewName: 'all',
+        status: 'all'
+      });
+      
+      console.log(`✅ Crew Records category selected - Filters reset to All, Certificates View closed`);
+    }
+    
     // Keep selectedShip intact - this is the key improvement
     // The selected ship will be preserved and the new category will show data for this ship
     console.log(`✅ Category changed to ${categoryKey}, Ship still selected: ${selectedShip?.name || 'None'}`);
