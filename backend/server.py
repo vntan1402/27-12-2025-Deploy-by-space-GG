@@ -14243,16 +14243,27 @@ async def upload_certificate_files_after_creation(
         if not cert:
             raise HTTPException(status_code=404, detail="Certificate not found")
         
-        # Get ship info
-        ship = await mongo_db.find_one("ships", {
-            "id": cert.get("ship_id"),
-            "company_id": company_uuid
-        })
+        # Determine upload location based on certificate's ship_id
+        ship_id = cert.get("ship_id")
         
-        if not ship:
-            raise HTTPException(status_code=404, detail="Ship not found")
-        
-        ship_name = ship.get("name", "Unknown Ship")
+        if ship_id:
+            # Certificate has ship_id - upload to ship folder
+            ship = await mongo_db.find_one("ships", {
+                "id": ship_id,
+                "company_id": company_uuid
+            })
+            
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            is_standby = False
+            logger.info(f"📍 Upload destination: {ship_name}/Crew Records")
+        else:
+            # Certificate has no ship_id - crew is Standby, upload to COMPANY DOCUMENT/Standby Crew
+            ship_name = None
+            is_standby = True
+            logger.info(f"📍 Upload destination: COMPANY DOCUMENT/Standby Crew (Standby crew)")
         
         # Extract file data from request
         file_content_b64 = file_data.get('file_content')
