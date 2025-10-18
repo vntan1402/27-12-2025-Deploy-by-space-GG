@@ -6214,6 +6214,8 @@ const HomePage = () => {
 
   // Fetch crew members from backend
   const fetchCrewMembers = async (shipFilter = null, statusFilter = null) => {
+    console.log('🔄 fetchCrewMembers called:', { shipFilter, statusFilter });
+    
     try {
       let url = `${API}/crew`;
       const params = new URLSearchParams();
@@ -6230,18 +6232,22 @@ const HomePage = () => {
         url += `?${params.toString()}`;
       }
       
+      console.log('📡 Fetching crew from:', url);
+      
       const response = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
+      console.log('✅ Crew members fetched:', response.data?.length || 0, 'crew');
+      
       if (response.data) {
         setCrewList(response.data);
       }
       
     } catch (error) {
-      console.error('Error fetching crew members:', error);
+      console.error('❌ Error fetching crew members:', error);
       toast.error(language === 'vi' 
         ? 'Lỗi khi tải danh sách thuyền viên'
         : 'Error loading crew members'
