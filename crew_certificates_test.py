@@ -54,10 +54,10 @@ except:
                     print(f"Using external backend URL: {BACKEND_URL}")
                     break
             else:
-                BACKEND_URL = 'https://fleet-cert-system.preview.emergentagent.com/api'
+                BACKEND_URL = 'https://crew-cert-portal.preview.emergentagent.com/api'
                 print(f"Using fallback backend URL: {BACKEND_URL}")
     except:
-        BACKEND_URL = 'https://fleet-cert-system.preview.emergentagent.com/api'
+        BACKEND_URL = 'https://crew-cert-portal.preview.emergentagent.com/api'
         print(f"Using fallback backend URL: {BACKEND_URL}")
 
 class CrewCertificatesTester:

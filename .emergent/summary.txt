@@ -1,77 +1,81 @@
 <analysis>
-The AI engineer's work involved an iterative development process to enhance the Ship Management System. Initially, the focus was on debugging Google Drive folder identification for Standby Crew files, leading to an understanding of the Apps Script's limitations and the backend's interaction. Subsequent work included implementing automatic file movement triggers for Standby status changes (creation, edit, bulk edit) and Ship Sign On assignments, requiring new backend endpoints and frontend logic. The Certificate Name field in the edit modal was upgraded to a searchable, customizable dropdown with  persistence. Significant effort went into refining file location logic, ensuring files move to correct Google Drive paths (root for ships, COMPANY DOCUMENT subfolder for Standby), and displaying actual file paths in tooltips. The ongoing task is to eliminate the hardcoded fallback for the Standby Crew folder ID.
+The AI engineer iteratively enhanced the Ship Management System based on user requests, primarily focusing on file management, UI/UX improvements, and data display. Initial efforts centered on fixing and refining Google Drive file movement logic, specifically for Standby Crew and Ship Sign On scenarios, addressing a bug where the  folder wasn't correctly identified within the root drive. Frontend enhancements included implementing  key support for bulk edit modals, overhauling certificate upload logic to dynamically determine target folders based on crew  status, and displaying all certificates company-wide. Subsequent work involved adding a sortable Ship / Status column, a Ship Sign On filter linked to the Crew filter, and custom display of crew information in the certificates view. A critical bug regarding the upload of original files for Standby Crew certificates was identified and fixed, stemming from incorrect Apps Script parameter passing. The current task involves reordering filters in the Crew Certificates view.
 </analysis>
 
 <product_requirements>
-The Ship Management System tracks crew records, certificates, and passports, supporting multi-file uploads, AI analysis, and expiration alerts. Issued By fields are normalized, and passports undergo validation. Core features include bypassing Certificate Holder Name Mismatch and integrating Date of Birth for validation with a Skip/Continue modal. UX improvements delivered include asynchronous file upload/delete feedback, auto-refresh of certificate lists, and a minimizable Add Crew Certificate modal. Bulk and single edit forms allow clearing date/place sign-on/off. Recent additions enable:
-1. Automatic movement of original Passport/Crew Cert files for Standby crew to a designated Google Drive folder (triggered by status change, new crew, date sign-off input, or bulk date sign-off).
-2. Certificate Name field as a searchable dropdown with custom input and persistence to .
-3. Edit Ship Sign On option in the right-click context menu, with bulk editing, auto-setting status to Sign on, and clearing Date Sign Off.
-4. Automatic movement of original files to  folder in the Company Drive root upon Ship Sign On (via edit or bulk edit).
-5. Tooltips on file icons displaying the *actual* Google Drive folder path from the database.
+The Ship Management System tracks crew records, certificates, and passports with multi-file uploads, AI analysis, and expiration alerts. Issued By fields are normalized, and passports undergo validation. Core features include bypassing Certificate Holder Name Mismatch and integrating Date of Birth for validation. UX improvements include asynchronous file upload/delete feedback, auto-refresh of certificate lists, minimizable Add Crew Certificate modal, and bulk/single edit forms allowing clearing date/place sign-on/off. Recent additions enable:
+1.  Automatic movement of original Passport/Crew Cert files for Standby crew to  folder, triggered by status change, new crew addition, date sign-off, or bulk date sign-off.
+2.  Certificate Name as a searchable dropdown with custom input and  persistence.
+3.  Edit Ship Sign On in the context menu for bulk editing, auto-setting status to Sign on, and clearing Date Sign Off.
+4.  Automatic movement of original files to  upon Ship Sign On.
+5.  Tooltips on file icons displaying actual Google Drive folder paths from the database.
+6.   key functionality for Edit Date Sign Off and other bulk edit modals.
+7.  Dynamic upload folder determination for Crew Certificates based on crew's  (Standby or specific Ship).
+8.  Displaying all company-wide Crew Certificates, not just those for a selected ship, with a Ship / Status column.
+9.  Sortable Ship / Status column without icons.
+10. Ship Sign On filter in Crew Certificates View, linked to the Crew filter.
+11. Hiding Ship Select button and Ship Basic Info section in Crew Certificates View.
+12. Displaying detailed Crew Information (Full Name, Rank, DOB, POB, Passport, Status, Ship Sign On) in the Certificates View, replacing the hidden Ship info.
+13. Removing icons, borders, and background color from the Crew Member Information section.
 </product_requirements>
 
 <key_technical_concepts>
-- **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
-- **Google Apps Script**: Middleware for Google Drive file operations (upload, move, delete, folder management).
-- **Asynchronous Processing**: Non-blocking file operations for better UX.
-- **Frontend State Management**: ,  in React for UI logic and local storage persistence.
-- **API Integration**:  for frontend-backend communication,  for backend-Apps Script communication.
+-   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
+-   **Google Apps Script**: Middleware for Google Drive file operations (upload, move, folder management).
+-   **Asynchronous Processing**: Non-blocking file operations for better UX.
+-   **Frontend State Management**: ,  for UI logic and local storage.
+-   **API Integration**:  for frontend-backend,  for backend-Apps Script.
 </key_technical_concepts>
 
 <code_architecture>
 
 -   ****
-    -   **Summary:** Core FastAPI backend for API endpoints, AI, and database.
+    -   **Summary:** Core FastAPI backend for API endpoints.
     -   **Changes:**
-        -   Enhanced  validation and bypass.
-        -    endpoint: Handles moving files for Standby Crew, updated to use enhanced folder finding logic (case-insensitive, whitespace-tolerant) within the  folder. Modified to store  in DB.
-        -    (New): Handles moving files to  folder under the Company Drive root. Modified to store  in DB.
-        -   Login endpoint corrected to use .
-        -   Removed  filtering during  PUT updates to allow clearing fields.
+        -    endpoint: Adjusted logic to perform a two-step search for COMPANY DOCUMENT within the root, then Standby Crew within that.
+        -    endpoint: Modified to receive , fetch , and dynamically determine target folder for file uploads.
+        -    (New): Endpoint to fetch all certificates for a company, removing the  filter.
 -   ****
-    -   **Summary:** Main React app, UI, state, interactions.
+    -   **Summary:** Manages interactions with Google Apps Script for Drive operations.
     -   **Changes:**
-        -   Implemented  for DOB validation.
-        -   Refactored  for async uploads.
-        -   Added clickable icons for original/summary files.
-        -   Enhanced  and  for feedback.
-        -   Auto-refresh for Crew Certificates table on ship selection.
-        -   Minimizable Add Crew Certificate modal.
-        -   Updated  to allow clearing sign-on/off dates/places.
-        -   **Automated File Movement:** Integrated  into  (if status changes to Standby) and  (if new crew status is Standby). Added logic to  of  field in Edit Crew Member to trigger auto-move. Integrated  into . Removed  call from Refresh button click.
-        -   **Certificate Name Dropdown:** Modified Edit Crew Certificate modal to include a searchable dropdown for  with . Added  state and  to load/save custom names to , integrated  into .
-        -   **Bulk Edit Ship Sign On:** Added  state,  to context menu,  logic (updates ship, sets status to Sign on, clears ). Created a new modal for this feature and added state to .
-        -   **Ship-specific File Movement:** Integrated  helper function into  (on ship_sign_on change) and .
-        -   **Actual File Location Tooltips:** Implemented  function that now retrieves  from the database. Updated tooltips for passport and certificate file icons.
+        -   Adjusted  logic to correctly pass parameters to Apps Script for Standby Crew uploads (using , , ) to fix a bug where original files weren't uploaded for standby crew.
+        -   Ensured  action is used consistently for dynamic folder creation.
 -   ****
-    -   **Summary:** Latest Google Apps Script for Drive operations.
-    -   **Changes:** No direct edits in this trajectory. The backend calls this script for file operations. The  function's behavior (not dynamically finding Standby Crew within COMPANY DOCUMENT) was a key debug point.  function still only accepts .
--   ****
-    -   **Summary:** Records testing outcomes, user problem statements, and communication.
-    -   **Changes:** Continuously updated with new tasks, debugging steps, and testing results.
+    -   **Summary:** Main React application, handling UI, state, and user interactions.
+    -   **Changes:**
+        -   **Enter Key Support:** Added  event handlers to Edit Date Sign Off, Bulk Edit Place Sign On, Bulk Edit Ship Sign On, and Bulk Edit Date Sign On modals to trigger update/submit on Enter key press.
+        -   **Certificate Upload Flow:** Removed  validation from , added  validation, and updated API call to no longer send . Modified crew selection dropdown in Add Certificate modal to display all company crews, not filtered by selected ship.
+        -   **Certificate List Display:** Updated  to use the new  endpoint, ensuring all certificates (including standby) are displayed.
+        -   **Ship / Status Column:** Added a new sortable column to the Crew Certificates table to display  status or ship name, with sorting logic and removed visual icons.
+        -   **Ship Sign On Filter:** Integrated a Ship Sign On filter in the Crew Certificates View, placed before the Status filter. This filter updates the  for the Crew filter and resets the Crew filter when its value changes.
+        -   **UI Hiding:** Conditionally rendered and hid the Ship Select button and Ship Basic Info section when in the Crew Certificates View.
+        -   **Crew Info Display:** Added a section to display selected crew member's details (Full Name, Rank, DOB, POB, Passport, Status, Ship Sign On) in the Certificates View, replacing the hidden ship info.
+        -   **UI Refinements:** Removed icon, border, and background color from the displayed Crew Member Information section.
 -   **New Documentation Files (.md):**
-    -   
-    -   
-    -   
-    -   
-    -   
-    -   
-    -   These files document the implemented features, debug processes, and fixed issues.
--   **New Test Files (.py):**
-    -   
-    -   
-    -   Created for debugging and testing the  endpoint.
+    -   : Documents the refined logic for finding the Standby Crew folder.
+    -   : Documents Enter key feature for Date Sign Off.
+    -   : Documents Enter key feature for other Bulk Edit modals.
+    -   : Documents the initial upload folder logic analysis.
+    -   : Documents frontend changes for auto-folder selection.
+    -   : Documents the change to show all certificates company-wide.
+    -   : Documents sorting for the new Ship/Status column.
+    -   : Documents the implementation of the Ship Sign On filter.
+    -   : Documents hiding the Ship Select and Ship Info.
+    -   : Documents the fix for original file upload for standby crew.
+    -   : Documents the new crew information display.
+    -   : Documents UI refinements for the crew info section.
+    -   : Documents analysis of the Crew filter dropdown.
+    -   : Documents the linking of the Crew filter to the Ship Sign On filter.
 </code_architecture>
 
 <pending_tasks>
--   **Remove Hardcoded Standby Folder ID Fallback**: The backend currently falls back to a hardcoded Google Drive folder ID for Standby Crew if dynamic identification fails. This fallback needs to be removed.
+-   Change the display position of the Status filter and the Crew filter in the Crew Certificates View. The user explicitly requested to swap their order, placing Crew before Status.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was engaged in understanding the current logic for determining the Standby Crew folder ID in the backend (). The analysis confirmed that the backend first attempts to dynamically find or create the Standby Crew folder within COMPANY DOCUMENT (which was initially a point of confusion regarding the parent folder, but was corrected to  for Standby Crew and root for Ship folders), and if this process fails, it resorts to a hardcoded . The user's most recent explicit instruction was to remove this Fallback to hardcoded ID if all else fails mechanism.
+Immediately before this summary request, the AI engineer was tasked with reordering the display of the Status and Crew filters within the Crew Certificates View. The user explicitly requested to swap their positions. The engineer had just received this instruction and was in the process of locating the relevant UI elements in  to implement this change. The last action taken was to examine the  file to identify the current placement of the Status filter, indicating the starting point for modifying the filter arrangement. This task is a direct continuation of previous UI/UX enhancements in the Crew Certificates View.
 </current_work>
 
 <optional_next_step>
-Remove the hardcoded fallback for the Standby Crew folder ID in .
+Locate the Crew filter in  and then swap its position with the Status filter.
 </optional_next_step>

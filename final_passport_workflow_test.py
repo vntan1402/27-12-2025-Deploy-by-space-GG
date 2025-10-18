@@ -41,9 +41,9 @@ except:
                     BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                     break
             else:
-                BACKEND_URL = 'https://fleet-cert-system.preview.emergentagent.com/api'
+                BACKEND_URL = 'https://crew-cert-portal.preview.emergentagent.com/api'
     except:
-        BACKEND_URL = 'https://fleet-cert-system.preview.emergentagent.com/api'
+        BACKEND_URL = 'https://crew-cert-portal.preview.emergentagent.com/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
 class FinalPassportWorkflowTester:

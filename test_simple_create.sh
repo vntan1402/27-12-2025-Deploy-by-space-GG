@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://fleet-cert-system.preview.emergentagent.com/api"
+API_URL="https://crew-cert-portal.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \

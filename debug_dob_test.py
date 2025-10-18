@@ -10,7 +10,7 @@ import tempfile
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = 'https://fleet-cert-system.preview.emergentagent.com/api'
+BACKEND_URL = 'https://crew-cert-portal.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate and return session"""
