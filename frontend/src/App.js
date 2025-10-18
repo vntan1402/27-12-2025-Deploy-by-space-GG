@@ -2626,13 +2626,6 @@ const HomePage = () => {
 
   // Handle bulk Place Sign On update
   const handleBulkUpdatePlaceSignOn = async () => {
-    if (!bulkPlaceSignOn.trim()) {
-      toast.error(language === 'vi' 
-        ? 'Vui lòng nhập nơi xuống tàu'
-        : 'Please enter place sign on');
-      return;
-    }
-
     if (selectedCrewMembers.size === 0) {
       toast.error(language === 'vi' 
         ? 'Không có thuyền viên nào được chọn'
@@ -2645,11 +2638,22 @@ const HomePage = () => {
       let successCount = 0;
       let errorCount = 0;
 
-      console.log(`🚢 Bulk updating Place Sign On to "${bulkPlaceSignOn}" for ${selectedCrewIds.length} crew members...`);
+      // Check if user wants to clear Place Sign On (empty input)
+      const isClearingPlace = !bulkPlaceSignOn || bulkPlaceSignOn.trim() === '';
+      
+      if (isClearingPlace) {
+        console.log(`🗑️ Clearing Place Sign On for ${selectedCrewIds.length} crew members...`);
+      } else {
+        console.log(`🚢 Bulk updating Place Sign On to "${bulkPlaceSignOn}" for ${selectedCrewIds.length} crew members...`);
+      }
 
       for (const crewId of selectedCrewIds) {
         try {
-          const updateData = { place_sign_on: bulkPlaceSignOn.trim() };
+          const updateData = { 
+            place_sign_on: isClearingPlace ? null : bulkPlaceSignOn.trim()
+          };
+          
+          console.log(`📋 ${isClearingPlace ? 'Clearing' : 'Updating'} Place Sign On for crew ${crewId}`);
           
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
@@ -2660,7 +2664,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ Updated Place Sign On for crew ${crewId}`);
+            console.log(`✅ ${isClearingPlace ? 'Cleared' : 'Updated'} Place Sign On for crew ${crewId}`);
           }
         } catch (error) {
           errorCount++;
@@ -2670,9 +2674,15 @@ const HomePage = () => {
 
       // Show results
       if (successCount > 0 && errorCount === 0) {
-        toast.success(language === 'vi' 
-          ? `Đã cập nhật nơi xuống tàu cho ${successCount} thuyền viên`
-          : `Updated place sign on for ${successCount} crew members`);
+        if (isClearingPlace) {
+          toast.success(language === 'vi' 
+            ? `Đã xóa nơi xuống tàu cho ${successCount} thuyền viên`
+            : `Cleared place sign on for ${successCount} crew members`);
+        } else {
+          toast.success(language === 'vi' 
+            ? `Đã cập nhật nơi xuống tàu cho ${successCount} thuyền viên`
+            : `Updated place sign on for ${successCount} crew members`);
+        }
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
