@@ -49,11 +49,25 @@
 ##
 ## test_plan:
   current_focus:
+    - "Auto Move Standby Files Feature"
     - "Standby Crew Folder Detection Enhancement"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
   test_priority: "high_first"
+
+frontend:
+  - task: "Auto Move Standby Files Feature"
+    implemented: true
+    working: "pending_user_test"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "pending_user_test"
+          agent: "main"
+          comment: "Implemented automatic file moving to Standby Crew folder when user creates new crew with Standby status OR changes existing crew status to Standby. IMPLEMENTATION DETAILS: (1) Created helper function moveStandbyCrewFiles() that calls /crew/move-standby-files API in background (non-blocking). (2) Modified handleUpdateCrew to detect status change: compares oldStatus vs newStatus, if newStatus='standby' and oldStatus!='standby', auto-triggers file move. (3) Modified handleAddCrewSubmit to check new crew status: if status='standby', auto-triggers file move after crew creation and passport upload. (4) All matching is case-insensitive. (5) Shows success toast notification when files are moved. (6) Errors are logged but NOT shown to user (background operation, graceful degradation). BENEFITS: User no longer needs to remember to click 'Refresh' button. Files are automatically moved immediately when status changes to Standby. Process is automatic, non-blocking, and user-friendly. BACKWARD COMPATIBILITY: Manual 'Refresh' button still works as fallback. No breaking changes. TESTING: Need to test: (1) Add new crew with Status=Standby, verify files auto-move. (2) Edit existing crew, change status to Standby, verify files auto-move. (3) Edit Standby crew without changing status, verify NO duplicate move. (4) Check toast notifications appear correctly. DOCUMENTATION: Created AUTO_MOVE_STANDBY_FILES_FEATURE.md with complete feature documentation, testing instructions, and use cases."
 
 backend:
   - task: "Standby Crew Folder Detection Enhancement"
@@ -66,7 +80,7 @@ backend:
     status_history:
         - working: "pending_user_test"
           agent: "main"
-          comment: "Enhanced the Standby Crew folder detection logic in /crew/move-standby-files endpoint with comprehensive logging and improved matching. IMPLEMENTATION DETAILS: (1) Added detailed API call logging - logs Apps Script URL, HTTP response status, full API response structure, and response success/failure status. (2) Implemented case-insensitive and whitespace-tolerant folder name matching using normalized comparison (strip + lowercase). (3) Added per-folder logging showing original name, stripped name, lowercase name, raw length, and comparison result. (4) Enhanced error logging with full exception tracebacks and available folder names list. (5) Logs each folder comparison attempt to identify exact mismatch reason. FOLDER STRUCTURE: The 'Standby Crew' folder is a subfolder within 'COMPANY DOCUMENT', not at root level. Backend correctly calls debug_folder_structure with COMPANY DOCUMENT's folder_id as parent. TESTING APPROACH: Created two test scripts - test_standby_folder_detection.py (basic test with empty crew list) and test_standby_with_real_crew.py (test with actual crew data). However, no crew data exists in current database, so manual testing required. USER MUST TEST: Login to UI, navigate to Crew Management, add/update crew with status='Standby', click Refresh button, then check backend logs at: tail -f /var/log/supervisor/backend.out.log. Logs will show detailed folder detection process including all folder names found and comparison attempts. EXPECTED BEHAVIOR: With enhanced matching, folder should be found even with slight name variations (extra spaces, different casing). If folder still not found, logs will reveal exact folder names in COMPANY DOCUMENT for diagnosis. DOCUMENTATION: Created STANDBY_CREW_FOLDER_DETECTION_FIX.md with complete implementation details, testing instructions, expected log output examples, and troubleshooting guide."
+          comment: "Enhanced the Standby Crew folder detection logic in /crew/move-standby-files endpoint with comprehensive logging and improved matching. IMPLEMENTATION DETAILS: (1) Added detailed API call logging - logs Apps Script URL, HTTP response status, full API response structure, and response success/failure status. (2) Implemented case-insensitive and whitespace-tolerant folder name matching using normalized comparison (strip + lowercase). (3) Added per-folder logging showing original name, stripped name, lowercase name, raw length, and comparison result. (4) Enhanced error logging with full exception tracebacks and available folder names list. (5) Logs each folder comparison attempt to identify exact mismatch reason. FOLDER STRUCTURE: The 'Standby Crew' folder is a subfolder within 'COMPANY DOCUMENT', not at root level. Backend correctly calls debug_folder_structure with COMPANY DOCUMENT's folder_id as parent. TESTING APPROACH: Created two test scripts - test_standby_folder_detection.py (basic test with empty crew list) and test_standby_with_real_crew.py (test with actual crew data). However, no crew data exists in current database, so manual testing required. USER MUST TEST: Login to UI, navigate to Crew Management, add/update crew with status='Standby', files will now auto-move (no need to click Refresh), then check backend logs at: tail -f /var/log/supervisor/backend.out.log. Logs will show detailed folder detection process including all folder names found and comparison attempts. EXPECTED BEHAVIOR: With enhanced matching, folder should be found even with slight name variations (extra spaces, different casing). If folder still not found, logs will reveal exact folder names in COMPANY DOCUMENT for diagnosis. DOCUMENTATION: Created STANDBY_CREW_FOLDER_DETECTION_FIX.md with complete implementation details, testing instructions, expected log output examples, and troubleshooting guide."
 
 backend:
   - task: "DELETE Crew Validation Logic Testing"
