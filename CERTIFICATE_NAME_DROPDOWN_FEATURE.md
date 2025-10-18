@@ -3,7 +3,7 @@
 ## Tổng quan
 
 Đã thay đổi field **"Certificate Name"** trong modal **"Edit Crew Certificate"** từ input text thông thường thành **searchable dropdown** với khả năng:
-1. ✅ Chọn từ danh sách các certificate names phổ biến
+1. ✅ Chọn từ danh sách các certificate names (giống y hệt modal "Add Crew Certificate")
 2. ✅ Search/filter certificate names theo keyword
 3. ✅ Nhập tên certificate mới tùy chỉnh (custom input)
 
@@ -11,57 +11,32 @@
 
 ## Chi tiết Implementation
 
-### 1. Danh sách Certificate Names
+### 1. Danh sách Certificate Names (Khớp với Add Crew Certificate Modal)
 
-**Vị trí:** `/app/frontend/src/App.js` (lines ~11-50)
+**Vị trí:** `/app/frontend/src/App.js` (lines ~11-27)
 
-**Certificate Names được thêm vào:**
+**Certificate Names (15 options - giống y hệt Add Crew Certificate modal):**
 ```javascript
 const COMMON_CERTIFICATE_NAMES = [
   'Certificate of Competency (COC)',
+  'Certificate of Endorsement (COE)',
+  'Seaman Book for COC',
+  'Seaman book for GMDSS',
   'GMDSS Certificate',
-  'Ship Security Officer',
-  'Ship Security Awareness',
-  'Dangerous Goods',
+  'Medical Certificate',
+  'Basic Safety Training',
   'Advanced Fire Fighting',
+  'Ship Security Officer',
+  'Survival Craft and Rescue Boats',
   'Medical First Aid',
   'Medical Care',
   'Crowd Management',
-  'Crisis Management',
-  'Bridge Resource Management (BRM)',
-  'Engine Resource Management (ERM)',
-  'ECDIS Generic',
-  'ECDIS Type Specific',
-  'ARPA',
-  'Radar Navigation',
-  'Basic Safety Training (BST)',
-  'Survival Craft',
-  'Fast Rescue Boat',
-  'Tanker Familiarization',
-  'Oil Tanker',
-  'Chemical Tanker',
-  'LNG Tanker',
-  'Passenger Ship',
-  'Ro-Ro Passenger Ship',
-  'High Speed Craft',
-  'Dynamic Positioning',
-  'Ballast Water Management',
-  'Able Seafarer Deck',
-  'Able Seafarer Engine',
-  'Electro-Technical Officer',
-  'Rating Forming Part of a Watch',
-  'SSBT (Ship Security)',
-  'ISPS Code',
-  'ISM Code',
-  'MLC 2006',
-  'STCW Certificate',
-  'Seaman Book',
-  'Yellow Fever Vaccination',
-  'COVID-19 Vaccination'
-].sort();
+  'Crisis Management and Human Behaviour',
+  'Designated Security Duties'
+];
 ```
 
-**Total:** 40+ common maritime certificate names, alphabetically sorted
+**⚠️ IMPORTANT:** Danh sách này được đồng bộ 100% với dropdown trong modal "Add Crew Certificate" để đảm bảo consistency.
 
 ---
 
