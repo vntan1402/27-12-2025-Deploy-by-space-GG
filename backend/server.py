@@ -13008,19 +13008,14 @@ async def move_standby_crew_files(
                 
                 logger.info(f"📦 Processing Standby crew: {crew.get('full_name')}")
                 
-                # Collect all file IDs to move
+                # Collect all ORIGINAL file IDs to move (no summary files)
                 files_to_move = []
                 
-                # Passport files
+                # Passport original file only (no summary)
                 if crew.get("passport_file_id"):
                     files_to_move.append({
                         "file_id": crew.get("passport_file_id"),
                         "type": "passport"
-                    })
-                if crew.get("summary_file_id"):
-                    files_to_move.append({
-                        "file_id": crew.get("summary_file_id"),
-                        "type": "passport_summary"
                     })
                 
                 # Get crew certificates
@@ -13031,23 +13026,20 @@ async def move_standby_crew_files(
                 
                 cert_list = await crew_certs.to_list(length=None)
                 
+                # Certificate original files only (no summary)
                 for cert in cert_list:
                     if cert.get("crew_cert_file_id"):
                         files_to_move.append({
                             "file_id": cert.get("crew_cert_file_id"),
-                            "type": "certificate"
-                        })
-                    if cert.get("crew_cert_summary_file_id"):
-                        files_to_move.append({
-                            "file_id": cert.get("crew_cert_summary_file_id"),
-                            "type": "certificate_summary"
+                            "type": "certificate",
+                            "cert_name": cert.get("cert_name", "Unknown")
                         })
                 
                 if not files_to_move:
-                    logger.info(f"ℹ️ No files to move for {crew.get('full_name')}")
+                    logger.info(f"ℹ️ No original files to move for {crew.get('full_name')}")
                     continue
                 
-                logger.info(f"📁 Moving {len(files_to_move)} files for {crew.get('full_name')}...")
+                logger.info(f"📁 Moving {len(files_to_move)} ORIGINAL files for {crew.get('full_name')} (no summaries)...")
                 
                 # Call Apps Script to move files
                 import aiohttp
