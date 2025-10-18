@@ -1,58 +1,53 @@
 <analysis>
-The AI engineer's work primarily focused on refining the Ship Management System's certificate and crew management features. Key accomplishments include implementing a Skip/Continue functionality for the Certificate Holder Name Mismatch validation, allowing users to override the mismatch. A significant feature addition was integrating the Date of Birth field into crew certificates, including backend model updates, frontend form integration (add/edit), pre-fill logic from crew data, and ensuring its persistence in the database. Numerous debugging cycles were involved, resolving issues such as missing backend imports (Fri Oct 17 13:28:17 UTC 2025), incorrect data propagation during pre-filling, and fixing an Authentication token not found error by correctly using frontend state. The engineer demonstrated strong diagnostic and iterative problem-solving, ensuring data integrity and a smoother user experience, particularly for file uploads and data display.
+The AI engineer's work primarily involved enhancing the Ship Management System's certificate, crew, and file management features. This trajectory details numerous iterative development and debugging cycles. Key tasks included implementing Date of Birth (DOB) extraction via AI, developing frontend and backend validation for DOB mismatches with a Skip/Continue modal, and refining the user experience for file uploads and deletions (making them asynchronous). Significant effort was dedicated to improving the process of moving crew documents to a Standby Crew folder in Google Drive, which uncovered challenges with Apps Script's folder identification logic. Additionally, the engineer addressed several UI/UX issues, such as auto-refreshing lists, enabling modal minimization, and allowing null values for date and place fields in bulk and single edits. The current outstanding issue revolves around the Apps Script's inability to dynamically locate the existing Standby Crew folder.
 </analysis>
 
 <product_requirements>
-The Ship Management System tracks crew records, certificates, and passports. It supports multi-file, staggered parallel uploads with AI analysis, duplicate checks, and highlights Critical expiring certificates. Issued By fields are normalized and abbreviated. For passports, documents are validated, and uploads occur post-database entry. File storage is consistent in Google Drive. New validations prevent crew deletion if certificates exist and ensure AI-extracted  matches the crew member's name, irrespective of word order or Vietnamese diacritics. The UI features search/filters and ship auto-selection. Recently, the system was enhanced to allow bypassing the Certificate Holder Name Mismatch validation with Skip/Continue options. A Date of Birth field was added to crew certificates, pre-filling from crew data (like Passport and Rank) and persisted to the database, supporting both manual entry and AI extraction.
+The Ship Management System facilitates comprehensive tracking of crew records, certificates, and passports. It supports multi-file, staggered parallel uploads with integrated AI analysis, duplicate checks, and highlights critical expiring certificates. Issued By fields are normalized and abbreviated. Passports undergo validation and are uploaded post-database entry, with all files consistently stored in Google Drive. Recent enhancements include preventing crew deletion if associated certificates exist and ensuring AI-extracted  matches the crew member's name. The UI now features improved search/filters and ship auto-selection. Critical new features allow bypassing Certificate Holder Name Mismatch validation and integrate a Date of Birth field into crew certificates. This DOB field pre-fills from crew data, is persisted in the database, and uses AI extraction for validation (only when crew data includes DOB), with a Skip/Continue modal for mismatches. Further UX improvements include asynchronous file upload/delete feedback, auto-refresh of certificate lists upon ship selection, a minimizable Add Crew Certificate modal, and automated movement of original Passport/Crew Cert files for Standby crew to a designated Google Drive folder. Bulk and single edit forms now permit clearing Date Sign Off, Date Sign On, and Place Sign On by submitting empty values.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
 -   **AI Integration**: Google Document AI for data extraction, custom prompt engineering (Gemini/GPT).
--   **Google Apps Script**: Intermediary for Google Drive file operations.
--   **Data Normalization**: Standardizing Issued By fields and crew names (including Vietnamese characters).
--   **Asynchronous Processing**: Staggered parallel file uploads.
+-   **Google Apps Script**: Intermediary for Google Drive file operations (upload, move, delete).
+-   **Data Normalization**: Standardizing Issued By fields and crew names (Vietnamese diacritics).
+-   **Asynchronous Processing**: Non-blocking file uploads and deletions.
+-   **Pydantic**: Data validation and serialization in FastAPI.
 </key_technical_concepts>
 
 <code_architecture>
 
 -   ****
     -   **Summary:** FastAPI backend, managing API endpoints, AI integration, and database operations.
-    -   **Changes:**
-        -   **Issued By Normalization**:  updated for flexible matching.
-        -   **Certificate Holder Mismatch Bypass**:  endpoint now accepts  parameter to skip holder name validation.
-        -   **Delete Crew Validation**: Checks for associated  before deletion.
-        -   **Holder Name Extraction**: Prompt for  refined for .
-        -   **Name Normalization**:  handles Vietnamese 'Đ' characters.
-        -   **Name Matching**: Permutation-insensitive logic for  vs. .
-        -   **Date of Birth Field**:  added to  and  models.
-        -   **Date of Birth Pre-fill**:  endpoint modified to return  and  in its response.
-        -   **Date of Birth Persistence**: Fri Oct 17 13:28:18 UTC 2025 imported from .  and  (PUT) endpoints updated to parse and save  to MongoDB, handling both string and datetime object formats.
+    -   **Changes:** Extended AI prompt for  extraction. Added  validation logic (compared AI-extracted vs. crew DOB), with  parameter. Fixed a bug where  was caught by a generic . Introduced  endpoint to handle moving original passport/certificate files to a Standby Crew folder, initially attempting dynamic folder ID lookup then falling back to a hardcoded ID. Refined file moving logic to only process original files. Corrected a critical issue where  values were filtered out during  PUT updates, preventing fields like  from being cleared in the database. Updated MongoDB queries to use  helper.
 -   ****
     -   **Summary:** Main React application, handling UI, state, and user interactions.
-    -   **Changes:**
-        -   **Delete Crew UI**: Handles 400 Bad Request for crew deletion.
-        -   **Certificate Holder Name Validation UI**: Fixed  calls. Implemented a new  state, and modified  to show this modal with Skip/Continue options for . Added  to resubmit with .
-        -   **Ship List Display**: Corrected filtering logic for .
-        -   **Date of Birth Field**: Added  to  and  states. Added Date of Birth input field to Add Crew Certificate and Edit Crew Certificate modals. Implemented pre-fill logic for  in , , , and  (including fetching from  for older certs). Added validation for  in .
-        -   **Authentication Fix**:  was updated to use the  state variable instead of .
-        -   **File Upload Debugging**: Added console logs to debug file content propagation after Continue click in the mismatch modal.
+    -   **Changes:** Implemented  state and associated handlers (, ) for date of birth mismatch. Refactored  for asynchronous file uploads, allowing modal closure and list refresh immediately after record creation, with separate toasts for upload status. Added clickable icons for original and summary files in the Crew Cert Name column and for Passport files, linking to their respective URLs. Enhanced  and  to provide better loading feedback and ensure list refresh. Implemented auto-refresh for the Crew Certificates table when a different ship is selected, by simulating a click on the refresh button. Added  state, minimize button, and a floating indicator for the Add Crew Certificate modal. Updated  to call the new backend  endpoint. Removed disabled conditions and updated messages in Bulk Edit Date Sign Off, Bulk Edit Date Sign On, and Bulk Edit Place Sign On modals to allow clearing values. Modified  to ensure clearing  (and , ) fields in the Edit Crew Member modal functions correctly.
 -   ****
     -   **Summary**: Handles communication with Google Apps Script for file operations.
-    -   **Changes**:  updated to prioritize  for Google Apps Script URL.
+    -   **Changes**:  updated to prioritize  for Google Apps Script URL. No new changes in this trajectory segment.
 -   ****
-    -   **Summary**: Google Apps Script for file uploads and AI analysis.
-    -   **Changes**: No direct edits, but its functionality relies on correct backend configuration and AI prompts.
+    -   **Summary**: This is the latest Google Apps Script provided by the user, handling file uploads, moves, renames, deletes, and folder structure management.
+    -   **Changes**: No direct edits were made to this file in the trajectory. However, the backend's  calls this script, and its behavior (specifically  not detecting Standby Crew dynamically) is a current point of contention.
+-   **** (New File)
+    -   **Summary**: A new Apps Script file proposed to support moving files using a  instead of just .
+    -   **Changes**: Created, but not fully integrated or confirmed as the final solution due to user feedback.
+-   ****
+    -   **Summary**: Records testing outcomes, user problem statements, and communication with testing agents.
+    -   **Changes**: Continuously updated to reflect new tasks, debugging steps, and testing results throughout the development process.
+-   **** (New File)
+    -   **Summary**: Documentation detailing the multi-file upload process for crew certificates.
+    -   **Changes**: Created to explain the step-by-step procedure of file uploads.
 </code_architecture>
 
 <pending_tasks>
--   Ask the user to manually test the updated Issued By normalization logic on the frontend, specifically verifying that short inputs like PANAMA normalize correctly to Panama Maritime Authority.
+-   **Debug Apps Script Folder Identification**: The  is failing to dynamically identify the Standby Crew folder, forcing the backend to use a hardcoded folder ID. This needs to be resolved to allow dynamic folder location/creation.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was working on ensuring that file uploads occur correctly after a user clicks Continue in the Certificate Holder Mismatch modal. The user had reported that while the crew certificate record was created, the original and summary files were not being uploaded to Google Drive. The AI engineer identified that the backend's  endpoint only handled database storage, not file uploads to Drive. It was confirmed that the frontend's  function already contained logic to call the  endpoint, which is responsible for file uploads. The issue was traced to potential data propagation problems where the  might not have been correctly preserved or passed after the Continue action. Debugging logs were added to  and  in  to inspect the  value. After these debugging steps, the user confirmed that File đã upload thành công. This indicates the data flow issue was resolved, likely due to correct preservation of  (including ) when the  action triggers .
+Immediately before this summary, the AI engineer was debugging the automatic movement of Standby crew files (Passport and Crew Certificates) to a dedicated Standby Crew folder in Google Drive. While files were successfully moved using a hardcoded folder ID for Standby Crew, the backend's logic for *dynamically finding or creating* this folder via the Google Apps Script was failing. Backend logs indicated that the Apps Script's  function was not locating the existing Standby Crew folder, leading to a fallback mechanism. The last message from the AI engineer confirms that the Apps Script's  function is failing to list the existing Standby Crew folder, despite it being present in Google Drive.
 </current_work>
 
 <optional_next_step>
-Ask the user to manually test the Issued By normalization logic on the frontend to confirm functionality.
+Debug the  function in the Apps Script to ensure it can correctly identify existing folders, specifically the Standby Crew folder.
 </optional_next_step>

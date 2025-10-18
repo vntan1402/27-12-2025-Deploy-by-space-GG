@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import requests
 
-BACKEND_URL = 'https://shipmatrix.preview.emergentagent.com/api'
+BACKEND_URL = 'https://crewcert-manager.preview.emergentagent.com/api'
 
 print("=" * 70)
 print("🧪 TEST: Move All Standby Crew Files")
