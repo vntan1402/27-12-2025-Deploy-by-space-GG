@@ -11706,6 +11706,15 @@ const HomePage = () => {
                                           )) return false;
                                         }
                                         
+                                        // Apply ship sign on filter
+                                        if (certFilters.shipSignOn !== 'all') {
+                                          const shipStatus = getCertificateShipStatus(cert);
+                                          const certShipSignOn = shipStatus.isStandby ? '-' : shipStatus.ship;
+                                          if (certShipSignOn !== certFilters.shipSignOn) {
+                                            return false;
+                                          }
+                                        }
+                                        
                                         // Apply status filter
                                         if (certFilters.status !== 'all' && cert.status !== certFilters.status) {
                                           return false;
