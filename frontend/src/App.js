@@ -10767,8 +10767,8 @@ const HomePage = () => {
                               </h3>
                               <p className="text-sm text-gray-600">
                                 {language === 'vi' 
-                                  ? `Quản lý thuyền viên cho ${selectedShip ? selectedShip.name : 'tàu được chọn'}` 
-                                  : `Manage crew members for ${selectedShip ? selectedShip.name : 'selected ship'}`}
+                                  ? 'Quản lý tất cả thuyền viên của công ty' 
+                                  : 'Manage all crew members of the company'}
                               </p>
                             </div>
                         {/* Action Buttons */}
