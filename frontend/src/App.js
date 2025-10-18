@@ -14372,6 +14372,18 @@ const HomePage = () => {
                     <span>{language === 'vi' ? 'Standby Crew' : 'Standby Crew'}</span>
                   </button>
                   
+                  {/* Minimize Button */}
+                  <button
+                    onClick={() => setIsAddCrewModalMinimized(!isAddCrewModalMinimized)}
+                    className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+                    title={isAddCrewModalMinimized 
+                      ? (language === 'vi' ? 'Mở rộng' : 'Maximize') 
+                      : (language === 'vi' ? 'Thu nhỏ' : 'Minimize')
+                    }
+                  >
+                    {isAddCrewModalMinimized ? '□' : '−'}
+                  </button>
+                  
                   {/* Close Button */}
                   <button
                     onClick={() => {
