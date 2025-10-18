@@ -6250,22 +6250,11 @@ const HomePage = () => {
     console.log(`🔀 Switching to certificates view for crew: ${crew.full_name}`);
     console.log(`🚢 Crew's ship sign on: ${crew.ship_sign_on}`);
     
-    // Set selectedShip based on crew's ship_sign_on
-    if (crew.ship_sign_on && ships) {
-      const crewShip = ships.find(ship => ship.name === crew.ship_sign_on);
-      if (crewShip) {
-        console.log(`✅ Setting selected ship to: ${crewShip.name}`);
-        setSelectedShip(crewShip);
-      } else {
-        console.warn(`⚠️ Ship "${crew.ship_sign_on}" not found in ships list`);
-      }
-    }
-    
+    // No longer need to set selectedShip - we fetch all certificates now
     setSelectedCrewForCertificates(crew);
     setShowCertificatesView(true);
     
-    // Fetch ALL certificates for the ship (not filtered by crew)
-    // This allows filter dropdown to work with all crew's certificates
+    // Fetch ALL certificates (not filtered by ship)
     fetchCrewCertificates(null);  // null = fetch all certificates
     
     // Set filter to show this crew's certificates by default
