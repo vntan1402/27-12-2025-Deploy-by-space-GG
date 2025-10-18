@@ -1085,6 +1085,11 @@ const HomePage = () => {
   const [showDuplicateCertWarning, setShowDuplicateCertWarning] = useState(false);
   const [duplicateCertInfo, setDuplicateCertInfo] = useState(null);
   
+  // Certificate Name Dropdown States (for Edit Modal)
+  const [showCertNameDropdown, setShowCertNameDropdown] = useState(false);
+  const [certNameSearchTerm, setCertNameSearchTerm] = useState('');
+  const certNameDropdownRef = useRef(null);
+  
   // File upload states (Step 11)
   const [certFile, setCertFile] = useState(null);
   const [isAnalyzingCert, setIsAnalyzingCert] = useState(false);
