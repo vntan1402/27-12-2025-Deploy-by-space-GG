@@ -14180,6 +14180,44 @@ async def analyze_certificate_file_for_crew(
         raise HTTPException(status_code=500, detail=f"Failed to analyze crew certificate: {str(e)}")
 
 
+@api_router.get("/crew-certificates/all", response_model=List[CrewCertificateResponse])
+async def get_all_crew_certificates(
+    crew_id: Optional[str] = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Get ALL crew certificates for the company (no ship filter)
+    Includes both ship-assigned and Standby crew certificates
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Build query filter - company only, no ship filter
+        query_filter = {
+            "company_id": company_uuid
+        }
+        
+        # Add crew filter if specified
+        if crew_id:
+            query_filter["crew_id"] = crew_id
+        
+        # Get certificates from database
+        certificates = await mongo_db.find_all("crew_certificates", query_filter)
+        
+        # Recalculate status for each certificate
+        for cert in certificates:
+            if cert.get('cert_expiry'):
+                cert['status'] = calculate_crew_certificate_status(cert['cert_expiry'])
+        
+        logger.info(f"📋 Retrieved {len(certificates)} certificates for company (all ships + standby)")
+        
+        return [CrewCertificateResponse(**cert) for cert in certificates]
+        
+    except Exception as e:
+        logger.error(f"Error getting all crew certificates: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get crew certificates: {str(e)}")
+
+
 @api_router.get("/crew-certificates/{ship_id}", response_model=List[CrewCertificateResponse])
 async def get_crew_certificates(
     ship_id: str,
@@ -14187,7 +14225,8 @@ async def get_crew_certificates(
     current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
-    Step 4: Get all crew certificates for a ship with optional crew filter
+    Get all crew certificates for a ship with optional crew filter
+    (Legacy endpoint - kept for backward compatibility)
     """
     try:
         company_uuid = await resolve_company_id(current_user)
