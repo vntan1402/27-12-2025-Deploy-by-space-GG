@@ -10951,7 +10951,8 @@ const HomePage = () => {
                                     key={crew.id} 
                                     className="hover:bg-gray-50 cursor-pointer"
                                     onContextMenu={(e) => handleCrewRightClick(e, crew)}
-                                    title={language === 'vi' ? 'Chuột phải để xóa thuyền viên' : 'Right-click to delete crew member'}
+                                    onDoubleClick={() => handleCrewNameDoubleClick(crew)}
+                                    title={language === 'vi' ? 'Nhấp đúp để xem chứng chỉ | Chuột phải để xóa thuyền viên' : 'Double-click to view certificates | Right-click to delete crew member'}
                                   >
                                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                       <div className="flex items-center space-x-2">
