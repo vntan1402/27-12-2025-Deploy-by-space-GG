@@ -11398,6 +11398,45 @@ const HomePage = () => {
                               {/* Divider */}
                               <div className="h-8 w-px bg-gray-300"></div>
                               
+                              {/* Ship Sign On Filter */}
+                              <div className="flex items-center space-x-2">
+                                  <label className="text-sm text-gray-600 whitespace-nowrap">
+                                    {language === 'vi' ? 'Tàu:' : 'Ship:'}
+                                  </label>
+                                  <select
+                                    value={certFilters.shipSignOn}
+                                    onChange={(e) => setCertFilters({...certFilters, shipSignOn: e.target.value})}
+                                    className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                                  >
+                                    <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                                    {(() => {
+                                      // Get unique ship sign on values from certificates via crew lookup
+                                      const shipSignOnSet = new Set();
+                                      crewCertificates.forEach(cert => {
+                                        const shipStatus = getCertificateShipStatus(cert);
+                                        if (shipStatus.isStandby) {
+                                          shipSignOnSet.add('-');
+                                        } else {
+                                          shipSignOnSet.add(shipStatus.ship);
+                                        }
+                                      });
+                                      
+                                      // Convert to array and sort: "-" first, then ships alphabetically
+                                      const shipSignOnArray = Array.from(shipSignOnSet).sort((a, b) => {
+                                        if (a === '-') return -1;
+                                        if (b === '-') return 1;
+                                        return a.localeCompare(b);
+                                      });
+                                      
+                                      return shipSignOnArray.map(shipSignOn => (
+                                        <option key={shipSignOn} value={shipSignOn}>
+                                          {shipSignOn === '-' ? (language === 'vi' ? 'Standby' : 'Standby') : shipSignOn}
+                                        </option>
+                                      ));
+                                    })()}
+                                  </select>
+                                </div>
+                              
                               {/* Status Filter */}
                               <div className="flex items-center space-x-2">
                                   <label className="text-sm text-gray-600 whitespace-nowrap">
