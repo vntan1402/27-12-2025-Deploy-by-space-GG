@@ -6418,12 +6418,11 @@ const HomePage = () => {
     setIsSubmittingCert(true);
 
     try {
-      const shipId = selectedShip?.id || selectedCrewForCertificates?.ship_id || companyShips?.[0]?.id;
-      
       console.log('✅ User confirmed: Adding duplicate certificate');
       
+      // API call WITHOUT ship_id parameter - backend determines folder from crew's ship_sign_on
       const response = await axios.post(
-        `${API}/crew-certificates/manual?ship_id=${shipId}`,
+        `${API}/crew-certificates/manual`,
         newCrewCertificate,
         {
           headers: {
