@@ -13146,9 +13146,9 @@ async def move_standby_crew_files(
                 import traceback
                 logger.error(f"❌ Full traceback: {traceback.format_exc()}")
             
-            # Create folder if not found
+            # STEP 3: Create folder if not found
             if not standby_folder_id:
-                logger.info("🆕 Standby Crew folder not found, creating it...")
+                logger.info("🆕 Step 3: Standby Crew folder not found, creating it in COMPANY DOCUMENT...")
                 
                 try:
                     # Use a simple folder creation approach
@@ -13160,7 +13160,7 @@ async def move_standby_crew_files(
                         company_apps_script_url,
                         json={
                             "action": "upload_file_with_folder_creation",
-                            "parent_folder_id": parent_folder_id,
+                            "parent_folder_id": company_document_folder_id,  # Use COMPANY DOCUMENT folder ID
                             "ship_name": "",  # Empty ship name = don't create ship folder
                             "category": "Standby Crew",  # Creates: COMPANY DOCUMENT/Standby Crew
                             "filename": ".placeholder",
