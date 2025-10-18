@@ -12230,6 +12230,45 @@ const HomePage = () => {
                             </div>
                           )}
 
+                          {/* Minimized Add Crew Certificate Modal Indicator */}
+                          {showAddCrewCertModal && isAddCrewCertModalMinimized && (
+                            <div 
+                              onClick={() => {
+                                console.log('📂 Restoring Add Crew Certificate modal...');
+                                setIsAddCrewCertModalMinimized(false);
+                              }}
+                              className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
+                            >
+                              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 p-4 min-w-[280px]">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    <div className="bg-white bg-opacity-20 rounded-full p-2">
+                                      <span className="text-2xl">📜</span>
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-sm">
+                                        {language === 'vi' ? 'Thêm chứng chỉ' : 'Add Certificate'}
+                                      </div>
+                                      <div className="text-xs text-blue-100">
+                                        {selectedCrewForCert 
+                                          ? selectedCrewForCert.full_name 
+                                          : (language === 'vi' ? 'Đang soạn...' : 'In progress...')}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <div className="bg-white bg-opacity-20 rounded-full p-1.5 group-hover:bg-opacity-30 transition-all">
+                                      <span className="text-sm">↑</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-2 text-xs text-blue-100">
+                                  {language === 'vi' ? 'Click để mở lại' : 'Click to restore'}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                         </>
                       )}
                     </div>
