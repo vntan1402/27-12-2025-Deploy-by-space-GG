@@ -13017,23 +13017,48 @@ async def move_standby_crew_files(
                     
                     # Create folder if not found
                     if not standby_folder_id:
-                        logger.info("🆕 Creating Standby Crew folder...")
-                        # Use a simple approach: just create the folder via Apps Script
-                        # We'll use create_complete_ship_structure which creates folders
+                        logger.info("🆕 Creating simple Standby Crew folder (not ship structure)...")
+                        
+                        # Trick: Upload a dummy file with category "Standby Crew" to auto-create folder
+                        import base64
+                        dummy_content = base64.b64encode(b"Standby Crew Folder").decode('utf-8')
+                        
                         async with session.post(
                             company_apps_script_url,
                             json={
-                                "action": "create_complete_ship_structure",
+                                "action": "upload_file_with_folder_creation",
                                 "parent_folder_id": parent_folder_id,
-                                "ship_name": "Standby Crew"
+                                "ship_name": "",  # Empty ship name
+                                "category": "Standby Crew",  # This creates: COMPANY DOCUMENT/Standby Crew
+                                "filename": ".folder_created",
+                                "file_content": dummy_content
                             },
                             timeout=aiohttp.ClientTimeout(total=30)
                         ) as create_response:
                             if create_response.status == 200:
                                 create_result = await create_response.json()
                                 if create_result.get("success"):
-                                    standby_folder_id = create_result.get("ship_folder_id")
+                                    # Get folder_id from the upload response
+                                    standby_folder_id = create_result.get("folder_id")
                                     logger.info(f"✅ Created Standby Crew folder: {standby_folder_id}")
+                                    
+                                    # Delete the dummy file we just created
+                                    dummy_file_id = create_result.get("file_id")
+                                    if dummy_file_id:
+                                        try:
+                                            async with session.post(
+                                                company_apps_script_url,
+                                                json={
+                                                    "action": "delete_file",
+                                                    "file_id": dummy_file_id,
+                                                    "permanent_delete": True
+                                                },
+                                                timeout=aiohttp.ClientTimeout(total=10)
+                                            ) as delete_response:
+                                                if delete_response.status == 200:
+                                                    logger.info(f"🗑️ Deleted dummy file")
+                                        except Exception as e:
+                                            logger.warning(f"⚠️ Could not delete dummy file: {e}")
                     
                     if not standby_folder_id:
                         raise HTTPException(status_code=500, detail="Failed to find/create Standby Crew folder")
