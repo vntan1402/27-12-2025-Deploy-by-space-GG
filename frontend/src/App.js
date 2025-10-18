@@ -1065,6 +1065,9 @@ const HomePage = () => {
   const [certNameSearchTerm, setCertNameSearchTerm] = useState('');
   const certNameDropdownRef = useRef(null);
   
+  // Custom Certificate Names (user-added names saved to localStorage)
+  const [customCertificateNames, setCustomCertificateNames] = useState([]);
+  
   // File upload states (Step 11)
   const [certFile, setCertFile] = useState(null);
   const [isAnalyzingCert, setIsAnalyzingCert] = useState(false);
