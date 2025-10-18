@@ -13004,6 +13004,7 @@ async def move_standby_crew_files(
         async with aiohttp.ClientSession() as session:
             # Check if Standby Crew folder exists
             try:
+                logger.info(f"🔍 Calling Apps Script to list folders in parent: {parent_folder_id}")
                 async with session.post(
                     company_apps_script_url,
                     json={
@@ -13012,26 +13013,63 @@ async def move_standby_crew_files(
                     },
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
+                    logger.info(f"📡 Apps Script response status: {response.status}")
+                    
                     if response.status == 200:
                         result = await response.json()
                         
+                        logger.info(f"📦 Full API response: {result}")
+                        logger.info(f"📋 Response success: {result.get('success')}")
+                        logger.info(f"📋 Response message: {result.get('message')}")
                         logger.info(f"📋 Folders in COMPANY DOCUMENT:")
                         
-                        # Look for existing "Standby Crew" folder
+                        # Look for existing "Standby Crew" folder with enhanced matching
                         if result.get("success") and result.get("folders"):
-                            for folder in result["folders"]:
-                                logger.info(f"   - {folder['name']} (ID: {folder['id']})")
-                                if folder["name"] == "Standby Crew":
-                                    standby_folder_id = folder["id"]
-                                    logger.info(f"✅ Found existing Standby Crew folder: {standby_folder_id}")
+                            folders_list = result.get("folders")
+                            logger.info(f"📊 Total folders found: {len(folders_list)}")
+                            
+                            target_folder_name = "Standby Crew"
+                            
+                            for idx, folder in enumerate(folders_list):
+                                folder_name = folder.get('name', '')
+                                folder_id = folder.get('id', '')
+                                
+                                logger.info(f"   [{idx+1}] Name: '{folder_name}' (ID: {folder_id})")
+                                logger.info(f"       - Raw name length: {len(folder_name)}")
+                                logger.info(f"       - Stripped name: '{folder_name.strip()}'")
+                                logger.info(f"       - Lowercase: '{folder_name.lower()}'")
+                                
+                                # Enhanced matching: case-insensitive and whitespace-tolerant
+                                folder_name_normalized = folder_name.strip().lower()
+                                target_name_normalized = target_folder_name.strip().lower()
+                                
+                                logger.info(f"       - Comparing: '{folder_name_normalized}' == '{target_name_normalized}'")
+                                
+                                if folder_name_normalized == target_name_normalized:
+                                    standby_folder_id = folder_id
+                                    logger.info(f"✅ MATCH FOUND! Standby Crew folder: {standby_folder_id}")
+                                    logger.info(f"   - Original name: '{folder_name}'")
+                                    logger.info(f"   - Matched using normalized comparison")
                                     break
+                                else:
+                                    logger.info(f"       - No match (different name)")
+                            
+                            if not standby_folder_id:
+                                logger.warning(f"⚠️ 'Standby Crew' folder NOT FOUND after checking {len(folders_list)} folders")
+                                logger.warning(f"⚠️ Available folder names: {[f.get('name') for f in folders_list]}")
                         else:
-                            logger.warning("⚠️ No folders found in debug response")
+                            logger.warning("⚠️ No folders found in debug response OR response not successful")
+                            logger.warning(f"⚠️ Result keys: {result.keys() if result else 'None'}")
                     else:
-                        logger.error(f"❌ Debug folder structure failed: {response.status}")
+                        logger.error(f"❌ Debug folder structure failed with HTTP status: {response.status}")
+                        response_text = await response.text()
+                        logger.error(f"❌ Response text: {response_text[:500]}")
             
             except Exception as debug_error:
                 logger.error(f"❌ Error debugging folder structure: {debug_error}")
+                logger.error(f"❌ Error type: {type(debug_error).__name__}")
+                import traceback
+                logger.error(f"❌ Full traceback: {traceback.format_exc()}")
             
             # Create folder if not found
             if not standby_folder_id:
