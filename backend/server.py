@@ -13280,28 +13280,28 @@ async def move_crew_files_to_ship(
         if not company_apps_script_url:
             raise HTTPException(status_code=400, detail="Apps Script URL not configured")
         
-        # Get parent folder ID (COMPANY DOCUMENT root folder)
-        parent_folder_id = gdrive_config_doc.get("folder_id")
+        # Get Company Drive ROOT folder ID (where ship folders are created)
+        root_folder_id = gdrive_config_doc.get("folder_id")
         
-        if not parent_folder_id:
-            raise HTTPException(status_code=400, detail="Parent folder ID not configured")
+        if not root_folder_id:
+            raise HTTPException(status_code=400, detail="Root folder ID not configured")
         
-        logger.info(f"📁 Finding {ship_name} folder and Crew Records subfolder...")
+        logger.info(f"📁 Finding {ship_name} folder in Company Drive ROOT and Crew Records subfolder...")
         
-        # Step 1: Find ship folder by name
+        # Step 1: Find ship folder by name in Company Drive ROOT
         import aiohttp
         ship_folder_id = None
         crew_records_folder_id = None
         
         async with aiohttp.ClientSession() as session:
-            # List all folders in COMPANY DOCUMENT to find ship folder
+            # List all folders in Company Drive ROOT to find ship folder
             try:
-                logger.info(f"🔍 Calling Apps Script to list folders in parent: {parent_folder_id}")
+                logger.info(f"🔍 Calling Apps Script to list folders in Company Drive ROOT: {root_folder_id}")
                 async with session.post(
                     company_apps_script_url,
                     json={
                         "action": "debug_folder_structure",
-                        "parent_folder_id": parent_folder_id
+                        "parent_folder_id": root_folder_id
                     },
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
@@ -13312,7 +13312,7 @@ async def move_crew_files_to_ship(
                         
                         if result.get("success") and result.get("folders"):
                             folders_list = result.get("folders")
-                            logger.info(f"📊 Total folders found: {len(folders_list)}")
+                            logger.info(f"📊 Total folders found in Company Drive ROOT: {len(folders_list)}")
                             
                             # Find ship folder
                             for folder in folders_list:
@@ -13328,11 +13328,12 @@ async def move_crew_files_to_ship(
                                     break
                             
                             if not ship_folder_id:
-                                logger.error(f"❌ Ship folder '{ship_name}' NOT FOUND in COMPANY DOCUMENT")
+                                logger.error(f"❌ Ship folder '{ship_name}' NOT FOUND in Company Drive ROOT")
+                                logger.error(f"❌ Available folders: {[f.get('name') for f in folders_list]}")
                                 return {
                                     "success": False,
                                     "moved_count": 0,
-                                    "message": f"Ship folder '{ship_name}' not found in Google Drive"
+                                    "message": f"Ship folder '{ship_name}' not found in Google Drive ROOT"
                                 }
             
             except Exception as debug_error:
