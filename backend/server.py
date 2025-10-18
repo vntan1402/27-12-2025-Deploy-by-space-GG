@@ -14286,6 +14286,7 @@ async def upload_certificate_files_after_creation(
             cert_filename=filename,
             cert_content_type=content_type,
             ship_name=ship_name,
+            is_standby=is_standby,
             summary_text=summary_text
         )
         
