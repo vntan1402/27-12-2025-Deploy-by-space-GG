@@ -12582,21 +12582,27 @@ async def update_crew_member(
                 )
         
         # Prepare update data
-        update_data = {k: v for k, v in crew_update.dict().items() if v is not None}
+        # IMPORTANT: Include None values to allow clearing fields (e.g., date_sign_off)
+        # Use dict(exclude_unset=True) instead of filtering out None values
+        update_data = crew_update.dict(exclude_unset=True)
         update_data["updated_at"] = datetime.now(timezone.utc)
         update_data["updated_by"] = current_user.username
         
-        # Convert date strings to datetime objects
+        # Convert date strings to datetime objects, or keep None to clear the field
         for date_field in ['date_of_birth', 'date_sign_on', 'date_sign_off', 'passport_issue_date', 'passport_expiry_date']:
-            if date_field in update_data and isinstance(update_data[date_field], str):
-                try:
-                    if 'T' in update_data[date_field]:
-                        update_data[date_field] = datetime.fromisoformat(update_data[date_field].replace('Z', '+00:00'))
-                    else:
-                        update_data[date_field] = datetime.fromisoformat(update_data[date_field] + "T00:00:00+00:00")
-                except ValueError:
-                    logger.warning(f"Could not parse date {date_field}: {update_data[date_field]}")
-                    update_data[date_field] = None
+            if date_field in update_data:
+                if update_data[date_field] is None:
+                    # Keep None to clear the field in database
+                    continue
+                elif isinstance(update_data[date_field], str):
+                    try:
+                        if 'T' in update_data[date_field]:
+                            update_data[date_field] = datetime.fromisoformat(update_data[date_field].replace('Z', '+00:00'))
+                        else:
+                            update_data[date_field] = datetime.fromisoformat(update_data[date_field] + "T00:00:00+00:00")
+                    except ValueError:
+                        logger.warning(f"Could not parse date {date_field}: {update_data[date_field]}")
+                        update_data[date_field] = None
         
         # Update in database
         await mongo_db.update("crew_members", {"id": crew_id}, update_data)
