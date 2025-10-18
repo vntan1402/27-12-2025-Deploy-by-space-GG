@@ -14315,43 +14315,83 @@ const HomePage = () => {
                   <h3 className="text-xl font-bold text-gray-800">
                     {language === 'vi' ? 'Thêm thuyền viên mới' : 'Add New Crew Member'}
                   </h3>
-                  {selectedShip && (
+                  {newCrewData.status === 'Standby' ? (
+                    <span className="text-xl font-medium text-orange-600">
+                      {language === 'vi' ? 'cho' : 'for'}: <span className="font-bold">{language === 'vi' ? 'Standby Crew' : 'Standby Crew'}</span>
+                    </span>
+                  ) : selectedShip ? (
                     <span className="text-xl font-medium text-gray-800">
                       {language === 'vi' ? 'cho' : 'for'}: <span className="font-bold text-blue-600">{selectedShip.name}</span>
                     </span>
-                  )}
+                  ) : null}
                 </div>
-                <button
-                  onClick={() => {
-                    setShowAddCrewModal(false);
-                    addCrewDrag.resetPosition();
-                    // Reset all states
-                    setPassportFile(null);
-                    setPassportAnalysis(null);
-                    setPassportError('');
-                    setNewCrewData({
-                      full_name: '',
-                      full_name_en: '',
-                      sex: 'M',
-                      date_of_birth: '',
-                      place_of_birth: '',
-                      place_of_birth_en: '',
-                      passport: '',
-                      nationality: '',
-                      passport_expiry_date: '',
-                      rank: '',
-                      seamen_book: '',
-                      status: 'Sign on',
-                      ship_sign_on: selectedShip?.name || '-',
-                      place_sign_on: '',
-                      date_sign_on: '',
-                      date_sign_off: ''
-                    });
-                  }}
-                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
-                >
-                  ×
-                </button>
+                <div className="flex items-center space-x-3">
+                  {/* Standby Mode Quick Toggle Button */}
+                  <button
+                    onClick={() => {
+                      if (newCrewData.status === 'Standby') {
+                        // Switch back to Sign on mode
+                        setNewCrewData({
+                          ...newCrewData,
+                          status: 'Sign on',
+                          ship_sign_on: selectedShip?.name || '-'
+                        });
+                      } else {
+                        // Switch to Standby mode
+                        setNewCrewData({
+                          ...newCrewData,
+                          status: 'Standby',
+                          ship_sign_on: '-'
+                        });
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center space-x-2 ${
+                      newCrewData.status === 'Standby'
+                        ? 'bg-orange-500 text-white hover:bg-orange-600'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    title={newCrewData.status === 'Standby' 
+                      ? (language === 'vi' ? 'Chuyển sang chế độ thường' : 'Switch to normal mode')
+                      : (language === 'vi' ? 'Chuyển sang Standby Mode' : 'Switch to Standby Mode')
+                    }
+                  >
+                    <span>{newCrewData.status === 'Standby' ? '🟠' : '⚪'}</span>
+                    <span>{language === 'vi' ? 'Standby' : 'Standby'}</span>
+                  </button>
+                  
+                  {/* Close Button */}
+                  <button
+                    onClick={() => {
+                      setShowAddCrewModal(false);
+                      addCrewDrag.resetPosition();
+                      // Reset all states
+                      setPassportFile(null);
+                      setPassportAnalysis(null);
+                      setPassportError('');
+                      setNewCrewData({
+                        full_name: '',
+                        full_name_en: '',
+                        sex: 'M',
+                        date_of_birth: '',
+                        place_of_birth: '',
+                        place_of_birth_en: '',
+                        passport: '',
+                        nationality: '',
+                        passport_expiry_date: '',
+                        rank: '',
+                        seamen_book: '',
+                        status: 'Sign on',
+                        ship_sign_on: selectedShip?.name || '-',
+                        place_sign_on: '',
+                        date_sign_on: '',
+                        date_sign_off: ''
+                      });
+                    }}
+                    className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
             </div>
             
