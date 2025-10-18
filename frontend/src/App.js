@@ -6214,18 +6214,16 @@ const HomePage = () => {
   
   // Fetch crew certificates for current ship
   const fetchCrewCertificates = async (crewId = null) => {
-    if (!selectedShip) {
-      console.error('No ship selected');
-      return;
-    }
-
     try {
-      let url = `${API}/crew-certificates/${selectedShip.id}`;
+      // Use new endpoint that gets ALL certificates (no ship filter)
+      let url = `${API}/crew-certificates/all`;
       
       // Add crew_id filter if specified
       if (crewId) {
         url += `?crew_id=${crewId}`;
       }
+      
+      console.log(`📋 Fetching all crew certificates (company-wide)...`);
       
       const response = await axios.get(url, {
         headers: {
@@ -6235,7 +6233,7 @@ const HomePage = () => {
       
       if (response.data) {
         setCrewCertificates(response.data);
-        console.log(`📋 Loaded ${response.data.length} crew certificates`);
+        console.log(`✅ Loaded ${response.data.length} crew certificates (including Standby)`);
       }
       
     } catch (error) {
