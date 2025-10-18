@@ -3116,6 +3116,16 @@ const HomePage = () => {
           ? 'Đã cập nhật thông tin thuyền viên thành công' 
           : 'Crew member updated successfully');
         
+        // ✅ AUTO-MOVE FILES TO STANDBY FOLDER if status changed to "Standby"
+        const oldStatus = editingCrew.status ? editingCrew.status.toLowerCase() : '';
+        const newStatus = editCrewData.status ? editCrewData.status.toLowerCase() : '';
+        
+        if (newStatus === 'standby' && oldStatus !== 'standby') {
+          console.log(`🎯 Status changed to Standby for ${editCrewData.full_name}, auto-moving files...`);
+          // Call moveStandbyCrewFiles in background (don't await - let it run async)
+          moveStandbyCrewFiles([editingCrew.id], editCrewData.full_name);
+        }
+        
         // Refresh crew list
         console.log('🔄 Refreshing crew list after updating crew...');
         try {
