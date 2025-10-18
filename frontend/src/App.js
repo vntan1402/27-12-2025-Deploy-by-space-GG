@@ -3227,25 +3227,47 @@ const HomePage = () => {
           ? 'Đã cập nhật thông tin thuyền viên thành công' 
           : 'Crew member updated successfully');
         
-        // ✅ AUTO-MOVE FILES TO STANDBY FOLDER if status changed to "Standby"
+        // ✅ AUTO-MOVE FILES TO STANDBY FOLDER in two cases:
+        // Case 1: Status changed to "Standby" directly
+        // Case 2: date_sign_off was filled (which auto-sets status to Standby)
+        
         const oldStatus = editingCrew.status ? editingCrew.status.toLowerCase().trim() : '';
         const newStatus = editCrewData.status ? editCrewData.status.toLowerCase().trim() : '';
+        const oldDateSignOff = editingCrew.date_sign_off;
+        const newDateSignOff = editCrewData.date_sign_off;
         
-        console.log('🔍 Status check:', {
+        // Check if date_sign_off was newly filled (wasn't there before, now it is)
+        const dateSignOffAdded = !oldDateSignOff && newDateSignOff;
+        
+        console.log('🔍 Status & Date Sign Off check:', {
           oldStatus,
           newStatus,
-          editingCrew_status: editingCrew.status,
-          editCrewData_status: editCrewData.status,
-          shouldTrigger: newStatus === 'standby' && oldStatus !== 'standby'
+          oldDateSignOff,
+          newDateSignOff,
+          dateSignOffAdded,
+          statusChangedToStandby: newStatus === 'standby' && oldStatus !== 'standby',
+          shouldTriggerMove: (newStatus === 'standby' && oldStatus !== 'standby') || dateSignOffAdded
         });
         
-        if (newStatus === 'standby' && oldStatus !== 'standby') {
-          console.log(`🎯 Status changed to Standby for ${editCrewData.full_name}, auto-moving files...`);
+        // Trigger auto-move if:
+        // 1. Status changed to Standby, OR
+        // 2. Date Sign Off was newly added (which means status is now Standby)
+        if ((newStatus === 'standby' && oldStatus !== 'standby') || dateSignOffAdded) {
+          console.log(`🎯 Triggering auto-move for ${editCrewData.full_name}`);
+          if (dateSignOffAdded) {
+            console.log('   Reason: Date Sign Off was newly filled → Status auto-changed to Standby');
+          } else {
+            console.log('   Reason: Status directly changed to Standby');
+          }
           // Call moveStandbyCrewFiles in background (don't await - let it run async)
           moveStandbyCrewFiles([editingCrew.id], editCrewData.full_name);
         } else {
-          console.log('ℹ️ Status change did not trigger file move:', {
-            reason: newStatus !== 'standby' ? 'new status is not standby' : 'old status was already standby'
+          console.log('ℹ️ Auto-move not triggered:', {
+            reason: newStatus !== 'standby' 
+              ? 'new status is not standby' 
+              : oldStatus === 'standby' && !dateSignOffAdded
+                ? 'status was already standby and no new date sign off'
+                : 'unknown'
           });
         }
         
