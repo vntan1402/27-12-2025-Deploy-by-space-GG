@@ -11514,25 +11514,6 @@ const HomePage = () => {
                                   </select>
                                 </div>
                               
-                              {/* Status Filter */}
-                              <div className="flex items-center space-x-2">
-                                  <label className="text-sm text-gray-600 whitespace-nowrap">
-                                    {language === 'vi' ? 'Trạng thái:' : 'Status:'}
-                                  </label>
-                                  <select
-                                    value={certFilters.status}
-                                    onChange={(e) => setCertFilters({...certFilters, status: e.target.value})}
-                                    className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
-                                  >
-                                    <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
-                                    <option value="Valid">✅ {language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
-                                    <option value="Critical">🟠 {language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
-                                    <option value="Expiring Soon">⚠️ {language === 'vi' ? 'Sắp hết hạn' : 'Expiring Soon'}</option>
-                                    <option value="Expired">❌ {language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
-                                    <option value="Unknown">❓ {language === 'vi' ? 'Không xác định' : 'Unknown'}</option>
-                                  </select>
-                                </div>
-                              
                               {/* Crew Name Filter */}
                               <div className="flex items-center space-x-2">
                                   <label className="text-sm text-gray-600 whitespace-nowrap">
@@ -11603,6 +11584,25 @@ const HomePage = () => {
                                           );
                                         });
                                     })()}
+                                  </select>
+                                </div>
+                              
+                              {/* Status Filter */}
+                              <div className="flex items-center space-x-2">
+                                  <label className="text-sm text-gray-600 whitespace-nowrap">
+                                    {language === 'vi' ? 'Trạng thái:' : 'Status:'}
+                                  </label>
+                                  <select
+                                    value={certFilters.status}
+                                    onChange={(e) => setCertFilters({...certFilters, status: e.target.value})}
+                                    className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                                  >
+                                    <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                                    <option value="Valid">✅ {language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
+                                    <option value="Critical">🟠 {language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
+                                    <option value="Expiring Soon">⚠️ {language === 'vi' ? 'Sắp hết hạn' : 'Expiring Soon'}</option>
+                                    <option value="Expired">❌ {language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
+                                    <option value="Unknown">❓ {language === 'vi' ? 'Không xác định' : 'Unknown'}</option>
                                   </select>
                                 </div>
                               
