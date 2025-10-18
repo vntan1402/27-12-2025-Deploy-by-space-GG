@@ -2704,13 +2704,6 @@ const HomePage = () => {
 
   // Handle bulk Date Sign On update
   const handleBulkUpdateDateSignOn = async () => {
-    if (!bulkDateSignOn.trim()) {
-      toast.error(language === 'vi' 
-        ? 'Vui lòng chọn ngày lên tàu'
-        : 'Please select date sign on');
-      return;
-    }
-
     if (selectedCrewMembers.size === 0) {
       toast.error(language === 'vi' 
         ? 'Không có thuyền viên nào được chọn'
@@ -2723,15 +2716,26 @@ const HomePage = () => {
       let successCount = 0;
       let errorCount = 0;
 
-      console.log(`📅 Bulk updating Date Sign On to "${bulkDateSignOn}" for ${selectedCrewIds.length} crew members...`);
+      // Check if user wants to clear Date Sign On (empty input)
+      const isClearingDate = !bulkDateSignOn || bulkDateSignOn.trim() === '';
+      
+      if (isClearingDate) {
+        console.log(`🗑️ Clearing Date Sign On for ${selectedCrewIds.length} crew members...`);
+      } else {
+        console.log(`📅 Bulk updating Date Sign On to "${bulkDateSignOn}" for ${selectedCrewIds.length} crew members...`);
+      }
 
-      // Convert date to proper format to avoid timezone shift
-      const processedDate = convertDateInputToUTC(bulkDateSignOn);
-      console.log(`📅 Converted date: ${bulkDateSignOn} → ${processedDate}`);
+      // Process date if not clearing
+      const processedDate = isClearingDate ? null : convertDateInputToUTC(bulkDateSignOn);
+      if (processedDate) {
+        console.log(`📅 Converted date: ${bulkDateSignOn} → ${processedDate}`);
+      }
 
       for (const crewId of selectedCrewIds) {
         try {
           const updateData = { date_sign_on: processedDate };
+          
+          console.log(`📋 ${isClearingDate ? 'Clearing' : 'Updating'} Date Sign On for crew ${crewId}`);
           
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
@@ -2742,7 +2746,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ Updated Date Sign On for crew ${crewId}`);
+            console.log(`✅ ${isClearingDate ? 'Cleared' : 'Updated'} Date Sign On for crew ${crewId}`);
           }
         } catch (error) {
           errorCount++;
@@ -2752,9 +2756,15 @@ const HomePage = () => {
 
       // Show results
       if (successCount > 0 && errorCount === 0) {
-        toast.success(language === 'vi' 
-          ? `Đã cập nhật ngày lên tàu cho ${successCount} thuyền viên`
-          : `Updated date sign on for ${successCount} crew members`);
+        if (isClearingDate) {
+          toast.success(language === 'vi' 
+            ? `Đã xóa ngày lên tàu cho ${successCount} thuyền viên`
+            : `Cleared date sign on for ${successCount} crew members`);
+        } else {
+          toast.success(language === 'vi' 
+            ? `Đã cập nhật ngày lên tàu cho ${successCount} thuyền viên`
+            : `Updated date sign on for ${successCount} crew members`);
+        }
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
