@@ -13038,12 +13038,10 @@ async def move_standby_crew_files(
                     })
                 
                 # Get crew certificates
-                crew_certs = await mongo_db.find("crew_certificates", {
+                cert_list = await mongo_db.find_all("crew_certificates", {
                     "company_id": company_uuid,
                     "crew_id": crew_id
                 })
-                
-                cert_list = await crew_certs.to_list(length=None)
                 
                 # Certificate original files only (no summary)
                 for cert in cert_list:
