@@ -2795,14 +2795,17 @@ const HomePage = () => {
       let errorCount = 0;
 
       console.log(`🚢 Bulk updating Ship Sign On to "${bulkShipSignOn}" for ${selectedCrewIds.length} crew members...`);
+      console.log(`   → Also updating Status to "Sign on" and clearing Date Sign Off`);
 
       for (const crewId of selectedCrewIds) {
         try {
           const updateData = {
-            ship_sign_on: bulkShipSignOn
+            ship_sign_on: bulkShipSignOn,
+            status: 'Sign on',        // Auto-update status to Sign on
+            date_sign_off: null       // Clear date sign off
           };
           
-          console.log(`📋 Updating Ship Sign On for crew ${crewId}:`, updateData);
+          console.log(`📋 Updating crew ${crewId}:`, updateData);
           
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
@@ -2813,7 +2816,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ Updated Ship Sign On for crew ${crewId}`);
+            console.log(`✅ Updated Ship Sign On, Status, and cleared Date Sign Off for crew ${crewId}`);
           }
         } catch (error) {
           errorCount++;
@@ -2824,8 +2827,8 @@ const HomePage = () => {
       // Show results
       if (successCount > 0 && errorCount === 0) {
         toast.success(language === 'vi' 
-          ? `Đã cập nhật tàu đăng ký cho ${successCount} thuyền viên`
-          : `Updated ship sign on for ${successCount} crew members`);
+          ? `Đã cập nhật tàu đăng ký, trạng thái "Lên tàu" và xóa ngày rời tàu cho ${successCount} thuyền viên`
+          : `Updated ship sign on, status "Sign on", and cleared date sign off for ${successCount} crew members`);
       } else if (successCount > 0 && errorCount > 0) {
         toast.warning(language === 'vi' 
           ? `Đã cập nhật ${successCount} thuyền viên, ${errorCount} lỗi`
