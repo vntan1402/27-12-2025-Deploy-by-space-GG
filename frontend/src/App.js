@@ -1019,6 +1019,7 @@ const HomePage = () => {
   // ADD CREW CERTIFICATE MODAL STATES (Step 10)
   // ============================================
   const [showAddCrewCertModal, setShowAddCrewCertModal] = useState(false);
+  const [isAddCrewCertModalMinimized, setIsAddCrewCertModalMinimized] = useState(false);
   const [selectedCrewForCert, setSelectedCrewForCert] = useState(null); // Track selected crew in modal
   const [newCrewCertificate, setNewCrewCertificate] = useState({
     crew_id: '',
