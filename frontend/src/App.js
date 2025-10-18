@@ -14345,10 +14345,10 @@ const HomePage = () => {
                         });
                       }
                     }}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center space-x-2 ${
+                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center space-x-2 border-2 ${
                       newCrewData.status === 'Standby'
-                        ? 'bg-orange-500 text-white hover:bg-orange-600'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
+                        : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
                     }`}
                     title={newCrewData.status === 'Standby' 
                       ? (language === 'vi' ? 'Chuyển sang chế độ thường' : 'Switch to normal mode')
@@ -14356,7 +14356,7 @@ const HomePage = () => {
                     }
                   >
                     <span>{newCrewData.status === 'Standby' ? '🟠' : '⚪'}</span>
-                    <span>{language === 'vi' ? 'Standby' : 'Standby'}</span>
+                    <span>{language === 'vi' ? 'Standby Crew' : 'Standby Crew'}</span>
                   </button>
                   
                   {/* Close Button */}
