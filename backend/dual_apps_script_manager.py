@@ -739,10 +739,11 @@ class DualAppsScriptManager:
                 
                 # Step 2: Upload to COMPANY DOCUMENT using upload_file_with_folder_creation
                 # This will create/find Standby Crew subfolder automatically
+                # Use "COMPANY DOCUMENT" as ship_name so Apps Script doesn't reject it
                 cert_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': company_document_folder_id,  # Use COMPANY DOCUMENT as parent
-                    'ship_name': '',  # Empty ship name
+                    'ship_name': 'COMPANY DOCUMENT',  # Set to folder name instead of empty string
                     'category': 'Standby Crew',  # Will create COMPANY DOCUMENT/Standby Crew
                     'filename': cert_filename,
                     'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
