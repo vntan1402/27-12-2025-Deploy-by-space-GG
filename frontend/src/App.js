@@ -1154,6 +1154,10 @@ const HomePage = () => {
   const [showBulkEditPlaceSignOn, setShowBulkEditPlaceSignOn] = useState(false);
   const [bulkPlaceSignOn, setBulkPlaceSignOn] = useState('');
   
+  // Bulk edit Ship Sign On states
+  const [showBulkEditShipSignOn, setShowBulkEditShipSignOn] = useState(false);
+  const [bulkShipSignOn, setBulkShipSignOn] = useState('');
+  
   // Bulk edit Date Sign On states
   const [showBulkEditDateSignOn, setShowBulkEditDateSignOn] = useState(false);
   const [bulkDateSignOn, setBulkDateSignOn] = useState('');
