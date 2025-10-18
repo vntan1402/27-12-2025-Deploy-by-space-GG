@@ -9373,7 +9373,8 @@ const HomePage = () => {
                         </button>
                       </div>
                       
-                      {/* Ship Information */}
+                      {/* Ship Information - Hidden in Crew Certificates View */}
+                      {!showCertificatesView && (
                       <div className="mb-6">
                         {/* Basic Ship Info (Always visible) - Enhanced 3x3 Grid Layout */}
                         <div className="grid grid-cols-3 gap-4 text-sm mb-4">
