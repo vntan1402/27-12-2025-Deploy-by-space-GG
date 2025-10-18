@@ -3460,6 +3460,31 @@ const HomePage = () => {
           );
         }
         
+        // ✅ AUTO-MOVE FILES TO SHIP/Crew Records when ship_sign_on changes
+        const oldShipSignOn = editingCrew.ship_sign_on;
+        const newShipSignOn = editCrewData.ship_sign_on;
+        
+        console.log('🔍 Ship Sign On check:', {
+          oldShipSignOn,
+          newShipSignOn,
+          shipChanged: oldShipSignOn !== newShipSignOn,
+          newShipValid: newShipSignOn && newShipSignOn !== '-'
+        });
+        
+        if (oldShipSignOn !== newShipSignOn && newShipSignOn && newShipSignOn !== '-') {
+          console.log(`🎯 Ship Sign On changed from "${oldShipSignOn}" to "${newShipSignOn}", auto-moving files...`);
+          // Call moveCrewFilesToShip in background (don't await - let it run async)
+          moveCrewFilesToShip([editingCrew.id], newShipSignOn, editCrewData.full_name);
+        } else {
+          console.log('ℹ️ Ship Sign On auto-move not triggered:', {
+            reason: oldShipSignOn === newShipSignOn 
+              ? 'ship did not change' 
+              : !newShipSignOn || newShipSignOn === '-'
+                ? 'new ship is empty or "-"'
+                : 'unknown'
+          });
+        }
+        
         // Refresh crew list
         console.log('🔄 Refreshing crew list after updating crew...');
         try {
