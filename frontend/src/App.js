@@ -917,6 +917,7 @@ const HomePage = () => {
   
   // Add Crew Modal States
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
+  const [isAddCrewModalMinimized, setIsAddCrewModalMinimized] = useState(false);
   const [newCrewData, setNewCrewData] = useState({
     full_name: '',           // Required - Vietnamese name
     full_name_en: '',        // Optional - English name
