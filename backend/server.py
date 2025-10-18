@@ -12951,6 +12951,156 @@ async def rename_crew_files(
         raise HTTPException(status_code=500, detail=f"Failed to rename files: {str(e)}")
 
 
+@api_router.post("/crew/move-standby-files")
+async def move_standby_crew_files(
+    request_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Move passport and certificate files for Standby crew to 'COMPANY DOCUMENT/Standby Crew' folder
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        crew_ids = request_data.get("crew_ids", [])
+        
+        if not crew_ids:
+            return {
+                "success": True,
+                "moved_count": 0,
+                "message": "No crew IDs provided"
+            }
+        
+        logger.info(f"📦 Moving files for {len(crew_ids)} Standby crew members to Standby Crew folder...")
+        
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        company_apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        
+        if not company_apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        moved_files_count = 0
+        errors = []
+        
+        # Process each crew member
+        for crew_id in crew_ids:
+            try:
+                # Get crew member
+                crew = await mongo_db.find_one("crew_members", {
+                    "id": crew_id,
+                    "company_id": company_uuid
+                })
+                
+                if not crew:
+                    logger.warning(f"⚠️ Crew {crew_id} not found")
+                    errors.append(f"Crew {crew_id} not found")
+                    continue
+                
+                # Check if status is Standby
+                crew_status = (crew.get("status") or "").lower()
+                if crew_status != "standby":
+                    logger.info(f"ℹ️ Crew {crew.get('full_name')} is not Standby (status: {crew_status}), skipping...")
+                    continue
+                
+                logger.info(f"📦 Processing Standby crew: {crew.get('full_name')}")
+                
+                # Collect all file IDs to move
+                files_to_move = []
+                
+                # Passport files
+                if crew.get("passport_file_id"):
+                    files_to_move.append({
+                        "file_id": crew.get("passport_file_id"),
+                        "type": "passport"
+                    })
+                if crew.get("summary_file_id"):
+                    files_to_move.append({
+                        "file_id": crew.get("summary_file_id"),
+                        "type": "passport_summary"
+                    })
+                
+                # Get crew certificates
+                crew_certs = await mongo_db.find("crew_certificates", {
+                    "company_id": company_uuid,
+                    "crew_id": crew_id
+                })
+                
+                cert_list = await crew_certs.to_list(length=None)
+                
+                for cert in cert_list:
+                    if cert.get("crew_cert_file_id"):
+                        files_to_move.append({
+                            "file_id": cert.get("crew_cert_file_id"),
+                            "type": "certificate"
+                        })
+                    if cert.get("crew_cert_summary_file_id"):
+                        files_to_move.append({
+                            "file_id": cert.get("crew_cert_summary_file_id"),
+                            "type": "certificate_summary"
+                        })
+                
+                if not files_to_move:
+                    logger.info(f"ℹ️ No files to move for {crew.get('full_name')}")
+                    continue
+                
+                logger.info(f"📁 Moving {len(files_to_move)} files for {crew.get('full_name')}...")
+                
+                # Call Apps Script to move files
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    for file_info in files_to_move:
+                        try:
+                            async with session.post(
+                                company_apps_script_url,
+                                json={
+                                    "action": "move_file",
+                                    "file_id": file_info["file_id"],
+                                    "target_folder_path": "COMPANY DOCUMENT/Standby Crew"
+                                },
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        moved_files_count += 1
+                                        logger.info(f"✅ Moved {file_info['type']} file: {file_info['file_id']}")
+                                    else:
+                                        error_msg = result.get("error", "Unknown error")
+                                        logger.error(f"❌ Failed to move {file_info['type']}: {error_msg}")
+                                        errors.append(f"Failed to move {file_info['type']}: {error_msg}")
+                                else:
+                                    logger.error(f"❌ Apps Script returned status {response.status}")
+                                    errors.append(f"Apps Script error: {response.status}")
+                        
+                        except Exception as file_error:
+                            logger.error(f"❌ Error moving file {file_info['file_id']}: {file_error}")
+                            errors.append(f"Error moving file: {str(file_error)}")
+            
+            except Exception as crew_error:
+                logger.error(f"❌ Error processing crew {crew_id}: {crew_error}")
+                errors.append(f"Error processing crew {crew_id}: {str(crew_error)}")
+        
+        logger.info(f"✅ Moved {moved_files_count} files to Standby Crew folder")
+        
+        return {
+            "success": True,
+            "moved_count": moved_files_count,
+            "errors": errors if errors else None,
+            "message": f"Successfully moved {moved_files_count} files to Standby Crew folder"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error moving Standby crew files: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to move Standby crew files: {str(e)}")
+
+
 # ============================================
 # CREW CERTIFICATES ENDPOINTS (Steps 1-5)
 # ============================================
