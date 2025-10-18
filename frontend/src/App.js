@@ -5869,12 +5869,14 @@ const HomePage = () => {
             success: true,
             recordCreated: true,
             fileUploaded: !!uploadedPassportId,
-            filePath: uploadedPassportId ? `${selectedShip?.name}/Crew Records/${file.name}` : 'N/A',
+            filePath: uploadedPassportId 
+              ? (isStandbyMode ? `COMPANY DOCUMENT/Standby Crew/${file.name}` : `${selectedShip?.name}/Crew Records/${file.name}`) 
+              : 'N/A',
             summaryCreated: !!uploadedSummaryId,
             isDuplicate: false,
             crewName: analysis.full_name || 'Unknown',
             passport: analysis.passport_number || 'No passport',
-            ship: selectedShip?.name || '-',
+            ship: targetShipName,
             index: current
           };
         } else {
