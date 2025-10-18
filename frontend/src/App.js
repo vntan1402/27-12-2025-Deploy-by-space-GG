@@ -14892,7 +14892,7 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Seamen Book - Optional */}
+                  {/* Seaman Book - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
@@ -14944,7 +14944,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Row 3: Seamen Book + Ship Sign On + Date Sign On + Date Sign Off (each span-1) */}
-                  {/* Seamen Book - Optional */}
+                  {/* Seaman Book - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
@@ -15782,7 +15782,7 @@ const HomePage = () => {
                     </select>
                   </div>
 
-                  {/* Seamen Book - Optional */}
+                  {/* Seaman Book - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
