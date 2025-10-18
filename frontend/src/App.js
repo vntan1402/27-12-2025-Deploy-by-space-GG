@@ -9563,11 +9563,16 @@ const HomePage = () => {
                               {/* Row 1 */}
                               <div>
                                 <span className="font-semibold text-gray-700">{language === 'vi' ? 'Họ và tên:' : 'Full Name:'}</span>
-                                <span className="ml-2 text-gray-900 font-medium uppercase">
-                                  {language === 'en' && displayCrewInfo.full_name_en 
-                                    ? displayCrewInfo.full_name_en 
-                                    : displayCrewInfo.full_name}
-                                </span>
+                                <div className="ml-2">
+                                  <div className="text-gray-900 font-medium uppercase">
+                                    {displayCrewInfo.full_name}
+                                  </div>
+                                  {displayCrewInfo.full_name_en && (
+                                    <div className="text-gray-600 font-medium uppercase text-xs mt-0.5">
+                                      {displayCrewInfo.full_name_en}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                               <div>
                                 <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chức danh:' : 'Rank:'}</span>
