@@ -12995,12 +12995,103 @@ async def move_standby_crew_files(
         if not parent_folder_id:
             raise HTTPException(status_code=400, detail="Parent folder ID not configured")
         
-        logger.info(f"📁 Using Standby Crew folder...")
+        logger.info(f"📁 Finding/creating Standby Crew folder...")
         
-        # Use hardcoded Standby Crew folder ID (provided by user)
-        # This folder already exists: COMPANY DOCUMENT/Standby Crew
-        standby_folder_id = "1KU_1o-FcY3g2O9dKO5xxPhv1P2u56aO6"
-        logger.info(f"✅ Using existing Standby Crew folder: {standby_folder_id}")
+        # Step 1: Find or create "Standby Crew" folder in COMPANY DOCUMENT
+        import aiohttp
+        standby_folder_id = None
+        
+        async with aiohttp.ClientSession() as session:
+            # Check if Standby Crew folder exists
+            try:
+                async with session.post(
+                    company_apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": parent_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        logger.info(f"📋 Folders in COMPANY DOCUMENT:")
+                        
+                        # Look for existing "Standby Crew" folder
+                        if result.get("success") and result.get("folders"):
+                            for folder in result["folders"]:
+                                logger.info(f"   - {folder['name']} (ID: {folder['id']})")
+                                if folder["name"] == "Standby Crew":
+                                    standby_folder_id = folder["id"]
+                                    logger.info(f"✅ Found existing Standby Crew folder: {standby_folder_id}")
+                                    break
+                        else:
+                            logger.warning("⚠️ No folders found in debug response")
+                    else:
+                        logger.error(f"❌ Debug folder structure failed: {response.status}")
+            
+            except Exception as debug_error:
+                logger.error(f"❌ Error debugging folder structure: {debug_error}")
+            
+            # Create folder if not found
+            if not standby_folder_id:
+                logger.info("🆕 Standby Crew folder not found, creating it...")
+                
+                try:
+                    # Use a simple folder creation approach
+                    # Upload a tiny placeholder file to create the folder structure
+                    import base64
+                    dummy_content = base64.b64encode(b"Placeholder").decode('utf-8')
+                    
+                    async with session.post(
+                        company_apps_script_url,
+                        json={
+                            "action": "upload_file_with_folder_creation",
+                            "parent_folder_id": parent_folder_id,
+                            "ship_name": "",  # Empty ship name = don't create ship folder
+                            "category": "Standby Crew",  # Creates: COMPANY DOCUMENT/Standby Crew
+                            "filename": ".placeholder",
+                            "file_content": dummy_content
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as create_response:
+                        if create_response.status == 200:
+                            create_result = await create_response.json()
+                            if create_result.get("success"):
+                                standby_folder_id = create_result.get("folder_id")
+                                logger.info(f"✅ Created Standby Crew folder: {standby_folder_id}")
+                                
+                                # Delete the placeholder file
+                                placeholder_file_id = create_result.get("file_id")
+                                if placeholder_file_id:
+                                    try:
+                                        async with session.post(
+                                            company_apps_script_url,
+                                            json={
+                                                "action": "delete_file",
+                                                "file_id": placeholder_file_id,
+                                                "permanent_delete": True
+                                            },
+                                            timeout=aiohttp.ClientTimeout(total=10)
+                                        ) as delete_response:
+                                            if delete_response.status == 200:
+                                                logger.info(f"🗑️ Deleted placeholder file")
+                                    except Exception as delete_error:
+                                        logger.warning(f"⚠️ Could not delete placeholder file: {delete_error}")
+                            else:
+                                logger.error(f"❌ Folder creation failed: {create_result.get('message')}")
+                        else:
+                            logger.error(f"❌ Create folder request failed: {create_response.status}")
+                            
+                except Exception as create_error:
+                    logger.error(f"❌ Error creating Standby Crew folder: {create_error}")
+            
+            if not standby_folder_id:
+                # Fallback to hardcoded ID if all else fails
+                logger.warning("⚠️ Using fallback hardcoded Standby Crew folder ID")
+                standby_folder_id = "1KU_1o-FcY3g2O9dKO5xxPhv1P2u56aO6"
+        
+        logger.info(f"📂 Using Standby Crew folder ID: {standby_folder_id}")
         
         moved_files_count = 0
         errors = []
