@@ -14802,14 +14802,27 @@ const HomePage = () => {
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Trạng thái' : 'Status'}
+                      {newCrewData.status === 'Standby' && (
+                        <span className="ml-2 text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
+                          {language === 'vi' ? '🟠 Chế độ Standby' : '🟠 Standby Mode'}
+                        </span>
+                      )}
                     </label>
                     <select
                       value={newCrewData.status}
-                      onChange={(e) => setNewCrewData({...newCrewData, status: e.target.value})}
+                      onChange={(e) => {
+                        const selectedStatus = e.target.value;
+                        setNewCrewData({
+                          ...newCrewData, 
+                          status: selectedStatus,
+                          // Auto-update Ship Sign On when Status is Standby
+                          ship_sign_on: selectedStatus === 'Standby' ? '-' : newCrewData.ship_sign_on
+                        });
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="Sign on">{language === 'vi' ? 'Đang trên tàu' : 'Sign on'}</option>
-                      <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
+                      <option value="Standby">{language === 'vi' ? 'Chờ (Standby)' : 'Standby'}</option>
                       <option value="Leave">{language === 'vi' ? 'Nghỉ phép' : 'Leave'}</option>
                     </select>
                   </div>
