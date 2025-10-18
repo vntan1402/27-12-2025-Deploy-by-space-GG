@@ -11704,7 +11704,7 @@ const HomePage = () => {
                                               {cert.crew_cert_file_id && (
                                                 <span 
                                                   className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
-                                                  title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${getFileLocation(cert, 'original')}`}
+                                                  title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${getFileLocation(cert)}`}
                                                   onClick={() => {
                                                     if (cert.crew_cert_file_id) {
                                                       window.open(`https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`, '_blank');
