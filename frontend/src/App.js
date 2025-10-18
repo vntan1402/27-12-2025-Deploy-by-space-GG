@@ -6290,7 +6290,7 @@ const HomePage = () => {
     fetchCrewCertificates(null);  // null = fetch all certificates
     
     // Set filter to show this crew's certificates by default
-    setCertFilters({ status: 'all', crewName: crew.full_name });
+    setCertFilters({ shipSignOn: 'all', status: 'all', crewName: crew.full_name });
   };
 
   // Handle back button to return to crew list
