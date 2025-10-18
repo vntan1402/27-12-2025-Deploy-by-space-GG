@@ -11422,7 +11422,7 @@ const HomePage = () => {
                                 title={language === 'vi' ? 'Quay lại danh sách thuyền viên' : 'Back to crew list'}
                               >
                                 <span className="mr-2">←</span>
-                                {language === 'vi' ? 'Quay lại' : 'Back'}
+                                {language === 'vi' ? 'Quay lại danh sách thuyền viên' : 'Back to Crew List'}
                               </button>
                               <div>
                                 <h3 className="text-lg font-semibold text-gray-800 mb-1">
