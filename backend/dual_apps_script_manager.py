@@ -870,13 +870,24 @@ class DualAppsScriptManager:
             
             upload_results = {}
             
-            # Upload 1: Passport file to Ship/Crew Records
-            logger.info(f"📤 Uploading passport file: {ship_name}/Crew Records/{passport_filename}")
+            # Determine target folder based on ship_name
+            # If ship_name is "-", upload to COMPANY DOCUMENT > Standby Crew
+            # Otherwise, upload to Ship Name > Crew Records
+            if ship_name == "-":
+                target_ship = "COMPANY DOCUMENT"
+                target_category = "Standby Crew"
+                logger.info(f"📤 Uploading passport file (Standby): {target_ship}/{target_category}/{passport_filename}")
+            else:
+                target_ship = ship_name
+                target_category = "Crew Records"
+                logger.info(f"📤 Uploading passport file (Normal): {target_ship}/{target_category}/{passport_filename}")
+            
+            # Upload 1: Passport file
             passport_upload = await self._call_company_apps_script({
                 'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,
-                'ship_name': ship_name,
-                'category': 'Crew Records',
+                'ship_name': target_ship,
+                'category': target_category,
                 'filename': passport_filename,
                 'file_content': base64.b64encode(passport_file_content).decode('utf-8'),
                 'content_type': passport_content_type
