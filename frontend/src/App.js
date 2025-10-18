@@ -1861,6 +1861,22 @@ const HomePage = () => {
     }
   }, [selectedShip]);
 
+  // Handle click outside for Certificate Name dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (certNameDropdownRef.current && !certNameDropdownRef.current.contains(event.target)) {
+        setShowCertNameDropdown(false);
+      }
+    };
+
+    if (showCertNameDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showCertNameDropdown]);
+
   // Crew selection functions
   const handleSelectCrewMember = (crewId) => {
     const newSelected = new Set(selectedCrewMembers);
