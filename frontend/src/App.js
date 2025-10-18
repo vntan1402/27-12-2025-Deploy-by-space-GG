@@ -1004,6 +1004,15 @@ const HomePage = () => {
     crewName: 'all'     // all, or specific crew name
   });
   
+  // Auto-reset crew filter when ship sign on filter changes
+  useEffect(() => {
+    if (showCertificatesView && certFilters.shipSignOn !== 'all') {
+      // Reset crew filter to 'all' when ship filter changes
+      // User can then select specific crew from the filtered list
+      setCertFilters(prev => ({ ...prev, crewName: 'all' }));
+    }
+  }, [certFilters.shipSignOn, showCertificatesView]);
+  
   const [certificateSort, setCertificateSort] = useState({
     column: null,
     direction: 'asc'
