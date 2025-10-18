@@ -3137,6 +3137,9 @@ const HomePage = () => {
     
     try {
       console.log(`📦 Auto-moving files for ${crewIds.length} Standby crew to Standby Crew folder...`);
+      console.log('   Crew IDs:', crewIds);
+      console.log('   Crew Name:', crewName);
+      console.log('   API URL:', `${API}/crew/move-standby-files`);
       
       const response = await axios.post(
         `${API}/crew/move-standby-files`,
@@ -3151,7 +3154,10 @@ const HomePage = () => {
         }
       );
       
-      if (response.data.success) {
+      console.log('📡 Move files API response:', response);
+      console.log('📦 Response data:', response.data);
+      
+      if (response.data && response.data.success) {
         console.log('✅ Files moved successfully to Standby Crew folder:', response.data);
         
         if (response.data.moved_count > 0) {
@@ -3161,10 +3167,22 @@ const HomePage = () => {
           );
         } else {
           console.log('ℹ️ No files to move (crew may not have passport/certificate files yet)');
+          toast.info(language === 'vi'
+            ? `ℹ️ ${crewName || 'Thuyền viên'} chưa có files để di chuyển (chưa upload passport/certificates)`
+            : `ℹ️ ${crewName || 'Crew member'} has no files to move yet (no passport/certificates uploaded)`
+          );
         }
+      } else {
+        console.warn('⚠️ API returned success=false:', response.data);
+        toast.warning(language === 'vi'
+          ? '⚠️ Không thể di chuyển files. Vui lòng kiểm tra logs.'
+          : '⚠️ Could not move files. Please check logs.'
+        );
       }
     } catch (error) {
       console.error('❌ Error auto-moving Standby crew files:', error);
+      console.error('   Error response:', error.response);
+      console.error('   Error data:', error.response?.data);
       // Don't show error toast - this is a background operation, don't disrupt user flow
       console.warn('⚠️ Background file move failed, but crew status update was successful');
     }
