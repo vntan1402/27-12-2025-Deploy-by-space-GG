@@ -11717,6 +11717,17 @@ const HomePage = () => {
                                             {language === 'en' && cert.crew_name_en ? cert.crew_name_en : cert.crew_name}
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                            {(() => {
+                                              const shipStatus = getCertificateShipStatus(cert);
+                                              return (
+                                                <span className={shipStatus.isStandby ? 'text-orange-600 font-medium' : 'text-blue-600'}>
+                                                  {shipStatus.isStandby ? '🟠 ' : '🚢 '}
+                                                  {shipStatus.ship}
+                                                </span>
+                                              );
+                                            })()}
+                                          </td>
+                                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                                             {cert.rank || '-'}
                                           </td>
                                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
