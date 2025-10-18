@@ -9558,20 +9558,19 @@ const HomePage = () => {
                               {language === 'vi' ? 'Thông tin Thuyền viên' : 'Crew Member Information'}
                             </h4>
                             
-                            {/* Crew Info Grid - 3 columns layout */}
-                            <div className="grid grid-cols-3 gap-4 text-sm">
+                            {/* Crew Info Grid - 4 columns layout */}
+                            <div className="grid grid-cols-4 gap-4 text-sm">
                               {/* Row 1 */}
                               <div>
-                                <span className="font-semibold text-gray-700">{language === 'vi' ? 'Họ và tên:' : 'Full Name:'}</span>
-                                <div className="ml-2">
-                                  <div className="text-gray-900 font-medium uppercase">
-                                    {displayCrewInfo.full_name}
-                                  </div>
-                                  {displayCrewInfo.full_name_en && (
-                                    <div className="text-gray-600 font-medium uppercase text-xs mt-0.5">
-                                      {displayCrewInfo.full_name_en}
-                                    </div>
-                                  )}
+                                <span className="font-semibold text-gray-700">{language === 'vi' ? 'Họ và tên (Việt):' : 'Full Name (VN):'}</span>
+                                <div className="ml-2 text-gray-900 font-medium uppercase">
+                                  {displayCrewInfo.full_name || '-'}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="font-semibold text-gray-700">{language === 'vi' ? 'Họ và tên (Anh):' : 'Full Name (EN):'}</span>
+                                <div className="ml-2 text-gray-900 font-medium uppercase">
+                                  {displayCrewInfo.full_name_en || '-'}
                                 </div>
                               </div>
                               <div>
@@ -9605,8 +9604,6 @@ const HomePage = () => {
                                   {displayCrewInfo.status || '-'}
                                 </span>
                               </div>
-                              
-                              {/* Row 3 */}
                               <div>
                                 <span className="font-semibold text-gray-700">{language === 'vi' ? 'Tàu đăng ký:' : 'Ship Sign On:'}</span>
                                 <span className={`ml-2 font-medium ${
