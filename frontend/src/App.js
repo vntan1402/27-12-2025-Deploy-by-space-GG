@@ -8679,7 +8679,6 @@ const HomePage = () => {
                                           key={ship.id}
                                           onClick={() => {
                                             console.log('🚢 Ship selection clicked:', ship.name);
-                                            console.log('📊 Current view state - showCertificatesView:', showCertificatesView);
                                             
                                             setSelectedShip(ship);
                                             setCrewFilters({...crewFilters, ship_sign_on: ship.name});
@@ -8690,16 +8689,14 @@ const HomePage = () => {
                                                 : `Selected ship: ${ship.name}`
                                             );
                                             
-                                            // Auto-refresh crew certificates if in certificates view
-                                            console.log('🔍 Checking if should refresh certificates...');
-                                            if (showCertificatesView) {
-                                              console.log('✅ In certificates view - refreshing crew certificates list...');
-                                              setTimeout(() => {
-                                                fetchCrewCertificates(null);
-                                              }, 100);
-                                            } else {
-                                              console.log('❌ Not in certificates view - skipping refresh');
-                                            }
+                                            // Auto-refresh crew certificates by clicking refresh button
+                                            setTimeout(() => {
+                                              const refreshBtn = document.getElementById('crew-cert-refresh-btn');
+                                              if (refreshBtn) {
+                                                console.log('✅ Auto-clicking crew certificates refresh button...');
+                                                refreshBtn.click();
+                                              }
+                                            }, 100);
                                           }}
                                           className={`w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
                                             selectedShip && selectedShip.id === ship.id 
