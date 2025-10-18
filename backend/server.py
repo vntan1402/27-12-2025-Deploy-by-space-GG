@@ -13107,8 +13107,7 @@ async def move_standby_crew_files(
                                 json={
                                     "action": "move_file",
                                     "file_id": file_info["file_id"],
-                                    "target_folder_path": "COMPANY DOCUMENT/Standby Crew",
-                                    "parent_folder_id": parent_folder_id  # Root folder for path resolution
+                                    "target_folder_id": standby_folder_id  # Use folder ID directly
                                 },
                                 timeout=aiohttp.ClientTimeout(total=30)
                             ) as response:
