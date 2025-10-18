@@ -13178,7 +13178,8 @@ async def move_standby_crew_files(
                         files_to_move.append({
                             "file_id": cert.get("crew_cert_file_id"),
                             "type": "certificate",
-                            "cert_name": cert.get("cert_name", "Unknown")
+                            "cert_name": cert.get("cert_name", "Unknown"),
+                            "cert_id": cert.get("id")  # Add cert ID for database update
                         })
                 
                 if not files_to_move:
@@ -13452,7 +13453,8 @@ async def move_crew_files_to_ship(
                         files_to_move.append({
                             "file_id": cert.get("crew_cert_file_id"),
                             "type": "certificate",
-                            "cert_name": cert.get("cert_name", "Unknown")
+                            "cert_name": cert.get("cert_name", "Unknown"),
+                            "cert_id": cert.get("id")  # Add cert ID for database update
                         })
                 
                 if not files_to_move:
