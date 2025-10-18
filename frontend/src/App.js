@@ -15512,12 +15512,16 @@ const HomePage = () => {
                   ))}
                   <option value="-">-</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-2">
-                  💡 {language === 'vi' 
-                    ? 'Chọn tàu mà thuyền viên đăng ký làm việc' 
-                    : 'Select the ship where crew members are assigned'
-                  }
-                </p>
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-800 font-medium">
+                    {language === 'vi' ? '📋 Cập nhật tự động:' : '📋 Auto-updates:'}
+                  </p>
+                  <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                    <li>✅ {language === 'vi' ? 'Tàu đăng ký → Tàu đã chọn' : 'Ship Sign On → Selected Ship'}</li>
+                    <li>✅ {language === 'vi' ? 'Trạng thái → "Sign on"' : 'Status → "Sign on"'}</li>
+                    <li>✅ {language === 'vi' ? 'Ngày rời tàu → Xóa (null)' : 'Date Sign Off → Cleared (null)'}</li>
+                  </ul>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3">
