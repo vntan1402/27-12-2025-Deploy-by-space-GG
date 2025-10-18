@@ -28,15 +28,36 @@ def test_standby_folder_detection():
     login_response = requests.post(
         f"{BACKEND_URL}/api/auth/login",
         json={
-            "email": "admin@example.com",
-            "password": "admin123"
+            "username": "admin",
+            "password": "admin123",
+            "remember_me": False
         }
     )
     
     if login_response.status_code != 200:
         print(f"❌ Login failed: {login_response.status_code}")
         print(f"Response: {login_response.text}")
-        return
+        
+        # Try alternative credentials
+        print("\n Trying alternative login (superadmin)...")
+        login_response = requests.post(
+            f"{BACKEND_URL}/api/auth/login",
+            json={
+                "username": "superadmin",
+                "password": "superadmin123",
+                "remember_me": False
+            }
+        )
+        
+        if login_response.status_code != 200:
+            print(f"❌ Alternative login also failed: {login_response.status_code}")
+            print(f"Response: {login_response.text}")
+            print("\n⚠️ Please manually test by:")
+            print("   1. Login to the UI")
+            print("   2. Navigate to Crew Certificates")
+            print("   3. Select a ship that has Standby crew")
+            print("   4. Check the backend logs at: tail -f /var/log/supervisor/backend.out.log")
+            return
     
     token = login_response.json().get("access_token")
     print(f"✅ Login successful, token: {token[:20]}...")
