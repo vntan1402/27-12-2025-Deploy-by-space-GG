@@ -5773,6 +5773,9 @@ const HomePage = () => {
         const vietnameseFullName = analysis.full_name || '';
         const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
         
+        // Check if we're in Standby mode from the form state
+        const isStandbyMode = newCrewData.status === 'Standby';
+        
         const crewData = {
           full_name: vietnameseFullName,
           full_name_en: analysis.full_name_en || autoFillEnglishField(vietnameseFullName),
@@ -5785,12 +5788,15 @@ const HomePage = () => {
           passport_expiry_date: analysis.passport_expiry_date ? convertPassportDateToInputFormat(analysis.passport_expiry_date) : '',
           rank: '',
           seamen_book: '',
-          status: 'Sign on',
-          ship_sign_on: selectedShip?.name || '-',
+          status: isStandbyMode ? 'Standby' : 'Sign on',
+          ship_sign_on: isStandbyMode ? '-' : (selectedShip?.name || '-'),
           place_sign_on: '',
           date_sign_on: '',
           date_sign_off: ''
         };
+        
+        console.log(`📋 Batch processing mode: ${isStandbyMode ? 'STANDBY' : 'NORMAL'}`);
+        console.log(`   Status: ${crewData.status}, Ship: ${crewData.ship_sign_on}`);
         
         console.log(`🔤 Auto-filled English fields for batch processing:`);
         console.log(`   Vietnamese Full Name: "${vietnameseFullName}" → English: "${crewData.full_name_en}"`);
