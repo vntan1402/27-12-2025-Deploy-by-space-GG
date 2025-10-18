@@ -9516,6 +9516,71 @@ const HomePage = () => {
                         )}
                       </div>
                       )}
+                      {/* Crew Information - Shown in Crew Certificates View */}
+                      {showCertificatesView && selectedCrewForCertificates && (
+                      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg border border-blue-200">
+                        <h4 className="font-bold text-lg mb-4 text-blue-800 flex items-center">
+                          <span className="mr-2">👤</span>
+                          {language === 'vi' ? 'Thông tin Thuyền viên' : 'Crew Member Information'}
+                        </h4>
+                        
+                        {/* Crew Info Grid - 3 columns layout */}
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          {/* Row 1 */}
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Họ và tên:' : 'Full Name:'}</span>
+                            <span className="ml-2 text-gray-900 font-medium uppercase">
+                              {language === 'en' && selectedCrewForCertificates.full_name_en 
+                                ? selectedCrewForCertificates.full_name_en 
+                                : selectedCrewForCertificates.full_name}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Chức danh:' : 'Rank:'}</span>
+                            <span className="ml-2 text-gray-900">{selectedCrewForCertificates.rank || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Ngày sinh:' : 'Date of Birth:'}</span>
+                            <span className="ml-2 text-gray-900">
+                              {selectedCrewForCertificates.date_of_birth 
+                                ? new Date(selectedCrewForCertificates.date_of_birth).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US')
+                                : '-'}
+                            </span>
+                          </div>
+                          
+                          {/* Row 2 */}
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Nơi sinh:' : 'Place of Birth:'}</span>
+                            <span className="ml-2 text-gray-900">{selectedCrewForCertificates.place_of_birth || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Hộ chiếu:' : 'Passport:'}</span>
+                            <span className="ml-2 text-gray-900 font-mono">{selectedCrewForCertificates.passport || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Trạng thái:' : 'Status:'}</span>
+                            <span className={`ml-2 font-medium ${
+                              selectedCrewForCertificates.status === 'Sign on' ? 'text-green-600' :
+                              selectedCrewForCertificates.status === 'Sign off' ? 'text-orange-600' :
+                              selectedCrewForCertificates.status === 'Standby' ? 'text-blue-600' :
+                              'text-gray-600'
+                            }`}>
+                              {selectedCrewForCertificates.status || '-'}
+                            </span>
+                          </div>
+                          
+                          {/* Row 3 */}
+                          <div>
+                            <span className="font-semibold text-gray-700">{language === 'vi' ? 'Tàu đăng ký:' : 'Ship Sign On:'}</span>
+                            <span className={`ml-2 font-medium ${
+                              selectedCrewForCertificates.ship_sign_on === '-' ? 'text-orange-600' : 'text-blue-600'
+                            }`}>
+                              {selectedCrewForCertificates.ship_sign_on || '-'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      )}
 
                       {/* Sub Menu */}
                       <div className="mb-6">
