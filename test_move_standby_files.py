@@ -59,10 +59,16 @@ certs_response = requests.get(
     headers=headers
 )
 
-certs = certs_response.json()
+certs_data = certs_response.json()
+if isinstance(certs_data, list):
+    certs = certs_data
+else:
+    certs = certs_data.get('certificates', [])
+    
 print(f"   Found {len(certs)} certificates")
 for cert in certs:
-    print(f"   - {cert.get('cert_name')}: file_id={cert.get('crew_cert_file_id')}")
+    if isinstance(cert, dict):
+        print(f"   - {cert.get('cert_name')}: file_id={cert.get('crew_cert_file_id')}")
 
 # Step 4: Test move files with CORRECT folder ID
 print("\n📝 Step 4: Testing move files with correct folder ID...")
