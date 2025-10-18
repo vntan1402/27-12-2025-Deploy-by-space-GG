@@ -11746,7 +11746,6 @@ const HomePage = () => {
                                               const shipStatus = getCertificateShipStatus(cert);
                                               return (
                                                 <span className={shipStatus.isStandby ? 'text-orange-600 font-medium' : 'text-blue-600'}>
-                                                  {shipStatus.isStandby ? '🟠 ' : '🚢 '}
                                                   {shipStatus.ship}
                                                 </span>
                                               );
