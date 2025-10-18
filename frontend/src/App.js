@@ -12149,18 +12149,98 @@ const HomePage = () => {
                                         />
                                       </div>
 
-                                      {/* Certificate Name */}
-                                      <div>
+                                      {/* Certificate Name - Searchable Dropdown with Custom Input */}
+                                      <div ref={certNameDropdownRef}>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                           {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
                                         </label>
-                                        <input
-                                          type="text"
-                                          value={editCrewCertData.cert_name}
-                                          onChange={(e) => setEditCrewCertData({...editCrewCertData, cert_name: e.target.value})}
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                          required
-                                        />
+                                        <div className="relative">
+                                          <input
+                                            type="text"
+                                            value={editCrewCertData.cert_name}
+                                            onChange={(e) => {
+                                              setEditCrewCertData({...editCrewCertData, cert_name: e.target.value});
+                                              setCertNameSearchTerm(e.target.value);
+                                              setShowCertNameDropdown(true);
+                                            }}
+                                            onFocus={() => setShowCertNameDropdown(true)}
+                                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                            placeholder={language === 'vi' ? 'Chọn hoặc nhập tên chứng chỉ...' : 'Select or type certificate name...'}
+                                            required
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={() => setShowCertNameDropdown(!showCertNameDropdown)}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                          >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                          </button>
+                                          
+                                          {/* Dropdown Menu */}
+                                          {showCertNameDropdown && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                              {/* Filter options based on search term */}
+                                              {COMMON_CERTIFICATE_NAMES
+                                                .filter(name => 
+                                                  name.toLowerCase().includes((editCrewCertData.cert_name || '').toLowerCase())
+                                                )
+                                                .map((name, index) => (
+                                                  <button
+                                                    key={index}
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setEditCrewCertData({...editCrewCertData, cert_name: name});
+                                                      setShowCertNameDropdown(false);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none text-sm transition-colors"
+                                                  >
+                                                    {name}
+                                                  </button>
+                                                ))
+                                              }
+                                              
+                                              {/* Show "No results" if no matches */}
+                                              {COMMON_CERTIFICATE_NAMES.filter(name => 
+                                                name.toLowerCase().includes((editCrewCertData.cert_name || '').toLowerCase())
+                                              ).length === 0 && (
+                                                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                                  {language === 'vi' 
+                                                    ? `Không tìm thấy kết quả. Nhập tên mới: "${editCrewCertData.cert_name}"` 
+                                                    : `No results found. Type to add new: "${editCrewCertData.cert_name}"`
+                                                  }
+                                                </div>
+                                              )}
+                                              
+                                              {/* Option to add custom certificate name */}
+                                              {editCrewCertData.cert_name && 
+                                               !COMMON_CERTIFICATE_NAMES.includes(editCrewCertData.cert_name) && 
+                                               COMMON_CERTIFICATE_NAMES.filter(name => 
+                                                 name.toLowerCase().includes(editCrewCertData.cert_name.toLowerCase())
+                                               ).length > 0 && (
+                                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      // Keep custom input
+                                                      setShowCertNameDropdown(false);
+                                                    }}
+                                                    className="w-full text-left text-sm text-blue-600 hover:text-blue-800 font-medium"
+                                                  >
+                                                    ➕ {language === 'vi' ? 'Sử dụng tên tùy chỉnh' : 'Use custom name'}: "{editCrewCertData.cert_name}"
+                                                  </button>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          {language === 'vi' 
+                                            ? '💡 Chọn từ danh sách hoặc nhập tên mới' 
+                                            : '💡 Select from list or type a new name'
+                                          }
+                                        </p>
                                       </div>
 
                                       {/* Certificate Number */}
