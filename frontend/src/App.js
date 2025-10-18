@@ -14895,6 +14895,9 @@ const HomePage = () => {
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
+                      <span className="text-xs text-gray-500 ml-2">
+                        {language === 'vi' ? '(Để trống để xóa)' : '(Leave empty to clear)'}
+                      </span>
                     </label>
                     <input
                       type="date"
