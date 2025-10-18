@@ -14862,7 +14862,7 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 5: Status + Seamen Book + Ship Sign On + (Empty) (each span-1) */}
+                  {/* Row 4: Status (span-1) + Seaman Book (span-1) + Ship Sign On (span-1) + (Empty or Date fields) (span-1) */}
                   {/* Status - Optional */}
                   <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
