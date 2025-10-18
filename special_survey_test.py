@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import traceback
 
 # Configuration - Use environment variable for backend URL
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-cert-portal.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-manager-6.preview.emergentagent.com') + '/api'
 
 class SpecialSurveyTester:
     def __init__(self):

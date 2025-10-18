@@ -14,7 +14,7 @@ import time
 import traceback
 
 # Configuration - Use production backend URL for testing
-BACKEND_URL = "https://crew-cert-portal.preview.emergentagent.com/api"
+BACKEND_URL = "https://crew-manager-6.preview.emergentagent.com/api"
 
 class DockingDateExtractionTester:
     def __init__(self):

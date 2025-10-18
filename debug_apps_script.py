@@ -15,7 +15,7 @@ from mongodb_database import mongo_db
 import asyncio
 
 # Configuration
-BACKEND_URL = "https://crew-cert-portal.preview.emergentagent.com/api"
+BACKEND_URL = "https://crew-manager-6.preview.emergentagent.com/api"
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 PASSPORT_FILE = "/app/3_2O_THUONG_PP.pdf"

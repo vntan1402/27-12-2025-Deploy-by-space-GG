@@ -17,7 +17,7 @@ try:
     else:
         raise Exception("Internal URL not working")
 except:
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-cert-portal.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-manager-6.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
 def test_frontend_workflow():

@@ -6,7 +6,7 @@ import requests
 import json
 
 # Configuration
-BACKEND_URL = 'https://crew-cert-portal.preview.emergentagent.com/api'
+BACKEND_URL = 'https://crew-manager-6.preview.emergentagent.com/api'
 STANDBY_FOLDER_ID = '1KU_1o-FcY3g2O9dKO5xxPhv1P2u56aO6'  # Real folder ID from user
 
 print("=" * 70)
