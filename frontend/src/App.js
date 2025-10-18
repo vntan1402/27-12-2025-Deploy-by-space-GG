@@ -8162,6 +8162,10 @@ const HomePage = () => {
     setBulkDateSignOn('');
     setShowBulkEditDateSignOff(false);
     setBulkDateSignOff('');
+    setShowBulkEditPlaceSignOn(false);
+    setBulkPlaceSignOn('');
+    setShowBulkEditShipSignOn(false);
+    setBulkShipSignOn('');
   };
 
   // Load crew members when component mounts or filters change
