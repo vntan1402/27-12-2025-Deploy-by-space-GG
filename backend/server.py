@@ -12983,6 +12983,12 @@ async def move_standby_crew_files(
         if not company_apps_script_url:
             raise HTTPException(status_code=400, detail="Apps Script URL not configured")
         
+        # Get parent folder ID (COMPANY DOCUMENT root folder)
+        parent_folder_id = gdrive_config_doc.get("folder_id")
+        
+        if not parent_folder_id:
+            logger.warning("⚠️ Parent folder ID not configured, Apps Script will use My Drive root")
+        
         moved_files_count = 0
         errors = []
         
