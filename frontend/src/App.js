@@ -1287,6 +1287,14 @@ const HomePage = () => {
 
     return true;
   });
+  
+  // Debug logging for crew list display
+  console.log('🔍 Crew Data Debug:', {
+    crewListLength: crewList.length,
+    filteredCrewDataLength: filteredCrewData.length,
+    crewFilters,
+    selectedCategory
+  });
 
   // Apply sorting to filtered crew data
   const sortedCrewData = (() => {
