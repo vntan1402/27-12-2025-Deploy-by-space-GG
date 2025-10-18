@@ -15461,6 +15461,81 @@ const HomePage = () => {
         </div>
       )}
 
+      {/* Bulk Edit Ship Sign On Modal */}
+      {showBulkEditShipSignOn && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  {language === 'vi' ? 'Chỉnh sửa tàu đăng ký' : 'Edit Ship Sign On'}
+                </h3>
+                <button
+                  onClick={() => setShowBulkEditShipSignOn(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  {language === 'vi' 
+                    ? `Cập nhật tàu đăng ký cho ${selectedCrewMembers.size} thuyền viên đã chọn`
+                    : `Update ship sign on for ${selectedCrewMembers.size} selected crew members`
+                  }
+                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                </label>
+                <select
+                  value={bulkShipSignOn}
+                  onChange={(e) => setBulkShipSignOn(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  autoFocus
+                >
+                  <option value="">{language === 'vi' ? '-- Chọn tàu --' : '-- Select Ship --'}</option>
+                  {ships.map(ship => (
+                    <option key={ship.id} value={ship.name}>{ship.name}</option>
+                  ))}
+                  <option value="-">-</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 {language === 'vi' 
+                    ? 'Chọn tàu mà thuyền viên đăng ký làm việc' 
+                    : 'Select the ship where crew members are assigned'
+                  }
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowBulkEditShipSignOn(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  {language === 'vi' ? 'Hủy' : 'Cancel'}
+                </button>
+                <button
+                  onClick={handleBulkUpdateShipSignOn}
+                  disabled={!bulkShipSignOn}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-all flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {language === 'vi' ? 'Cập nhật' : 'Update'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bulk Edit Date Sign On Modal */}
       {showBulkEditDateSignOn && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
