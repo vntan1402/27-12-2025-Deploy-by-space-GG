@@ -14,7 +14,7 @@
 # Main and testing agents must follow this exact format to maintain testing data. 
 # The testing data must be entered in yaml format Below is the data structure:
 # 
-## user_problem_statement: "Standardize passport date extraction format to match certificate handling. Current issue: AI extraction returns verbose dates like 'February 14, 1983 (14/02/1983)' instead of clean DD/MM/YYYY format required for HTML date inputs and consistency with certificate processing."
+## user_problem_statement: "Debug and fix Standby Crew folder detection in Google Apps Script. The 'Standby Crew' folder exists as a subfolder within 'COMPANY DOCUMENT' but the backend's dynamic folder search using debug_folder_structure is failing to locate it, forcing fallback to a hardcoded folder ID. Need enhanced logging and matching logic to identify the root cause."
 ## backend:
 ##   - task: "Task name"
 ##     implemented: true
