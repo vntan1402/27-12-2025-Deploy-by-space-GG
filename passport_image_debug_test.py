@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crewcert-manager.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fleet-cert-system.preview.emergentagent.com') + '/api'
 print(f"Using backend URL: {BACKEND_URL}")
 
 class PassportImageDebugTester:

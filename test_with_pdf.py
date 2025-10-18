@@ -11,7 +11,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Configuration
-BACKEND_URL = 'https://crewcert-manager.preview.emergentagent.com/api'
+BACKEND_URL = 'https://fleet-cert-system.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate and return session"""
