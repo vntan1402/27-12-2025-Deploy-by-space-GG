@@ -6300,7 +6300,7 @@ const HomePage = () => {
     setSelectedCrewForCertificates(null);
     setCrewCertificates([]);
     setCertificatesSearch('');
-    setCertFilters({ status: 'all', crewName: 'all' });
+    setCertFilters({ shipSignOn: 'all', status: 'all', crewName: 'all' });
     setCertificateSort({ column: null, direction: 'asc' });
   };
 
