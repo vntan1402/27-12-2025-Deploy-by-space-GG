@@ -13670,27 +13670,55 @@ async def check_crew_certificate_duplicate(
 
 @api_router.post("/crew-certificates/manual", response_model=CrewCertificateResponse)
 async def create_crew_certificate_manual(
-    ship_id: str,
     cert_data: CrewCertificateCreate,
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
-    Step 2: Create a new crew certificate manually (without file upload)
-    ship_id is now a query parameter
+    Create a new crew certificate manually (without file upload)
+    Ship/Folder is determined automatically based on crew's ship_sign_on field
     """
     try:
-        logger.info(f"📋 Creating crew certificate manually for crew: {cert_data.crew_name}")
+        logger.info(f"📋 Creating crew certificate for crew: {cert_data.crew_name}")
         
         company_uuid = await resolve_company_id(current_user)
         
-        # Validate ship exists
-        ship = await mongo_db.find_one("ships", {
-            "id": ship_id,
+        # Validate crew_id is provided
+        if not cert_data.crew_id:
+            raise HTTPException(status_code=400, detail="crew_id is required")
+        
+        # Get crew information to determine ship_sign_on
+        crew = await mongo_db.find_one("crew_members", {
+            "id": cert_data.crew_id,
             "company_id": company_uuid
         })
         
-        if not ship:
-            raise HTTPException(status_code=404, detail="Ship not found")
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        crew_ship_sign_on = crew.get("ship_sign_on", "-")
+        logger.info(f"👤 Crew ship_sign_on: '{crew_ship_sign_on}'")
+        
+        # Determine ship_id based on ship_sign_on
+        ship_id = None
+        ship_name = None
+        
+        if crew_ship_sign_on and crew_ship_sign_on != "-":
+            # Crew is assigned to a ship - find ship by name
+            ship = await mongo_db.find_one("ships", {
+                "name": crew_ship_sign_on,
+                "company_id": company_uuid
+            })
+            
+            if ship:
+                ship_id = ship.get("id")
+                ship_name = ship.get("name")
+                logger.info(f"✅ Found ship: {ship_name} (ID: {ship_id})")
+            else:
+                logger.warning(f"⚠️ Ship '{crew_ship_sign_on}' not found in database")
+                # Continue with ship_id = None (will upload to Standby folder)
+        else:
+            # Crew is Standby (ship_sign_on = "-")
+            logger.info(f"📍 Crew is Standby (ship_sign_on = '-'), certificate will go to COMPANY DOCUMENT/Standby Crew")
         
         # Prepare certificate document
         cert_doc = cert_data.dict()
@@ -13700,13 +13728,15 @@ async def create_crew_certificate_manual(
         
         cert_doc.update({
             "id": str(uuid.uuid4()),
-            "ship_id": ship_id,
+            "ship_id": ship_id,  # Will be None for Standby crew
             "company_id": company_uuid,
             "created_at": datetime.now(timezone.utc),
             "created_by": current_user.username,
             "updated_at": None,
             "updated_by": None
         })
+        
+        logger.info(f"📦 Certificate ship_id: {ship_id if ship_id else 'None (Standby)'}")
         
         # Convert date strings to datetime objects for storage
         for date_field in ['issued_date', 'cert_expiry', 'date_of_birth']:
