@@ -6980,6 +6980,9 @@ const HomePage = () => {
       if (response.data) {
         console.log('✅ Crew certificate updated successfully:', response.data);
         
+        // Save custom certificate name if it's new
+        addCustomCertificateName(editCrewCertData.cert_name);
+        
         toast.success(language === 'vi' 
           ? '✅ Đã cập nhật chứng chỉ thuyền viên thành công!' 
           : '✅ Crew certificate updated successfully!'
