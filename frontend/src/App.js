@@ -8678,6 +8678,9 @@ const HomePage = () => {
                                         <button
                                           key={ship.id}
                                           onClick={() => {
+                                            console.log('🚢 Ship selection clicked:', ship.name);
+                                            console.log('📊 Current view state - showCertificatesView:', showCertificatesView);
+                                            
                                             setSelectedShip(ship);
                                             setCrewFilters({...crewFilters, ship_sign_on: ship.name});
                                             setShowShipSelector(false);
@@ -8688,9 +8691,14 @@ const HomePage = () => {
                                             );
                                             
                                             // Auto-refresh crew certificates if in certificates view
+                                            console.log('🔍 Checking if should refresh certificates...');
                                             if (showCertificatesView) {
-                                              console.log('🔄 Ship changed - refreshing crew certificates list...');
-                                              fetchCrewCertificates(null);
+                                              console.log('✅ In certificates view - refreshing crew certificates list...');
+                                              setTimeout(() => {
+                                                fetchCrewCertificates(null);
+                                              }, 100);
+                                            } else {
+                                              console.log('❌ Not in certificates view - skipping refresh');
                                             }
                                           }}
                                           className={`w-full px-4 py-2 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
