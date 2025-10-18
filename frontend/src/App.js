@@ -6464,18 +6464,16 @@ const HomePage = () => {
   const handleAddCrewCertificateSubmit = async (e) => {
     e.preventDefault();
     
-    // Try to get ship_id from multiple sources
-    let shipId = selectedShip?.id || selectedCrewForCertificates?.ship_id || companyShips?.[0]?.id;
-    
-    if (!shipId) {
+    // Validation: crew_id is now REQUIRED (replaces ship_id validation)
+    if (!newCrewCertificate.crew_id) {
       toast.error(language === 'vi' 
-        ? 'Không tìm thấy thông tin tàu. Vui lòng quay lại và chọn tàu.' 
-        : 'Ship information not found. Please go back and select a ship.'
+        ? 'Vui lòng chọn thuyền viên trước khi thêm chứng chỉ.' 
+        : 'Please select a crew member before adding certificate.'
       );
       return;
     }
 
-    // Validation
+    // Validation: Required fields
     if (!newCrewCertificate.crew_name || !newCrewCertificate.passport || !newCrewCertificate.date_of_birth || !newCrewCertificate.cert_name || !newCrewCertificate.cert_no) {
       toast.error(language === 'vi' 
         ? 'Vui lòng điền đầy đủ thông tin bắt buộc' 
@@ -6488,7 +6486,8 @@ const HomePage = () => {
 
     try {
       console.log('📤 Submitting new crew certificate:', newCrewCertificate);
-      console.log('🚢 Using ship ID:', shipId);
+      console.log('👤 Crew ID:', newCrewCertificate.crew_id);
+      console.log('📍 Ship/Folder will be determined by backend based on crew\'s ship_sign_on');
 
       // Check for duplicate before submitting
       console.log('🔍 Checking for duplicate certificate...');
@@ -6514,8 +6513,9 @@ const HomePage = () => {
         return; // Stop here, wait for user confirmation
       }
 
+      // API call WITHOUT ship_id parameter - backend determines folder from crew's ship_sign_on
       const response = await axios.post(
-        `${API}/crew-certificates/manual?ship_id=${shipId}`,
+        `${API}/crew-certificates/manual`,
         newCrewCertificate,
         {
           headers: {
