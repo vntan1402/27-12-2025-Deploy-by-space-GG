@@ -1891,6 +1891,28 @@ const HomePage = () => {
     }
   }, [showCertNameDropdown]);
 
+  // Handle click outside for Ship dropdown in Add Crew Modal
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside the ship dropdown
+      if (showShipDropdown) {
+        const shipDropdown = document.querySelector('.absolute.left-0.top-full.mt-2.bg-white.rounded-lg.shadow-2xl');
+        const shipButton = event.target.closest('button');
+        
+        if (shipDropdown && !shipDropdown.contains(event.target) && !shipButton?.textContent.includes('Ship Select') && !shipButton?.textContent.includes('Chọn tàu')) {
+          setShowShipDropdown(false);
+        }
+      }
+    };
+
+    if (showShipDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showShipDropdown]);
+
   // Crew selection functions
   const handleSelectCrewMember = (crewId) => {
     const newSelected = new Set(selectedCrewMembers);
