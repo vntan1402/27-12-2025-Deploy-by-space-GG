@@ -6213,6 +6213,37 @@ const HomePage = () => {
   // ============================================
   
   // Fetch crew certificates for current ship
+  // Get ship/status for certificate (based on crew's ship_sign_on)
+  const getCertificateShipStatus = (cert) => {
+    // Try to find crew member from cert.crew_id
+    if (cert.crew_id && crewList) {
+      const crew = crewList.find(c => c.id === cert.crew_id);
+      if (crew) {
+        const shipSignOn = crew.ship_sign_on || '-';
+        if (shipSignOn === '-') {
+          return { ship: 'Standby Crew', isStandby: true };
+        } else {
+          return { ship: shipSignOn, isStandby: false };
+        }
+      }
+    }
+    
+    // Fallback: check cert.ship_id
+    if (!cert.ship_id || cert.ship_id === 'null') {
+      return { ship: 'Standby Crew', isStandby: true };
+    }
+    
+    // Try to find ship by ship_id
+    if (ships) {
+      const ship = ships.find(s => s.id === cert.ship_id);
+      if (ship) {
+        return { ship: ship.name, isStandby: false };
+      }
+    }
+    
+    return { ship: 'Unknown', isStandby: false };
+  };
+
   const fetchCrewCertificates = async (crewId = null) => {
     try {
       // Use new endpoint that gets ALL certificates (no ship filter)
