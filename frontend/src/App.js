@@ -3038,6 +3038,45 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to automatically move files to Standby Crew folder
+  const moveStandbyCrewFiles = async (crewIds, crewName = null) => {
+    if (!crewIds || crewIds.length === 0) return;
+    
+    try {
+      console.log(`📦 Auto-moving files for ${crewIds.length} Standby crew to Standby Crew folder...`);
+      
+      const response = await axios.post(
+        `${API}/crew/move-standby-files`,
+        {
+          crew_ids: crewIds
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        console.log('✅ Files moved successfully to Standby Crew folder:', response.data);
+        
+        if (response.data.moved_count > 0) {
+          toast.success(language === 'vi' 
+            ? `✅ Đã tự động di chuyển ${response.data.moved_count} files${crewName ? ` của ${crewName}` : ''} vào folder Standby Crew` 
+            : `✅ Automatically moved ${response.data.moved_count} files${crewName ? ` for ${crewName}` : ''} to Standby Crew folder`
+          );
+        } else {
+          console.log('ℹ️ No files to move (crew may not have passport/certificate files yet)');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error auto-moving Standby crew files:', error);
+      // Don't show error toast - this is a background operation, don't disrupt user flow
+      console.warn('⚠️ Background file move failed, but crew status update was successful');
+    }
+  };
+
   // Handle update crew
   const handleUpdateCrew = async (e) => {
     e.preventDefault();
