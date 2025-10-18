@@ -13239,6 +13239,257 @@ async def move_standby_crew_files(
         raise HTTPException(status_code=500, detail=f"Failed to move Standby crew files: {str(e)}")
 
 
+@api_router.post("/crew/move-files-to-ship")
+async def move_crew_files_to_ship(
+    request_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Move passport and certificate files for crew to 'Ship Name/Crew Records' folder
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        crew_ids = request_data.get("crew_ids", [])
+        ship_name = request_data.get("ship_name", "")
+        
+        if not crew_ids:
+            return {
+                "success": True,
+                "moved_count": 0,
+                "message": "No crew IDs provided"
+            }
+        
+        if not ship_name or ship_name == "-":
+            logger.info(f"ℹ️ Ship name is empty or '-', skipping file move")
+            return {
+                "success": True,
+                "moved_count": 0,
+                "message": "Ship name is empty or '-', no files moved"
+            }
+        
+        logger.info(f"📦 Moving files for {len(crew_ids)} crew members to {ship_name}/Crew Records folder...")
+        
+        # Get company Google Drive configuration
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        company_apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+        
+        if not company_apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Get parent folder ID (COMPANY DOCUMENT root folder)
+        parent_folder_id = gdrive_config_doc.get("folder_id")
+        
+        if not parent_folder_id:
+            raise HTTPException(status_code=400, detail="Parent folder ID not configured")
+        
+        logger.info(f"📁 Finding {ship_name} folder and Crew Records subfolder...")
+        
+        # Step 1: Find ship folder by name
+        import aiohttp
+        ship_folder_id = None
+        crew_records_folder_id = None
+        
+        async with aiohttp.ClientSession() as session:
+            # List all folders in COMPANY DOCUMENT to find ship folder
+            try:
+                logger.info(f"🔍 Calling Apps Script to list folders in parent: {parent_folder_id}")
+                async with session.post(
+                    company_apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": parent_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    logger.info(f"📡 Apps Script response status: {response.status}")
+                    
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        if result.get("success") and result.get("folders"):
+                            folders_list = result.get("folders")
+                            logger.info(f"📊 Total folders found: {len(folders_list)}")
+                            
+                            # Find ship folder
+                            for folder in folders_list:
+                                folder_name = folder.get('name', '').strip()
+                                folder_id = folder.get('id', '')
+                                
+                                logger.info(f"   Checking folder: '{folder_name}' (ID: {folder_id})")
+                                
+                                # Case-insensitive comparison
+                                if folder_name.lower() == ship_name.lower():
+                                    ship_folder_id = folder_id
+                                    logger.info(f"✅ MATCH FOUND! Ship folder: {ship_folder_id}")
+                                    break
+                            
+                            if not ship_folder_id:
+                                logger.error(f"❌ Ship folder '{ship_name}' NOT FOUND in COMPANY DOCUMENT")
+                                return {
+                                    "success": False,
+                                    "moved_count": 0,
+                                    "message": f"Ship folder '{ship_name}' not found in Google Drive"
+                                }
+            
+            except Exception as debug_error:
+                logger.error(f"❌ Error finding ship folder: {debug_error}")
+                logger.error(f"❌ Error type: {type(debug_error).__name__}")
+                return {
+                    "success": False,
+                    "moved_count": 0,
+                    "message": f"Error finding ship folder: {str(debug_error)}"
+                }
+            
+            # Step 2: Find "Crew Records" folder inside ship folder
+            try:
+                logger.info(f"🔍 Calling Apps Script to list folders inside ship: {ship_folder_id}")
+                async with session.post(
+                    company_apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": ship_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        if result.get("success") and result.get("folders"):
+                            subfolders_list = result.get("folders")
+                            logger.info(f"📊 Subfolders in {ship_name}: {len(subfolders_list)}")
+                            
+                            # Find Crew Records folder
+                            for folder in subfolders_list:
+                                folder_name = folder.get('name', '').strip()
+                                folder_id = folder.get('id', '')
+                                
+                                logger.info(f"   Checking subfolder: '{folder_name}' (ID: {folder_id})")
+                                
+                                if folder_name.lower() == "crew records":
+                                    crew_records_folder_id = folder_id
+                                    logger.info(f"✅ MATCH FOUND! Crew Records folder: {crew_records_folder_id}")
+                                    break
+                            
+                            if not crew_records_folder_id:
+                                logger.error(f"❌ 'Crew Records' folder NOT FOUND in {ship_name}")
+                                return {
+                                    "success": False,
+                                    "moved_count": 0,
+                                    "message": f"'Crew Records' folder not found in {ship_name}"
+                                }
+            
+            except Exception as subfolder_error:
+                logger.error(f"❌ Error finding Crew Records folder: {subfolder_error}")
+                return {
+                    "success": False,
+                    "moved_count": 0,
+                    "message": f"Error finding Crew Records folder: {str(subfolder_error)}"
+                }
+        
+        logger.info(f"📂 Using Crew Records folder ID: {crew_records_folder_id}")
+        
+        # Step 3: Move files for each crew
+        moved_files_count = 0
+        errors = []
+        
+        for crew_id in crew_ids:
+            try:
+                # Get crew member
+                crew = await mongo_db.find_one("crew_members", {
+                    "id": crew_id,
+                    "company_id": company_uuid
+                })
+                
+                if not crew:
+                    logger.warning(f"⚠️ Crew {crew_id} not found")
+                    errors.append(f"Crew {crew_id} not found")
+                    continue
+                
+                logger.info(f"📦 Processing crew: {crew.get('full_name')}")
+                
+                # Collect all ORIGINAL file IDs to move (no summary files)
+                files_to_move = []
+                
+                # Passport original file only (no summary)
+                if crew.get("passport_file_id"):
+                    files_to_move.append({
+                        "file_id": crew.get("passport_file_id"),
+                        "type": "passport"
+                    })
+                
+                # Get crew certificates
+                cert_list = await mongo_db.find_all("crew_certificates", {
+                    "company_id": company_uuid,
+                    "crew_id": crew_id
+                })
+                
+                # Certificate original files only (no summary)
+                for cert in cert_list:
+                    if cert.get("crew_cert_file_id"):
+                        files_to_move.append({
+                            "file_id": cert.get("crew_cert_file_id"),
+                            "type": "certificate",
+                            "cert_name": cert.get("cert_name", "Unknown")
+                        })
+                
+                if not files_to_move:
+                    logger.info(f"ℹ️ No original files to move for {crew.get('full_name')}")
+                    continue
+                
+                logger.info(f"📁 Moving {len(files_to_move)} ORIGINAL files for {crew.get('full_name')} to {ship_name}/Crew Records...")
+                
+                # Call Apps Script to move files
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    for file_info in files_to_move:
+                        try:
+                            async with session.post(
+                                company_apps_script_url,
+                                json={
+                                    "action": "move_file",
+                                    "file_id": file_info["file_id"],
+                                    "target_folder_id": crew_records_folder_id
+                                },
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as move_response:
+                                if move_response.status == 200:
+                                    move_result = await move_response.json()
+                                    if move_result.get("success"):
+                                        moved_files_count += 1
+                                        logger.info(f"✅ Moved {file_info['type']} file: {file_info['file_id']}")
+                                    else:
+                                        logger.error(f"❌ Failed to move file: {move_result.get('message')}")
+                                        errors.append(f"Failed to move {file_info['type']} for {crew.get('full_name')}")
+                        
+                        except Exception as move_error:
+                            logger.error(f"❌ Error moving file {file_info['file_id']}: {move_error}")
+                            errors.append(f"Error moving {file_info['type']} for {crew.get('full_name')}")
+            
+            except Exception as crew_error:
+                logger.error(f"❌ Error processing crew {crew_id}: {crew_error}")
+                errors.append(f"Error processing crew {crew_id}")
+        
+        logger.info(f"✅ Moved {moved_files_count} files to {ship_name}/Crew Records folder")
+        
+        return {
+            "success": True,
+            "moved_count": moved_files_count,
+            "errors": errors if errors else None,
+            "message": f"Successfully moved {moved_files_count} files to {ship_name}/Crew Records folder"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error moving crew files to ship: {e}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to move crew files to ship: {str(e)}")
+
+
 # ============================================
 # CREW CERTIFICATES ENDPOINTS (Steps 1-5)
 # ============================================
