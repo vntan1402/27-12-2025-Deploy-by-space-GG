@@ -12282,44 +12282,13 @@ const HomePage = () => {
                                                   </>
                                                 );
                                               })()}
-                                              
-                                              {COMMON_CERTIFICATE_NAMES.filter(name => 
-                                                name.toLowerCase().includes((editCrewCertData.cert_name || '').toLowerCase())
-                                              ).length === 0 && (
-                                                <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                                                  {language === 'vi' 
-                                                    ? `Không tìm thấy kết quả. Nhập tên mới: "${editCrewCertData.cert_name}"` 
-                                                    : `No results found. Type to add new: "${editCrewCertData.cert_name}"`
-                                                  }
-                                                </div>
-                                              )}
-                                              
-                                              {/* Option to add custom certificate name */}
-                                              {editCrewCertData.cert_name && 
-                                               !COMMON_CERTIFICATE_NAMES.includes(editCrewCertData.cert_name) && 
-                                               COMMON_CERTIFICATE_NAMES.filter(name => 
-                                                 name.toLowerCase().includes(editCrewCertData.cert_name.toLowerCase())
-                                               ).length > 0 && (
-                                                <div className="border-t border-gray-200 px-4 py-2 bg-gray-50">
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      // Keep custom input
-                                                      setShowCertNameDropdown(false);
-                                                    }}
-                                                    className="w-full text-left text-sm text-blue-600 hover:text-blue-800 font-medium"
-                                                  >
-                                                    ➕ {language === 'vi' ? 'Sử dụng tên tùy chỉnh' : 'Use custom name'}: "{editCrewCertData.cert_name}"
-                                                  </button>
-                                                </div>
-                                              )}
                                             </div>
                                           )}
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">
                                           {language === 'vi' 
-                                            ? '💡 Chọn từ danh sách hoặc nhập tên mới' 
-                                            : '💡 Select from list or type a new name'
+                                            ? '💡 Chọn từ danh sách hoặc nhập tên mới. Tên mới sẽ được lưu tự động!' 
+                                            : '💡 Select from list or type a new name. New names will be saved automatically!'
                                           }
                                         </p>
                                       </div>
