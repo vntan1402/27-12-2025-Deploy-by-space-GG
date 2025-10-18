@@ -52,6 +52,7 @@
     - "Certificate Name Searchable Dropdown in Edit Modal"
     - "Auto Move Standby Files Feature"
     - "Standby Crew Folder Detection Enhancement"
+    - "Standby Crew Certificate File Upload Issue Investigation"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
