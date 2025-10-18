@@ -3210,13 +3210,25 @@ const HomePage = () => {
           : 'Crew member updated successfully');
         
         // ✅ AUTO-MOVE FILES TO STANDBY FOLDER if status changed to "Standby"
-        const oldStatus = editingCrew.status ? editingCrew.status.toLowerCase() : '';
-        const newStatus = editCrewData.status ? editCrewData.status.toLowerCase() : '';
+        const oldStatus = editingCrew.status ? editingCrew.status.toLowerCase().trim() : '';
+        const newStatus = editCrewData.status ? editCrewData.status.toLowerCase().trim() : '';
+        
+        console.log('🔍 Status check:', {
+          oldStatus,
+          newStatus,
+          editingCrew_status: editingCrew.status,
+          editCrewData_status: editCrewData.status,
+          shouldTrigger: newStatus === 'standby' && oldStatus !== 'standby'
+        });
         
         if (newStatus === 'standby' && oldStatus !== 'standby') {
           console.log(`🎯 Status changed to Standby for ${editCrewData.full_name}, auto-moving files...`);
           // Call moveStandbyCrewFiles in background (don't await - let it run async)
           moveStandbyCrewFiles([editingCrew.id], editCrewData.full_name);
+        } else {
+          console.log('ℹ️ Status change did not trigger file move:', {
+            reason: newStatus !== 'standby' ? 'new status is not standby' : 'old status was already standby'
+          });
         }
         
         // Refresh crew list
