@@ -5703,6 +5703,14 @@ const HomePage = () => {
         
         toast.success(language === 'vi' ? 'Thuyền viên đã được thêm thành công!' : 'Crew member added successfully!');
         
+        // ✅ AUTO-MOVE FILES TO STANDBY FOLDER if new crew has status "Standby"
+        const crewStatus = newCrewData.status ? newCrewData.status.toLowerCase() : '';
+        if (crewStatus === 'standby') {
+          console.log(`🎯 New crew ${newCrewData.full_name} has Standby status, auto-moving files...`);
+          // Call moveStandbyCrewFiles in background (don't await - let it run async)
+          moveStandbyCrewFiles([crewId], newCrewData.full_name);
+        }
+        
         // Refresh crew list FIRST
         console.log('🔄 Refreshing crew list after adding new crew...');
         try {
