@@ -14902,7 +14902,7 @@ const HomePage = () => {
                       value={newCrewData.seamen_book}
                       onChange={(e) => setNewCrewData({...newCrewData, seamen_book: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seamen book number'}
+                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seaman book number'}
                     />
                   </div>
 
@@ -14954,7 +14954,7 @@ const HomePage = () => {
                       value={newCrewData.seamen_book}
                       onChange={(e) => setNewCrewData({...newCrewData, seamen_book: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seamen book number'}
+                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seaman book number'}
                     />
                   </div>
 
@@ -15792,7 +15792,7 @@ const HomePage = () => {
                       value={editCrewData.seamen_book}
                       onChange={(e) => setEditCrewData({...editCrewData, seamen_book: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seamen book number'}
+                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seaman book number'}
                     />
                   </div>
 
