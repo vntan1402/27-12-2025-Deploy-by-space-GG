@@ -15754,7 +15754,7 @@ const HomePage = () => {
 
                   {/* ===== GROUP 3: EMPLOYMENT INFORMATION ===== */}
                   
-                  {/* Row 4: Status (span-1) + Ship Sign On (span-1) + Place Sign On (span-1) + [Empty/Conditional] (span-1) */}
+                  {/* Row 4: Status (span-1) + Ship Sign On (span-1) + Place Sign On (span-1) + [Empty] (span-1) */}
 
                   {/* Status - Optional */}
                   <div className="md:col-span-1">
@@ -15770,20 +15770,6 @@ const HomePage = () => {
                       <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
                       <option value="Leave">{language === 'vi' ? 'Nghỉ phép' : 'Leave'}</option>
                     </select>
-                  </div>
-
-                  {/* Seaman Book - Optional */}
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
-                    </label>
-                    <input
-                      type="text"
-                      value={editCrewData.seamen_book}
-                      onChange={(e) => setEditCrewData({...editCrewData, seamen_book: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seaman book number'}
-                    />
                   </div>
 
                   {/* Ship Sign On - Optional */}
@@ -15827,9 +15813,26 @@ const HomePage = () => {
                     />
                   </div>
 
-                  {/* Row 5: Date Sign On + Date Sign Off (each span-2) */}
+                  {/* Empty field - placeholder */}
+                  <div className="md:col-span-1"></div>
+
+                  {/* Row 5: Seaman Book (span-1) + Date Sign On (span-1) + Date Sign Off (span-1) + [Empty] (span-1) */}
+                  {/* Seaman Book - Optional */}
+                  <div className="md:col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Sổ thuyền viên' : 'Seaman Book'}
+                    </label>
+                    <input
+                      type="text"
+                      value={editCrewData.seamen_book}
+                      onChange={(e) => setEditCrewData({...editCrewData, seamen_book: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder={language === 'vi' ? 'Số sổ thuyền viên' : 'Seaman book number'}
+                    />
+                  </div>
+
                   {/* Date Sign On - Optional */}
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
                       <span className="text-xs text-gray-500 ml-2">
@@ -15845,7 +15848,7 @@ const HomePage = () => {
                   </div>
 
                   {/* Date Sign Off - Optional */}
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-1">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
                       <span className="text-xs text-gray-500 ml-2">
@@ -15871,6 +15874,9 @@ const HomePage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
+
+                  {/* Empty field - placeholder */}
+                  <div className="md:col-span-1"></div>
 
                   {/* Submit Buttons */}
                   <div className="flex justify-end space-x-4 mt-4 pt-4 border-t border-gray-200 md:col-span-4">
