@@ -49,12 +49,26 @@
 ##
 ## test_plan:
   current_focus:
+    - "Certificate Name Searchable Dropdown in Edit Modal"
     - "Auto Move Standby Files Feature"
     - "Standby Crew Folder Detection Enhancement"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
   test_priority: "high_first"
+
+frontend:
+  - task: "Certificate Name Searchable Dropdown in Edit Modal"
+    implemented: true
+    working: "pending_user_test"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "pending_user_test"
+          agent: "main"
+          comment: "Implemented searchable dropdown for Certificate Name field in Edit Crew Certificate modal. IMPLEMENTATION DETAILS: (1) Added COMMON_CERTIFICATE_NAMES constant with 40+ maritime certificate names (STCW, IMO compliant) alphabetically sorted. (2) Created searchable dropdown with real-time filtering - filters as user types with case-insensitive search. (3) Allows custom input - user can type new certificate name not in list. (4) Added dropdown state management (showCertNameDropdown, certNameSearchTerm, certNameDropdownRef). (5) Implemented click-outside handler to auto-close dropdown. (6) UI includes: input field with search, dropdown toggle icon, filtered results list, no-results state with guidance, custom name confirmation option. FEATURES: Select from 40+ predefined names OR type custom name, real-time search filtering, hover effects on options, preserves custom input, alphabetically sorted list, bilingual support (EN/VI). BENEFITS: Consistency in certificate naming, faster data entry, reduced typos, flexibility for custom names, professional UI matching industry standards. TESTING: Need to test: (1) Open Edit Crew Cert modal, (2) Click Certificate Name field - dropdown should appear, (3) Type to filter (e.g., 'tank' shows Oil/Chemical/LNG Tanker), (4) Select from list OR type custom name, (5) Verify dropdown closes on click outside, (6) Submit form with selected/custom name. DOCUMENTATION: Created CERTIFICATE_NAME_DROPDOWN_FEATURE.md with complete feature docs, 40+ certificate names list, testing instructions, and UX scenarios."
 
 frontend:
   - task: "Auto Move Standby Files Feature"
