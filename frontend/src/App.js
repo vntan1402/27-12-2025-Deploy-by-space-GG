@@ -14420,8 +14420,7 @@ const HomePage = () => {
               </div>
             </div>
             
-            {/* Modal Body - Hidden when minimized */}
-            {!isAddCrewModalMinimized && (
+            {/* Modal Body */}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6">
               
               {/* Section 1: From Passport (AI Analysis) - TOP */}
