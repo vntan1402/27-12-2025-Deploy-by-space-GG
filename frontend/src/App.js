@@ -12212,27 +12212,77 @@ const HomePage = () => {
                                           {/* Dropdown Menu */}
                                           {showCertNameDropdown && (
                                             <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                                              {/* Filter options based on search term */}
-                                              {COMMON_CERTIFICATE_NAMES
-                                                .filter(name => 
-                                                  name.toLowerCase().includes((editCrewCertData.cert_name || '').toLowerCase())
-                                                )
-                                                .map((name, index) => (
-                                                  <button
-                                                    key={index}
-                                                    type="button"
-                                                    onClick={() => {
-                                                      setEditCrewCertData({...editCrewCertData, cert_name: name});
-                                                      setShowCertNameDropdown(false);
-                                                    }}
-                                                    className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none text-sm transition-colors"
-                                                  >
-                                                    {name}
-                                                  </button>
-                                                ))
-                                              }
+                                              {/* Merge common + custom names, then filter based on search term */}
+                                              {(() => {
+                                                // Merge and sort all certificate names
+                                                const allCertNames = [...COMMON_CERTIFICATE_NAMES, ...customCertificateNames].sort();
+                                                const searchTerm = (editCrewCertData.cert_name || '').toLowerCase();
+                                                const filteredNames = allCertNames.filter(name => 
+                                                  name.toLowerCase().includes(searchTerm)
+                                                );
+                                                
+                                                return (
+                                                  <>
+                                                    {/* Common Certificate Names Section */}
+                                                    {COMMON_CERTIFICATE_NAMES
+                                                      .filter(name => name.toLowerCase().includes(searchTerm))
+                                                      .map((name, index) => (
+                                                        <button
+                                                          key={`common-${index}`}
+                                                          type="button"
+                                                          onClick={() => {
+                                                            setEditCrewCertData({...editCrewCertData, cert_name: name});
+                                                            setShowCertNameDropdown(false);
+                                                          }}
+                                                          className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none text-sm transition-colors"
+                                                        >
+                                                          {name}
+                                                        </button>
+                                                      ))
+                                                    }
+                                                    
+                                                    {/* Divider if both common and custom names exist */}
+                                                    {customCertificateNames.filter(name => name.toLowerCase().includes(searchTerm)).length > 0 &&
+                                                     COMMON_CERTIFICATE_NAMES.filter(name => name.toLowerCase().includes(searchTerm)).length > 0 && (
+                                                      <div className="border-t border-gray-200 my-1">
+                                                        <div className="px-4 py-1 text-xs text-gray-500 font-medium bg-gray-50">
+                                                          {language === 'vi' ? 'Tên tùy chỉnh đã lưu' : 'Saved Custom Names'}
+                                                        </div>
+                                                      </div>
+                                                    )}
+                                                    
+                                                    {/* Custom Certificate Names Section */}
+                                                    {customCertificateNames
+                                                      .filter(name => name.toLowerCase().includes(searchTerm))
+                                                      .map((name, index) => (
+                                                        <button
+                                                          key={`custom-${index}`}
+                                                          type="button"
+                                                          onClick={() => {
+                                                            setEditCrewCertData({...editCrewCertData, cert_name: name});
+                                                            setShowCertNameDropdown(false);
+                                                          }}
+                                                          className="w-full px-4 py-2 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none text-sm transition-colors flex items-center justify-between group"
+                                                        >
+                                                          <span>{name}</span>
+                                                          <span className="text-xs text-green-600 opacity-0 group-hover:opacity-100">✨ Custom</span>
+                                                        </button>
+                                                      ))
+                                                    }
+                                                    
+                                                    {/* Show "No results" if no matches */}
+                                                    {filteredNames.length === 0 && (
+                                                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                                                        {language === 'vi' 
+                                                          ? `Không tìm thấy kết quả. Nhập tên mới: "${editCrewCertData.cert_name}"` 
+                                                          : `No results found. Type to add new: "${editCrewCertData.cert_name}"`
+                                                        }
+                                                      </div>
+                                                    )}
+                                                  </>
+                                                );
+                                              })()}
                                               
-                                              {/* Show "No results" if no matches */}
                                               {COMMON_CERTIFICATE_NAMES.filter(name => 
                                                 name.toLowerCase().includes((editCrewCertData.cert_name || '').toLowerCase())
                                               ).length === 0 && (
