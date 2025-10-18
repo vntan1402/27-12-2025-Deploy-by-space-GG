@@ -9518,9 +9518,8 @@ const HomePage = () => {
                       )}
                       {/* Crew Information - Shown in Crew Certificates View */}
                       {showCertificatesView && selectedCrewForCertificates && (
-                      <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg border border-blue-200">
-                        <h4 className="font-bold text-lg mb-4 text-blue-800 flex items-center">
-                          <span className="mr-2">👤</span>
+                      <div className="mb-6">
+                        <h4 className="font-bold text-lg mb-4 text-gray-800">
                           {language === 'vi' ? 'Thông tin Thuyền viên' : 'Crew Member Information'}
                         </h4>
                         
