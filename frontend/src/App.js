@@ -3235,6 +3235,68 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to automatically move files to Ship/Crew Records folder
+  const moveCrewFilesToShip = async (crewIds, shipName, crewName = null) => {
+    if (!crewIds || crewIds.length === 0) return;
+    if (!shipName || shipName === '-') {
+      console.log('ℹ️ Ship name is empty or "-", skipping file move');
+      return;
+    }
+    
+    try {
+      console.log(`📦 Auto-moving files for ${crewIds.length} crew to ${shipName}/Crew Records folder...`);
+      console.log('   Crew IDs:', crewIds);
+      console.log('   Ship Name:', shipName);
+      console.log('   API URL:', `${API}/crew/move-files-to-ship`);
+      
+      const response = await axios.post(
+        `${API}/crew/move-files-to-ship`,
+        {
+          crew_ids: crewIds,
+          ship_name: shipName
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log('📡 Move files API response:', response);
+      console.log('📦 Response data:', response.data);
+      
+      if (response.data && response.data.success) {
+        console.log('✅ Files moved successfully to Ship/Crew Records folder:', response.data);
+        
+        if (response.data.moved_count > 0) {
+          toast.success(language === 'vi' 
+            ? `✅ Đã tự động di chuyển ${response.data.moved_count} files${crewName ? ` của ${crewName}` : ''} vào ${shipName}/Crew Records` 
+            : `✅ Automatically moved ${response.data.moved_count} files${crewName ? ` for ${crewName}` : ''} to ${shipName}/Crew Records`
+          );
+        } else {
+          console.log('ℹ️ No files to move (crew may not have passport/certificate files yet)');
+          toast.info(language === 'vi'
+            ? `ℹ️ ${crewName || 'Thuyền viên'} chưa có files để di chuyển (chưa upload passport/certificates)`
+            : `ℹ️ ${crewName || 'Crew member'} has no files to move yet (no passport/certificates uploaded)`
+          );
+        }
+      } else {
+        console.warn('⚠️ API returned success=false:', response.data);
+        toast.warning(language === 'vi'
+          ? `⚠️ Không thể di chuyển files: ${response.data?.message || 'Unknown error'}`
+          : `⚠️ Could not move files: ${response.data?.message || 'Unknown error'}`
+        );
+      }
+    } catch (error) {
+      console.error('❌ Error auto-moving crew files to ship:', error);
+      console.error('   Error response:', error.response);
+      console.error('   Error data:', error.response?.data);
+      // Don't show error toast - this is a background operation, don't disrupt user flow
+      console.warn('⚠️ Background file move failed, but crew update was successful');
+    }
+  };
+
   // Helper function to automatically move files to Standby Crew folder
   const moveStandbyCrewFiles = async (crewIds, crewName = null) => {
     if (!crewIds || crewIds.length === 0) return;
