@@ -13314,7 +13314,7 @@ const HomePage = () => {
                   {companyLogo ? (
                     <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative">
                       <img 
-                        src={`${BACKEND_URL}${companyLogo}`}
+                        src={companyLogo.startsWith('http') ? companyLogo : `${BACKEND_URL}${companyLogo}`}
                         alt="Company Logo"
                         className="max-w-full max-h-full object-contain"
                         onError={(e) => {
