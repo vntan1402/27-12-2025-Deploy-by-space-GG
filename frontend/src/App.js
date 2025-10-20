@@ -13312,13 +13312,22 @@ const HomePage = () => {
                 // Default view when no ship is selected
                 <div>
                   {companyLogo ? (
-                    <div
-                      className="w-full h-96 bg-cover bg-center rounded-lg flex items-center justify-center"
-                      style={{ backgroundImage: `url(${BACKEND_URL}${companyLogo})` }}
-                    >
-                      <div className="bg-black bg-opacity-50 text-white p-6 rounded-lg text-center">
-                        <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}</h2>
-                        <p className="text-lg">{language === 'vi' ? 'Hệ thống quản lí tàu biển' : 'Ship Management System'}</p>
+                    <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative">
+                      <img 
+                        src={`${BACKEND_URL}${companyLogo}`}
+                        alt="Company Logo"
+                        className="max-w-full max-h-full object-contain"
+                        onError={(e) => {
+                          console.error('Failed to load company logo:', e);
+                          // Hide image and show fallback
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                        <div className="bg-black bg-opacity-50 text-white p-6 rounded-lg text-center">
+                          <h2 className="text-2xl font-bold mb-2">{language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}</h2>
+                          <p className="text-lg">{language === 'vi' ? 'Hệ thống quản lí tàu biển' : 'Ship Management System'}</p>
+                        </div>
                       </div>
                     </div>
                   ) : (
