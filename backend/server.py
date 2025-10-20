@@ -941,6 +941,11 @@ class SurveyReportResponse(BaseModel):
     note: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
 
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
