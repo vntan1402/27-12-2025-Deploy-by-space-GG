@@ -1381,6 +1381,28 @@ const HomePage = () => {
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   
+  // Survey Report List states
+  const [surveyReports, setSurveyReports] = useState([]);
+  const [surveyReportSort, setSurveyReportSort] = useState({
+    column: null,
+    direction: 'asc'
+  });
+  const [surveyReportFilters, setSurveyReportFilters] = useState({
+    status: 'all',
+    search: ''
+  });
+  const [showAddSurveyModal, setShowAddSurveyModal] = useState(false);
+  const [showEditSurveyModal, setShowEditSurveyModal] = useState(false);
+  const [newSurveyReport, setNewSurveyReport] = useState({
+    survey_report_name: '',
+    survey_report_no: '',
+    issued_date: '',
+    issued_by: '',
+    status: 'Valid',
+    note: ''
+  });
+  const [editingSurveyReport, setEditingSurveyReport] = useState(null);
+  
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
 
   const getSortIcon = (column) => {
