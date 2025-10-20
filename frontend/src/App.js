@@ -10436,7 +10436,7 @@ const HomePage = () => {
                   )}
 
                   {/* Survey Report List (Class Survey Report) */}
-                  {selectedCategory === 'documents' && selectedSubMenu === 'inspection_records' && (
+                  {selectedCategory === 'documents' && selectedSubMenu === 'class_survey_reports' && (
                     <div>
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-gray-800">
