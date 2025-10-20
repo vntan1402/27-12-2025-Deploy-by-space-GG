@@ -1879,6 +1879,13 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+  // Fetch survey reports when ship is selected and on inspection_records submenu
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'inspection_records') {
+      fetchSurveyReports(selectedShip.id);
+    }
+  }, [selectedShip, selectedSubMenu]);
+
   // Update newCrewData ship_sign_on and status when selectedShip changes
   useEffect(() => {
     if (selectedShip?.name) {
