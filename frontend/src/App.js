@@ -20062,15 +20062,22 @@ const CompanyFormModal = ({
 
   const handleSubmitWithLogo = async () => {
     try {
-      // First submit the company data
-      await onSubmit();
+      setUploading(true);
       
-      // If we have a logo file and the company was created/updated successfully, upload the logo
-      if (logoFile && companyData.id) {
-        await handleLogoUpload(companyData.id);
+      // First submit the company data
+      const result = await onSubmit();
+      
+      // If we have a logo file and company was created/updated successfully
+      if (logoFile && result) {
+        const companyId = result.id || companyData.id;
+        if (companyId) {
+          await handleLogoUpload(companyId);
+        }
       }
     } catch (error) {
       console.error('Error submitting company:', error);
+    } finally {
+      setUploading(false);
     }
   };
 
