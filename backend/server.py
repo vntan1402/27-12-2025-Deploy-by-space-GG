@@ -4897,6 +4897,118 @@ async def get_all_certificates(current_user: UserResponse = Depends(get_current_
     except Exception as e:
         logger.error(f"Error fetching all certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch certificates")
+
+# Survey Report endpoints
+@api_router.get("/survey-reports", response_model=List[SurveyReportResponse])
+async def get_survey_reports(ship_id: Optional[str] = None, current_user: UserResponse = Depends(get_current_user)):
+    """Get survey reports for a ship or all survey reports"""
+    try:
+        query = {}
+        if ship_id:
+            query["ship_id"] = ship_id
+        
+        survey_reports = await mongo_db.find_all("survey_reports", query)
+        return [SurveyReportResponse(**report) for report in survey_reports]
+    except Exception as e:
+        logger.error(f"Error fetching survey reports: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch survey reports")
+
+@api_router.get("/survey-reports/{report_id}", response_model=SurveyReportResponse)
+async def get_survey_report(report_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get a single survey report by ID"""
+    try:
+        report = await mongo_db.find_one("survey_reports", {"id": report_id})
+        if not report:
+            raise HTTPException(status_code=404, detail="Survey report not found")
+        return SurveyReportResponse(**report)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching survey report: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch survey report")
+
+@api_router.post("/survey-reports", response_model=SurveyReportResponse)
+async def create_survey_report(
+    report_data: SurveyReportCreate, 
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new survey report"""
+    try:
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": report_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Create report document
+        report_dict = report_data.dict()
+        report_dict["id"] = str(uuid.uuid4())
+        report_dict["created_at"] = datetime.now(timezone.utc)
+        report_dict["updated_at"] = datetime.now(timezone.utc)
+        
+        await mongo_db.create("survey_reports", report_dict)
+        logger.info(f"✅ Survey report created: {report_dict['id']} for ship: {report_data.ship_id}")
+        return SurveyReportResponse(**report_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating survey report: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create survey report")
+
+@api_router.put("/survey-reports/{report_id}", response_model=SurveyReportResponse)
+async def update_survey_report(
+    report_id: str,
+    report_data: SurveyReportUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an existing survey report"""
+    try:
+        # Check if report exists
+        existing_report = await mongo_db.find_one("survey_reports", {"id": report_id})
+        if not existing_report:
+            raise HTTPException(status_code=404, detail="Survey report not found")
+        
+        # Prepare update data
+        update_data = report_data.dict(exclude_unset=True)
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        
+        # Update the report
+        await mongo_db.update("survey_reports", {"id": report_id}, update_data)
+        
+        # Fetch updated report
+        updated_report = await mongo_db.find_one("survey_reports", {"id": report_id})
+        logger.info(f"✅ Survey report updated: {report_id}")
+        return SurveyReportResponse(**updated_report)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating survey report: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update survey report")
+
+@api_router.delete("/survey-reports/{report_id}")
+async def delete_survey_report(
+    report_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete a survey report"""
+    try:
+        # Check if report exists
+        existing_report = await mongo_db.find_one("survey_reports", {"id": report_id})
+        if not existing_report:
+            raise HTTPException(status_code=404, detail="Survey report not found")
+        
+        # Delete the report
+        await mongo_db.delete("survey_reports", {"id": report_id})
+        logger.info(f"✅ Survey report deleted: {report_id}")
+        return {"success": True, "message": "Survey report deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting survey report: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete survey report")
+
 # Ship Survey Status endpoints
 @api_router.get("/ships/{ship_id}/survey-status", response_model=List[ShipSurveyStatusResponse])
 async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
