@@ -20109,11 +20109,14 @@ const CompanyFormModal = ({
     try {
       setUploading(true);
       
-      // First submit the company data
+      // First submit the company data (including logo_url if provided)
       const result = await onSubmit();
       
-      // If we have a logo file and company was created/updated successfully
-      if (logoFile && result) {
+      // Only upload file if:
+      // 1. User selected a file to upload
+      // 2. Company was created/updated successfully
+      // 3. User didn't provide a logo_url (URL takes priority)
+      if (logoFile && result && !companyData.logo_url) {
         const companyId = result.id || companyData.id;
         if (companyId) {
           await handleLogoUpload(companyId);
