@@ -20410,34 +20410,6 @@ const CompanyFormModal = ({
             </div>
           </div>
 
-          {/* Company Logo Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Logo công ty' : 'Company Logo'}
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setLogoFile(e.target.files[0])}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? 'Hỗ trợ: JPG, PNG, GIF (tối đa 5MB)' : 'Supported: JPG, PNG, GIF (max 5MB)'}
-            </p>
-            {isEdit && companyData.logo_url && (
-              <div className="mt-2">
-                <img 
-                  src={`${API}${companyData.logo_url}`} 
-                  alt="Current logo" 
-                  className="w-16 h-16 object-contain border border-gray-200 rounded"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' ? 'Logo hiện tại' : 'Current logo'}
-                </p>
-              </div>
-            )}
-          </div>
-
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h4 className="font-medium text-yellow-800 mb-2">
               {language === 'vi' ? 'Lưu ý:' : 'Note:'}
