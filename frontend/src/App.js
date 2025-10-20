@@ -10435,6 +10435,231 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Survey Report List (Class Survey Report) */}
+                  {selectedCategory === 'documents' && selectedSubMenu === 'inspection_records' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {language === 'vi' ? 'Danh sách Báo cáo Survey' : 'Survey Report List'}
+                        </h3>
+                        
+                        <button
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            selectedShip
+                              ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                              : 'bg-gray-400 cursor-not-allowed text-white'
+                          }`}
+                          onClick={() => selectedShip && setShowAddSurveyModal(true)}
+                          disabled={!selectedShip}
+                          title={selectedShip 
+                            ? (language === 'vi' ? 'Thêm báo cáo survey mới' : 'Add new survey report')
+                            : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                          }
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          {language === 'vi' ? 'Thêm báo cáo Survey' : 'Add Survey Report'}
+                        </button>
+                      </div>
+
+                      {/* Filters */}
+                      <div className="mb-4 flex gap-4">
+                        {/* Status Filter */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {language === 'vi' ? 'Tình trạng' : 'Status'}
+                          </label>
+                          <select
+                            value={surveyReportFilters.status}
+                            onChange={(e) => setSurveyReportFilters(prev => ({ ...prev, status: e.target.value }))}
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                          >
+                            <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                            <option value="valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                            <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                            <option value="pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
+                          </select>
+                        </div>
+
+                        {/* Search */}
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {language === 'vi' ? 'Tìm kiếm' : 'Search'}
+                          </label>
+                          <input
+                            type="text"
+                            value={surveyReportFilters.search}
+                            onChange={(e) => setSurveyReportFilters(prev => ({ ...prev, search: e.target.value }))}
+                            placeholder={language === 'vi' ? 'Tìm theo tên, số, đơn vị cấp...' : 'Search by name, number, issued by...'}
+                            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Survey Reports Table */}
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('id')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Số' : 'No.'}</span>
+                                  {surveyReportSort.column === 'id' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('survey_report_name')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Tên Báo cáo Survey' : 'Survey Report Name'}</span>
+                                  {surveyReportSort.column === 'survey_report_name' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('survey_report_no')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Số Báo cáo Survey' : 'Survey Report No.'}</span>
+                                  {surveyReportSort.column === 'survey_report_no' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('issued_date')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Ngày cấp' : 'Issued Date'}</span>
+                                  {surveyReportSort.column === 'issued_date' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('issued_by')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
+                                  {surveyReportSort.column === 'issued_by' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('status')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Tình trạng' : 'Status'}</span>
+                                  {surveyReportSort.column === 'status' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('note')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Ghi chú' : 'Note'}</span>
+                                  {surveyReportSort.column === 'note' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th className="border border-gray-300 px-4 py-2 text-center">
+                                {language === 'vi' ? 'Hành động' : 'Actions'}
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {getFilteredSurveyReports().length === 0 ? (
+                              <tr>
+                                <td colSpan="8" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                  {surveyReports.length === 0 
+                                    ? (language === 'vi' ? 'Chưa có báo cáo survey nào' : 'No survey reports available')
+                                    : (language === 'vi' ? 'Không có báo cáo survey nào phù hợp với bộ lọc' : 'No survey reports match the current filters')
+                                  }
+                                </td>
+                              </tr>
+                            ) : (
+                              getFilteredSurveyReports().map((report, index) => (
+                                <tr key={report.id} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 px-4 py-2 text-center font-bold">{index + 1}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.survey_report_name}</td>
+                                  <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.issued_by || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                      report.status?.toLowerCase() === 'valid' ? 'bg-green-100 text-green-800' :
+                                      report.status?.toLowerCase() === 'expired' ? 'bg-red-100 text-red-800' :
+                                      report.status?.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {report.status || 'Unknown'}
+                                    </span>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2 text-sm text-gray-600">{report.note || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2 text-center">
+                                    <div className="flex justify-center gap-2">
+                                      <button
+                                        onClick={() => {
+                                          setEditingSurveyReport({
+                                            ...report,
+                                            issued_date: report.issued_date ? new Date(report.issued_date).toISOString().split('T')[0] : ''
+                                          });
+                                          setShowEditSurveyModal(true);
+                                        }}
+                                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-all"
+                                        title={language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                                      >
+                                        {language === 'vi' ? 'Sửa' : 'Edit'}
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteSurveyReport(report.id)}
+                                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-all"
+                                        title={language === 'vi' ? 'Xóa' : 'Delete'}
+                                      >
+                                        {language === 'vi' ? 'Xóa' : 'Delete'}
+                                      </button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Certificate Context Menu */}
                   {contextMenu.show && (
                     <div 
