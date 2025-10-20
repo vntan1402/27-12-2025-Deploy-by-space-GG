@@ -4411,7 +4411,7 @@ const HomePage = () => {
       const updateData = {
         survey_report_name: editingSurveyReport.survey_report_name,
         survey_report_no: editingSurveyReport.survey_report_no || null,
-        issued_date: editingSurveyReport.issued_date ? new Date(editingSurveyReport.issued_date).toISOString() : null,
+        issued_date: editingSurveyReport.issued_date ? convertDateInputToUTC(editingSurveyReport.issued_date.split('T')[0]) : null,
         issued_by: editingSurveyReport.issued_by || null,
         status: editingSurveyReport.status || 'Valid',
         note: editingSurveyReport.note || null
