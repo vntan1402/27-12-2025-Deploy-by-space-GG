@@ -5648,7 +5648,7 @@ const HomePage = () => {
     // First filter by category/submenu
     const categoryMap = {
       'certificates': 'certificates',
-      'inspection_records': 'inspection_records',
+      'class_survey_reports': 'class_survey_reports',
       'survey_reports': 'survey_reports', 
       'test_reports': 'test_reports',
       'drawings_manuals': 'drawings_manuals',
