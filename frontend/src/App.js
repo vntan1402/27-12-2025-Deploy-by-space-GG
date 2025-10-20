@@ -8729,8 +8729,28 @@ const HomePage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
+      // Handle YYYY-MM-DD format (no time component)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Handle ISO datetime strings - check if it has timezone indicator
+      if (typeof dateString === 'string' && dateString.includes('T')) {
+        // If no timezone indicator (Z or +/-), treat as UTC by adding 'Z'
+        const dateToUse = dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString) 
+          ? dateString 
+          : dateString + 'Z';
+        
+        const date = new Date(dateToUse);
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Fallback to original logic
       const date = new Date(dateString);
-      // Format consistently as DD/MM/YYYY to avoid locale differences
       const day = String(date.getUTCDate()).padStart(2, '0');
       const month = String(date.getUTCMonth() + 1).padStart(2, '0');
       const year = date.getUTCFullYear();
@@ -17260,8 +17280,28 @@ const AccountControlPage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
+      // Handle YYYY-MM-DD format (no time component)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        const [year, month, day] = dateString.split('-');
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Handle ISO datetime strings - check if it has timezone indicator
+      if (typeof dateString === 'string' && dateString.includes('T')) {
+        // If no timezone indicator (Z or +/-), treat as UTC by adding 'Z'
+        const dateToUse = dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString) 
+          ? dateString 
+          : dateString + 'Z';
+        
+        const date = new Date(dateToUse);
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const year = date.getUTCFullYear();
+        return `${day}/${month}/${year}`;
+      }
+      
+      // Fallback to original logic
       const date = new Date(dateString);
-      // Format consistently as DD/MM/YYYY to avoid locale differences
       const day = String(date.getUTCDate()).padStart(2, '0');
       const month = String(date.getUTCMonth() + 1).padStart(2, '0');
       const year = date.getUTCFullYear();
