@@ -3656,6 +3656,35 @@ const HomePage = () => {
     }
   };
 
+  // Fetch company logo based on user's company
+  const fetchUserCompanyLogo = async () => {
+    if (!user || !user.company) {
+      console.log('No user or company info available');
+      return;
+    }
+
+    try {
+      // Fetch all companies to find the user's company
+      const response = await axios.get(`${API}/companies`);
+      const companies = response.data;
+      
+      // Find company by name (user.company is the company name)
+      const userCompany = companies.find(c => 
+        c.name_vn === user.company || c.name_en === user.company || c.name === user.company
+      );
+      
+      if (userCompany && userCompany.logo_url) {
+        setCompanyLogo(userCompany.logo_url);
+        console.log(`✅ Company logo loaded: ${userCompany.logo_url}`);
+      } else {
+        console.log('No logo found for user company');
+        setCompanyLogo(null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user company logo:', error);
+    }
+  };
+
   const fetchAvailableCompanies = async () => {
     try {
       const response = await axios.get(`${API}/companies`);
