@@ -4376,7 +4376,7 @@ const HomePage = () => {
         ship_id: selectedShip.id,
         survey_report_name: newSurveyReport.survey_report_name,
         survey_report_no: newSurveyReport.survey_report_no || null,
-        issued_date: newSurveyReport.issued_date ? new Date(newSurveyReport.issued_date).toISOString() : null,
+        issued_date: newSurveyReport.issued_date ? convertDateInputToUTC(newSurveyReport.issued_date) : null,
         issued_by: newSurveyReport.issued_by || null,
         status: newSurveyReport.status || 'Valid',
         note: newSurveyReport.note || null
