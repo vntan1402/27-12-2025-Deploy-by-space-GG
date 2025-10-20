@@ -11428,7 +11428,7 @@ const HomePage = () => {
                               </label>
                               <input
                                 type="date"
-                                value={editingSurveyReport.issued_date || ''}
+                                value={editingSurveyReport.issued_date?.split('T')[0] || ''}
                                 onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, issued_date: e.target.value }))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                               />
