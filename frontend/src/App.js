@@ -11256,8 +11256,9 @@ const HomePage = () => {
                                 onClick={handleBulkEditShipSignOn}
                                 className="w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                {/* Ship Icon */}
+                                <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M20 21c-1.39 0-2.78-.47-4-1.32-2.44 1.71-5.56 1.71-8 0C6.78 20.53 5.39 21 4 21H2v2h2c1.38 0 2.74-.35 4-.99 2.52 1.29 5.48 1.29 8 0 1.26.65 2.62.99 4 .99h2v-2h-2zM3.95 19H4c1.6 0 3.02-.88 4-2 .98 1.12 2.4 2 4 2s3.02-.88 4-2c.98 1.12 2.4 2 4 2h.05l1.89-6.68c.08-.26.06-.54-.06-.78s-.32-.42-.6-.5L20 10.62V6c0-1.1-.9-2-2-2h-3V1H9v3H6c-1.1 0-2 .9-2 2v4.62l-1.29.42c-.26.08-.48.26-.6.5s-.15.52-.06.78L3.95 19zM6 6h12v3.97L12 8 6 9.97V6z"/>
                                 </svg>
                                 {language === 'vi' ? 'Chỉnh sửa tàu đăng ký' : 'Edit Ship Sign On'}
                               </button>
@@ -11269,8 +11270,14 @@ const HomePage = () => {
                                 onClick={handleBulkEditDateSignOn}
                                 className="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                {/* Ship with Arrow IN (Sign On) */}
+                                <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                                  <g>
+                                    {/* Ship body */}
+                                    <path d="M20 21c-1.39 0-2.78-.47-4-1.32-2.44 1.71-5.56 1.71-8 0C6.78 20.53 5.39 21 4 21H2v2h2c1.38 0 2.74-.35 4-.99 2.52 1.29 5.48 1.29 8 0 1.26.65 2.62.99 4 .99h2v-2h-2zM3.95 19H4c1.6 0 3.02-.88 4-2 .98 1.12 2.4 2 4 2s3.02-.88 4-2c.98 1.12 2.4 2 4 2h.05l1.89-6.68c.08-.26.06-.54-.06-.78s-.32-.42-.6-.5L20 10.62V6c0-1.1-.9-2-2-2h-3V1H9v3H6c-1.1 0-2 .9-2 2v4.62l-1.29.42c-.26.08-.48.26-.6.5s-.15.52-.06.78L3.95 19zM6 6h12v3.97L12 8 6 9.97V6z"/>
+                                    {/* Arrow pointing IN/RIGHT */}
+                                    <path d="M19 8l-4 4h3c0 2.2-1.8 4-4 4v2c3.3 0 6-2.7 6-6h3l-4-4z" opacity="0.9"/>
+                                  </g>
                                 </svg>
                                 {language === 'vi' ? 'Chỉnh sửa ngày lên tàu' : 'Edit Date Sign On'}
                               </button>
@@ -11282,8 +11289,14 @@ const HomePage = () => {
                                 onClick={handleBulkEditDateSignOff}
                                 className="w-full text-left px-4 py-2 text-sm text-orange-700 hover:bg-orange-50 flex items-center"
                               >
-                                <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                {/* Ship with Arrow OUT (Sign Off) */}
+                                <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                                  <g>
+                                    {/* Ship body */}
+                                    <path d="M20 21c-1.39 0-2.78-.47-4-1.32-2.44 1.71-5.56 1.71-8 0C6.78 20.53 5.39 21 4 21H2v2h2c1.38 0 2.74-.35 4-.99 2.52 1.29 5.48 1.29 8 0 1.26.65 2.62.99 4 .99h2v-2h-2zM3.95 19H4c1.6 0 3.02-.88 4-2 .98 1.12 2.4 2 4 2s3.02-.88 4-2c.98 1.12 2.4 2 4 2h.05l1.89-6.68c.08-.26.06-.54-.06-.78s-.32-.42-.6-.5L20 10.62V6c0-1.1-.9-2-2-2h-3V1H9v3H6c-1.1 0-2 .9-2 2v4.62l-1.29.42c-.26.08-.48.26-.6.5s-.15.52-.06.78L3.95 19zM6 6h12v3.97L12 8 6 9.97V6z"/>
+                                    {/* Arrow pointing OUT/LEFT */}
+                                    <path d="M5 8l4 4H6c0 2.2 1.8 4 4 4v2c-3.3 0-6-2.7-6-6H1l4-4z" opacity="0.9"/>
+                                  </g>
                                 </svg>
                                 {language === 'vi' ? 'Chỉnh sửa ngày rời tàu' : 'Edit Date Sign Off'}
                               </button>
