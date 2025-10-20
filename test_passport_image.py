@@ -12,7 +12,7 @@ import tempfile
 import base64
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://crew-manager-6.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://nautical-crew-hub.preview.emergentagent.com') + '/api'
 
 def create_test_passport_image():
     """Create a simple test image file that Document AI can process"""
