@@ -1821,6 +1821,13 @@ const HomePage = () => {
     fetchAiConfig(); // Fetch AI config when component mounts
   }, []);
 
+  // Fetch company logo when user logs in
+  useEffect(() => {
+    if (user && user.company) {
+      fetchUserCompanyLogo();
+    }
+  }, [user]);
+
   // Check for upcoming surveys when component mounts and token is available
   useEffect(() => {
     if (token && user) {
