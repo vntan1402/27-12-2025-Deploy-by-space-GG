@@ -20277,25 +20277,58 @@ const CompanyFormModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {language === 'vi' ? 'Logo công ty' : 'Company Logo'}
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setLogoFile(e.target.files[0])}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? 'Hỗ trợ: JPG, PNG, GIF (tối đa 5MB)' : 'Supported: JPG, PNG, GIF (max 5MB)'}
-            </p>
-            {isEdit && companyData.logo_url && (
-              <div className="mt-2">
-                <img 
-                  src={`${API}${companyData.logo_url}`} 
-                  alt="Current logo" 
-                  className="w-16 h-16 object-contain border border-gray-200 rounded"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' ? 'Logo hiện tại' : 'Current logo'}
+            
+            {/* Logo URL Input */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                {language === 'vi' ? 'URL Logo (Nhập URL hình ảnh)' : 'Logo URL (Enter image URL)'}
+              </label>
+              <input
+                type="text"
+                value={companyData.logo_url || ''}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, logo_url: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="https://example.com/logo.png"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' ? 'Hoặc nhập URL trực tiếp của logo' : 'Or enter logo URL directly'}
+              </p>
+            </div>
+
+            {/* Logo File Upload */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                {language === 'vi' ? 'Hoặc tải lên file' : 'Or upload file'}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files[0])}
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' ? 'Hỗ trợ: JPG, PNG, GIF (tối đa 5MB)' : 'Supported: JPG, PNG, GIF (max 5MB)'}
+              </p>
+            </div>
+
+            {/* Current Logo Preview */}
+            {companyData.logo_url && (
+              <div className="mt-3">
+                <p className="text-xs font-medium text-gray-600 mb-2">
+                  {language === 'vi' ? 'Xem trước logo:' : 'Logo preview:'}
                 </p>
+                <img 
+                  src={companyData.logo_url.startsWith('http') ? companyData.logo_url : `${API}${companyData.logo_url}`}
+                  alt="Logo preview" 
+                  className="w-20 h-20 object-contain border border-gray-200 rounded bg-gray-50"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <div className="hidden text-xs text-red-500 mt-1">
+                  {language === 'vi' ? 'Không thể tải logo' : 'Failed to load logo'}
+                </div>
               </div>
             )}
           </div>
