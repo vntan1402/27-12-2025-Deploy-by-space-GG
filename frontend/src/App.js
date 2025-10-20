@@ -10633,7 +10633,7 @@ const HomePage = () => {
                                         onClick={() => {
                                           setEditingSurveyReport({
                                             ...report,
-                                            issued_date: report.issued_date ? new Date(report.issued_date).toISOString().split('T')[0] : ''
+                                            issued_date: report.issued_date ? report.issued_date.split('T')[0] : ''
                                           });
                                           setShowEditSurveyModal(true);
                                         }}
