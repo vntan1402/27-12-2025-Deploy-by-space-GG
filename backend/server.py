@@ -615,6 +615,7 @@ class CompanyUpdate(BaseModel):
     gmail: Optional[str] = None
     zalo: Optional[str] = None
     system_expiry: Optional[Union[str, datetime]] = None
+    logo_url: Optional[str] = None
     # Legacy fields for backward compatibility
     name: Optional[str] = None
     address: Optional[str] = None
