@@ -1879,9 +1879,9 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
-  // Fetch survey reports when ship is selected and on inspection_records submenu
+  // Fetch survey reports when ship is selected and on class_survey_reports submenu
   useEffect(() => {
-    if (selectedShip && selectedSubMenu === 'inspection_records') {
+    if (selectedShip && selectedSubMenu === 'class_survey_reports') {
       fetchSurveyReports(selectedShip.id);
     }
   }, [selectedShip, selectedSubMenu]);
