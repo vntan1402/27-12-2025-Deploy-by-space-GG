@@ -3658,6 +3658,54 @@ async def update_company(company_id: str, company_data: CompanyUpdate, current_u
         logger.error(f"Error updating company: {e}")
         raise HTTPException(status_code=500, detail="Failed to update company")
 
+@api_router.post("/companies/{company_id}/upload-logo")
+async def upload_company_logo(
+    company_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Upload company logo and save to local storage"""
+    try:
+        # Check if company exists
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = "/app/backend/uploads/company_logos"
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        file_extension = file.filename.split('.')[-1]
+        filename = f"{company_id}_{int(time.time())}.{file_extension}"
+        file_path = os.path.join(upload_dir, filename)
+        
+        # Save file
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
+        
+        # Update company with logo URL
+        logo_url = f"/uploads/company_logos/{filename}"
+        await mongo_db.update("companies", {"id": company_id}, {"logo_url": logo_url})
+        
+        logger.info(f"Company logo uploaded successfully: {logo_url}")
+        
+        return {
+            "logo_url": logo_url,
+            "message": "Company logo uploaded successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading company logo: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload company logo: {str(e)}")
+
 @api_router.get("/ships/{ship_id}/gdrive-folder-status")
 async def get_ship_gdrive_folder_status(ship_id: str, current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     """Get Google Drive folder creation status for a ship"""
