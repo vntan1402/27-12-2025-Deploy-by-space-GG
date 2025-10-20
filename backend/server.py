@@ -909,6 +909,39 @@ class CertificateResponse(BaseModel):
         # If not string or datetime, return None
         return None
 
+# Survey Report models
+class SurveyReportBase(BaseModel):
+    ship_id: str
+    survey_report_name: str
+    survey_report_no: Optional[str] = None
+    issued_date: Optional[datetime] = None
+    issued_by: Optional[str] = None
+    status: Optional[str] = "Valid"  # Valid, Expired, Pending, etc.
+    note: Optional[str] = None
+
+class SurveyReportCreate(SurveyReportBase):
+    pass
+
+class SurveyReportUpdate(BaseModel):
+    survey_report_name: Optional[str] = None
+    survey_report_no: Optional[str] = None
+    issued_date: Optional[datetime] = None
+    issued_by: Optional[str] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+
+class SurveyReportResponse(BaseModel):
+    id: str
+    ship_id: str
+    survey_report_name: str
+    survey_report_no: Optional[str] = None
+    issued_date: Optional[datetime] = None
+    issued_by: Optional[str] = None
+    status: Optional[str] = "Valid"
+    note: Optional[str] = None
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
     service_account_json: str
