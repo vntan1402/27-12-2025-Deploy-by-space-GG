@@ -11253,6 +11253,253 @@ const HomePage = () => {
                     </div>
                   )}
                   
+                  {/* Add Survey Report Modal */}
+                  {showAddSurveyModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
+                      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="mb-6">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">
+                            {language === 'vi' ? 'Thêm Báo cáo Survey mới' : 'Add New Survey Report'}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            {language === 'vi' ? 'Nhập thông tin báo cáo survey' : 'Enter survey report information'}
+                          </p>
+                        </div>
+
+                        <form className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Báo cáo Survey' : 'Survey Report Name'} *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={newSurveyReport.survey_report_name}
+                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, survey_report_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Annual Survey Report' : 'e.g. Annual Survey Report'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số Báo cáo Survey' : 'Survey Report No.'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newSurveyReport.survey_report_no}
+                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, survey_report_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: SR-2025-001' : 'e.g. SR-2025-001'}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày cấp' : 'Issued Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={newSurveyReport.issued_date}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, issued_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tình trạng' : 'Status'}
+                              </label>
+                              <select
+                                value={newSurveyReport.status}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                                <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="Pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newSurveyReport.issued_by}
+                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, issued_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={newSurveyReport.note}
+                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                              placeholder={language === 'vi' ? 'Nhập ghi chú (không bắt buộc)' : 'Enter note (optional)'}
+                            />
+                          </div>
+
+                          <div className="flex justify-end gap-3 pt-4 border-t">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowAddSurveyModal(false);
+                                setNewSurveyReport({
+                                  survey_report_name: '',
+                                  survey_report_no: '',
+                                  issued_date: '',
+                                  issued_by: '',
+                                  status: 'Valid',
+                                  note: ''
+                                });
+                              }}
+                              className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Hủy' : 'Cancel'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleAddSurveyReport}
+                              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Thêm' : 'Add'}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Edit Survey Report Modal */}
+                  {showEditSurveyModal && editingSurveyReport && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
+                      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="mb-6">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">
+                            {language === 'vi' ? 'Chỉnh sửa Báo cáo Survey' : 'Edit Survey Report'}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            {language === 'vi' ? 'Cập nhật thông tin báo cáo survey' : 'Update survey report information'}
+                          </p>
+                        </div>
+
+                        <form className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Báo cáo Survey' : 'Survey Report Name'} *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={editingSurveyReport.survey_report_name}
+                              onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, survey_report_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Annual Survey Report' : 'e.g. Annual Survey Report'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số Báo cáo Survey' : 'Survey Report No.'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingSurveyReport.survey_report_no || ''}
+                              onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, survey_report_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: SR-2025-001' : 'e.g. SR-2025-001'}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày cấp' : 'Issued Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingSurveyReport.issued_date || ''}
+                                onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, issued_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tình trạng' : 'Status'}
+                              </label>
+                              <select
+                                value={editingSurveyReport.status || 'Valid'}
+                                onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                                <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="Pending">{language === 'vi' ? 'Đang chờ' : 'Pending'}</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingSurveyReport.issued_by || ''}
+                              onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, issued_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={editingSurveyReport.note || ''}
+                              onChange={(e) => setEditingSurveyReport(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                              placeholder={language === 'vi' ? 'Nhập ghi chú (không bắt buộc)' : 'Enter note (optional)'}
+                            />
+                          </div>
+
+                          <div className="flex justify-end gap-3 pt-4 border-t">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowEditSurveyModal(false);
+                                setEditingSurveyReport(null);
+                              }}
+                              className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Hủy' : 'Cancel'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleUpdateSurveyReport}
+                              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Cập nhật' : 'Update'}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Crew Records Section */}
                   {selectedCategory === 'crew' ? (
                     <div className="space-y-6">
