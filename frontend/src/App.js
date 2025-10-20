@@ -4289,6 +4289,163 @@ const HomePage = () => {
     }
   };
 
+  // Survey Report Functions
+  const fetchSurveyReports = async (shipId) => {
+    try {
+      const response = await axios.get(`${API}/survey-reports?ship_id=${shipId}`);
+      setSurveyReports(response.data);
+    } catch (error) {
+      console.error('Failed to fetch survey reports:', error);
+      setSurveyReports([]);
+    }
+  };
+
+  const handleSurveyReportSort = (column) => {
+    setSurveyReportSort(prev => ({
+      column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getFilteredSurveyReports = () => {
+    let filtered = [...surveyReports];
+
+    // Apply status filter
+    if (surveyReportFilters.status !== 'all') {
+      filtered = filtered.filter(report => 
+        report.status && report.status.toLowerCase() === surveyReportFilters.status.toLowerCase()
+      );
+    }
+
+    // Apply search filter
+    if (surveyReportFilters.search) {
+      const searchLower = surveyReportFilters.search.toLowerCase();
+      filtered = filtered.filter(report =>
+        (report.survey_report_name && report.survey_report_name.toLowerCase().includes(searchLower)) ||
+        (report.survey_report_no && report.survey_report_no.toLowerCase().includes(searchLower)) ||
+        (report.issued_by && report.issued_by.toLowerCase().includes(searchLower)) ||
+        (report.note && report.note.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply sorting
+    if (surveyReportSort.column) {
+      filtered.sort((a, b) => {
+        let aValue = a[surveyReportSort.column] || '';
+        let bValue = b[surveyReportSort.column] || '';
+
+        // Handle date sorting
+        if (surveyReportSort.column === 'issued_date') {
+          aValue = a.issued_date ? new Date(a.issued_date).getTime() : 0;
+          bValue = b.issued_date ? new Date(b.issued_date).getTime() : 0;
+        } else {
+          // String comparison
+          aValue = String(aValue).toLowerCase();
+          bValue = String(bValue).toLowerCase();
+        }
+
+        if (aValue < bValue) return surveyReportSort.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return surveyReportSort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  };
+
+  const handleAddSurveyReport = async () => {
+    try {
+      if (!selectedShip) {
+        toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+        return;
+      }
+
+      if (!newSurveyReport.survey_report_name) {
+        toast.error(language === 'vi' ? 'Vui lòng nhập tên báo cáo survey' : 'Please enter survey report name');
+        return;
+      }
+
+      const reportData = {
+        ship_id: selectedShip.id,
+        survey_report_name: newSurveyReport.survey_report_name,
+        survey_report_no: newSurveyReport.survey_report_no || null,
+        issued_date: newSurveyReport.issued_date ? new Date(newSurveyReport.issued_date).toISOString() : null,
+        issued_by: newSurveyReport.issued_by || null,
+        status: newSurveyReport.status || 'Valid',
+        note: newSurveyReport.note || null
+      };
+
+      await axios.post(`${API}/survey-reports`, reportData);
+      toast.success(language === 'vi' ? 'Đã thêm báo cáo survey' : 'Survey report added successfully');
+      
+      // Reset form and close modal
+      setNewSurveyReport({
+        survey_report_name: '',
+        survey_report_no: '',
+        issued_date: '',
+        issued_by: '',
+        status: 'Valid',
+        note: ''
+      });
+      setShowAddSurveyModal(false);
+      
+      // Refresh survey reports list
+      await fetchSurveyReports(selectedShip.id);
+    } catch (error) {
+      console.error('Failed to add survey report:', error);
+      toast.error(language === 'vi' ? 'Không thể thêm báo cáo survey' : 'Failed to add survey report');
+    }
+  };
+
+  const handleUpdateSurveyReport = async () => {
+    try {
+      if (!editingSurveyReport) return;
+
+      const updateData = {
+        survey_report_name: editingSurveyReport.survey_report_name,
+        survey_report_no: editingSurveyReport.survey_report_no || null,
+        issued_date: editingSurveyReport.issued_date ? new Date(editingSurveyReport.issued_date).toISOString() : null,
+        issued_by: editingSurveyReport.issued_by || null,
+        status: editingSurveyReport.status || 'Valid',
+        note: editingSurveyReport.note || null
+      };
+
+      await axios.put(`${API}/survey-reports/${editingSurveyReport.id}`, updateData);
+      toast.success(language === 'vi' ? 'Đã cập nhật báo cáo survey' : 'Survey report updated successfully');
+      
+      // Close modal and reset
+      setShowEditSurveyModal(false);
+      setEditingSurveyReport(null);
+      
+      // Refresh survey reports list
+      if (selectedShip) {
+        await fetchSurveyReports(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to update survey report:', error);
+      toast.error(language === 'vi' ? 'Không thể cập nhật báo cáo survey' : 'Failed to update survey report');
+    }
+  };
+
+  const handleDeleteSurveyReport = async (reportId) => {
+    if (!window.confirm(language === 'vi' ? 'Bạn có chắc muốn xóa báo cáo survey này?' : 'Are you sure you want to delete this survey report?')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/survey-reports/${reportId}`);
+      toast.success(language === 'vi' ? 'Đã xóa báo cáo survey' : 'Survey report deleted successfully');
+      
+      // Refresh survey reports list
+      if (selectedShip) {
+        await fetchSurveyReports(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to delete survey report:', error);
+      toast.error(language === 'vi' ? 'Không thể xóa báo cáo survey' : 'Failed to delete survey report');
+    }
+  };
+
   // Context Menu Functions
   const handleCertificateRightClick = (e, certificate) => {
     e.preventDefault();
