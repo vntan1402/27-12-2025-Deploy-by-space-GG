@@ -11145,8 +11145,9 @@ const HomePage = () => {
                                   <td className="border border-gray-300 px-4 py-2 text-center">
                                     {report.note ? (
                                       <span 
-                                        className="text-red-600 text-lg font-bold cursor-help"
-                                        title={report.note}
+                                        className="text-red-600 text-lg font-bold cursor-help relative"
+                                        onMouseEnter={(e) => handleNoteMouseEnter(e, report.note)}
+                                        onMouseLeave={handleNoteMouseLeave}
                                       >
                                         *
                                       </span>
