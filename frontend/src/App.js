@@ -11064,10 +11064,10 @@ const HomePage = () => {
                                 </div>
                               </th>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                className="border border-gray-300 px-4 py-2 text-center cursor-pointer hover:bg-gray-100"
                                 onClick={() => handleSurveyReportSort('note')}
                               >
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-center">
                                   <span>{language === 'vi' ? 'Ghi chú' : 'Note'}</span>
                                   {surveyReportSort.column === 'note' && (
                                     <span className="ml-1 text-blue-600 text-sm font-bold">
