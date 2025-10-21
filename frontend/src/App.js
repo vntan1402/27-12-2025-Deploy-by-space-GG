@@ -11216,15 +11216,17 @@ const HomePage = () => {
                                   onContextMenu={(e) => handleSurveyReportContextMenu(e, report)}
                                 >
                                   <td className="border border-gray-300 px-4 py-2 text-center">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedSurveyReports.has(report.id)}
-                                      onChange={() => handleSurveyReportSelect(report.id)}
-                                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
+                                    <div className="flex items-center justify-center space-x-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedSurveyReports.has(report.id)}
+                                        onChange={() => handleSurveyReportSelect(report.id)}
+                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                      <span className="font-bold">{index + 1}</span>
+                                    </div>
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2 text-center font-bold">{index + 1}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.survey_report_name}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
