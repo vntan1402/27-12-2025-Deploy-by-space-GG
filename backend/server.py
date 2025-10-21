@@ -943,7 +943,7 @@ class SurveyReportResponse(BaseModel):
     note: Optional[str] = None
     surveyor_name: Optional[str] = None  # NEW: Surveyor name
     survey_report_file_id: Optional[str] = None  # NEW: Google Drive file ID for original
-    survey_summary_file_id: Optional[str] = None  # NEW: Google Drive file ID for summary
+    survey_report_summary_file_id: Optional[str] = None  # NEW: Google Drive file ID for summary
     created_at: datetime
     updated_at: Optional[datetime] = None
     
