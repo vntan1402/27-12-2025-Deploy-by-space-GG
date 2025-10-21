@@ -1423,6 +1423,15 @@ const HomePage = () => {
     y: 0,
     report: null
   });
+  
+  // Survey Report Note Tooltip
+  const [surveyReportNoteTooltip, setSurveyReportNoteTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: ''
+  });
+
 
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
