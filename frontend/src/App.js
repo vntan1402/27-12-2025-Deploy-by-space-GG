@@ -11278,18 +11278,20 @@ const HomePage = () => {
                   {/* Survey Report Note Tooltip */}
                   {surveyReportNoteTooltip.show && (
                     <div 
-                      className="fixed bg-gray-900 text-white px-3 py-2 rounded-md shadow-xl z-[100] pointer-events-none"
+                      className="fixed bg-gray-900 text-white px-4 py-2 rounded-md shadow-xl z-[100] pointer-events-none"
                       style={{
                         position: 'fixed',
                         top: `${surveyReportNoteTooltip.y}px`,
                         left: `${surveyReportNoteTooltip.x}px`,
                         transform: surveyReportNoteTooltip.showBelow ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)',
-                        maxWidth: '300px',
-                        minWidth: '150px',
+                        width: `${surveyReportNoteTooltip.width}px`,
+                        maxHeight: '8.4rem', // 6 lines * 1.4rem line-height
                         fontSize: '0.9rem',
                         lineHeight: '1.4rem',
                         whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word'
+                        wordBreak: 'break-word',
+                        overflowY: 'auto', // Scrollbar if content exceeds 6 lines
+                        overflowX: 'hidden'
                       }}
                     >
                       {surveyReportNoteTooltip.content}
