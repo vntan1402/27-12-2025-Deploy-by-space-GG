@@ -1519,6 +1519,38 @@ const HomePage = () => {
     return selectedVisible.length > 0 && selectedVisible.length < visibleCerts.length;
   };
 
+  // Survey Report Selection Handlers
+  const handleSelectAllSurveyReports = (checked) => {
+    if (checked) {
+      const allVisibleIds = new Set(getFilteredSurveyReports().map(report => report.id));
+      setSelectedSurveyReports(allVisibleIds);
+    } else {
+      setSelectedSurveyReports(new Set());
+    }
+  };
+
+  const isSurveyReportsAllSelected = () => {
+    const visibleReports = getFilteredSurveyReports();
+    return visibleReports.length > 0 && visibleReports.every(report => selectedSurveyReports.has(report.id));
+  };
+
+  const isSurveyReportsIndeterminate = () => {
+    const visibleReports = getFilteredSurveyReports();
+    const selectedVisible = visibleReports.filter(report => selectedSurveyReports.has(report.id));
+    return selectedVisible.length > 0 && selectedVisible.length < visibleReports.length;
+  };
+
+  const handleSurveyReportSelect = (reportId) => {
+    const newSelected = new Set(selectedSurveyReports);
+    if (newSelected.has(reportId)) {
+      newSelected.delete(reportId);
+    } else {
+      newSelected.add(reportId);
+    }
+    setSelectedSurveyReports(newSelected);
+  };
+
+
   // Column resize functionality
   useEffect(() => {
     let activeColumn = null;
