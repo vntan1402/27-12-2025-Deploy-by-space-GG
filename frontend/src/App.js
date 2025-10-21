@@ -4619,16 +4619,26 @@ const HomePage = () => {
     if (note) {
       const rect = e.currentTarget.getBoundingClientRect();
       
-      // Get table width for max width constraint
+      // Get table width for tooltip max width
       const tableElement = e.currentTarget.closest('table');
       const tableWidth = tableElement ? tableElement.offsetWidth : 800;
-      const maxTooltipWidth = Math.min(tableWidth * 0.8, 600); // Max 80% of table or 600px
       
+      const tooltipWidth = Math.min(tableWidth - 40, window.innerWidth - 40); // 20px margin on each side
       const tooltipHeight = 150; // Approximate height for 6 lines
       
       // Calculate position - prefer showing above, but adjust if needed
       let x = rect.left + rect.width / 2;
       let y = rect.top - 10;
+      
+      // Check if tooltip would go off left edge
+      if (x - tooltipWidth / 2 < 20) {
+        x = tooltipWidth / 2 + 20;
+      }
+      
+      // Check if tooltip would go off right edge
+      if (x + tooltipWidth / 2 > window.innerWidth - 20) {
+        x = window.innerWidth - tooltipWidth / 2 - 20;
+      }
       
       // Check if tooltip would go off top edge
       if (y - tooltipHeight < 10) {
@@ -4642,7 +4652,7 @@ const HomePage = () => {
         y: y,
         content: note,
         showBelow: y === rect.bottom + 10,
-        maxWidth: maxTooltipWidth
+        width: tooltipWidth
       });
     }
   };
