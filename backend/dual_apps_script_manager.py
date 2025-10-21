@@ -670,6 +670,69 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
     
+    async def analyze_survey_report_only(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        document_ai_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Analyze survey report using Document AI WITHOUT uploading to Drive
+        Used for batch processing where upload happens only after successful DB save
+        
+        Args:
+            file_content: Survey report file content
+            filename: File name
+            content_type: MIME type
+            document_ai_config: Document AI configuration
+            
+        Returns:
+            dict: Analysis results only (no file IDs)
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
+            
+            # Document AI Analysis via System Apps Script ONLY
+            logger.info("📡 Survey report analysis via System Apps Script...")
+            ai_result = await self._call_system_apps_script_for_ai(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                document_ai_config=document_ai_config,
+                action="analyze_maritime_document_ai"  # Use maritime document action for survey reports
+            )
+            
+            if not ai_result.get('success'):
+                logger.error(f"❌ Survey Report Document AI analysis failed: {ai_result.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Survey Report Document AI analysis failed',
+                    'error': ai_result.get('message'),
+                    'step': 'document_ai_analysis'
+                }
+            
+            logger.info("✅ Survey report analysis completed successfully (no upload)")
+            return {
+                'success': True,
+                'message': 'Survey report analysis completed successfully',
+                'ai_analysis': ai_result,
+                'processing_method': 'analysis_only',
+                'workflow': 'system_ai_analysis_without_upload'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error in survey report analysis: {e}")
+            return {
+                'success': False,
+                'message': f'Survey report analysis failed: {str(e)}',
+                'error': str(e)
+            }
+    
+
     async def upload_certificate_files(
         self,
         cert_file_content: bytes,
