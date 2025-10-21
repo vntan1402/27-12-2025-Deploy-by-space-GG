@@ -21,9 +21,9 @@ try:
                 BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                 break
         else:
-            BACKEND_URL = "https://nautical-crew-hub.preview.emergentagent.com/api"
+            BACKEND_URL = "https://shipsurvey-ai.preview.emergentagent.com/api"
 except:
-    BACKEND_URL = "https://nautical-crew-hub.preview.emergentagent.com/api"
+    BACKEND_URL = "https://shipsurvey-ai.preview.emergentagent.com/api"
 
 class RecalculateDockingDatesTester:
     def __init__(self):

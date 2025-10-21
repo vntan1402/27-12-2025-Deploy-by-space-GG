@@ -20,7 +20,7 @@ import time
 import traceback
 
 # Configuration - Use external URL from frontend/.env
-BACKEND_URL = "https://nautical-crew-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipsurvey-ai.preview.emergentagent.com/api"
 
 class AnniversaryDateDebugTester:
     def __init__(self):

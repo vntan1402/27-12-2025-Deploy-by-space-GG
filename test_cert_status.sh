@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://nautical-crew-hub.preview.emergentagent.com/api"
+API_URL="https://shipsurvey-ai.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
