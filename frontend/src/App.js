@@ -11278,7 +11278,7 @@ const HomePage = () => {
                   {/* Survey Report Note Tooltip */}
                   {surveyReportNoteTooltip.show && (
                     <div 
-                      className="fixed bg-gray-100 text-gray-800 px-4 py-2 rounded-md shadow-xl z-[100] pointer-events-none border border-gray-300"
+                      className="fixed bg-gray-100 text-gray-800 px-4 py-2 rounded-md shadow-xl z-[100] pointer-events-none"
                       style={{
                         position: 'fixed',
                         top: `${surveyReportNoteTooltip.y}px`,
@@ -11291,23 +11291,25 @@ const HomePage = () => {
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-word',
                         overflowY: 'auto', // Scrollbar if content exceeds 6 lines
-                        overflowX: 'hidden'
+                        overflowX: 'hidden',
+                        border: '2px solid #9CA3AF' // Gray-400 - darker border
                       }}
                     >
                       {surveyReportNoteTooltip.content}
                       {/* Tooltip Arrow */}
                       <div 
-                        className="absolute bg-gray-100 border-gray-300"
+                        className="absolute bg-gray-100"
                         style={{
-                          [surveyReportNoteTooltip.showBelow ? 'top' : 'bottom']: '-4px',
+                          [surveyReportNoteTooltip.showBelow ? 'top' : 'bottom']: '-5px',
                           left: '50%',
                           transform: 'translateX(-50%) rotate(45deg)',
-                          width: '8px',
-                          height: '8px',
-                          borderTop: surveyReportNoteTooltip.showBelow ? '1px solid' : 'none',
-                          borderLeft: surveyReportNoteTooltip.showBelow ? '1px solid' : 'none',
-                          borderBottom: !surveyReportNoteTooltip.showBelow ? '1px solid' : 'none',
-                          borderRight: !surveyReportNoteTooltip.showBelow ? '1px solid' : 'none'
+                          width: '10px',
+                          height: '10px',
+                          border: '2px solid #9CA3AF',
+                          borderTop: surveyReportNoteTooltip.showBelow ? '2px solid #9CA3AF' : 'none',
+                          borderLeft: surveyReportNoteTooltip.showBelow ? '2px solid #9CA3AF' : 'none',
+                          borderBottom: !surveyReportNoteTooltip.showBelow ? '2px solid #9CA3AF' : 'none',
+                          borderRight: !surveyReportNoteTooltip.showBelow ? '2px solid #9CA3AF' : 'none'
                         }}
                       />
                     </div>
