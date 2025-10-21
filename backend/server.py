@@ -5469,6 +5469,57 @@ async def analyze_survey_report_file(
         logger.error(f"Error traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to analyze survey report: {str(e)}")
 
+@api_router.post("/survey-reports/check-duplicate")
+async def check_duplicate_survey_report(
+    ship_id: str = Body(...),
+    survey_report_no: str = Body(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Check if a survey report with the same ship_id and survey_report_no already exists
+    Used in batch processing to avoid duplicate entries
+    """
+    try:
+        if not survey_report_no or not survey_report_no.strip():
+            # If no survey_report_no provided, cannot check duplicate
+            return {
+                "is_duplicate": False,
+                "message": "No survey report number provided"
+            }
+        
+        # Check if survey report exists
+        existing_report = await mongo_db.find_one("survey_reports", {
+            "ship_id": ship_id,
+            "survey_report_no": survey_report_no.strip()
+        })
+        
+        if existing_report:
+            logger.info(f"🔍 Duplicate survey report found: {survey_report_no} for ship {ship_id}")
+            return {
+                "is_duplicate": True,
+                "existing_report": {
+                    "id": existing_report.get("id"),
+                    "survey_report_name": existing_report.get("survey_report_name"),
+                    "survey_report_no": existing_report.get("survey_report_no"),
+                    "issued_date": existing_report.get("issued_date"),
+                    "issued_by": existing_report.get("issued_by"),
+                    "created_at": existing_report.get("created_at")
+                }
+            }
+        else:
+            return {
+                "is_duplicate": False,
+                "message": "No duplicate found"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking duplicate survey report: {e}")
+        # Don't fail on duplicate check error, just return false
+        return {
+            "is_duplicate": False,
+            "error": str(e)
+        }
+
 @api_router.post("/survey-reports/{report_id}/upload-files")
 async def upload_survey_report_files(
     report_id: str,
