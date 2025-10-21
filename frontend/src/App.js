@@ -11214,7 +11214,7 @@ const HomePage = () => {
                           <tbody>
                             {getFilteredSurveyReports().length === 0 ? (
                               <tr>
-                                <td colSpan="8" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                <td colSpan="9" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
                                   {surveyReports.length === 0 
                                     ? (language === 'vi' ? 'Chưa có báo cáo survey nào' : 'No survey reports available')
                                     : (language === 'vi' ? 'Không có báo cáo survey nào phù hợp với bộ lọc' : 'No survey reports match the current filters')
