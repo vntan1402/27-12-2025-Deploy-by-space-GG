@@ -1429,7 +1429,8 @@ const HomePage = () => {
     show: false,
     x: 0,
     y: 0,
-    content: ''
+    content: '',
+    showBelow: false
   });
 
 
