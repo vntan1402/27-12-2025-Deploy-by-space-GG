@@ -53,8 +53,10 @@
     - "Auto Move Standby Files Feature"
     - "Standby Crew Folder Detection Enhancement"
     - "Standby Crew Certificate File Upload Issue Investigation"
+    - "Survey Report AI Analysis Testing"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
+    - "Survey Report AI Analysis Testing"
   test_all: false
   test_priority: "high_first"
 
