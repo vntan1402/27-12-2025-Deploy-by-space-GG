@@ -11285,12 +11285,12 @@ const HomePage = () => {
                         left: `${surveyReportNoteTooltip.x}px`,
                         transform: surveyReportNoteTooltip.showBelow ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)',
                         width: `${surveyReportNoteTooltip.width}px`,
-                        maxHeight: '8.4rem', // 6 lines * 1.4rem line-height
+                        maxHeight: '14rem', // 10 lines * 1.4rem line-height
                         fontSize: '0.9rem',
                         lineHeight: '1.4rem',
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-word',
-                        overflowY: 'auto', // Scrollbar if content exceeds 6 lines
+                        overflowY: 'auto', // Scrollbar if content exceeds 10 lines
                         overflowX: 'hidden',
                         border: '2px solid #9CA3AF' // Gray-400 - darker border
                       }}
