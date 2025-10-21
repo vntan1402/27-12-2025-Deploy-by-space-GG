@@ -4558,40 +4558,57 @@ const HomePage = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      if (response.data.success) {
-        let analysis = response.data.analysis;
+      // Check for validation error (ship mismatch)
+      if (response.data.validation_error) {
+        // Ship info mismatch - ask user
+        const shouldContinue = window.confirm(
+          `${language === 'vi' ? 'Cảnh báo: Thông tin tàu không khớp!' : 'Warning: Ship information mismatch!'}\n\n` +
+          `${language === 'vi' ? 'Trích xuất từ file:' : 'Extracted from file:'}\n` +
+          `  - ${language === 'vi' ? 'Tên tàu:' : 'Ship Name:'} ${response.data.extracted_ship_name || 'N/A'}\n` +
+          `  - ${language === 'vi' ? 'IMO:' : 'IMO:'} ${response.data.extracted_ship_imo || 'N/A'}\n\n` +
+          `${language === 'vi' ? 'Tàu đã chọn:' : 'Selected ship:'}\n` +
+          `  - ${language === 'vi' ? 'Tên tàu:' : 'Ship Name:'} ${response.data.selected_ship_name}\n` +
+          `  - ${language === 'vi' ? 'IMO:' : 'IMO:'} ${response.data.selected_ship_imo}\n\n` +
+          `${language === 'vi' ? 'Bạn có muốn tiếp tục?' : 'Do you want to continue anyway?'}`
+        );
         
-        // Check for validation error
-        if (response.data.validation_error) {
-          // Ship info mismatch - ask user
-          const shouldContinue = window.confirm(
-            `${language === 'vi' ? 'Cảnh báo: Thông tin tàu không khớp!' : 'Warning: Ship information mismatch!'}\n\n` +
-            `${language === 'vi' ? 'Trích xuất từ file:' : 'Extracted from file:'}\n` +
-            `  - ${language === 'vi' ? 'Tên tàu:' : 'Ship Name:'} ${response.data.extracted_ship_name || 'N/A'}\n` +
-            `  - ${language === 'vi' ? 'IMO:' : 'IMO:'} ${response.data.extracted_ship_imo || 'N/A'}\n\n` +
-            `${language === 'vi' ? 'Tàu đã chọn:' : 'Selected ship:'}\n` +
-            `  - ${language === 'vi' ? 'Tên tàu:' : 'Ship Name:'} ${response.data.selected_ship_name}\n` +
-            `  - ${language === 'vi' ? 'IMO:' : 'IMO:'} ${response.data.selected_ship_imo}\n\n` +
-            `${language === 'vi' ? 'Bạn có muốn tiếp tục?' : 'Do you want to continue anyway?'}`
-          );
-          
-          if (!shouldContinue) {
-            setIsAnalyzingSurveyReport(false);
-            return;
-          }
-          
-          // Retry with bypass validation
-          formData.set('bypass_validation', 'true');
-          const retryResponse = await axios.post(`${API}/survey-reports/analyze-file`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-          
-          if (!retryResponse.data.success) {
-            throw new Error('Analysis failed after bypass');
-          }
-          
-          analysis = retryResponse.data.analysis;
+        if (!shouldContinue) {
+          setIsAnalyzingSurveyReport(false);
+          return;
         }
+        
+        // Retry with bypass validation
+        formData.set('bypass_validation', 'true');
+        const retryResponse = await axios.post(`${API}/survey-reports/analyze-file`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        if (!retryResponse.data.success) {
+          throw new Error('Analysis failed after bypass');
+        }
+        
+        // Use retry response analysis
+        const analysis = retryResponse.data.analysis;
+        
+        // Populate form with extracted data
+        setNewSurveyReport({
+          survey_report_name: analysis.survey_report_name || '',
+          survey_report_no: analysis.survey_report_no || '',
+          issued_date: analysis.issued_date || '',
+          issued_by: analysis.issued_by || '',
+          status: analysis.status || 'Valid',
+          note: analysis.note || ''
+        });
+        
+        // Store analysis data for later upload
+        setAnalyzedSurveyReportData(analysis);
+        setSurveyReportFiles([file]);
+        
+        toast.success(language === 'vi' ? 'Đã phân tích file thành công! Vui lòng kiểm tra và xác nhận.' : 'File analyzed successfully! Please review and confirm.');
+        
+      } else if (response.data.success) {
+        // Success without validation error
+        const analysis = response.data.analysis;
         
         // Populate form with extracted data
         setNewSurveyReport({
