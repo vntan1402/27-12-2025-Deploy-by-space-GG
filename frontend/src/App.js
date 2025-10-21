@@ -4623,7 +4623,7 @@ const HomePage = () => {
       const tableElement = e.currentTarget.closest('table');
       const tableWidth = tableElement ? tableElement.offsetWidth : 800;
       
-      const tooltipWidth = Math.min(tableWidth - 40, window.innerWidth - 40); // 20px margin on each side
+      const tooltipWidth = Math.min(tableWidth / 2, window.innerWidth - 40); // Max 1/2 table width or viewport - 40px
       const tooltipHeight = 150; // Approximate height for 6 lines
       
       // Calculate position - prefer showing above, but adjust if needed
