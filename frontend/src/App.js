@@ -4593,6 +4593,29 @@ const HomePage = () => {
     await handleDeleteSurveyReport(report.id);
   };
 
+
+  // Survey Report Note Tooltip Handlers
+  const handleNoteMouseEnter = (e, note) => {
+    if (note) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setSurveyReportNoteTooltip({
+        show: true,
+        x: rect.left + rect.width / 2,
+        y: rect.top - 10,
+        content: note
+      });
+    }
+  };
+
+  const handleNoteMouseLeave = () => {
+    setSurveyReportNoteTooltip({
+      show: false,
+      x: 0,
+      y: 0,
+      content: ''
+    });
+  };
+
   // Survey Report File Upload Handlers
   const handleSurveyReportFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
