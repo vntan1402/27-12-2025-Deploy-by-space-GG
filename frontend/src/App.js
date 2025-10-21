@@ -4385,12 +4385,14 @@ const HomePage = () => {
       }
 
       const reportData = {
+        ship_id: selectedShip.id,  // REQUIRED: ship_id must be in request body, not just query params
         survey_report_name: newSurveyReport.survey_report_name,
         survey_report_no: newSurveyReport.survey_report_no || null,
         issued_date: newSurveyReport.issued_date ? convertDateInputToUTC(newSurveyReport.issued_date) : null,
         issued_by: newSurveyReport.issued_by || null,
         status: newSurveyReport.status || 'Valid',
-        note: newSurveyReport.note || null
+        note: newSurveyReport.note || null,
+        surveyor_name: newSurveyReport.surveyor_name || null  // Include surveyor_name from AI analysis
       };
 
       const createResponse = await axios.post(`${API}/survey-reports?ship_id=${selectedShip.id}`, reportData);
