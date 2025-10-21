@@ -1430,7 +1430,8 @@ const HomePage = () => {
     x: 0,
     y: 0,
     content: '',
-    showBelow: false
+    showBelow: false,
+    width: 300
   });
 
 
