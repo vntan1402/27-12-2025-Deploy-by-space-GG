@@ -4559,7 +4559,7 @@ const HomePage = () => {
       });
       
       if (response.data.success) {
-        const analysis = response.data.analysis;
+        let analysis = response.data.analysis;
         
         // Check for validation error
         if (response.data.validation_error) {
