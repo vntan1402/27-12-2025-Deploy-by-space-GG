@@ -4439,7 +4439,18 @@ const HomePage = () => {
       await fetchSurveyReports(selectedShip.id);
     } catch (error) {
       console.error('Failed to add survey report:', error);
-      toast.error(language === 'vi' ? 'Không thể thêm báo cáo survey' : 'Failed to add survey report');
+      // Handle Pydantic validation errors (array of objects) vs string errors
+      let errorMsg = language === 'vi' ? 'Không thể thêm báo cáo survey' : 'Failed to add survey report';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          // Pydantic validation error format: [{type, loc, msg, input, url}]
+          errorMsg = detail.map(err => err.msg).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMsg = detail;
+        }
+      }
+      toast.error(errorMsg);
     }
   };
 
