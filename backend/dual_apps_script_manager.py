@@ -979,14 +979,13 @@ class DualAppsScriptManager:
             
             # Upload original file to: ShipName/Class & Flag Cert/Class Survey Report/
             # Using upload_file_with_folder_creation action
-            # This will create the folder structure if it doesn't exist
+            # Category can be nested path: "Class & Flag Cert/Class Survey Report"
             
             survey_report_upload = await self._call_company_apps_script({
                 'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,  # ROOT folder
                 'ship_name': ship_name,  # Creates/finds ShipName folder
-                'category': 'Class & Flag Cert',  # Creates/finds Class & Flag Cert subfolder
-                'subcategory': 'Class Survey Report',  # Creates/finds Class Survey Report sub-subfolder
+                'category': 'Class & Flag Cert/Class Survey Report',  # Creates nested folder structure
                 'filename': filename,
                 'file_content': base64.b64encode(file_content).decode('utf-8'),
                 'content_type': content_type
