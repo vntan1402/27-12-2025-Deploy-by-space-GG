@@ -1,26 +1,36 @@
 #!/usr/bin/env python3
 """
-Survey Report AI Analysis Testing with Real PDF File
-Testing with BWM-CHECK LIST (11-23).pdf
+Survey Report AI Analysis Testing - RE-TEST after parameter mismatch bug fix
 
 REVIEW REQUEST REQUIREMENTS:
-Test Survey Report AI Analysis với file thực tế
+Test Survey Report AI Analysis with BWM-CHECK LIST file after fixing parameter mismatch bug
 
-**Objective:** Upload file BWM-CHECK LIST (11-23).pdf và xem Document AI trả về kết quả gì
+Quick Test Steps:
+1. Login: admin1/123456
+2. Get BROTHER 36 ship_id
+3. Download BWM-CHECK LIST file from: https://customer-assets.emergentagent.com/job_nautical-crew-hub/artifacts/ojykusfe_BWM-CHECK%20LIST%20%2811-23%29.pdf
+4. Analyze file: POST /api/survey-reports/analyze-file
 
-**Steps:**
-1. Login: POST /api/auth/login with admin1 / 123456
-2. Get Ship BROTHER 36: GET /api/ships, find ship with name "BROTHER 36", get ship_id
-3. Download Test File: URL: https://customer-assets.emergentagent.com/job_nautical-crew-hub/artifacts/ojykusfe_BWM-CHECK%20LIST%20%2811-23%29.pdf
-4. Analyze File: POST /api/survey-reports/analyze-file with FormData
-5. Check Response: Print FULL response structure and AI extraction results
-6. Verify: Check Document AI and System AI extraction results
+Focus on AI Extraction Results:
+- Print response.data.success
+- Print response.data.analysis (full object)
+- Print extracted fields:
+  - survey_report_name
+  - survey_report_no
+  - issued_by
+  - issued_date
+  - ship_name
+  - ship_imo
+  - surveyor_name
+  - note
+- Print _summary_text (first 1000 characters)
+- Check if fields are populated (not empty)
 
-Focus on:
-- Complete API response structure
-- What Document AI extracted from PDF
-- What System AI parsed from summary
-- Any errors or warnings
+Expected:
+- ✅ No parameter error
+- ✅ Document AI extraction working
+- ✅ System AI field extraction working
+- ✅ Fields populated with actual data from PDF
 """
 
 import requests
