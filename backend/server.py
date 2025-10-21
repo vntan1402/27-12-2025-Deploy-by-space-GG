@@ -4903,6 +4903,241 @@ async def get_all_certificates(current_user: UserResponse = Depends(get_current_
         logger.error(f"Error fetching all certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch certificates")
 
+# ==================== Survey Report Helper Functions ====================
+
+async def extract_survey_report_fields_from_summary(
+    summary_text: str,
+    ai_provider: str,
+    ai_model: str,
+    use_emergent_key: bool
+) -> dict:
+    """
+    Extract survey report fields from Document AI summary using System AI
+    Extracts: survey_report_name, survey_report_no, issued_by, issued_date, note, ship_name, ship_imo, surveyor_name
+    """
+    try:
+        logger.info(f"🤖 Extracting survey report fields from summary")
+        
+        # Create survey report extraction prompt
+        prompt = create_survey_report_extraction_prompt(summary_text)
+        
+        if not prompt:
+            logger.error(f"Failed to create survey report extraction prompt")
+            return {}
+        
+        # Use System AI for extraction
+        if use_emergent_key and ai_provider == "google":
+            try:
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                
+                emergent_key = get_emergent_llm_key()
+                chat = LlmChat(
+                    api_key=emergent_key,
+                    session_id=f"survey_extraction_{int(time.time())}",
+                    system_message="You are a maritime survey report analysis expert."
+                ).with_model("gemini", ai_model)
+                
+                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+                
+                user_message = UserMessage(text=prompt)
+                ai_response = await chat.send_message(user_message)
+                
+                if ai_response and ai_response.strip():
+                    content = ai_response.strip()
+                    logger.info(f"🤖 Survey Report AI response received")
+                    
+                    # Parse JSON response
+                    try:
+                        clean_content = content.replace('```json', '').replace('```', '').strip()
+                        extracted_data = json.loads(clean_content)
+                        
+                        # Standardize date format
+                        if extracted_data.get('issued_date'):
+                            try:
+                                # Parse and convert to ISO format
+                                from dateutil import parser
+                                parsed_date = parser.parse(extracted_data['issued_date'])
+                                extracted_data['issued_date'] = parsed_date.strftime('%Y-%m-%d')
+                            except Exception as date_error:
+                                logger.warning(f"Failed to parse issued_date: {date_error}")
+                        
+                        logger.info(f"✅ Survey report field extraction successful")
+                        logger.info(f"   📋 Survey Name: '{extracted_data.get('survey_report_name')}'")
+                        logger.info(f"   🔢 Survey No: '{extracted_data.get('survey_report_no')}'")
+                        logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name', 'NOT EXTRACTED')}'")
+                        logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
+                        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
+                        
+                        return extracted_data
+                        
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to parse survey report extraction JSON: {e}")
+                        return {}
+                else:
+                    logger.error("No content in survey report AI extraction response")
+                    return {}
+                    
+            except Exception as e:
+                logger.error(f"Survey report AI extraction error: {e}")
+                return {}
+        else:
+            logger.warning("AI extraction not supported for non-Emergent configurations")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Survey report field extraction error: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        return {}
+
+
+def create_survey_report_extraction_prompt(summary_text: str) -> str:
+    """
+    Create AI prompt for extracting survey report fields
+    """
+    prompt = f"""You are an AI specialized in maritime survey report information extraction.
+
+Your task:
+Analyze the following text summary of a maritime survey report and extract all key fields.
+
+=== INSTRUCTIONS ===
+1. Extract only the survey report fields listed below.
+2. Return the output strictly in valid JSON format.
+3. If a field is not found, leave it as an empty string "".
+4. Normalize all dates to ISO format "YYYY-MM-DD".
+5. Do not infer or fabricate any missing information.
+
+=== FIELD EXTRACTION RULES ===
+
+**survey_report_name**: 
+- Extract the type/name of the survey (e.g., "Annual Survey", "Special Survey", "Intermediate Survey", "Docking Survey")
+- Look for phrases like "Type of Survey", "Survey Type", "Survey Report"
+- Common survey types: Annual, Special, Intermediate, Docking, Renewal, Damage, Pre-purchase
+
+**survey_report_no**: 
+- Extract the report number or reference number
+- Look for "Report No.", "Report Number", "Reference No.", "Survey No."
+- May contain letters, numbers, dashes, slashes (e.g., "SR-2024-001", "AS/2024/123")
+
+**issued_by**: 
+- Extract the classification society or organization that issued this report
+- Common societies: Lloyd's Register, DNV, ABS, BV, Class NK, RINA, etc.
+- Look for "Classification Society", "Issued by", "Surveyor Society"
+
+**issued_date**: 
+- Extract the date when the report was issued/completed
+- Look for "Issued Date", "Report Date", "Date of Survey", "Completion Date"
+- Convert to ISO format "YYYY-MM-DD"
+
+**ship_name**: 
+- Extract the vessel name mentioned in the report
+- Look for "Vessel Name", "Ship Name", "Name of Vessel"
+- May include prefixes like "MV", "M/V", "MT", "M/T"
+
+**ship_imo**: 
+- Extract the IMO number (International Maritime Organization number)
+- Look for "IMO Number", "IMO No.", "IMO:"
+- Format: 7 digits (e.g., "9876543", "IMO 9876543")
+- Extract only the 7-digit number
+
+**surveyor_name**: 
+- Extract the name of the surveyor(s) who conducted the survey
+- Look for "Surveyor", "Surveyor Name", "Inspected by", "Attended by"
+- May be one or multiple names
+
+**note**: 
+- Extract any important findings, recommendations, or remarks
+- Look for "Findings", "Remarks", "Recommendations", "Observations"
+- Summarize key points if text is long (max 200 words)
+
+=== OUTPUT FORMAT ===
+Return ONLY a JSON object with these exact field names:
+{{
+  "survey_report_name": "",
+  "survey_report_no": "",
+  "issued_by": "",
+  "issued_date": "",
+  "ship_name": "",
+  "ship_imo": "",
+  "surveyor_name": "",
+  "note": ""
+}}
+
+=== DOCUMENT TEXT ===
+{summary_text}
+
+=== YOUR RESPONSE ===
+Extract the fields and return ONLY the JSON object (no other text):"""
+    
+    return prompt
+
+
+def validate_ship_info_match(
+    extracted_ship_name: str,
+    extracted_ship_imo: str,
+    actual_ship_name: str,
+    actual_ship_imo: str
+) -> Dict[str, Any]:
+    """
+    Validate if extracted ship info matches selected ship
+    Returns validation results with match status
+    """
+    try:
+        # Normalize names for comparison
+        def normalize_ship_name(name: str) -> str:
+            """Normalize ship name for comparison"""
+            import re
+            # Remove special characters, extra spaces, convert to uppercase
+            name = re.sub(r'[^\w\s]', '', name)  # Remove special chars
+            name = re.sub(r'\s+', ' ', name)  # Collapse spaces
+            # Remove common prefixes
+            name = re.sub(r'^(M/?V|M/?T)\s+', '', name, flags=re.IGNORECASE)
+            return name.upper().strip()
+        
+        # Normalize IMO (extract 7 digits only)
+        def normalize_imo(imo: str) -> str:
+            """Extract 7-digit IMO number"""
+            import re
+            digits = re.findall(r'\d{7}', imo)
+            return digits[0] if digits else ''
+        
+        # Normalize values
+        extracted_name_norm = normalize_ship_name(extracted_ship_name) if extracted_ship_name else ''
+        actual_name_norm = normalize_ship_name(actual_ship_name) if actual_ship_name else ''
+        
+        extracted_imo_norm = normalize_imo(extracted_ship_imo) if extracted_ship_imo else ''
+        actual_imo_norm = normalize_imo(actual_ship_imo) if actual_ship_imo else ''
+        
+        # Check matches
+        name_match = (extracted_name_norm == actual_name_norm) if extracted_name_norm and actual_name_norm else False
+        imo_match = (extracted_imo_norm == actual_imo_norm) if extracted_imo_norm and actual_imo_norm else False
+        
+        # Overall match: either name or IMO must match
+        overall_match = name_match or imo_match
+        
+        logger.info(f"🔍 Ship validation:")
+        logger.info(f"   Extracted: '{extracted_ship_name}' (normalized: '{extracted_name_norm}') | IMO: '{extracted_ship_imo}' (norm: '{extracted_imo_norm}')")
+        logger.info(f"   Selected:  '{actual_ship_name}' (normalized: '{actual_name_norm}') | IMO: '{actual_ship_imo}' (norm: '{actual_imo_norm}')")
+        logger.info(f"   Name Match: {name_match} | IMO Match: {imo_match} | Overall: {overall_match}")
+        
+        return {
+            "ship_name_match": name_match,
+            "ship_imo_match": imo_match,
+            "overall_match": overall_match,
+            "extracted_ship_name_normalized": extracted_name_norm,
+            "actual_ship_name_normalized": actual_name_norm,
+            "extracted_imo_normalized": extracted_imo_norm,
+            "actual_imo_normalized": actual_imo_norm
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in ship validation: {e}")
+        return {
+            "ship_name_match": False,
+            "ship_imo_match": False,
+            "overall_match": False,
+            "error": str(e)
+        }
+
 # Survey Report endpoints
 @api_router.get("/survey-reports", response_model=List[SurveyReportResponse])
 async def get_survey_reports(ship_id: Optional[str] = None, current_user: UserResponse = Depends(get_current_user)):
