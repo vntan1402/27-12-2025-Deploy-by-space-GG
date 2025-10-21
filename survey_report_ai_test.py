@@ -1,36 +1,29 @@
 #!/usr/bin/env python3
 """
-Survey Report AI Analysis Testing - RE-TEST after parameter mismatch bug fix
+Survey Report AI Analysis Testing - BWM-CHECK LIST FINAL TEST
 
 REVIEW REQUEST REQUIREMENTS:
-Test Survey Report AI Analysis with BWM-CHECK LIST file after fixing parameter mismatch bug
+FINAL TEST: Upload BWM-CHECK LIST và xem Document AI response chi tiết
 
-Quick Test Steps:
-1. Login: admin1/123456
-2. Get BROTHER 36 ship_id
-3. Download BWM-CHECK LIST file from: https://customer-assets.emergentagent.com/job_nautical-crew-hub/artifacts/ojykusfe_BWM-CHECK%20LIST%20%2811-23%29.pdf
-4. Analyze file: POST /api/survey-reports/analyze-file
+**Objective:** Test upload file thực tế và xem toàn bộ Document AI extraction results
 
-Focus on AI Extraction Results:
-- Print response.data.success
-- Print response.data.analysis (full object)
-- Print extracted fields:
-  - survey_report_name
-  - survey_report_no
-  - issued_by
-  - issued_date
-  - ship_name
-  - ship_imo
-  - surveyor_name
-  - note
-- Print _summary_text (first 1000 characters)
-- Check if fields are populated (not empty)
+**Steps:**
+1. **Setup:** Login: admin1/123456, Get BROTHER 36 ship_id
+2. **Download Test File:** URL: https://customer-assets.emergentagent.com/job_nautical-crew-hub/artifacts/ojykusfe_BWM-CHECK%20LIST%20%2811-23%29.pdf
+   Save to /tmp/bwm_check_list.pdf
+3. **Upload & Analyze:** POST /api/survey-reports/analyze-file
+   - FormData: survey_report_file: BWM-CHECK LIST (11-23).pdf, ship_id: {ship_id}, bypass_validation: true
+   - Set timeout: 180 seconds (3 minutes for AI processing)
+4. **Print FULL Response:** Complete API response with Document AI summary
+5. **Extract & Display Document AI Summary:** Get response.data.analysis._summary_text, Print FULL summary text (không truncate), Print summary length
+6. **Extract & Display System AI Fields:** Print each field with clear labels, Check if fields have actual values (not empty)
+7. **Verify:** Document AI extracted text successfully? System AI parsed fields successfully? Any validation errors? File content preserved for upload?
 
-Expected:
-- ✅ No parameter error
-- ✅ Document AI extraction working
-- ✅ System AI field extraction working
-- ✅ Fields populated with actual data from PDF
+**Focus:**
+- Complete raw response từ Document AI
+- Full summary text content  
+- What was actually extracted from PDF
+- Field extraction quality
 """
 
 import requests
