@@ -5348,14 +5348,13 @@ async def analyze_survey_report_file(
             # Upload will happen AFTER successful record creation
             logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
             
-            # Call System Apps Script for Document AI analysis only
-            # Using "analyze_maritime_document_ai" action for survey reports
-            analysis_only_result = await dual_manager._call_system_apps_script_for_ai(
+            # ✅ FIXED: Use analyze_survey_report_only() method (same as crew certificate workflow)
+            # This ensures _load_configuration() is called before analysis
+            analysis_only_result = await dual_manager.analyze_survey_report_only(
                 file_content=file_content,
                 filename=filename,
                 content_type=survey_report_file.content_type or 'application/octet-stream',
-                document_ai_config=document_ai_config,
-                action="analyze_maritime_document_ai"  # Use maritime document action for survey reports
+                document_ai_config=document_ai_config
             )
             
             if not analysis_only_result.get('success'):
