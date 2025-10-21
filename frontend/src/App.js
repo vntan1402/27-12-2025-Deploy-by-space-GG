@@ -1416,6 +1416,15 @@ const HomePage = () => {
   const [surveyReportBatchResults, setSurveyReportBatchResults] = useState([]);
   const [showSurveyReportProcessingResultsModal, setShowSurveyReportProcessingResultsModal] = useState(false);
   
+  // Survey Report Context Menu
+  const [surveyReportContextMenu, setSurveyReportContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    report: null
+  });
+
+  
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
 
   const getSortIcon = (column) => {
