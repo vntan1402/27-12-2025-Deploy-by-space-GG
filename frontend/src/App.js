@@ -4551,10 +4551,28 @@ const HomePage = () => {
   // Survey Report Context Menu Handlers
   const handleSurveyReportContextMenu = (e, report) => {
     e.preventDefault();
+    
+    // Calculate menu position ensuring it stays within viewport
+    const menuWidth = 180; // minWidth from CSS
+    const menuHeight = 200; // approximate height
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust if menu would go off right edge
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    
+    // Adjust if menu would go off bottom edge
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
     setSurveyReportContextMenu({
       show: true,
-      x: e.pageX,
-      y: e.pageY,
+      x: x,
+      y: y,
       report: report
     });
   };
