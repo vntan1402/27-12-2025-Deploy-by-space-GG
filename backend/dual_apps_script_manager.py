@@ -145,16 +145,24 @@ class DualAppsScriptManager:
         file_content: bytes, 
         filename: str, 
         content_type: str,
-        document_ai_config: Dict[str, Any]
+        document_ai_config: Dict[str, Any],
+        action: str = "analyze_passport_document_ai"  # Default to passport for backward compatibility
     ) -> Dict[str, Any]:
-        """Call System Apps Script for Document AI processing only"""
+        """
+        Call System Apps Script for Document AI processing only
+        
+        Args:
+            action: Apps Script action to call
+                - "analyze_passport_document_ai" for passports
+                - "analyze_maritime_document_ai" for survey reports / maritime documents
+        """
         try:
             if not self.system_apps_script_url:
                 raise ValueError("System Apps Script URL not configured")
             
             # Prepare payload for Document AI analysis only
             payload = {
-                "action": "analyze_passport_document_ai",
+                "action": action,  # Use dynamic action instead of hardcoded
                 "file_content": base64.b64encode(file_content).decode('utf-8'),
                 "filename": filename,
                 "content_type": content_type,
@@ -163,7 +171,7 @@ class DualAppsScriptManager:
                 "processor_id": document_ai_config.get("processor_id")
             }
             
-            logger.info(f"📡 Calling System Apps Script for Document AI: {filename}")
+            logger.info(f"📡 Calling System Apps Script for Document AI: {filename} (action: {action})")
             
             async with aiohttp.ClientSession() as session:
                 async with session.post(
