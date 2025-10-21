@@ -11104,16 +11104,18 @@ const HomePage = () => {
                           <thead className="bg-gray-50">
                             <tr>
                               <th 
-                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
-                                onClick={() => handleSurveyReportSort('id')}
+                                className="border border-gray-300 px-4 py-2 text-center"
                               >
-                                <div className="flex items-center justify-between">
-                                  <span>{language === 'vi' ? 'Số' : 'No.'}</span>
-                                  {surveyReportSort.column === 'id' && (
-                                    <span className="ml-1 text-blue-600 text-sm font-bold">
-                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
-                                    </span>
-                                  )}
+                                <div className="flex items-center justify-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSurveyReportsAllSelected()}
+                                    ref={(el) => {
+                                      if (el) el.indeterminate = isSurveyReportsIndeterminate();
+                                    }}
+                                    onChange={(e) => handleSelectAllSurveyReports(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                                  />
                                 </div>
                               </th>
                               <th 
