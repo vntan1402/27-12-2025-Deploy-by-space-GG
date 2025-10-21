@@ -5354,8 +5354,7 @@ async def analyze_survey_report_file(
                 file_content=file_content,
                 filename=filename,
                 content_type=survey_report_file.content_type or 'application/octet-stream',
-                document_ai_config=document_ai_config,
-                document_type="general_maritime"  # Other Maritime Documents
+                document_ai_config=document_ai_config
             )
             
             if not analysis_only_result.get('success'):
