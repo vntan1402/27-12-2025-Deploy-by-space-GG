@@ -940,6 +940,164 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
 
+    async def upload_survey_report_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str,
+        survey_report_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload survey report file to Google Drive
+        Path: ShipName/Class & Flag Cert/Class Survey Report/
+        
+        Args:
+            file_content: Survey report file content
+            filename: File name
+            content_type: MIME type
+            ship_name: Ship name for folder structure
+            survey_report_name: Survey report name (for logging)
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📤 Uploading survey report file to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Survey Type: {survey_report_name}")
+            logger.info(f"   Target Path: {ship_name}/Class & Flag Cert/Class Survey Report/")
+            
+            # Upload original file to: ShipName/Class & Flag Cert/Class Survey Report/
+            # Using upload_file_with_folder_creation action
+            # This will create the folder structure if it doesn't exist
+            
+            survey_report_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                'ship_name': ship_name,  # Creates/finds ShipName folder
+                'category': 'Class & Flag Cert',  # Creates/finds Class & Flag Cert subfolder
+                'subcategory': 'Class Survey Report',  # Creates/finds Class Survey Report sub-subfolder
+                'filename': filename,
+                'file_content': base64.b64encode(file_content).decode('utf-8'),
+                'content_type': content_type
+            })
+            
+            if survey_report_upload.get('success'):
+                file_id = survey_report_upload.get('file_id')
+                logger.info(f"✅ Survey report file uploaded successfully")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {survey_report_upload.get('file_path', 'N/A')}")
+                
+                return {
+                    'success': True,
+                    'message': 'Survey report file uploaded successfully',
+                    'survey_report_file_id': file_id,
+                    'file_path': survey_report_upload.get('file_path'),
+                    'upload_details': survey_report_upload
+                }
+            else:
+                logger.error(f"❌ Survey report file upload failed: {survey_report_upload.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Survey report file upload failed',
+                    'error': survey_report_upload.get('message', 'Unknown error'),
+                    'upload_details': survey_report_upload
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading survey report file: {e}")
+            return {
+                'success': False,
+                'message': f'File upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+    async def upload_survey_report_summary(
+        self,
+        summary_text: str,
+        filename: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload survey report summary text file to Google Drive
+        Path: SUMMARY/Class & Flag Document/
+        
+        Args:
+            summary_text: Summary text content
+            filename: Summary filename (e.g., "Annual_Survey_Summary.txt")
+            ship_name: Ship name (for logging only)
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📋 Uploading survey report summary to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Target Path: SUMMARY/Class & Flag Document/")
+            
+            # Upload summary file to: SUMMARY/Class & Flag Document/
+            # Using upload_file_with_folder_creation action
+            # This will create: ROOT/SUMMARY/Class & Flag Document/
+            
+            summary_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                'ship_name': 'SUMMARY',  # Creates/finds SUMMARY folder
+                'category': 'Class & Flag Document',  # Creates/finds Class & Flag Document subfolder
+                'filename': filename,
+                'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                'content_type': 'text/plain'
+            })
+            
+            if summary_upload.get('success'):
+                file_id = summary_upload.get('file_id')
+                logger.info(f"✅ Survey report summary uploaded successfully")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {summary_upload.get('file_path', 'N/A')}")
+                
+                return {
+                    'success': True,
+                    'message': 'Survey report summary uploaded successfully',
+                    'summary_file_id': file_id,
+                    'file_path': summary_upload.get('file_path'),
+                    'upload_details': summary_upload
+                }
+            else:
+                logger.error(f"❌ Survey report summary upload failed: {summary_upload.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Survey report summary upload failed',
+                    'error': summary_upload.get('message', 'Unknown error'),
+                    'upload_details': summary_upload
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading survey report summary: {e}")
+            return {
+                'success': False,
+                'message': f'Summary upload failed: {str(e)}',
+                'error': str(e)
+            }
+
 
 def create_dual_apps_script_manager(company_id: str) -> DualAppsScriptManager:
     """Factory function to create DualAppsScriptManager"""
