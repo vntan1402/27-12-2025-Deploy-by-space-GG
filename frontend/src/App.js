@@ -4617,21 +4617,26 @@ const HomePage = () => {
   const handleNoteMouseEnter = (e, note) => {
     if (note) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const tooltipWidth = 300; // Reduced width
-      const tooltipHeight = 100; // Approximate height
+      
+      // Get table width for tooltip max width
+      const tableElement = e.currentTarget.closest('table');
+      const tableWidth = tableElement ? tableElement.offsetWidth : 800;
+      
+      const tooltipWidth = Math.min(tableWidth - 40, window.innerWidth - 40); // 20px margin on each side
+      const tooltipHeight = 150; // Approximate height for 6 lines
       
       // Calculate position - prefer showing above, but adjust if needed
       let x = rect.left + rect.width / 2;
       let y = rect.top - 10;
       
       // Check if tooltip would go off left edge
-      if (x - tooltipWidth / 2 < 10) {
-        x = tooltipWidth / 2 + 10;
+      if (x - tooltipWidth / 2 < 20) {
+        x = tooltipWidth / 2 + 20;
       }
       
       // Check if tooltip would go off right edge
-      if (x + tooltipWidth / 2 > window.innerWidth - 10) {
-        x = window.innerWidth - tooltipWidth / 2 - 10;
+      if (x + tooltipWidth / 2 > window.innerWidth - 20) {
+        x = window.innerWidth - tooltipWidth / 2 - 20;
       }
       
       // Check if tooltip would go off top edge
@@ -4645,7 +4650,8 @@ const HomePage = () => {
         x: x,
         y: y,
         content: note,
-        showBelow: y === rect.bottom + 10
+        showBelow: y === rect.bottom + 10,
+        width: tooltipWidth
       });
     }
   };
