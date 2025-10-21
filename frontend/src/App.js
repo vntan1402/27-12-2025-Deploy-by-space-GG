@@ -4427,7 +4427,8 @@ const HomePage = () => {
         issued_date: '',
         issued_by: '',
         status: 'Valid',
-        note: ''
+        note: '',
+        surveyor_name: ''
       });
       setAnalyzedSurveyReportData(null);
       setSurveyReportFiles([]);
