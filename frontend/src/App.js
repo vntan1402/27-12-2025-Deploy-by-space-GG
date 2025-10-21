@@ -4480,7 +4480,18 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error('Failed to update survey report:', error);
-      toast.error(language === 'vi' ? 'Không thể cập nhật báo cáo survey' : 'Failed to update survey report');
+      // Handle Pydantic validation errors (array of objects) vs string errors
+      let errorMsg = language === 'vi' ? 'Không thể cập nhật báo cáo survey' : 'Failed to update survey report';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          // Pydantic validation error format: [{type, loc, msg, input, url}]
+          errorMsg = detail.map(err => err.msg).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMsg = detail;
+        }
+      }
+      toast.error(errorMsg);
     }
   };
 
