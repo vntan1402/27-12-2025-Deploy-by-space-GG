@@ -918,6 +918,7 @@ class SurveyReportBase(BaseModel):
     issued_by: Optional[str] = None
     status: Optional[str] = "Valid"  # Valid, Expired, Pending, etc.
     note: Optional[str] = None
+    surveyor_name: Optional[str] = None  # NEW: Surveyor name from AI extraction
 
 class SurveyReportCreate(SurveyReportBase):
     pass
@@ -929,6 +930,7 @@ class SurveyReportUpdate(BaseModel):
     issued_by: Optional[str] = None
     status: Optional[str] = None
     note: Optional[str] = None
+    surveyor_name: Optional[str] = None  # NEW: Allow updating surveyor name
 
 class SurveyReportResponse(BaseModel):
     id: str
@@ -939,6 +941,9 @@ class SurveyReportResponse(BaseModel):
     issued_by: Optional[str] = None
     status: Optional[str] = "Valid"
     note: Optional[str] = None
+    surveyor_name: Optional[str] = None  # NEW: Surveyor name
+    survey_report_file_id: Optional[str] = None  # NEW: Google Drive file ID for original
+    survey_summary_file_id: Optional[str] = None  # NEW: Google Drive file ID for summary
     created_at: datetime
     updated_at: Optional[datetime] = None
     
