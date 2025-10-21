@@ -4523,6 +4523,52 @@ const HomePage = () => {
     }
   };
 
+
+  // Survey Report Context Menu Handlers
+  const handleSurveyReportContextMenu = (e, report) => {
+    e.preventDefault();
+    setSurveyReportContextMenu({
+      show: true,
+      x: e.pageX,
+      y: e.pageY,
+      report: report
+    });
+  };
+
+  const handleOpenSurveyReport = (report) => {
+    if (report.original_file_id) {
+      window.open(`${API}/gdrive/file/${report.original_file_id}/view`, '_blank');
+    } else {
+      toast.warning(language === 'vi' ? 'File không khả dụng' : 'File not available');
+    }
+    setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
+  const handleCopySurveyReportLink = (report) => {
+    if (report.original_file_id) {
+      const link = `${API}/gdrive/file/${report.original_file_id}/view`;
+      navigator.clipboard.writeText(link);
+      toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied to clipboard');
+    } else {
+      toast.warning(language === 'vi' ? 'File không khả dụng' : 'File not available');
+    }
+    setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
+  const handleEditSurveyReportFromMenu = (report) => {
+    setEditingSurveyReport({
+      ...report,
+      issued_date: report.issued_date ? report.issued_date.split('T')[0] : ''
+    });
+    setShowEditSurveyModal(true);
+    setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
+  const handleDeleteSurveyReportFromMenu = async (report) => {
+    setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
+    await handleDeleteSurveyReport(report.id);
+  };
+
   // Survey Report File Upload Handlers
   const handleSurveyReportFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
