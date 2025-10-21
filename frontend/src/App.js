@@ -1908,6 +1908,21 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+  // Close survey report context menu on click outside
+  useEffect(() => {
+    const handleClick = () => {
+      if (surveyReportContextMenu.show) {
+        setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
+      }
+    };
+    
+    if (surveyReportContextMenu.show) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [surveyReportContextMenu.show]);
+
+
   // Update newCrewData ship_sign_on and status when selectedShip changes
   useEffect(() => {
     if (selectedShip?.name) {
