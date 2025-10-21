@@ -11237,6 +11237,7 @@ const HomePage = () => {
                                       onClick={(e) => e.stopPropagation()}
                                     />
                                   </td>
+                                  <td className="border border-gray-300 px-4 py-2 text-center font-bold">{index + 1}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.survey_report_name}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
