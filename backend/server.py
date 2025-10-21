@@ -5602,7 +5602,7 @@ async def upload_survey_report_files(
             raise HTTPException(status_code=500, detail=f"Failed to upload survey report file: {str(upload_error)}")
         
         # Upload 2: Summary file to SUMMARY/Class & Flag Document/
-        survey_summary_file_id = None
+        survey_report_summary_file_id = None
         if summary_text and summary_text.strip():
             base_name = filename.rsplit('.', 1)[0]
             summary_filename = f"{base_name}_Summary.txt"
@@ -5617,9 +5617,9 @@ async def upload_survey_report_files(
                 )
                 
                 if summary_upload.get('success'):
-                    survey_summary_file_id = summary_upload.get('summary_file_id')
+                    survey_report_summary_file_id = summary_upload.get('summary_file_id')
                     upload_results['summary'] = summary_upload
-                    logger.info(f"✅ Summary file uploaded: {survey_summary_file_id}")
+                    logger.info(f"✅ Summary file uploaded: {survey_report_summary_file_id}")
                 else:
                     logger.warning(f"⚠️ Summary file upload failed (non-critical): {summary_upload.get('message')}")
                     
@@ -5632,8 +5632,8 @@ async def upload_survey_report_files(
             "updated_at": datetime.now(timezone.utc)
         }
         
-        if survey_summary_file_id:
-            update_data["survey_summary_file_id"] = survey_summary_file_id
+        if survey_report_summary_file_id:
+            update_data["survey_report_summary_file_id"] = survey_report_summary_file_id
         
         await mongo_db.update("survey_reports", {"id": report_id}, update_data)
         logger.info(f"✅ Survey report record updated with file IDs")
@@ -5641,7 +5641,7 @@ async def upload_survey_report_files(
         return {
             "success": True,
             "survey_report_file_id": survey_report_file_id,
-            "survey_summary_file_id": survey_summary_file_id,
+            "survey_report_summary_file_id": survey_report_summary_file_id,
             "message": "Survey report files uploaded successfully",
             "upload_results": upload_results
         }
