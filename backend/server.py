@@ -5464,6 +5464,139 @@ async def analyze_survey_report_file(
         logger.error(f"Error traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to analyze survey report: {str(e)}")
 
+@api_router.post("/survey-reports/{report_id}/upload-files")
+async def upload_survey_report_files(
+    report_id: str,
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: str = Body(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload survey report files to Google Drive after record creation
+    1. Decode base64 file content
+    2. Upload original file to: ShipName/Class & Flag Cert/Class Survey Report/
+    3. Upload summary to: SUMMARY/Class & Flag Document/
+    4. Update survey report record with file IDs
+    """
+    try:
+        logger.info(f"📤 Starting file upload for survey report: {report_id}")
+        
+        # Validate report exists
+        report = await mongo_db.find_one("survey_reports", {"id": report_id})
+        if not report:
+            raise HTTPException(status_code=404, detail="Survey report not found")
+        
+        # Get company and ship info
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        ship_id = report.get("ship_id")
+        if not ship_id:
+            raise HTTPException(status_code=400, detail="Survey report has no ship_id")
+        
+        ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        survey_report_name = report.get("survey_report_name", "Survey Report")
+        
+        # Decode base64 file content
+        try:
+            file_bytes = base64.b64decode(file_content)
+            logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+        except Exception as e:
+            logger.error(f"Failed to decode base64 file content: {e}")
+            raise HTTPException(status_code=400, detail="Invalid file content encoding")
+        
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Upload files to Google Drive
+        logger.info(f"📤 Uploading survey report files to Drive...")
+        
+        upload_results = {}
+        
+        # Upload 1: Original file to ShipName/Class & Flag Cert/Class Survey Report/
+        logger.info(f"📄 Uploading original file to: {ship_name}/Class & Flag Cert/Class Survey Report/{filename}")
+        
+        try:
+            original_upload = await dual_manager.upload_survey_report_file(
+                file_content=file_bytes,
+                filename=filename,
+                content_type=content_type,
+                ship_name=ship_name,
+                survey_report_name=survey_report_name
+            )
+            
+            if original_upload.get('success'):
+                survey_report_file_id = original_upload.get('survey_report_file_id')
+                upload_results['original'] = original_upload
+                logger.info(f"✅ Original file uploaded: {survey_report_file_id}")
+            else:
+                logger.error(f"❌ Original file upload failed: {original_upload.get('message')}")
+                raise HTTPException(status_code=500, detail="Failed to upload survey report file")
+                
+        except Exception as upload_error:
+            logger.error(f"❌ Error uploading original file: {upload_error}")
+            raise HTTPException(status_code=500, detail=f"Failed to upload survey report file: {str(upload_error)}")
+        
+        # Upload 2: Summary file to SUMMARY/Class & Flag Document/
+        survey_summary_file_id = None
+        if summary_text and summary_text.strip():
+            base_name = filename.rsplit('.', 1)[0]
+            summary_filename = f"{base_name}_Summary.txt"
+            
+            logger.info(f"📋 Uploading summary file to: SUMMARY/Class & Flag Document/{summary_filename}")
+            
+            try:
+                summary_upload = await dual_manager.upload_survey_report_summary(
+                    summary_text=summary_text,
+                    filename=summary_filename,
+                    ship_name=ship_name
+                )
+                
+                if summary_upload.get('success'):
+                    survey_summary_file_id = summary_upload.get('summary_file_id')
+                    upload_results['summary'] = summary_upload
+                    logger.info(f"✅ Summary file uploaded: {survey_summary_file_id}")
+                else:
+                    logger.warning(f"⚠️ Summary file upload failed (non-critical): {summary_upload.get('message')}")
+                    
+            except Exception as summary_error:
+                logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+        
+        # Update survey report record with file IDs
+        update_data = {
+            "survey_report_file_id": survey_report_file_id,
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        if survey_summary_file_id:
+            update_data["survey_summary_file_id"] = survey_summary_file_id
+        
+        await mongo_db.update("survey_reports", {"id": report_id}, update_data)
+        logger.info(f"✅ Survey report record updated with file IDs")
+        
+        return {
+            "success": True,
+            "survey_report_file_id": survey_report_file_id,
+            "survey_summary_file_id": survey_summary_file_id,
+            "message": "Survey report files uploaded successfully",
+            "upload_results": upload_results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading survey report files: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload survey report files: {str(e)}")
+
 # Ship Survey Status endpoints
 @api_router.get("/ships/{ship_id}/survey-status", response_model=List[ShipSurveyStatusResponse])
 async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
