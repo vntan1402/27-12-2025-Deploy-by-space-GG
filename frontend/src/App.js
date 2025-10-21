@@ -4638,7 +4638,19 @@ const HomePage = () => {
       
     } catch (error) {
       console.error('Error analyzing survey report:', error);
-      const errorMsg = error.response?.data?.detail || error.message || 'Failed to analyze file';
+      // Handle Pydantic validation errors (array of objects) vs string errors
+      let errorMsg = 'Failed to analyze file';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          // Pydantic validation error format: [{type, loc, msg, input, url}]
+          errorMsg = detail.map(err => err.msg).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMsg = detail;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
       setSurveyReportFileError(errorMsg);
       toast.error(language === 'vi' ? `Lỗi phân tích file: ${errorMsg}` : `Error analyzing file: ${errorMsg}`);
     } finally {
