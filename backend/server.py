@@ -5349,12 +5349,13 @@ async def analyze_survey_report_file(
             logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
             
             # Call System Apps Script for Document AI analysis only
-            # Using "analyze_maritime_document_ai" action with "Other Maritime Documents" type
+            # Using "analyze_maritime_document_ai" action for survey reports
             analysis_only_result = await dual_manager._call_system_apps_script_for_ai(
                 file_content=file_content,
                 filename=filename,
                 content_type=survey_report_file.content_type or 'application/octet-stream',
-                document_ai_config=document_ai_config
+                document_ai_config=document_ai_config,
+                action="analyze_maritime_document_ai"  # Use maritime document action for survey reports
             )
             
             if not analysis_only_result.get('success'):
