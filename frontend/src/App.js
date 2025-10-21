@@ -4616,11 +4616,35 @@ const HomePage = () => {
   const handleNoteMouseEnter = (e, note) => {
     if (note) {
       const rect = e.currentTarget.getBoundingClientRect();
+      const tooltipWidth = 300; // Reduced width
+      const tooltipHeight = 100; // Approximate height
+      
+      // Calculate position - prefer showing above, but adjust if needed
+      let x = rect.left + rect.width / 2;
+      let y = rect.top - 10;
+      
+      // Check if tooltip would go off left edge
+      if (x - tooltipWidth / 2 < 10) {
+        x = tooltipWidth / 2 + 10;
+      }
+      
+      // Check if tooltip would go off right edge
+      if (x + tooltipWidth / 2 > window.innerWidth - 10) {
+        x = window.innerWidth - tooltipWidth / 2 - 10;
+      }
+      
+      // Check if tooltip would go off top edge
+      if (y - tooltipHeight < 10) {
+        // Show below instead
+        y = rect.bottom + 10;
+      }
+      
       setSurveyReportNoteTooltip({
         show: true,
-        x: rect.left + rect.width / 2,
-        y: rect.top - 10,
-        content: note
+        x: x,
+        y: y,
+        content: note,
+        showBelow: y === rect.bottom + 10
       });
     }
   };
