@@ -11270,15 +11270,16 @@ const HomePage = () => {
                   {/* Survey Report Note Tooltip */}
                   {surveyReportNoteTooltip.show && (
                     <div 
-                      className="fixed bg-gray-900 text-white px-4 py-3 rounded-lg shadow-xl z-[100] pointer-events-none"
+                      className="fixed bg-gray-900 text-white px-3 py-2 rounded-md shadow-xl z-[100] pointer-events-none"
                       style={{
                         position: 'fixed',
                         top: `${surveyReportNoteTooltip.y}px`,
                         left: `${surveyReportNoteTooltip.x}px`,
-                        transform: 'translate(-50%, -100%)',
-                        maxWidth: '400px',
-                        fontSize: '1rem', // 2 sizes larger than normal (base 0.875rem)
-                        lineHeight: '1.5rem',
+                        transform: surveyReportNoteTooltip.showBelow ? 'translate(-50%, 0%)' : 'translate(-50%, -100%)',
+                        maxWidth: '300px',
+                        minWidth: '150px',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.4rem',
                         whiteSpace: 'pre-wrap',
                         wordBreak: 'break-word'
                       }}
@@ -11288,7 +11289,7 @@ const HomePage = () => {
                       <div 
                         className="absolute bg-gray-900"
                         style={{
-                          bottom: '-4px',
+                          [surveyReportNoteTooltip.showBelow ? 'top' : 'bottom']: '-4px',
                           left: '50%',
                           transform: 'translateX(-50%) rotate(45deg)',
                           width: '8px',
