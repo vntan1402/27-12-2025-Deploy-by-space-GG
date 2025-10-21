@@ -4465,6 +4465,141 @@ const HomePage = () => {
     }
   };
 
+  // Survey Report File Upload Handlers
+  const handleSurveyReportFileSelect = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    await handleMultipleSurveyReportUpload(files);
+  };
+
+  const handleMultipleSurveyReportUpload = async (files) => {
+    try {
+      // Validate files
+      const validFiles = [];
+      const invalidFiles = [];
+      const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+      const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      
+      files.forEach(file => {
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          invalidFiles.push({ file, reason: 'Invalid file type. Only PDF, JPG, PNG allowed.' });
+        } else if (file.size > MAX_FILE_SIZE) {
+          invalidFiles.push({ file, reason: 'File too large. Max 20MB.' });
+        } else {
+          validFiles.push(file);
+        }
+      });
+      
+      if (invalidFiles.length > 0) {
+        const errorMsg = invalidFiles.map(({ file, reason }) => `${file.name}: ${reason}`).join('\n');
+        toast.error(errorMsg);
+      }
+      
+      if (validFiles.length === 0) {
+        return;
+      }
+      
+      // Check if ship is selected
+      if (!selectedShip) {
+        toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+        return;
+      }
+      
+      // Single file: Review mode
+      if (validFiles.length === 1) {
+        await handleSingleSurveyReportAnalysis(validFiles[0]);
+      } 
+      // Multiple files: Batch auto-process
+      else {
+        await startSurveyReportBatchProcessing(validFiles);
+      }
+      
+    } catch (error) {
+      console.error('Error handling survey report upload:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý file' : 'Error processing files');
+    }
+  };
+
+  const handleSingleSurveyReportAnalysis = async (file) => {
+    try {
+      setIsAnalyzingSurveyReport(true);
+      setSurveyReportFileError('');
+      
+      const formData = new FormData();
+      formData.append('survey_report_file', file);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('bypass_validation', 'false');
+      
+      const response = await axios.post(`${API}/survey-reports/analyze-file`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (response.data.success) {
+        const analysis = response.data.analysis;
+        
+        // Check for validation error
+        if (response.data.validation_error) {
+          // Ship info mismatch - ask user
+          const shouldContinue = window.confirm(
+            `${language === 'vi' ? 'Cảnh báo: Thông tin tàu không khớp!' : 'Warning: Ship information mismatch!'}\n\n` +
+            `${language === 'vi' ? 'Trích xuất từ file:' : 'Extracted from file:'}\n` +
+            `  - ${language === 'vi' ? 'Tên tàu:' : 'Ship Name:'} ${response.data.extracted_ship_name || 'N/A'}\n` +
+            `  - ${language === 'vi' ? 'IMO:' : 'IMO:'} ${response.data.extracted_ship_imo || 'N/A'}\n\n` +
+            `${language === 'vi' ? 'Tàu đã chọn:' : 'Selected ship:'}\n` +
+            `  - ${language === 'vi' ? 'Tên tàu:' : 'Ship Name:'} ${response.data.selected_ship_name}\n` +
+            `  - ${language === 'vi' ? 'IMO:' : 'IMO:'} ${response.data.selected_ship_imo}\n\n` +
+            `${language === 'vi' ? 'Bạn có muốn tiếp tục?' : 'Do you want to continue anyway?'}`
+          );
+          
+          if (!shouldContinue) {
+            setIsAnalyzingSurveyReport(false);
+            return;
+          }
+          
+          // Retry with bypass validation
+          formData.set('bypass_validation', 'true');
+          const retryResponse = await axios.post(`${API}/survey-reports/analyze-file`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          
+          if (!retryResponse.data.success) {
+            throw new Error('Analysis failed after bypass');
+          }
+          
+          analysis = retryResponse.data.analysis;
+        }
+        
+        // Populate form with extracted data
+        setNewSurveyReport({
+          survey_report_name: analysis.survey_report_name || '',
+          survey_report_no: analysis.survey_report_no || '',
+          issued_date: analysis.issued_date || '',
+          issued_by: analysis.issued_by || '',
+          status: analysis.status || 'Valid',
+          note: analysis.note || ''
+        });
+        
+        // Store analysis data for later upload
+        setAnalyzedSurveyReportData(analysis);
+        setSurveyReportFiles([file]);
+        
+        toast.success(language === 'vi' ? 'Đã phân tích file thành công! Vui lòng kiểm tra và xác nhận.' : 'File analyzed successfully! Please review and confirm.');
+        
+      } else {
+        throw new Error(response.data.message || 'Analysis failed');
+      }
+      
+    } catch (error) {
+      console.error('Error analyzing survey report:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Failed to analyze file';
+      setSurveyReportFileError(errorMsg);
+      toast.error(language === 'vi' ? `Lỗi phân tích file: ${errorMsg}` : `Error analyzing file: ${errorMsg}`);
+    } finally {
+      setIsAnalyzingSurveyReport(false);
+    }
+  };
+
   // Context Menu Functions
   const handleCertificateRightClick = (e, certificate) => {
     e.preventDefault();
