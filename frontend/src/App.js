@@ -11278,7 +11278,7 @@ const HomePage = () => {
                   {/* Survey Report Note Tooltip */}
                   {surveyReportNoteTooltip.show && (
                     <div 
-                      className="fixed bg-gray-900 text-white px-4 py-2 rounded-md shadow-xl z-[100] pointer-events-none"
+                      className="fixed bg-gray-100 text-gray-800 px-4 py-2 rounded-md shadow-xl z-[100] pointer-events-none border border-gray-300"
                       style={{
                         position: 'fixed',
                         top: `${surveyReportNoteTooltip.y}px`,
@@ -11297,13 +11297,17 @@ const HomePage = () => {
                       {surveyReportNoteTooltip.content}
                       {/* Tooltip Arrow */}
                       <div 
-                        className="absolute bg-gray-900"
+                        className="absolute bg-gray-100 border-gray-300"
                         style={{
                           [surveyReportNoteTooltip.showBelow ? 'top' : 'bottom']: '-4px',
                           left: '50%',
                           transform: 'translateX(-50%) rotate(45deg)',
                           width: '8px',
-                          height: '8px'
+                          height: '8px',
+                          borderTop: surveyReportNoteTooltip.showBelow ? '1px solid' : 'none',
+                          borderLeft: surveyReportNoteTooltip.showBelow ? '1px solid' : 'none',
+                          borderBottom: !surveyReportNoteTooltip.showBelow ? '1px solid' : 'none',
+                          borderRight: !surveyReportNoteTooltip.showBelow ? '1px solid' : 'none'
                         }}
                       />
                     </div>
