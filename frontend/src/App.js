@@ -11090,7 +11090,11 @@ const HomePage = () => {
                               </tr>
                             ) : (
                               getFilteredSurveyReports().map((report, index) => (
-                                <tr key={report.id} className="hover:bg-gray-50">
+                                <tr 
+                                  key={report.id} 
+                                  className="hover:bg-gray-50 cursor-context-menu"
+                                  onContextMenu={(e) => handleSurveyReportContextMenu(e, report)}
+                                >
                                   <td className="border border-gray-300 px-4 py-2 text-center font-bold">{index + 1}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.survey_report_name}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
@@ -11107,30 +11111,6 @@ const HomePage = () => {
                                     </span>
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2 text-sm text-gray-600">{report.note || '-'}</td>
-                                  <td className="border border-gray-300 px-4 py-2 text-center">
-                                    <div className="flex justify-center gap-2">
-                                      <button
-                                        onClick={() => {
-                                          setEditingSurveyReport({
-                                            ...report,
-                                            issued_date: report.issued_date ? report.issued_date.split('T')[0] : ''
-                                          });
-                                          setShowEditSurveyModal(true);
-                                        }}
-                                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-all"
-                                        title={language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
-                                      >
-                                        {language === 'vi' ? 'Sửa' : 'Edit'}
-                                      </button>
-                                      <button
-                                        onClick={() => handleDeleteSurveyReport(report.id)}
-                                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-all"
-                                        title={language === 'vi' ? 'Xóa' : 'Delete'}
-                                      >
-                                        {language === 'vi' ? 'Xóa' : 'Delete'}
-                                      </button>
-                                    </div>
-                                  </td>
                                 </tr>
                               ))
                             )}
