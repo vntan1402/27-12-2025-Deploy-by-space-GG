@@ -1403,6 +1403,18 @@ const HomePage = () => {
   });
   const [editingSurveyReport, setEditingSurveyReport] = useState(null);
   
+  // Survey Report File Upload States
+  const [surveyReportFiles, setSurveyReportFiles] = useState([]);
+  const [isAnalyzingSurveyReport, setIsAnalyzingSurveyReport] = useState(false);
+  const [surveyReportFileError, setSurveyReportFileError] = useState('');
+  const [analyzedSurveyReportData, setAnalyzedSurveyReportData] = useState(null);
+  
+  // Batch processing states
+  const [isBatchProcessingSurveyReports, setIsBatchProcessingSurveyReports] = useState(false);
+  const [surveyReportBatchProgress, setSurveyReportBatchProgress] = useState({ current: 0, total: 0 });
+  const [surveyReportBatchResults, setSurveyReportBatchResults] = useState([]);
+  const [showSurveyReportProcessingResultsModal, setShowSurveyReportProcessingResultsModal] = useState(false);
+  
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
 
   const getSortIcon = (column) => {
