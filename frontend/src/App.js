@@ -4601,7 +4601,8 @@ const HomePage = () => {
           issued_date: analysis.issued_date || '',
           issued_by: analysis.issued_by || '',
           status: analysis.status || 'Valid',
-          note: analysis.note || ''
+          note: analysis.note || '',
+          surveyor_name: analysis.surveyor_name || ''  // Include surveyor name from AI
         });
         
         // Store analysis data for later upload
@@ -4621,7 +4622,8 @@ const HomePage = () => {
           issued_date: analysis.issued_date || '',
           issued_by: analysis.issued_by || '',
           status: analysis.status || 'Valid',
-          note: analysis.note || ''
+          note: analysis.note || '',
+          surveyor_name: analysis.surveyor_name || ''  // Include surveyor name from AI
         });
         
         // Store analysis data for later upload
