@@ -4385,7 +4385,6 @@ const HomePage = () => {
       }
 
       const reportData = {
-        ship_id: selectedShip.id,
         survey_report_name: newSurveyReport.survey_report_name,
         survey_report_no: newSurveyReport.survey_report_no || null,
         issued_date: newSurveyReport.issued_date ? convertDateInputToUTC(newSurveyReport.issued_date) : null,
@@ -4394,8 +4393,29 @@ const HomePage = () => {
         note: newSurveyReport.note || null
       };
 
-      await axios.post(`${API}/survey-reports`, reportData);
-      toast.success(language === 'vi' ? 'Đã thêm báo cáo survey' : 'Survey report added successfully');
+      const createResponse = await axios.post(`${API}/survey-reports?ship_id=${selectedShip.id}`, reportData);
+      
+      const reportId = createResponse.data.id;
+      
+      // If file was analyzed, upload files to Google Drive
+      if (analyzedSurveyReportData && analyzedSurveyReportData._file_content) {
+        try {
+          const uploadData = {
+            file_content: analyzedSurveyReportData._file_content,
+            filename: analyzedSurveyReportData._filename,
+            content_type: analyzedSurveyReportData._content_type,
+            summary_text: analyzedSurveyReportData._summary_text || ''
+          };
+          
+          await axios.post(`${API}/survey-reports/${reportId}/upload-files`, uploadData);
+          toast.success(language === 'vi' ? 'Đã thêm báo cáo survey và upload file' : 'Survey report added and files uploaded');
+        } catch (uploadError) {
+          console.error('File upload failed:', uploadError);
+          toast.warning(language === 'vi' ? 'Báo cáo đã lưu nhưng upload file thất bại' : 'Report saved but file upload failed');
+        }
+      } else {
+        toast.success(language === 'vi' ? 'Đã thêm báo cáo survey' : 'Survey report added successfully');
+      }
       
       // Reset form and close modal
       setNewSurveyReport({
@@ -4406,6 +4426,9 @@ const HomePage = () => {
         status: 'Valid',
         note: ''
       });
+      setAnalyzedSurveyReportData(null);
+      setSurveyReportFiles([]);
+      setSurveyReportFileError('');
       setShowAddSurveyModal(false);
       
       // Refresh survey reports list
