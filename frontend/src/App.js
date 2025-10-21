@@ -1415,6 +1415,8 @@ const HomePage = () => {
   const [surveyReportBatchProgress, setSurveyReportBatchProgress] = useState({ current: 0, total: 0 });
   const [surveyReportBatchResults, setSurveyReportBatchResults] = useState([]);
   const [showSurveyReportProcessingResultsModal, setShowSurveyReportProcessingResultsModal] = useState(false);
+  const [selectedSurveyReports, setSelectedSurveyReports] = useState(new Set());
+
   
   // Survey Report Context Menu
   const [surveyReportContextMenu, setSurveyReportContextMenu] = useState({
