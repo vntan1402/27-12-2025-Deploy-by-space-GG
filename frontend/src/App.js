@@ -11622,6 +11622,109 @@ const HomePage = () => {
                           </p>
                         </div>
 
+                        {/* Section 1: From Survey Report File (AI Analysis) */}
+                        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <h4 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            {language === 'vi' ? '📄 Từ file báo cáo survey (AI phân tích)' : '📄 From Survey Report File (AI Analysis)'}
+                          </h4>
+                          <p className="text-sm text-blue-700 mb-3">
+                            {language === 'vi' 
+                              ? 'Tải lên file báo cáo survey để tự động điền thông tin hoặc nhập thủ công bên dưới'
+                              : 'Upload survey report file to automatically fill information or enter manually below'}
+                          </p>
+                          
+                          {!analyzedSurveyReportData ? (
+                            <div className="mt-3">
+                              <label 
+                                className="flex flex-col items-center justify-center w-full h-32 border-2 border-blue-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-all"
+                              >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                  <svg className="w-10 h-10 mb-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                  </svg>
+                                  <p className="mb-2 text-sm text-blue-600">
+                                    <span className="font-semibold">{language === 'vi' ? 'Nhấn để chọn' : 'Click to select'}</span> {language === 'vi' ? 'hoặc kéo thả file' : 'or drag and drop'}
+                                  </p>
+                                  <p className="text-xs text-blue-500">
+                                    PDF, JPG, PNG {language === 'vi' ? '(tối đa 20MB, nhiều file được hỗ trợ)' : '(max 20MB, multiple files supported)'}
+                                  </p>
+                                </div>
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept=".pdf,.jpg,.jpeg,.png"
+                                  multiple
+                                  onChange={handleSurveyReportFileSelect}
+                                  disabled={isAnalyzingSurveyReport}
+                                />
+                              </label>
+                              
+                              {isAnalyzingSurveyReport && (
+                                <div className="mt-3 flex items-center justify-center gap-2 text-blue-600">
+                                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                  <span className="text-sm font-medium">
+                                    {language === 'vi' ? 'Đang phân tích file...' : 'Analyzing file...'}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {surveyReportFileError && (
+                                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                  <p className="text-sm text-red-700">{surveyReportFileError}</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-semibold text-green-800">
+                                      {language === 'vi' ? '✅ File đã được phân tích thành công!' : '✅ File analyzed successfully!'}
+                                    </p>
+                                    <p className="text-xs text-green-700 mt-1">
+                                      {analyzedSurveyReportData._filename}
+                                    </p>
+                                    <p className="text-xs text-green-600 mt-1">
+                                      {language === 'vi' ? 'Thông tin đã được tự động điền. Vui lòng kiểm tra và chỉnh sửa nếu cần.' : 'Information has been auto-filled. Please review and edit if needed.'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setAnalyzedSurveyReportData(null);
+                                    setSurveyReportFiles([]);
+                                    setSurveyReportFileError('');
+                                  }}
+                                  className="text-green-600 hover:text-green-800 transition-colors"
+                                  title={language === 'vi' ? 'Xóa và chọn file khác' : 'Remove and select another file'}
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Section 2: Manual Entry Form */}
+                        <div className="mb-4">
+                          <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            {language === 'vi' ? 'Hoặc nhập thủ công' : 'Or Enter Manually'}
+                          </h4>
+                        </div>
+
                         <form className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
