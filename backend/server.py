@@ -5249,6 +5249,221 @@ async def delete_survey_report(
         logger.error(f"Error deleting survey report: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete survey report")
 
+# Survey Report File Analysis & Upload endpoints
+@api_router.post("/survey-reports/analyze-file")
+async def analyze_survey_report_file(
+    survey_report_file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    bypass_validation: str = Form("false"),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Analyze survey report file using Google Document AI
+    1. Extract text with Document AI
+    2. Extract fields with System AI
+    3. Validate ship name/IMO
+    4. Return analysis data + file content (base64) for later upload
+    """
+    try:
+        logger.info(f"📋 Starting survey report analysis for ship_id: {ship_id}")
+        
+        # Read file content
+        file_content = await survey_report_file.read()
+        filename = survey_report_file.filename
+        
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+            
+        logger.info(f"📄 Processing survey report file: {filename} ({len(file_content)} bytes)")
+        
+        # Get company information
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get ship information
+        ship = await mongo_db.find_one("ships", {
+            "id": ship_id,
+            "company": company_uuid
+        })
+        
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        ship_imo = ship.get("imo", "")
+        
+        # Get AI configuration for Document AI
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration.")
+        
+        logger.info("🤖 Analyzing survey report with Google Document AI...")
+        
+        # Initialize empty analysis data
+        analysis_result = {
+            "survey_report_name": "",
+            "survey_report_no": "",
+            "issued_by": "",
+            "issued_date": "",
+            "ship_name": "",
+            "ship_imo": "",
+            "surveyor_name": "",
+            "note": "",
+            "confidence_score": 0.0,
+            "processing_method": "clean_analysis"
+        }
+        
+        # Use Dual Apps Script Manager (same as crew cert workflow)
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # ✅ CRITICAL: Store file content FIRST before any analysis
+        # This ensures files can be uploaded even if AI analysis fails
+        analysis_result['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+        analysis_result['_filename'] = filename
+        analysis_result['_content_type'] = survey_report_file.content_type or 'application/octet-stream'
+        analysis_result['_ship_name'] = ship_name
+        
+        try:
+            # ✅ NEW: Analyze survey report WITHOUT uploading to Drive
+            # Upload will happen AFTER successful record creation
+            logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
+            
+            # Call System Apps Script for Document AI analysis only
+            # Using "analyze_maritime_document_ai" action with "Other Maritime Documents" type
+            analysis_only_result = await dual_manager._call_system_apps_script_for_ai(
+                file_content=file_content,
+                filename=filename,
+                content_type=survey_report_file.content_type or 'application/octet-stream',
+                document_ai_config=document_ai_config,
+                document_type="general_maritime"  # Other Maritime Documents
+            )
+            
+            if not analysis_only_result.get('success'):
+                logger.error(f"❌ Survey report analysis failed: {analysis_only_result.get('message')}")
+                # ✅ Still return success with file_content for manual entry
+                logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
+                analysis_result['_summary_text'] = ''
+                analysis_result["processing_method"] = "analysis_failed"
+            else:
+                # Extract AI analysis results
+                ai_analysis = analysis_only_result.get('ai_analysis', {})
+                if not ai_analysis.get('success'):
+                    logger.error("❌ Survey report Document AI analysis failed")
+                    logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
+                    analysis_result['_summary_text'] = ''
+                    analysis_result["processing_method"] = "document_ai_failed"
+                else:
+                    # Get summary for field extraction
+                    summary_text = ai_analysis.get('data', {}).get('summary', '')
+                    if not summary_text:
+                        logger.error("❌ No summary received from Survey Report Document AI")
+                        logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
+                        analysis_result['_summary_text'] = ''
+                        analysis_result["processing_method"] = "empty_summary"
+                    else:
+                        # Extract fields from AI summary using system AI
+                        logger.info("🧠 Extracting survey report fields from Document AI summary...")
+                        
+                        # Get AI configuration for field extraction
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        extracted_fields = await extract_survey_report_fields_from_summary(
+                            summary_text,
+                            ai_provider,
+                            ai_model,
+                            use_emergent_key
+                        )
+                        
+                        if extracted_fields:
+                            logger.info("✅ System AI survey report extraction completed successfully")
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "analysis_only_no_upload"
+                            logger.info(f"   📋 Extracted Survey Name: '{analysis_result.get('survey_report_name')}'")
+                            logger.info(f"   🔢 Extracted Survey No: '{analysis_result.get('survey_report_no')}'")
+                            
+                            # Store summary for later upload
+                            analysis_result['_summary_text'] = summary_text
+                            
+                            # ⚠️ VALIDATION: Check if ship name/IMO matches
+                            extracted_ship_name = extracted_fields.get('ship_name', '').strip()
+                            extracted_ship_imo = extracted_fields.get('ship_imo', '').strip()
+                            
+                            if extracted_ship_name or extracted_ship_imo:
+                                validation_result = validate_ship_info_match(
+                                    extracted_ship_name,
+                                    extracted_ship_imo,
+                                    ship_name,
+                                    ship_imo
+                                )
+                                
+                                # Convert bypass_validation string to boolean
+                                should_bypass = bypass_validation.lower() == "true"
+                                
+                                if not validation_result.get('overall_match'):
+                                    logger.warning(f"❌ Ship information does NOT match")
+                                    logger.warning(f"   Extracted: Ship='{extracted_ship_name}', IMO='{extracted_ship_imo}'")
+                                    logger.warning(f"   Selected:  Ship='{ship_name}', IMO='{ship_imo}'")
+                                    
+                                    if not should_bypass:
+                                        # Return validation error for frontend to handle
+                                        return {
+                                            "success": False,
+                                            "validation_error": True,
+                                            "validation_details": validation_result,
+                                            "message": "Ship information mismatch. Please verify or bypass validation.",
+                                            "extracted_ship_name": extracted_ship_name,
+                                            "extracted_ship_imo": extracted_ship_imo,
+                                            "selected_ship_name": ship_name,
+                                            "selected_ship_imo": ship_imo
+                                        }
+                                    else:
+                                        logger.info("⚠️ Validation bypassed by user - continuing with analysis")
+                                else:
+                                    logger.info("✅ Ship information validation passed")
+                        else:
+                            logger.warning("⚠️ No fields extracted, using empty analysis")
+                            analysis_result['_summary_text'] = summary_text
+                            analysis_result["processing_method"] = "extraction_failed"
+                            
+        except Exception as analysis_error:
+            logger.error(f"❌ Error during survey report analysis: {analysis_error}")
+            logger.warning("⚠️ Continuing with empty analysis, file content preserved")
+            analysis_result['_summary_text'] = ''
+            analysis_result["processing_method"] = "analysis_exception"
+        
+        # Return analysis result
+        logger.info("✅ Survey report analysis completed, returning data to frontend")
+        return {
+            "success": True,
+            "analysis": analysis_result,
+            "ship_name": ship_name,
+            "ship_imo": ship_imo
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing survey report file: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze survey report: {str(e)}")
+
 # Ship Survey Status endpoints
 @api_router.get("/ships/{ship_id}/survey-status", response_model=List[ShipSurveyStatusResponse])
 async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depends(get_current_user)):
