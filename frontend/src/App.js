@@ -1399,7 +1399,8 @@ const HomePage = () => {
     issued_date: '',
     issued_by: '',
     status: 'Valid',
-    note: ''
+    note: '',
+    surveyor_name: ''  // NEW: Surveyor name from AI analysis
   });
   const [editingSurveyReport, setEditingSurveyReport] = useState(null);
   
