@@ -2006,6 +2006,15 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+
+  // Fetch test reports when ship is selected and on survey_reports submenu
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'survey_reports') {
+      fetchTestReports(selectedShip.id);
+    }
+  }, [selectedShip, selectedSubMenu]);
+
+
   // Close survey report context menu on click outside
   useEffect(() => {
     const handleClick = () => {
