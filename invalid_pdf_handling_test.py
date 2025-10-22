@@ -454,7 +454,7 @@ startxref
             
             with open(self.non_pdf_extension_path, "rb") as f:
                 files = {
-                    "survey_file": ("document.txt", f, "text/plain")
+                    "survey_report_file": ("document.txt", f, "text/plain")
                 }
                 data = {
                     "ship_id": self.ship_id
