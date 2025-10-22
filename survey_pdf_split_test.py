@@ -354,9 +354,9 @@ startxref
                     
                     fields_found = 0
                     for field in extracted_fields:
-                        if result.get(field):
+                        if analysis.get(field):
                             fields_found += 1
-                            self.log(f"   ✅ {field}: {result.get(field)}")
+                            self.log(f"   ✅ {field}: {analysis.get(field)}")
                     
                     if fields_found > 0:
                         self.log(f"✅ Field extraction working ({fields_found}/{len(extracted_fields)} fields)")
