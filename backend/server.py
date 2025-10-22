@@ -6274,6 +6274,151 @@ async def update_test_report(
         logger.error(f"❌ Error updating test report: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Bulk Delete Model for Test Reports
+class BulkDeleteTestReportsRequest(BaseModel):
+    report_ids: List[str]
+
+@api_router.delete("/test-reports/bulk-delete")
+async def bulk_delete_test_reports(
+    request: BulkDeleteTestReportsRequest,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Bulk delete test reports including associated Google Drive files (original + summary)
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        report_ids = request.report_ids
+        
+        logger.info(f"🗑️ Bulk delete test reports request received: {len(report_ids)} report(s)")
+        logger.info(f"📋 Report IDs: {report_ids}")
+        
+        deleted_count = 0
+        files_deleted = 0
+        errors = []
+        
+        for report_id in report_ids:
+            try:
+                logger.info(f"🔍 Checking test report: {report_id}")
+                
+                # Check if test report exists
+                report = await mongo_db.find_one("test_reports", {
+                    "id": report_id
+                })
+                
+                if not report:
+                    logger.warning(f"⚠️ Test report not found: {report_id}")
+                    errors.append(f"Test report {report_id} not found")
+                    continue
+                
+                logger.info(f"✅ Found test report: {report.get('test_report_name')}")
+                
+                # Delete associated files from Google Drive if exist (both original and summary)
+                original_file_id = report.get("test_report_file_id")
+                summary_file_id = report.get("test_report_summary_file_id")
+                
+                # Get company Apps Script URL from company_gdrive_config
+                gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+                if gdrive_config and (gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")):
+                    company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+                    
+                    import aiohttp
+                    
+                    # Delete original file
+                    if original_file_id:
+                        logger.info(f"🗑️ Deleting original test report file: {original_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": original_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Original file deleted: {original_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting original file {original_file_id}: {e}")
+                    
+                    # Delete summary file
+                    if summary_file_id:
+                        logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": summary_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
+                
+                # Delete from database
+                await mongo_db.delete("test_reports", {"id": report_id})
+                deleted_count += 1
+                logger.info(f"✅ Test report deleted from database: {report_id}")
+                
+            except Exception as e:
+                errors.append(f"Error deleting test report {report_id}: {str(e)}")
+                logger.error(f"Error in bulk delete for test report {report_id}: {e}")
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="BULK_DELETE_TEST_REPORTS",
+            resource_type="test_report",
+            resource_id="bulk",
+            details={
+                "deleted_count": deleted_count,
+                "files_deleted": files_deleted,
+                "errors": errors
+            },
+            company_id=company_uuid
+        )
+        
+        # If no reports were deleted at all, return error
+        if deleted_count == 0 and len(errors) > 0:
+            error_details = "; ".join(errors)
+            raise HTTPException(status_code=404, detail=f"Test reports not found. {error_details}")
+        
+        message = f"Deleted {deleted_count} test report(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        return {
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in bulk delete test reports: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to bulk delete test reports: {str(e)}")
+
 @api_router.delete("/test-reports/{report_id}")
 async def delete_test_report(
     report_id: str,
