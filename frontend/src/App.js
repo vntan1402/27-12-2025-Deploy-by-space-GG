@@ -12106,6 +12106,19 @@ const HomePage = () => {
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newSurveyReport.report_form}
+                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, report_form: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: P&I Form, Class Form A' : 'e.g. P&I Form, Class Form A'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
                               {language === 'vi' ? 'Số Báo cáo Survey' : 'Survey Report No.'}
                             </label>
                             <input
