@@ -6548,6 +6548,102 @@ async def analyze_test_report_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@api_router.post("/test-reports/{report_id}/upload-files")
+async def upload_test_report_files(
+    report_id: str,
+    test_report_file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload test report files to Google Drive after successful database save
+    Path: Shipname > Class & Flag Cert > Test Report (original)
+    Path: SUMMARY > Class & Flag Document (summary)
+    """
+    try:
+        logger.info(f"📤 Uploading files for test report: {report_id}")
+        
+        # Get test report from database
+        report = await mongo_db.find_one("test_reports", {"id": report_id})
+        if not report:
+            raise HTTPException(status_code=404, detail="Test report not found")
+        
+        # Get ship information
+        ship = await mongo_db.find_one("ships", {"id": report['ship_id']})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get company_uuid
+        company_uuid = current_user.company_uuid
+        if not company_uuid:
+            raise HTTPException(status_code=400, detail="User must be associated with a company")
+        
+        # Read file content
+        file_content = await test_report_file.read()
+        filename = test_report_file.filename
+        
+        logger.info(f"📄 Processing file: {filename} ({len(file_content)} bytes)")
+        
+        # Create dual manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Upload files to Google Drive
+        summary_text = report.get('note', '')  # Use note as summary
+        upload_result = await dual_manager.upload_test_report_file(
+            file_content=file_content,
+            filename=filename,
+            ship_name=ship['ship_name'],
+            summary_text=summary_text
+        )
+        
+        if not upload_result.get('success'):
+            logger.error(f"❌ File upload failed: {upload_result.get('message')}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"File upload failed: {upload_result.get('message', 'Unknown error')}"
+            )
+        
+        # Extract file IDs
+        original_file_id = upload_result.get('original_file_id')
+        summary_file_id = upload_result.get('summary_file_id')
+        
+        # Update test report with file IDs
+        update_data = {}
+        if original_file_id:
+            update_data['test_report_file_id'] = original_file_id
+        if summary_file_id:
+            update_data['test_report_summary_file_id'] = summary_file_id
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+            await mongo_db.update("test_reports", {"id": report_id}, update_data)
+            logger.info(f"✅ Test report updated with file IDs")
+        
+        # Handle summary upload failure (non-critical)
+        summary_error = upload_result.get('summary_error')
+        if summary_error:
+            logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+        
+        # Get updated report
+        updated_report = await mongo_db.find_one("test_reports", {"id": report_id})
+        
+        logger.info(f"✅ Test report files uploaded successfully")
+        return {
+            "message": "Test report files uploaded successfully",
+            "report": TestReportResponse(**updated_report),
+            "original_file_id": original_file_id,
+            "summary_file_id": summary_file_id,
+            "summary_error": summary_error
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading test report files: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
 async def create_ship_survey_status(ship_id: str, status_data: ShipSurveyStatusCreate, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
