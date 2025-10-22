@@ -6499,7 +6499,18 @@ async def analyze_test_report_file(
                     
                     # ✅ NOW: Extract fields ONCE from the merged summary
                     logger.info("🔍 Extracting fields from merged summary...")
-                    extracted_fields = await extract_test_report_fields_from_summary(enhanced_summary)
+                    
+                    # Get AI configuration for field extraction
+                    ai_provider = ai_config_doc.get("provider", "google")
+                    ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+                    use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                    
+                    extracted_fields = await extract_test_report_fields_from_summary(
+                        enhanced_summary,
+                        ai_provider,
+                        ai_model,
+                        use_emergent_key
+                    )
                     
                     if extracted_fields:
                         analysis_result.update(extracted_fields)
