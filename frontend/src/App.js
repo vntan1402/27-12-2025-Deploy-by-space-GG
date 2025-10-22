@@ -5133,6 +5133,142 @@ const HomePage = () => {
   };
 
 
+  // Test Report File Upload Handlers
+  const handleTestReportFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file
+    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+    const ALLOWED_TYPES = ['application/pdf'];
+    
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setTestReportFileError(language === 'vi' ? 'Chỉ hỗ trợ file PDF' : 'Only PDF files are supported');
+      return;
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+      setTestReportFileError(language === 'vi' ? 'File quá lớn. Tối đa 20MB' : 'File too large. Max 20MB');
+      return;
+    }
+    
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
+    
+    // Analyze file
+    await handleTestReportFileAnalysis(file);
+  };
+  
+  const handleTestReportFileAnalysis = async (file) => {
+    try {
+      setIsAnalyzingTestReport(true);
+      setTestReportFileError('');
+      setTestReportFile(file);
+      
+      const formData = new FormData();
+      formData.append('test_report_file', file);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('bypass_validation', 'false');
+      
+      const response = await axios.post(`${API}/test-reports/analyze-file`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      const analysis = response.data;
+      
+      // Check if validation warning
+      if (analysis.requires_confirmation) {
+        const confirmMsg = language === 'vi' 
+          ? 'Thông tin tàu trong file không khớp với tàu đã chọn. Bạn có muốn tiếp tục?' 
+          : 'Ship information in document doesn\'t match selected ship. Continue anyway?';
+        
+        if (!window.confirm(confirmMsg)) {
+          setIsAnalyzingTestReport(false);
+          return;
+        }
+        
+        // Re-analyze with bypass
+        formData.set('bypass_validation', 'true');
+        const retryResponse = await axios.post(`${API}/test-reports/analyze-file`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        setAnalyzedTestReportData(retryResponse.data);
+        
+        // Auto-fill form
+        const retryAnalysis = retryResponse.data;
+        setNewTestReport({
+          test_report_name: retryAnalysis.test_report_name || '',
+          report_form: retryAnalysis.report_form || '',
+          test_report_no: retryAnalysis.test_report_no || '',
+          issued_by: retryAnalysis.issued_by || '',
+          issued_date: retryAnalysis.issued_date || '',
+          valid_date: retryAnalysis.valid_date || '',
+          status: retryAnalysis.status || 'Valid',
+          note: retryAnalysis.note || ''
+        });
+      } else {
+        setAnalyzedTestReportData(analysis);
+        
+        // Auto-fill form with extracted data
+        setNewTestReport({
+          test_report_name: analysis.test_report_name || '',
+          report_form: analysis.report_form || '',
+          test_report_no: analysis.test_report_no || '',
+          issued_by: analysis.issued_by || '',
+          issued_date: analysis.issued_date || '',
+          valid_date: analysis.valid_date || '',
+          status: analysis.status || 'Valid',
+          note: analysis.note || ''
+        });
+      }
+      
+      toast.success(language === 'vi' ? '✅ File đã được phân tích!' : '✅ File analyzed successfully!');
+      
+    } catch (error) {
+      console.error('Error analyzing test report:', error);
+      let errorMsg = 'Failed to analyze file';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          errorMsg = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMsg = detail;
+        } else if (typeof detail === 'object' && detail.msg) {
+          errorMsg = detail.msg;
+        } else if (typeof detail === 'object') {
+          errorMsg = JSON.stringify(detail);
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      setTestReportFileError(errorMsg);
+      toast.error(language === 'vi' ? `Lỗi phân tích file: ${errorMsg}` : `Error analyzing file: ${errorMsg}`);
+    } finally {
+      setIsAnalyzingTestReport(false);
+    }
+  };
+  
+  const handleRemoveTestReportFile = () => {
+    setTestReportFile(null);
+    setAnalyzedTestReportData(null);
+    setTestReportFileError('');
+    // Reset form
+    setNewTestReport({
+      test_report_name: '',
+      report_form: '',
+      test_report_no: '',
+      issued_by: '',
+      issued_date: '',
+      valid_date: '',
+      status: 'Valid',
+      note: ''
+    });
+  };
+
+
+
   // Survey Report File Upload Handlers
   const handleSurveyReportFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
