@@ -477,7 +477,7 @@ startxref
                         self.split_tests['large_pdf_summary_merging'] = True
                     
                     # Check for merged summary
-                    summary_text = result.get("_summary_text", "")
+                    summary_text = analysis.get("_summary_text", "")
                     if summary_text and "MERGED SUMMARY" in summary_text:
                         self.log("✅ Enhanced merged summary created")
                         self.log(f"   Summary length: {len(summary_text)} characters")
