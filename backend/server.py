@@ -6730,10 +6730,16 @@ async def analyze_test_report_file(
                     logger.info("✅ Test report file analyzed successfully")
                 else:
                     logger.warning("⚠️ AI analysis returned no data")
+                    # Set default values when AI fails
+                    analysis_result['test_report_name'] = analysis_result.get('test_report_name') or filename
                     
             except Exception as ai_error:
                 logger.error(f"❌ Document AI analysis failed: {ai_error}")
-                raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(ai_error)}")
+                # Don't fail the entire request - return with minimal data
+                # File content is already stored, so upload can proceed
+                logger.warning(f"⚠️ Continuing without AI analysis - file upload will still work")
+                analysis_result['test_report_name'] = analysis_result.get('test_report_name') or filename
+                analysis_result['note'] = f"AI analysis failed: {str(ai_error)}"
         
         # Validate extracted ship information
         extracted_ship_name = analysis_result.get('ship_name', '').strip()
