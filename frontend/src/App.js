@@ -12914,6 +12914,637 @@ const HomePage = () => {
                   )}
                   
                   {/* Crew Records Section */}
+
+
+                  {/* TEST REPORT LIST (NEW) */}
+                  {selectedCategory === 'documents' && selectedSubMenu === 'survey_reports' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {language === 'vi' ? 'Danh sách Báo cáo Test' : 'Test Report List'}
+                        </h3>
+                        
+                        <button
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            selectedShip
+                              ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                              : 'bg-gray-400 cursor-not-allowed text-white'
+                          }`}
+                          onClick={() => selectedShip && setShowAddTestReportModal(true)}
+                          disabled={!selectedShip}
+                          title={selectedShip 
+                            ? (language === 'vi' ? 'Thêm báo cáo test mới' : 'Add new test report')
+                            : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                          }
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          {language === 'vi' ? 'Thêm Báo cáo Test' : 'Add Test Report'}
+                        </button>
+                      </div>
+
+                      {/* Filters */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                          {/* Status Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Trạng thái' : 'Status'}
+                            </label>
+                            <select
+                              value={testReportFilters.status}
+                              onChange={(e) => setTestReportFilters(prev => ({ ...prev, status: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              <option value="valid">{language === 'vi' ? 'Còn hạn' : 'Valid'}</option>
+                              <option value="expired soon">{language === 'vi' ? 'Sắp hết hạn' : 'Expired soon'}</option>
+                              <option value="critical">{language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
+                              <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                            </select>
+                          </div>
+
+                          {/* Search */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tìm kiếm' : 'Search'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={language === 'vi' ? 'Tìm kiếm...' : 'Search...'}
+                              value={testReportFilters.search}
+                              onChange={(e) => setTestReportFilters(prev => ({ ...prev, search: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          {/* Valid Date From */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Hạn từ' : 'Valid From'}
+                            </label>
+                            <input
+                              type="date"
+                              value={testReportFilters.validDateFrom}
+                              onChange={(e) => setTestReportFilters(prev => ({ ...prev, validDateFrom: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          {/* Valid Date To */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Hạn đến' : 'Valid To'}
+                            </label>
+                            <input
+                              type="date"
+                              value={testReportFilters.validDateTo}
+                              onChange={(e) => setTestReportFilters(prev => ({ ...prev, validDateTo: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Clear Filters Button */}
+                        {(testReportFilters.status !== 'all' || testReportFilters.search || testReportFilters.validDateFrom || testReportFilters.validDateTo) && (
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              onClick={() => setTestReportFilters({ status: 'all', search: '', validDateFrom: '', validDateTo: '' })}
+                              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Test Report Table */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={isTestReportsAllSelected()}
+                                      ref={el => {
+                                        if (el) {
+                                          el.indeterminate = isTestReportsIndeterminate();
+                                        }
+                                      }}
+                                      onChange={(e) => handleSelectAllTestReports(e.target.checked)}
+                                      className="w-4 h-4 mr-2"
+                                    />
+                                    <span>{language === 'vi' ? 'Số TT' : 'No.'}</span>
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('test_report_name')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Tên Báo cáo Test' : 'Test Report Name'}</span>
+                                    {testReportSort.column === 'test_report_name' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('report_form')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}</span>
+                                    {testReportSort.column === 'report_form' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('test_report_no')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Số Báo cáo' : 'Test Report No.'}</span>
+                                    {testReportSort.column === 'test_report_no' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('issued_by')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
+                                    {testReportSort.column === 'issued_by' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('issued_date')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Ngày cấp' : 'Issued Date'}</span>
+                                    {testReportSort.column === 'issued_date' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('valid_date')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</span>
+                                    {testReportSort.column === 'valid_date' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleTestReportSort('status')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Trạng thái' : 'Status'}</span>
+                                    {testReportSort.column === 'status' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {testReportSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th className="border border-gray-300 px-4 py-2 text-center">
+                                  {language === 'vi' ? 'Ghi chú' : 'Note'}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {getFilteredTestReports().length === 0 ? (
+                              <tr>
+                                <td colSpan="9" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                  {testReports.length === 0 
+                                    ? (language === 'vi' ? 'Chưa có báo cáo test nào' : 'No test reports available')
+                                    : (language === 'vi' ? 'Không có báo cáo test nào phù hợp với bộ lọc' : 'No test reports match the current filters')
+                                  }
+                                </td>
+                              </tr>
+                            ) : (
+                              getFilteredTestReports().map((report, index) => (
+                                <tr 
+                                  key={report.id}
+                                  className="hover:bg-gray-50 cursor-pointer"
+                                  onContextMenu={(e) => handleTestReportContextMenu(e, report)}
+                                >
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedTestReports.has(report.id)}
+                                        onChange={() => handleTestReportSelect(report.id)}
+                                        className="w-4 h-4 mr-3"
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                      <span>{index + 1}</span>
+                                    </div>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.test_report_name}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.report_form || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2 font-mono">{report.test_report_no}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.issued_by || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.valid_date ? formatDate(report.valid_date) : '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      report.status === 'Valid' ? 'bg-green-100 text-green-800' :
+                                      report.status === 'Expired soon' ? 'bg-yellow-100 text-yellow-800' :
+                                      report.status === 'Critical' ? 'bg-orange-100 text-orange-800' :
+                                      report.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {report.status}
+                                    </span>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {report.note ? (
+                                      <span 
+                                        className="text-red-600 cursor-help text-lg font-bold"
+                                        onMouseEnter={(e) => handleTestReportNoteMouseEnter(e, report.note)}
+                                        onMouseLeave={handleTestReportNoteMouseLeave}
+                                      >
+                                        *
+                                      </span>
+                                    ) : (
+                                      '-'
+                                    )}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Test Report Context Menu */}
+                  {testReportContextMenu.show && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40"
+                        onClick={() => setTestReportContextMenu({ show: false, x: 0, y: 0, report: null })}
+                      />
+                      <div
+                        className="fixed bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                        style={{ 
+                          left: `${testReportContextMenu.x}px`,
+                          top: `${testReportContextMenu.y}px`,
+                          minWidth: '180px'
+                        }}
+                      >
+                        <button
+                          onClick={() => handleEditTestReportClick(testReportContextMenu.report)}
+                          className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTestReportClick(testReportContextMenu.report)}
+                          className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          {language === 'vi' ? 'Xóa' : 'Delete'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Test Report Note Tooltip */}
+                  {testReportNoteTooltip.show && (
+                    <div
+                      className="fixed bg-gray-800 text-white p-3 rounded-lg shadow-2xl z-50 border border-gray-600"
+                      style={{
+                        left: `${testReportNoteTooltip.x}px`,
+                        top: `${testReportNoteTooltip.y}px`,
+                        width: `${testReportNoteTooltip.width}px`,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        fontSize: '14px',
+                        lineHeight: '1.5'
+                      }}
+                    >
+                      {testReportNoteTooltip.content}
+                    </div>
+                  )}
+
+                  {/* Add Test Report Modal */}
+                  {showAddTestReportModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? '📋 Thêm Báo cáo Test' : '📋 Add Test Report'}
+                          </h3>
+                          <button
+                            onClick={() => {
+                              setShowAddTestReportModal(false);
+                              setNewTestReport({
+                                test_report_name: '',
+                                report_form: '',
+                                test_report_no: '',
+                                issued_by: '',
+                                issued_date: '',
+                                valid_date: '',
+                                status: 'Valid',
+                                note: ''
+                              });
+                            }}
+                            className="text-gray-400 hover:text-gray-600 transition-all"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Báo cáo Test' : 'Test Report Name'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newTestReport.test_report_name}
+                              onChange={(e) => setNewTestReport(prev => ({ ...prev, test_report_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Ballast Water Management Test' : 'e.g. Ballast Water Management Test'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newTestReport.report_form}
+                              onChange={(e) => setNewTestReport(prev => ({ ...prev, report_form: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: IMO BWM Form' : 'e.g. IMO BWM Form'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số Báo cáo' : 'Test Report No.'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newTestReport.test_report_no}
+                              onChange={(e) => setNewTestReport(prev => ({ ...prev, test_report_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: BWM-2025-001' : 'e.g. BWM-2025-001'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newTestReport.issued_by}
+                              onChange={(e) => setNewTestReport(prev => ({ ...prev, issued_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày cấp' : 'Issued Date'} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="date"
+                                value={newTestReport.issued_date}
+                                onChange={(e) => setNewTestReport(prev => ({ ...prev, issued_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={newTestReport.valid_date}
+                                onChange={(e) => setNewTestReport(prev => ({ ...prev, valid_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={newTestReport.note}
+                              onChange={(e) => setNewTestReport(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                              placeholder={language === 'vi' ? 'Ghi chú...' : 'Notes...'}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowAddTestReportModal(false);
+                              setNewTestReport({
+                                test_report_name: '',
+                                report_form: '',
+                                test_report_no: '',
+                                issued_by: '',
+                                issued_date: '',
+                                valid_date: '',
+                                status: 'Valid',
+                                note: ''
+                              });
+                            }}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                          >
+                            {language === 'vi' ? 'Hủy' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={handleAddTestReport}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
+                          >
+                            {language === 'vi' ? 'Thêm' : 'Add'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Edit Test Report Modal */}
+                  {showEditTestReportModal && editingTestReport && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? '✏️ Chỉnh sửa Báo cáo Test' : '✏️ Edit Test Report'}
+                          </h3>
+                          <button
+                            onClick={() => {
+                              setShowEditTestReportModal(false);
+                              setEditingTestReport(null);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 transition-all"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Báo cáo Test' : 'Test Report Name'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={editingTestReport.test_report_name}
+                              onChange={(e) => setEditingTestReport(prev => ({ ...prev, test_report_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingTestReport.report_form || ''}
+                              onChange={(e) => setEditingTestReport(prev => ({ ...prev, report_form: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số Báo cáo' : 'Test Report No.'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={editingTestReport.test_report_no}
+                              onChange={(e) => setEditingTestReport(prev => ({ ...prev, test_report_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingTestReport.issued_by || ''}
+                              onChange={(e) => setEditingTestReport(prev => ({ ...prev, issued_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày cấp' : 'Issued Date'} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="date"
+                                value={editingTestReport.issued_date || ''}
+                                onChange={(e) => setEditingTestReport(prev => ({ ...prev, issued_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingTestReport.valid_date || ''}
+                                onChange={(e) => setEditingTestReport(prev => ({ ...prev, valid_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={editingTestReport.note || ''}
+                              onChange={(e) => setEditingTestReport(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowEditTestReportModal(false);
+                              setEditingTestReport(null);
+                            }}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                          >
+                            {language === 'vi' ? 'Hủy' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={handleUpdateTestReport}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
+                          >
+                            {language === 'vi' ? 'Cập nhật' : 'Update'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+
                   {selectedCategory === 'crew' ? (
                     <div className="space-y-6">
                       {!showCertificatesView ? (
