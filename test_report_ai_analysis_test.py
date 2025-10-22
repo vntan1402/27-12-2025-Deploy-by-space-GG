@@ -1,41 +1,38 @@
 #!/usr/bin/env python3
 """
-Test Report AI Analysis Endpoint Testing
-Final comprehensive test of Test Report AI analysis with all fixes applied.
+Test Report AI Analysis Endpoint Testing - FINAL TEST
+Testing with Chemical Suit PDF to verify all critical fixes applied.
 
 REVIEW REQUEST REQUIREMENTS:
-Applied critical fixes to match Survey Report workflow:
-1. Added `_file_content` base64 encoding (for upload later)
-2. Added proper try/except wrapping
-3. Fixed PDF splitting check placement
-4. Added `_filename`, `_content_type`, `_ship_name` metadata
+Test Report AI analysis with all critical fixes applied:
 
-Test Objectives:
-1. Verify Chemical Suit PDF analysis works end-to-end
-2. Confirm all fields are extracted and populated
-3. Check file content is preserved for upload
-4. Validate response structure matches frontend expectations
+1. ✅ Added _file_content base64 encoding
+2. ✅ Fixed extract_test_report_fields_from_summary to accept AI config params
+3. ✅ Pass ai_provider, ai_model, use_emergent_key from ai_config_doc
+4. ✅ Matches Survey Report workflow exactly
 
-Test Steps:
-1. Authentication & Setup - Login: admin1/123456, Get access token, Find a ship (BROTHER 36 or any)
-2. Upload & Analyze - POST /api/test-reports/analyze-file, File: /tmp/Chemical_Suit.pdf, Form data: ship_id, bypass_validation=false
-3. Verify Response Structure
-4. Backend Logs Check
-5. Validation
+Test with Chemical Suit PDF and verify:
 
-Success Criteria:
-✅ API returns 200 OK
-✅ Response has all populated fields
-✅ _file_content preserved for upload
-✅ Frontend can auto-fill form
-✅ No errors in backend logs
+**Expected Response:**
+- test_report_name: "..." (POPULATED)
+- report_form: "..." (POPULATED)
+- test_report_no: "..." (POPULATED)
+- issued_by: "..." (POPULATED)
+- issued_date: "YYYY-MM-DD" (POPULATED)
+- valid_date: "YYYY-MM-DD" (may be empty)
+- note: "..." (may be empty)
+- status: "Valid/Expired/Critical/Expired soon"
+- _file_content: "base64..." (MUST EXIST)
+- _summary_text: "..." (Document AI summary)
 
-### Important Notes
-- Use multipart/form-data for file upload
-- The file is a Chemical Suit test report
-- Should extract information about chemical protective suit testing
-- Check if Document AI is properly configured
-- Check if System AI (Gemini) extraction is working
+**Backend Logs Must Show:**
+1. "🤖 Extracting test report fields from summary"
+2. "📤 Sending extraction prompt to gemini-2.0-flash-exp..."
+3. "🤖 Test Report AI response received"
+4. "✅ Successfully extracted test report fields"
+5. "✅ System AI test report extraction completed successfully"
+
+**Success = All fields populated with actual data from PDF!**
 """
 
 import requests
