@@ -5031,13 +5031,23 @@ const HomePage = () => {
     }
   };
   
-  const handleDeleteTestReport = (reportId) => {
+  const handleDeleteTestReport = async (reportId) => {
     if (!window.confirm(language === 'vi' ? 'Bạn có chắc muốn xóa báo cáo test này?' : 'Are you sure you want to delete this test report?')) {
       return;
     }
     
-    setTestReports(prev => prev.filter(report => report.id !== reportId));
-    toast.success(language === 'vi' ? 'Đã xóa báo cáo test' : 'Test report deleted successfully');
+    try {
+      await axios.delete(`${API}/test-reports/${reportId}`);
+      toast.success(language === 'vi' ? 'Đã xóa báo cáo test' : 'Test report deleted successfully');
+      
+      // Refresh test reports list
+      if (selectedShip) {
+        await fetchTestReports(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to delete test report:', error);
+      toast.error(language === 'vi' ? 'Không thể xóa báo cáo test' : 'Failed to delete test report');
+    }
   };
   
   // Test Report Context Menu Handlers
