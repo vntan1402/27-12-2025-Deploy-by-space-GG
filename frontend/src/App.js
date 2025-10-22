@@ -11136,6 +11136,19 @@ const HomePage = () => {
                               </th>
                               <th 
                                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleSurveyReportSort('report_form')}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span>{language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}</span>
+                                  {surveyReportSort.column === 'report_form' && (
+                                    <span className="ml-1 text-blue-600 text-sm font-bold">
+                                      {surveyReportSort.direction === 'asc' ? '▲' : '▼'}
+                                    </span>
+                                  )}
+                                </div>
+                              </th>
+                              <th 
+                                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
                                 onClick={() => handleSurveyReportSort('survey_report_no')}
                               >
                                 <div className="flex items-center justify-between">
