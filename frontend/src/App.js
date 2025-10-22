@@ -4915,10 +4915,12 @@ const HomePage = () => {
         note: newTestReport.note || null
       };
       
-      await axios.post(`${API}/test-reports`, reportData);
+      const createResponse = await axios.post(`${API}/test-reports`, reportData);
+      const reportId = createResponse.data.id;
+      
       toast.success(language === 'vi' ? 'Đã thêm báo cáo test' : 'Test report added successfully');
       
-      // Reset form and close modal
+      // Reset form and close modal immediately
       setNewTestReport({
         test_report_name: '',
         report_form: '',
@@ -4929,11 +4931,55 @@ const HomePage = () => {
         status: 'Valid',
         note: ''
       });
+      setAnalyzedTestReportData(null);
+      setTestReportFile(null);
+      setTestReportFileError('');
       setShowAddTestReportModal(false);
       
       // Refresh test reports list
       if (selectedShip) {
         await fetchTestReports(selectedShip.id);
+      }
+      
+      // Background file upload (non-blocking)
+      if (analyzedTestReportData && analyzedTestReportData._file_content) {
+        // Show uploading toast
+        const uploadingToast = toast.info(language === 'vi' ? '📤 Đang upload file lên Google Drive...' : '📤 Uploading file to Google Drive...', {
+          autoClose: false
+        });
+        
+        // Upload in background (don't await)
+        (async () => {
+          try {
+            const uploadData = {
+              file_content: analyzedTestReportData._file_content,
+              filename: analyzedTestReportData._filename,
+              content_type: analyzedTestReportData._content_type,
+              summary_text: analyzedTestReportData._summary_text || ''
+            };
+            
+            await axios.post(`${API}/test-reports/${reportId}/upload-files`, uploadData);
+            
+            // Dismiss uploading toast
+            toast.dismiss(uploadingToast);
+            
+            // Show success toast
+            toast.success(language === 'vi' ? '✅ File đã upload lên Google Drive!' : '✅ File uploaded to Google Drive!');
+            
+            // Refresh list to get updated file IDs
+            if (selectedShip) {
+              await fetchTestReports(selectedShip.id);
+            }
+          } catch (uploadError) {
+            console.error('Background file upload failed:', uploadError);
+            
+            // Dismiss uploading toast
+            toast.dismiss(uploadingToast);
+            
+            // Show error toast
+            toast.error(language === 'vi' ? '❌ Upload file thất bại. Báo cáo đã được lưu.' : '❌ File upload failed. Report was saved.');
+          }
+        })();
       }
     } catch (error) {
       console.error('Failed to add test report:', error);
