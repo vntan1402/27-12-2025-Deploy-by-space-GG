@@ -5021,6 +5021,12 @@ Analyze the following text summary of a maritime survey report and extract all k
 - Look for phrases like "Type of Survey", "Survey Type", "Survey Report"
 - Common survey types: Annual, Special, Intermediate, Docking, Renewal, Damage, Pre-purchase
 
+**report_form**: 
+- Extract the report form or form type/number used for this survey
+- Look for "Report Form", "Form No.", "Form Type", "Survey Form", "Form Used"
+- May contain codes like "P&I Form", "Class Form A", "Form 001", etc.
+- Extract the complete form identifier as mentioned in the document
+
 **survey_report_no**: 
 - Extract the report number or reference number
 - Look for "Report No.", "Report Number", "Reference No.", "Survey No."
