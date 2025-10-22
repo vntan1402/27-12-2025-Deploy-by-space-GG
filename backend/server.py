@@ -5276,8 +5276,20 @@ async def analyze_survey_report_file(
         file_content = await survey_report_file.read()
         filename = survey_report_file.filename
         
+        # Validate file input
         if not filename:
             raise HTTPException(status_code=400, detail="No filename provided")
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="Empty file provided. Please upload a valid PDF file.")
+        
+        # Validate file type (basic check for PDF)
+        if not filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Invalid file type. Only PDF files are supported for survey reports.")
+        
+        # Check if file content starts with PDF magic bytes
+        if not file_content.startswith(b'%PDF'):
+            raise HTTPException(status_code=400, detail="Invalid PDF file format. The file does not appear to be a valid PDF document.")
             
         logger.info(f"📄 Processing survey report file: {filename} ({len(file_content)} bytes)")
         
