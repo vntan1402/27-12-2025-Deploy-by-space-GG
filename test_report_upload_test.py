@@ -378,6 +378,10 @@ class TestReportUploadTester:
                 return False
             
             # Prepare test report data from analyze response
+            valid_date = self.analyze_response.get("valid_date")
+            if not valid_date or valid_date == "":
+                valid_date = None  # Set to None if empty
+            
             test_report_data = {
                 "ship_id": self.ship_id,
                 "test_report_name": self.analyze_response.get("test_report_name", "Chemical Suit Test Report"),
@@ -385,7 +389,7 @@ class TestReportUploadTester:
                 "test_report_no": self.analyze_response.get("test_report_no", "TEST-001"),
                 "issued_date": self.analyze_response.get("issued_date", "2023-01-15T00:00:00Z"),
                 "issued_by": self.analyze_response.get("issued_by", "Test Authority"),
-                "valid_date": self.analyze_response.get("valid_date"),
+                "valid_date": valid_date,
                 "status": self.analyze_response.get("status", "Valid"),
                 "note": self.analyze_response.get("note", "")
             }
