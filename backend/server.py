@@ -6348,7 +6348,7 @@ async def analyze_test_report_file(
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Get company_uuid for Document AI configuration
-        company_uuid = current_user.company_uuid
+        company_uuid = current_user.company
         if not company_uuid:
             raise HTTPException(status_code=400, detail="User must be associated with a company")
         
