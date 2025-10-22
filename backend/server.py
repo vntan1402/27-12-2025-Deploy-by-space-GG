@@ -6779,7 +6779,7 @@ async def upload_test_report_files(
     file_content: str = Body(...),
     filename: str = Body(...),
     content_type: str = Body(...),
-    summary_text: str = Body(...),
+    summary_text: Optional[str] = Body(None),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
