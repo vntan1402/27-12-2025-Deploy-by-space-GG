@@ -5277,30 +5277,58 @@ const HomePage = () => {
 
   // Test Report File Upload Handlers
   const handleTestReportFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     
-    // Validate file
-    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
-    const ALLOWED_TYPES = ['application/pdf'];
-    
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setTestReportFileError(language === 'vi' ? 'Chỉ hỗ trợ file PDF' : 'Only PDF files are supported');
-      return;
+    await handleMultipleTestReportUpload(files);
+  };
+
+  const handleMultipleTestReportUpload = async (files) => {
+    try {
+      // Validate files
+      const validFiles = [];
+      const invalidFiles = [];
+      const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+      const ALLOWED_TYPES = ['application/pdf'];
+      
+      files.forEach(file => {
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          invalidFiles.push({ file, reason: language === 'vi' ? 'Chỉ hỗ trợ file PDF' : 'Only PDF files supported' });
+        } else if (file.size > MAX_FILE_SIZE) {
+          invalidFiles.push({ file, reason: language === 'vi' ? 'File quá lớn. Tối đa 20MB' : 'File too large. Max 20MB' });
+        } else {
+          validFiles.push(file);
+        }
+      });
+      
+      if (invalidFiles.length > 0) {
+        const errorMsg = invalidFiles.map(({ file, reason }) => `${file.name}: ${reason}`).join('\n');
+        toast.error(errorMsg);
+      }
+      
+      if (validFiles.length === 0) {
+        return;
+      }
+      
+      // Check if ship is selected
+      if (!selectedShip) {
+        toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+        return;
+      }
+      
+      // Single file: Review mode
+      if (validFiles.length === 1) {
+        await handleTestReportFileAnalysis(validFiles[0]);
+      } 
+      // Multiple files: Batch auto-process
+      else {
+        await startTestReportBatchProcessing(validFiles);
+      }
+      
+    } catch (error) {
+      console.error('Error handling test report upload:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý file' : 'Error processing files');
     }
-    
-    if (file.size > MAX_FILE_SIZE) {
-      setTestReportFileError(language === 'vi' ? 'File quá lớn. Tối đa 20MB' : 'File too large. Max 20MB');
-      return;
-    }
-    
-    if (!selectedShip) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
-      return;
-    }
-    
-    // Analyze file
-    await handleTestReportFileAnalysis(file);
   };
   
   const handleTestReportFileAnalysis = async (file) => {
