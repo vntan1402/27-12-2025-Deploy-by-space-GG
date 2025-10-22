@@ -570,12 +570,12 @@ startxref
                     self.split_tests['split_logic_activates_correctly'] = True
                 
                 # 3. Processing method verification
-                processing_method = result.get("processing_method", "")
+                processing_method = analysis.get("processing_method", "")
                 if "split_pdf" in processing_method:
                     self.log("✅ Processing method indicates split PDF handling")
                 
                 # 4. Summary merging verification
-                summary_text = result.get("_summary_text", "")
+                summary_text = analysis.get("_summary_text", "")
                 if summary_text:
                     if "CHUNK" in summary_text and "MERGED SUMMARY" in summary_text:
                         self.log("✅ Summaries merged after chunk processing")
