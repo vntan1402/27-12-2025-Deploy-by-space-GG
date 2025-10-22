@@ -1395,6 +1395,7 @@ const HomePage = () => {
   const [showEditSurveyModal, setShowEditSurveyModal] = useState(false);
   const [newSurveyReport, setNewSurveyReport] = useState({
     survey_report_name: '',
+    report_form: '',  // NEW: Report Form field
     survey_report_no: '',
     issued_date: '',
     issued_by: '',
