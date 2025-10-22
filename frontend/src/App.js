@@ -13386,7 +13386,39 @@ const HomePage = () => {
                                       <span>{index + 1}</span>
                                     </div>
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{report.test_report_name}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center gap-2">
+                                      <span>{report.test_report_name}</span>
+                                      {report.test_report_file_id && (
+                                        <span 
+                                          className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
+                                          title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Test Report`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (report.test_report_file_id) {
+                                              window.open(`https://drive.google.com/file/d/${report.test_report_file_id}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📄
+                                        </span>
+                                      )}
+                                      {report.test_report_summary_file_id && (
+                                        <span 
+                                          className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                                          title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 SUMMARY/Class & Flag Document`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (report.test_report_summary_file_id) {
+                                              window.open(`https://drive.google.com/file/d/${report.test_report_summary_file_id}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📋
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{report.report_form || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.test_report_no}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_by || '-'}</td>
