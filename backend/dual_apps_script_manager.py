@@ -951,7 +951,8 @@ class DualAppsScriptManager:
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": self.parent_folder_id,
                 "ship_name": ship_name,
-                "category": "Class & Flag Cert/Test Report",  # Full path: Ship/Class & Flag Cert/Test Report
+                "parent_category": "Class & Flag Cert",  # First level folder under ShipName
+                "category": "Test Report",  # Second level folder under Class & Flag Cert
                 "filename": filename,
                 "file_content": file_base64,
                 "content_type": content_type
