@@ -6678,16 +6678,18 @@ async def upload_test_report_files(
         
         logger.info(f"📄 Processing file: {filename} ({len(file_bytes)} bytes)")
         
-        # Create dual manager
+        # Initialize Dual Apps Script Manager
         from dual_apps_script_manager import create_dual_apps_script_manager
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         # Upload files to Google Drive
-        summary_text = report.get('note', '')  # Use note as summary
+        logger.info(f"📤 Uploading test report files to Drive...")
+        logger.info(f"📄 Uploading to: {ship_name}/Class & Flag Cert/Test Report/{filename}")
+        
         upload_result = await dual_manager.upload_test_report_file(
-            file_content=file_content,
+            file_content=file_bytes,
             filename=filename,
-            ship_name=ship['ship_name'],
+            ship_name=ship_name,
             summary_text=summary_text
         )
         
