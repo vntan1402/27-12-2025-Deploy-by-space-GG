@@ -5394,31 +5394,19 @@ async def analyze_survey_report_file(
                         document_ai_config=document_ai_config
                     )
                     
-                    # Process chunk result
+                    # Process chunk result - ONLY collect summaries, NO field extraction yet
                     if chunk_analysis.get('success'):
                         ai_analysis = chunk_analysis.get('ai_analysis', {})
                         if ai_analysis.get('success'):
                             summary_text = ai_analysis.get('data', {}).get('summary', '')
                             
                             if summary_text:
-                                # Extract fields from this chunk
-                                ai_provider = ai_config_doc.get("provider", "google")
-                                ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
-                                use_emergent_key = ai_config_doc.get("use_emergent_key", True)
-                                
-                                extracted_fields = await extract_survey_report_fields_from_summary(
-                                    summary_text,
-                                    ai_provider,
-                                    ai_model,
-                                    use_emergent_key
-                                )
-                                
+                                # ✅ NEW: Only store summary, don't extract fields yet
                                 chunk_results.append({
                                     'success': True,
                                     'chunk_num': chunk['chunk_num'],
                                     'page_range': chunk['page_range'],
-                                    'extracted_fields': extracted_fields,
-                                    'summary_text': summary_text
+                                    'summary_text': summary_text  # Only summary, no extracted_fields
                                 })
                                 
                                 progress_percent = ((i + 1) / len(chunks)) * 100
@@ -5448,10 +5436,72 @@ async def analyze_survey_report_file(
                             'error': chunk_analysis.get('message', 'Unknown error')
                         })
                 
-                # Merge results from all chunks
-                logger.info("🔀 Merging results from all chunks...")
-                from pdf_splitter import merge_analysis_results
-                merged_result = merge_analysis_results(chunk_results)
+                # ✅ NEW: Merge summaries first, THEN extract fields from merged summary
+                logger.info("🔀 Merging summaries from all chunks...")
+                successful_chunks = [cr for cr in chunk_results if cr.get('success') and cr.get('summary_text')]
+                
+                if not successful_chunks:
+                    logger.error("❌ No successful chunks to merge")
+                    merged_result = {
+                        'success': False,
+                        'error': 'All chunks failed'
+                    }
+                else:
+                    # Create enhanced merged summary
+                    from pdf_splitter import create_enhanced_merged_summary
+                    
+                    # Build temporary merged_data for summary creation
+                    temp_merged_data = {
+                        'survey_report_name': '',
+                        'survey_report_no': '',
+                        'issued_by': '',
+                        'issued_date': '',
+                        'surveyor_name': '',
+                        'status': 'Valid',
+                        'note': ''
+                    }
+                    
+                    merged_summary_text = create_enhanced_merged_summary(
+                        chunk_results=chunk_results,
+                        merged_data=temp_merged_data,
+                        original_filename=filename,
+                        total_pages=total_pages
+                    )
+                    
+                    logger.info(f"📄 Created merged summary ({len(merged_summary_text)} chars)")
+                    
+                    # ✅ NEW: Extract fields from merged summary (1 time only)
+                    logger.info("🧠 Extracting fields from MERGED SUMMARY (System AI)...")
+                    
+                    ai_provider = ai_config_doc.get("provider", "google")
+                    ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                    use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                    
+                    extracted_fields = await extract_survey_report_fields_from_summary(
+                        merged_summary_text,
+                        ai_provider,
+                        ai_model,
+                        use_emergent_key
+                    )
+                    
+                    if extracted_fields:
+                        logger.info("✅ System AI extraction from merged summary completed!")
+                        logger.info(f"   📋 Extracted Survey Name: '{extracted_fields.get('survey_report_name')}'")
+                        logger.info(f"   🔢 Extracted Survey No: '{extracted_fields.get('survey_report_no')}'")
+                        
+                        merged_result = {
+                            'success': True,
+                            **extracted_fields  # Use extracted fields from merged summary
+                        }
+                    else:
+                        logger.warning("⚠️ No fields extracted from merged summary")
+                        merged_result = {
+                            'success': False,
+                            'error': 'Field extraction failed'
+                        }
+                    
+                    # Store merged summary for upload
+                    merged_result['_merged_summary_text'] = merged_summary_text
                 
                 if merged_result.get('success'):
                     analysis_result.update(merged_result)
