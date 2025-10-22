@@ -4517,9 +4517,15 @@ const HomePage = () => {
         const detail = error.response.data.detail;
         if (Array.isArray(detail)) {
           // Pydantic validation error format: [{type, loc, msg, input, url}]
-          errorMsg = detail.map(err => err.msg).join(', ');
+          errorMsg = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
         } else if (typeof detail === 'string') {
           errorMsg = detail;
+        } else if (typeof detail === 'object' && detail.msg) {
+          // Single Pydantic error object
+          errorMsg = detail.msg;
+        } else if (typeof detail === 'object') {
+          // Fallback for other object types
+          errorMsg = JSON.stringify(detail);
         }
       }
       toast.error(errorMsg);
