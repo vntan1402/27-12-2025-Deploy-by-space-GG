@@ -6416,22 +6416,39 @@ async def analyze_test_report_file(
             logger.error(f"❌ Test Report analysis failed: {e}")
             test_report_analysis = None
         
-        # Initialize analysis result
-        analysis_result = {
-            "test_report_name": "",
-            "report_form": "",
-            "test_report_no": "",
-            "issued_by": "",
-            "issued_date": "",
-            "valid_date": "",
-            "note": "",
-            "ship_name": "",
-            "ship_imo": "",
-            "confidence_score": 0.0,
-            "processing_method": "clean_analysis",
-            "_filename": filename,
-            "_summary_text": ""
-        }
+        # Initialize analysis result with test report analysis if available
+        if test_report_analysis and isinstance(test_report_analysis, dict):
+            analysis_result = {
+                "test_report_name": test_report_analysis.get("test_report_name", ""),
+                "report_form": test_report_analysis.get("report_form", ""),
+                "test_report_no": test_report_analysis.get("test_report_no", ""),
+                "issued_by": test_report_analysis.get("issued_by", ""),
+                "issued_date": test_report_analysis.get("issued_date", ""),
+                "valid_date": test_report_analysis.get("valid_date", ""),
+                "note": test_report_analysis.get("note", ""),
+                "ship_name": test_report_analysis.get("ship_name", ""),
+                "ship_imo": test_report_analysis.get("ship_imo", ""),
+                "confidence_score": test_report_analysis.get("confidence_score", 0.0),
+                "processing_method": "test_report_analysis",
+                "_filename": filename,
+                "_summary_text": test_report_analysis.get("_summary_text", "")
+            }
+        else:
+            analysis_result = {
+                "test_report_name": "",
+                "report_form": "",
+                "test_report_no": "",
+                "issued_by": "",
+                "issued_date": "",
+                "valid_date": "",
+                "note": "",
+                "ship_name": "",
+                "ship_imo": "",
+                "confidence_score": 0.0,
+                "processing_method": "clean_analysis",
+                "_filename": filename,
+                "_summary_text": ""
+            }
         
         # ✅ NEW: Check if PDF needs splitting (> 15 pages)
         from pdf_splitter import PDFSplitter
