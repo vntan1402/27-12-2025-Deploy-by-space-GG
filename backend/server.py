@@ -6438,7 +6438,9 @@ async def analyze_test_report_file(
                     try:
                         chunk_result = await dual_manager.analyze_test_report_only(
                             file_content=chunk_content,
-                            filename=f"{filename}_chunk_{i}.pdf"
+                            filename=f"{filename}_chunk_{i}.pdf",
+                            content_type='application/pdf',
+                            document_ai_config=document_ai_config
                         )
                         
                         if chunk_result and chunk_result.get('summary_text'):
