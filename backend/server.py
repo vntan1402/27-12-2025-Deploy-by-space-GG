@@ -6585,6 +6585,7 @@ async def upload_test_report_files(
         logger.info(f"📄 Processing file: {filename} ({len(file_content)} bytes)")
         
         # Create dual manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         # Upload files to Google Drive
