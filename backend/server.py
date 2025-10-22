@@ -6428,9 +6428,11 @@ async def analyze_test_report_file(
         analysis_result['_content_type'] = test_report_file.content_type or 'application/octet-stream'
         analysis_result['_ship_name'] = ship_name
         
-        # ✅ NEW: Check if PDF needs splitting (> 15 pages)
-        from pdf_splitter import PDFSplitter
-        splitter = PDFSplitter(max_pages_per_chunk=12)
+        # ✅ Start Document AI Analysis
+        try:
+            # ✅ NEW: Check if PDF needs splitting (> 15 pages)
+            from pdf_splitter import PDFSplitter
+            splitter = PDFSplitter(max_pages_per_chunk=12)
         
         try:
             total_pages = splitter.get_page_count(file_content)
