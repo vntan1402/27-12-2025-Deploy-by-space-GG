@@ -961,6 +961,82 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
     
+    async def upload_test_report_summary(
+        self,
+        summary_text: str,
+        filename: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload test report summary text file to Google Drive
+        Path: SUMMARY/Class & Flag Document/
+        
+        Args:
+            summary_text: Summary text content
+            filename: Summary filename (e.g., "Chemical_Suit_Summary.txt")
+            ship_name: Ship name (for logging only)
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📋 Uploading test report summary to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Target Path: SUMMARY/Class & Flag Document/")
+            
+            # Upload summary file to: SUMMARY/Class & Flag Document/
+            # Using upload_file_with_folder_creation action
+            # This will create: ROOT/SUMMARY/Class & Flag Document/
+            
+            summary_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                'ship_name': 'SUMMARY',  # Creates/finds SUMMARY folder
+                'category': 'Class & Flag Document',  # Creates/finds Class & Flag Document subfolder
+                'filename': filename,
+                'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                'content_type': 'text/plain'
+            })
+            
+            if summary_upload.get('success'):
+                file_id = summary_upload.get('file_id')
+                logger.info(f"✅ Test report summary uploaded successfully")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {summary_upload.get('file_path', 'N/A')}")
+                
+                return {
+                    'success': True,
+                    'message': 'Test report summary uploaded successfully',
+                    'test_report_summary_file_id': file_id,
+                    'file_path': summary_upload.get('file_path'),
+                    'upload_details': summary_upload
+                }
+            else:
+                logger.error(f"❌ Test report summary upload failed: {summary_upload.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Test report summary upload failed',
+                    'error': summary_upload.get('message', 'Unknown error'),
+                    'upload_details': summary_upload
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading test report summary: {e}")
+            return {
+                'success': False,
+                'message': f'Summary upload failed: {str(e)}',
+                'error': str(e)
+            }
+    
     async def _call_apps_script_for_test_report_upload(
         self,
         file_content: bytes,
