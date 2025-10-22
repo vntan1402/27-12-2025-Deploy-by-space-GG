@@ -985,8 +985,8 @@ class TestReportResponse(BaseModel):
     ship_id: str
     test_report_name: str
     report_form: Optional[str] = None
-    test_report_no: str
-    issued_date: datetime
+    test_report_no: Optional[str] = None
+    issued_date: Optional[datetime] = None
     issued_by: Optional[str] = None
     valid_date: Optional[datetime] = None
     status: str
