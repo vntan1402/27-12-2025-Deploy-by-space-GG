@@ -12192,11 +12192,13 @@ const HomePage = () => {
                                 setShowAddSurveyModal(false);
                                 setNewSurveyReport({
                                   survey_report_name: '',
+                                  report_form: '',
                                   survey_report_no: '',
                                   issued_date: '',
                                   issued_by: '',
                                   status: 'Valid',
-                                  note: ''
+                                  note: '',
+                                  surveyor_name: ''
                                 });
                               }}
                               className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-all"
