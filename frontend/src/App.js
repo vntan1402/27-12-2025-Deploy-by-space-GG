@@ -5537,6 +5537,14 @@ const HomePage = () => {
       
       // Test report endpoint returns analysis data directly (no wrapper)
       const analysis = analyzeResponse.data;
+      console.log('📊 Analysis result:', {
+        test_report_name: analysis.test_report_name,
+        test_report_no: analysis.test_report_no,
+        has_file_content: !!analysis._file_content,
+        has_filename: !!analysis._filename,
+        has_summary: !!analysis._summary_text
+      });
+      
       result.testReportName = analysis.test_report_name || file.name;
       result.testReportNo = analysis.test_report_no || '';
       
