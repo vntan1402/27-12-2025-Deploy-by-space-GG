@@ -46,7 +46,7 @@ try:
         raise Exception("Internal URL not working")
 except:
     # Fallback to external URL
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipsurvey-ai.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maritime-docai.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
 class DualAppsScriptTester:

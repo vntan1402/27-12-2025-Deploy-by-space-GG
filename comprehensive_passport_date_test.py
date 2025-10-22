@@ -20,7 +20,7 @@ import time
 import traceback
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipsurvey-ai.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://maritime-docai.preview.emergentagent.com') + '/api'
 
 class ComprehensivePassportDateTester:
     def __init__(self):
