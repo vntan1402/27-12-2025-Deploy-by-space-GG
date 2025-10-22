@@ -318,22 +318,28 @@ class TestReportAIAnalysisTester:
                     success = result.get("success", False)
                     self.log(f"   Success: {success}")
                     
+                    # Log the full response for debugging
+                    self.log("📋 Full response analysis:")
+                    for key, value in result.items():
+                        if key == '_summary_text' and value:
+                            # Truncate summary text for readability
+                            summary_preview = str(value)[:200] + "..." if len(str(value)) > 200 else str(value)
+                            self.log(f"   {key}: {summary_preview}")
+                        else:
+                            self.log(f"   {key}: {value}")
+                    
+                    # Always verify response structure and fields, regardless of success flag
+                    self.verify_response_structure(result)
+                    self.verify_extracted_fields(result)
+                    self.verify_document_ai_processing(result)
+                    
                     if success:
                         self.log("✅ Test Report analysis successful")
-                        
-                        # Verify response structure
-                        self.verify_response_structure(result)
-                        
-                        # Check extracted fields
-                        self.verify_extracted_fields(result)
-                        
-                        # Check for Document AI summary
-                        self.verify_document_ai_processing(result)
-                        
                         return True
                     else:
                         error_msg = result.get("message", "Unknown error")
                         self.log(f"❌ Test Report analysis failed: {error_msg}", "ERROR")
+                        # Continue with analysis even if success=False to understand what's happening
                         return False
                         
                 except json.JSONDecodeError as e:
