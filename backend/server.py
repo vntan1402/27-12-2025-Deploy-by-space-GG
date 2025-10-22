@@ -938,6 +938,7 @@ class SurveyReportResponse(BaseModel):
     id: str
     ship_id: str
     survey_report_name: str
+    report_form: Optional[str] = None  # NEW: Report Form field
     survey_report_no: Optional[str] = None
     issued_date: Optional[datetime] = None
     issued_by: Optional[str] = None
