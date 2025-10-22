@@ -313,7 +313,7 @@ startxref
             
             with open(self.empty_file_path, "rb") as f:
                 files = {
-                    "survey_file": ("empty_test.pdf", f, "application/pdf")
+                    "survey_report_file": ("empty_test.pdf", f, "application/pdf")
                 }
                 data = {
                     "ship_id": self.ship_id
