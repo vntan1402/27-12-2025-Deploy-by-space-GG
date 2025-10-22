@@ -6596,7 +6596,7 @@ async def analyze_test_report_file(
         
         if extracted_ship_name or extracted_ship_imo:
             # Compare with selected ship
-            ship_name_match = extracted_ship_name.lower() == ship['ship_name'].lower() if extracted_ship_name else False
+            ship_name_match = extracted_ship_name.lower() == ship['name'].lower() if extracted_ship_name else False
             ship_imo_match = extracted_ship_imo == ship.get('imo', '') if extracted_ship_imo else False
             
             if not ship_name_match and not ship_imo_match and bypass_validation != "true":
