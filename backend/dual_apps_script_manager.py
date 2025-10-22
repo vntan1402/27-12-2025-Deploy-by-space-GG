@@ -733,6 +733,230 @@ class DualAppsScriptManager:
             }
     
 
+
+    # ========== TEST REPORT METHODS (NEW) ==========
+    
+    async def analyze_test_report_file(
+        self,
+        file_content: bytes,
+        filename: str
+    ) -> Dict[str, Any]:
+        """
+        Analyze test report file using Document AI
+        Full workflow: analyze file and return extracted data
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"🔄 Analyzing test report: {filename}")
+            
+            # Get Document AI config
+            doc_ai_config = self.config.get('document_ai_config', {})
+            if not doc_ai_config or not doc_ai_config.get('project_id'):
+                raise ValueError("Document AI configuration not found")
+            
+            # Determine content type
+            content_type = 'application/pdf' if filename.lower().endswith('.pdf') else 'image/jpeg'
+            
+            # Call System Apps Script for Document AI analysis
+            ai_result = await self._call_system_apps_script_for_ai(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                document_ai_config=doc_ai_config,
+                action="analyze_maritime_document_ai"  # Use maritime document action
+            )
+            
+            if not ai_result.get('success'):
+                logger.error(f"❌ Test Report Document AI analysis failed")
+                return {}
+            
+            # Extract summary text and other fields
+            summary_text = ai_result.get('ai_analysis', {}).get('summary_text', '')
+            
+            logger.info("✅ Test report analysis completed successfully")
+            return {
+                'summary_text': summary_text,
+                'confidence_score': ai_result.get('ai_analysis', {}).get('confidence_score', 0.0)
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error analyzing test report: {e}")
+            raise
+    
+    async def analyze_test_report_only(
+        self,
+        file_content: bytes,
+        filename: str
+    ) -> Dict[str, Any]:
+        """
+        Analyze test report using Document AI WITHOUT uploading to Drive
+        Used for batch processing (PDF splitting)
+        
+        Args:
+            file_content: Test report file content
+            filename: File name
+            
+        Returns:
+            dict: Analysis results only (no file IDs)
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"🔄 Analyzing test report (no upload): {filename}")
+            
+            # Get Document AI config
+            doc_ai_config = self.config.get('document_ai_config', {})
+            if not doc_ai_config or not doc_ai_config.get('project_id'):
+                raise ValueError("Document AI configuration not found")
+            
+            # Determine content type
+            content_type = 'application/pdf' if filename.lower().endswith('.pdf') else 'image/jpeg'
+            
+            # Document AI Analysis via System Apps Script ONLY
+            logger.info("📡 Test report analysis via System Apps Script...")
+            ai_result = await self._call_system_apps_script_for_ai(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                document_ai_config=doc_ai_config,
+                action="analyze_maritime_document_ai"  # Use maritime document action
+            )
+            
+            if not ai_result.get('success'):
+                logger.error(f"❌ Test Report Document AI analysis failed: {ai_result.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Test Report Document AI analysis failed',
+                    'error': ai_result.get('message'),
+                    'step': 'document_ai_analysis'
+                }
+            
+            logger.info("✅ Test report analysis completed successfully (no upload)")
+            return {
+                'success': True,
+                'message': 'Test report analysis completed successfully',
+                'summary_text': ai_result.get('ai_analysis', {}).get('summary_text', ''),
+                'confidence_score': ai_result.get('ai_analysis', {}).get('confidence_score', 0.0),
+                'processing_method': 'analysis_only',
+                'workflow': 'system_ai_analysis_without_upload'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error in test report analysis: {e}")
+            return {
+                'success': False,
+                'message': f'Test report analysis failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def upload_test_report_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Upload test report files to Google Drive
+        Path: Shipname > Class & Flag Cert > Test Report (original)
+        Path: SUMMARY > Class & Flag Document (summary)
+        
+        Args:
+            file_content: Test report file content
+            filename: Test report filename
+            ship_name: Ship name for folder structure
+            summary_text: Summary text (optional)
+            
+        Returns:
+            dict: Upload results with file IDs
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"📤 Uploading test report files to Google Drive: {filename}")
+            
+            # Determine content type
+            content_type = 'application/pdf' if filename.lower().endswith('.pdf') else 'image/jpeg'
+            
+            # Call Company Apps Script for test report upload
+            # Path structure: Shipname > Class & Flag Cert > Test Report
+            upload_result = await self._call_apps_script_for_test_report_upload(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                ship_name=ship_name,
+                summary_text=summary_text
+            )
+            
+            if not upload_result.get('success'):
+                logger.error(f"❌ Test report file upload failed")
+                return upload_result
+            
+            logger.info("✅ Test report files uploaded successfully")
+            return upload_result
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading test report files: {e}")
+            return {
+                'success': False,
+                'message': f'Test report file upload failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _call_apps_script_for_test_report_upload(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Call Company Apps Script to upload test report files
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            logger.info(f"📡 Calling Company Apps Script for test report upload...")
+            
+            # Encode file content
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Prepare payload
+            payload = {
+                "action": "upload_maritime_document",
+                "file_data": file_base64,
+                "file_name": filename,
+                "content_type": content_type,
+                "ship_name": ship_name,
+                "parent_category": "Class & Flag Cert",  # Parent folder
+                "category": "Test Report",  # Subfolder for test reports
+                "summary_text": summary_text or ""
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
+            
+            logger.info(f"✅ Company Apps Script response received")
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error calling Company Apps Script for test report: {e}")
+            return {
+                'success': False,
+                'message': f'Apps Script call failed: {str(e)}',
+                'error': str(e)
+            }
+
+
     async def upload_certificate_files(
         self,
         cert_file_content: bytes,
