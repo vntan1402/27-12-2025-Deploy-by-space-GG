@@ -5983,6 +5983,397 @@ async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depe
         logger.error(f"Error fetching ship survey status: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch ship survey status")
 
+
+
+# ========== TEST REPORT ENDPOINTS (NEW) ==========
+
+@api_router.get("/test-reports", response_model=List[TestReportResponse])
+async def get_test_reports(
+    ship_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all test reports for a specific ship"""
+    try:
+        logger.info(f"📋 Fetching test reports for ship_id: {ship_id}")
+        
+        test_reports = await mongo_db.find_all("test_reports", {"ship_id": ship_id})
+        
+        # Auto-recalculate status for each report based on current date
+        for report in test_reports:
+            if report.get('valid_date'):
+                valid_date = report['valid_date']
+                if isinstance(valid_date, str):
+                    valid_date = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+                report['status'] = calculate_test_report_status(valid_date)
+        
+        logger.info(f"✅ Found {len(test_reports)} test reports")
+        return [TestReportResponse(**report) for report in test_reports]
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching test reports: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/test-reports", response_model=TestReportResponse)
+async def create_test_report(
+    report: TestReportCreate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new test report"""
+    try:
+        logger.info(f"📝 Creating new test report: {report.test_report_name}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": report.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Auto-calculate status based on valid_date
+        status = calculate_test_report_status(report.valid_date) if report.valid_date else "Unknown"
+        
+        # Create test report document
+        report_dict = report.dict()
+        report_dict["id"] = str(uuid.uuid4())
+        report_dict["status"] = status
+        report_dict["created_at"] = datetime.now(timezone.utc)
+        report_dict["updated_at"] = None
+        
+        # Convert datetime fields to ISO format for MongoDB
+        if report_dict.get('issued_date'):
+            if isinstance(report_dict['issued_date'], datetime):
+                report_dict['issued_date'] = report_dict['issued_date'].isoformat()
+        if report_dict.get('valid_date'):
+            if isinstance(report_dict['valid_date'], datetime):
+                report_dict['valid_date'] = report_dict['valid_date'].isoformat()
+        if isinstance(report_dict['created_at'], datetime):
+            report_dict['created_at'] = report_dict['created_at'].isoformat()
+        
+        await mongo_db.create("test_reports", report_dict)
+        
+        logger.info(f"✅ Test report created with ID: {report_dict['id']}")
+        return TestReportResponse(**report_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating test report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/test-reports/{report_id}", response_model=TestReportResponse)
+async def update_test_report(
+    report_id: str,
+    report_update: TestReportUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an existing test report"""
+    try:
+        logger.info(f"✏️ Updating test report: {report_id}")
+        
+        # Check if report exists
+        existing_report = await mongo_db.find_one("test_reports", {"id": report_id})
+        if not existing_report:
+            raise HTTPException(status_code=404, detail="Test report not found")
+        
+        # Prepare update data (only non-None fields)
+        update_data = {k: v for k, v in report_update.dict().items() if v is not None}
+        
+        # Auto-recalculate status if valid_date is updated
+        if 'valid_date' in update_data:
+            update_data['status'] = calculate_test_report_status(update_data['valid_date'])
+        elif existing_report.get('valid_date'):
+            # Recalculate status based on existing valid_date
+            valid_date = existing_report['valid_date']
+            if isinstance(valid_date, str):
+                valid_date = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+            update_data['status'] = calculate_test_report_status(valid_date)
+        
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        
+        # Convert datetime fields to ISO format
+        for field in ['issued_date', 'valid_date', 'updated_at']:
+            if field in update_data and isinstance(update_data[field], datetime):
+                update_data[field] = update_data[field].isoformat()
+        
+        await mongo_db.update("test_reports", {"id": report_id}, update_data)
+        
+        # Fetch updated report
+        updated_report = await mongo_db.find_one("test_reports", {"id": report_id})
+        
+        logger.info(f"✅ Test report updated successfully")
+        return TestReportResponse(**updated_report)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating test report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/test-reports/{report_id}")
+async def delete_test_report(
+    report_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete a test report"""
+    try:
+        logger.info(f"🗑️ Deleting test report: {report_id}")
+        
+        # Check if report exists
+        existing_report = await mongo_db.find_one("test_reports", {"id": report_id})
+        if not existing_report:
+            raise HTTPException(status_code=404, detail="Test report not found")
+        
+        await mongo_db.delete("test_reports", {"id": report_id})
+        
+        logger.info(f"✅ Test report deleted successfully")
+        return {"message": "Test report deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting test report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Test Report AI Analysis & Upload endpoints
+@api_router.post("/test-reports/analyze-file")
+async def analyze_test_report_file(
+    ship_id: str = Form(...),
+    test_report_file: UploadFile = File(...),
+    bypass_validation: str = Form("false"),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Analyze test report file using Document AI to extract fields
+    Similar to survey report analysis but for test reports
+    """
+    try:
+        logger.info(f"📋 Starting test report analysis for ship_id: {ship_id}")
+        
+        # Read file content
+        file_content = await test_report_file.read()
+        filename = test_report_file.filename
+        
+        # Validate file input
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="Empty file provided. Please upload a valid PDF file.")
+        
+        # Validate file type (basic check for PDF)
+        if not filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Invalid file type. Only PDF files are supported for test reports.")
+        
+        # Check if file content starts with PDF magic bytes
+        if not file_content.startswith(b'%PDF'):
+            raise HTTPException(status_code=400, detail="Invalid PDF file format. The file does not appear to be a valid PDF document.")
+            
+        logger.info(f"📄 Processing test report file: {filename} ({len(file_content)} bytes)")
+        
+        # Get ship information
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get company_uuid for Document AI configuration
+        company_uuid = current_user.company_uuid
+        if not company_uuid:
+            raise HTTPException(status_code=400, detail="User must be associated with a company")
+        
+        # Check Document AI configuration
+        doc_ai_config = await mongo_db.find_one("document_ai_config", {"company_uuid": company_uuid})
+        if not doc_ai_config or not doc_ai_config.get('project_id') or not doc_ai_config.get('processor_id'):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration.")
+        
+        logger.info("🤖 Analyzing test report file with Document AI...")
+        
+        # Create dual manager for Document AI analysis
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Initialize analysis result
+        analysis_result = {
+            "test_report_name": "",
+            "report_form": "",
+            "test_report_no": "",
+            "issued_by": "",
+            "issued_date": "",
+            "valid_date": "",
+            "note": "",
+            "ship_name": "",
+            "ship_imo": "",
+            "confidence_score": 0.0,
+            "processing_method": "clean_analysis",
+            "_filename": filename,
+            "_summary_text": ""
+        }
+        
+        # ✅ NEW: Check if PDF needs splitting (> 15 pages)
+        from pdf_splitter import PDFSplitter
+        splitter = PDFSplitter(max_pages_per_chunk=12)
+        
+        try:
+            total_pages = splitter.get_page_count(file_content)
+            needs_split = splitter.needs_splitting(file_content)
+            logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+        except ValueError as e:
+            # Invalid or corrupted PDF file - return error immediately
+            logger.error(f"❌ Invalid PDF file: {e}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid or corrupted PDF file: {str(e)}. Please ensure the file is a valid PDF document."
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
+            total_pages = 0
+            needs_split = False
+        
+        if needs_split and total_pages > 15:
+            # Large PDF: Split and process in batches
+            logger.info(f"📦 Splitting large PDF into chunks...")
+            analysis_result['processing_method'] = 'split_pdf_batch_processing'
+            
+            try:
+                chunks = splitter.split_pdf(file_content)
+                logger.info(f"✅ Created {len(chunks)} chunks from {total_pages}-page PDF")
+                
+                # Process each chunk with Document AI (no field extraction yet)
+                chunk_summaries = []
+                successful_chunks = 0
+                failed_chunks = 0
+                
+                for i, chunk_content in enumerate(chunks, 1):
+                    logger.info(f"📄 Processing chunk {i}/{len(chunks)}...")
+                    try:
+                        chunk_result = await dual_manager.analyze_test_report_only(
+                            file_content=chunk_content,
+                            filename=f"{filename}_chunk_{i}.pdf"
+                        )
+                        
+                        if chunk_result and chunk_result.get('summary_text'):
+                            chunk_summaries.append(chunk_result['summary_text'])
+                            successful_chunks += 1
+                            logger.info(f"   ✅ Chunk {i} processed successfully ({len(chunk_result['summary_text'])} chars)")
+                        else:
+                            failed_chunks += 1
+                            logger.warning(f"   ⚠️ Chunk {i} returned no summary")
+                            
+                    except Exception as chunk_error:
+                        failed_chunks += 1
+                        logger.error(f"   ❌ Chunk {i} processing failed: {chunk_error}")
+                
+                # Merge chunk summaries into single enhanced summary
+                if chunk_summaries:
+                    logger.info(f"🔗 Merging {len(chunk_summaries)} chunk summaries...")
+                    merged_summary_text = "\n\n=== DOCUMENT CONTINUATION ===\n\n".join(chunk_summaries)
+                    
+                    # Create enhanced merged summary with metadata
+                    from server import create_enhanced_merged_summary
+                    enhanced_summary = create_enhanced_merged_summary(
+                        chunk_summaries=chunk_summaries,
+                        filename=filename,
+                        total_pages=total_pages,
+                        chunks_count=len(chunks)
+                    )
+                    
+                    analysis_result['_summary_text'] = enhanced_summary
+                    analysis_result['_merged_summary_text'] = enhanced_summary  # For reference
+                    
+                    logger.info(f"✅ Enhanced merged summary ready ({len(enhanced_summary)} chars)")
+                    
+                    # ✅ NOW: Extract fields ONCE from the merged summary
+                    logger.info("🔍 Extracting fields from merged summary...")
+                    extracted_fields = await extract_test_report_fields_from_summary(enhanced_summary)
+                    
+                    if extracted_fields:
+                        analysis_result.update(extracted_fields)
+                        logger.info(f"   🔢 Extracted {len([v for v in extracted_fields.values() if v])} fields from merged summary")
+                    
+                    # Add split metadata to response
+                    analysis_result['_split_info'] = {
+                        'was_split': True,
+                        'total_pages': total_pages,
+                        'chunks_count': len(chunks),
+                        'successful_chunks': successful_chunks,
+                        'failed_chunks': failed_chunks
+                    }
+                    
+                    logger.info(f"✅ Split PDF processing complete: {successful_chunks}/{len(chunks)} chunks successful")
+                else:
+                    logger.error("❌ No chunk summaries were generated")
+                    raise HTTPException(status_code=500, detail="Failed to process PDF chunks")
+                    
+            except Exception as split_error:
+                logger.error(f"❌ PDF splitting/processing failed: {split_error}")
+                raise HTTPException(status_code=500, detail=f"PDF processing error: {str(split_error)}")
+        
+        else:
+            # Small PDF: Normal single-file processing
+            logger.info("📄 Processing as single file (≤15 pages)")
+            
+            try:
+                # Analyze with Document AI
+                ai_analysis = await dual_manager.analyze_test_report_file(
+                    file_content=file_content,
+                    filename=filename
+                )
+                
+                if ai_analysis:
+                    # Store summary text for reference
+                    summary_text = ai_analysis.get('summary_text', '')
+                    analysis_result['_summary_text'] = summary_text
+                    
+                    # Update analysis result with extracted data
+                    for key in ['test_report_name', 'report_form', 'test_report_no', 'issued_by', 
+                               'issued_date', 'valid_date', 'note', 'ship_name', 'ship_imo']:
+                        if key in ai_analysis:
+                            analysis_result[key] = ai_analysis[key]
+                    
+                    if 'confidence_score' in ai_analysis:
+                        analysis_result['confidence_score'] = ai_analysis['confidence_score']
+                    
+                    logger.info("✅ Test report file analyzed successfully")
+                else:
+                    logger.warning("⚠️ AI analysis returned no data")
+                    
+            except Exception as ai_error:
+                logger.error(f"❌ Document AI analysis failed: {ai_error}")
+                raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(ai_error)}")
+        
+        # Validate extracted ship information
+        extracted_ship_name = analysis_result.get('ship_name', '').strip()
+        extracted_ship_imo = analysis_result.get('ship_imo', '').strip()
+        
+        if extracted_ship_name or extracted_ship_imo:
+            # Compare with selected ship
+            ship_name_match = extracted_ship_name.lower() == ship['ship_name'].lower() if extracted_ship_name else False
+            ship_imo_match = extracted_ship_imo == ship.get('imo', '') if extracted_ship_imo else False
+            
+            if not ship_name_match and not ship_imo_match and bypass_validation != "true":
+                logger.warning(f"⚠️ Ship mismatch - Document: {extracted_ship_name}/{extracted_ship_imo}, Selected: {ship['ship_name']}/{ship.get('imo', '')}")
+                return {
+                    **analysis_result,
+                    "validation_warning": "Ship name or IMO in document doesn't match selected ship",
+                    "requires_confirmation": True
+                }
+        
+        # Auto-calculate status if valid_date is extracted
+        if analysis_result.get('valid_date'):
+            try:
+                valid_date_obj = datetime.fromisoformat(analysis_result['valid_date'].replace('Z', '+00:00'))
+                analysis_result['status'] = calculate_test_report_status(valid_date_obj)
+            except:
+                analysis_result['status'] = 'Unknown'
+        else:
+            analysis_result['status'] = 'Unknown'
+        
+        logger.info(f"✅ Test report analysis completed successfully")
+        return analysis_result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing test report file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
 async def create_ship_survey_status(ship_id: str, status_data: ShipSurveyStatusCreate, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
