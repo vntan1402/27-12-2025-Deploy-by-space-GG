@@ -407,7 +407,7 @@ startxref
             
             with open(self.corrupted_pdf_path, "rb") as f:
                 files = {
-                    "survey_file": ("corrupted_test.pdf", f, "application/pdf")
+                    "survey_report_file": ("corrupted_test.pdf", f, "application/pdf")
                 }
                 data = {
                     "ship_id": self.ship_id
