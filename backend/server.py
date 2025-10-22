@@ -5233,6 +5233,180 @@ def validate_ship_info_match(
             "error": str(e)
         }
 
+
+
+# ==================== Test Report Helper Functions ====================
+
+async def extract_test_report_fields_from_summary(summary_text: str) -> dict:
+    """
+    Extract test report fields from Document AI summary
+    Extracts: test_report_name, report_form, test_report_no, issued_by, issued_date, valid_date, note, ship_name, ship_imo
+    """
+    try:
+        logger.info(f"🤖 Extracting test report fields from summary")
+        
+        # Get System AI configuration from environment or settings
+        company_settings = await mongo_db.find_one("settings", {"id": "system_settings"})
+        
+        if not company_settings or not company_settings.get('system_ai'):
+            logger.error("System AI configuration not found")
+            return {}
+        
+        system_ai_config = company_settings['system_ai']
+        ai_provider = system_ai_config.get('provider', 'google')
+        ai_model = system_ai_config.get('model', 'gemini-2.0-flash-exp')
+        use_emergent_key = system_ai_config.get('use_emergent_key', True)
+        
+        # Create test report extraction prompt
+        prompt = create_test_report_extraction_prompt(summary_text)
+        
+        if not prompt:
+            logger.error(f"Failed to create test report extraction prompt")
+            return {}
+        
+        # Use System AI for extraction
+        if use_emergent_key and ai_provider == "google":
+            try:
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                
+                emergent_key = get_emergent_llm_key()
+                chat = LlmChat(
+                    api_key=emergent_key,
+                    session_id=f"test_report_extraction_{int(time.time())}",
+                    system_message="You are a maritime test report analysis expert."
+                ).with_model("gemini", ai_model)
+                
+                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+                
+                user_message = UserMessage(text=prompt)
+                ai_response = await chat.send_message(user_message)
+                
+                if ai_response and ai_response.strip():
+                    content = ai_response.strip()
+                    logger.info(f"🤖 Test Report AI response received")
+                    
+                    # Parse JSON response
+                    try:
+                        clean_content = content.replace('```json', '').replace('```', '').strip()
+                        extracted_data = json.loads(clean_content)
+                        
+                        # Standardize date formats
+                        for date_field in ['issued_date', 'valid_date']:
+                            if extracted_data.get(date_field):
+                                try:
+                                    from dateutil import parser
+                                    parsed_date = parser.parse(extracted_data[date_field])
+                                    extracted_data[date_field] = parsed_date.strftime('%Y-%m-%d')
+                                except Exception as date_error:
+                                    logger.warning(f"Failed to parse {date_field}: {date_error}")
+                        
+                        logger.info(f"✅ Successfully extracted test report fields")
+                        return extracted_data
+                        
+                    except json.JSONDecodeError as json_error:
+                        logger.error(f"Failed to parse AI response as JSON: {json_error}")
+                        return {}
+                else:
+                    logger.warning("AI response is empty")
+                    return {}
+                    
+            except Exception as ai_error:
+                logger.error(f"System AI extraction failed: {ai_error}")
+                return {}
+        else:
+            logger.warning(f"Unsupported AI provider or configuration: {ai_provider}")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Error in extract_test_report_fields_from_summary: {e}")
+        return {}
+
+def create_test_report_extraction_prompt(summary_text: str) -> str:
+    """
+    Create extraction prompt for test report fields
+    """
+    try:
+        prompt = f"""
+You are a maritime test report data extraction expert. Extract the following information from the test report summary below.
+
+=== FIELDS TO EXTRACT ===
+
+**test_report_name**: 
+- Extract the type/name of the test (e.g., "Ballast Water Management Test", "Lifeboat Load Test", "Fire Fighting Equipment Test")
+- Look for phrases like "Type of Test", "Test Name", "Equipment Test", "System Test"
+- Common test types: BWM Test, Lifeboat Test, Fire Equipment Test, Safety Equipment Test, Navigation Equipment Test
+
+**report_form**: 
+- Extract the report form or form type/number used for this test
+- Look for "Report Form", "Form No.", "Form Type", "Test Form", "Form Used"
+- May contain codes like "IMO BWM Form", "SOLAS Test Form", "Class Form A", "Form 001", etc.
+- Extract the complete form identifier as mentioned in the document
+
+**test_report_no**: 
+- Extract the test report number or reference number
+- Look for "Report No.", "Report Number", "Test No.", "Reference No."
+- May contain letters, numbers, dashes, slashes (e.g., "BWM-2025-001", "TEST/2025/123")
+
+**issued_by**: 
+- Extract who issued or conducted the test
+- Look for "Issued By", "Tested By", "Surveyor", "Inspector", "Classification Society"
+- Common issuers: Lloyd's Register, DNV, ABS, Bureau Veritas, Class NK, etc.
+
+**issued_date**: 
+- Extract the test date or issue date
+- Look for "Test Date", "Date of Test", "Issued Date", "Report Date"
+- Format: YYYY-MM-DD or any recognizable date format
+
+**valid_date**: 
+- Extract the expiry date or next test due date
+- Look for "Valid Until", "Expiry Date", "Next Test Due", "Valid Date", "Expires"
+- This is the date when the test/certificate expires and needs renewal
+- Format: YYYY-MM-DD or any recognizable date format
+
+**ship_name**: 
+- Extract the ship/vessel name
+- Look for "Vessel Name", "Ship Name", "M/V", "MV"
+
+**ship_imo**: 
+- Extract the IMO number (7-digit number)
+- Look for "IMO No.", "IMO Number"
+
+**note**: 
+- Extract any important notes, remarks, observations, or conditions
+- Look for "Remarks", "Notes", "Observations", "Conditions", "Comments"
+- Include test results, compliance status, special conditions, or limitations
+
+=== OUTPUT FORMAT ===
+Return ONLY a JSON object with these exact field names:
+{{
+  "test_report_name": "",
+  "report_form": "",
+  "test_report_no": "",
+  "issued_by": "",
+  "issued_date": "",
+  "valid_date": "",
+  "ship_name": "",
+  "ship_imo": "",
+  "note": ""
+}}
+
+**IMPORTANT:**
+- Return ONLY the JSON object, no additional text
+- Use empty string "" if information is not found
+- Dates should be in YYYY-MM-DD format if possible
+- Extract verbatim text when possible
+
+=== TEST REPORT SUMMARY ===
+{summary_text}
+
+=== YOUR JSON RESPONSE ===
+"""
+        return prompt
+        
+    except Exception as e:
+        logger.error(f"Error creating test report extraction prompt: {e}")
+        return ""
+
 # Survey Report endpoints
 @api_router.get("/survey-reports", response_model=List[SurveyReportResponse])
 async def get_survey_reports(ship_id: Optional[str] = None, current_user: UserResponse = Depends(get_current_user)):
