@@ -6403,6 +6403,19 @@ async def analyze_test_report_file(
         from dual_apps_script_manager import create_dual_apps_script_manager
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
+        # Test Report endpoint call - analyze the document
+        try:
+            test_report_analysis = await dual_manager.analyze_test_report_file(
+                file_content=file_content,
+                filename=filename,
+                content_type='application/pdf',
+                document_ai_config=document_ai_config
+            )
+            logger.info("✅ Test Report analysis completed successfully")
+        except Exception as e:
+            logger.error(f"❌ Test Report analysis failed: {e}")
+            test_report_analysis = None
+        
         # Initialize analysis result
         analysis_result = {
             "test_report_name": "",
