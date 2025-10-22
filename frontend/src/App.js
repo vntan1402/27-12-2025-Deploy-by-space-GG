@@ -4532,6 +4532,7 @@ const HomePage = () => {
 
       const updateData = {
         survey_report_name: editingSurveyReport.survey_report_name,
+        report_form: editingSurveyReport.report_form || null,
         survey_report_no: editingSurveyReport.survey_report_no || null,
         issued_date: editingSurveyReport.issued_date ? convertDateInputToUTC(editingSurveyReport.issued_date.split('T')[0]) : null,
         issued_by: editingSurveyReport.issued_by || null,
