@@ -4987,25 +4987,48 @@ const HomePage = () => {
     }
   };
   
-  const handleUpdateTestReport = () => {
+  const handleUpdateTestReport = async () => {
     if (!editingTestReport) return;
     
-    const status = calculateTestReportStatus(editingTestReport.valid_date);
-    
-    const updatedReport = {
-      ...editingTestReport,
-      status: status
-    };
-    
-    setTestReports(prev => 
-      prev.map(report => 
-        report.id === editingTestReport.id ? updatedReport : report
-      )
-    );
-    
-    toast.success(language === 'vi' ? 'Đã cập nhật báo cáo test' : 'Test report updated successfully');
-    setShowEditTestReportModal(false);
-    setEditingTestReport(null);
+    try {
+      const updateData = {
+        test_report_name: editingTestReport.test_report_name,
+        report_form: editingTestReport.report_form || null,
+        test_report_no: editingTestReport.test_report_no,
+        issued_by: editingTestReport.issued_by || null,
+        issued_date: editingTestReport.issued_date ? convertDateInputToUTC(editingTestReport.issued_date.split('T')[0]) : null,
+        valid_date: editingTestReport.valid_date ? convertDateInputToUTC(editingTestReport.valid_date.split('T')[0]) : null,
+        note: editingTestReport.note || null
+      };
+      
+      await axios.put(`${API}/test-reports/${editingTestReport.id}`, updateData);
+      toast.success(language === 'vi' ? 'Đã cập nhật báo cáo test' : 'Test report updated successfully');
+      
+      // Close modal and reset
+      setShowEditTestReportModal(false);
+      setEditingTestReport(null);
+      
+      // Refresh test reports list
+      if (selectedShip) {
+        await fetchTestReports(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to update test report:', error);
+      let errorMsg = language === 'vi' ? 'Không thể cập nhật báo cáo test' : 'Failed to update test report';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          errorMsg = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMsg = detail;
+        } else if (typeof detail === 'object' && detail.msg) {
+          errorMsg = detail.msg;
+        } else if (typeof detail === 'object') {
+          errorMsg = JSON.stringify(detail);
+        }
+      }
+      toast.error(errorMsg);
+    }
   };
   
   const handleDeleteTestReport = (reportId) => {
