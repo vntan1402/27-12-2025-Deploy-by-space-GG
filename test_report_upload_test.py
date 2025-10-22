@@ -468,6 +468,33 @@ class TestReportUploadTester:
                     success = result.get("success", False)
                     self.log(f"   Success: {success}")
                     
+                    # Print the full response for debugging
+                    self.log(f"📋 Full upload response: {json.dumps(result, indent=2)}")
+                    
+                    # Check for file IDs regardless of success flag
+                    original_file_id = result.get("original_file_id")
+                    summary_file_id = result.get("summary_file_id")
+                    
+                    self.log(f"   Original file ID: {original_file_id}")
+                    self.log(f"   Summary file ID: {summary_file_id}")
+                    
+                    if original_file_id:
+                        self.upload_tests['response_contains_original_file_id'] = True
+                        # Check if it looks like a Google Drive file ID
+                        if len(original_file_id) > 20 and original_file_id.replace('-', '').replace('_', '').isalnum():
+                            self.upload_tests['file_ids_are_valid'] = True
+                            self.log("✅ Original file ID looks like valid Google Drive ID")
+                        else:
+                            self.log("⚠️ Original file ID format suspicious", "WARNING")
+                    else:
+                        self.log("❌ Original file ID missing from response", "ERROR")
+                    
+                    if summary_file_id:
+                        self.upload_tests['response_contains_summary_file_id'] = True
+                        self.log("✅ Summary file ID present in response")
+                    else:
+                        self.log("❌ Summary file ID missing from response", "ERROR")
+                    
                     if success:
                         self.upload_tests['response_success_true'] = True
                         
