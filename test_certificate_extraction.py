@@ -7,7 +7,7 @@ import requests
 import json
 import os
 
-BACKEND_URL = 'https://maritime-docai.preview.emergentagent.com/api'
+BACKEND_URL = 'https://test-survey-portal.preview.emergentagent.com/api'
 
 def test_certificate_extraction():
     print("🧪 Testing Certificate AI Extraction")
