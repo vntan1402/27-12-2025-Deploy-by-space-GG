@@ -11244,6 +11244,7 @@ const HomePage = () => {
                                     </div>
                                   </td>
                                   <td className="border border-gray-300 px-4 py-2">{report.survey_report_name}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{report.report_form || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_by || '-'}</td>
