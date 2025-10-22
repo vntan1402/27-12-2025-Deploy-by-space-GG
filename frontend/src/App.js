@@ -1439,57 +1439,7 @@ const HomePage = () => {
 
 
   // ========== TEST REPORT STATES (NEW) ==========
-  const [testReports, setTestReports] = useState([
-    // Mock data for testing
-    {
-      id: '1',
-      ship_id: selectedShip?.id || '',
-      test_report_name: 'Ballast Water Management Test',
-      report_form: 'IMO BWM Form',
-      test_report_no: 'BWM-2025-001',
-      issued_by: 'Lloyd\'s Register',
-      issued_date: '2024-06-15',
-      valid_date: '2026-06-15', // Valid: > 90 days
-      status: 'Valid',
-      note: 'All parameters within acceptable range'
-    },
-    {
-      id: '2',
-      ship_id: selectedShip?.id || '',
-      test_report_name: 'Lifeboat Load Test',
-      report_form: 'SOLAS Test Form',
-      test_report_no: 'LFB-2024-045',
-      issued_by: 'DNV',
-      issued_date: '2024-11-20',
-      valid_date: '2025-03-15', // Critical: within 30 days
-      status: 'Critical',
-      note: ''
-    },
-    {
-      id: '3',
-      ship_id: selectedShip?.id || '',
-      test_report_name: 'Fire Fighting Equipment Test',
-      report_form: 'Class Form A',
-      test_report_no: 'FFE-2024-123',
-      issued_by: 'ABS',
-      issued_date: '2024-08-10',
-      valid_date: '2025-04-20', // Expired soon: within 90 days
-      status: 'Expired soon',
-      note: 'Re-test required before expiry'
-    },
-    {
-      id: '4',
-      ship_id: selectedShip?.id || '',
-      test_report_name: 'Oil Content Meter Calibration',
-      report_form: 'MARPOL Form',
-      test_report_no: 'OCM-2024-089',
-      issued_by: 'Bureau Veritas',
-      issued_date: '2024-01-10',
-      valid_date: '2024-12-31', // Expired
-      status: 'Expired',
-      note: 'Urgent calibration required'
-    }
-  ]);
+  const [testReports, setTestReports] = useState([]);
   
   const [testReportSort, setTestReportSort] = useState({
     column: null,
