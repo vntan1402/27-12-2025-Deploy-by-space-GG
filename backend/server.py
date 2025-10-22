@@ -1034,9 +1034,6 @@ def calculate_test_report_status(valid_date: Optional[datetime]) -> str:
         # Valid: > 90 days
         return "Valid"
 
-            datetime: lambda v: v.isoformat() if v else None
-        }
-
 
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
