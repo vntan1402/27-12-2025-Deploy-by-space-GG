@@ -915,8 +915,21 @@ class DualAppsScriptManager:
                 logger.error(f"❌ Test report file upload failed")
                 return upload_result
             
+            # Extract file ID from Apps Script response
+            file_id = upload_result.get('file_id')
             logger.info("✅ Test report files uploaded successfully")
-            return upload_result
+            logger.info(f"   File ID: {file_id}")
+            logger.info(f"   Path: {upload_result.get('folder_path', 'N/A')}")
+            
+            # Return structured response with mapped field names
+            return {
+                'success': True,
+                'message': 'Test report files uploaded successfully',
+                'original_file_id': file_id,  # Map file_id to original_file_id for server.py
+                'summary_file_id': None,  # Test reports don't have separate summary files
+                'file_path': upload_result.get('folder_path'),
+                'upload_details': upload_result
+            }
             
         except Exception as e:
             logger.error(f"❌ Error uploading test report files: {e}")
