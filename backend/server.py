@@ -6342,22 +6342,42 @@ async def analyze_test_report_file(
             
         logger.info(f"📄 Processing test report file: {filename} ({len(file_content)} bytes)")
         
+        # Get company information
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
         # Get ship information
-        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        ship = await mongo_db.find_one("ships", {
+            "id": ship_id,
+            "company": company_uuid
+        })
+        
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Get company_uuid for Document AI configuration
-        company_uuid = current_user.company
-        if not company_uuid:
-            raise HTTPException(status_code=400, detail="User must be associated with a company")
+        ship_name = ship.get("name", "Unknown Ship")
+        ship_imo = ship.get("imo", "")
         
-        # Check Document AI configuration
-        doc_ai_config = await mongo_db.find_one("document_ai_config", {"company_uuid": company_uuid})
-        if not doc_ai_config or not doc_ai_config.get('project_id') or not doc_ai_config.get('processor_id'):
+        # Get AI configuration for Document AI
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
             raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration.")
         
-        logger.info("🤖 Analyzing test report file with Document AI...")
+        logger.info("🤖 Analyzing test report with Google Document AI...")
         
         # Create dual manager for Document AI analysis
         dual_manager = create_dual_apps_script_manager(company_uuid)
