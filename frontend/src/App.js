@@ -5535,8 +5535,9 @@ const HomePage = () => {
         throw new Error('Analysis failed');
       }
       
+      // Test report endpoint returns analysis data directly (no wrapper)
       const analysis = analyzeResponse.data;
-      result.testReportName = analysis.test_report_name || 'Unknown';
+      result.testReportName = analysis.test_report_name || file.name;
       result.testReportNo = analysis.test_report_no || '';
       
       // Step 2: Create test report record
