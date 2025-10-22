@@ -4925,7 +4925,7 @@ const HomePage = () => {
     }));
   };
   
-  const handleAddTestReport = () => {
+  const handleAddTestReport = async () => {
     if (!selectedShip) {
       toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
       return;
@@ -4936,30 +4936,55 @@ const HomePage = () => {
       return;
     }
     
-    const status = calculateTestReportStatus(newTestReport.valid_date);
-    
-    const report = {
-      id: Date.now().toString(),
-      ship_id: selectedShip.id,
-      ...newTestReport,
-      status: status
-    };
-    
-    setTestReports(prev => [...prev, report]);
-    toast.success(language === 'vi' ? 'Đã thêm báo cáo test' : 'Test report added successfully');
-    
-    // Reset form
-    setNewTestReport({
-      test_report_name: '',
-      report_form: '',
-      test_report_no: '',
-      issued_by: '',
-      issued_date: '',
-      valid_date: '',
-      status: 'Valid',
-      note: ''
-    });
-    setShowAddTestReportModal(false);
+    try {
+      const reportData = {
+        ship_id: selectedShip.id,
+        test_report_name: newTestReport.test_report_name,
+        report_form: newTestReport.report_form || null,
+        test_report_no: newTestReport.test_report_no,
+        issued_by: newTestReport.issued_by || null,
+        issued_date: newTestReport.issued_date ? convertDateInputToUTC(newTestReport.issued_date) : null,
+        valid_date: newTestReport.valid_date ? convertDateInputToUTC(newTestReport.valid_date) : null,
+        note: newTestReport.note || null
+      };
+      
+      await axios.post(`${API}/test-reports`, reportData);
+      toast.success(language === 'vi' ? 'Đã thêm báo cáo test' : 'Test report added successfully');
+      
+      // Reset form and close modal
+      setNewTestReport({
+        test_report_name: '',
+        report_form: '',
+        test_report_no: '',
+        issued_by: '',
+        issued_date: '',
+        valid_date: '',
+        status: 'Valid',
+        note: ''
+      });
+      setShowAddTestReportModal(false);
+      
+      // Refresh test reports list
+      if (selectedShip) {
+        await fetchTestReports(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to add test report:', error);
+      let errorMsg = language === 'vi' ? 'Không thể thêm báo cáo test' : 'Failed to add test report';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          errorMsg = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMsg = detail;
+        } else if (typeof detail === 'object' && detail.msg) {
+          errorMsg = detail.msg;
+        } else if (typeof detail === 'object') {
+          errorMsg = JSON.stringify(detail);
+        }
+      }
+      toast.error(errorMsg);
+    }
   };
   
   const handleUpdateTestReport = () => {
