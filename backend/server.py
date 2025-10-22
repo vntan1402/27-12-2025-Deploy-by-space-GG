@@ -6545,7 +6545,17 @@ async def analyze_test_report_file(
                     if summary_text:
                         logger.info("🧠 Extracting test report fields from Document AI summary...")
                         
-                        extracted_fields = await extract_test_report_fields_from_summary(summary_text)
+                        # Get AI configuration for field extraction
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        extracted_fields = await extract_test_report_fields_from_summary(
+                            summary_text,
+                            ai_provider,
+                            ai_model,
+                            use_emergent_key
+                        )
                         
                         if extracted_fields:
                             logger.info("✅ System AI test report extraction completed successfully")
