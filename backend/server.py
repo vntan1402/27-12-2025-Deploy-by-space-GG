@@ -998,6 +998,41 @@ class TestReportResponse(BaseModel):
     
     class Config:
         json_encoders = {
+
+
+# Helper function for Test Report status calculation
+def calculate_test_report_status(valid_date: Optional[datetime]) -> str:
+    """
+    Calculate test report status based on valid_date
+    Logic:
+    - Valid: Valid Date > 90 days from today
+    - Expired soon: Valid Date within 90 days (but > 30 days)
+    - Critical: Valid Date within 30 days (but >= today)
+    - Expired: Valid Date < today
+    """
+    if not valid_date:
+        return "Unknown"
+    
+    # Convert valid_date to timezone-aware datetime if it's naive
+    if valid_date.tzinfo is None:
+        valid_date = valid_date.replace(tzinfo=timezone.utc)
+    
+    current_date = datetime.now(timezone.utc)
+    days_until_expiry = (valid_date - current_date).days
+    
+    if days_until_expiry < 0:
+        # Expired
+        return "Expired"
+    elif days_until_expiry <= 30:
+        # Critical: within 30 days
+        return "Critical"
+    elif days_until_expiry <= 90:
+        # Expired soon: within 90 days (but > 30 days)
+        return "Expired soon"
+    else:
+        # Valid: > 90 days
+        return "Valid"
+
             datetime: lambda v: v.isoformat() if v else None
         }
 
