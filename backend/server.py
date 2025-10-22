@@ -5450,13 +5450,13 @@ async def analyze_survey_report_file(
                     # Create enhanced merged summary
                     from pdf_splitter import create_enhanced_merged_summary
                     
-                    # Build temporary merged_data for summary creation
+                    # Build temporary merged_data for summary creation (will be updated later)
                     temp_merged_data = {
-                        'survey_report_name': '',
-                        'survey_report_no': '',
-                        'issued_by': '',
-                        'issued_date': '',
-                        'surveyor_name': '',
+                        'survey_report_name': 'Processing...',
+                        'survey_report_no': 'Processing...',
+                        'issued_by': 'Processing...',
+                        'issued_date': 'Processing...',
+                        'surveyor_name': 'Processing...',
                         'status': 'Valid',
                         'note': ''
                     }
@@ -5489,19 +5489,26 @@ async def analyze_survey_report_file(
                         logger.info(f"   📋 Extracted Survey Name: '{extracted_fields.get('survey_report_name')}'")
                         logger.info(f"   🔢 Extracted Survey No: '{extracted_fields.get('survey_report_no')}'")
                         
+                        # Recreate summary with actual extracted data
+                        final_merged_summary = create_enhanced_merged_summary(
+                            chunk_results=chunk_results,
+                            merged_data=extracted_fields,
+                            original_filename=filename,
+                            total_pages=total_pages
+                        )
+                        
                         merged_result = {
                             'success': True,
-                            **extracted_fields  # Use extracted fields from merged summary
+                            **extracted_fields,  # Use extracted fields from merged summary
+                            '_merged_summary_text': final_merged_summary
                         }
                     else:
                         logger.warning("⚠️ No fields extracted from merged summary")
                         merged_result = {
                             'success': False,
-                            'error': 'Field extraction failed'
+                            'error': 'Field extraction failed',
+                            '_merged_summary_text': merged_summary_text
                         }
-                    
-                    # Store merged summary for upload
-                    merged_result['_merged_summary_text'] = merged_summary_text
                 
                 if merged_result.get('success'):
                     analysis_result.update(merged_result)
