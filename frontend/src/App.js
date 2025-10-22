@@ -1494,9 +1494,12 @@ const HomePage = () => {
   const [isAnalyzingTestReport, setIsAnalyzingTestReport] = useState(false);
   const [testReportFileError, setTestReportFileError] = useState('');
   const [analyzedTestReportData, setAnalyzedTestReportData] = useState(null);
-
-
-
+  
+  // Test Report Batch Processing States
+  const [isBatchProcessingTestReports, setIsBatchProcessingTestReports] = useState(false);
+  const [testReportBatchProgress, setTestReportBatchProgress] = useState({ current: 0, total: 0 });
+  const [testReportBatchResults, setTestReportBatchResults] = useState([]);
+  const [showTestReportProcessingResultsModal, setShowTestReportProcessingResultsModal] = useState(false);
 
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
