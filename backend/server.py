@@ -6574,7 +6574,7 @@ async def upload_test_report_files(
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Get company_uuid
-        company_uuid = current_user.company_uuid
+        company_uuid = current_user.company
         if not company_uuid:
             raise HTTPException(status_code=400, detail="User must be associated with a company")
         
