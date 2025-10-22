@@ -5437,7 +5437,159 @@ const HomePage = () => {
     });
   };
 
+  // Test Report Batch Processing
+  const startTestReportBatchProcessing = async (files) => {
+    try {
+      setIsBatchProcessingTestReports(true);
+      setTestReportBatchProgress({ current: 0, total: files.length });
+      setTestReportBatchResults([]);
+      
+      const MAX_PARALLEL = 10; // Max 10 files at once
+      const STAGGER_DELAY = 2000; // 2 seconds between file starts
+      
+      const results = [];
+      
+      // Process files with staggered start
+      const promises = files.map((file, index) => {
+        return new Promise((resolve) => {
+          setTimeout(async () => {
+            try {
+              const result = await processSingleTestReportInBatch(file, index + 1, files.length);
+              results.push(result);
+              setTestReportBatchProgress({ current: results.length, total: files.length });
+              resolve(result);
+            } catch (error) {
+              const errorResult = {
+                filename: file.name,
+                success: false,
+                error: error.message || 'Processing failed',
+                testReportCreated: false,
+                fileUploaded: false
+              };
+              results.push(errorResult);
+              setTestReportBatchProgress({ current: results.length, total: files.length });
+              resolve(errorResult);
+            }
+          }, index * STAGGER_DELAY);
+        });
+      });
+      
+      // Wait for all files to complete
+      await Promise.all(promises);
+      
+      // Close batch processing modal
+      setIsBatchProcessingTestReports(false);
+      
+      // Close Add Test Report modal
+      setShowAddTestReportModal(false);
+      
+      // Show results modal
+      setTestReportBatchResults(results);
+      setShowTestReportProcessingResultsModal(true);
+      
+      // Refresh test reports list
+      if (selectedShip) {
+        await fetchTestReports(selectedShip.id);
+      }
+      
+      // Show summary toast
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      toast.success(
+        `${language === 'vi' ? 'Đã xử lý' : 'Processed'} ${results.length} ${language === 'vi' ? 'file' : 'files'}: ` +
+        `${successCount} ${language === 'vi' ? 'thành công' : 'success'}, ${failCount} ${language === 'vi' ? 'thất bại' : 'failed'}`
+      );
+      
+    } catch (error) {
+      console.error('Error in batch processing:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý batch' : 'Batch processing error');
+      setIsBatchProcessingTestReports(false);
+    }
+  };
 
+  const processSingleTestReportInBatch = async (file, current, total) => {
+    const result = {
+      filename: file.name,
+      success: false,
+      testReportCreated: false,
+      fileUploaded: false,
+      testReportName: '',
+      testReportNo: '',
+      error: null
+    };
+    
+    try {
+      console.log(`📋 Processing test report ${current}/${total}: ${file.name}`);
+      
+      // Step 1: Analyze file
+      const formData = new FormData();
+      formData.append('test_report_file', file);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('bypass_validation', 'true'); // Auto-bypass in batch mode
+      
+      const analyzeResponse = await axios.post(`${API}/test-reports/analyze-file`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      if (!analyzeResponse.data) {
+        throw new Error('Analysis failed');
+      }
+      
+      const analysis = analyzeResponse.data;
+      result.testReportName = analysis.test_report_name || 'Unknown';
+      result.testReportNo = analysis.test_report_no || '';
+      
+      // Step 2: Create test report record
+      const reportData = {
+        test_report_name: analysis.test_report_name || file.name,
+        report_form: analysis.report_form || null,
+        test_report_no: analysis.test_report_no || null,
+        issued_date: analysis.issued_date ? convertDateInputToUTC(analysis.issued_date) : null,
+        issued_by: analysis.issued_by || null,
+        valid_date: analysis.valid_date ? convertDateInputToUTC(analysis.valid_date) : null,
+        status: analysis.status || 'Unknown',
+        note: analysis.note || null
+      };
+      
+      const createResponse = await axios.post(`${API}/test-reports?ship_id=${selectedShip.id}`, reportData);
+      
+      if (!createResponse.data || !createResponse.data.id) {
+        throw new Error('Failed to create test report record');
+      }
+      
+      const reportId = createResponse.data.id;
+      result.testReportCreated = true;
+      result.reportId = reportId;
+      console.log(`✅ Test report created: ${reportId}`);
+      
+      // Step 3: Upload files to Google Drive
+      if (analysis._file_content && analysis._filename) {
+        const uploadData = {
+          file_content: analysis._file_content,
+          filename: analysis._filename,
+          content_type: analysis._content_type || 'application/pdf',
+          summary_text: analysis._summary_text || ''
+        };
+        
+        const uploadResponse = await axios.post(`${API}/test-reports/${reportId}/upload-files`, uploadData);
+        
+        if (uploadResponse.data.success) {
+          result.fileUploaded = true;
+          console.log(`✅ Files uploaded for report: ${reportId}`);
+        } else {
+          console.warn(`⚠️ File upload failed for report: ${reportId}`);
+        }
+      }
+      
+      result.success = true;
+      return result;
+      
+    } catch (error) {
+      console.error(`❌ Error processing ${file.name}:`, error);
+      result.error = error.response?.data?.detail || error.message || 'Processing failed';
+      return result;
+    }
+  };
 
   // Survey Report File Upload Handlers
   const handleSurveyReportFileSelect = async (e) => {
