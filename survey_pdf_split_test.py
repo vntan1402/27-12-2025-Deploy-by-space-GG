@@ -583,9 +583,9 @@ startxref
                 
                 # 5. Single field extraction verification
                 has_extracted_fields = any([
-                    result.get('survey_report_name'),
-                    result.get('survey_report_no'),
-                    result.get('issued_by')
+                    analysis.get('survey_report_name'),
+                    analysis.get('survey_report_no'),
+                    analysis.get('issued_by')
                 ])
                 
                 if has_extracted_fields:
