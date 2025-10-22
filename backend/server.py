@@ -960,8 +960,8 @@ class TestReportBase(BaseModel):
     ship_id: str
     test_report_name: str
     report_form: Optional[str] = None  # Optional: Report Form field
-    test_report_no: str  # Required
-    issued_date: datetime  # Required
+    test_report_no: Optional[str] = None  # Optional: Can be empty if AI doesn't extract
+    issued_date: Optional[datetime] = None  # Optional: Can be empty if AI doesn't extract
     issued_by: Optional[str] = None  # Optional
     valid_date: Optional[datetime] = None  # Optional: Expiry date
     status: Optional[str] = "Valid"  # Auto-calculated: Valid, Expired soon, Critical, Expired
