@@ -5363,6 +5363,7 @@ async def analyze_survey_report_file(
         # Initialize empty analysis data
         analysis_result = {
             "survey_report_name": "",
+            "report_form": "",
             "survey_report_no": "",
             "issued_by": "",
             "issued_date": "",
