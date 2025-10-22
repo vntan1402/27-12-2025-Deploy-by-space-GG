@@ -256,8 +256,8 @@ class TestReportBatchUploadFixedTester:
                 "note": analyze_result.get('note', '')
             }
             
-            # Remove None values
-            test_report_data = {k: v for k, v in test_report_data.items() if v is not None}
+            # Remove None values AND empty strings for date fields
+            test_report_data = {k: v for k, v in test_report_data.items() if v is not None and v != ''}
             
             self.log(f"📤 Creating test report record for {filename}")
             
