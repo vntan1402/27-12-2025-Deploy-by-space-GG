@@ -1489,6 +1489,14 @@ const HomePage = () => {
   });
 
 
+  // Test Report File Upload States
+  const [testReportFile, setTestReportFile] = useState(null);
+  const [isAnalyzingTestReport, setIsAnalyzingTestReport] = useState(false);
+  const [testReportFileError, setTestReportFileError] = useState('');
+  const [analyzedTestReportData, setAnalyzedTestReportData] = useState(null);
+
+
+
 
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
