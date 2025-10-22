@@ -1,53 +1,34 @@
 #!/usr/bin/env python3
 """
 Test Report AI Analysis Endpoint Testing
-Testing with actual PDF file: Chemical Suit.pdf
+Final comprehensive test of Test Report AI analysis with all fixes applied.
 
 REVIEW REQUEST REQUIREMENTS:
-Test the Test Report AI analysis endpoint with the actual PDF file.
+Applied critical fixes to match Survey Report workflow:
+1. Added `_file_content` base64 encoding (for upload later)
+2. Added proper try/except wrapping
+3. Fixed PDF splitting check placement
+4. Added `_filename`, `_content_type`, `_ship_name` metadata
 
-## Context
-User reports that auto-fill is not working for Test Reports. Need to test the actual workflow with the file "Chemical Suit.pdf" located at /tmp/Chemical_Suit.pdf
+Test Objectives:
+1. Verify Chemical Suit PDF analysis works end-to-end
+2. Confirm all fields are extracted and populated
+3. Check file content is preserved for upload
+4. Validate response structure matches frontend expectations
 
-## Test Steps
+Test Steps:
+1. Authentication & Setup - Login: admin1/123456, Get access token, Find a ship (BROTHER 36 or any)
+2. Upload & Analyze - POST /api/test-reports/analyze-file, File: /tmp/Chemical_Suit.pdf, Form data: ship_id, bypass_validation=false
+3. Verify Response Structure
+4. Backend Logs Check
+5. Validation
 
-### Step 1: Login and Get Token
-- Login with admin1/123456
-- Save the access token
-
-### Step 2: Get Ship ID
-- Find a ship (e.g., BROTHER 36 or any available ship)
-- Save the ship_id
-
-### Step 3: Test Analyze File Endpoint
-- Call POST /api/test-reports/analyze-file
-- Upload the file: /tmp/Chemical_Suit.pdf
-- Pass ship_id as form data
-- Pass bypass_validation=false
-
-### Step 4: Verify Response
-Check the response should contain:
-- test_report_name (extracted from PDF)
-- report_form (extracted from PDF)
-- test_report_no (extracted from PDF)
-- issued_by (extracted from PDF)
-- issued_date (extracted from PDF)
-- valid_date (extracted from PDF)
-- note (extracted from PDF)
-- status (auto-calculated)
-- _summary_text (from Document AI)
-
-### Step 5: Check Backend Logs
-- Look for log messages:
-  - "🤖 Analyzing test report with Google Document AI..."
-  - "🧠 Extracting test report fields from Document AI summary..."
-  - "✅ System AI test report extraction completed successfully"
-  - Any error messages
-
-### Expected Results
-- Response should have all extracted fields populated
-- Fields should NOT be empty strings
-- If fields are empty, check logs to see where extraction failed
+Success Criteria:
+✅ API returns 200 OK
+✅ Response has all populated fields
+✅ _file_content preserved for upload
+✅ Frontend can auto-fill form
+✅ No errors in backend logs
 
 ### Important Notes
 - Use multipart/form-data for file upload
