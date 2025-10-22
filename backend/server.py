@@ -5357,107 +5357,248 @@ async def analyze_survey_report_file(
         analysis_result['_ship_name'] = ship_name
         
         try:
-            # ✅ NEW: Analyze survey report WITHOUT uploading to Drive
-            # Upload will happen AFTER successful record creation
-            logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
+            # ✅ ENHANCED: Support for large PDF files (> 15 pages)
+            if not needs_split:
+                # Normal processing for files ≤ 15 pages
+                logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
+                
+                analysis_only_result = await dual_manager.analyze_survey_report_only(
+                    file_content=file_content,
+                    filename=filename,
+                    content_type=survey_report_file.content_type or 'application/octet-stream',
+                    document_ai_config=document_ai_config
+                )
+                
+                # Process single file result
+                analysis_result['_split_info'] = {
+                    'was_split': False,
+                    'total_pages': total_pages,
+                    'chunks_count': 1
+                }
+                
+            else:
+                # Split PDF and process each chunk
+                logger.info(f"🔪 Splitting PDF ({total_pages} pages) into chunks...")
+                chunks = splitter.split_pdf(file_content, filename)
+                logger.info(f"📦 Created {len(chunks)} chunks, starting batch processing...")
+                
+                # Process each chunk
+                chunk_results = []
+                for i, chunk in enumerate(chunks):
+                    logger.info(f"🔄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})")
+                    
+                    chunk_analysis = await dual_manager.analyze_survey_report_only(
+                        file_content=chunk['content'],
+                        filename=chunk['filename'],
+                        content_type='application/pdf',
+                        document_ai_config=document_ai_config
+                    )
+                    
+                    # Process chunk result
+                    if chunk_analysis.get('success'):
+                        ai_analysis = chunk_analysis.get('ai_analysis', {})
+                        if ai_analysis.get('success'):
+                            summary_text = ai_analysis.get('data', {}).get('summary', '')
+                            
+                            if summary_text:
+                                # Extract fields from this chunk
+                                ai_provider = ai_config_doc.get("provider", "google")
+                                ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                                use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                                
+                                extracted_fields = await extract_survey_report_fields_from_summary(
+                                    summary_text,
+                                    ai_provider,
+                                    ai_model,
+                                    use_emergent_key
+                                )
+                                
+                                chunk_results.append({
+                                    'success': True,
+                                    'chunk_num': chunk['chunk_num'],
+                                    'page_range': chunk['page_range'],
+                                    'extracted_fields': extracted_fields,
+                                    'summary_text': summary_text
+                                })
+                                
+                                progress_percent = ((i + 1) / len(chunks)) * 100
+                                logger.info(f"✅ Chunk {i+1} complete - Progress: {progress_percent:.1f}%")
+                            else:
+                                logger.warning(f"⚠️ Chunk {i+1} returned empty summary")
+                                chunk_results.append({
+                                    'success': False,
+                                    'chunk_num': chunk['chunk_num'],
+                                    'page_range': chunk['page_range'],
+                                    'error': 'Empty summary'
+                                })
+                        else:
+                            logger.error(f"❌ Chunk {i+1} Document AI failed")
+                            chunk_results.append({
+                                'success': False,
+                                'chunk_num': chunk['chunk_num'],
+                                'page_range': chunk['page_range'],
+                                'error': 'Document AI failed'
+                            })
+                    else:
+                        logger.error(f"❌ Chunk {i+1} analysis failed")
+                        chunk_results.append({
+                            'success': False,
+                            'chunk_num': chunk['chunk_num'],
+                            'page_range': chunk['page_range'],
+                            'error': chunk_analysis.get('message', 'Unknown error')
+                        })
+                
+                # Merge results from all chunks
+                logger.info("🔀 Merging results from all chunks...")
+                from pdf_splitter import merge_analysis_results
+                merged_result = merge_analysis_results(chunk_results)
+                
+                if merged_result.get('success'):
+                    analysis_result.update(merged_result)
+                    analysis_result["processing_method"] = "split_pdf_batch_processing"
+                    analysis_result['_split_info'] = {
+                        'was_split': True,
+                        'total_pages': total_pages,
+                        'chunks_count': len(chunks),
+                        'successful_chunks': len([cr for cr in chunk_results if cr.get('success')]),
+                        'failed_chunks': len([cr for cr in chunk_results if not cr.get('success')])
+                    }
+                    
+                    # Store combined summary text
+                    all_summaries = [cr.get('summary_text', '') for cr in chunk_results if cr.get('success') and cr.get('summary_text')]
+                    analysis_result['_summary_text'] = '\n\n--- Next Chunk ---\n\n'.join(all_summaries)
+                    
+                    logger.info(f"✅ Split PDF processing complete!")
+                    logger.info(f"   📋 Merged Survey Name: '{analysis_result.get('survey_report_name')}'")
+                    logger.info(f"   🔢 Merged Survey No: '{analysis_result.get('survey_report_no')}'")
+                    
+                    # Create consolidated analysis_only_result for validation below
+                    analysis_only_result = {
+                        'success': True,
+                        'ai_analysis': {
+                            'success': True,
+                            'data': {
+                                'summary': analysis_result.get('_summary_text', '')
+                            }
+                        }
+                    }
+                else:
+                    logger.error("❌ Failed to merge chunk results")
+                    analysis_result['_summary_text'] = ''
+                    analysis_result["processing_method"] = "split_pdf_merge_failed"
+                    analysis_result['_split_info'] = {
+                        'was_split': True,
+                        'total_pages': total_pages,
+                        'chunks_count': len(chunks),
+                        'error': 'Merge failed'
+                    }
+                    
+                    # Create failed analysis_only_result
+                    analysis_only_result = {
+                        'success': False,
+                        'message': 'Merge failed'
+                    }
             
-            # ✅ FIXED: Use analyze_survey_report_only() method (same as crew certificate workflow)
-            # This ensures _load_configuration() is called before analysis
-            analysis_only_result = await dual_manager.analyze_survey_report_only(
-                file_content=file_content,
-                filename=filename,
-                content_type=survey_report_file.content_type or 'application/octet-stream',
-                document_ai_config=document_ai_config
-            )
-            
+            # Continue with validation (works for both single and split PDFs)
             if not analysis_only_result.get('success'):
                 logger.error(f"❌ Survey report analysis failed: {analysis_only_result.get('message')}")
                 # ✅ Still return success with file_content for manual entry
                 logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
-                analysis_result['_summary_text'] = ''
-                analysis_result["processing_method"] = "analysis_failed"
-            else:
-                # Extract AI analysis results
-                ai_analysis = analysis_only_result.get('ai_analysis', {})
-                if not ai_analysis.get('success'):
-                    logger.error("❌ Survey report Document AI analysis failed")
-                    logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
+                if '_summary_text' not in analysis_result:
                     analysis_result['_summary_text'] = ''
-                    analysis_result["processing_method"] = "document_ai_failed"
-                else:
-                    # Get summary for field extraction
-                    summary_text = ai_analysis.get('data', {}).get('summary', '')
-                    if not summary_text:
-                        logger.error("❌ No summary received from Survey Report Document AI")
+                if "processing_method" not in analysis_result:
+                    analysis_result["processing_method"] = "analysis_failed"
+            else:
+                # For single file, extract fields if not done yet
+                if not needs_split:
+                    # Extract AI analysis results
+                    ai_analysis = analysis_only_result.get('ai_analysis', {})
+                    if not ai_analysis.get('success'):
+                        logger.error("❌ Survey report Document AI analysis failed")
                         logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
                         analysis_result['_summary_text'] = ''
-                        analysis_result["processing_method"] = "empty_summary"
+                        analysis_result["processing_method"] = "document_ai_failed"
                     else:
-                        # Extract fields from AI summary using system AI
-                        logger.info("🧠 Extracting survey report fields from Document AI summary...")
-                        
-                        # Get AI configuration for field extraction
-                        ai_provider = ai_config_doc.get("provider", "google")
-                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
-                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
-                        
-                        extracted_fields = await extract_survey_report_fields_from_summary(
-                            summary_text,
-                            ai_provider,
-                            ai_model,
-                            use_emergent_key
-                        )
-                        
-                        if extracted_fields:
-                            logger.info("✅ System AI survey report extraction completed successfully")
-                            analysis_result.update(extracted_fields)
-                            analysis_result["processing_method"] = "analysis_only_no_upload"
-                            logger.info(f"   📋 Extracted Survey Name: '{analysis_result.get('survey_report_name')}'")
-                            logger.info(f"   🔢 Extracted Survey No: '{analysis_result.get('survey_report_no')}'")
-                            
-                            # Store summary for later upload
-                            analysis_result['_summary_text'] = summary_text
-                            
-                            # ⚠️ VALIDATION: Check if ship name/IMO matches
-                            extracted_ship_name = extracted_fields.get('ship_name', '').strip()
-                            extracted_ship_imo = extracted_fields.get('ship_imo', '').strip()
-                            
-                            if extracted_ship_name or extracted_ship_imo:
-                                validation_result = validate_ship_info_match(
-                                    extracted_ship_name,
-                                    extracted_ship_imo,
-                                    ship_name,
-                                    ship_imo
-                                )
-                                
-                                # Convert bypass_validation string to boolean
-                                should_bypass = bypass_validation.lower() == "true"
-                                
-                                if not validation_result.get('overall_match'):
-                                    logger.warning(f"❌ Ship information does NOT match")
-                                    logger.warning(f"   Extracted: Ship='{extracted_ship_name}', IMO='{extracted_ship_imo}'")
-                                    logger.warning(f"   Selected:  Ship='{ship_name}', IMO='{ship_imo}'")
-                                    
-                                    if not should_bypass:
-                                        # Return validation error for frontend to handle
-                                        return {
-                                            "success": False,
-                                            "validation_error": True,
-                                            "validation_details": validation_result,
-                                            "message": "Ship information mismatch. Please verify or bypass validation.",
-                                            "extracted_ship_name": extracted_ship_name,
-                                            "extracted_ship_imo": extracted_ship_imo,
-                                            "selected_ship_name": ship_name,
-                                            "selected_ship_imo": ship_imo
-                                        }
-                                    else:
-                                        logger.info("⚠️ Validation bypassed by user - continuing with analysis")
-                                else:
-                                    logger.info("✅ Ship information validation passed")
+                        # Get summary for field extraction
+                        summary_text = ai_analysis.get('data', {}).get('summary', '')
+                        if not summary_text:
+                            logger.error("❌ No summary received from Survey Report Document AI")
+                            logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
+                            analysis_result['_summary_text'] = ''
+                            analysis_result["processing_method"] = "empty_summary"
                         else:
-                            logger.warning("⚠️ No fields extracted, using empty analysis")
-                            analysis_result['_summary_text'] = summary_text
-                            analysis_result["processing_method"] = "extraction_failed"
+                            # Extract fields from AI summary using system AI
+                            logger.info("🧠 Extracting survey report fields from Document AI summary...")
+                            
+                            # Get AI configuration for field extraction
+                            ai_provider = ai_config_doc.get("provider", "google")
+                            ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                            
+                            extracted_fields = await extract_survey_report_fields_from_summary(
+                                summary_text,
+                                ai_provider,
+                                ai_model,
+                                use_emergent_key
+                            )
+                            
+                            if extracted_fields:
+                                logger.info("✅ System AI survey report extraction completed successfully")
+                                analysis_result.update(extracted_fields)
+                                analysis_result["processing_method"] = "analysis_only_no_upload"
+                                logger.info(f"   📋 Extracted Survey Name: '{analysis_result.get('survey_report_name')}'")
+                                logger.info(f"   🔢 Extracted Survey No: '{analysis_result.get('survey_report_no')}'")
+                                
+                                # Store summary for later upload
+                                analysis_result['_summary_text'] = summary_text
+                            else:
+                                logger.warning("⚠️ No fields extracted, using empty analysis")
+                                analysis_result['_summary_text'] = summary_text
+                                analysis_result["processing_method"] = "extraction_failed"
+                
+                # ⚠️ VALIDATION: Check if ship name/IMO matches (for both single and split)
+                extracted_ship_name = analysis_result.get('ship_name', '').strip()
+                extracted_ship_imo = analysis_result.get('ship_imo', '').strip()
+                
+                if extracted_ship_name or extracted_ship_imo:
+                    validation_result = validate_ship_info_match(
+                        extracted_ship_name,
+                        extracted_ship_imo,
+                        ship_name,
+                        ship_imo
+                    )
+                    
+                    # Convert bypass_validation string to boolean
+                    should_bypass = bypass_validation.lower() == "true"
+                    
+                    if not validation_result.get('overall_match'):
+                        logger.warning(f"❌ Ship information does NOT match")
+                        logger.warning(f"   Extracted: Ship='{extracted_ship_name}', IMO='{extracted_ship_imo}'")
+                        logger.warning(f"   Selected:  Ship='{ship_name}', IMO='{ship_imo}'")
+                        
+                        if not should_bypass:
+                            # Return validation error for frontend to handle
+                            return {
+                                "success": False,
+                                "validation_error": True,
+                                "validation_details": validation_result,
+                                "message": "Ship information mismatch. Please verify or bypass validation.",
+                                "extracted_ship_name": extracted_ship_name,
+                                "extracted_ship_imo": extracted_ship_imo,
+                                "selected_ship_name": ship_name,
+                                "selected_ship_imo": ship_imo,
+                                "split_info": analysis_result.get('_split_info')
+                            }
+                        else:
+                            logger.info("⚠️ Validation bypassed by user - continuing with analysis")
+                    else:
+                        logger.info("✅ Ship information validation passed")
+                else:
+                    logger.warning("⚠️ No fields extracted for validation")
+                    if '_summary_text' not in analysis_result:
+                        analysis_result['_summary_text'] = ''
+                    if "processing_method" not in analysis_result:
+                        analysis_result["processing_method"] = "extraction_failed"
                             
         except Exception as analysis_error:
             logger.error(f"❌ Error during survey report analysis: {analysis_error}")
