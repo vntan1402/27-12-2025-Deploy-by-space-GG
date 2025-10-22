@@ -921,12 +921,34 @@ class DualAppsScriptManager:
             logger.info(f"   File ID: {file_id}")
             logger.info(f"   Path: {upload_result.get('folder_path', 'N/A')}")
             
+            # Upload summary file if summary_text is provided
+            summary_file_id = None
+            summary_error = None
+            if summary_text and summary_text.strip():
+                try:
+                    summary_filename = filename.rsplit('.', 1)[0] + '_Summary.txt'
+                    summary_result = await self.upload_test_report_summary(
+                        summary_text=summary_text,
+                        filename=summary_filename,
+                        ship_name=ship_name
+                    )
+                    if summary_result.get('success'):
+                        summary_file_id = summary_result.get('test_report_summary_file_id')
+                        logger.info(f"✅ Test report summary uploaded successfully: {summary_file_id}")
+                    else:
+                        summary_error = summary_result.get('message', 'Summary upload failed')
+                        logger.warning(f"⚠️ Test report summary upload failed (non-critical): {summary_error}")
+                except Exception as e:
+                    summary_error = str(e)
+                    logger.warning(f"⚠️ Test report summary upload failed (non-critical): {e}")
+            
             # Return structured response with mapped field names
             return {
                 'success': True,
                 'message': 'Test report files uploaded successfully',
                 'original_file_id': file_id,  # Map file_id to original_file_id for server.py
-                'summary_file_id': None,  # Test reports don't have separate summary files
+                'summary_file_id': summary_file_id,  # Summary file ID if uploaded
+                'summary_error': summary_error,  # Summary error if any (non-critical)
                 'file_path': upload_result.get('folder_path'),
                 'upload_details': upload_result
             }
