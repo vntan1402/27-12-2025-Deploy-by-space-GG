@@ -329,7 +329,8 @@ startxref
                     self.split_tests['small_pdf_success_response'] = True
                     
                     # Check split info
-                    split_info = result.get("_split_info", {})
+                    analysis = result.get("analysis", {})
+                    split_info = analysis.get("_split_info", {})
                     self.log(f"📊 Split info found: {split_info}")
                     if split_info:
                         was_split = split_info.get("was_split", True)  # Default True to catch issues
@@ -434,7 +435,8 @@ startxref
                     self.log("✅ Large PDF processing successful")
                     
                     # Check split info
-                    split_info = result.get("_split_info", {})
+                    analysis = result.get("analysis", {})
+                    split_info = analysis.get("_split_info", {})
                     self.log(f"📊 Split info found: {split_info}")
                     if split_info:
                         was_split = split_info.get("was_split", False)
