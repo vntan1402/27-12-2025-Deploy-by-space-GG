@@ -5100,6 +5100,99 @@ const HomePage = () => {
     handleDeleteTestReport(report.id);
   };
   
+  // Bulk Delete Test Reports Handler
+  const handleBulkDeleteTestReports = async () => {
+    // Close context menu
+    setTestReportContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    if (selectedTestReports.size === 0) return;
+    
+    // Show confirmation with count and warning about Google Drive files
+    const confirmed = window.confirm(
+      language === 'vi' 
+        ? `Bạn có chắc chắn muốn xóa ${selectedTestReports.size} báo cáo test đã chọn? Các file liên quan trên Google Drive cũng sẽ bị xóa.`
+        : `Are you sure you want to delete ${selectedTestReports.size} test report(s)? This will also delete associated files from Google Drive.`
+    );
+    
+    if (!confirmed) return;
+    
+    const reportCount = selectedTestReports.size;
+    
+    // Show immediate processing toast
+    const toastId = toast.loading(language === 'vi' 
+      ? `🗑️ Đang xóa ${reportCount} báo cáo test và files...` 
+      : `🗑️ Deleting ${reportCount} test report(s) and files...`
+    );
+    
+    // Clear selection immediately
+    setSelectedTestReports(new Set());
+    
+    // Refresh list immediately for better UX (optimistic update)
+    const refreshPromise = selectedShip ? fetchTestReports(selectedShip.id) : Promise.resolve();
+    
+    try {
+      const reportIds = Array.from(selectedTestReports);
+      console.log(`🗑️ Bulk deleting ${reportCount} test reports`);
+      console.log(`📋 Report IDs to delete:`, reportIds);
+      
+      // Delete in background
+      const deletePromise = axios.delete(
+        `${API}/test-reports/bulk-delete`,
+        {
+          data: {
+            report_ids: reportIds
+          },
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      // Wait for both refresh and delete
+      const [, response] = await Promise.all([refreshPromise, deletePromise]);
+      
+      // Dismiss loading toast
+      toast.dismiss(toastId);
+      
+      // Refresh again after successful delete to ensure data consistency
+      console.log('🔄 Refreshing test reports list after bulk delete...');
+      if (selectedShip) {
+        await fetchTestReports(selectedShip.id);
+      }
+
+      // Check if partial success (some deleted, some failed)
+      if (response.data.partial_success) {
+        toast.warning(language === 'vi' 
+          ? `⚠️ Đã xóa ${response.data.deleted_count} báo cáo test, ${response.data.errors.length} lỗi` 
+          : `⚠️ Deleted ${response.data.deleted_count} test report(s), ${response.data.errors.length} error(s)`
+        );
+      } else {
+        toast.success(language === 'vi' 
+          ? `✅ Đã xóa ${response.data.deleted_count} báo cáo test và files thành công!` 
+          : `✅ Successfully deleted ${response.data.deleted_count} test report(s) and files!`
+        );
+      }
+
+    } catch (error) {
+      console.error('❌ Error bulk deleting test reports:', error);
+      
+      // Dismiss loading toast
+      toast.dismiss(toastId);
+      
+      const errorMsg = error.response?.data?.detail || error.message;
+      toast.error(language === 'vi' 
+        ? `Lỗi khi xóa báo cáo test: ${errorMsg}` 
+        : `Error deleting test reports: ${errorMsg}`
+      );
+      
+      // Refresh again to show correct state
+      if (selectedShip) {
+        await fetchTestReports(selectedShip.id);
+      }
+    }
+  };
+  
   // Test Report Selection Handlers
   const handleTestReportSelect = (reportId) => {
     setSelectedTestReports(prev => {
