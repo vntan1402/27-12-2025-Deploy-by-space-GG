@@ -5802,7 +5802,7 @@ const HomePage = () => {
       setSurveyReportBatchResults([]);
       
       const MAX_PARALLEL = 10; // Max 10 files at once
-      const STAGGER_DELAY = 2000; // 2 seconds between file starts
+      const STAGGER_DELAY = 5000; // 5 seconds between file starts (increased to avoid rate limiting)
       
       const results = [];
       
