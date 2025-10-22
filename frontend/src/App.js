@@ -4820,6 +4820,281 @@ const HomePage = () => {
     });
   };
 
+
+  // ========== TEST REPORT HANDLERS (NEW) ==========
+  
+  // Calculate Test Report Status based on valid_date
+  const calculateTestReportStatus = (validDate) => {
+    if (!validDate) return 'Unknown';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const valid = new Date(validDate);
+    valid.setHours(0, 0, 0, 0);
+    
+    const daysUntilExpiry = Math.floor((valid - today) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
+      return 'Expired';
+    } else if (daysUntilExpiry <= 30) {
+      return 'Critical';
+    } else if (daysUntilExpiry <= 90) {
+      return 'Expired soon';
+    } else {
+      return 'Valid';
+    }
+  };
+  
+  // Filter and Sort Test Reports
+  const getFilteredTestReports = () => {
+    let filtered = [...testReports];
+    
+    // Filter by status
+    if (testReportFilters.status !== 'all') {
+      filtered = filtered.filter(report => 
+        report.status?.toLowerCase() === testReportFilters.status.toLowerCase()
+      );
+    }
+    
+    // Filter by search
+    if (testReportFilters.search) {
+      const searchLower = testReportFilters.search.toLowerCase();
+      filtered = filtered.filter(report => 
+        report.test_report_name?.toLowerCase().includes(searchLower) ||
+        report.test_report_no?.toLowerCase().includes(searchLower) ||
+        report.report_form?.toLowerCase().includes(searchLower) ||
+        report.issued_by?.toLowerCase().includes(searchLower) ||
+        report.note?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Filter by valid date range
+    if (testReportFilters.validDateFrom) {
+      filtered = filtered.filter(report => 
+        report.valid_date && report.valid_date >= testReportFilters.validDateFrom
+      );
+    }
+    
+    if (testReportFilters.validDateTo) {
+      filtered = filtered.filter(report => 
+        report.valid_date && report.valid_date <= testReportFilters.validDateTo
+      );
+    }
+    
+    // Sort
+    if (testReportSort.column) {
+      filtered.sort((a, b) => {
+        let aVal = a[testReportSort.column] || '';
+        let bVal = b[testReportSort.column] || '';
+        
+        if (testReportSort.column === 'issued_date' || testReportSort.column === 'valid_date') {
+          aVal = aVal ? new Date(aVal) : new Date(0);
+          bVal = bVal ? new Date(bVal) : new Date(0);
+        } else {
+          aVal = aVal.toString().toLowerCase();
+          bVal = bVal.toString().toLowerCase();
+        }
+        
+        if (aVal < bVal) return testReportSort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return testReportSort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  };
+  
+  const handleTestReportSort = (column) => {
+    setTestReportSort(prev => ({
+      column: column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+  
+  const handleAddTestReport = () => {
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+      return;
+    }
+    
+    if (!newTestReport.test_report_name || !newTestReport.test_report_no || !newTestReport.issued_date) {
+      toast.error(language === 'vi' ? 'Vui lòng nhập đầy đủ thông tin bắt buộc' : 'Please fill in all required fields');
+      return;
+    }
+    
+    const status = calculateTestReportStatus(newTestReport.valid_date);
+    
+    const report = {
+      id: Date.now().toString(),
+      ship_id: selectedShip.id,
+      ...newTestReport,
+      status: status
+    };
+    
+    setTestReports(prev => [...prev, report]);
+    toast.success(language === 'vi' ? 'Đã thêm báo cáo test' : 'Test report added successfully');
+    
+    // Reset form
+    setNewTestReport({
+      test_report_name: '',
+      report_form: '',
+      test_report_no: '',
+      issued_by: '',
+      issued_date: '',
+      valid_date: '',
+      status: 'Valid',
+      note: ''
+    });
+    setShowAddTestReportModal(false);
+  };
+  
+  const handleUpdateTestReport = () => {
+    if (!editingTestReport) return;
+    
+    const status = calculateTestReportStatus(editingTestReport.valid_date);
+    
+    const updatedReport = {
+      ...editingTestReport,
+      status: status
+    };
+    
+    setTestReports(prev => 
+      prev.map(report => 
+        report.id === editingTestReport.id ? updatedReport : report
+      )
+    );
+    
+    toast.success(language === 'vi' ? 'Đã cập nhật báo cáo test' : 'Test report updated successfully');
+    setShowEditTestReportModal(false);
+    setEditingTestReport(null);
+  };
+  
+  const handleDeleteTestReport = (reportId) => {
+    if (!window.confirm(language === 'vi' ? 'Bạn có chắc muốn xóa báo cáo test này?' : 'Are you sure you want to delete this test report?')) {
+      return;
+    }
+    
+    setTestReports(prev => prev.filter(report => report.id !== reportId));
+    toast.success(language === 'vi' ? 'Đã xóa báo cáo test' : 'Test report deleted successfully');
+  };
+  
+  // Test Report Context Menu Handlers
+  const handleTestReportContextMenu = (e, report) => {
+    e.preventDefault();
+    
+    const menuWidth = 180;
+    const menuHeight = 200;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
+    setTestReportContextMenu({
+      show: true,
+      x: x,
+      y: y,
+      report: report
+    });
+  };
+  
+  const handleEditTestReportClick = (report) => {
+    setEditingTestReport(report);
+    setShowEditTestReportModal(true);
+    setTestReportContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+  
+  const handleDeleteTestReportClick = (report) => {
+    setTestReportContextMenu({ show: false, x: 0, y: 0, report: null });
+    handleDeleteTestReport(report.id);
+  };
+  
+  // Test Report Selection Handlers
+  const handleTestReportSelect = (reportId) => {
+    setSelectedTestReports(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reportId)) {
+        newSet.delete(reportId);
+      } else {
+        newSet.add(reportId);
+      }
+      return newSet;
+    });
+  };
+  
+  const handleSelectAllTestReports = (checked) => {
+    if (checked) {
+      const allIds = new Set(getFilteredTestReports().map(report => report.id));
+      setSelectedTestReports(allIds);
+    } else {
+      setSelectedTestReports(new Set());
+    }
+  };
+  
+  const isTestReportsAllSelected = () => {
+    const filtered = getFilteredTestReports();
+    return filtered.length > 0 && filtered.every(report => selectedTestReports.has(report.id));
+  };
+  
+  const isTestReportsIndeterminate = () => {
+    const filtered = getFilteredTestReports();
+    const selectedCount = filtered.filter(report => selectedTestReports.has(report.id)).length;
+    return selectedCount > 0 && selectedCount < filtered.length;
+  };
+  
+  // Test Report Note Tooltip Handlers (reuse same logic as Survey Report)
+  const handleTestReportNoteMouseEnter = (e, note) => {
+    if (!note) return;
+    
+    const rect = e.target.getBoundingClientRect();
+    const tableRect = e.target.closest('table')?.getBoundingClientRect();
+    
+    if (tableRect) {
+      const tooltipWidth = Math.min(tableRect.width * 0.5, 600);
+      const tooltipHeight = 200;
+      
+      let x = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+      let y = rect.top - tooltipHeight - 10;
+      
+      if (x < 10) x = 10;
+      if (x + tooltipWidth > window.innerWidth - 10) {
+        x = window.innerWidth - tooltipWidth - 10;
+      }
+      
+      if (y - tooltipHeight < 10) {
+        y = rect.bottom + 10;
+      }
+      
+      setTestReportNoteTooltip({
+        show: true,
+        x: x,
+        y: y,
+        content: note,
+        showBelow: y === rect.bottom + 10,
+        width: tooltipWidth
+      });
+    }
+  };
+  
+  const handleTestReportNoteMouseLeave = () => {
+    setTestReportNoteTooltip({
+      show: false,
+      x: 0,
+      y: 0,
+      content: '',
+      showBelow: false,
+      width: 300
+    });
+  };
+
+
   // Survey Report File Upload Handlers
   const handleSurveyReportFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
