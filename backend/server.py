@@ -5281,6 +5281,19 @@ async def analyze_survey_report_file(
             
         logger.info(f"📄 Processing survey report file: {filename} ({len(file_content)} bytes)")
         
+        # ✅ NEW: Check if PDF needs splitting (> 15 pages)
+        from pdf_splitter import PDFSplitter
+        splitter = PDFSplitter(max_pages_per_chunk=12)
+        
+        try:
+            total_pages = splitter.get_page_count(file_content)
+            needs_split = splitter.needs_splitting(file_content)
+            logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
+            total_pages = 0
+            needs_split = False
+        
         # Get company information
         company_uuid = await resolve_company_id(current_user)
         
