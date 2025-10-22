@@ -263,7 +263,7 @@ startxref
             
             with open(self.valid_pdf_path, "rb") as f:
                 files = {
-                    "survey_file": ("valid_test.pdf", f, "application/pdf")
+                    "survey_report_file": ("valid_test.pdf", f, "application/pdf")
                 }
                 data = {
                     "ship_id": self.ship_id
