@@ -6631,37 +6631,52 @@ async def analyze_test_report_file(
 @api_router.post("/test-reports/{report_id}/upload-files")
 async def upload_test_report_files(
     report_id: str,
-    test_report_file: UploadFile = File(...),
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: str = Body(...),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
-    Upload test report files to Google Drive after successful database save
-    Path: Shipname > Class & Flag Cert > Test Report (original)
-    Path: SUMMARY > Class & Flag Document (summary)
+    Upload test report files to Google Drive after record creation
+    1. Decode base64 file content
+    2. Upload original file to: ShipName/Class & Flag Cert/Test Report/
+    3. Upload summary to: SUMMARY/Class & Flag Document/
+    4. Update test report record with file IDs
     """
     try:
-        logger.info(f"📤 Uploading files for test report: {report_id}")
+        logger.info(f"📤 Starting file upload for test report: {report_id}")
         
-        # Get test report from database
+        # Validate report exists
         report = await mongo_db.find_one("test_reports", {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Test report not found")
         
-        # Get ship information
-        ship = await mongo_db.find_one("ships", {"id": report['ship_id']})
+        # Get company and ship info
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        ship_id = report.get("ship_id")
+        if not ship_id:
+            raise HTTPException(status_code=400, detail="Test report has no ship_id")
+        
+        ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Get company_uuid
-        company_uuid = current_user.company
-        if not company_uuid:
-            raise HTTPException(status_code=400, detail="User must be associated with a company")
+        ship_name = ship.get("name", "Unknown Ship")
         
-        # Read file content
-        file_content = await test_report_file.read()
-        filename = test_report_file.filename
+        # Decode base64 file content
+        try:
+            import base64
+            file_bytes = base64.b64decode(file_content)
+            logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+        except Exception as e:
+            logger.error(f"Failed to decode base64 file content: {e}")
+            raise HTTPException(status_code=400, detail="Invalid file content encoding")
         
-        logger.info(f"📄 Processing file: {filename} ({len(file_content)} bytes)")
+        logger.info(f"📄 Processing file: {filename} ({len(file_bytes)} bytes)")
         
         # Create dual manager
         from dual_apps_script_manager import create_dual_apps_script_manager
