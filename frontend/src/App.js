@@ -4492,6 +4492,19 @@ const HomePage = () => {
     }
   };
 
+
+  // Fetch Test Reports from backend
+  const fetchTestReports = async (shipId) => {
+    try {
+      const response = await axios.get(`${API}/test-reports?ship_id=${shipId}`);
+      setTestReports(response.data);
+    } catch (error) {
+      console.error('Failed to fetch test reports:', error);
+      setTestReports([]);
+    }
+  };
+
+
   const handleSurveyReportSort = (column) => {
     setSurveyReportSort(prev => ({
       column,
