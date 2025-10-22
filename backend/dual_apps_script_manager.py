@@ -783,7 +783,7 @@ class DualAppsScriptManager:
             if 'ai_analysis' in ai_result:
                 logger.info(f"📋 ai_analysis keys: {list(ai_result['ai_analysis'].keys())}")
             
-            summary_text = ai_result.get('ai_analysis', {}).get('summary_text', '')
+            summary_text = ai_result.get('data', {}).get('summary', '')
             
             if not summary_text:
                 logger.warning(f"⚠️ No summary_text in response. Full ai_result: {json.dumps(ai_result, indent=2)[:500]}")
