@@ -968,6 +968,7 @@ class DualAppsScriptManager:
                     result = await response.json()
             
             logger.info(f"✅ Company Apps Script response received")
+            logger.info(f"📋 Test Report Apps Script response: {result}")
             return result
             
         except Exception as e:
