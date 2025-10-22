@@ -464,6 +464,9 @@ class TestReportUploadTester:
                     result = response.json()
                     self.log(f"📊 Upload response keys: {list(result.keys())}")
                     
+                    # Store the response for MongoDB verification
+                    self.last_upload_response = result
+                    
                     # Check for success
                     success = result.get("success", False)
                     self.log(f"   Success: {success}")
