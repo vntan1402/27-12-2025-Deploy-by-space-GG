@@ -6508,7 +6508,9 @@ async def analyze_test_report_file(
                 # Analyze with Document AI
                 ai_analysis = await dual_manager.analyze_test_report_file(
                     file_content=file_content,
-                    filename=filename
+                    filename=filename,
+                    content_type='application/pdf',
+                    document_ai_config=document_ai_config
                 )
                 
                 if ai_analysis:
