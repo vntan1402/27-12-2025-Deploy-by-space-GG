@@ -6871,6 +6871,7 @@ async def upload_test_report_files(
         
         logger.info(f"✅ Test report files uploaded successfully")
         return {
+            "success": True,
             "message": "Test report files uploaded successfully",
             "report": TestReportResponse(**updated_report),
             "original_file_id": original_file_id,
