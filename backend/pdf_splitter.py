@@ -269,3 +269,91 @@ def merge_analysis_results(chunk_results: List[Dict]) -> Dict:
     logger.info(f"✅ Merge complete!")
     
     return merged
+
+
+def create_enhanced_merged_summary(
+    chunk_results: List[Dict],
+    merged_data: Dict,
+    original_filename: str,
+    total_pages: int
+) -> str:
+    """
+    Create a well-formatted merged summary document
+    
+    Args:
+        chunk_results: List of chunk processing results
+        merged_data: Merged analysis data
+        original_filename: Original PDF filename
+        total_pages: Total page count
+        
+    Returns:
+        Formatted summary text
+    """
+    from datetime import datetime
+    
+    summary_lines = []
+    
+    # Header
+    summary_lines.append("=" * 80)
+    summary_lines.append("SURVEY REPORT ANALYSIS - MERGED SUMMARY")
+    summary_lines.append("=" * 80)
+    summary_lines.append("")
+    
+    # Processing metadata
+    summary_lines.append("PROCESSING INFORMATION:")
+    summary_lines.append("-" * 80)
+    summary_lines.append(f"Original File: {original_filename}")
+    summary_lines.append(f"Total Pages: {total_pages}")
+    summary_lines.append(f"Processing Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    summary_lines.append(f"Processing Method: Split PDF + Batch Processing")
+    summary_lines.append(f"Total Chunks: {len(chunk_results)}")
+    summary_lines.append(f"Successful Chunks: {len([cr for cr in chunk_results if cr.get('success')])}")
+    summary_lines.append(f"Failed Chunks: {len([cr for cr in chunk_results if not cr.get('success')])}")
+    summary_lines.append("")
+    
+    # Merged extraction results
+    summary_lines.append("EXTRACTED INFORMATION (MERGED):")
+    summary_lines.append("-" * 80)
+    summary_lines.append(f"Survey Report Name: {merged_data.get('survey_report_name', 'N/A')}")
+    summary_lines.append(f"Report Number: {merged_data.get('survey_report_no', 'N/A')}")
+    summary_lines.append(f"Issued By: {merged_data.get('issued_by', 'N/A')}")
+    summary_lines.append(f"Issued Date: {merged_data.get('issued_date', 'N/A')}")
+    summary_lines.append(f"Surveyor Name: {merged_data.get('surveyor_name', 'N/A')}")
+    summary_lines.append(f"Status: {merged_data.get('status', 'Valid')}")
+    
+    if merged_data.get('note'):
+        summary_lines.append(f"\nNotes:")
+        summary_lines.append(merged_data['note'])
+    
+    summary_lines.append("")
+    summary_lines.append("")
+    
+    # Detailed chunk information
+    summary_lines.append("DETAILED CHUNK ANALYSIS:")
+    summary_lines.append("=" * 80)
+    summary_lines.append("")
+    
+    successful_chunks = [cr for cr in chunk_results if cr.get('success')]
+    
+    for i, chunk_result in enumerate(successful_chunks):
+        chunk_num = chunk_result.get('chunk_num', i + 1)
+        page_range = chunk_result.get('page_range', 'Unknown')
+        summary_text = chunk_result.get('summary_text', '')
+        
+        summary_lines.append(f"CHUNK {chunk_num} (Pages {page_range})")
+        summary_lines.append("-" * 80)
+        
+        if summary_text:
+            summary_lines.append(summary_text)
+        else:
+            summary_lines.append("[No summary available for this chunk]")
+        
+        summary_lines.append("")
+        summary_lines.append("")
+    
+    # Footer
+    summary_lines.append("=" * 80)
+    summary_lines.append("END OF MERGED SUMMARY")
+    summary_lines.append("=" * 80)
+    
+    return '\n'.join(summary_lines)
