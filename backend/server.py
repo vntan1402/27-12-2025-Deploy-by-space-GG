@@ -6380,6 +6380,7 @@ async def analyze_test_report_file(
         logger.info("🤖 Analyzing test report with Google Document AI...")
         
         # Create dual manager for Document AI analysis
+        from dual_apps_script_manager import create_dual_apps_script_manager
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         # Initialize analysis result
