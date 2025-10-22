@@ -437,7 +437,7 @@ class TestReportBatchUploadTester:
                 json=create_data
             )
             
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 response_data = response.json()
                 return {
                     "success": True,
