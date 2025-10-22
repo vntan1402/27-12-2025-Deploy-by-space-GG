@@ -553,8 +553,11 @@ startxref
                 # Analyze response structure for implementation verification
                 self.log("🔍 Analyzing response structure...")
                 
+                # Get analysis object
+                analysis = result.get("analysis", {})
+                
                 # 1. PDF page count detection
-                split_info = result.get("_split_info", {})
+                split_info = analysis.get("_split_info", {})
                 if split_info and "total_pages" in split_info:
                     self.log("✅ PDF page count detection working")
                     self.split_tests['page_count_detection_working'] = True
