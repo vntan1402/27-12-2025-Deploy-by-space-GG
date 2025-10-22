@@ -6433,22 +6433,22 @@ async def analyze_test_report_file(
             # ✅ NEW: Check if PDF needs splitting (> 15 pages)
             from pdf_splitter import PDFSplitter
             splitter = PDFSplitter(max_pages_per_chunk=12)
-        
-        try:
-            total_pages = splitter.get_page_count(file_content)
-            needs_split = splitter.needs_splitting(file_content)
-            logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
-        except ValueError as e:
-            # Invalid or corrupted PDF file - return error immediately
-            logger.error(f"❌ Invalid PDF file: {e}")
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Invalid or corrupted PDF file: {str(e)}. Please ensure the file is a valid PDF document."
-            )
-        except Exception as e:
-            logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
-            total_pages = 0
-            needs_split = False
+            
+            try:
+                total_pages = splitter.get_page_count(file_content)
+                needs_split = splitter.needs_splitting(file_content)
+                logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+            except ValueError as e:
+                # Invalid or corrupted PDF file - return error immediately
+                logger.error(f"❌ Invalid PDF file: {e}")
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid or corrupted PDF file: {str(e)}. Please ensure the file is a valid PDF document."
+                )
+            except Exception as e:
+                logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
+                total_pages = 0
+                needs_split = False
         
         if needs_split and total_pages > 15:
             # Large PDF: Split and process in batches
