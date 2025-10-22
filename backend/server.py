@@ -5289,6 +5289,13 @@ async def analyze_survey_report_file(
             total_pages = splitter.get_page_count(file_content)
             needs_split = splitter.needs_splitting(file_content)
             logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+        except ValueError as e:
+            # Invalid or corrupted PDF file - return error immediately
+            logger.error(f"❌ Invalid PDF file: {e}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid or corrupted PDF file: {str(e)}. Please ensure the file is a valid PDF document."
+            )
         except Exception as e:
             logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
             total_pages = 0
