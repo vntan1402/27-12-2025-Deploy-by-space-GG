@@ -6449,8 +6449,8 @@ async def analyze_test_report_file(
                 logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
                 total_pages = 0
                 needs_split = False
-        
-        if needs_split and total_pages > 15:
+            
+            if needs_split and total_pages > 15:
             # Large PDF: Split and process in batches
             logger.info(f"📦 Splitting large PDF into chunks...")
             analysis_result['processing_method'] = 'split_pdf_batch_processing'
