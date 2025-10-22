@@ -949,13 +949,12 @@ class DualAppsScriptManager:
             # Prepare payload
             payload = {
                 "action": "upload_file_with_folder_creation",
-                "file_data": file_base64,
-                "file_name": filename,
-                "content_type": content_type,
+                "parent_folder_id": self.parent_folder_id,
                 "ship_name": ship_name,
-                "parent_category": "Class & Flag Cert",  # Parent folder
-                "category": "Test Report",  # Subfolder for test reports
-                "summary_text": summary_text or ""
+                "category": "Class & Flag Cert/Test Report",  # Full path: Ship/Class & Flag Cert/Test Report
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
             }
             
             # Call Apps Script
