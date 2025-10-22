@@ -6565,6 +6565,7 @@ async def analyze_test_report_file(
         analysis_result['_filename'] = filename
         analysis_result['_content_type'] = test_report_file.content_type or 'application/octet-stream'
         analysis_result['_ship_name'] = ship_name
+        analysis_result['_summary_text'] = ''  # Initialize empty, will be filled if AI succeeds
         
         # ✅ Start Document AI Analysis
         # ✅ NEW: Check if PDF needs splitting (> 15 pages)
