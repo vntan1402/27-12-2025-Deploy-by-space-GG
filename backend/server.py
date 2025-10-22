@@ -926,6 +926,7 @@ class SurveyReportCreate(SurveyReportBase):
 
 class SurveyReportUpdate(BaseModel):
     survey_report_name: Optional[str] = None
+    report_form: Optional[str] = None  # NEW: Allow updating report form
     survey_report_no: Optional[str] = None
     issued_date: Optional[datetime] = None
     issued_by: Optional[str] = None
