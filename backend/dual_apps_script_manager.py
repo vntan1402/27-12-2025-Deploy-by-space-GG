@@ -858,7 +858,7 @@ class DualAppsScriptManager:
             return {
                 'success': True,
                 'message': 'Test report analysis completed successfully',
-                'summary_text': ai_result.get('ai_analysis', {}).get('summary_text', ''),
+                'summary_text': ai_result.get('data', {}).get('summary', ''),
                 'confidence_score': ai_result.get('ai_analysis', {}).get('confidence_score', 0.0),
                 'processing_method': 'analysis_only',
                 'workflow': 'system_ai_analysis_without_upload'
