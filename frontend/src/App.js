@@ -13872,7 +13872,7 @@ const HomePage = () => {
                                     <span className="font-semibold">{language === 'vi' ? 'Nhấn để chọn' : 'Click to select'}</span> {language === 'vi' ? 'hoặc kéo thả file' : 'or drag and drop'}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    PDF {language === 'vi' ? '(tối đa 20MB)' : '(max 20MB)'}
+                                    PDF {language === 'vi' ? '(tối đa 20MB, nhiều file được hỗ trợ)' : '(max 20MB, multiple files supported)'}
                                   </p>
                                 </div>
                               </label>
@@ -14123,7 +14123,7 @@ const HomePage = () => {
                                     <span className="font-semibold">{language === 'vi' ? 'Nhấn để chọn' : 'Click to select'}</span> {language === 'vi' ? 'hoặc kéo thả file' : 'or drag and drop'}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    PDF {language === 'vi' ? '(tối đa 20MB)' : '(max 20MB)'}
+                                    PDF {language === 'vi' ? '(tối đa 20MB, nhiều file được hỗ trợ)' : '(max 20MB, multiple files supported)'}
                                   </p>
                                 </div>
                               </label>
