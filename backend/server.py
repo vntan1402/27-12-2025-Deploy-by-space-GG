@@ -6519,11 +6519,22 @@ async def analyze_test_report_file(
                     summary_text = ai_analysis.get('summary_text', '')
                     analysis_result['_summary_text'] = summary_text
                     
-                    # Update analysis result with extracted data
-                    for key in ['test_report_name', 'report_form', 'test_report_no', 'issued_by', 
-                               'issued_date', 'valid_date', 'note', 'ship_name', 'ship_imo']:
-                        if key in ai_analysis:
-                            analysis_result[key] = ai_analysis[key]
+                    # Extract fields from summary using System AI
+                    if summary_text:
+                        logger.info("🧠 Extracting test report fields from Document AI summary...")
+                        
+                        extracted_fields = await extract_test_report_fields_from_summary(summary_text)
+                        
+                        if extracted_fields:
+                            logger.info("✅ System AI test report extraction completed successfully")
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "analysis_only_no_upload"
+                            logger.info(f"   📋 Extracted Test Report Name: '{analysis_result.get('test_report_name')}'")
+                            logger.info(f"   🔢 Extracted Test Report No: '{analysis_result.get('test_report_no')}'")
+                        else:
+                            logger.warning("⚠️ No fields extracted from summary")
+                    else:
+                        logger.warning("⚠️ No summary text from Document AI")
                     
                     if 'confidence_score' in ai_analysis:
                         analysis_result['confidence_score'] = ai_analysis['confidence_score']
