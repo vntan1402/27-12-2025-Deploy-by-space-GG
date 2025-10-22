@@ -4830,6 +4830,7 @@ const HomePage = () => {
         // Populate form with extracted data
         setNewSurveyReport({
           survey_report_name: analysis.survey_report_name || '',
+          report_form: analysis.report_form || '',  // Include report form from AI
           survey_report_no: analysis.survey_report_no || '',
           issued_date: analysis.issued_date || '',
           issued_by: analysis.issued_by || '',
