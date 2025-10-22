@@ -948,7 +948,7 @@ class DualAppsScriptManager:
             
             # Prepare payload
             payload = {
-                "action": "upload_maritime_document",
+                "action": "upload_file_with_folder_creation",
                 "file_data": file_base64,
                 "file_name": filename,
                 "content_type": content_type,
