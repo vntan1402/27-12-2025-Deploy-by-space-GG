@@ -425,12 +425,17 @@ startxref
             if response.status_code == 200:
                 result = response.json()
                 
+                # Debug: Print full response structure
+                self.log(f"📊 Full response keys: {list(result.keys())}")
+                self.log(f"📊 Response success: {result.get('success')}")
+                
                 # Check for success
                 if result.get("success"):
                     self.log("✅ Large PDF processing successful")
                     
                     # Check split info
                     split_info = result.get("_split_info", {})
+                    self.log(f"📊 Split info found: {split_info}")
                     if split_info:
                         was_split = split_info.get("was_split", False)
                         total_pages = split_info.get("total_pages", 0)
