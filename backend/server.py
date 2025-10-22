@@ -955,6 +955,53 @@ class SurveyReportResponse(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
 
+# Test Report models
+class TestReportBase(BaseModel):
+    ship_id: str
+    test_report_name: str
+    report_form: Optional[str] = None  # Optional: Report Form field
+    test_report_no: str  # Required
+    issued_date: datetime  # Required
+    issued_by: Optional[str] = None  # Optional
+    valid_date: Optional[datetime] = None  # Optional: Expiry date
+    status: Optional[str] = "Valid"  # Auto-calculated: Valid, Expired soon, Critical, Expired
+    note: Optional[str] = None
+
+class TestReportCreate(TestReportBase):
+    pass
+
+class TestReportUpdate(BaseModel):
+    test_report_name: Optional[str] = None
+    report_form: Optional[str] = None
+    test_report_no: Optional[str] = None
+    issued_date: Optional[datetime] = None
+    issued_by: Optional[str] = None
+    valid_date: Optional[datetime] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+
+class TestReportResponse(BaseModel):
+    id: str
+    ship_id: str
+    test_report_name: str
+    report_form: Optional[str] = None
+    test_report_no: str
+    issued_date: datetime
+    issued_by: Optional[str] = None
+    valid_date: Optional[datetime] = None
+    status: str
+    note: Optional[str] = None
+    test_report_file_id: Optional[str] = None  # Google Drive file ID for original
+    test_report_summary_file_id: Optional[str] = None  # Google Drive file ID for summary
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+
 # Google Drive models
 class GoogleDriveConfig(BaseModel):
     service_account_json: str
