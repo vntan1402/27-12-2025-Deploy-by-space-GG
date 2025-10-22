@@ -471,7 +471,7 @@ startxref
                             self.log("❌ Large PDF not split as expected", "ERROR")
                     
                     # Check processing method
-                    processing_method = result.get("processing_method", "")
+                    processing_method = analysis.get("processing_method", "")
                     if "split_pdf" in processing_method:
                         self.log(f"✅ Processing method indicates splitting: {processing_method}")
                         self.split_tests['large_pdf_summary_merging'] = True
