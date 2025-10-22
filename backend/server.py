@@ -998,7 +998,8 @@ class TestReportResponse(BaseModel):
     
     class Config:
         json_encoders = {
-
+            datetime: lambda v: v.isoformat() if v else None
+        }
 
 # Helper function for Test Report status calculation
 def calculate_test_report_status(valid_date: Optional[datetime]) -> str:
