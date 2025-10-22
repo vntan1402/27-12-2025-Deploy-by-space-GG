@@ -787,7 +787,9 @@ class DualAppsScriptManager:
     async def analyze_test_report_only(
         self,
         file_content: bytes,
-        filename: str
+        filename: str,
+        content_type: str = 'application/pdf',
+        document_ai_config: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Analyze test report using Document AI WITHOUT uploading to Drive
@@ -796,6 +798,8 @@ class DualAppsScriptManager:
         Args:
             file_content: Test report file content
             filename: File name
+            content_type: Content type (default: application/pdf)
+            document_ai_config: Document AI configuration dict (optional)
             
         Returns:
             dict: Analysis results only (no file IDs)
@@ -805,8 +809,12 @@ class DualAppsScriptManager:
             
             logger.info(f"🔄 Analyzing test report (no upload): {filename}")
             
-            # Get Document AI config
-            doc_ai_config = self.config.get('document_ai_config', {})
+            # Use provided config or fallback to stored config
+            if document_ai_config:
+                doc_ai_config = document_ai_config
+            else:
+                doc_ai_config = self.config.get('document_ai_config', {})
+            
             if not doc_ai_config or not doc_ai_config.get('project_id'):
                 raise ValueError("Document AI configuration not found")
             
