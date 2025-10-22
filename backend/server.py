@@ -5067,6 +5067,7 @@ Analyze the following text summary of a maritime survey report and extract all k
 Return ONLY a JSON object with these exact field names:
 {{
   "survey_report_name": "",
+  "report_form": "",
   "survey_report_no": "",
   "issued_by": "",
   "issued_date": "",
