@@ -6516,7 +6516,7 @@ async def analyze_test_report_file(
                 
                 if ai_analysis:
                     # Store summary text for reference
-                    summary_text = ai_analysis.get('data', {}).get('summary', '')
+                    summary_text = ai_analysis.get('summary_text', '')
                     analysis_result['_summary_text'] = summary_text
                     
                     # Extract fields from summary using System AI
