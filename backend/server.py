@@ -5237,25 +5237,18 @@ def validate_ship_info_match(
 
 # ==================== Test Report Helper Functions ====================
 
-async def extract_test_report_fields_from_summary(summary_text: str) -> dict:
+async def extract_test_report_fields_from_summary(
+    summary_text: str,
+    ai_provider: str,
+    ai_model: str,
+    use_emergent_key: bool
+) -> dict:
     """
-    Extract test report fields from Document AI summary
+    Extract test report fields from Document AI summary using System AI
     Extracts: test_report_name, report_form, test_report_no, issued_by, issued_date, valid_date, note, ship_name, ship_imo
     """
     try:
         logger.info(f"🤖 Extracting test report fields from summary")
-        
-        # Get System AI configuration from environment or settings
-        company_settings = await mongo_db.find_one("settings", {"id": "system_settings"})
-        
-        if not company_settings or not company_settings.get('system_ai'):
-            logger.error("System AI configuration not found")
-            return {}
-        
-        system_ai_config = company_settings['system_ai']
-        ai_provider = system_ai_config.get('provider', 'google')
-        ai_model = system_ai_config.get('model', 'gemini-2.0-flash-exp')
-        use_emergent_key = system_ai_config.get('use_emergent_key', True)
         
         # Create test report extraction prompt
         prompt = create_test_report_extraction_prompt(summary_text)
