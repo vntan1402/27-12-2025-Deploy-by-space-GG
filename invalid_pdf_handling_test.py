@@ -360,7 +360,7 @@ startxref
             
             with open(self.non_pdf_renamed_path, "rb") as f:
                 files = {
-                    "survey_file": ("text_file.pdf", f, "application/pdf")
+                    "survey_report_file": ("text_file.pdf", f, "application/pdf")
                 }
                 data = {
                     "ship_id": self.ship_id
