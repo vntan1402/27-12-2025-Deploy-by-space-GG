@@ -778,7 +778,15 @@ class DualAppsScriptManager:
                 return {}
             
             # Extract summary text and other fields
+            # DEBUG: Log the full ai_result structure
+            logger.info(f"📋 Document AI result keys: {list(ai_result.keys())}")
+            if 'ai_analysis' in ai_result:
+                logger.info(f"📋 ai_analysis keys: {list(ai_result['ai_analysis'].keys())}")
+            
             summary_text = ai_result.get('ai_analysis', {}).get('summary_text', '')
+            
+            if not summary_text:
+                logger.warning(f"⚠️ No summary_text in response. Full ai_result: {json.dumps(ai_result, indent=2)[:500]}")
             
             logger.info("✅ Test report analysis completed successfully")
             return {
