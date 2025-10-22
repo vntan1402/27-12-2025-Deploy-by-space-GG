@@ -4494,6 +4494,7 @@ const HomePage = () => {
       // Reset form and close modal
       setNewSurveyReport({
         survey_report_name: '',
+        report_form: '',
         survey_report_no: '',
         issued_date: '',
         issued_by: '',
