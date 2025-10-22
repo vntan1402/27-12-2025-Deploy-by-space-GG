@@ -5514,19 +5514,13 @@ async def analyze_survey_report_file(
                         'failed_chunks': len([cr for cr in chunk_results if not cr.get('success')])
                     }
                     
-                    # Store combined summary text with enhanced formatting
-                    from pdf_splitter import create_enhanced_merged_summary
-                    analysis_result['_summary_text'] = create_enhanced_merged_summary(
-                        chunk_results=chunk_results,
-                        merged_data=merged_result,
-                        original_filename=filename,
-                        total_pages=total_pages
-                    )
+                    # Use merged summary that was already created
+                    analysis_result['_summary_text'] = merged_result.get('_merged_summary_text', '')
                     
                     logger.info(f"✅ Split PDF processing complete!")
                     logger.info(f"   📋 Merged Survey Name: '{analysis_result.get('survey_report_name')}'")
                     logger.info(f"   🔢 Merged Survey No: '{analysis_result.get('survey_report_no')}'")
-                    logger.info(f"   📄 Enhanced merged summary created ({len(analysis_result['_summary_text'])} chars)")
+                    logger.info(f"   📄 Enhanced merged summary ready ({len(analysis_result['_summary_text'])} chars)")
                     
                     # Create consolidated analysis_only_result for validation below
                     analysis_only_result = {
