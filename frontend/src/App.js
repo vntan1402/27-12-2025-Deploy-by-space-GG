@@ -13850,6 +13850,7 @@ const HomePage = () => {
                               <input
                                 type="file"
                                 accept=".pdf"
+                                multiple
                                 onChange={handleTestReportFileChange}
                                 className="hidden"
                                 id="test-report-file-input"
@@ -14100,6 +14101,7 @@ const HomePage = () => {
                               <input
                                 type="file"
                                 accept=".pdf"
+                                multiple
                                 onChange={handleTestReportFileChange}
                                 className="hidden"
                                 id="test-report-file-input"
