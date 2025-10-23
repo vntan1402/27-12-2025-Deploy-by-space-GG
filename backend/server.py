@@ -1001,6 +1001,46 @@ class TestReportResponse(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
 
+# Drawings & Manuals models
+class DrawingsManualBase(BaseModel):
+    ship_id: str
+    document_name: str  # Required field
+    document_no: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    status: Optional[str] = "Unknown"  # Valid, Approved, Expired, Unknown
+    note: Optional[str] = None
+
+class DrawingsManualCreate(DrawingsManualBase):
+    pass
+
+class DrawingsManualUpdate(BaseModel):
+    document_name: Optional[str] = None
+    document_no: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+
+class DrawingsManualResponse(BaseModel):
+    id: str
+    ship_id: str
+    document_name: str
+    document_no: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    status: str
+    note: Optional[str] = None
+    file_id: Optional[str] = None  # Google Drive file ID for original
+    summary_file_id: Optional[str] = None  # Google Drive file ID for summary
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 # Helper function for Test Report status calculation
 def calculate_test_report_status(valid_date: Optional[datetime]) -> str:
     """
