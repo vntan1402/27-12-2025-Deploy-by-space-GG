@@ -6678,12 +6678,12 @@ async def analyze_test_report_file(
                 successful_chunks = 0
                 failed_chunks = 0
                 
-                for i, chunk_content in enumerate(chunks, 1):
-                    logger.info(f"📄 Processing chunk {i}/{len(chunks)}...")
+                for i, chunk in enumerate(chunks):
+                    logger.info(f"📄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})...")
                     try:
                         chunk_result = await dual_manager.analyze_test_report_only(
-                            file_content=chunk_content,
-                            filename=f"{filename}_chunk_{i}.pdf",
+                            file_content=chunk['content'],  # ✅ Access 'content' key
+                            filename=chunk['filename'],      # ✅ Use chunk's filename
                             content_type='application/pdf',
                             document_ai_config=document_ai_config
                         )
