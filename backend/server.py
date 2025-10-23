@@ -6689,27 +6689,9 @@ async def analyze_test_report_file(
                         )
                         
                         # Extract summary from chunk result
-                        # Debug: Log structure
-                        logger.info(f"   🔍 Chunk {i+1} result keys: {chunk_result.keys() if chunk_result else 'None'}")
-                        
                         if chunk_result and chunk_result.get('success'):
-                            ai_analysis = chunk_result.get('ai_analysis', {})
-                            logger.info(f"   🔍 AI analysis keys: {ai_analysis.keys() if ai_analysis else 'None'}")
-                            
-                            # Try different paths to extract summary
-                            summary_text = None
-                            
-                            # Path 1: ai_analysis.success → data.summary
-                            if ai_analysis.get('success'):
-                                summary_text = ai_analysis.get('data', {}).get('summary', '')
-                            
-                            # Path 2: Direct data.summary (no success flag)
-                            if not summary_text and ai_analysis.get('data'):
-                                summary_text = ai_analysis.get('data', {}).get('summary', '')
-                            
-                            # Path 3: Direct summary_text key
-                            if not summary_text:
-                                summary_text = ai_analysis.get('summary_text', '')
+                            # analyze_test_report_only returns summary_text directly at top level
+                            summary_text = chunk_result.get('summary_text', '')
                             
                             if summary_text:
                                 chunk_summaries.append(summary_text)
@@ -6717,7 +6699,7 @@ async def analyze_test_report_file(
                                 logger.info(f"   ✅ Chunk {i+1} processed successfully ({len(summary_text)} chars)")
                             else:
                                 failed_chunks += 1
-                                logger.warning(f"   ⚠️ Chunk {i+1} returned empty summary (checked all paths)")
+                                logger.warning(f"   ⚠️ Chunk {i+1} returned empty summary_text")
                         else:
                             failed_chunks += 1
                             logger.warning(f"   ⚠️ Chunk {i+1} returned no result or success=False")
