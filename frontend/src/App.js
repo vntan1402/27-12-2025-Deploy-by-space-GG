@@ -6293,6 +6293,185 @@ const HomePage = () => {
     console.log('Context menu for document:', document);
   };
 
+  // ============================================
+  // DRAWINGS & MANUALS MODAL HANDLERS
+  // ============================================
+  
+  // Handle file selection for Drawings & Manuals (multi-file support)
+  const handleDrawingsManualFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    // Validate files
+    const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+    const validFiles = [];
+    const invalidFiles = [];
+    
+    files.forEach(file => {
+      if (file.type !== 'application/pdf') {
+        invalidFiles.push({ file, reason: 'Only PDF files are supported' });
+      } else if (file.size > MAX_FILE_SIZE) {
+        invalidFiles.push({ file, reason: 'File size exceeds 20MB' });
+      } else {
+        validFiles.push(file);
+      }
+    });
+    
+    if (invalidFiles.length > 0) {
+      const errorMsg = invalidFiles.map(({ file, reason }) => `${file.name}: ${reason}`).join('\n');
+      toast.error(language === 'vi' ? `Lỗi file:\n${errorMsg}` : `File errors:\n${errorMsg}`);
+    }
+    
+    if (validFiles.length > 0) {
+      if (validFiles.length === 1) {
+        // Single file - analyze for auto-fill
+        handleDrawingsManualSingleFileAnalysis(validFiles[0]);
+      } else {
+        // Multiple files - start batch processing
+        setDrawingsManualFiles(validFiles);
+        startDrawingsManualBatchProcessing(validFiles);
+      }
+    }
+  };
+  
+  // Handle single file analysis for auto-fill
+  const handleDrawingsManualSingleFileAnalysis = async (file) => {
+    setIsAnalyzingDrawingsManual(true);
+    setDrawingsManualFileError('');
+    
+    try {
+      // TODO: Implement AI analysis API call in Phase 6
+      // For now, just simulate analysis
+      toast.info(language === 'vi' ? '⚠️ AI analysis sẽ được implement trong Phase 6' : '⚠️ AI analysis will be implemented in Phase 6');
+      
+      // Mock analyzed data
+      setAnalyzedDrawingsManualData({
+        _filename: file.name,
+        _file_content: 'mock_base64_content',
+        _content_type: file.type,
+        document_name: file.name.replace('.pdf', ''),
+        document_no: '',
+        approved_by: '',
+        approved_date: '',
+        status: 'Unknown',
+        note: ''
+      });
+      
+      // Auto-fill form
+      setNewDrawingsManual({
+        document_name: file.name.replace('.pdf', ''),
+        document_no: '',
+        approved_by: '',
+        approved_date: '',
+        status: 'Unknown',
+        note: ''
+      });
+      
+    } catch (error) {
+      console.error('Analysis error:', error);
+      setDrawingsManualFileError(language === 'vi' ? 'Không thể phân tích file' : 'Failed to analyze file');
+    } finally {
+      setIsAnalyzingDrawingsManual(false);
+    }
+  };
+  
+  // Remove analyzed file
+  const handleRemoveDrawingsManualFile = () => {
+    setAnalyzedDrawingsManualData(null);
+    setNewDrawingsManual({
+      document_name: '',
+      document_no: '',
+      approved_by: '',
+      approved_date: '',
+      status: 'Unknown',
+      note: ''
+    });
+  };
+  
+  // Handle Add Drawings & Manual (single)
+  const handleAddDrawingsManual = async () => {
+    try {
+      // Validate required fields
+      if (!newDrawingsManual.document_name.trim()) {
+        toast.error(language === 'vi' ? 'Vui lòng nhập tên tài liệu' : 'Please enter document name');
+        return;
+      }
+      
+      // TODO: Phase 5 - Create document via API
+      toast.info(language === 'vi' ? '⚠️ Backend API sẽ được implement trong Phase 5' : '⚠️ Backend API will be implemented in Phase 5');
+      
+      // Mock success
+      toast.success(language === 'vi' ? 'Đã thêm tài liệu (mock)' : 'Document added (mock)');
+      
+      // Reset and close modal
+      setShowAddDrawingsManualModal(false);
+      setNewDrawingsManual({
+        document_name: '',
+        document_no: '',
+        approved_by: '',
+        approved_date: '',
+        status: 'Unknown',
+        note: ''
+      });
+      setAnalyzedDrawingsManualData(null);
+      setDrawingsManualFiles([]);
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchDrawingsManuals(selectedShip.id);
+      }
+      
+    } catch (error) {
+      console.error('Failed to add document:', error);
+      toast.error(language === 'vi' ? 'Không thể thêm tài liệu' : 'Failed to add document');
+    }
+  };
+  
+  // Batch processing for multiple files
+  const startDrawingsManualBatchProcessing = async (files) => {
+    setIsBatchProcessingDrawingsManuals(true);
+    setDrawingsManualBatchProgress({ current: 0, total: files.length });
+    setShowAddDrawingsManualModal(false);
+    
+    const results = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setDrawingsManualBatchProgress({ current: i + 1, total: files.length });
+      
+      try {
+        // TODO: Phase 6 - Implement actual batch processing with AI analysis
+        // For now, mock the result
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing
+        
+        results.push({
+          filename: file.name,
+          success: true,
+          documentName: file.name.replace('.pdf', ''),
+          error: null
+        });
+        
+      } catch (error) {
+        results.push({
+          filename: file.name,
+          success: false,
+          documentName: file.name.replace('.pdf', ''),
+          error: error.message || 'Processing failed'
+        });
+      }
+    }
+    
+    // Show results modal
+    setIsBatchProcessingDrawingsManuals(false);
+    setDrawingsManualBatchResults(results);
+    setShowDrawingsManualProcessingResultsModal(true);
+    
+    // Refresh list
+    if (selectedShip) {
+      await fetchDrawingsManuals(selectedShip.id);
+    }
+  };
+
   // Context Menu Functions
   const handleCertificateRightClick = (e, certificate) => {
     e.preventDefault();
