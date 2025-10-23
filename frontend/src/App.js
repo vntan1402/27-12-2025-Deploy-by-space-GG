@@ -14216,6 +14216,354 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* ============================================ */}
+                  {/* DRAWINGS & MANUALS LIST VIEW */}
+                  {/* ============================================ */}
+                  {selectedCategory === 'documents' && selectedSubMenu === 'drawings_manuals' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {language === 'vi' ? 'Danh sách Bản vẽ & Sổ tay' : 'Drawings & Manuals List'}
+                        </h3>
+                        
+                        <div className="flex gap-3">
+                          <button
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              selectedShip
+                                ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                                : 'bg-gray-400 cursor-not-allowed text-white'
+                            }`}
+                            onClick={() => {
+                              if (selectedShip) {
+                                // TODO: Phase 2 - setShowAddDrawingsManualModal(true)
+                                toast.info(language === 'vi' ? '⚠️ Tính năng đang được phát triển...' : '⚠️ Feature under development...');
+                              }
+                            }}
+                            disabled={!selectedShip}
+                            title={selectedShip 
+                              ? (language === 'vi' ? 'Thêm bản vẽ/sổ tay mới' : 'Add new drawing/manual')
+                              : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                            }
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            {language === 'vi' ? 'Thêm Bản vẽ/Sổ tay' : 'Add Drawings & Manuals'}
+                          </button>
+                          
+                          {/* Refresh Button */}
+                          <button
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              selectedShip && !isRefreshingDrawingsManuals
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                                : 'bg-gray-400 cursor-not-allowed text-white'
+                            }`}
+                            onClick={async () => {
+                              if (selectedShip && !isRefreshingDrawingsManuals) {
+                                try {
+                                  setIsRefreshingDrawingsManuals(true);
+                                  await fetchDrawingsManuals(selectedShip.id);
+                                  toast.success(language === 'vi' ? '✅ Đã cập nhật danh sách Drawings & Manuals!' : '✅ Drawings & Manuals list updated!');
+                                } catch (error) {
+                                  console.error('Failed to refresh drawings & manuals:', error);
+                                  toast.error(language === 'vi' ? '❌ Không thể làm mới danh sách' : '❌ Failed to refresh list');
+                                } finally {
+                                  setIsRefreshingDrawingsManuals(false);
+                                }
+                              }
+                            }}
+                            disabled={!selectedShip || isRefreshingDrawingsManuals}
+                            title={selectedShip 
+                              ? (language === 'vi' ? 'Làm mới danh sách' : 'Refresh list')
+                              : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                            }
+                          >
+                            {isRefreshingDrawingsManuals ? (
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            )}
+                            {language === 'vi' ? 'Làm mới' : 'Refresh'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Filters */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Status Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Trạng thái' : 'Status'}
+                            </label>
+                            <select
+                              value={drawingsManualFilters.status}
+                              onChange={(e) => setDrawingsManualFilters(prev => ({ ...prev, status: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              <option value="valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                              <option value="approved">{language === 'vi' ? 'Đã phê duyệt' : 'Approved'}</option>
+                              <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                              <option value="unknown">{language === 'vi' ? 'Chưa rõ' : 'Unknown'}</option>
+                            </select>
+                          </div>
+
+                          {/* Search Document Name */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tìm theo tên tài liệu' : 'Search by Document Name'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={language === 'vi' ? 'Nhập tên tài liệu...' : 'Enter document name...'}
+                              value={drawingsManualFilters.searchDocumentName}
+                              onChange={(e) => setDrawingsManualFilters(prev => ({ ...prev, searchDocumentName: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          {/* Search Approved By */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tìm theo người phê duyệt' : 'Search by Approved By'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={language === 'vi' ? 'Nhập tên người phê duyệt...' : 'Enter approver name...'}
+                              value={drawingsManualFilters.searchApprovedBy}
+                              onChange={(e) => setDrawingsManualFilters(prev => ({ ...prev, searchApprovedBy: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Clear Filters Button */}
+                        {(drawingsManualFilters.status !== 'all' || drawingsManualFilters.searchDocumentName || drawingsManualFilters.searchApprovedBy) && (
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              onClick={() => setDrawingsManualFilters({ status: 'all', searchDocumentName: '', searchApprovedBy: '' })}
+                              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Drawings & Manuals Table */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={isDrawingsManualsAllSelected()}
+                                      ref={el => {
+                                        if (el) {
+                                          el.indeterminate = isDrawingsManualsIndeterminate();
+                                        }
+                                      }}
+                                      onChange={(e) => handleSelectAllDrawingsManuals(e.target.checked)}
+                                      className="w-4 h-4 mr-2"
+                                    />
+                                    <span>{language === 'vi' ? 'Số TT' : 'No.'}</span>
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleDrawingsManualSort('document_name')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Tên Tài liệu' : 'Document Name'}</span>
+                                    {drawingsManualSort.column === 'document_name' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {drawingsManualSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleDrawingsManualSort('document_no')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Số Tài liệu' : 'Document No.'}</span>
+                                    {drawingsManualSort.column === 'document_no' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {drawingsManualSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleDrawingsManualSort('approved_by')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Phê duyệt bởi' : 'Approved By'}</span>
+                                    {drawingsManualSort.column === 'approved_by' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {drawingsManualSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleDrawingsManualSort('approved_date')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Ngày phê duyệt' : 'Approved Date'}</span>
+                                    {drawingsManualSort.column === 'approved_date' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {drawingsManualSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleDrawingsManualSort('status')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Trạng thái' : 'Status'}</span>
+                                    {drawingsManualSort.column === 'status' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {drawingsManualSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th className="border border-gray-300 px-4 py-2 text-center">
+                                  {language === 'vi' ? 'Ghi chú' : 'Note'}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {getFilteredDrawingsManuals().length === 0 ? (
+                              <tr>
+                                <td colSpan="7" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                  {drawingsManuals.length === 0 
+                                    ? (language === 'vi' ? 'Chưa có tài liệu nào' : 'No documents available')
+                                    : (language === 'vi' ? 'Không có tài liệu nào phù hợp với bộ lọc' : 'No documents match the current filters')
+                                  }
+                                </td>
+                              </tr>
+                            ) : (
+                              getFilteredDrawingsManuals().map((document, index) => (
+                                <tr 
+                                  key={document.id}
+                                  className="hover:bg-gray-50 cursor-pointer"
+                                  onContextMenu={(e) => handleDrawingsManualContextMenu(e, document)}
+                                >
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedDrawingsManuals.has(document.id)}
+                                        onChange={() => handleDrawingsManualSelect(document.id)}
+                                        className="w-4 h-4 mr-3"
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                      <span>{index + 1}</span>
+                                    </div>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center gap-2">
+                                      <span>{document.document_name}</span>
+                                      {document.file_id && (
+                                        <span 
+                                          className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
+                                          title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Drawings & Manuals`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (document.file_id) {
+                                              window.open(`https://drive.google.com/file/d/${document.file_id}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📄
+                                        </span>
+                                      )}
+                                      {document.summary_file_id && (
+                                        <span 
+                                          className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                                          title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 SUMMARY/Class & Flag Document`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (document.summary_file_id) {
+                                              window.open(`https://drive.google.com/file/d/${document.summary_file_id}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📋
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2 font-mono">{document.document_no || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{document.approved_by || '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">{document.approved_date ? formatDate(document.approved_date) : '-'}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      document.status === 'Valid' ? 'bg-green-100 text-green-800' :
+                                      document.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
+                                      document.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {document.status}
+                                    </span>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {document.note ? (
+                                      <span 
+                                        className="text-red-600 cursor-help text-lg font-bold"
+                                        onMouseEnter={(e) => handleDrawingsManualNoteMouseEnter(e, document.note)}
+                                        onMouseLeave={handleDrawingsManualNoteMouseLeave}
+                                      >
+                                        *
+                                      </span>
+                                    ) : (
+                                      '-'
+                                    )}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Drawings & Manuals Note Tooltip */}
+                  {drawingsManualNoteTooltip.show && (
+                    <div
+                      className="fixed bg-gray-800 text-white p-3 rounded-lg shadow-2xl z-50 border border-gray-600"
+                      style={{
+                        left: `${drawingsManualNoteTooltip.x}px`,
+                        top: `${drawingsManualNoteTooltip.y}px`,
+                        width: `${drawingsManualNoteTooltip.width}px`,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        fontSize: '14px',
+                        lineHeight: '1.5'
+                      }}
+                    >
+                      {drawingsManualNoteTooltip.content}
+                    </div>
+                  )}
+
                   {/* Add Test Report Modal */}
                   {showAddTestReportModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
