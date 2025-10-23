@@ -2107,6 +2107,13 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+  // Fetch drawings & manuals when ship is selected and on drawings_manuals submenu
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'drawings_manuals') {
+      fetchDrawingsManuals(selectedShip.id);
+    }
+  }, [selectedShip, selectedSubMenu]);
+
 
   // Close survey report context menu on click outside
   useEffect(() => {
