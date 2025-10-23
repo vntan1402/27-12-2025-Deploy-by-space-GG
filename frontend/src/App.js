@@ -1504,6 +1504,84 @@ const HomePage = () => {
   // Refresh button loading states
   const [isRefreshingSurveyReports, setIsRefreshingSurveyReports] = useState(false);
   const [isRefreshingTestReports, setIsRefreshingTestReports] = useState(false);
+  const [isRefreshingDrawingsManuals, setIsRefreshingDrawingsManuals] = useState(false);
+
+  // ============================================
+  // DRAWINGS & MANUALS STATE MANAGEMENT
+  // ============================================
+  
+  const [drawingsManuals, setDrawingsManuals] = useState([]);
+  
+  const [drawingsManualSort, setDrawingsManualSort] = useState({
+    column: null,
+    direction: 'asc'
+  });
+  
+  const [drawingsManualFilters, setDrawingsManualFilters] = useState({
+    status: 'all',
+    searchDocumentName: '',
+    searchApprovedBy: ''
+  });
+  
+  const [selectedDrawingsManuals, setSelectedDrawingsManuals] = useState(new Set());
+  
+  // Drawings & Manuals Context Menu
+  const [drawingsManualContextMenu, setDrawingsManualContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    document: null
+  });
+  
+  // Drawings & Manuals Note Tooltip
+  const [drawingsManualNoteTooltip, setDrawingsManualNoteTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: '',
+    showBelow: false,
+    width: 300
+  });
+
+  // Mock data for testing UI (will be replaced with API call later)
+  const mockDrawingsManuals = [
+    {
+      id: '1',
+      ship_id: 'ship-1',
+      document_name: 'General Arrangement Plan',
+      document_no: 'GA-001-2024',
+      approved_by: "Lloyd's Register",
+      approved_date: '2024-01-15',
+      status: 'Valid',
+      note: 'Latest version approved',
+      file_id: null,
+      summary_file_id: null
+    },
+    {
+      id: '2',
+      ship_id: 'ship-1',
+      document_name: 'Main Engine Manual',
+      document_no: 'ME-502',
+      approved_by: 'MAN Energy Solutions',
+      approved_date: '2023-06-20',
+      status: 'Approved',
+      note: 'Maintenance schedule included',
+      file_id: null,
+      summary_file_id: null
+    },
+    {
+      id: '3',
+      ship_id: 'ship-1',
+      document_name: 'Fire Fighting System Drawing',
+      document_no: 'FF-2024-03',
+      approved_by: 'Bureau Veritas',
+      approved_date: '2022-12-10',
+      status: 'Expired',
+      note: 'Requires update',
+      file_id: null,
+      summary_file_id: null
+    }
+  ];
 
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
