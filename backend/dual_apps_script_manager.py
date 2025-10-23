@@ -1087,13 +1087,13 @@ class DualAppsScriptManager:
                 "parent_folder_id": self.parent_folder_id
             }
             
-            async with httpx.AsyncClient(timeout=600.0) as client:
-                response = await client.post(
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
                     self.company_apps_script_url,
-                    json=payload
-                )
-                response.raise_for_status()
-                result = response.json()
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=600)
+                ) as response:
+                    result = await response.json()
             
             if result.get('success'):
                 logger.info(f"✅ Drawings & manuals summary uploaded successfully")
