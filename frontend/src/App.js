@@ -5917,7 +5917,7 @@ const HomePage = () => {
         survey_report_name: analysis.survey_report_name || file.name,
         report_form: analysis.report_form || null,
         survey_report_no: analysis.survey_report_no || null,
-        issued_date: analysis.issued_date ? convertDateInputToUTC(analysis.issued_date) : null,
+        issued_date: (analysis.issued_date && analysis.issued_date.trim()) ? convertDateInputToUTC(analysis.issued_date) : null,
         issued_by: analysis.issued_by || null,
         status: analysis.status || 'Valid',
         note: analysis.note || null,
