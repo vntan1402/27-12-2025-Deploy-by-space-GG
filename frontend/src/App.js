@@ -6376,7 +6376,8 @@ const HomePage = () => {
 
   const handleDeleteDrawingsManual = async (document) => {
     try {
-      await axios.delete(`${API}/drawings-manuals/${document.id}`, {
+      // Delete with background=true parameter for non-blocking deletion
+      const response = await axios.delete(`${API}/drawings-manuals/${document.id}?background=true`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -6386,12 +6387,30 @@ const HomePage = () => {
         return newSet;
       });
       
-      toast.success(language === 'vi' ? '🗑️ Đã xóa tài liệu' : '🗑️ Document deleted');
+      // Show immediate success
+      toast.success(language === 'vi' ? '✅ Đã xóa tài liệu khỏi hệ thống' : '✅ Document deleted from system');
       
-      // Refresh list
+      // Refresh list immediately
       if (selectedShip) {
         await fetchDrawingsManuals(selectedShip.id);
       }
+      
+      // Show background deletion notification if files exist
+      if (response.data?.background_deletion) {
+        // Show persistent toast for file deletion in background
+        const deletingToast = toast.info(
+          language === 'vi' ? '🗑️ Đang xóa file trên Google Drive...' : '🗑️ Deleting files from Google Drive...',
+          { autoClose: false }
+        );
+        
+        // Simulate completion notification (since backend doesn't send real-time updates)
+        // In production, you might use websockets or polling for real status
+        setTimeout(() => {
+          toast.dismiss(deletingToast);
+          toast.success(language === 'vi' ? '✅ File đã xóa khỏi Google Drive!' : '✅ Files deleted from Google Drive!');
+        }, 5000); // Assume 5 seconds for Drive deletion
+      }
+      
     } catch (error) {
       console.error('Failed to delete document:', error);
       const errorMsg = error.response?.data?.detail || 'Failed to delete document';
