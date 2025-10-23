@@ -6850,8 +6850,16 @@ const HomePage = () => {
       console.log('📊 Analysis result:', {
         document_name: analysis.document_name,
         document_no: analysis.document_no,
-        has_file_content: !!analysis._file_content
+        has_file_content: !!analysis._file_content,
+        split_info: analysis._split_info
       });
+      
+      // Check if file was split and limited
+      if (analysis._split_info?.was_limited) {
+        const splitInfo = analysis._split_info;
+        console.log(`⚠️ Large file limited: ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks processed`);
+        result.warning = `Large file: processed ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks`;
+      }
       
       result.documentName = analysis.document_name || file.name;
       result.documentNo = analysis.document_no || '';
