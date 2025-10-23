@@ -259,17 +259,22 @@ class OCRMergeWorkflowTester:
                 files = {
                     "survey_report_file": (self.test_filename, f, "application/pdf")
                 }
+                data = {
+                    "ship_id": self.ship_id,
+                    "bypass_validation": "false"
+                }
                 
                 self.log(f"📤 Uploading survey report file: {self.test_filename}")
                 self.log(f"🚢 Ship ID: {self.ship_id}")
                 
-                endpoint = f"{BACKEND_URL}/survey-reports/{self.ship_id}/analyze-file"
+                endpoint = f"{BACKEND_URL}/survey-reports/analyze-file"
                 self.log(f"   POST {endpoint}")
                 
                 start_time = time.time()
                 response = self.session.post(
                     endpoint,
                     files=files,
+                    data=data,
                     timeout=300  # 5 minutes for OCR processing
                 )
                 end_time = time.time()
