@@ -14714,6 +14714,8 @@ const HomePage = () => {
                                   key={document.id}
                                   className="hover:bg-gray-50 cursor-pointer"
                                   onContextMenu={(e) => handleDrawingsManualContextMenu(e, document)}
+                                  onDoubleClick={() => handleEditDrawingsManual(document)}
+                                  title={language === 'vi' ? 'Double-click để chỉnh sửa' : 'Double-click to edit'}
                                 >
                                   <td className="border border-gray-300 px-4 py-2">
                                     <div className="flex items-center">
