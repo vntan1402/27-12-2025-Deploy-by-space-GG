@@ -5548,7 +5548,23 @@ const HomePage = () => {
       result.testReportName = analysis.test_report_name || file.name;
       result.testReportNo = analysis.test_report_no || '';
       
-      // Step 2: Create test report record
+      // Step 2: Check duplicate (optional)
+      if (analysis.test_report_no && analysis.test_report_name) {
+        const duplicateResponse = await axios.post(`${API}/test-reports/check-duplicate`, {
+          ship_id: selectedShip.id,
+          test_report_no: analysis.test_report_no,
+          test_report_name: analysis.test_report_name
+        });
+        
+        if (duplicateResponse.data.is_duplicate) {
+          result.error = 'DUPLICATE';
+          result.duplicateInfo = duplicateResponse.data.existing_report;
+          console.log(`⚠️ Duplicate test report: ${file.name} (No: ${analysis.test_report_no}, Name: ${analysis.test_report_name})`);
+          return result;
+        }
+      }
+      
+      // Step 3: Create test report record
       const reportData = {
         test_report_name: analysis.test_report_name || file.name,
         report_form: analysis.report_form || null,
