@@ -6555,11 +6555,22 @@ const HomePage = () => {
         return;
       }
       
-      // TODO: Phase 5 - Create document via API
-      toast.info(language === 'vi' ? '⚠️ Backend API sẽ được implement trong Phase 5' : '⚠️ Backend API will be implemented in Phase 5');
+      // Create document via API
+      const documentData = {
+        ship_id: selectedShip.id,
+        document_name: newDrawingsManual.document_name.trim(),
+        document_no: newDrawingsManual.document_no?.trim() || null,
+        approved_by: newDrawingsManual.approved_by?.trim() || null,
+        approved_date: newDrawingsManual.approved_date || null,
+        status: newDrawingsManual.status || 'Unknown',
+        note: newDrawingsManual.note?.trim() || null
+      };
       
-      // Mock success
-      toast.success(language === 'vi' ? 'Đã thêm tài liệu (mock)' : 'Document added (mock)');
+      await axios.post(`${API}/drawings-manuals`, documentData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(language === 'vi' ? '✅ Đã thêm tài liệu' : '✅ Document added');
       
       // Reset and close modal
       setShowAddDrawingsManualModal(false);
@@ -6581,7 +6592,8 @@ const HomePage = () => {
       
     } catch (error) {
       console.error('Failed to add document:', error);
-      toast.error(language === 'vi' ? 'Không thể thêm tài liệu' : 'Failed to add document');
+      const errorMsg = error.response?.data?.detail || 'Failed to add document';
+      toast.error(language === 'vi' ? `❌ Không thể thêm tài liệu: ${errorMsg}` : `❌ ${errorMsg}`);
     }
   };
   
