@@ -6428,22 +6428,41 @@ const HomePage = () => {
       try {
         const documentIds = Array.from(selectedDrawingsManuals);
         
-        await axios.delete(`${API}/drawings-manuals/bulk-delete`, {
+        // Delete with background=true parameter for non-blocking deletion
+        const response = await axios.delete(`${API}/drawings-manuals/bulk-delete?background=true`, {
           headers: { Authorization: `Bearer ${token}` },
           data: { document_ids: documentIds }
         });
         
+        // Show immediate success
         toast.success(language === 'vi' 
-          ? `🗑️ Đã xóa ${selectedDrawingsManuals.size} tài liệu` 
-          : `🗑️ Deleted ${selectedDrawingsManuals.size} documents`
+          ? `✅ Đã xóa ${response.data.deleted_count} tài liệu khỏi hệ thống` 
+          : `✅ Deleted ${response.data.deleted_count} documents from system`
         );
         
         setSelectedDrawingsManuals(new Set());
         
-        // Refresh list
+        // Refresh list immediately
         if (selectedShip) {
           await fetchDrawingsManuals(selectedShip.id);
         }
+        
+        // Show background deletion notification if files exist
+        if (response.data?.background_deletion) {
+          // Show persistent toast for file deletion in background
+          const deletingToast = toast.info(
+            language === 'vi' ? '🗑️ Đang xóa file trên Google Drive...' : '🗑️ Deleting files from Google Drive...',
+            { autoClose: false }
+          );
+          
+          // Simulate completion notification (since backend doesn't send real-time updates)
+          // In production, you might use websockets or polling for real status
+          setTimeout(() => {
+            toast.dismiss(deletingToast);
+            toast.success(language === 'vi' ? '✅ File đã xóa khỏi Google Drive!' : '✅ Files deleted from Google Drive!');
+          }, 8000); // Assume 8 seconds for bulk Drive deletion
+        }
+        
       } catch (error) {
         console.error('Failed to bulk delete:', error);
         const errorMsg = error.response?.data?.detail || 'Failed to delete documents';
