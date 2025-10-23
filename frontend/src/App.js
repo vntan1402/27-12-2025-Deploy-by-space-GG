@@ -6657,17 +6657,21 @@ const HomePage = () => {
         return;
       }
       
-      // TODO: Phase 5 - Update document via API
-      toast.info(language === 'vi' ? '⚠️ Backend API sẽ được implement trong Phase 5' : '⚠️ Backend API will be implemented in Phase 5');
+      // Update document via API
+      const updateData = {
+        document_name: editingDrawingsManual.document_name.trim(),
+        document_no: editingDrawingsManual.document_no?.trim() || null,
+        approved_by: editingDrawingsManual.approved_by?.trim() || null,
+        approved_date: editingDrawingsManual.approved_date || null,
+        status: editingDrawingsManual.status,
+        note: editingDrawingsManual.note?.trim() || null
+      };
       
-      // Mock success - update in local state
-      setDrawingsManuals(prev => 
-        prev.map(doc => 
-          doc.id === editingDrawingsManual.id ? editingDrawingsManual : doc
-        )
-      );
+      await axios.put(`${API}/drawings-manuals/${editingDrawingsManual.id}`, updateData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
-      toast.success(language === 'vi' ? 'Đã cập nhật tài liệu (mock)' : 'Document updated (mock)');
+      toast.success(language === 'vi' ? '✅ Đã cập nhật tài liệu' : '✅ Document updated');
       
       // Reset and close modal
       setShowEditDrawingsManualModal(false);
@@ -6680,7 +6684,8 @@ const HomePage = () => {
       
     } catch (error) {
       console.error('Failed to update document:', error);
-      toast.error(language === 'vi' ? 'Không thể cập nhật tài liệu' : 'Failed to update document');
+      const errorMsg = error.response?.data?.detail || 'Failed to update document';
+      toast.error(language === 'vi' ? `❌ Không thể cập nhật tài liệu: ${errorMsg}` : `❌ ${errorMsg}`);
     }
   };
 
