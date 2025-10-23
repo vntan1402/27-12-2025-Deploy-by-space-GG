@@ -7930,15 +7930,28 @@ async def analyze_drawings_manual_file(
             
             try:
                 chunks = splitter.split_pdf(file_content, filename)
-                logger.info(f"✅ Created {len(chunks)} chunks from {total_pages}-page PDF")
+                total_chunks = len(chunks)
+                logger.info(f"✅ Created {total_chunks} chunks from {total_pages}-page PDF")
                 
-                # Process each chunk with Document AI
+                # LIMIT: Process max 5 chunks only
+                MAX_CHUNKS = 5
+                chunks_to_process = chunks[:MAX_CHUNKS]
+                skipped_chunks = total_chunks - len(chunks_to_process)
+                
+                if skipped_chunks > 0:
+                    logger.warning(f"⚠️ File has {total_chunks} chunks. Processing first {MAX_CHUNKS} chunks only, skipping {skipped_chunks} chunks")
+                    # Calculate skipped pages
+                    skipped_pages = sum(chunk.get('page_count', 0) for chunk in chunks[MAX_CHUNKS:])
+                    processed_pages = total_pages - skipped_pages
+                    logger.info(f"📊 Processing {processed_pages}/{total_pages} pages ({skipped_pages} pages skipped)")
+                
+                # Process each chunk with Document AI (max 5 chunks)
                 chunk_summaries = []
                 successful_chunks = 0
                 failed_chunks = 0
                 
-                for i, chunk in enumerate(chunks):
-                    logger.info(f"📄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})...")
+                for i, chunk in enumerate(chunks_to_process):
+                    logger.info(f"📄 Processing chunk {i+1}/{len(chunks_to_process)} (pages {chunk['page_range']})...")
                     try:
                         chunk_result = await dual_manager.analyze_test_report_only(
                             file_content=chunk['content'],
@@ -7993,15 +8006,20 @@ async def analyze_drawings_manual_file(
                     else:
                         logger.warning("⚠️ No fields extracted from merged summary")
                     
+                    # Add detailed split info including skipped chunks
                     analysis_result['_split_info'] = {
                         'was_split': True,
                         'total_pages': total_pages,
-                        'chunks_count': len(chunks),
+                        'total_chunks': total_chunks,
+                        'processed_chunks': len(chunks_to_process),
                         'successful_chunks': successful_chunks,
-                        'failed_chunks': failed_chunks
+                        'failed_chunks': failed_chunks,
+                        'skipped_chunks': skipped_chunks,
+                        'max_chunks_limit': MAX_CHUNKS,
+                        'was_limited': skipped_chunks > 0
                     }
                     
-                    logger.info(f"✅ Split PDF processing complete: {successful_chunks}/{len(chunks)} chunks successful")
+                    logger.info(f"✅ Split PDF processing complete: {successful_chunks}/{len(chunks_to_process)} chunks successful, {skipped_chunks} chunks skipped")
                 else:
                     logger.error("❌ No chunk summaries were generated")
                     raise HTTPException(status_code=500, detail="Failed to process PDF chunks")
