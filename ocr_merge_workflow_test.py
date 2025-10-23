@@ -343,8 +343,8 @@ class OCRMergeWorkflowTester:
             else:
                 self.log("❌ Enhanced summary missing", "ERROR")
             
-            # Check extracted fields
-            self.analyze_extracted_fields(result)
+            # Check extracted fields in analysis
+            self.analyze_extracted_fields(analysis)
             
             # Check processing method
             processing_method = result.get("processing_method", "")
