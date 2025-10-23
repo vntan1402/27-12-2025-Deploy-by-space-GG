@@ -1563,6 +1563,7 @@ const HomePage = () => {
   // Drawings & Manuals File Upload States
   const [drawingsManualFiles, setDrawingsManualFiles] = useState([]);
   const [isAnalyzingDrawingsManual, setIsAnalyzingDrawingsManual] = useState(false);
+  const [drawingsManualAnalysisProgress, setDrawingsManualAnalysisProgress] = useState('');
   const [drawingsManualFileError, setDrawingsManualFileError] = useState('');
   const [analyzedDrawingsManualData, setAnalyzedDrawingsManualData] = useState(null);
   
