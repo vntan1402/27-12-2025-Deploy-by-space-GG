@@ -6786,11 +6786,40 @@ const HomePage = () => {
       const documentId = createResponse.data.id;
       result.documentCreated = true;
       result.documentId = documentId;
-      result.success = true;
       console.log(`✅ Document created: ${documentId}`);
       
-      // TODO: Phase 7 - Upload files to Google Drive
-      // For now, document created successfully without file upload
+      // Step 4: Upload files to Google Drive
+      if (analysis._file_content && analysis._filename) {
+        try {
+          const uploadData = {
+            file_content: analysis._file_content,
+            filename: analysis._filename,
+            content_type: analysis._content_type || 'application/pdf',
+            summary_text: analysis._summary_text || ''
+          };
+          
+          const uploadResponse = await axios.post(
+            `${API}/drawings-manuals/${documentId}/upload-files`, 
+            uploadData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          
+          if (uploadResponse.data.success) {
+            result.fileUploaded = true;
+            result.success = true;
+            console.log(`✅ Files uploaded for document: ${documentId}`);
+          } else {
+            result.success = true; // Document created but file upload failed (non-critical)
+            console.warn(`⚠️ File upload failed for document: ${documentId}`);
+          }
+        } catch (uploadError) {
+          console.error(`⚠️ File upload error for document ${documentId}:`, uploadError);
+          result.success = true; // Document created successfully, file upload is non-critical
+          result.fileUploadError = uploadError.message;
+        }
+      } else {
+        result.success = true; // Document created without file content
+      }
       
     } catch (error) {
       console.error(`❌ Failed to process ${file.name}:`, error);
