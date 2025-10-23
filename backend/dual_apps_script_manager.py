@@ -1186,6 +1186,58 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
     
+    async def _call_apps_script_for_drawings_manuals_upload(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Call Company Apps Script to upload drawings & manuals files
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            logger.info(f"📡 Calling Company Apps Script for drawings & manuals upload...")
+            
+            # Encode file content
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Prepare payload
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": self.parent_folder_id,
+                "ship_name": ship_name,
+                "parent_category": "Class & Flag Cert",  # First level folder under ShipName
+                "category": "Drawings & Manuals",  # Second level folder under Class & Flag Cert
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
+            
+            logger.info(f"✅ Company Apps Script response received")
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error calling Company Apps Script for drawings & manuals: {e}")
+            return {
+                'success': False,
+                'message': f'Apps Script call failed: {str(e)}',
+                'error': str(e)
+            }
+
     async def _call_apps_script_for_test_report_upload(
         self,
         file_content: bytes,
