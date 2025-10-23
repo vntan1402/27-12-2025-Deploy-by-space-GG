@@ -6286,11 +6286,172 @@ const HomePage = () => {
     });
   };
   
-  // Drawings & Manuals Context Menu Handler (placeholder for Phase 4)
+  // Drawings & Manuals Context Menu Handler
   const handleDrawingsManualContextMenu = (e, document) => {
     e.preventDefault();
-    // Will be implemented in Phase 4
-    console.log('Context menu for document:', document);
+    
+    const x = Math.min(e.clientX, window.innerWidth - 220);
+    const y = Math.min(e.clientY, window.innerHeight - 400);
+    
+    setDrawingsManualContextMenu({
+      show: true,
+      x: x,
+      y: y,
+      document: document
+    });
+  };
+
+  // Drawings & Manuals Context Menu Actions
+  const handleViewDrawingsManualFile = (document) => {
+    if (document.file_id) {
+      window.open(`https://drive.google.com/file/d/${document.file_id}/view`, '_blank');
+      toast.success(language === 'vi' ? '📄 Đã mở file' : '📄 File opened');
+    } else {
+      toast.warning(language === 'vi' ? '⚠️ File chưa được upload' : '⚠️ File not uploaded yet');
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleCopyDrawingsManualLink = (document) => {
+    if (document.file_id) {
+      const link = `https://drive.google.com/file/d/${document.file_id}/view`;
+      navigator.clipboard.writeText(link);
+      toast.success(language === 'vi' ? '🔗 Đã copy link' : '🔗 Link copied');
+    } else {
+      toast.warning(language === 'vi' ? '⚠️ File chưa được upload' : '⚠️ File not uploaded yet');
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleDownloadDrawingsManual = (document) => {
+    if (document.file_id) {
+      window.open(`https://drive.google.com/uc?export=download&id=${document.file_id}`, '_blank');
+      toast.success(language === 'vi' ? '⬇️ Đang tải xuống...' : '⬇️ Downloading...');
+    } else {
+      toast.warning(language === 'vi' ? '⚠️ File chưa được upload' : '⚠️ File not uploaded yet');
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleAutoRenameDrawingsManual = (document) => {
+    // TODO: Phase 5 - Implement auto rename via API
+    toast.info(language === 'vi' ? '⚠️ Auto Rename sẽ được implement trong Phase 5' : '⚠️ Auto Rename will be implemented in Phase 5');
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleChangeDrawingsManualStatus = async (document, newStatus) => {
+    try {
+      // TODO: Phase 5 - Update status via API
+      // For now, update local state
+      setDrawingsManuals(prev =>
+        prev.map(doc =>
+          doc.id === document.id ? { ...doc, status: newStatus } : doc
+        )
+      );
+      
+      toast.success(language === 'vi' ? `✅ Đã đổi trạng thái thành ${newStatus}` : `✅ Status changed to ${newStatus}`);
+    } catch (error) {
+      console.error('Failed to change status:', error);
+      toast.error(language === 'vi' ? '❌ Không thể đổi trạng thái' : '❌ Failed to change status');
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleDeleteDrawingsManualClick = (document) => {
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    if (window.confirm(language === 'vi' 
+      ? `Bạn có chắc muốn xóa "${document.document_name}"?`
+      : `Are you sure you want to delete "${document.document_name}"?`
+    )) {
+      handleDeleteDrawingsManual(document);
+    }
+  };
+
+  const handleDeleteDrawingsManual = async (document) => {
+    try {
+      // TODO: Phase 5 - Delete via API
+      // For now, remove from local state
+      setDrawingsManuals(prev => prev.filter(doc => doc.id !== document.id));
+      setSelectedDrawingsManuals(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(document.id);
+        return newSet;
+      });
+      
+      toast.success(language === 'vi' ? '🗑️ Đã xóa tài liệu (mock)' : '🗑️ Document deleted (mock)');
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      toast.error(language === 'vi' ? '❌ Không thể xóa tài liệu' : '❌ Failed to delete document');
+    }
+  };
+
+  const handleBulkDeleteDrawingsManuals = () => {
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    if (window.confirm(language === 'vi'
+      ? `Bạn có chắc muốn xóa ${selectedDrawingsManuals.size} tài liệu đã chọn?`
+      : `Are you sure you want to delete ${selectedDrawingsManuals.size} selected documents?`
+    )) {
+      // TODO: Phase 5 - Bulk delete via API
+      // For now, remove from local state
+      setDrawingsManuals(prev => prev.filter(doc => !selectedDrawingsManuals.has(doc.id)));
+      toast.success(language === 'vi' 
+        ? `🗑️ Đã xóa ${selectedDrawingsManuals.size} tài liệu (mock)` 
+        : `🗑️ Deleted ${selectedDrawingsManuals.size} documents (mock)`
+      );
+      setSelectedDrawingsManuals(new Set());
+    }
+  };
+
+  const handleBulkViewDrawingsManuals = () => {
+    const selectedDocs = drawingsManuals.filter(doc => selectedDrawingsManuals.has(doc.id));
+    const docsWithFiles = selectedDocs.filter(doc => doc.file_id);
+    
+    if (docsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? '⚠️ Không có file nào để xem' : '⚠️ No files to view');
+    } else {
+      docsWithFiles.forEach(doc => {
+        window.open(`https://drive.google.com/file/d/${doc.file_id}/view`, '_blank');
+      });
+      toast.success(language === 'vi' ? `📄 Đã mở ${docsWithFiles.length} file` : `📄 Opened ${docsWithFiles.length} files`);
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleBulkCopyDrawingsManualLinks = () => {
+    const selectedDocs = drawingsManuals.filter(doc => selectedDrawingsManuals.has(doc.id));
+    const docsWithFiles = selectedDocs.filter(doc => doc.file_id);
+    
+    if (docsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? '⚠️ Không có file nào để copy link' : '⚠️ No files to copy links');
+    } else {
+      const links = docsWithFiles.map(doc => `https://drive.google.com/file/d/${doc.file_id}/view`).join('\n');
+      navigator.clipboard.writeText(links);
+      toast.success(language === 'vi' ? `🔗 Đã copy ${docsWithFiles.length} link` : `🔗 Copied ${docsWithFiles.length} links`);
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleBulkDownloadDrawingsManuals = () => {
+    const selectedDocs = drawingsManuals.filter(doc => selectedDrawingsManuals.has(doc.id));
+    const docsWithFiles = selectedDocs.filter(doc => doc.file_id);
+    
+    if (docsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? '⚠️ Không có file nào để tải' : '⚠️ No files to download');
+    } else {
+      docsWithFiles.forEach(doc => {
+        window.open(`https://drive.google.com/uc?export=download&id=${doc.file_id}`, '_blank');
+      });
+      toast.success(language === 'vi' ? `⬇️ Đang tải ${docsWithFiles.length} file...` : `⬇️ Downloading ${docsWithFiles.length} files...`);
+    }
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
+  const handleBulkAutoRenameDrawingsManuals = () => {
+    // TODO: Phase 5 - Bulk auto rename via API
+    toast.info(language === 'vi' ? '⚠️ Bulk Auto Rename sẽ được implement trong Phase 5' : '⚠️ Bulk Auto Rename will be implemented in Phase 5');
+    setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
   };
 
   // ============================================
