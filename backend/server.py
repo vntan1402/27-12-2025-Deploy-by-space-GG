@@ -6192,6 +6192,70 @@ async def get_test_reports(
         logger.error(f"❌ Error fetching test reports: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.post("/test-reports/check-duplicate")
+async def check_duplicate_test_report(
+    ship_id: str = Body(...),
+    test_report_no: str = Body(...),
+    test_report_name: str = Body(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Check if a test report with the same ship_id, test_report_no, and test_report_name already exists
+    Used in batch processing to avoid duplicate entries
+    
+    Duplicate criteria: ship_id + test_report_no + test_report_name
+    """
+    try:
+        if not test_report_no or not test_report_no.strip():
+            # If no test_report_no provided, cannot check duplicate
+            return {
+                "is_duplicate": False,
+                "message": "No test report number provided"
+            }
+        
+        if not test_report_name or not test_report_name.strip():
+            # If no test_report_name provided, cannot check duplicate
+            return {
+                "is_duplicate": False,
+                "message": "No test report name provided"
+            }
+        
+        # Check if test report exists with all 3 fields
+        existing_report = await mongo_db.find_one("test_reports", {
+            "ship_id": ship_id,
+            "test_report_no": test_report_no.strip(),
+            "test_report_name": test_report_name.strip()
+        })
+        
+        if existing_report:
+            logger.info(f"🔍 Duplicate test report found: {test_report_no} / {test_report_name} for ship {ship_id}")
+            return {
+                "is_duplicate": True,
+                "existing_report": {
+                    "id": existing_report.get("id"),
+                    "test_report_name": existing_report.get("test_report_name"),
+                    "test_report_no": existing_report.get("test_report_no"),
+                    "issued_date": existing_report.get("issued_date"),
+                    "issued_by": existing_report.get("issued_by"),
+                    "valid_date": existing_report.get("valid_date"),
+                    "status": existing_report.get("status"),
+                    "created_at": existing_report.get("created_at")
+                }
+            }
+        else:
+            return {
+                "is_duplicate": False,
+                "message": "No duplicate found"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking duplicate test report: {e}")
+        # Don't fail on duplicate check error, just return false
+        return {
+            "is_duplicate": False,
+            "error": str(e)
+        }
+
 @api_router.post("/test-reports", response_model=TestReportResponse)
 async def create_test_report(
     report: TestReportCreate,
