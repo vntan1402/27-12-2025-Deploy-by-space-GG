@@ -14979,6 +14979,202 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Drawings & Manuals Context Menu */}
+                  {drawingsManualContextMenu.show && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40"
+                        onClick={() => {
+                          setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+                          setShowDrawingsManualStatusSubmenu(false);
+                        }}
+                      />
+                      <div
+                        className="fixed bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                        style={{ 
+                          left: `${drawingsManualContextMenu.x}px`,
+                          top: `${drawingsManualContextMenu.y}px`,
+                          minWidth: '200px'
+                        }}
+                      >
+                        {/* Multiple selection menu */}
+                        {selectedDrawingsManuals.size > 1 ? (
+                          <>
+                            <button
+                              onClick={handleBulkViewDrawingsManuals}
+                              className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              {language === 'vi' ? 'Xem Files' : 'View Files'}
+                            </button>
+                            <button
+                              onClick={handleBulkCopyDrawingsManualLinks}
+                              className="w-full px-4 py-2 text-left hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              {language === 'vi' ? 'Copy Links' : 'Copy Links'}
+                            </button>
+                            <button
+                              onClick={handleBulkDownloadDrawingsManuals}
+                              className="w-full px-4 py-2 text-left hover:bg-purple-50 text-gray-700 hover:text-purple-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              {language === 'vi' ? 'Download Files' : 'Download Files'}
+                            </button>
+                            <button
+                              onClick={handleBulkAutoRenameDrawingsManuals}
+                              className="w-full px-4 py-2 text-left hover:bg-yellow-50 text-gray-700 hover:text-yellow-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              {language === 'vi' ? 'Auto Rename Files' : 'Auto Rename Files'}
+                            </button>
+                            <div className="border-t border-gray-200 my-1"></div>
+                            <button
+                              onClick={handleBulkDeleteDrawingsManuals}
+                              className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2 font-medium"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              {language === 'vi' ? `Xóa ${selectedDrawingsManuals.size} mục đã chọn` : `Delete ${selectedDrawingsManuals.size} Selected`}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {/* Single selection menu */}
+                            <button
+                              onClick={() => {
+                                handleEditDrawingsManual(drawingsManualContextMenu.document);
+                                setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                            </button>
+                            <button
+                              onClick={() => handleViewDrawingsManualFile(drawingsManualContextMenu.document)}
+                              className="w-full px-4 py-2 text-left hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              {language === 'vi' ? 'Xem File' : 'View File'}
+                            </button>
+                            <button
+                              onClick={() => handleCopyDrawingsManualLink(drawingsManualContextMenu.document)}
+                              className="w-full px-4 py-2 text-left hover:bg-purple-50 text-gray-700 hover:text-purple-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              {language === 'vi' ? 'Copy Link' : 'Copy Link'}
+                            </button>
+                            <button
+                              onClick={() => handleDownloadDrawingsManual(drawingsManualContextMenu.document)}
+                              className="w-full px-4 py-2 text-left hover:bg-indigo-50 text-gray-700 hover:text-indigo-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              {language === 'vi' ? 'Download' : 'Download'}
+                            </button>
+                            <button
+                              onClick={() => handleAutoRenameDrawingsManual(drawingsManualContextMenu.document)}
+                              className="w-full px-4 py-2 text-left hover:bg-yellow-50 text-gray-700 hover:text-yellow-600 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              {language === 'vi' ? 'Auto Rename File' : 'Auto Rename File'}
+                            </button>
+                            
+                            {/* Change Status with Submenu */}
+                            <div className="relative">
+                              <button
+                                onMouseEnter={() => setShowDrawingsManualStatusSubmenu(true)}
+                                onMouseLeave={() => setShowDrawingsManualStatusSubmenu(false)}
+                                className="w-full px-4 py-2 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-all flex items-center justify-between gap-2"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  {language === 'vi' ? 'Đổi Trạng thái' : 'Change Status'}
+                                </div>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                              
+                              {/* Status Submenu */}
+                              {showDrawingsManualStatusSubmenu && (
+                                <div
+                                  className="absolute left-full top-0 ml-1 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                                  style={{ minWidth: '150px' }}
+                                  onMouseEnter={() => setShowDrawingsManualStatusSubmenu(true)}
+                                  onMouseLeave={() => setShowDrawingsManualStatusSubmenu(false)}
+                                >
+                                  <button
+                                    onClick={() => handleChangeDrawingsManualStatus(drawingsManualContextMenu.document, 'Valid')}
+                                    className="w-full px-4 py-2 text-left hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all flex items-center gap-2"
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                    {language === 'vi' ? 'Hợp lệ' : 'Valid'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleChangeDrawingsManualStatus(drawingsManualContextMenu.document, 'Approved')}
+                                    className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                    {language === 'vi' ? 'Đã phê duyệt' : 'Approved'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleChangeDrawingsManualStatus(drawingsManualContextMenu.document, 'Expired')}
+                                    className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                    {language === 'vi' ? 'Hết hạn' : 'Expired'}
+                                  </button>
+                                  <button
+                                    onClick={() => handleChangeDrawingsManualStatus(drawingsManualContextMenu.document, 'Unknown')}
+                                    className="w-full px-4 py-2 text-left hover:bg-gray-50 text-gray-700 hover:text-gray-600 transition-all flex items-center gap-2"
+                                  >
+                                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                    {language === 'vi' ? 'Chưa rõ' : 'Unknown'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="border-t border-gray-200 my-1"></div>
+                            <button
+                              onClick={() => handleDeleteDrawingsManualClick(drawingsManualContextMenu.document)}
+                              className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2 font-medium"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              {language === 'vi' ? 'Xóa' : 'Delete'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </>
+                  )}
+
                   {/* Add Drawings & Manuals Modal */}
                   {showAddDrawingsManualModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
