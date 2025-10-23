@@ -7396,6 +7396,277 @@ async def delete_drawings_manual(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Drawings & Manuals AI Analysis endpoint
+@api_router.post("/drawings-manuals/analyze-file")
+async def analyze_drawings_manual_file(
+    ship_id: str = Form(...),
+    document_file: UploadFile = File(...),
+    bypass_validation: str = Form("false"),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Analyze drawings & manuals file using Document AI to extract fields
+    Similar to test report analysis but for technical documentation
+    """
+    try:
+        logger.info(f"📐 Starting drawings & manuals analysis for ship_id: {ship_id}")
+        
+        # Read file content
+        file_content = await document_file.read()
+        filename = document_file.filename
+        
+        # Validate file input
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="Empty file provided. Please upload a valid PDF file.")
+        
+        # Validate file type (basic check for PDF)
+        if not filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Invalid file type. Only PDF files are supported for drawings & manuals.")
+        
+        # Check if file content starts with PDF magic bytes
+        if not file_content.startswith(b'%PDF'):
+            raise HTTPException(status_code=400, detail="Invalid PDF file format. The file does not appear to be a valid PDF document.")
+            
+        logger.info(f"📄 Processing drawings/manual file: {filename} ({len(file_content)} bytes)")
+        
+        # Check if PDF needs splitting (> 15 pages)
+        from pdf_splitter import PDFSplitter
+        splitter = PDFSplitter(max_pages_per_chunk=12)
+        
+        try:
+            total_pages = splitter.get_page_count(file_content)
+            needs_split = splitter.needs_splitting(file_content)
+            logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+        except ValueError as e:
+            logger.error(f"❌ Invalid PDF file: {e}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid or corrupted PDF file: {str(e)}. Please ensure the file is a valid PDF document."
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
+            total_pages = 0
+            needs_split = False
+        
+        # Get company information
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get ship information
+        ship = await mongo_db.find_one("ships", {
+            "id": ship_id,
+            "company": company_uuid
+        })
+        
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        
+        # Get AI configuration for Document AI
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
+        
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration.")
+        
+        logger.info("🤖 Analyzing drawings/manual with Google Document AI...")
+        
+        # Create dual manager for Document AI analysis
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Initialize empty analysis data
+        analysis_result = {
+            "document_name": "",
+            "document_no": "",
+            "approved_by": "",
+            "approved_date": "",
+            "note": "",
+            "confidence_score": 0.0,
+            "processing_method": "clean_analysis",
+            "_filename": filename,
+            "_summary_text": ""
+        }
+        
+        # Store file content FIRST before any analysis
+        import base64
+        analysis_result['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+        analysis_result['_filename'] = filename
+        analysis_result['_content_type'] = document_file.content_type or 'application/octet-stream'
+        analysis_result['_ship_name'] = ship_name
+        analysis_result['_summary_text'] = ''
+        
+        # Start Document AI Analysis
+        if needs_split and total_pages > 15:
+            # Large PDF: Split and process in batches
+            logger.info(f"📦 Splitting large PDF into chunks...")
+            analysis_result['processing_method'] = 'split_pdf_batch_processing'
+            
+            try:
+                chunks = splitter.split_pdf(file_content, filename)
+                logger.info(f"✅ Created {len(chunks)} chunks from {total_pages}-page PDF")
+                
+                # Process each chunk with Document AI
+                chunk_summaries = []
+                successful_chunks = 0
+                failed_chunks = 0
+                
+                for i, chunk in enumerate(chunks):
+                    logger.info(f"📄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})...")
+                    try:
+                        chunk_result = await dual_manager.analyze_test_report_only(
+                            file_content=chunk['content'],
+                            filename=chunk['filename'],
+                            content_type='application/pdf',
+                            document_ai_config=document_ai_config
+                        )
+                        
+                        if chunk_result and chunk_result.get('success'):
+                            summary_text = chunk_result.get('summary_text', '')
+                            
+                            if summary_text:
+                                chunk_summaries.append(summary_text)
+                                successful_chunks += 1
+                                logger.info(f"   ✅ Chunk {i+1} processed successfully ({len(summary_text)} chars)")
+                            else:
+                                failed_chunks += 1
+                                logger.warning(f"   ⚠️ Chunk {i+1} returned empty summary_text")
+                        else:
+                            failed_chunks += 1
+                            logger.warning(f"   ⚠️ Chunk {i+1} returned no result or success=False")
+                            
+                    except Exception as chunk_error:
+                        failed_chunks += 1
+                        logger.error(f"   ❌ Chunk {i+1} processing failed: {chunk_error}")
+                
+                # Merge chunk summaries
+                if chunk_summaries:
+                    logger.info(f"🔗 Merging {len(chunk_summaries)} chunk summaries...")
+                    merged_summary_text = "\n\n=== DOCUMENT CONTINUATION ===\n\n".join(chunk_summaries)
+                    
+                    logger.info(f"📄 Merged summary ready ({len(merged_summary_text)} chars)")
+                    analysis_result['_summary_text'] = merged_summary_text
+                    
+                    # Extract fields from merged summary
+                    logger.info("🔍 Extracting fields from merged summary...")
+                    
+                    ai_provider = ai_config_doc.get("provider", "google")
+                    ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+                    use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                    
+                    extracted_fields = await extract_drawings_manuals_fields_from_summary(
+                        merged_summary_text,
+                        ai_provider,
+                        ai_model,
+                        use_emergent_key
+                    )
+                    
+                    if extracted_fields:
+                        analysis_result.update(extracted_fields)
+                        logger.info(f"   🔢 Extracted {len([v for v in extracted_fields.values() if v])} fields from merged summary")
+                    else:
+                        logger.warning("⚠️ No fields extracted from merged summary")
+                    
+                    analysis_result['_split_info'] = {
+                        'was_split': True,
+                        'total_pages': total_pages,
+                        'chunks_count': len(chunks),
+                        'successful_chunks': successful_chunks,
+                        'failed_chunks': failed_chunks
+                    }
+                    
+                    logger.info(f"✅ Split PDF processing complete: {successful_chunks}/{len(chunks)} chunks successful")
+                else:
+                    logger.error("❌ No chunk summaries were generated")
+                    raise HTTPException(status_code=500, detail="Failed to process PDF chunks")
+                    
+            except Exception as split_error:
+                logger.error(f"❌ PDF splitting/processing failed: {split_error}")
+                raise HTTPException(status_code=500, detail=f"PDF processing error: {str(split_error)}")
+        
+        else:
+            # Small PDF: Normal single-file processing
+            logger.info("📄 Processing as single file (≤15 pages)")
+            
+            try:
+                # Analyze with Document AI (reuse test report method)
+                ai_analysis = await dual_manager.analyze_test_report_file(
+                    file_content=file_content,
+                    filename=filename,
+                    content_type='application/pdf',
+                    document_ai_config=document_ai_config
+                )
+                
+                if ai_analysis:
+                    summary_text = ai_analysis.get('summary_text', '')
+                    analysis_result['_summary_text'] = summary_text
+                    
+                    # Extract fields from summary
+                    if summary_text:
+                        logger.info("🧠 Extracting drawings & manuals fields from Document AI summary...")
+                        
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        extracted_fields = await extract_drawings_manuals_fields_from_summary(
+                            summary_text,
+                            ai_provider,
+                            ai_model,
+                            use_emergent_key
+                        )
+                        
+                        if extracted_fields:
+                            logger.info("✅ System AI drawings & manuals extraction completed successfully")
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "analysis_only_no_upload"
+                            logger.info(f"   📋 Extracted Document Name: '{analysis_result.get('document_name')}'")
+                            logger.info(f"   🔢 Extracted Document No: '{analysis_result.get('document_no')}'")
+                        else:
+                            logger.warning("⚠️ No fields extracted from summary")
+                    else:
+                        logger.warning("⚠️ No summary text from Document AI")
+                    
+                    if 'confidence_score' in ai_analysis:
+                        analysis_result['confidence_score'] = ai_analysis['confidence_score']
+                    
+                    logger.info("✅ Drawings/manual file analyzed successfully")
+                else:
+                    logger.warning("⚠️ AI analysis returned no data")
+                    analysis_result['document_name'] = analysis_result.get('document_name') or filename
+                    
+            except Exception as ai_error:
+                logger.error(f"❌ Document AI analysis failed: {ai_error}")
+                logger.warning(f"⚠️ Continuing without AI analysis - file upload will still work")
+                analysis_result['document_name'] = analysis_result.get('document_name') or filename
+                analysis_result['note'] = f"AI analysis failed: {str(ai_error)}"
+        
+        logger.info(f"✅ Drawings & manuals analysis completed successfully")
+        return analysis_result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing drawings/manual file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
 async def create_ship_survey_status(ship_id: str, status_data: ShipSurveyStatusCreate, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
