@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://shipdata-hub.preview.emergentagent.com/api"
+API_URL="https://doc-navigator-9.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

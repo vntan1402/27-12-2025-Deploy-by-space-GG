@@ -8,7 +8,7 @@ import json
 import time
 
 # Configuration
-BACKEND_URL = "https://shipdata-hub.preview.emergentagent.com/api"
+BACKEND_URL = "https://doc-navigator-9.preview.emergentagent.com/api"
 
 def test_certificate_delete():
     print("🗑️ Testing Certificate Delete Fix...")

@@ -31,7 +31,7 @@ import base64
 from pathlib import Path
 
 # Configuration - Use external backend URL with longer timeout
-BACKEND_URL = 'https://shipdata-hub.preview.emergentagent.com/api'
+BACKEND_URL = 'https://doc-navigator-9.preview.emergentagent.com/api'
 print(f"Using external backend URL: {BACKEND_URL}")
 
 class MarineCertificateDebugTester:
