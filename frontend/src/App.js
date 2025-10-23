@@ -6085,6 +6085,180 @@ const HomePage = () => {
     }
   };
 
+  // ============================================
+  // DRAWINGS & MANUALS FUNCTIONS
+  // ============================================
+  
+  // Fetch Drawings & Manuals (will be implemented with API later)
+  const fetchDrawingsManuals = async (shipId) => {
+    try {
+      // TODO: Replace with actual API call
+      // const response = await axios.get(`${API}/drawings-manuals?ship_id=${shipId}`);
+      // setDrawingsManuals(response.data);
+      
+      // For now, use mock data filtered by ship
+      if (selectedShip) {
+        setDrawingsManuals(mockDrawingsManuals);
+      } else {
+        setDrawingsManuals([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch drawings & manuals:', error);
+      setDrawingsManuals([]);
+    }
+  };
+  
+  // Filter and Sort Drawings & Manuals
+  const getFilteredDrawingsManuals = () => {
+    let filtered = [...drawingsManuals];
+    
+    // Filter by status
+    if (drawingsManualFilters.status !== 'all') {
+      filtered = filtered.filter(doc => 
+        doc.status?.toLowerCase() === drawingsManualFilters.status.toLowerCase()
+      );
+    }
+    
+    // Filter by document name search
+    if (drawingsManualFilters.searchDocumentName) {
+      const searchLower = drawingsManualFilters.searchDocumentName.toLowerCase();
+      filtered = filtered.filter(doc => 
+        doc.document_name?.toLowerCase().includes(searchLower) ||
+        doc.document_no?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Filter by approved by search
+    if (drawingsManualFilters.searchApprovedBy) {
+      const searchLower = drawingsManualFilters.searchApprovedBy.toLowerCase();
+      filtered = filtered.filter(doc => 
+        doc.approved_by?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Sort
+    if (drawingsManualSort.column) {
+      filtered.sort((a, b) => {
+        let aVal = a[drawingsManualSort.column] || '';
+        let bVal = b[drawingsManualSort.column] || '';
+        
+        if (drawingsManualSort.column === 'approved_date') {
+          aVal = aVal ? new Date(aVal) : new Date(0);
+          bVal = bVal ? new Date(bVal) : new Date(0);
+        } else {
+          aVal = aVal.toString().toLowerCase();
+          bVal = bVal.toString().toLowerCase();
+        }
+        
+        if (aVal < bVal) return drawingsManualSort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return drawingsManualSort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  };
+  
+  const handleDrawingsManualSort = (column) => {
+    setDrawingsManualSort(prev => ({
+      column: column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+  
+  // Drawings & Manuals Selection Handlers
+  const handleDrawingsManualSelect = (documentId) => {
+    setSelectedDrawingsManuals(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(documentId)) {
+        newSet.delete(documentId);
+      } else {
+        newSet.add(documentId);
+      }
+      return newSet;
+    });
+  };
+  
+  const handleSelectAllDrawingsManuals = (checked) => {
+    if (checked) {
+      const allIds = new Set(getFilteredDrawingsManuals().map(doc => doc.id));
+      setSelectedDrawingsManuals(allIds);
+    } else {
+      setSelectedDrawingsManuals(new Set());
+    }
+  };
+  
+  const isDrawingsManualsAllSelected = () => {
+    const filtered = getFilteredDrawingsManuals();
+    return filtered.length > 0 && filtered.every(doc => selectedDrawingsManuals.has(doc.id));
+  };
+  
+  const isDrawingsManualsIndeterminate = () => {
+    const filtered = getFilteredDrawingsManuals();
+    const selectedCount = filtered.filter(doc => selectedDrawingsManuals.has(doc.id)).length;
+    return selectedCount > 0 && selectedCount < filtered.length;
+  };
+  
+  // Drawings & Manuals Note Tooltip Handlers
+  const handleDrawingsManualNoteMouseEnter = (e, note) => {
+    if (!note) return;
+    
+    const rect = e.target.getBoundingClientRect();
+    const tableRect = e.target.closest('table')?.getBoundingClientRect();
+    
+    const TOOLTIP_WIDTH = 300;
+    const TOOLTIP_MAX_HEIGHT = 200;
+    const TOOLTIP_OFFSET = 10;
+    
+    let x = rect.right + TOOLTIP_OFFSET;
+    let y = rect.top;
+    
+    const spaceOnRight = window.innerWidth - rect.right;
+    const spaceOnLeft = rect.left;
+    
+    if (spaceOnRight < TOOLTIP_WIDTH + 20 && spaceOnLeft > TOOLTIP_WIDTH + 20) {
+      x = rect.left - TOOLTIP_WIDTH - TOOLTIP_OFFSET;
+    }
+    
+    if (x < 10) x = 10;
+    if (x + TOOLTIP_WIDTH > window.innerWidth - 10) {
+      x = window.innerWidth - TOOLTIP_WIDTH - 10;
+    }
+    
+    const showBelow = (y + TOOLTIP_MAX_HEIGHT > window.innerHeight) && (y - rect.height - TOOLTIP_MAX_HEIGHT > 0);
+    
+    if (showBelow) {
+      y = rect.top - TOOLTIP_MAX_HEIGHT - TOOLTIP_OFFSET;
+    }
+    
+    setDrawingsManualNoteTooltip({
+      show: true,
+      x: x,
+      y: y,
+      content: note,
+      showBelow: showBelow,
+      width: TOOLTIP_WIDTH
+    });
+  };
+  
+  const handleDrawingsManualNoteMouseLeave = () => {
+    setDrawingsManualNoteTooltip({
+      show: false,
+      x: 0,
+      y: 0,
+      content: '',
+      showBelow: false,
+      width: 300
+    });
+  };
+  
+  // Drawings & Manuals Context Menu Handler (placeholder for Phase 4)
+  const handleDrawingsManualContextMenu = (e, document) => {
+    e.preventDefault();
+    // Will be implemented in Phase 4
+    console.log('Context menu for document:', document);
+  };
+
   // Context Menu Functions
   const handleCertificateRightClick = (e, certificate) => {
     e.preventDefault();
