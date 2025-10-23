@@ -1543,6 +1543,33 @@ const HomePage = () => {
     width: 300
   });
 
+  // Drawings & Manuals Modal States
+  const [showAddDrawingsManualModal, setShowAddDrawingsManualModal] = useState(false);
+  const [showEditDrawingsManualModal, setShowEditDrawingsManualModal] = useState(false);
+  
+  const [newDrawingsManual, setNewDrawingsManual] = useState({
+    document_name: '',
+    document_no: '',
+    approved_by: '',
+    approved_date: '',
+    status: 'Unknown',
+    note: ''
+  });
+  
+  const [editingDrawingsManual, setEditingDrawingsManual] = useState(null);
+  
+  // Drawings & Manuals File Upload States
+  const [drawingsManualFiles, setDrawingsManualFiles] = useState([]);
+  const [isAnalyzingDrawingsManual, setIsAnalyzingDrawingsManual] = useState(false);
+  const [drawingsManualFileError, setDrawingsManualFileError] = useState('');
+  const [analyzedDrawingsManualData, setAnalyzedDrawingsManualData] = useState(null);
+  
+  // Drawings & Manuals Batch Processing States
+  const [isBatchProcessingDrawingsManuals, setIsBatchProcessingDrawingsManuals] = useState(false);
+  const [drawingsManualBatchProgress, setDrawingsManualBatchProgress] = useState({ current: 0, total: 0 });
+  const [drawingsManualBatchResults, setDrawingsManualBatchResults] = useState([]);
+  const [showDrawingsManualProcessingResultsModal, setShowDrawingsManualProcessingResultsModal] = useState(false);
+
   // Mock data for testing UI (will be replaced with API call later)
   const mockDrawingsManuals = [
     {
