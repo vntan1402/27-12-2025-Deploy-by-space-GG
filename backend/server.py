@@ -8114,41 +8114,60 @@ async def analyze_drawings_manual_file(
                 
                 if ai_analysis:
                     summary_text = ai_analysis.get('summary_text', '')
-                    analysis_result['_summary_text'] = summary_text
                     
-                    # Extract fields from summary
-                    if summary_text:
+                    # BUG FIX: Validate summary text is not empty
+                    if summary_text and summary_text.strip():
+                        analysis_result['_summary_text'] = summary_text
+                        
+                        # Extract fields from summary
                         logger.info("🧠 Extracting drawings & manuals fields from Document AI summary...")
                         
                         ai_provider = ai_config_doc.get("provider", "google")
                         ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
                         use_emergent_key = ai_config_doc.get("use_emergent_key", True)
                         
-                        extracted_fields = await extract_drawings_manuals_fields_from_summary(
-                            summary_text,
-                            ai_provider,
-                            ai_model,
-                            use_emergent_key
-                        )
+                        try:
+                            extracted_fields = await extract_drawings_manuals_fields_from_summary(
+                                summary_text,
+                                ai_provider,
+                                ai_model,
+                                use_emergent_key
+                            )
+                            
+                            if extracted_fields:
+                                logger.info("✅ System AI drawings & manuals extraction completed successfully")
+                                analysis_result.update(extracted_fields)
+                                analysis_result["processing_method"] = "analysis_only_no_upload"
+                                logger.info(f"   📋 Extracted Document Name: '{analysis_result.get('document_name')}'")
+                                logger.info(f"   🔢 Extracted Document No: '{analysis_result.get('document_no')}'")
+                            else:
+                                # BUG FIX: Fallback when no fields extracted
+                                logger.warning("⚠️ No fields extracted from summary, using fallback")
+                                analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                                analysis_result['note'] = "AI field extraction incomplete"
                         
-                        if extracted_fields:
-                            logger.info("✅ System AI drawings & manuals extraction completed successfully")
-                            analysis_result.update(extracted_fields)
-                            analysis_result["processing_method"] = "analysis_only_no_upload"
-                            logger.info(f"   📋 Extracted Document Name: '{analysis_result.get('document_name')}'")
-                            logger.info(f"   🔢 Extracted Document No: '{analysis_result.get('document_no')}'")
-                        else:
-                            logger.warning("⚠️ No fields extracted from summary")
+                        except Exception as extraction_error:
+                            # BUG FIX: Handle field extraction errors gracefully
+                            logger.error(f"❌ Field extraction failed: {extraction_error}")
+                            analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                            analysis_result['note'] = f"AI extraction error: {str(extraction_error)[:100]}"
+                    
                     else:
-                        logger.warning("⚠️ No summary text from Document AI")
+                        # BUG FIX: Empty summary from Document AI
+                        logger.warning("⚠️ Document AI returned empty summary")
+                        analysis_result['_summary_text'] = ''
+                        analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                        analysis_result['note'] = "AI analysis returned empty result. Manual review required."
                     
                     if 'confidence_score' in ai_analysis:
                         analysis_result['confidence_score'] = ai_analysis['confidence_score']
                     
                     logger.info("✅ Drawings/manual file analyzed successfully")
                 else:
-                    logger.warning("⚠️ AI analysis returned no data")
-                    analysis_result['document_name'] = analysis_result.get('document_name') or filename
+                    # BUG FIX: AI analysis returned no data
+                    logger.warning("⚠️ AI analysis returned no data, using fallback")
+                    analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                    analysis_result['note'] = "AI analysis unavailable. Manual review required."
                     
             except Exception as ai_error:
                 logger.error(f"❌ Document AI analysis failed: {ai_error}")
