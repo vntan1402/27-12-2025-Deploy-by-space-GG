@@ -307,11 +307,12 @@ class TargetedOCRProcessor:
             'ocr_attempted': ocr_result.get('ocr_success', False)
         }
         
-        doc_form = doc_ai_result.get('report_form', '').strip()
-        ocr_form = ocr_result.get('report_form', '').strip()
+        # BUG FIX: Handle None values properly before calling .strip()
+        doc_form = (doc_ai_result.get('report_form') or '').strip()
+        ocr_form = (ocr_result.get('report_form') or '').strip()
         
-        doc_no = doc_ai_result.get('survey_report_no', '').strip()
-        ocr_no = ocr_result.get('survey_report_no', '').strip()
+        doc_no = (doc_ai_result.get('survey_report_no') or '').strip()
+        ocr_no = (ocr_result.get('survey_report_no') or '').strip()
         
         # Merge report_form
         if doc_form and ocr_form:
