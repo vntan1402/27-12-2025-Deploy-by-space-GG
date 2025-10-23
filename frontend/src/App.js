@@ -5914,11 +5914,13 @@ const HomePage = () => {
       // Step 3: Create survey report record
       const reportData = {
         survey_report_name: analysis.survey_report_name || file.name,
+        report_form: analysis.report_form || null,
         survey_report_no: analysis.survey_report_no || null,
         issued_date: analysis.issued_date ? convertDateInputToUTC(analysis.issued_date) : null,
         issued_by: analysis.issued_by || null,
         status: analysis.status || 'Valid',
-        note: analysis.note || null
+        note: analysis.note || null,
+        surveyor_name: analysis.surveyor_name || null
       };
       
       const createResponse = await axios.post(`${API}/survey-reports?ship_id=${selectedShip.id}`, reportData);
