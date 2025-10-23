@@ -6567,12 +6567,23 @@ const HomePage = () => {
   const handleDrawingsManualSingleFileAnalysis = async (file) => {
     setIsAnalyzingDrawingsManual(true);
     setDrawingsManualFileError('');
+    setDrawingsManualAnalysisProgress(language === 'vi' ? '📄 Đang phân tích file...' : '📄 Analyzing file...');
     
     try {
       const formData = new FormData();
       formData.append('ship_id', selectedShip.id);
       formData.append('document_file', file);
       formData.append('bypass_validation', 'false');
+      
+      // Show progress for large files
+      const fileSizeMB = file.size / (1024 * 1024);
+      if (fileSizeMB > 2) {
+        setDrawingsManualAnalysisProgress(
+          language === 'vi' 
+            ? `📦 File lớn (${fileSizeMB.toFixed(1)}MB) - Đang xử lý với AI...` 
+            : `📦 Large file (${fileSizeMB.toFixed(1)}MB) - Processing with AI...`
+        );
+      }
       
       const response = await axios.post(`${API}/drawings-manuals/analyze-file`, formData, {
         headers: {
@@ -6583,6 +6594,17 @@ const HomePage = () => {
       
       const analysisData = response.data;
       setAnalyzedDrawingsManualData(analysisData);
+      
+      // Check if file was split and some chunks were skipped
+      if (analysisData._split_info?.was_limited) {
+        const splitInfo = analysisData._split_info;
+        toast.warning(
+          language === 'vi'
+            ? `⚠️ File có ${splitInfo.total_pages} trang. Đã xử lý ${splitInfo.processed_chunks}/${splitInfo.total_chunks} phần đầu (giới hạn ${splitInfo.max_chunks_limit} phần)`
+            : `⚠️ File has ${splitInfo.total_pages} pages. Processed first ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks (limit: ${splitInfo.max_chunks_limit} chunks)`,
+          { autoClose: 8000 }
+        );
+      }
       
       // Auto-fill form with AI-extracted data
       setNewDrawingsManual({
@@ -6613,6 +6635,7 @@ const HomePage = () => {
       });
     } finally {
       setIsAnalyzingDrawingsManual(false);
+      setDrawingsManualAnalysisProgress('');
     }
   };
   
