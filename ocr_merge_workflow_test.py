@@ -321,8 +321,9 @@ class OCRMergeWorkflowTester:
             success = result.get("success", False)
             self.log(f"   Success: {success}")
             
-            # Check for _ocr_info object
-            ocr_info = result.get("_ocr_info", {})
+            # Check for _ocr_info object in analysis
+            analysis = result.get("analysis", {})
+            ocr_info = analysis.get("_ocr_info", {})
             if ocr_info:
                 self.log("✅ _ocr_info object found")
                 self.ocr_info = ocr_info
@@ -330,8 +331,8 @@ class OCRMergeWorkflowTester:
             else:
                 self.log("❌ _ocr_info object missing", "ERROR")
             
-            # Check for enhanced summary
-            enhanced_summary = result.get("_summary_text", "")
+            # Check for enhanced summary in analysis
+            enhanced_summary = analysis.get("_summary_text", "")
             if enhanced_summary:
                 self.enhanced_summary_length = len(enhanced_summary)
                 self.log(f"✅ Enhanced summary found: {self.enhanced_summary_length} characters")
