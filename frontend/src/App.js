@@ -6338,18 +6338,21 @@ const HomePage = () => {
 
   const handleChangeDrawingsManualStatus = async (document, newStatus) => {
     try {
-      // TODO: Phase 5 - Update status via API
-      // For now, update local state
-      setDrawingsManuals(prev =>
-        prev.map(doc =>
-          doc.id === document.id ? { ...doc, status: newStatus } : doc
-        )
+      await axios.put(`${API}/drawings-manuals/${document.id}`, 
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       
       toast.success(language === 'vi' ? `✅ Đã đổi trạng thái thành ${newStatus}` : `✅ Status changed to ${newStatus}`);
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchDrawingsManuals(selectedShip.id);
+      }
     } catch (error) {
       console.error('Failed to change status:', error);
-      toast.error(language === 'vi' ? '❌ Không thể đổi trạng thái' : '❌ Failed to change status');
+      const errorMsg = error.response?.data?.detail || 'Failed to change status';
+      toast.error(language === 'vi' ? `❌ Không thể đổi trạng thái: ${errorMsg}` : `❌ ${errorMsg}`);
     }
     setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
   };
