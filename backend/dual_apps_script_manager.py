@@ -992,13 +992,12 @@ class DualAppsScriptManager:
             
             # Call Company Apps Script for drawings & manuals upload
             # Path structure: Shipname > Class & Flag Cert > Drawings & Manuals
-            upload_result = await self._call_company_apps_script(
+            upload_result = await self._call_apps_script_for_drawings_manuals_upload(
                 file_content=file_content,
                 filename=filename,
                 content_type=content_type,
                 ship_name=ship_name,
-                folder_path="Class & Flag Cert/Drawings & Manuals",
-                action="upload_drawings_manuals"
+                summary_text=summary_text
             )
             
             if not upload_result.get('success'):
