@@ -4200,3 +4200,46 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+# PHASE 5 Implementation - Drawings & Manuals Backend
+
+user_problem_statement: "Implement backend CRUD APIs for Drawings & Manuals feature with MongoDB integration"
+
+backend:
+  - task: "Drawings & Manuals CRUD APIs"
+    implemented: true
+    working: "needs_testing"
+    files: ["/app/backend/server.py"]
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ PHASE 5 BACKEND IMPLEMENTATION COMPLETED: (1) PYDANTIC MODELS: Created DrawingsManualBase, DrawingsManualCreate, DrawingsManualUpdate, DrawingsManualResponse with fields: id, ship_id, document_name (required), document_no, approved_by, approved_date, status (Valid/Approved/Expired/Unknown), note, file_id, summary_file_id, created_at, updated_at. (2) CRUD ENDPOINTS: GET /api/drawings-manuals?ship_id={id} - fetch all documents for a ship with auth. POST /api/drawings-manuals - create new document with ship validation, auto UUID, timestamp. PUT /api/drawings-manuals/{id} - update document with validation. DELETE /api/drawings-manuals/{id} - delete single document. DELETE /api/drawings-manuals/bulk-delete - bulk delete with BulkDeleteDrawingsManualsRequest model. POST /api/drawings-manuals/check-duplicate - check duplicates by ship_id + document_name + document_no (optional). (3) MONGODB: Collection 'drawings_manuals', datetime to ISO conversion, proper error handling. (4) PERMISSIONS: Editor/Manager/Admin for create/update, Manager/Admin for delete. (5) FRONTEND INTEGRATION: Updated fetchDrawingsManuals, handleAddDrawingsManual, handleUpdateDrawingsManual, handleDeleteDrawingsManual, handleBulkDeleteDrawingsManuals, handleChangeDrawingsManualStatus - all connected to backend APIs with proper error handling, toast notifications, and list refresh. TESTING REQUIRED: Need to test all CRUD operations, duplicate check, bulk delete, status change via backend testing agent."
+
+frontend:
+  - task: "Drawings & Manuals Frontend API Integration"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ FRONTEND API INTEGRATION COMPLETED: All Drawings & Manuals handlers now call real backend APIs with axios, proper auth headers, error handling with toast notifications, and automatic list refresh after mutations."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.2"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Backend CRUD APIs for Drawings & Manuals"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "backend_only"
