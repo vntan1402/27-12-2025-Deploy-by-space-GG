@@ -6530,24 +6530,40 @@ const HomePage = () => {
     setDrawingsManualFileError('');
     
     try {
-      // TODO: Implement AI analysis API call in Phase 6
-      // For now, just simulate analysis
-      toast.info(language === 'vi' ? '⚠️ AI analysis sẽ được implement trong Phase 6' : '⚠️ AI analysis will be implemented in Phase 6');
+      const formData = new FormData();
+      formData.append('ship_id', selectedShip.id);
+      formData.append('document_file', file);
+      formData.append('bypass_validation', 'false');
       
-      // Mock analyzed data
-      setAnalyzedDrawingsManualData({
-        _filename: file.name,
-        _file_content: 'mock_base64_content',
-        _content_type: file.type,
-        document_name: file.name.replace('.pdf', ''),
-        document_no: '',
-        approved_by: '',
-        approved_date: '',
-        status: 'Unknown',
-        note: ''
+      const response = await axios.post(`${API}/drawings-manuals/analyze-file`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
-      // Auto-fill form
+      const analysisData = response.data;
+      setAnalyzedDrawingsManualData(analysisData);
+      
+      // Auto-fill form with AI-extracted data
+      setNewDrawingsManual({
+        document_name: analysisData.document_name || file.name.replace('.pdf', ''),
+        document_no: analysisData.document_no || '',
+        approved_by: analysisData.approved_by || '',
+        approved_date: formatDateForInput(analysisData.approved_date) || '',
+        status: 'Unknown', // Default status, user can change
+        note: analysisData.note || ''
+      });
+      
+      toast.success(language === 'vi' ? '✅ Phân tích file thành công!' : '✅ File analyzed successfully!');
+      
+    } catch (error) {
+      console.error('Analysis error:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to analyze file';
+      setDrawingsManualFileError(errorMsg);
+      toast.error(language === 'vi' ? `❌ Không thể phân tích file: ${errorMsg}` : `❌ ${errorMsg}`);
+      
+      // Allow manual entry even if analysis fails
       setNewDrawingsManual({
         document_name: file.name.replace('.pdf', ''),
         document_no: '',
@@ -6556,10 +6572,6 @@ const HomePage = () => {
         status: 'Unknown',
         note: ''
       });
-      
-    } catch (error) {
-      console.error('Analysis error:', error);
-      setDrawingsManualFileError(language === 'vi' ? 'Không thể phân tích file' : 'Failed to analyze file');
     } finally {
       setIsAnalyzingDrawingsManual(false);
     }
