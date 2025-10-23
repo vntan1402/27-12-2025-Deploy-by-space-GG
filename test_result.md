@@ -4246,3 +4246,7 @@ test_plan:
   stuck_tasks: []
   test_all: false
   test_priority: "backend_only"
+
+agent_communication:
+    - agent: "testing"
+      message: "✅ DRAWINGS & MANUALS CRUD APIs COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE: All 6 Drawings & Manuals CRUD endpoints have been thoroughly tested and are working perfectly. Comprehensive testing covered: GET /api/drawings-manuals (with valid/invalid ship_id), POST /api/drawings-manuals (all fields, required only, validation), POST /api/drawings-manuals/check-duplicate (name only, name+no, existing/non-existing), PUT /api/drawings-manuals/{id} (name, status, all fields, invalid ID), DELETE /api/drawings-manuals/{id} (existing, invalid ID, database verification), DELETE /api/drawings-manuals/bulk-delete (multiple IDs, mixed valid/invalid). All expected response formats verified, authentication working, database operations confirmed, proper error handling validated. The Drawings & Manuals API is production-ready and fully compliant with all review request requirements. Main agent should summarize and finish as all backend functionality is confirmed working."
