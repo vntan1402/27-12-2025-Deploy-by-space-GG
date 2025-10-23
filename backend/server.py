@@ -7949,34 +7949,59 @@ async def analyze_drawings_manual_file(
                 chunk_summaries = []
                 successful_chunks = 0
                 failed_chunks = 0
+                chunk_errors = []  # Track errors for detailed logging
                 
                 for i, chunk in enumerate(chunks_to_process):
                     logger.info(f"📄 Processing chunk {i+1}/{len(chunks_to_process)} (pages {chunk['page_range']})...")
                     try:
-                        chunk_result = await dual_manager.analyze_test_report_only(
-                            file_content=chunk['content'],
-                            filename=chunk['filename'],
-                            content_type='application/pdf',
-                            document_ai_config=document_ai_config
+                        # BUG FIX: Add timeout protection for individual chunks
+                        import asyncio
+                        chunk_result = await asyncio.wait_for(
+                            dual_manager.analyze_test_report_only(
+                                file_content=chunk['content'],
+                                filename=chunk['filename'],
+                                content_type='application/pdf',
+                                document_ai_config=document_ai_config
+                            ),
+                            timeout=120  # 2 minutes timeout per chunk
                         )
                         
                         if chunk_result and chunk_result.get('success'):
                             summary_text = chunk_result.get('summary_text', '')
                             
-                            if summary_text:
+                            # BUG FIX: Validate summary text is not just whitespace
+                            if summary_text and summary_text.strip():
                                 chunk_summaries.append(summary_text)
                                 successful_chunks += 1
                                 logger.info(f"   ✅ Chunk {i+1} processed successfully ({len(summary_text)} chars)")
                             else:
                                 failed_chunks += 1
-                                logger.warning(f"   ⚠️ Chunk {i+1} returned empty summary_text")
+                                error_msg = f"Chunk {i+1}: Empty summary"
+                                chunk_errors.append(error_msg)
+                                logger.warning(f"   ⚠️ {error_msg}")
                         else:
                             failed_chunks += 1
-                            logger.warning(f"   ⚠️ Chunk {i+1} returned no result or success=False")
-                            
+                            error_msg = f"Chunk {i+1}: No result or success=False"
+                            chunk_errors.append(error_msg)
+                            logger.warning(f"   ⚠️ {error_msg}")
+                    
+                    except asyncio.TimeoutError:
+                        failed_chunks += 1
+                        error_msg = f"Chunk {i+1}: Processing timeout (>120s)"
+                        chunk_errors.append(error_msg)
+                        logger.error(f"   ❌ {error_msg}")
+                        
                     except Exception as chunk_error:
                         failed_chunks += 1
+                        error_msg = f"Chunk {i+1}: {str(chunk_error)[:100]}"
+                        chunk_errors.append(error_msg)
                         logger.error(f"   ❌ Chunk {i+1} processing failed: {chunk_error}")
+                
+                # Log summary of chunk processing
+                if chunk_errors:
+                    logger.warning(f"⚠️ Chunk processing errors: {len(chunk_errors)} errors")
+                    for error in chunk_errors[:3]:  # Log first 3 errors
+                        logger.warning(f"   • {error}")
                 
                 # BUG FIX: Handle edge cases for chunk processing
                 if chunk_summaries:
