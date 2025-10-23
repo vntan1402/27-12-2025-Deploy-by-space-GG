@@ -6367,37 +6367,60 @@ const HomePage = () => {
 
   const handleDeleteDrawingsManual = async (document) => {
     try {
-      // TODO: Phase 5 - Delete via API
-      // For now, remove from local state
-      setDrawingsManuals(prev => prev.filter(doc => doc.id !== document.id));
+      await axios.delete(`${API}/drawings-manuals/${document.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
       setSelectedDrawingsManuals(prev => {
         const newSet = new Set(prev);
         newSet.delete(document.id);
         return newSet;
       });
       
-      toast.success(language === 'vi' ? '🗑️ Đã xóa tài liệu (mock)' : '🗑️ Document deleted (mock)');
+      toast.success(language === 'vi' ? '🗑️ Đã xóa tài liệu' : '🗑️ Document deleted');
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchDrawingsManuals(selectedShip.id);
+      }
     } catch (error) {
       console.error('Failed to delete document:', error);
-      toast.error(language === 'vi' ? '❌ Không thể xóa tài liệu' : '❌ Failed to delete document');
+      const errorMsg = error.response?.data?.detail || 'Failed to delete document';
+      toast.error(language === 'vi' ? `❌ Không thể xóa tài liệu: ${errorMsg}` : `❌ ${errorMsg}`);
     }
   };
 
-  const handleBulkDeleteDrawingsManuals = () => {
+  const handleBulkDeleteDrawingsManuals = async () => {
     setDrawingsManualContextMenu({ show: false, x: 0, y: 0, document: null });
     
     if (window.confirm(language === 'vi'
       ? `Bạn có chắc muốn xóa ${selectedDrawingsManuals.size} tài liệu đã chọn?`
       : `Are you sure you want to delete ${selectedDrawingsManuals.size} selected documents?`
     )) {
-      // TODO: Phase 5 - Bulk delete via API
-      // For now, remove from local state
-      setDrawingsManuals(prev => prev.filter(doc => !selectedDrawingsManuals.has(doc.id)));
-      toast.success(language === 'vi' 
-        ? `🗑️ Đã xóa ${selectedDrawingsManuals.size} tài liệu (mock)` 
-        : `🗑️ Deleted ${selectedDrawingsManuals.size} documents (mock)`
-      );
-      setSelectedDrawingsManuals(new Set());
+      try {
+        const documentIds = Array.from(selectedDrawingsManuals);
+        
+        await axios.delete(`${API}/drawings-manuals/bulk-delete`, {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { document_ids: documentIds }
+        });
+        
+        toast.success(language === 'vi' 
+          ? `🗑️ Đã xóa ${selectedDrawingsManuals.size} tài liệu` 
+          : `🗑️ Deleted ${selectedDrawingsManuals.size} documents`
+        );
+        
+        setSelectedDrawingsManuals(new Set());
+        
+        // Refresh list
+        if (selectedShip) {
+          await fetchDrawingsManuals(selectedShip.id);
+        }
+      } catch (error) {
+        console.error('Failed to bulk delete:', error);
+        const errorMsg = error.response?.data?.detail || 'Failed to delete documents';
+        toast.error(language === 'vi' ? `❌ Không thể xóa tài liệu: ${errorMsg}` : `❌ ${errorMsg}`);
+      }
     }
   };
 
