@@ -6670,7 +6670,7 @@ async def analyze_test_report_file(
             analysis_result['processing_method'] = 'split_pdf_batch_processing'
             
             try:
-                chunks = splitter.split_pdf(file_content)
+                chunks = splitter.split_pdf(file_content, filename)
                 logger.info(f"✅ Created {len(chunks)} chunks from {total_pages}-page PDF")
                 
                 # Process each chunk with Document AI (no field extraction yet)
