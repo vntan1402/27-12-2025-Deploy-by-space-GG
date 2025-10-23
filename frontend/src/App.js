@@ -5913,6 +5913,7 @@ const HomePage = () => {
       
       // Step 3: Create survey report record
       const reportData = {
+        ship_id: selectedShip.id,  // ✅ Required in request body
         survey_report_name: analysis.survey_report_name || file.name,
         report_form: analysis.report_form || null,
         survey_report_no: analysis.survey_report_no || null,
@@ -5923,7 +5924,7 @@ const HomePage = () => {
         surveyor_name: analysis.surveyor_name || null
       };
       
-      const createResponse = await axios.post(`${API}/survey-reports?ship_id=${selectedShip.id}`, reportData);
+      const createResponse = await axios.post(`${API}/survey-reports`, reportData);
       
       if (!createResponse.data || !createResponse.data.id) {
         throw new Error('Failed to create survey report record');
