@@ -1079,34 +1079,47 @@ class DualAppsScriptManager:
             logger.info(f"   Ship: {ship_name}")
             logger.info(f"   Target Path: SUMMARY/Class & Flag Document/")
             
-            # Call Company Apps Script
-            payload = {
-                "action": "upload_drawings_manuals_summary",
-                "summary_text": summary_text,
-                "filename": filename,
-                "parent_folder_id": self.parent_folder_id
-            }
+            # Upload summary file to: SUMMARY/Class & Flag Document/
+            # Using upload_file_with_folder_creation action (same as Test Report)
+            # This will create: ROOT/SUMMARY/Class & Flag Document/
             
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    self.company_apps_script_url,
-                    json=payload,
-                    timeout=aiohttp.ClientTimeout(total=600)
-                ) as response:
-                    result = await response.json()
+            summary_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                'ship_name': 'SUMMARY',  # Creates/finds SUMMARY folder
+                'category': 'Class & Flag Document',  # Creates/finds Class & Flag Document subfolder
+                'filename': filename,
+                'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                'content_type': 'text/plain'
+            })
             
-            if result.get('success'):
+            if summary_upload.get('success'):
+                file_id = summary_upload.get('file_id')
                 logger.info(f"✅ Drawings & manuals summary uploaded successfully")
-                return result
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {summary_upload.get('file_path', 'N/A')}")
+                
+                return {
+                    'success': True,
+                    'message': 'Drawings & manuals summary uploaded successfully',
+                    'drawings_manuals_summary_file_id': file_id,
+                    'file_path': summary_upload.get('file_path'),
+                    'upload_details': summary_upload
+                }
             else:
-                logger.error(f"❌ Drawings & manuals summary upload failed: {result.get('message')}")
-                return result
+                logger.error(f"❌ Drawings & manuals summary upload failed: {summary_upload.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Drawings & manuals summary upload failed',
+                    'error': summary_upload.get('message', 'Unknown error'),
+                    'upload_details': summary_upload
+                }
                 
         except Exception as e:
             logger.error(f"❌ Error uploading drawings & manuals summary: {e}")
             return {
                 'success': False,
-                'message': f'Drawings & manuals summary upload failed: {str(e)}',
+                'message': f'Summary upload failed: {str(e)}',
                 'error': str(e)
             }
 
