@@ -5211,7 +5211,13 @@ const HomePage = () => {
   };
   
   const handleEditTestReportClick = (report) => {
-    setEditingTestReport(report);
+    // Convert dates to YYYY-MM-DD format for date inputs (UTC-safe)
+    const formattedReport = {
+      ...report,
+      issued_date: formatDateForInput(report.issued_date),
+      valid_date: formatDateForInput(report.valid_date)
+    };
+    setEditingTestReport(formattedReport);
     setShowEditTestReportModal(true);
     setTestReportContextMenu({ show: false, x: 0, y: 0, report: null });
   };
