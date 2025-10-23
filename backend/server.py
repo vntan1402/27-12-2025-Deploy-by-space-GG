@@ -6132,6 +6132,73 @@ async def analyze_survey_report_file(
             analysis_result['_summary_text'] = ''
             analysis_result["processing_method"] = "analysis_exception"
         
+        # ✨ NEW: Targeted OCR for Header/Footer extraction (Phase 2)
+        logger.info("🔍 Starting Targeted OCR for header/footer extraction...")
+        try:
+            from targeted_ocr import get_ocr_processor
+            
+            ocr_processor = get_ocr_processor()
+            
+            if ocr_processor.is_available():
+                # Perform OCR on first page header/footer
+                ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
+                
+                if ocr_result.get('ocr_success'):
+                    logger.info("✅ Targeted OCR completed successfully")
+                    
+                    # Merge OCR results with Document AI results
+                    merged_result = ocr_processor.merge_with_document_ai(
+                        doc_ai_result=analysis_result,
+                        ocr_result=ocr_result
+                    )
+                    
+                    # Update analysis_result with merged data
+                    if merged_result.get('report_form'):
+                        analysis_result['report_form'] = merged_result['report_form']
+                    if merged_result.get('survey_report_no'):
+                        analysis_result['survey_report_no'] = merged_result['survey_report_no']
+                    
+                    # Add OCR metadata for frontend
+                    analysis_result['_ocr_info'] = {
+                        'ocr_attempted': True,
+                        'ocr_success': True,
+                        'report_form_source': merged_result.get('report_form_source'),
+                        'report_form_confidence': merged_result.get('report_form_confidence'),
+                        'survey_report_no_source': merged_result.get('survey_report_no_source'),
+                        'survey_report_no_confidence': merged_result.get('survey_report_no_confidence'),
+                        'needs_manual_review': merged_result.get('needs_manual_review', False),
+                        'header_text_length': len(ocr_result.get('header_text', '')),
+                        'footer_text_length': len(ocr_result.get('footer_text', ''))
+                    }
+                    
+                    logger.info(f"📊 OCR Merge Results:")
+                    logger.info(f"   report_form: source={merged_result.get('report_form_source')}, confidence={merged_result.get('report_form_confidence')}")
+                    logger.info(f"   survey_report_no: source={merged_result.get('survey_report_no_source')}, confidence={merged_result.get('survey_report_no_confidence')}")
+                    
+                    if merged_result.get('needs_manual_review'):
+                        logger.warning("⚠️ Manual review recommended: OCR and Document AI results differ or both empty")
+                else:
+                    logger.warning(f"⚠️ Targeted OCR failed: {ocr_result.get('ocr_error')}")
+                    analysis_result['_ocr_info'] = {
+                        'ocr_attempted': True,
+                        'ocr_success': False,
+                        'ocr_error': ocr_result.get('ocr_error')
+                    }
+            else:
+                logger.warning("⚠️ Targeted OCR not available (Tesseract not installed)")
+                analysis_result['_ocr_info'] = {
+                    'ocr_attempted': False,
+                    'ocr_success': False,
+                    'ocr_error': 'OCR not available'
+                }
+        except Exception as ocr_error:
+            logger.error(f"❌ Targeted OCR error: {ocr_error}")
+            analysis_result['_ocr_info'] = {
+                'ocr_attempted': True,
+                'ocr_success': False,
+                'ocr_error': str(ocr_error)
+            }
+        
         # Return analysis result
         logger.info("✅ Survey report analysis completed, returning data to frontend")
         return {
