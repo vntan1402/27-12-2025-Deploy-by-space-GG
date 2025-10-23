@@ -6595,15 +6595,37 @@ const HomePage = () => {
       const analysisData = response.data;
       setAnalyzedDrawingsManualData(analysisData);
       
-      // Check if file was split and some chunks were skipped
-      if (analysisData._split_info?.was_limited) {
+      // Check split info and show appropriate warnings
+      if (analysisData._split_info) {
         const splitInfo = analysisData._split_info;
-        toast.warning(
-          language === 'vi'
-            ? `⚠️ File có ${splitInfo.total_pages} trang. Đã xử lý ${splitInfo.processed_chunks}/${splitInfo.total_chunks} phần đầu (giới hạn ${splitInfo.max_chunks_limit} phần)`
-            : `⚠️ File has ${splitInfo.total_pages} pages. Processed first ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks (limit: ${splitInfo.max_chunks_limit} chunks)`,
-          { autoClose: 8000 }
-        );
+        
+        // Case 1: All chunks failed
+        if (splitInfo.all_chunks_failed) {
+          toast.error(
+            language === 'vi'
+              ? `❌ Không thể phân tích file: Tất cả ${splitInfo.processed_chunks} phần đều thất bại. Vui lòng kiểm tra file và thử lại.`
+              : `❌ Analysis failed: All ${splitInfo.processed_chunks} chunks failed. Please check the file and try again.`,
+            { autoClose: 10000 }
+          );
+        }
+        // Case 2: Partial failure
+        else if (splitInfo.has_failures && splitInfo.partial_success) {
+          toast.warning(
+            language === 'vi'
+              ? `⚠️ Phân tích không hoàn chỉnh: ${splitInfo.successful_chunks}/${splitInfo.processed_chunks} phần thành công, ${splitInfo.failed_chunks} phần thất bại.`
+              : `⚠️ Incomplete analysis: ${splitInfo.successful_chunks}/${splitInfo.processed_chunks} chunks successful, ${splitInfo.failed_chunks} chunks failed.`,
+            { autoClose: 8000 }
+          );
+        }
+        // Case 3: File was limited (some chunks skipped)
+        else if (splitInfo.was_limited) {
+          toast.warning(
+            language === 'vi'
+              ? `⚠️ File có ${splitInfo.total_pages} trang. Đã xử lý ${splitInfo.processed_chunks}/${splitInfo.total_chunks} phần đầu (giới hạn ${splitInfo.max_chunks_limit} phần)`
+              : `⚠️ File has ${splitInfo.total_pages} pages. Processed first ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks (limit: ${splitInfo.max_chunks_limit} chunks)`,
+            { autoClose: 8000 }
+          );
+        }
       }
       
       // Auto-fill form with AI-extracted data
