@@ -14446,12 +14446,7 @@ const HomePage = () => {
                                 ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
                                 : 'bg-gray-400 cursor-not-allowed text-white'
                             }`}
-                            onClick={() => {
-                              if (selectedShip) {
-                                // TODO: Phase 2 - setShowAddDrawingsManualModal(true)
-                                toast.info(language === 'vi' ? '⚠️ Tính năng đang được phát triển...' : '⚠️ Feature under development...');
-                              }
-                            }}
+                            onClick={() => selectedShip && setShowAddDrawingsManualModal(true)}
                             disabled={!selectedShip}
                             title={selectedShip 
                               ? (language === 'vi' ? 'Thêm bản vẽ/sổ tay mới' : 'Add new drawing/manual')
