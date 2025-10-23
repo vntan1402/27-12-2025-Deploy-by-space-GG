@@ -6711,19 +6711,15 @@ async def analyze_test_report_file(
                 # Merge chunk summaries into single enhanced summary
                 if chunk_summaries:
                     logger.info(f"🔗 Merging {len(chunk_summaries)} chunk summaries...")
-                    # Create enhanced merged summary with metadata
-                    # Join chunk summaries into single text
+                    # Join chunk summaries into single merged text
                     merged_summary_text = "\n\n=== DOCUMENT CONTINUATION ===\n\n".join(chunk_summaries)
+                    
+                    logger.info(f"📄 Merged summary ready ({len(merged_summary_text)} chars)")
                     
                     # Store merged summary in analysis_result
                     analysis_result['_summary_text'] = merged_summary_text
                     
-                    analysis_result['_summary_text'] = enhanced_summary
-                    analysis_result['_merged_summary_text'] = enhanced_summary  # For reference
-                    
-                    logger.info(f"✅ Enhanced merged summary ready ({len(enhanced_summary)} chars)")
-                    
-                    # ✅ NOW: Extract fields ONCE from the merged summary
+                    # ✅ Extract fields ONCE from the merged summary
                     logger.info("🔍 Extracting fields from merged summary...")
                     
                     # Get AI configuration for field extraction
@@ -6732,7 +6728,7 @@ async def analyze_test_report_file(
                     use_emergent_key = ai_config_doc.get("use_emergent_key", True)
                     
                     extracted_fields = await extract_test_report_fields_from_summary(
-                        enhanced_summary,
+                        merged_summary_text,
                         ai_provider,
                         ai_model,
                         use_emergent_key
@@ -6741,6 +6737,8 @@ async def analyze_test_report_file(
                     if extracted_fields:
                         analysis_result.update(extracted_fields)
                         logger.info(f"   🔢 Extracted {len([v for v in extracted_fields.values() if v])} fields from merged summary")
+                    else:
+                        logger.warning("⚠️ No fields extracted from merged summary")
                     
                     # Add split metadata to response
                     analysis_result['_split_info'] = {
