@@ -6133,11 +6133,23 @@ async def analyze_survey_report_file(
             analysis_result["processing_method"] = "analysis_exception"
         
         # ✨ NEW: Targeted OCR for Header/Footer extraction (Phase 2)
+        # NEW WORKFLOW: Merge OCR text into summary, then extract fields ONCE
         logger.info("🔍 Starting Targeted OCR for header/footer extraction...")
+        
+        enhanced_summary = analysis_result.get('_summary_text', '')
+        ocr_metadata = {
+            'ocr_attempted': False,
+            'ocr_success': False,
+            'ocr_text_merged': False,
+            'header_text_length': 0,
+            'footer_text_length': 0
+        }
+        
         try:
             from targeted_ocr import get_ocr_processor
             
             ocr_processor = get_ocr_processor()
+            ocr_metadata['ocr_attempted'] = True
             
             if ocr_processor.is_available():
                 # Perform OCR on first page header/footer
@@ -6146,58 +6158,102 @@ async def analyze_survey_report_file(
                 if ocr_result.get('ocr_success'):
                     logger.info("✅ Targeted OCR completed successfully")
                     
-                    # Merge OCR results with Document AI results
-                    merged_result = ocr_processor.merge_with_document_ai(
-                        doc_ai_result=analysis_result,
-                        ocr_result=ocr_result
-                    )
+                    header_text = ocr_result.get('header_text', '').strip()
+                    footer_text = ocr_result.get('footer_text', '').strip()
                     
-                    # Update analysis_result with merged data
-                    if merged_result.get('report_form'):
-                        analysis_result['report_form'] = merged_result['report_form']
-                    if merged_result.get('survey_report_no'):
-                        analysis_result['survey_report_no'] = merged_result['survey_report_no']
+                    ocr_metadata['ocr_success'] = True
+                    ocr_metadata['header_text_length'] = len(header_text)
+                    ocr_metadata['footer_text_length'] = len(footer_text)
                     
-                    # Add OCR metadata for frontend
-                    analysis_result['_ocr_info'] = {
-                        'ocr_attempted': True,
-                        'ocr_success': True,
-                        'report_form_source': merged_result.get('report_form_source'),
-                        'report_form_confidence': merged_result.get('report_form_confidence'),
-                        'survey_report_no_source': merged_result.get('survey_report_no_source'),
-                        'survey_report_no_confidence': merged_result.get('survey_report_no_confidence'),
-                        'needs_manual_review': merged_result.get('needs_manual_review', False),
-                        'header_text_length': len(ocr_result.get('header_text', '')),
-                        'footer_text_length': len(ocr_result.get('footer_text', ''))
-                    }
-                    
-                    logger.info(f"📊 OCR Merge Results:")
-                    logger.info(f"   report_form: source={merged_result.get('report_form_source')}, confidence={merged_result.get('report_form_confidence')}")
-                    logger.info(f"   survey_report_no: source={merged_result.get('survey_report_no_source')}, confidence={merged_result.get('survey_report_no_confidence')}")
-                    
-                    if merged_result.get('needs_manual_review'):
-                        logger.warning("⚠️ Manual review recommended: OCR and Document AI results differ or both empty")
+                    # MERGE OCR TEXT INTO SUMMARY (with clear annotations)
+                    if header_text or footer_text:
+                        logger.info("📝 Merging OCR text into Document AI summary...")
+                        
+                        ocr_section = "\n\n" + "="*60 + "\n"
+                        ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                        ocr_section += "="*60 + "\n\n"
+                        
+                        if header_text:
+                            ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
+                            ocr_section += header_text + "\n\n"
+                            logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
+                        
+                        if footer_text:
+                            ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
+                            ocr_section += footer_text + "\n\n"
+                            logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
+                        
+                        ocr_section += "="*60 + "\n"
+                        ocr_section += "Note: The above header/footer text was extracted using OCR\n"
+                        ocr_section += "and may contain critical information like Report Form and Report No.\n"
+                        ocr_section += "="*60
+                        
+                        # Append OCR text to original summary
+                        enhanced_summary = analysis_result.get('_summary_text', '') + ocr_section
+                        analysis_result['_summary_text'] = enhanced_summary
+                        ocr_metadata['ocr_text_merged'] = True
+                        
+                        logger.info(f"✅ Enhanced summary created: {len(enhanced_summary)} chars (original: {len(analysis_result.get('_summary_text', ''))} + OCR section)")
+                        
+                        # RE-EXTRACT fields from enhanced summary with System AI
+                        logger.info("🧠 Re-extracting fields from enhanced summary with System AI...")
+                        
+                        # Get AI config
+                        company_uuid = await resolve_company_id(current_user)
+                        ai_config_doc = await mongo_db.find_one("ai_configs", {"company_id": company_uuid})
+                        
+                        if not ai_config_doc:
+                            ai_config_doc = await mongo_db.find_one("ai_configs", {"company_id": None})
+                        
+                        if ai_config_doc:
+                            ai_provider = ai_config_doc.get("provider", "google")
+                            ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+                            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                            
+                            # Extract fields from enhanced summary
+                            from dual_apps_script_manager import extract_fields_from_summary
+                            
+                            extracted_fields = await extract_fields_from_summary(
+                                enhanced_summary,
+                                ai_provider,
+                                ai_model,
+                                use_emergent_key
+                            )
+                            
+                            if extracted_fields:
+                                logger.info("✅ Fields re-extracted from enhanced summary (with OCR text)")
+                                logger.info(f"   📋 Survey Report Name: '{extracted_fields.get('survey_report_name')}'")
+                                logger.info(f"   📝 Report Form: '{extracted_fields.get('report_form')}'")
+                                logger.info(f"   🔢 Survey Report No: '{extracted_fields.get('survey_report_no')}'")
+                                logger.info(f"   👤 Issued By: '{extracted_fields.get('issued_by')}'")
+                                logger.info(f"   📅 Issued Date: '{extracted_fields.get('issued_date')}'")
+                                logger.info(f"   🧑‍✈️ Surveyor Name: '{extracted_fields.get('surveyor_name')}'")
+                                
+                                # Update analysis_result with re-extracted fields
+                                analysis_result.update(extracted_fields)
+                                ocr_metadata['fields_reextracted_with_ocr'] = True
+                            else:
+                                logger.warning("⚠️ No fields extracted from enhanced summary")
+                                ocr_metadata['fields_reextracted_with_ocr'] = False
+                        else:
+                            logger.warning("⚠️ No AI config found for field re-extraction")
+                    else:
+                        logger.warning("⚠️ OCR returned empty header and footer text")
                 else:
                     logger.warning(f"⚠️ Targeted OCR failed: {ocr_result.get('ocr_error')}")
-                    analysis_result['_ocr_info'] = {
-                        'ocr_attempted': True,
-                        'ocr_success': False,
-                        'ocr_error': ocr_result.get('ocr_error')
-                    }
+                    ocr_metadata['ocr_error'] = ocr_result.get('ocr_error')
             else:
                 logger.warning("⚠️ Targeted OCR not available (Tesseract not installed)")
-                analysis_result['_ocr_info'] = {
-                    'ocr_attempted': False,
-                    'ocr_success': False,
-                    'ocr_error': 'OCR not available'
-                }
+                ocr_metadata['ocr_error'] = 'OCR not available'
+                
         except Exception as ocr_error:
             logger.error(f"❌ Targeted OCR error: {ocr_error}")
-            analysis_result['_ocr_info'] = {
-                'ocr_attempted': True,
-                'ocr_success': False,
-                'ocr_error': str(ocr_error)
-            }
+            import traceback
+            logger.error(f"   Traceback: {traceback.format_exc()}")
+            ocr_metadata['ocr_error'] = str(ocr_error)
+        
+        # Add OCR metadata to response
+        analysis_result['_ocr_info'] = ocr_metadata
         
         # Return analysis result
         logger.info("✅ Survey report analysis completed, returning data to frontend")
