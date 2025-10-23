@@ -149,7 +149,7 @@ class DrawingsManualsBackgroundDeleteTester:
             self.log("🔐 Authenticating with admin1@example.com / 123456...")
             
             login_data = {
-                "username": "admin1@example.com",
+                "username": "admin1",
                 "password": "123456",
                 "remember_me": False
             }
