@@ -6125,21 +6125,16 @@ const HomePage = () => {
   // DRAWINGS & MANUALS FUNCTIONS
   // ============================================
   
-  // Fetch Drawings & Manuals (will be implemented with API later)
+  // Fetch Drawings & Manuals
   const fetchDrawingsManuals = async (shipId) => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await axios.get(`${API}/drawings-manuals?ship_id=${shipId}`);
-      // setDrawingsManuals(response.data);
-      
-      // For now, use mock data filtered by ship
-      if (selectedShip) {
-        setDrawingsManuals(mockDrawingsManuals);
-      } else {
-        setDrawingsManuals([]);
-      }
+      const response = await axios.get(`${API}/drawings-manuals?ship_id=${shipId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDrawingsManuals(response.data);
     } catch (error) {
       console.error('Failed to fetch drawings & manuals:', error);
+      toast.error(language === 'vi' ? 'Không thể tải danh sách tài liệu' : 'Failed to load documents');
       setDrawingsManuals([]);
     }
   };
