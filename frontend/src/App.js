@@ -6616,32 +6616,9 @@ const HomePage = () => {
       
       const documentId = createResponse.data.id;
       
-      // Upload file if available
-      if (analyzedDrawingsManualData?._file_content && analyzedDrawingsManualData?._filename) {
-        try {
-          const uploadData = {
-            file_content: analyzedDrawingsManualData._file_content,
-            filename: analyzedDrawingsManualData._filename,
-            content_type: analyzedDrawingsManualData._content_type || 'application/pdf',
-            summary_text: analyzedDrawingsManualData._summary_text || ''
-          };
-          
-          await axios.post(
-            `${API}/drawings-manuals/${documentId}/upload-files`,
-            uploadData,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          
-          toast.success(language === 'vi' ? '✅ Đã thêm tài liệu và upload file' : '✅ Document added and files uploaded');
-        } catch (uploadError) {
-          console.error('File upload error:', uploadError);
-          toast.warning(language === 'vi' ? '⚠️ Đã tạo tài liệu nhưng upload file thất bại' : '⚠️ Document created but file upload failed');
-        }
-      } else {
-        toast.success(language === 'vi' ? '✅ Đã thêm tài liệu' : '✅ Document added');
-      }
+      toast.success(language === 'vi' ? '✅ Đã thêm tài liệu' : '✅ Document added');
       
-      // Reset and close modal
+      // Reset form and close modal immediately
       setShowAddDrawingsManualModal(false);
       setNewDrawingsManual({
         document_name: '',
@@ -6654,9 +6631,55 @@ const HomePage = () => {
       setAnalyzedDrawingsManualData(null);
       setDrawingsManualFiles([]);
       
-      // Refresh list
+      // Refresh list immediately to show new record
       if (selectedShip) {
         await fetchDrawingsManuals(selectedShip.id);
+      }
+      
+      // Background file upload (non-blocking)
+      if (analyzedDrawingsManualData?._file_content && analyzedDrawingsManualData?._filename) {
+        // Show uploading toast
+        const uploadingToast = toast.info(
+          language === 'vi' ? '📤 Đang upload file lên Google Drive...' : '📤 Uploading file to Google Drive...', 
+          { autoClose: false }
+        );
+        
+        // Upload in background (don't await)
+        (async () => {
+          try {
+            const uploadData = {
+              file_content: analyzedDrawingsManualData._file_content,
+              filename: analyzedDrawingsManualData._filename,
+              content_type: analyzedDrawingsManualData._content_type || 'application/pdf',
+              summary_text: analyzedDrawingsManualData._summary_text || ''
+            };
+            
+            await axios.post(
+              `${API}/drawings-manuals/${documentId}/upload-files`,
+              uploadData,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            
+            // Dismiss uploading toast
+            toast.dismiss(uploadingToast);
+            
+            // Show success toast
+            toast.success(language === 'vi' ? '✅ File đã upload lên Google Drive!' : '✅ File uploaded to Google Drive!');
+            
+            // Refresh list to get updated file IDs (show icons)
+            if (selectedShip) {
+              await fetchDrawingsManuals(selectedShip.id);
+            }
+          } catch (uploadError) {
+            console.error('Background file upload failed:', uploadError);
+            
+            // Dismiss uploading toast
+            toast.dismiss(uploadingToast);
+            
+            // Show error toast
+            toast.error(language === 'vi' ? '❌ Upload file thất bại. Tài liệu đã được lưu.' : '❌ File upload failed. Document was saved.');
+          }
+        })();
       }
       
     } catch (error) {
