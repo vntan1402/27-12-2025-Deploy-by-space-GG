@@ -7329,11 +7329,22 @@ class BulkDeleteDrawingsManualsRequest(BaseModel):
 @api_router.delete("/drawings-manuals/bulk-delete")
 async def bulk_delete_drawings_manuals(
     request: BulkDeleteDrawingsManualsRequest,
+    background: bool = Query(False, description="If true, delete DB first and return immediately, then delete files in background"),
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Bulk delete drawings & manuals documents with files"""
+    """Bulk delete drawings & manuals documents with files
+    
+    If background=True:
+      1. Delete all documents from database immediately
+      2. Return success response
+      3. Delete files from Google Drive in background
+    
+    If background=False (default for backward compatibility):
+      1. Delete files from Google Drive first for each document
+      2. Then delete from database
+    """
     try:
-        logger.info(f"🗑️ Bulk deleting {len(request.document_ids)} drawings/manuals")
+        logger.info(f"🗑️ Bulk deleting {len(request.document_ids)} drawings/manuals (background={background})")
         
         # Get company info for Apps Script URL
         company_uuid = await resolve_company_id(current_user)
@@ -7347,104 +7358,242 @@ async def bulk_delete_drawings_manuals(
         
         company_apps_script_url = company_doc.get("company_apps_script_url")
         
-        deleted_count = 0
-        files_deleted = 0
-        errors = []
-        
-        for doc_id in request.document_ids:
-            try:
-                doc = await mongo_db.find_one("drawings_manuals", {"id": doc_id})
-                if not doc:
-                    errors.append(f"Document {doc_id} not found")
-                    continue
-                
-                # Delete files from Google Drive if exists
-                if company_apps_script_url:
+        if background:
+            # BACKGROUND MODE: Delete all from DB first, then files in background
+            logger.info("🚀 Background bulk deletion mode: Deleting from database first...")
+            
+            deleted_count = 0
+            errors = []
+            files_to_delete = []  # Collect file IDs for background deletion
+            
+            # Delete all documents from database first
+            for doc_id in request.document_ids:
+                try:
+                    doc = await mongo_db.find_one("drawings_manuals", {"id": doc_id})
+                    if not doc:
+                        errors.append(f"Document {doc_id} not found")
+                        continue
+                    
+                    # Collect file IDs for background deletion
                     file_id = doc.get('file_id')
                     summary_file_id = doc.get('summary_file_id')
+                    if file_id or summary_file_id:
+                        files_to_delete.append({
+                            'document_id': doc_id,
+                            'file_id': file_id,
+                            'summary_file_id': summary_file_id
+                        })
                     
-                    # Delete original file
-                    if file_id:
-                        logger.info(f"🗑️ Deleting original file: {file_id}")
-                        try:
-                            async with aiohttp.ClientSession() as session:
-                                payload = {
-                                    "action": "delete_file",
-                                    "file_id": file_id
-                                }
-                                async with session.post(
-                                    company_apps_script_url,
-                                    json=payload,
-                                    headers={"Content-Type": "application/json"},
-                                    timeout=aiohttp.ClientTimeout(total=30)
-                                ) as response:
-                                    if response.status == 200:
-                                        result = await response.json()
-                                        if result.get("success"):
-                                            logger.info(f"✅ Original file deleted: {file_id}")
-                                            files_deleted += 1
-                        except Exception as e:
-                            logger.error(f"❌ Error deleting original file {file_id}: {e}")
+                    # Delete from database
+                    await mongo_db.delete("drawings_manuals", {"id": doc_id})
+                    deleted_count += 1
+                    logger.info(f"✅ Document deleted from database: {doc_id}")
                     
-                    # Delete summary file
-                    if summary_file_id:
-                        logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
-                        try:
-                            async with aiohttp.ClientSession() as session:
-                                payload = {
-                                    "action": "delete_file",
-                                    "file_id": summary_file_id
-                                }
-                                async with session.post(
-                                    company_apps_script_url,
-                                    json=payload,
-                                    headers={"Content-Type": "application/json"},
-                                    timeout=aiohttp.ClientTimeout(total=30)
-                                ) as response:
-                                    if response.status == 200:
-                                        result = await response.json()
-                                        if result.get("success"):
-                                            logger.info(f"✅ Summary file deleted: {summary_file_id}")
-                                            files_deleted += 1
-                        except Exception as e:
-                            logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
+                except Exception as e:
+                    errors.append(f"Error deleting document {doc_id}: {str(e)}")
+                    logger.error(f"❌ Error in bulk delete for document {doc_id}: {e}")
+            
+            # If no documents were deleted at all, return error
+            if deleted_count == 0 and len(errors) > 0:
+                error_details = "; ".join(errors)
+                raise HTTPException(status_code=404, detail=f"Documents not found. {error_details}")
+            
+            # Schedule background file deletion (non-blocking)
+            if files_to_delete and company_apps_script_url:
+                logger.info(f"📤 Starting background deletion for {len(files_to_delete)} file pairs...")
                 
-                # Delete from database
-                await mongo_db.delete("drawings_manuals", {"id": doc_id})
-                deleted_count += 1
-                logger.info(f"✅ Deleted drawings/manual from database: {doc_id}")
-                
-            except Exception as e:
-                errors.append(f"Error deleting document {doc_id}: {str(e)}")
-                logger.error(f"Error in bulk delete for document {doc_id}: {e}")
+                # Use asyncio.create_task to run in background without blocking
+                import asyncio
+                asyncio.create_task(
+                    bulk_delete_drawings_manual_files_background(
+                        files_to_delete,
+                        company_apps_script_url
+                    )
+                )
+            
+            # Return immediately
+            message = f"Deleted {deleted_count} document(s) from database"
+            if files_to_delete:
+                message += f" ({len(files_to_delete)} file pairs are being deleted from Google Drive in background)"
+            if errors:
+                message += f", {len(errors)} error(s)"
+            
+            return {
+                "success": True,
+                "deleted_count": deleted_count,
+                "total_requested": len(request.document_ids),
+                "message": message,
+                "errors": errors if errors else None,
+                "partial_success": len(errors) > 0 and deleted_count > 0,
+                "background_deletion": len(files_to_delete) > 0
+            }
         
-        # If no documents were deleted at all, return error
-        if deleted_count == 0 and len(errors) > 0:
-            error_details = "; ".join(errors)
-            raise HTTPException(status_code=404, detail=f"Documents not found. {error_details}")
-        
-        message = f"Deleted {deleted_count} document(s)"
-        if files_deleted > 0:
-            message += f", {files_deleted} file(s) deleted from Google Drive"
-        if errors:
-            message += f", {len(errors)} error(s)"
-        
-        logger.info(f"✅ Bulk delete completed: {deleted_count}/{len(request.document_ids)} deleted")
-        return {
-            "success": True,
-            "deleted_count": deleted_count,
-            "files_deleted": files_deleted,
-            "total_requested": len(request.document_ids),
-            "message": message,
-            "errors": errors if errors else None,
-            "partial_success": len(errors) > 0 and deleted_count > 0
-        }
+        else:
+            # BLOCKING MODE: Delete files first, then DB (backward compatibility)
+            deleted_count = 0
+            files_deleted = 0
+            errors = []
+            
+            for doc_id in request.document_ids:
+                try:
+                    doc = await mongo_db.find_one("drawings_manuals", {"id": doc_id})
+                    if not doc:
+                        errors.append(f"Document {doc_id} not found")
+                        continue
+                    
+                    # Delete files from Google Drive if exists
+                    if company_apps_script_url:
+                        file_id = doc.get('file_id')
+                        summary_file_id = doc.get('summary_file_id')
+                        
+                        # Delete original file
+                        if file_id:
+                            logger.info(f"🗑️ Deleting original file: {file_id}")
+                            try:
+                                async with aiohttp.ClientSession() as session:
+                                    payload = {
+                                        "action": "delete_file",
+                                        "file_id": file_id
+                                    }
+                                    async with session.post(
+                                        company_apps_script_url,
+                                        json=payload,
+                                        headers={"Content-Type": "application/json"},
+                                        timeout=aiohttp.ClientTimeout(total=30)
+                                    ) as response:
+                                        if response.status == 200:
+                                            result = await response.json()
+                                            if result.get("success"):
+                                                logger.info(f"✅ Original file deleted: {file_id}")
+                                                files_deleted += 1
+                            except Exception as e:
+                                logger.error(f"❌ Error deleting original file {file_id}: {e}")
+                        
+                        # Delete summary file
+                        if summary_file_id:
+                            logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                            try:
+                                async with aiohttp.ClientSession() as session:
+                                    payload = {
+                                        "action": "delete_file",
+                                        "file_id": summary_file_id
+                                    }
+                                    async with session.post(
+                                        company_apps_script_url,
+                                        json=payload,
+                                        headers={"Content-Type": "application/json"},
+                                        timeout=aiohttp.ClientTimeout(total=30)
+                                    ) as response:
+                                        if response.status == 200:
+                                            result = await response.json()
+                                            if result.get("success"):
+                                                logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                                files_deleted += 1
+                            except Exception as e:
+                                logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
+                    
+                    # Delete from database
+                    await mongo_db.delete("drawings_manuals", {"id": doc_id})
+                    deleted_count += 1
+                    logger.info(f"✅ Deleted drawings/manual from database: {doc_id}")
+                    
+                except Exception as e:
+                    errors.append(f"Error deleting document {doc_id}: {str(e)}")
+                    logger.error(f"Error in bulk delete for document {doc_id}: {e}")
+            
+            # If no documents were deleted at all, return error
+            if deleted_count == 0 and len(errors) > 0:
+                error_details = "; ".join(errors)
+                raise HTTPException(status_code=404, detail=f"Documents not found. {error_details}")
+            
+            message = f"Deleted {deleted_count} document(s)"
+            if files_deleted > 0:
+                message += f", {files_deleted} file(s) deleted from Google Drive"
+            if errors:
+                message += f", {len(errors)} error(s)"
+            
+            logger.info(f"✅ Bulk delete completed: {deleted_count}/{len(request.document_ids)} deleted")
+            return {
+                "success": True,
+                "deleted_count": deleted_count,
+                "files_deleted": files_deleted,
+                "total_requested": len(request.document_ids),
+                "message": message,
+                "errors": errors if errors else None,
+                "partial_success": len(errors) > 0 and deleted_count > 0
+            }
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error in bulk delete: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Background bulk file deletion helper
+async def bulk_delete_drawings_manual_files_background(
+    files_to_delete: list,
+    company_apps_script_url: str
+):
+    """Delete multiple files from Google Drive in background (non-blocking)"""
+    try:
+        total_deleted = 0
+        
+        for file_info in files_to_delete:
+            document_id = file_info['document_id']
+            file_id = file_info['file_id']
+            summary_file_id = file_info['summary_file_id']
+            
+            # Delete original file
+            if file_id:
+                logger.info(f"🗑️ [Background] Deleting original file: {file_id}")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ [Background] Original file deleted: {file_id}")
+                                    total_deleted += 1
+                except Exception as e:
+                    logger.error(f"❌ [Background] Error deleting original file {file_id}: {e}")
+            
+            # Delete summary file
+            if summary_file_id:
+                logger.info(f"🗑️ [Background] Deleting summary file: {summary_file_id}")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": summary_file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
+                                    total_deleted += 1
+                except Exception as e:
+                    logger.error(f"❌ [Background] Error deleting summary file {summary_file_id}: {e}")
+        
+        logger.info(f"✅ [Background] Bulk file deletion completed: {total_deleted} file(s) deleted from {len(files_to_delete)} document(s)")
+        
+    except Exception as e:
+        logger.error(f"❌ [Background] Error in bulk background file deletion: {e}")
 
 @api_router.delete("/drawings-manuals/{document_id}")
 async def delete_drawings_manual(
