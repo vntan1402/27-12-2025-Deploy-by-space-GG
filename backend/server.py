@@ -7011,6 +7011,239 @@ async def upload_test_report_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ============================================
+# DRAWINGS & MANUALS ENDPOINTS
+# ============================================
+
+@api_router.get("/drawings-manuals", response_model=List[DrawingsManualResponse])
+async def get_drawings_manuals(
+    ship_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all drawings & manuals for a specific ship"""
+    try:
+        logger.info(f"📐 Fetching drawings & manuals for ship_id: {ship_id}")
+        
+        drawings_manuals = await mongo_db.find_all("drawings_manuals", {"ship_id": ship_id})
+        
+        logger.info(f"✅ Found {len(drawings_manuals)} drawings & manuals")
+        return [DrawingsManualResponse(**doc) for doc in drawings_manuals]
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching drawings & manuals: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/drawings-manuals/check-duplicate")
+async def check_duplicate_drawings_manual(
+    ship_id: str = Body(...),
+    document_no: Optional[str] = Body(None),
+    document_name: str = Body(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Check if a drawings/manual with the same ship_id, document_no, and document_name already exists
+    
+    Duplicate criteria: ship_id + document_no + document_name
+    Note: document_no is optional, so we only check if it's provided
+    """
+    try:
+        if not document_name or not document_name.strip():
+            return {
+                "is_duplicate": False,
+                "message": "No document name provided"
+            }
+        
+        # Build query
+        query = {
+            "ship_id": ship_id,
+            "document_name": document_name.strip()
+        }
+        
+        # Add document_no to query only if provided
+        if document_no and document_no.strip():
+            query["document_no"] = document_no.strip()
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("drawings_manuals", query)
+        
+        if existing_doc:
+            logger.info(f"🔍 Duplicate drawings/manual found: {document_name} for ship {ship_id}")
+            return {
+                "is_duplicate": True,
+                "existing_document": {
+                    "id": existing_doc.get("id"),
+                    "document_name": existing_doc.get("document_name"),
+                    "document_no": existing_doc.get("document_no"),
+                    "approved_by": existing_doc.get("approved_by"),
+                    "approved_date": existing_doc.get("approved_date"),
+                    "status": existing_doc.get("status"),
+                    "created_at": existing_doc.get("created_at")
+                }
+            }
+        else:
+            return {
+                "is_duplicate": False,
+                "message": "No duplicate found"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking duplicate drawings/manual: {e}")
+        return {
+            "is_duplicate": False,
+            "error": str(e)
+        }
+
+@api_router.post("/drawings-manuals", response_model=DrawingsManualResponse)
+async def create_drawings_manual(
+    document: DrawingsManualCreate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new drawings & manual document"""
+    try:
+        logger.info(f"📝 Creating new drawings/manual: {document.document_name}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": document.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Create document
+        doc_dict = document.dict()
+        doc_dict["id"] = str(uuid.uuid4())
+        doc_dict["created_at"] = datetime.now(timezone.utc)
+        doc_dict["updated_at"] = None
+        doc_dict["file_id"] = None  # Will be set during file upload
+        doc_dict["summary_file_id"] = None
+        
+        # Convert datetime fields to ISO format for MongoDB
+        if doc_dict.get('approved_date'):
+            if isinstance(doc_dict['approved_date'], datetime):
+                doc_dict['approved_date'] = doc_dict['approved_date'].isoformat()
+        if isinstance(doc_dict['created_at'], datetime):
+            doc_dict['created_at'] = doc_dict['created_at'].isoformat()
+        
+        await mongo_db.create("drawings_manuals", doc_dict)
+        
+        logger.info(f"✅ Drawings/manual created with ID: {doc_dict['id']}")
+        return DrawingsManualResponse(**doc_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating drawings/manual: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/drawings-manuals/{document_id}", response_model=DrawingsManualResponse)
+async def update_drawings_manual(
+    document_id: str,
+    document_update: DrawingsManualUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an existing drawings & manual document"""
+    try:
+        logger.info(f"✏️ Updating drawings/manual: {document_id}")
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("drawings_manuals", {"id": document_id})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Prepare update data (only non-None fields)
+        update_data = {k: v for k, v in document_update.dict().items() if v is not None}
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        
+        # Convert datetime fields to ISO format
+        for field in ['approved_date', 'updated_at']:
+            if field in update_data and isinstance(update_data[field], datetime):
+                update_data[field] = update_data[field].isoformat()
+        
+        await mongo_db.update("drawings_manuals", {"id": document_id}, update_data)
+        
+        # Fetch updated document
+        updated_doc = await mongo_db.find_one("drawings_manuals", {"id": document_id})
+        
+        logger.info(f"✅ Drawings/manual updated successfully")
+        return DrawingsManualResponse(**updated_doc)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating drawings/manual: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Bulk Delete Model for Drawings & Manuals
+class BulkDeleteDrawingsManualsRequest(BaseModel):
+    document_ids: List[str]
+
+@api_router.delete("/drawings-manuals/bulk-delete")
+async def bulk_delete_drawings_manuals(
+    request: BulkDeleteDrawingsManualsRequest,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Bulk delete drawings & manuals documents"""
+    try:
+        logger.info(f"🗑️ Bulk deleting {len(request.document_ids)} drawings/manuals")
+        
+        # TODO: Phase 6 - Delete associated files from Google Drive
+        # For now, just delete from database
+        
+        deleted_count = 0
+        for doc_id in request.document_ids:
+            try:
+                doc = await mongo_db.find_one("drawings_manuals", {"id": doc_id})
+                if doc:
+                    await mongo_db.delete("drawings_manuals", {"id": doc_id})
+                    deleted_count += 1
+                    logger.info(f"✅ Deleted drawings/manual: {doc_id}")
+            except Exception as e:
+                logger.error(f"❌ Failed to delete document {doc_id}: {e}")
+                continue
+        
+        logger.info(f"✅ Bulk delete completed: {deleted_count}/{len(request.document_ids)} deleted")
+        return {
+            "success": True,
+            "deleted_count": deleted_count,
+            "total_requested": len(request.document_ids),
+            "message": f"Successfully deleted {deleted_count} documents"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error in bulk delete: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/drawings-manuals/{document_id}")
+async def delete_drawings_manual(
+    document_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete a single drawings & manual document"""
+    try:
+        logger.info(f"🗑️ Deleting drawings/manual: {document_id}")
+        
+        # Check if document exists
+        doc = await mongo_db.find_one("drawings_manuals", {"id": document_id})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # TODO: Phase 6 - Delete associated files from Google Drive
+        # file_id = doc.get('file_id')
+        # summary_file_id = doc.get('summary_file_id')
+        
+        # Delete from database
+        await mongo_db.delete("drawings_manuals", {"id": document_id})
+        
+        logger.info(f"✅ Drawings/manual deleted successfully")
+        return {
+            "success": True,
+            "message": "Document deleted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting drawings/manual: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
 async def create_ship_survey_status(ship_id: str, status_data: ShipSurveyStatusCreate, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
