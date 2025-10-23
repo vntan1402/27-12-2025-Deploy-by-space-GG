@@ -6670,7 +6670,12 @@ const HomePage = () => {
 
   // Handle Edit Drawings & Manual
   const handleEditDrawingsManual = (document) => {
-    setEditingDrawingsManual({ ...document });
+    // Convert approved_date to YYYY-MM-DD format for date input
+    const formattedDocument = {
+      ...document,
+      approved_date: formatDateForInput(document.approved_date)
+    };
+    setEditingDrawingsManual(formattedDocument);
     setShowEditDrawingsManualModal(true);
   };
 
