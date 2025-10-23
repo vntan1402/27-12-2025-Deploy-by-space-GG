@@ -4170,3 +4170,33 @@ frontend:
         - working: "NA"
           agent: "main"
           comment: "Frontend DOB mismatch modal implementation completed. Added certDobMismatchModal state with fields: show, aiExtractedDob, crewDob, crewName, file, analysisWithFiles. Implemented error handler to detect DATE_OF_BIRTH_MISMATCH error and display modal. Created handleDobMismatchSkip() to cancel upload and handleDobMismatchContinue() to retry with bypass_dob_validation=true. Modal UI shows comparison: 'Ngày sinh trên chứng chỉ (AI)' vs 'Ngày sinh trong hệ thống' with crew name display. Skip/Continue buttons with proper styling and loading states during re-analysis. Ready for UI testing to verify modal display and validation bypass functionality."
+
+# New Feature Implementation - Phase 1: Refresh Button UX Improvements
+
+user_problem_statement: "Add loading indicators and toast notifications for the Refresh buttons on Test Reports and Survey Reports lists to improve user experience and provide visual feedback."
+
+frontend:
+  - task: "Refresh Button UX Improvements - Loading Indicators and Toast Notifications"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "✅ REFRESH BUTTON UX IMPROVEMENTS IMPLEMENTED: Added loading indicators and toast notifications for both Survey Reports and Test Reports refresh buttons. IMPLEMENTATION DETAILS: (1) Added two new state variables: isRefreshingSurveyReports and isRefreshingTestReports to track loading state. (2) SURVEY REPORT REFRESH BUTTON (lines 12037-12075): Updated onClick handler to use async/await with try-catch-finally, shows animated spinner icon during refresh (animate-spin class), disables button during refresh to prevent multiple clicks, shows success toast notification '✅ Survey Reports list updated!' on success, shows error toast notification '❌ Failed to refresh list' on error, uses proper loading state management with finally block. (3) TEST REPORT REFRESH BUTTON (lines 13537-13575): Updated onClick handler to use async/await with try-catch-finally, shows animated spinner icon during refresh (animate-spin class), disables button during refresh to prevent multiple clicks, shows success toast notification '✅ Test Reports list updated!' on success, shows error toast notification '❌ Failed to refresh list' on error, uses proper loading state management with finally block. (4) SPINNER ANIMATION: Uses Tailwind CSS 'animate-spin' utility class, spinner SVG shows circular loading animation, spinner replaces static refresh icon during loading, smooth transition between static and loading states. (5) BUTTON STATES: Enabled state: Blue background (bg-blue-600 hover:bg-blue-700), white text, cursor-pointer. Loading state: Gray background (bg-gray-400), cursor-not-allowed, shows spinner animation. Disabled state (no ship selected): Gray background, cursor-not-allowed, shows static refresh icon. BENEFITS: Visual feedback - users see spinner animation during refresh, preventing confusion about whether action is processing. Error handling - users are notified if refresh fails with descriptive error messages. Prevents multiple clicks - button is disabled during refresh preventing race conditions. Consistent UX - both Survey and Test Report refresh buttons now have identical behavior. Bilingual support - all messages support Vietnamese and English. TESTING REQUIRED: Need to verify: (1) Survey Report refresh button shows spinner during refresh, (2) Survey Report refresh button shows success/error toast notifications, (3) Test Report refresh button shows spinner during refresh, (4) Test Report refresh button shows success/error toast notifications, (5) Buttons are disabled during refresh, (6) Button returns to normal state after refresh completes, (7) Error scenarios are handled gracefully. DOCUMENTATION: This implementation completes Phase 1 of pending tasks as specified in the product requirements."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.1"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Refresh Button UX Improvements - Loading Indicators and Toast Notifications"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
