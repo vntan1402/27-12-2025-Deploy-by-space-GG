@@ -5566,6 +5566,7 @@ const HomePage = () => {
       
       // Step 3: Create test report record
       const reportData = {
+        ship_id: selectedShip.id,  // ✅ Required in request body
         test_report_name: analysis.test_report_name || file.name,
         report_form: analysis.report_form || null,
         test_report_no: analysis.test_report_no || null,
@@ -5576,7 +5577,7 @@ const HomePage = () => {
         note: analysis.note || null
       };
       
-      const createResponse = await axios.post(`${API}/test-reports?ship_id=${selectedShip.id}`, reportData);
+      const createResponse = await axios.post(`${API}/test-reports`, reportData);
       
       if (!createResponse.data || !createResponse.data.id) {
         throw new Error('Failed to create test report record');
