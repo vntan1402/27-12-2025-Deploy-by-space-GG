@@ -6688,17 +6688,29 @@ async def analyze_test_report_file(
                             document_ai_config=document_ai_config
                         )
                         
-                        if chunk_result and chunk_result.get('summary_text'):
-                            chunk_summaries.append(chunk_result['summary_text'])
-                            successful_chunks += 1
-                            logger.info(f"   ✅ Chunk {i} processed successfully ({len(chunk_result['summary_text'])} chars)")
+                        # Extract summary from chunk result
+                        if chunk_result and chunk_result.get('success'):
+                            ai_analysis = chunk_result.get('ai_analysis', {})
+                            if ai_analysis.get('success'):
+                                summary_text = ai_analysis.get('data', {}).get('summary', '')
+                                
+                                if summary_text:
+                                    chunk_summaries.append(summary_text)
+                                    successful_chunks += 1
+                                    logger.info(f"   ✅ Chunk {i+1} processed successfully ({len(summary_text)} chars)")
+                                else:
+                                    failed_chunks += 1
+                                    logger.warning(f"   ⚠️ Chunk {i+1} returned empty summary")
+                            else:
+                                failed_chunks += 1
+                                logger.warning(f"   ⚠️ Chunk {i+1} Document AI failed")
                         else:
                             failed_chunks += 1
-                            logger.warning(f"   ⚠️ Chunk {i} returned no summary")
+                            logger.warning(f"   ⚠️ Chunk {i+1} returned no result")
                             
                     except Exception as chunk_error:
                         failed_chunks += 1
-                        logger.error(f"   ❌ Chunk {i} processing failed: {chunk_error}")
+                        logger.error(f"   ❌ Chunk {i+1} processing failed: {chunk_error}")
                 
                 # Merge chunk summaries into single enhanced summary
                 if chunk_summaries:
