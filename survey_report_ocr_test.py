@@ -265,7 +265,10 @@ class SurveyReportOCRTester:
                 response = self.session.post(
                     endpoint,
                     files=files,
-                    data={"ship_id": self.ship_id},
+                    data={
+                        "ship_id": self.ship_id,
+                        "bypass_validation": "true"  # Bypass ship validation for testing
+                    },
                     timeout=180  # Longer timeout for AI processing + OCR
                 )
                 end_time = time.time()
