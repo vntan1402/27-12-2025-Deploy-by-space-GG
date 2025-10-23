@@ -13541,7 +13541,13 @@ const HomePage = () => {
                                 ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
                                 : 'bg-gray-400 cursor-not-allowed text-white'
                             }`}
-                            onClick={() => selectedShip && fetchTestReports(selectedShip.id)}
+                            onClick={async () => {
+                              if (selectedShip) {
+                                toast.info(language === 'vi' ? '🔄 Đang làm mới...' : '🔄 Refreshing...');
+                                await fetchTestReports(selectedShip.id);
+                                toast.success(language === 'vi' ? '✅ Đã cập nhật danh sách!' : '✅ List updated!');
+                              }
+                            }}
                             disabled={!selectedShip}
                             title={selectedShip 
                               ? (language === 'vi' ? 'Làm mới danh sách' : 'Refresh list')
