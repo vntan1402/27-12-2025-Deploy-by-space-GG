@@ -98,6 +98,7 @@ class PDFSplitter:
                 'page_range': f'{start_page + 1}-{end_page}',
                 'start_page': start_page + 1,
                 'end_page': end_page,
+                'page_count': end_page - start_page,  # Number of pages in this chunk
                 'filename': f'{base_filename}_chunk{chunk_num}.pdf',
                 'size_bytes': len(chunk_content)
             }
