@@ -288,6 +288,15 @@ class OCRMergeWorkflowTester:
                 result = response.json()
                 self.log("✅ OCR merge workflow endpoint accessible")
                 
+                # Log the complete response structure for debugging
+                self.log("📊 Complete API response structure:")
+                self.log(f"   Response keys: {list(result.keys())}")
+                for key, value in result.items():
+                    if isinstance(value, str) and len(value) > 100:
+                        self.log(f"   {key}: {type(value).__name__} ({len(value)} chars)")
+                    else:
+                        self.log(f"   {key}: {value}")
+                
                 # Extract and analyze the response
                 self.analyze_ocr_response(result)
                 
