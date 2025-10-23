@@ -6472,6 +6472,48 @@ const HomePage = () => {
     }
   };
 
+  // Handle Edit Drawings & Manual
+  const handleEditDrawingsManual = (document) => {
+    setEditingDrawingsManual({ ...document });
+    setShowEditDrawingsManualModal(true);
+  };
+
+  // Handle Update Drawings & Manual
+  const handleUpdateDrawingsManual = async () => {
+    try {
+      // Validate required fields
+      if (!editingDrawingsManual.document_name.trim()) {
+        toast.error(language === 'vi' ? 'Vui lòng nhập tên tài liệu' : 'Please enter document name');
+        return;
+      }
+      
+      // TODO: Phase 5 - Update document via API
+      toast.info(language === 'vi' ? '⚠️ Backend API sẽ được implement trong Phase 5' : '⚠️ Backend API will be implemented in Phase 5');
+      
+      // Mock success - update in local state
+      setDrawingsManuals(prev => 
+        prev.map(doc => 
+          doc.id === editingDrawingsManual.id ? editingDrawingsManual : doc
+        )
+      );
+      
+      toast.success(language === 'vi' ? 'Đã cập nhật tài liệu (mock)' : 'Document updated (mock)');
+      
+      // Reset and close modal
+      setShowEditDrawingsManualModal(false);
+      setEditingDrawingsManual(null);
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchDrawingsManuals(selectedShip.id);
+      }
+      
+    } catch (error) {
+      console.error('Failed to update document:', error);
+      toast.error(language === 'vi' ? 'Không thể cập nhật tài liệu' : 'Failed to update document');
+    }
+  };
+
   // Context Menu Functions
   const handleCertificateRightClick = (e, certificate) => {
     e.preventDefault();
