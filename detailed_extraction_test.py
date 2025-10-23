@@ -8,7 +8,7 @@ import json
 import os
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://test-survey-portal.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipdata-hub.preview.emergentagent.com') + '/api'
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 

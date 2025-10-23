@@ -33,7 +33,7 @@ from datetime import datetime
 import traceback
 
 # Configuration
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://test-survey-portal.preview.emergentagent.com') + '/api'
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shipdata-hub.preview.emergentagent.com') + '/api'
 print(f"Using backend URL: {BACKEND_URL}")
 
 class PassportDebugTester:

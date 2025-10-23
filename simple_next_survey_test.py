@@ -10,7 +10,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = 'https://test-survey-portal.preview.emergentagent.com/api'
+BACKEND_URL = 'https://shipdata-hub.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate with admin1/123456"""

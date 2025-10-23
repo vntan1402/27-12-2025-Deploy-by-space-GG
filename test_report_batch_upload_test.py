@@ -27,7 +27,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 # Configuration
-BACKEND_URL = "https://test-survey-portal.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipdata-hub.preview.emergentagent.com/api"
 TEST_FILES = {
     "Chemical_Suit.pdf": "/tmp/Chemical_Suit.pdf",
     "Co2.pdf": "/tmp/Co2.pdf"
