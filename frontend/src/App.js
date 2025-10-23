@@ -1500,6 +1500,10 @@ const HomePage = () => {
   const [testReportBatchProgress, setTestReportBatchProgress] = useState({ current: 0, total: 0 });
   const [testReportBatchResults, setTestReportBatchResults] = useState([]);
   const [showTestReportProcessingResultsModal, setShowTestReportProcessingResultsModal] = useState(false);
+  
+  // Refresh button loading states
+  const [isRefreshingSurveyReports, setIsRefreshingSurveyReports] = useState(false);
+  const [isRefreshingTestReports, setIsRefreshingTestReports] = useState(false);
 
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
