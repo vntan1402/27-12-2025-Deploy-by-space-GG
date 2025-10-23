@@ -5897,16 +5897,17 @@ const HomePage = () => {
       result.surveyReportNo = analysis.survey_report_no || '';
       
       // Step 2: Check duplicate (optional)
-      if (analysis.survey_report_no) {
+      if (analysis.survey_report_no && analysis.survey_report_name) {
         const duplicateResponse = await axios.post(`${API}/survey-reports/check-duplicate`, {
           ship_id: selectedShip.id,
-          survey_report_no: analysis.survey_report_no
+          survey_report_no: analysis.survey_report_no,
+          survey_report_name: analysis.survey_report_name
         });
         
         if (duplicateResponse.data.is_duplicate) {
           result.error = 'DUPLICATE';
           result.duplicateInfo = duplicateResponse.data.existing_report;
-          console.log(`⚠️ Duplicate survey report: ${file.name}`);
+          console.log(`⚠️ Duplicate survey report: ${file.name} (No: ${analysis.survey_report_no}, Name: ${analysis.survey_report_name})`);
           return result;
         }
       }
