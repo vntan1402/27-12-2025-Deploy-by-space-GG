@@ -5930,6 +5930,33 @@ const HomePage = () => {
         setAnalyzedSurveyReportData(analysis);
         setSurveyReportFiles([file]);
         
+        // ✨ NEW: Check OCR info and show warnings if needed
+        if (analysis._ocr_info) {
+          const ocrInfo = analysis._ocr_info;
+          
+          if (ocrInfo.needs_manual_review) {
+            toast.warning(
+              language === 'vi'
+                ? '⚠️ Vui lòng kiểm tra Report Form và Report No. - AI và OCR cho kết quả khác nhau hoặc không tìm thấy.'
+                : '⚠️ Please review Report Form and Report No. - AI and OCR gave different results or not found.',
+              { autoClose: 10000 }
+            );
+          } else if (ocrInfo.ocr_success) {
+            // Show source badges based on confidence
+            const formSource = ocrInfo.report_form_source;
+            const noSource = ocrInfo.survey_report_no_source;
+            
+            if (formSource === 'both' || noSource === 'both') {
+              toast.success(
+                language === 'vi'
+                  ? '✅ Đã xác nhận bằng cả Document AI và OCR!'
+                  : '✅ Confirmed by both Document AI and OCR!',
+                { autoClose: 5000 }
+              );
+            }
+          }
+        }
+        
         toast.success(language === 'vi' ? 'Đã phân tích file thành công! Vui lòng kiểm tra và xác nhận.' : 'File analyzed successfully! Please review and confirm.');
         
       } else {
