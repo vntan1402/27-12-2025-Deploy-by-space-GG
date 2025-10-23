@@ -7367,7 +7367,7 @@ async def delete_drawings_manual(
     document_id: str,
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Delete a single drawings & manual document"""
+    """Delete a single drawings & manual document with files"""
     try:
         logger.info(f"🗑️ Deleting drawings/manual: {document_id}")
         
@@ -7376,17 +7376,83 @@ async def delete_drawings_manual(
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
         
-        # TODO: Phase 6 - Delete associated files from Google Drive
-        # file_id = doc.get('file_id')
-        # summary_file_id = doc.get('summary_file_id')
+        # Get company info for Apps Script URL
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get Apps Script URL
+        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+        if not company_doc:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        company_apps_script_url = company_doc.get("company_apps_script_url")
+        
+        files_deleted = 0
+        
+        # Delete files from Google Drive if exists
+        if company_apps_script_url:
+            file_id = doc.get('file_id')
+            summary_file_id = doc.get('summary_file_id')
+            
+            # Delete original file
+            if file_id:
+                logger.info(f"🗑️ Deleting original file from Drive: {file_id}")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ Original file deleted: {file_id}")
+                                    files_deleted += 1
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting original file {file_id}: {e}")
+            
+            # Delete summary file
+            if summary_file_id:
+                logger.info(f"🗑️ Deleting summary file from Drive: {summary_file_id}")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": summary_file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                    files_deleted += 1
+                except Exception as e:
+                    logger.warning(f"⚠️ Error deleting summary file {summary_file_id}: {e}")
         
         # Delete from database
         await mongo_db.delete("drawings_manuals", {"id": document_id})
         
+        message = "Document deleted successfully"
+        if files_deleted > 0:
+            message += f" ({files_deleted} file(s) deleted from Google Drive)"
+        
         logger.info(f"✅ Drawings/manual deleted successfully")
         return {
             "success": True,
-            "message": "Document deleted successfully"
+            "message": message,
+            "files_deleted": files_deleted
         }
         
     except HTTPException:
