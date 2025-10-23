@@ -6610,11 +6610,36 @@ const HomePage = () => {
         note: newDrawingsManual.note?.trim() || null
       };
       
-      await axios.post(`${API}/drawings-manuals`, documentData, {
+      const createResponse = await axios.post(`${API}/drawings-manuals`, documentData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success(language === 'vi' ? '✅ Đã thêm tài liệu' : '✅ Document added');
+      const documentId = createResponse.data.id;
+      
+      // Upload file if available
+      if (analyzedDrawingsManualData?._file_content && analyzedDrawingsManualData?._filename) {
+        try {
+          const uploadData = {
+            file_content: analyzedDrawingsManualData._file_content,
+            filename: analyzedDrawingsManualData._filename,
+            content_type: analyzedDrawingsManualData._content_type || 'application/pdf',
+            summary_text: analyzedDrawingsManualData._summary_text || ''
+          };
+          
+          await axios.post(
+            `${API}/drawings-manuals/${documentId}/upload-files`,
+            uploadData,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          
+          toast.success(language === 'vi' ? '✅ Đã thêm tài liệu và upload file' : '✅ Document added and files uploaded');
+        } catch (uploadError) {
+          console.error('File upload error:', uploadError);
+          toast.warning(language === 'vi' ? '⚠️ Đã tạo tài liệu nhưng upload file thất bại' : '⚠️ Document created but file upload failed');
+        }
+      } else {
+        toast.success(language === 'vi' ? '✅ Đã thêm tài liệu' : '✅ Document added');
+      }
       
       // Reset and close modal
       setShowAddDrawingsManualModal(false);
