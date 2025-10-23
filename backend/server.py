@@ -6712,13 +6712,11 @@ async def analyze_test_report_file(
                 if chunk_summaries:
                     logger.info(f"🔗 Merging {len(chunk_summaries)} chunk summaries...")
                     # Create enhanced merged summary with metadata
-                    from pdf_splitter import create_enhanced_merged_summary
-                    enhanced_summary = create_enhanced_merged_summary(
-                        chunk_summaries=chunk_summaries,
-                        filename=filename,
-                        total_pages=total_pages,
-                        chunks_count=len(chunks)
-                    )
+                    # Join chunk summaries into single text
+                    merged_summary_text = "\n\n=== DOCUMENT CONTINUATION ===\n\n".join(chunk_summaries)
+                    
+                    # Store merged summary in analysis_result
+                    analysis_result['_summary_text'] = merged_summary_text
                     
                     analysis_result['_summary_text'] = enhanced_summary
                     analysis_result['_merged_summary_text'] = enhanced_summary  # For reference
