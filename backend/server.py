@@ -5961,11 +5961,14 @@ async def analyze_survey_report_file(
 async def check_duplicate_survey_report(
     ship_id: str = Body(...),
     survey_report_no: str = Body(...),
+    survey_report_name: str = Body(...),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Check if a survey report with the same ship_id and survey_report_no already exists
+    Check if a survey report with the same ship_id, survey_report_no, and survey_report_name already exists
     Used in batch processing to avoid duplicate entries
+    
+    Duplicate criteria: ship_id + survey_report_no + survey_report_name
     """
     try:
         if not survey_report_no or not survey_report_no.strip():
@@ -5975,10 +5978,18 @@ async def check_duplicate_survey_report(
                 "message": "No survey report number provided"
             }
         
-        # Check if survey report exists
+        if not survey_report_name or not survey_report_name.strip():
+            # If no survey_report_name provided, cannot check duplicate
+            return {
+                "is_duplicate": False,
+                "message": "No survey report name provided"
+            }
+        
+        # Check if survey report exists with all 3 fields
         existing_report = await mongo_db.find_one("survey_reports", {
             "ship_id": ship_id,
-            "survey_report_no": survey_report_no.strip()
+            "survey_report_no": survey_report_no.strip(),
+            "survey_report_name": survey_report_name.strip()
         })
         
         if existing_report:
