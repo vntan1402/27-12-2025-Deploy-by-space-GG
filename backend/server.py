@@ -5993,7 +5993,7 @@ async def check_duplicate_survey_report(
         })
         
         if existing_report:
-            logger.info(f"🔍 Duplicate survey report found: {survey_report_no} for ship {ship_id}")
+            logger.info(f"🔍 Duplicate survey report found: {survey_report_no} / {survey_report_name} for ship {ship_id}")
             return {
                 "is_duplicate": True,
                 "existing_report": {
