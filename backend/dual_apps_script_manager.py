@@ -961,6 +961,156 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
     
+    async def upload_drawings_manuals_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Upload drawings & manuals files to Google Drive
+        Path: Shipname > Class & Flag Cert > Drawings & Manuals (original)
+        Path: SUMMARY > Class & Flag Document (summary)
+        
+        Args:
+            file_content: Drawing/manual file content
+            filename: Drawing/manual filename
+            ship_name: Ship name for folder structure
+            summary_text: Summary text (optional)
+            
+        Returns:
+            dict: Upload results with file IDs
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"📐 Uploading drawings & manuals files to Google Drive: {filename}")
+            
+            # Determine content type
+            content_type = 'application/pdf' if filename.lower().endswith('.pdf') else 'image/jpeg'
+            
+            # Call Company Apps Script for drawings & manuals upload
+            # Path structure: Shipname > Class & Flag Cert > Drawings & Manuals
+            upload_result = await self._call_company_apps_script(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                ship_name=ship_name,
+                folder_path="Class & Flag Cert/Drawings & Manuals",
+                action="upload_drawings_manuals"
+            )
+            
+            if not upload_result.get('success'):
+                logger.error(f"❌ Drawings & manuals file upload failed: {upload_result.get('message')}")
+                return upload_result
+            
+            file_id = upload_result.get('file_id')
+            logger.info(f"✅ Drawings & manuals file uploaded successfully: {file_id}")
+            
+            # Upload summary if provided (non-critical)
+            summary_file_id = None
+            summary_error = None
+            if summary_text:
+                try:
+                    summary_filename = filename.replace('.pdf', '_Summary.txt')
+                    summary_result = await self.upload_drawings_manuals_summary(
+                        summary_text=summary_text,
+                        filename=summary_filename,
+                        ship_name=ship_name
+                    )
+                    if summary_result.get('success'):
+                        summary_file_id = summary_result.get('drawings_manuals_summary_file_id')
+                        logger.info(f"✅ Drawings & manuals summary uploaded successfully: {summary_file_id}")
+                    else:
+                        summary_error = summary_result.get('message', 'Summary upload failed')
+                        logger.warning(f"⚠️ Drawings & manuals summary upload failed (non-critical): {summary_error}")
+                except Exception as e:
+                    summary_error = str(e)
+                    logger.warning(f"⚠️ Drawings & manuals summary upload failed (non-critical): {e}")
+            
+            # Return structured response
+            return {
+                'success': True,
+                'message': 'Drawings & manuals files uploaded successfully',
+                'original_file_id': file_id,
+                'summary_file_id': summary_file_id,
+                'summary_error': summary_error,
+                'file_path': upload_result.get('folder_path'),
+                'upload_details': upload_result
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading drawings & manuals files: {e}")
+            return {
+                'success': False,
+                'message': f'Drawings & manuals file upload failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def upload_drawings_manuals_summary(
+        self,
+        summary_text: str,
+        filename: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload drawings & manuals summary text file to Google Drive
+        Path: SUMMARY/Class & Flag Document/
+        
+        Args:
+            summary_text: Summary text content
+            filename: Summary filename (e.g., "GA_Plan_Summary.txt")
+            ship_name: Ship name (for logging only)
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📋 Uploading drawings & manuals summary to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Target Path: SUMMARY/Class & Flag Document/")
+            
+            # Call Company Apps Script
+            payload = {
+                "action": "upload_drawings_manuals_summary",
+                "summary_text": summary_text,
+                "filename": filename,
+                "parent_folder_id": self.parent_folder_id
+            }
+            
+            async with httpx.AsyncClient(timeout=600.0) as client:
+                response = await client.post(
+                    self.company_apps_script_url,
+                    json=payload
+                )
+                response.raise_for_status()
+                result = response.json()
+            
+            if result.get('success'):
+                logger.info(f"✅ Drawings & manuals summary uploaded successfully")
+                return result
+            else:
+                logger.error(f"❌ Drawings & manuals summary upload failed: {result.get('message')}")
+                return result
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading drawings & manuals summary: {e}")
+            return {
+                'success': False,
+                'message': f'Drawings & manuals summary upload failed: {str(e)}',
+                'error': str(e)
+            }
+
     async def upload_test_report_summary(
         self,
         summary_text: str,
