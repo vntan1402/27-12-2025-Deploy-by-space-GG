@@ -6643,47 +6643,161 @@ const HomePage = () => {
   
   // Batch processing for multiple files
   const startDrawingsManualBatchProcessing = async (files) => {
-    setIsBatchProcessingDrawingsManuals(true);
-    setDrawingsManualBatchProgress({ current: 0, total: files.length });
-    setShowAddDrawingsManualModal(false);
-    
-    const results = [];
-    
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      setDrawingsManualBatchProgress({ current: i + 1, total: files.length });
+    try {
+      setIsBatchProcessingDrawingsManuals(true);
+      setDrawingsManualBatchProgress({ current: 0, total: files.length });
+      setShowAddDrawingsManualModal(false);
+      setDrawingsManualBatchResults([]);
       
-      try {
-        // TODO: Phase 6 - Implement actual batch processing with AI analysis
-        // For now, mock the result
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing
-        
-        results.push({
-          filename: file.name,
-          success: true,
-          documentName: file.name.replace('.pdf', ''),
-          error: null
+      const STAGGER_DELAY = 5000; // 5 seconds between file starts
+      const results = [];
+      
+      // Process files with staggered start
+      const promises = files.map((file, index) => {
+        return new Promise((resolve) => {
+          setTimeout(async () => {
+            try {
+              const result = await processSingleDrawingsManualInBatch(file, index + 1, files.length);
+              results.push(result);
+              setDrawingsManualBatchProgress({ current: results.length, total: files.length });
+              resolve(result);
+            } catch (error) {
+              const errorResult = {
+                filename: file.name,
+                success: false,
+                error: error.message || 'Processing failed',
+                documentCreated: false
+              };
+              results.push(errorResult);
+              setDrawingsManualBatchProgress({ current: results.length, total: files.length });
+              resolve(errorResult);
+            }
+          }, index * STAGGER_DELAY);
         });
-        
-      } catch (error) {
-        results.push({
-          filename: file.name,
-          success: false,
-          documentName: file.name.replace('.pdf', ''),
-          error: error.message || 'Processing failed'
-        });
+      });
+      
+      // Wait for all files to complete
+      await Promise.all(promises);
+      
+      // Close batch processing modal
+      setIsBatchProcessingDrawingsManuals(false);
+      
+      // Show results modal
+      setDrawingsManualBatchResults(results);
+      setShowDrawingsManualProcessingResultsModal(true);
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchDrawingsManuals(selectedShip.id);
       }
+      
+      // Show summary toast
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      toast.success(
+        `${language === 'vi' ? 'Đã xử lý' : 'Processed'} ${results.length} ${language === 'vi' ? 'file' : 'files'}: ` +
+        `${successCount} ${language === 'vi' ? 'thành công' : 'success'}, ${failCount} ${language === 'vi' ? 'thất bại' : 'failed'}`
+      );
+      
+    } catch (error) {
+      console.error('Error in batch processing:', error);
+      toast.error(language === 'vi' ? 'Lỗi xử lý batch' : 'Batch processing error');
+      setIsBatchProcessingDrawingsManuals(false);
+    }
+  };
+
+  const processSingleDrawingsManualInBatch = async (file, current, total) => {
+    const result = {
+      filename: file.name,
+      success: false,
+      documentCreated: false,
+      documentName: '',
+      documentNo: '',
+      error: null
+    };
+    
+    try {
+      console.log(`📐 Processing drawings/manual ${current}/${total}: ${file.name}`);
+      
+      // Step 1: Analyze file
+      const formData = new FormData();
+      formData.append('document_file', file);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('bypass_validation', 'true');
+      
+      const analyzeResponse = await axios.post(`${API}/drawings-manuals/analyze-file`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (!analyzeResponse.data) {
+        throw new Error('Analysis failed');
+      }
+      
+      const analysis = analyzeResponse.data;
+      console.log('📊 Analysis result:', {
+        document_name: analysis.document_name,
+        document_no: analysis.document_no,
+        has_file_content: !!analysis._file_content
+      });
+      
+      result.documentName = analysis.document_name || file.name;
+      result.documentNo = analysis.document_no || '';
+      
+      // Step 2: Check duplicate (optional)
+      if (analysis.document_no && analysis.document_name) {
+        const duplicateResponse = await axios.post(`${API}/drawings-manuals/check-duplicate`, {
+          ship_id: selectedShip.id,
+          document_no: analysis.document_no,
+          document_name: analysis.document_name
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (duplicateResponse.data.is_duplicate) {
+          result.error = 'DUPLICATE';
+          result.duplicateInfo = duplicateResponse.data.existing_document;
+          console.log(`⚠️ Duplicate document: ${file.name}`);
+          return result;
+        }
+      }
+      
+      // Step 3: Create document record
+      const documentData = {
+        ship_id: selectedShip.id,
+        document_name: analysis.document_name || file.name,
+        document_no: analysis.document_no || null,
+        approved_by: analysis.approved_by || null,
+        approved_date: analysis.approved_date || null,
+        status: 'Unknown', // Default status
+        note: analysis.note || null
+      };
+      
+      const createResponse = await axios.post(`${API}/drawings-manuals`, documentData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!createResponse.data || !createResponse.data.id) {
+        throw new Error('Failed to create document record');
+      }
+      
+      const documentId = createResponse.data.id;
+      result.documentCreated = true;
+      result.documentId = documentId;
+      result.success = true;
+      console.log(`✅ Document created: ${documentId}`);
+      
+      // TODO: Phase 7 - Upload files to Google Drive
+      // For now, document created successfully without file upload
+      
+    } catch (error) {
+      console.error(`❌ Failed to process ${file.name}:`, error);
+      result.error = error.response?.data?.detail || error.message || 'Processing failed';
     }
     
-    // Show results modal
-    setIsBatchProcessingDrawingsManuals(false);
-    setDrawingsManualBatchResults(results);
-    setShowDrawingsManualProcessingResultsModal(true);
-    
-    // Refresh list
-    if (selectedShip) {
-      await fetchDrawingsManuals(selectedShip.id);
-    }
+    return result;
   };
 
   // Handle Edit Drawings & Manual
