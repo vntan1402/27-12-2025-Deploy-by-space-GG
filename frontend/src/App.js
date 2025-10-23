@@ -1533,6 +1533,8 @@ const HomePage = () => {
     document: null
   });
   
+  const [showDrawingsManualStatusSubmenu, setShowDrawingsManualStatusSubmenu] = useState(false);
+  
   // Drawings & Manuals Note Tooltip
   const [drawingsManualNoteTooltip, setDrawingsManualNoteTooltip] = useState({
     show: false,
