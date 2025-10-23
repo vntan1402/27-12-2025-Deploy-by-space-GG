@@ -7978,35 +7978,54 @@ async def analyze_drawings_manual_file(
                         failed_chunks += 1
                         logger.error(f"   ❌ Chunk {i+1} processing failed: {chunk_error}")
                 
-                # Merge chunk summaries
+                # BUG FIX: Handle edge cases for chunk processing
                 if chunk_summaries:
+                    # SUCCESS: At least some chunks processed successfully
                     logger.info(f"🔗 Merging {len(chunk_summaries)} chunk summaries...")
                     merged_summary_text = "\n\n=== DOCUMENT CONTINUATION ===\n\n".join(chunk_summaries)
                     
                     logger.info(f"📄 Merged summary ready ({len(merged_summary_text)} chars)")
-                    analysis_result['_summary_text'] = merged_summary_text
                     
-                    # Extract fields from merged summary
-                    logger.info("🔍 Extracting fields from merged summary...")
-                    
-                    ai_provider = ai_config_doc.get("provider", "google")
-                    ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
-                    use_emergent_key = ai_config_doc.get("use_emergent_key", True)
-                    
-                    extracted_fields = await extract_drawings_manuals_fields_from_summary(
-                        merged_summary_text,
-                        ai_provider,
-                        ai_model,
-                        use_emergent_key
-                    )
-                    
-                    if extracted_fields:
-                        analysis_result.update(extracted_fields)
-                        logger.info(f"   🔢 Extracted {len([v for v in extracted_fields.values() if v])} fields from merged summary")
+                    # BUG FIX: Validate merged summary is not empty
+                    if not merged_summary_text.strip():
+                        logger.warning("⚠️ Merged summary is empty after joining chunks")
+                        # Fallback: Use filename for basic info
+                        analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                        analysis_result['note'] = f"AI analysis incomplete: {successful_chunks}/{len(chunks_to_process)} chunks processed, but summaries were empty"
+                        analysis_result['_summary_text'] = ''
                     else:
-                        logger.warning("⚠️ No fields extracted from merged summary")
+                        analysis_result['_summary_text'] = merged_summary_text
+                        
+                        # Extract fields from merged summary
+                        logger.info("🔍 Extracting fields from merged summary...")
+                        
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        try:
+                            extracted_fields = await extract_drawings_manuals_fields_from_summary(
+                                merged_summary_text,
+                                ai_provider,
+                                ai_model,
+                                use_emergent_key
+                            )
+                            
+                            if extracted_fields:
+                                analysis_result.update(extracted_fields)
+                                logger.info(f"   🔢 Extracted {len([v for v in extracted_fields.values() if v])} fields from merged summary")
+                            else:
+                                logger.warning("⚠️ No fields extracted from merged summary")
+                                # BUG FIX: Fallback when field extraction fails
+                                analysis_result['document_name'] = analysis_result.get('document_name') or filename.replace('.pdf', '').replace('_', ' ')
+                                analysis_result['note'] = f"AI field extraction incomplete: {successful_chunks}/{len(chunks_to_process)} chunks processed"
+                        except Exception as extraction_error:
+                            logger.error(f"❌ Field extraction failed: {extraction_error}")
+                            # BUG FIX: Continue with fallback data even if extraction fails
+                            analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                            analysis_result['note'] = f"AI extraction failed: {str(extraction_error)[:100]}"
                     
-                    # Add detailed split info including skipped chunks
+                    # Add detailed split info including skipped chunks and partial failures
                     analysis_result['_split_info'] = {
                         'was_split': True,
                         'total_pages': total_pages,
@@ -8016,13 +8035,40 @@ async def analyze_drawings_manual_file(
                         'failed_chunks': failed_chunks,
                         'skipped_chunks': skipped_chunks,
                         'max_chunks_limit': MAX_CHUNKS,
-                        'was_limited': skipped_chunks > 0
+                        'was_limited': skipped_chunks > 0,
+                        'has_failures': failed_chunks > 0,
+                        'partial_success': successful_chunks > 0 and failed_chunks > 0
                     }
                     
-                    logger.info(f"✅ Split PDF processing complete: {successful_chunks}/{len(chunks_to_process)} chunks successful, {skipped_chunks} chunks skipped")
+                    logger.info(f"✅ Split PDF processing complete: {successful_chunks}/{len(chunks_to_process)} chunks successful, {failed_chunks} failed, {skipped_chunks} chunks skipped")
+                    
                 else:
-                    logger.error("❌ No chunk summaries were generated")
-                    raise HTTPException(status_code=500, detail="Failed to process PDF chunks")
+                    # BUG FIX: All chunks failed - provide fallback instead of raising error
+                    logger.error(f"❌ All {len(chunks_to_process)} chunks failed to generate summaries")
+                    logger.warning("⚠️ Providing fallback data based on filename")
+                    
+                    # Fallback: Use filename for basic document info
+                    analysis_result['document_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                    analysis_result['note'] = f"AI analysis failed: All {len(chunks_to_process)} chunks failed to process. Manual review required."
+                    analysis_result['_summary_text'] = ''
+                    analysis_result['processing_method'] = 'split_pdf_all_chunks_failed'
+                    
+                    # Add split info showing complete failure
+                    analysis_result['_split_info'] = {
+                        'was_split': True,
+                        'total_pages': total_pages,
+                        'total_chunks': total_chunks,
+                        'processed_chunks': len(chunks_to_process),
+                        'successful_chunks': 0,
+                        'failed_chunks': len(chunks_to_process),
+                        'skipped_chunks': skipped_chunks,
+                        'max_chunks_limit': MAX_CHUNKS,
+                        'was_limited': skipped_chunks > 0,
+                        'has_failures': True,
+                        'all_chunks_failed': True
+                    }
+                    
+                    logger.warning(f"⚠️ Returning fallback data for {filename}")
                     
             except Exception as split_error:
                 logger.error(f"❌ PDF splitting/processing failed: {split_error}")
