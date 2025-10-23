@@ -15181,6 +15181,128 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Edit Drawings & Manuals Modal */}
+                  {showEditDrawingsManualModal && editingDrawingsManual && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? '✏️ Chỉnh sửa Bản vẽ & Sổ tay' : '✏️ Edit Drawings & Manuals'}
+                          </h3>
+                          <button
+                            onClick={() => {
+                              setShowEditDrawingsManualModal(false);
+                              setEditingDrawingsManual(null);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 transition-all"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={editingDrawingsManual.document_name}
+                              onChange={(e) => setEditingDrawingsManual(prev => ({ ...prev, document_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số Tài liệu' : 'Document No.'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingDrawingsManual.document_no || ''}
+                              onChange={(e) => setEditingDrawingsManual(prev => ({ ...prev, document_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Phê duyệt bởi' : 'Approved By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={editingDrawingsManual.approved_by || ''}
+                              onChange={(e) => setEditingDrawingsManual(prev => ({ ...prev, approved_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày phê duyệt' : 'Approved Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingDrawingsManual.approved_date || ''}
+                                onChange={(e) => setEditingDrawingsManual(prev => ({ ...prev, approved_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Trạng thái' : 'Status'}
+                              </label>
+                              <select
+                                value={editingDrawingsManual.status}
+                                onChange={(e) => setEditingDrawingsManual(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                                <option value="Approved">{language === 'vi' ? 'Đã phê duyệt' : 'Approved'}</option>
+                                <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="Unknown">{language === 'vi' ? 'Chưa rõ' : 'Unknown'}</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={editingDrawingsManual.note || ''}
+                              onChange={(e) => setEditingDrawingsManual(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowEditDrawingsManualModal(false);
+                              setEditingDrawingsManual(null);
+                            }}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                          >
+                            {language === 'vi' ? 'Hủy' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={handleUpdateDrawingsManual}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
+                          >
+                            {language === 'vi' ? 'Cập nhật' : 'Update'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Add Test Report Modal */}
                   {showAddTestReportModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
