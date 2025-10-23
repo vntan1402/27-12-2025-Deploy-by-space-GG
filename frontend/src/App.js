@@ -14772,6 +14772,373 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Add Drawings & Manuals Modal */}
+                  {showAddDrawingsManualModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? '📐 Thêm Bản vẽ & Sổ tay' : '📐 Add Drawings & Manuals'}
+                          </h3>
+                          <button
+                            onClick={() => {
+                              setShowAddDrawingsManualModal(false);
+                              setNewDrawingsManual({
+                                document_name: '',
+                                document_no: '',
+                                approved_by: '',
+                                approved_date: '',
+                                status: 'Unknown',
+                                note: ''
+                              });
+                              setAnalyzedDrawingsManualData(null);
+                              setDrawingsManualFiles([]);
+                              setDrawingsManualFileError('');
+                            }}
+                            className="text-gray-400 hover:text-gray-600 transition-all"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {/* Section 1: File Upload for AI Analysis */}
+                        {!analyzedDrawingsManualData && (
+                          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                            <div className="flex items-center mb-3">
+                              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <h4 className="text-lg font-semibold text-gray-800">
+                                {language === 'vi' ? '🤖 Phân tích File với AI' : '🤖 AI File Analysis'}
+                              </h4>
+                            </div>
+                            
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                multiple
+                                onChange={handleDrawingsManualFileSelect}
+                                className="hidden"
+                                id="drawings-manual-file-input"
+                                disabled={isAnalyzingDrawingsManual}
+                              />
+                              <label
+                                htmlFor="drawings-manual-file-input"
+                                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+                                  isAnalyzingDrawingsManual
+                                    ? 'bg-gray-100 border-gray-300 cursor-not-allowed'
+                                    : 'bg-white border-blue-300 hover:bg-blue-50 hover:border-blue-400'
+                                }`}
+                              >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                  <svg className="w-10 h-10 mb-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                  </svg>
+                                  <p className="mb-2 text-sm text-gray-700">
+                                    <span className="font-semibold">{language === 'vi' ? 'Nhấn để chọn' : 'Click to select'}</span> {language === 'vi' ? 'hoặc kéo thả file' : 'or drag and drop'}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    PDF {language === 'vi' ? '(tối đa 20MB, nhiều file được hỗ trợ)' : '(max 20MB, multiple files supported)'}
+                                  </p>
+                                </div>
+                              </label>
+                            </div>
+                            
+                            {isAnalyzingDrawingsManual && (
+                              <div className="mt-3 flex items-center justify-center text-blue-600">
+                                <svg className="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span className="text-sm font-medium">
+                                  {language === 'vi' ? 'Đang phân tích file...' : 'Analyzing file...'}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {drawingsManualFileError && (
+                              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-sm text-red-700">{drawingsManualFileError}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Success Message after Analysis */}
+                        {analyzedDrawingsManualData && (
+                          <div className="mb-6 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start">
+                                <svg className="w-6 h-6 text-green-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                  <p className="text-sm font-semibold text-green-800 mb-1">
+                                    {language === 'vi' ? '✅ File đã được phân tích thành công!' : '✅ File analyzed successfully!'}
+                                  </p>
+                                  <p className="text-xs text-green-700 font-medium">
+                                    {analyzedDrawingsManualData._filename}
+                                  </p>
+                                  <p className="text-xs text-green-600 mt-1">
+                                    {language === 'vi' ? 'Thông tin đã được tự động điền. Vui lòng kiểm tra và chỉnh sửa nếu cần.' : 'Information has been auto-filled. Please review and edit if needed.'}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={handleRemoveDrawingsManualFile}
+                                className="ml-2 p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-all"
+                                title={language === 'vi' ? 'Xóa và chọn file khác' : 'Remove and select another file'}
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Section 2: Manual Entry Form */}
+                        <div className="mb-4 flex items-center text-gray-700">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span className="font-medium">
+                            {language === 'vi' ? 'Hoặc nhập thủ công' : 'Or Enter Manually'}
+                          </span>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={newDrawingsManual.document_name}
+                              onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, document_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: General Arrangement Plan' : 'e.g. General Arrangement Plan'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Số Tài liệu' : 'Document No.'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newDrawingsManual.document_no}
+                              onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, document_no: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: GA-001-2024' : 'e.g. GA-001-2024'}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Phê duyệt bởi' : 'Approved By'}
+                            </label>
+                            <input
+                              type="text"
+                              value={newDrawingsManual.approved_by}
+                              onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, approved_by: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày phê duyệt' : 'Approved Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={newDrawingsManual.approved_date}
+                                onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, approved_date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Trạng thái' : 'Status'}
+                              </label>
+                              <select
+                                value={newDrawingsManual.status}
+                                onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                                <option value="Approved">{language === 'vi' ? 'Đã phê duyệt' : 'Approved'}</option>
+                                <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="Unknown">{language === 'vi' ? 'Chưa rõ' : 'Unknown'}</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={newDrawingsManual.note}
+                              onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                              placeholder={language === 'vi' ? 'Ghi chú...' : 'Notes...'}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowAddDrawingsManualModal(false);
+                              setNewDrawingsManual({
+                                document_name: '',
+                                document_no: '',
+                                approved_by: '',
+                                approved_date: '',
+                                status: 'Unknown',
+                                note: ''
+                              });
+                              setAnalyzedDrawingsManualData(null);
+                              setDrawingsManualFiles([]);
+                            }}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                          >
+                            {language === 'vi' ? 'Hủy' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={handleAddDrawingsManual}
+                            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all font-medium"
+                          >
+                            {language === 'vi' ? 'Lưu' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Batch Processing Progress Modal for Drawings & Manuals */}
+                  {isBatchProcessingDrawingsManuals && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">
+                          {language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...'}
+                        </h3>
+                        
+                        <div className="mb-4">
+                          <div className="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>{language === 'vi' ? 'Tiến độ' : 'Progress'}</span>
+                            <span>{drawingsManualBatchProgress.current} / {drawingsManualBatchProgress.total}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3">
+                            <div
+                              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                              style={{ width: `${(drawingsManualBatchProgress.current / drawingsManualBatchProgress.total) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 text-center">
+                          {language === 'vi' 
+                            ? 'Vui lòng đợi, đang xử lý các file...' 
+                            : 'Please wait, processing files...'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Batch Processing Results Modal for Drawings & Manuals */}
+                  {showDrawingsManualProcessingResultsModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                          {language === 'vi' ? '📊 Kết quả xử lý' : '📊 Processing Results'}
+                        </h3>
+                        
+                        {/* Summary */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-1">{language === 'vi' ? 'Tổng số' : 'Total'}</p>
+                            <p className="text-2xl font-bold text-blue-600">{drawingsManualBatchResults.length}</p>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-1">{language === 'vi' ? 'Thành công' : 'Success'}</p>
+                            <p className="text-2xl font-bold text-green-600">
+                              {drawingsManualBatchResults.filter(r => r.success).length}
+                            </p>
+                          </div>
+                          <div className="bg-red-50 p-4 rounded-lg">
+                            <p className="text-sm text-gray-600 mb-1">{language === 'vi' ? 'Thất bại' : 'Failed'}</p>
+                            <p className="text-2xl font-bold text-red-600">
+                              {drawingsManualBatchResults.filter(r => !r.success).length}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Results List */}
+                        <div className="space-y-3">
+                          {drawingsManualBatchResults.map((result, index) => (
+                            <div 
+                              key={index}
+                              className={`p-4 rounded-lg border-2 ${
+                                result.success 
+                                  ? 'bg-green-50 border-green-200' 
+                                  : 'bg-red-50 border-red-200'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center mb-2">
+                                    {result.success ? (
+                                      <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    ) : (
+                                      <svg className="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    )}
+                                    <span className="font-medium text-gray-800">{result.filename}</span>
+                                  </div>
+                                  {result.success ? (
+                                    <div className="ml-7">
+                                      <p className="text-sm text-gray-700">
+                                        <span className="font-medium">{language === 'vi' ? 'Tên tài liệu:' : 'Document Name:'}</span> {result.documentName}
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-red-700 ml-7">{result.error}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Close Button */}
+                        <div className="flex justify-end mt-6">
+                          <button
+                            onClick={() => {
+                              setShowDrawingsManualProcessingResultsModal(false);
+                              setDrawingsManualBatchResults([]);
+                              setDrawingsManualFiles([]);
+                            }}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
+                          >
+                            {language === 'vi' ? 'Đóng' : 'Close'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Add Test Report Modal */}
                   {showAddTestReportModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
