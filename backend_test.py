@@ -1,32 +1,23 @@
 #!/usr/bin/env python3
 """
-Backend Test for Add Crew From Passport Workflow
-Testing with REAL passport file: 3. 2O THUONG - PP.pdf
-Focus: Debug upload failure "Lỗi không upload được file"
+Survey Report Bulk Delete with File Deletion Testing - Comprehensive Backend Test
+Testing Google Drive Integration with company_apps_script_url from companies collection
 
 REVIEW REQUEST REQUIREMENTS:
-Test the "Add Crew From Passport" workflow with REAL passport file to debug the upload issue:
+Test Survey Report Bulk Delete functionality to verify:
+1. Proper deletion of files from Google Drive using company_apps_script_url from companies collection
+2. Matching Drawings & Manuals pattern
+3. Authentication with admin1/123456
+4. Use BROTHER 36 ship if available
+5. Test with reports that have files (survey_report_file_id and survey_report_summary_file_id)
+6. Verify complete file deletion workflow with proper logging
 
-Download and test with the actual passport file: `3. 2O THUONG - PP.pdf`
-URL: https://customer-assets.emergentagent.com/job_crewdocs-ai/artifacts/06s7wz8r_3.%202O%20THUONG%20-%20PP.pdf
-
-POST to /api/crew/analyze-passport with this real PDF file
-
-Focus on debugging the upload failure:
-1. Download the actual PDF file and verify it's a valid passport document
-2. Test the complete workflow with this real file
-3. Check if Document AI can process the real passport properly
-4. Verify file upload to Google Drive with actual file content
-5. Examine detailed backend logs for any upload errors
-6. Check if the issue is with file size, format, or Apps Script processing
-7. Verify both passport file and summary file upload to correct folders
-
-The user reports "Lỗi không upload được file" (Cannot upload file error) so focus on:
-- Actual file upload success/failure to Google Drive
-- Apps Script response analysis
-- Backend error handling
-- File format and size validation
-- Document AI processing with real passport content
+Critical Test Scenarios:
+- Company Apps Script URL configuration loading
+- File deletion process (both original and summary files)
+- Backend logs verification
+- Response structure validation
+- Edge cases (reports with only original file, no files, both files)
 """
 
 import requests
