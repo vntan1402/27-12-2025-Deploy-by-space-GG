@@ -275,10 +275,13 @@ class TargetedOCRProcessor:
         - No.: XXX
         - Reference No.: XXX
         - Survey Report No.: XXX
+        - Authorization No.: XXX (NEW - often contains report number)
         """
         patterns = [
             r'Survey\s*Report\s*No[.:]\s*([A-Z0-9\-/]+)',
             r'Report\s*No[.:]\s*([A-Z0-9\-/]+)',
+            r'Authorization\s*No[.:]\s*([A-Z0-9\-/]+)',  # NEW: Check Authorization No.
+            r'Authorization\s*Number[.:]\s*([A-Z0-9\-/]+)',  # NEW: Alternative format
             r'Report\s*#[:\s]*([A-Z0-9\-/]+)',
             r'No[.:]\s*([A-Z0-9\-/]+)',
             r'Reference\s*No[.:]\s*([A-Z0-9\-/]+)',
