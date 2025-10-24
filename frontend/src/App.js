@@ -4866,6 +4866,45 @@ const HomePage = () => {
     setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
+  const handleBulkDeleteSurveyReports = async () => {
+    setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    if (selectedSurveyReports.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn ít nhất một báo cáo' : 'Please select at least one report');
+      return;
+    }
+    
+    if (window.confirm(language === 'vi' 
+      ? `Bạn có chắc muốn xóa ${selectedSurveyReports.size} báo cáo đã chọn?`
+      : `Are you sure you want to delete ${selectedSurveyReports.size} selected report(s)?`
+    )) {
+      try {
+        const reportIds = Array.from(selectedSurveyReports);
+        
+        await axios.delete(`${API}/survey-reports/bulk-delete`, {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { report_ids: reportIds }
+        });
+        
+        toast.success(language === 'vi' 
+          ? `🗑️ Đã xóa ${selectedSurveyReports.size} báo cáo` 
+          : `🗑️ Deleted ${selectedSurveyReports.size} report(s)`
+        );
+        
+        setSelectedSurveyReports(new Set());
+        
+        // Refresh list
+        if (selectedShip) {
+          await fetchSurveyReports(selectedShip.id);
+        }
+      } catch (error) {
+        console.error('Failed to bulk delete:', error);
+        const errorMsg = error.response?.data?.detail || 'Failed to delete reports';
+        toast.error(language === 'vi' ? `❌ Không thể xóa báo cáo: ${errorMsg}` : `❌ ${errorMsg}`);
+      }
+    }
+  };
+
   const handleDeleteSurveyReportFromMenu = async (report) => {
     setSurveyReportContextMenu({ show: false, x: 0, y: 0, report: null });
     await handleDeleteSurveyReport(report.id);
