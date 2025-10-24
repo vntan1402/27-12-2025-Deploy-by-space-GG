@@ -1741,6 +1741,101 @@ class DualAppsScriptManager:
             }
 
 
+async def extract_fields_from_summary(
+    summary_text: str,
+    ai_provider: str,
+    ai_model: str,
+    use_emergent_key: bool,
+    filename: str = ""
+) -> dict:
+    """
+    Extract fields from summary text using AI
+    
+    Args:
+        summary_text: The summary text to extract fields from
+        ai_provider: AI provider (e.g., "google")
+        ai_model: AI model (e.g., "gemini-2.0-flash-exp")
+        use_emergent_key: Whether to use emergent key
+        filename: Optional filename for context
+        
+    Returns:
+        dict: Extracted fields
+    """
+    try:
+        logger.info(f"🔄 Extracting fields from summary using AI")
+        logger.info(f"   Provider: {ai_provider}")
+        logger.info(f"   Model: {ai_model}")
+        logger.info(f"   Filename: {filename}")
+        
+        # Import LlmChat for AI processing
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
+        # Create AI prompt for field extraction
+        prompt = f"""You are an AI assistant specialized in extracting maritime document information from summaries.
+
+DOCUMENT SUMMARY:
+{summary_text}
+
+FILENAME: {filename}
+
+TASK: Extract survey report information. Return ONLY a JSON object with the following fields:
+
+{{
+  "survey_report_name": "survey report name or empty string",
+  "report_form": "report form extracted from filename or content or empty string",
+  "survey_report_no": "survey report number or empty string", 
+  "issued_date": "DD/MM/YYYY format or empty string",
+  "issued_by": "issuing authority or empty string",
+  "surveyor_name": "surveyor name or empty string"
+}}
+
+IMPORTANT INSTRUCTIONS FOR REPORT FORM:
+- Extract Report Form from the filename if it contains patterns like "Form_ABC", "ABC_Form", or similar
+- Look for form codes in the document content
+- Common maritime forms: PSC, MLC, SOLAS, MARPOL, etc.
+- If filename is "{filename}", try to extract form code from it
+
+Return ONLY the JSON object, no other text.
+
+JSON:"""
+
+        # Initialize AI chat
+        if use_emergent_key:
+            # Use emergent key
+            chat = LlmChat(provider=ai_provider, model=ai_model)
+        else:
+            # This would need API key configuration - for now use emergent
+            chat = LlmChat(provider=ai_provider, model=ai_model)
+        
+        # Send message to AI
+        messages = [UserMessage(content=prompt)]
+        response = await chat.send_messages_async(messages)
+        
+        if not response or not response.content:
+            logger.warning("⚠️ No response from AI for field extraction")
+            return {}
+        
+        # Parse JSON response
+        try:
+            import json
+            extracted_fields = json.loads(response.content.strip())
+            logger.info("✅ Fields extracted successfully from summary")
+            logger.info(f"   📋 Survey Report Name: '{extracted_fields.get('survey_report_name')}'")
+            logger.info(f"   📝 Report Form: '{extracted_fields.get('report_form')}'")
+            logger.info(f"   🔢 Survey Report No: '{extracted_fields.get('survey_report_no')}'")
+            
+            return extracted_fields
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ Failed to parse AI response as JSON: {e}")
+            logger.error(f"   Raw response: {response.content[:200]}")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"❌ Error extracting fields from summary: {e}")
+        return {}
+
+
 def create_dual_apps_script_manager(company_id: str) -> DualAppsScriptManager:
     """Factory function to create DualAppsScriptManager"""
     return DualAppsScriptManager(company_id)
