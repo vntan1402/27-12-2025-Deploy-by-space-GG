@@ -5116,7 +5116,28 @@ async def extract_survey_report_fields_from_summary(
                         logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
                         logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
                         
-                        # POST-PROCESSING: Extract report_form from filename if AI didn't find it
+                        # POST-PROCESSING 1: Format survey_report_name to Title Case
+                        if extracted_data.get('survey_report_name'):
+                            name = extracted_data['survey_report_name'].strip()
+                            # Remove common survey type words if AI still included them
+                            words_to_remove = ['survey', 'report', 'record', 'annual', 'special', 'intermediate', 
+                                             'docking', 'close-up', 'close up', 'renewal', 'damage', 'pre-purchase',
+                                             'for', 'of', 'the']
+                            
+                            # Split into words
+                            words = name.lower().split()
+                            
+                            # Remove survey type words
+                            filtered_words = [w for w in words if w not in words_to_remove]
+                            
+                            # If we removed too much, keep original
+                            if filtered_words:
+                                # Title Case: Capitalize first letter of each word
+                                name = ' '.join(word.capitalize() for word in filtered_words)
+                                extracted_data['survey_report_name'] = name
+                                logger.info(f"   ✨ Formatted survey_report_name to Title Case: '{name}'")
+                        
+                        # POST-PROCESSING 2: Extract report_form from filename if AI didn't find it
                         if not extracted_data.get('report_form') and filename:
                             logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
                             # Pattern: "CG (02-19).pdf" or "CU 02-19.pdf" or "AS (03/20).pdf"
