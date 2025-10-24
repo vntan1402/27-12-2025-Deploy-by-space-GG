@@ -1422,6 +1422,14 @@ const HomePage = () => {
   const [isSurveyReportAddModalMinimized, setIsSurveyReportAddModalMinimized] = useState(false);
   const [isSurveyReportBatchModalMinimized, setIsSurveyReportBatchModalMinimized] = useState(false);
 
+  // Debug: Log minimize state changes
+  useEffect(() => {
+    console.log('📊 Survey Report Add Modal Minimized:', isSurveyReportAddModalMinimized);
+    console.log('📊 Survey Report Batch Modal Minimized:', isSurveyReportBatchModalMinimized);
+    console.log('📊 Show Add Survey Modal:', showAddSurveyModal);
+    console.log('📊 Is Batch Processing:', isBatchProcessingSurveyReports);
+  }, [isSurveyReportAddModalMinimized, isSurveyReportBatchModalMinimized, showAddSurveyModal, isBatchProcessingSurveyReports]);
+
   
   // Survey Report Context Menu
   const [surveyReportContextMenu, setSurveyReportContextMenu] = useState({
