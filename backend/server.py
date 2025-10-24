@@ -6398,7 +6398,6 @@ async def analyze_survey_report_file(
         # NEW WORKFLOW: Merge OCR text into summary, then extract fields ONCE
         logger.info("🔍 Starting Targeted OCR for header/footer extraction...")
         
-        enhanced_summary = analysis_result.get('_summary_text', '')
         ocr_metadata = {
             'ocr_attempted': False,
             'ocr_success': False,
@@ -6431,6 +6430,9 @@ async def analyze_survey_report_file(
                     if header_text or footer_text:
                         logger.info("📝 Merging OCR text into Document AI summary...")
                         
+                        # 🔧 FIX: Get LATEST summary text from analysis_result
+                        current_summary = analysis_result.get('_summary_text', '')
+                        
                         ocr_section = "\n\n" + "="*60 + "\n"
                         ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
                         ocr_section += "="*60 + "\n\n"
@@ -6450,12 +6452,12 @@ async def analyze_survey_report_file(
                         ocr_section += "and may contain critical information like Report Form and Report No.\n"
                         ocr_section += "="*60
                         
-                        # Append OCR text to original summary
-                        enhanced_summary = analysis_result.get('_summary_text', '') + ocr_section
+                        # Append OCR text to current summary
+                        enhanced_summary = current_summary + ocr_section
                         analysis_result['_summary_text'] = enhanced_summary
                         ocr_metadata['ocr_text_merged'] = True
                         
-                        logger.info(f"✅ Enhanced summary created: {len(enhanced_summary)} chars (original: {len(analysis_result.get('_summary_text', ''))} + OCR section)")
+                        logger.info(f"✅ Enhanced summary created: {len(enhanced_summary)} chars (original: {len(current_summary)} + OCR section)")
                         
                         # RE-EXTRACT fields from enhanced summary with System AI
                         logger.info("🧠 Re-extracting fields from enhanced summary with System AI...")
