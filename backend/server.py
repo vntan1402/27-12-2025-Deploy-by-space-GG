@@ -5079,15 +5079,34 @@ async def extract_survey_report_fields_from_summary(
                         clean_content = content.replace('```json', '').replace('```', '').strip()
                         extracted_data = json.loads(clean_content)
                         
-                        # Standardize date format
+                        # Standardize date format and validate
                         if extracted_data.get('issued_date'):
-                            try:
-                                # Parse and convert to ISO format
-                                from dateutil import parser
-                                parsed_date = parser.parse(extracted_data['issued_date'])
-                                extracted_data['issued_date'] = parsed_date.strftime('%Y-%m-%d')
-                            except Exception as date_error:
-                                logger.warning(f"Failed to parse issued_date: {date_error}")
+                            issued_date_raw = extracted_data['issued_date'].strip()
+                            
+                            # BUG FIX: Check if issued_date looks like a Report Form (e.g., "CU (02/19)")
+                            # Pattern: 1-3 uppercase letters followed by date-like pattern
+                            import re
+                            form_pattern = r'^[A-Z]{1,3}\s*\([0-9]{2}[/-][0-9]{2}\)$|^[A-Z]{1,3}\s+[0-9]{2}[/-][0-9]{2}$'
+                            
+                            if re.match(form_pattern, issued_date_raw, re.IGNORECASE):
+                                logger.warning(f"⚠️ issued_date '{issued_date_raw}' looks like a Report Form, moving to report_form")
+                                # Move to report_form if empty
+                                if not extracted_data.get('report_form'):
+                                    extracted_data['report_form'] = issued_date_raw
+                                extracted_data['issued_date'] = ''
+                            else:
+                                try:
+                                    # Parse and convert to ISO format
+                                    from dateutil import parser
+                                    parsed_date = parser.parse(issued_date_raw)
+                                    extracted_data['issued_date'] = parsed_date.strftime('%Y-%m-%d')
+                                except Exception as date_error:
+                                    logger.warning(f"Failed to parse issued_date '{issued_date_raw}': {date_error}")
+                                    # If parse fails, might be a form code - move to report_form if empty
+                                    if not extracted_data.get('report_form') and len(issued_date_raw) < 20:
+                                        logger.warning(f"⚠️ Moving unparseable issued_date to report_form")
+                                        extracted_data['report_form'] = issued_date_raw
+                                    extracted_data['issued_date'] = ''
                         
                         logger.info(f"✅ Survey report field extraction successful")
                         logger.info(f"   📋 Survey Name: '{extracted_data.get('survey_report_name')}'")
