@@ -20,7 +20,7 @@ try:
                 break
     print(f"Using backend URL: {BACKEND_URL}")
 except:
-    BACKEND_URL = 'https://doc-navigator-9.preview.emergentagent.com/api'
+    BACKEND_URL = 'https://marine-doc-system.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate and get token"""

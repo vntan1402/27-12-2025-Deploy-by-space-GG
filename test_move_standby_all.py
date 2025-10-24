@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import requests
 
-BACKEND_URL = 'https://doc-navigator-9.preview.emergentagent.com/api'
+BACKEND_URL = 'https://marine-doc-system.preview.emergentagent.com/api'
 
 print("=" * 70)
 print("🧪 TEST: Move All Standby Crew Files")

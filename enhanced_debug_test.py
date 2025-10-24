@@ -22,7 +22,7 @@ from datetime import datetime
 import traceback
 
 # Configuration
-BACKEND_URL = 'https://doc-navigator-9.preview.emergentagent.com/api'
+BACKEND_URL = 'https://marine-doc-system.preview.emergentagent.com/api'
 print(f"Using backend URL: {BACKEND_URL}")
 
 class EnhancedDebugTester:

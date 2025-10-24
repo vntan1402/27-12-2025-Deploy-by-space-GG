@@ -10,7 +10,7 @@ import json
 import time
 import subprocess
 
-BACKEND_URL = 'https://doc-navigator-9.preview.emergentagent.com/api'
+BACKEND_URL = 'https://marine-doc-system.preview.emergentagent.com/api'
 
 def get_auth_token():
     """Get authentication token"""
@@ -23,7 +23,7 @@ def get_auth_token():
 def get_documents_with_files(token):
     """Get existing documents that have files"""
     headers = {'Authorization': f'Bearer {token}'}
-    response = requests.get(f'{BACKEND_URL}/drawings-manuals?ship_id=7f20a73b-8cd3-4bc9-9ab3-efbc8d552bb7', headers=headers)
+    response = requests.get(f'{BACKEND_URL}/drawings-manuals?ship_id=marine-doc-system', headers=headers)
     
     if response.status_code == 200:
         docs = response.json()

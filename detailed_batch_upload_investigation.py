@@ -14,7 +14,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://doc-navigator-9.preview.emergentagent.com/api"
+BACKEND_URL = "https://marine-doc-system.preview.emergentagent.com/api"
 TEST_FILES = {
     "Chemical_Suit.pdf": "/tmp/Chemical_Suit.pdf",
     "Co2.pdf": "/tmp/Co2.pdf"
