@@ -5165,8 +5165,11 @@ Analyze the following text summary of a maritime survey report and extract all k
 
 **issued_date**: 
 - Extract the date when the report was issued/completed
-- Look for "Issued Date", "Report Date", "Date of Survey", "Completion Date"
+- Look for "Issued Date", "Report Date", "Date of Survey", "Completion Date", "Completion", "Date"
 - Convert to ISO format "YYYY-MM-DD"
+- **IMPORTANT**: ONLY extract if it's clearly a DATE (e.g., "15 January 2024", "2024-01-15", "15/01/2024")
+- **DO NOT extract** form codes or abbreviations that look like dates (e.g., "CU (02/19)" is a FORM, not a date)
+- If uncertain whether something is a date or form code, leave issued_date EMPTY and put the value in report_form instead
 
 **ship_name**: 
 - Extract the vessel name mentioned in the report
