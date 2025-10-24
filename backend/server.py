@@ -6087,6 +6087,8 @@ async def analyze_survey_report_file(
         
         try:
             # ✅ ENHANCED: Support for large PDF files (> 15 pages)
+            logger.info(f"📊 PDF Analysis Decision: needs_split={needs_split}, total_pages={total_pages}")
+            
             if not needs_split:
                 # Normal processing for files ≤ 15 pages
                 logger.info(f"🔄 Analyzing survey report (no upload): {filename}")
