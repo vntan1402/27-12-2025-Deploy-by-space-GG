@@ -5187,15 +5187,20 @@ Analyze the following text summary of a maritime survey report and extract all k
 
 **report_form**: 
 - Extract the report form or form type/number used for this survey
-- **CRITICAL**: Often appears in HEADER or FOOTER sections
+- **CRITICAL 1**: Check the FILENAME first - often contains the report form
+  * Example: Filename "CG (02-19).pdf" → Report Form is "CG (02-19)"
+  * Example: Filename "CU 02-19.pdf" → Report Form is "CU (02-19)" or "CU 02-19"
+  * If filename contains pattern like "[A-Z]+ \([0-9]{2}[-/][0-9]{2}\)", extract it as report_form
+- **CRITICAL 2**: Often appears in HEADER or FOOTER sections
 - **Common patterns**: Abbreviations of survey types followed by numbers/dates
-  * Examples: "CU (02/19)", "AS (03/20)", "PS (01/21)", "DS 02-19"
-  * "CU" = Close-up, "AS" = Annual Survey, "PS" = Pre-Survey, "DS" = Docking Survey
+  * Examples: "CU (02/19)", "AS (03/20)", "PS (01/21)", "DS 02-19", "CG (02-19)"
+  * "CU" = Close-up, "AS" = Annual Survey, "PS" = Pre-Survey, "DS" = Docking Survey, "CG" = Cargo Gear
 - **Look for**: "Report Form", "Form No.", "Form Type", "Survey Form", "Form Used"
 - **Also check**: Abbreviations related to survey_report_name (e.g., if survey is "Close-up Survey", look for "CU")
 - May contain codes like "P&I Form", "Class Form A", "Form 001", etc.
 - Extract the complete form identifier as mentioned in the document
 - **DO NOT confuse with dates**: Forms may look like dates (e.g., "CU (02/19)") but are form identifiers
+- **PRIORITY**: Filename > Header/Footer > Document body
 
 **survey_report_no**: 
 - Extract the report number or reference number
