@@ -30988,8 +30988,17 @@ const AddRecordModal = ({
       )}
 
       {/* Floating Icons for Minimized Modals - Using Portal to render at body level */}
+      
+      {/* TEST: Always visible floating icon to verify Portal works */}
+      {ReactDOM.createPortal(
+        <div className="fixed bottom-6 right-6 bg-red-500 text-white p-4 rounded-full shadow-2xl z-[9999]">
+          TEST
+        </div>,
+        document.body
+      )}
+      
       {showAddSurveyModal && isSurveyReportAddModalMinimized && ReactDOM.createPortal(
-        <div className="fixed bottom-6 right-6 z-[9999]">
+        <div className="fixed bottom-20 right-6 z-[9999]">
           <div 
             onClick={() => {
               console.log('Restoring Add Survey Modal');
@@ -31010,7 +31019,7 @@ const AddRecordModal = ({
       )}
       
       {isBatchProcessingSurveyReports && isSurveyReportBatchModalMinimized && ReactDOM.createPortal(
-        <div className="fixed bottom-6 right-6 z-[9999]">
+        <div className="fixed bottom-20 right-6 z-[9999]">
           <div 
             onClick={() => {
               console.log('Restoring Batch Processing Modal');
