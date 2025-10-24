@@ -13333,7 +13333,39 @@ const HomePage = () => {
                                       <span className="font-bold">{index + 1}</span>
                                     </div>
                                   </td>
-                                  <td className="border border-gray-300 px-4 py-2">{report.survey_report_name}</td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center gap-2">
+                                      <span>{report.survey_report_name}</span>
+                                      {report.survey_report_file_id && (
+                                        <span 
+                                          className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
+                                          title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Class Survey Report`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (report.survey_report_file_id) {
+                                              window.open(`https://drive.google.com/file/d/${report.survey_report_file_id}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📄
+                                        </span>
+                                      )}
+                                      {report.survey_report_summary_file_id && (
+                                        <span 
+                                          className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                                          title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 SUMMARY/Class & Flag Document`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (report.survey_report_summary_file_id) {
+                                              window.open(`https://drive.google.com/file/d/${report.survey_report_summary_file_id}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📋
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">{report.report_form || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
