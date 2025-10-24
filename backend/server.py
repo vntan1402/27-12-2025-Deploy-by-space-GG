@@ -5816,44 +5816,132 @@ async def bulk_delete_survey_reports(
     request: BulkDeleteSurveyReportsRequest,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Bulk delete survey reports"""
+    """
+    Bulk delete survey reports including associated Google Drive files (original + summary)
+    """
     try:
-        logger.info(f"🗑️ Bulk deleting {len(request.report_ids)} survey reports")
+        company_uuid = await resolve_company_id(current_user)
+        report_ids = request.report_ids
+        
+        logger.info(f"🗑️ Bulk delete survey reports request received: {len(report_ids)} report(s)")
+        logger.info(f"📋 Report IDs: {report_ids}")
         
         deleted_count = 0
+        files_deleted = 0
         errors = []
         
         for report_id in request.report_ids:
             try:
-                report = await mongo_db.find_one("survey_reports", {"id": report_id})
+                logger.info(f"🔍 Checking survey report: {report_id}")
+                
+                # Check if survey report exists
+                report = await mongo_db.find_one("survey_reports", {
+                    "id": report_id
+                })
+                
                 if not report:
-                    errors.append(f"Report {report_id} not found")
+                    logger.warning(f"⚠️ Survey report not found: {report_id}")
+                    errors.append(f"Survey report {report_id} not found")
                     continue
+                
+                logger.info(f"✅ Found survey report: {report.get('survey_report_name')}")
+                
+                # Delete associated files from Google Drive if exist (both original and summary)
+                original_file_id = report.get("survey_report_file_id")
+                summary_file_id = report.get("survey_report_summary_file_id")
+                
+                # Get company Apps Script URL from company_gdrive_config
+                gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+                if gdrive_config and (gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")):
+                    company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+                    
+                    import aiohttp
+                    
+                    # Delete original file
+                    if original_file_id:
+                        logger.info(f"🗑️ Deleting original survey report file: {original_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": original_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Original file deleted: {original_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting original file {original_file_id}: {e}")
+                    
+                    # Delete summary file
+                    if summary_file_id:
+                        logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": summary_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
                 
                 # Delete from database
                 await mongo_db.delete("survey_reports", {"id": report_id})
                 deleted_count += 1
-                logger.info(f"✅ Deleted survey report: {report_id}")
+                logger.info(f"✅ Survey report deleted from database: {report_id}")
                 
             except Exception as e:
-                errors.append(f"Error deleting report {report_id}: {str(e)}")
-                logger.error(f"Error in bulk delete for report {report_id}: {e}")
+                errors.append(f"Error deleting survey report {report_id}: {str(e)}")
+                logger.error(f"Error in bulk delete for survey report {report_id}: {e}")
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="BULK_DELETE_SURVEY_REPORTS",
+            resource_type="survey_report",
+            resource_id="bulk",
+            details={
+                "deleted_count": deleted_count,
+                "files_deleted": files_deleted,
+                "errors": errors
+            },
+            company_id=company_uuid
+        )
         
         # If no reports were deleted at all, return error
         if deleted_count == 0 and len(errors) > 0:
             error_details = "; ".join(errors)
-            raise HTTPException(status_code=404, detail=f"Reports not found. {error_details}")
+            raise HTTPException(status_code=404, detail=f"Survey reports not found. {error_details}")
         
-        message = f"Deleted {deleted_count} report(s)"
+        message = f"Deleted {deleted_count} survey report(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
         if errors:
             message += f", {len(errors)} error(s)"
         
-        logger.info(f"✅ Bulk delete completed: {deleted_count}/{len(request.report_ids)} deleted")
         return {
             "success": True,
-            "deleted_count": deleted_count,
-            "total_requested": len(request.report_ids),
             "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
             "errors": errors if errors else None,
             "partial_success": len(errors) > 0 and deleted_count > 0
         }
@@ -5861,8 +5949,8 @@ async def bulk_delete_survey_reports(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error in bulk delete: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error in bulk delete survey reports: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to bulk delete survey reports: {str(e)}")
 
 
 # Survey Report File Analysis & Upload endpoints
