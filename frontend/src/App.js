@@ -4675,31 +4675,23 @@ const HomePage = () => {
         surveyor_name: newSurveyReport.surveyor_name || null  // Include surveyor_name from AI analysis
       };
 
+      // Step 1: Create record immediately
       const createResponse = await axios.post(`${API}/survey-reports?ship_id=${selectedShip.id}`, reportData);
-      
       const reportId = createResponse.data.id;
       
-      // If file was analyzed, upload files to Google Drive
-      if (analyzedSurveyReportData && analyzedSurveyReportData._file_content) {
-        try {
-          const uploadData = {
-            file_content: analyzedSurveyReportData._file_content,
-            filename: analyzedSurveyReportData._filename,
-            content_type: analyzedSurveyReportData._content_type,
-            summary_text: analyzedSurveyReportData._summary_text || ''
-          };
-          
-          await axios.post(`${API}/survey-reports/${reportId}/upload-files`, uploadData);
-          toast.success(language === 'vi' ? 'Đã thêm báo cáo survey và upload file' : 'Survey report added and files uploaded');
-        } catch (uploadError) {
-          console.error('File upload failed:', uploadError);
-          toast.warning(language === 'vi' ? 'Báo cáo đã lưu nhưng upload file thất bại' : 'Report saved but file upload failed');
-        }
-      } else {
-        toast.success(language === 'vi' ? 'Đã thêm báo cáo survey' : 'Survey report added successfully');
-      }
+      // Step 2: Show success notification and close modal immediately
+      toast.success(language === 'vi' ? '✅ Đã thêm báo cáo survey' : '✅ Survey report added successfully');
       
-      // Reset form and close modal
+      // Step 3: Save file data for background upload
+      const fileDataForUpload = analyzedSurveyReportData && analyzedSurveyReportData._file_content ? {
+        reportId: reportId,
+        file_content: analyzedSurveyReportData._file_content,
+        filename: analyzedSurveyReportData._filename,
+        content_type: analyzedSurveyReportData._content_type,
+        summary_text: analyzedSurveyReportData._summary_text || ''
+      } : null;
+      
+      // Reset form and close modal immediately
       setNewSurveyReport({
         survey_report_name: '',
         report_form: '',
@@ -4715,8 +4707,40 @@ const HomePage = () => {
       setSurveyReportFileError('');
       setShowAddSurveyModal(false);
       
-      // Refresh survey reports list
+      // Step 4: Refresh survey reports list
       await fetchSurveyReports(selectedShip.id);
+      
+      // Step 5: Upload files in background if exists
+      if (fileDataForUpload) {
+        // Show uploading notification
+        toast.info(language === 'vi' ? '📤 Đang upload file lên Google Drive...' : '📤 Uploading files to Google Drive...');
+        
+        // Background upload
+        setTimeout(async () => {
+          try {
+            const uploadData = {
+              file_content: fileDataForUpload.file_content,
+              filename: fileDataForUpload.filename,
+              content_type: fileDataForUpload.content_type,
+              summary_text: fileDataForUpload.summary_text
+            };
+            
+            await axios.post(`${API}/survey-reports/${fileDataForUpload.reportId}/upload-files`, uploadData);
+            
+            // Show success notification when upload completes
+            toast.success(language === 'vi' ? '🗂️ Upload file hoàn tất' : '🗂️ Files uploaded successfully');
+            
+            // Refresh list to update file links
+            if (selectedShip) {
+              await fetchSurveyReports(selectedShip.id);
+            }
+          } catch (uploadError) {
+            console.error('Background file upload failed:', uploadError);
+            toast.error(language === 'vi' ? '❌ Upload file thất bại' : '❌ File upload failed');
+          }
+        }, 100); // Small delay to ensure modal closes first
+      }
+      
     } catch (error) {
       console.error('Failed to add survey report:', error);
       // Handle Pydantic validation errors (array of objects) vs string errors
