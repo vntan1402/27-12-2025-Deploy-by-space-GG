@@ -14223,7 +14223,11 @@ const HomePage = () => {
                           <div className="flex items-center gap-2">
                             {/* Minimize Button */}
                             <button
-                              onClick={() => setIsSurveyReportAddModalMinimized(true)}
+                              onClick={() => {
+                                console.log('🔽 Minimizing Add Survey Modal');
+                                setIsSurveyReportAddModalMinimized(true);
+                                console.log('State set to minimized');
+                              }}
                               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                               title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
                             >
