@@ -6314,8 +6314,78 @@ async def analyze_survey_report_file(
                             analysis_result['_summary_text'] = ''
                             analysis_result["processing_method"] = "empty_summary"
                         else:
-                            # Extract fields from AI summary using system AI
-                            logger.info("🧠 Extracting survey report fields from Document AI summary...")
+                            # ✨ STEP 1: Perform Targeted OCR to enhance summary BEFORE field extraction
+                            logger.info("🔍 Starting Targeted OCR for header/footer extraction...")
+                            
+                            ocr_metadata = {
+                                'ocr_attempted': False,
+                                'ocr_success': False,
+                                'ocr_text_merged': False,
+                                'header_text_length': 0,
+                                'footer_text_length': 0
+                            }
+                            
+                            try:
+                                from targeted_ocr import get_ocr_processor
+                                
+                                ocr_processor = get_ocr_processor()
+                                ocr_metadata['ocr_attempted'] = True
+                                
+                                if ocr_processor.is_available():
+                                    # Perform OCR on first page header/footer
+                                    ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
+                                    
+                                    if ocr_result.get('ocr_success'):
+                                        logger.info("✅ Targeted OCR completed successfully")
+                                        
+                                        header_text = ocr_result.get('header_text', '').strip()
+                                        footer_text = ocr_result.get('footer_text', '').strip()
+                                        
+                                        ocr_metadata['ocr_success'] = True
+                                        ocr_metadata['header_text_length'] = len(header_text)
+                                        ocr_metadata['footer_text_length'] = len(footer_text)
+                                        
+                                        # MERGE OCR TEXT INTO SUMMARY
+                                        if header_text or footer_text:
+                                            logger.info("📝 Merging OCR text into Document AI summary...")
+                                            
+                                            ocr_section = "\n\n" + "="*60 + "\n"
+                                            ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                                            ocr_section += "="*60 + "\n\n"
+                                            
+                                            if header_text:
+                                                ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
+                                                ocr_section += header_text + "\n\n"
+                                                logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
+                                            
+                                            if footer_text:
+                                                ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
+                                                ocr_section += footer_text + "\n\n"
+                                                logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
+                                            
+                                            ocr_section += "="*60 + "\n"
+                                            ocr_section += "Note: The above header/footer text was extracted using OCR\n"
+                                            ocr_section += "and may contain critical information like Report Form and Report No.\n"
+                                            ocr_section += "="*60
+                                            
+                                            # Enhance summary with OCR
+                                            summary_text = summary_text + ocr_section
+                                            ocr_metadata['ocr_text_merged'] = True
+                                            
+                                            logger.info(f"✅ Enhanced summary created with OCR: {len(summary_text)} chars")
+                                    else:
+                                        logger.warning("⚠️ OCR extraction returned no results")
+                                else:
+                                    logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
+                            except Exception as ocr_error:
+                                logger.error(f"❌ Error during OCR extraction: {ocr_error}")
+                                ocr_metadata['ocr_error'] = str(ocr_error)
+                            
+                            # Add OCR metadata to analysis result
+                            analysis_result['_ocr_info'] = ocr_metadata
+                            
+                            # STEP 2: Extract fields from enhanced summary (with OCR) using system AI
+                            logger.info("🧠 Extracting survey report fields from enhanced summary...")
                             
                             # Get AI configuration for field extraction
                             ai_provider = ai_config_doc.get("provider", "google")
@@ -6323,7 +6393,7 @@ async def analyze_survey_report_file(
                             use_emergent_key = ai_config_doc.get("use_emergent_key", True)
                             
                             extracted_fields = await extract_survey_report_fields_from_summary(
-                                summary_text,
+                                summary_text,  # This now includes OCR text
                                 ai_provider,
                                 ai_model,
                                 use_emergent_key,
@@ -6337,7 +6407,7 @@ async def analyze_survey_report_file(
                                 logger.info(f"   📋 Extracted Survey Name: '{analysis_result.get('survey_report_name')}'")
                                 logger.info(f"   🔢 Extracted Survey No: '{analysis_result.get('survey_report_no')}'")
                                 
-                                # Store summary for later upload
+                                # Store enhanced summary (with OCR) for later upload
                                 analysis_result['_summary_text'] = summary_text
                             else:
                                 logger.warning("⚠️ No fields extracted, using empty analysis")
