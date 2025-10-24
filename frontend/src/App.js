@@ -11626,6 +11626,22 @@ const HomePage = () => {
     }
   };
 
+  // Helper function to get abbreviation from Issued By (first letters of each word, max 4 words)
+  const getIssuedByAbbreviation = (issuedBy) => {
+    if (!issuedBy || typeof issuedBy !== 'string') return '-';
+    
+    // Split by spaces and filter out empty strings
+    const words = issuedBy.trim().split(/\s+/).filter(word => word.length > 0);
+    
+    // Take first letter of each word, max 4 words
+    const abbreviation = words
+      .slice(0, 4)
+      .map(word => word.charAt(0).toUpperCase())
+      .join('');
+    
+    return abbreviation || '-';
+  };
+
   // Enhanced formatting functions for Anniversary Date and Dry Dock Cycle
   const formatAnniversaryDate = (anniversaryDate) => {
     if (!anniversaryDate) return '-';
