@@ -46,7 +46,7 @@ except:
     BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marine-doc-system.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
-class PassportWorkflowTester:
+class SurveyReportBulkDeleteTester:
     def __init__(self):
         self.session = requests.Session()
         self.auth_token = None
