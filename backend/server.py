@@ -6291,14 +6291,15 @@ async def analyze_survey_report_file(
                             ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
                             use_emergent_key = ai_config_doc.get("use_emergent_key", True)
                             
-                            # Extract fields from enhanced summary
+                            # Extract fields from enhanced summary with filename context
                             from dual_apps_script_manager import extract_fields_from_summary
                             
                             extracted_fields = await extract_fields_from_summary(
                                 enhanced_summary,
                                 ai_provider,
                                 ai_model,
-                                use_emergent_key
+                                use_emergent_key,
+                                filename=filename  # Pass filename for Report Form extraction
                             )
                             
                             if extracted_fields:
