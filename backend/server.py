@@ -5046,8 +5046,8 @@ async def extract_survey_report_fields_from_summary(
     try:
         logger.info(f"🤖 Extracting survey report fields from summary")
         
-        # Create survey report extraction prompt
-        prompt = create_survey_report_extraction_prompt(summary_text)
+        # Create survey report extraction prompt with filename
+        prompt = create_survey_report_extraction_prompt(summary_text, filename)
         
         if not prompt:
             logger.error(f"Failed to create survey report extraction prompt")
