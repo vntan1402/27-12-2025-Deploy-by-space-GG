@@ -173,7 +173,7 @@ class SurveyReportBulkDeleteTester:
                     if ship.get("name") == self.ship_name:
                         self.ship_id = ship.get("id")
                         self.log(f"✅ Found ship: {self.ship_name} (ID: {self.ship_id})")
-                        self.passport_tests['ship_discovery_successful'] = True
+                        self.bulk_delete_tests['ship_discovery_successful'] = True
                         return True
                 
                 self.log(f"❌ Ship '{self.ship_name}' not found", "ERROR")
