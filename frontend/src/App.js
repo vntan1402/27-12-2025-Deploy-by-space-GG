@@ -4794,8 +4794,31 @@ const HomePage = () => {
     }
 
     try {
-      await axios.delete(`${API}/survey-reports/${reportId}`);
-      toast.success(language === 'vi' ? 'Đã xóa báo cáo survey' : 'Survey report deleted successfully');
+      // Use bulk-delete endpoint even for single report
+      const response = await axios.delete(`${API}/survey-reports/bulk-delete`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { report_ids: [reportId] }
+      });
+      
+      const result = response.data;
+      
+      // First notification: Record deleted
+      if (result.deleted_count > 0) {
+        toast.success(language === 'vi' 
+          ? '✅ Đã xóa báo cáo khỏi hệ thống' 
+          : '✅ Report deleted from database'
+        );
+      }
+      
+      // Second notification: Files deleted from Google Drive
+      if (result.files_deleted > 0) {
+        setTimeout(() => {
+          toast.success(language === 'vi' 
+            ? `🗑️ Đã xóa ${result.files_deleted} file từ Google Drive` 
+            : `🗑️ Deleted ${result.files_deleted} file(s) from Google Drive`
+          );
+        }, 1000);
+      }
       
       // Refresh survey reports list
       if (selectedShip) {
@@ -4803,7 +4826,8 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error('Failed to delete survey report:', error);
-      toast.error(language === 'vi' ? 'Không thể xóa báo cáo survey' : 'Failed to delete survey report');
+      const errorMsg = error.response?.data?.detail || 'Failed to delete survey report';
+      toast.error(language === 'vi' ? `❌ Không thể xóa báo cáo: ${errorMsg}` : `❌ ${errorMsg}`);
     }
   };
 
