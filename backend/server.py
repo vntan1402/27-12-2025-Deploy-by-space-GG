@@ -5152,6 +5152,8 @@ Analyze the following text summary of a maritime survey report and extract all k
 3. If a field is not found, leave it as an empty string "".
 4. Normalize all dates to ISO format "YYYY-MM-DD".
 5. Do not infer or fabricate any missing information.
+6. **For survey_report_name**: Combine information from (a) document beginning, (b) report_form abbreviation, (c) frequently mentioned equipment/systems
+7. **Cross-validation**: If report_form contains abbreviations (e.g., "CG", "BT", "CU"), use them to identify what equipment is being surveyed
 
 === FIELD EXTRACTION RULES ===
 
