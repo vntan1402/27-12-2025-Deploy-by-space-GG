@@ -5878,6 +5878,11 @@ const HomePage = () => {
         });
         
         // Store analysis data for later upload
+        console.log('📊 Storing analyzed survey report data:', {
+          has_file_content: !!analysis._file_content,
+          summary_length: analysis._summary_text?.length || 0,
+          ocr_info: analysis._ocr_info
+        });
         setAnalyzedSurveyReportData(analysis);
         setSurveyReportFiles([file]);
         
@@ -5927,6 +5932,11 @@ const HomePage = () => {
         });
         
         // Store analysis data for later upload
+        console.log('📊 Storing analyzed survey report data:', {
+          has_file_content: !!analysis._file_content,
+          summary_length: analysis._summary_text?.length || 0,
+          ocr_info: analysis._ocr_info
+        });
         setAnalyzedSurveyReportData(analysis);
         setSurveyReportFiles([file]);
         
