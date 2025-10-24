@@ -6171,7 +6171,8 @@ async def analyze_survey_report_file(
                                 summary_text,
                                 ai_provider,
                                 ai_model,
-                                use_emergent_key
+                                use_emergent_key,
+                                filename
                             )
                             
                             if extracted_fields:
