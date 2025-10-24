@@ -1,5 +1,4 @@
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Toaster } from './components/ui/sonner';
