@@ -14407,47 +14407,49 @@ const HomePage = () => {
                         </div>
 
                         <form className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Tên Báo cáo Survey' : 'Survey Report Name'} *
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={newSurveyReport.survey_report_name}
-                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, survey_report_name: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: Annual Survey Report' : 'e.g. Annual Survey Report'}
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newSurveyReport.report_form}
-                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, report_form: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: P&I Form, Class Form A' : 'e.g. P&I Form, Class Form A'}
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Số Báo cáo Survey' : 'Survey Report No.'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newSurveyReport.survey_report_no}
-                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, survey_report_no: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: SR-2025-001' : 'e.g. SR-2025-001'}
-                            />
-                          </div>
-
+                          {/* Row 1: Survey Report Name + Report Form */}
                           <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tên Báo cáo' : 'Report Name'} *
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={newSurveyReport.survey_report_name}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, survey_report_name: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder={language === 'vi' ? 'VD: Hull Survey' : 'e.g. Hull Survey'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newSurveyReport.report_form}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, report_form: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder={language === 'vi' ? 'VD: Form A' : 'e.g. Form A'}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Row 2: Survey Report No. + Issued Date + Status */}
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Số Báo cáo' : 'Report No.'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newSurveyReport.survey_report_no}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, survey_report_no: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder={language === 'vi' ? 'SR-001' : 'SR-001'}
+                              />
+                            </div>
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày cấp' : 'Issued Date'}
@@ -14459,7 +14461,6 @@ const HomePage = () => {
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                               />
                             </div>
-
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Tình trạng' : 'Status'}
@@ -14476,19 +14477,35 @@ const HomePage = () => {
                             </div>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newSurveyReport.issued_by}
-                              onChange={(e) => setNewSurveyReport(prev => ({ ...prev, issued_by: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
-                            />
+                          {/* Row 3: Issued By + Surveyor Name */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newSurveyReport.issued_by}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, issued_by: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tên Surveyor' : 'Surveyor Name'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newSurveyReport.surveyor_name}
+                                onChange={(e) => setNewSurveyReport(prev => ({ ...prev, surveyor_name: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder={language === 'vi' ? 'VD: John Smith' : 'e.g. John Smith'}
+                              />
+                            </div>
                           </div>
 
+                          {/* Row 4: Note (full width) */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               {language === 'vi' ? 'Ghi chú' : 'Note'}
@@ -14497,7 +14514,7 @@ const HomePage = () => {
                               value={newSurveyReport.note}
                               onChange={(e) => setNewSurveyReport(prev => ({ ...prev, note: e.target.value }))}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              rows="3"
+                              rows="2"
                               placeholder={language === 'vi' ? 'Nhập ghi chú (không bắt buộc)' : 'Enter note (optional)'}
                             />
                           </div>
