@@ -4881,15 +4881,40 @@ const HomePage = () => {
       try {
         const reportIds = Array.from(selectedSurveyReports);
         
-        await axios.delete(`${API}/survey-reports/bulk-delete`, {
+        const response = await axios.delete(`${API}/survey-reports/bulk-delete`, {
           headers: { Authorization: `Bearer ${token}` },
           data: { report_ids: reportIds }
         });
         
-        toast.success(language === 'vi' 
-          ? `🗑️ Đã xóa ${selectedSurveyReports.size} báo cáo` 
-          : `🗑️ Deleted ${selectedSurveyReports.size} report(s)`
-        );
+        const result = response.data;
+        
+        // First notification: Records deleted
+        if (result.deleted_count > 0) {
+          toast.success(language === 'vi' 
+            ? `✅ Đã xóa ${result.deleted_count} báo cáo khỏi hệ thống` 
+            : `✅ Deleted ${result.deleted_count} report(s) from database`
+          );
+        }
+        
+        // Second notification: Files deleted from Google Drive
+        if (result.files_deleted > 0) {
+          setTimeout(() => {
+            toast.success(language === 'vi' 
+              ? `🗑️ Đã xóa ${result.files_deleted} file từ Google Drive` 
+              : `🗑️ Deleted ${result.files_deleted} file(s) from Google Drive`
+            );
+          }, 1000);
+        }
+        
+        // Show errors if any
+        if (result.errors && result.errors.length > 0) {
+          setTimeout(() => {
+            toast.warning(language === 'vi' 
+              ? `⚠️ Có ${result.errors.length} lỗi khi xóa` 
+              : `⚠️ ${result.errors.length} error(s) occurred`
+            );
+          }, 2000);
+        }
         
         setSelectedSurveyReports(new Set());
         
