@@ -30987,8 +30987,8 @@ const AddRecordModal = ({
         </div>
       )}
 
-      {/* Floating Icons for Minimized Modals */}
-      {showAddSurveyModal && isSurveyReportAddModalMinimized && (
+      {/* Floating Icons for Minimized Modals - Using Portal to render at body level */}
+      {showAddSurveyModal && isSurveyReportAddModalMinimized && ReactDOM.createPortal(
         <div className="fixed bottom-6 right-6 z-[9999]">
           <div 
             onClick={() => {
@@ -31005,10 +31005,11 @@ const AddRecordModal = ({
               {language === 'vi' ? 'Thêm Survey Report' : 'Add Survey Report'}
             </span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       
-      {isBatchProcessingSurveyReports && isSurveyReportBatchModalMinimized && (
+      {isBatchProcessingSurveyReports && isSurveyReportBatchModalMinimized && ReactDOM.createPortal(
         <div className="fixed bottom-6 right-6 z-[9999]">
           <div 
             onClick={() => {
@@ -31033,7 +31034,8 @@ const AddRecordModal = ({
                 : `Processing ${surveyReportBatchProgress.current}/${surveyReportBatchProgress.total}`}
             </span>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Removed from here - will be moved to HomePage level */}
