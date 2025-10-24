@@ -5137,14 +5137,22 @@ async def extract_survey_report_fields_from_summary(
         return {}
 
 
-def create_survey_report_extraction_prompt(summary_text: str) -> str:
+def create_survey_report_extraction_prompt(summary_text: str, filename: str = "") -> str:
     """
     Create AI prompt for extracting survey report fields
+    
+    Args:
+        summary_text: Document summary text
+        filename: Original filename (can help identify report form)
     """
     prompt = f"""You are an AI specialized in maritime survey report information extraction.
 
 Your task:
 Analyze the following text summary of a maritime survey report and extract all key fields.
+
+**IMPORTANT CONTEXT:**
+- Original filename: {filename}
+- The filename often contains the Report Form (e.g., "CG (02-19).pdf" → Report Form is "CG (02-19)")
 
 === INSTRUCTIONS ===
 1. Extract only the survey report fields listed below.
