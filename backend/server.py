@@ -5116,6 +5116,29 @@ async def extract_survey_report_fields_from_summary(
                         logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
                         logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
                         
+                        # POST-PROCESSING: Extract report_form from filename if AI didn't find it
+                        if not extracted_data.get('report_form') and filename:
+                            logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
+                            # Pattern: "CG (02-19).pdf" or "CU 02-19.pdf" or "AS (03/20).pdf"
+                            import re
+                            filename_form_patterns = [
+                                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2})\)',  # CG (02-19) or CG (02/19)
+                                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2})',      # CG 02-19 or CG 02/19
+                                r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2})',     # CG-02-19 or CG_02/19
+                            ]
+                            
+                            for pattern in filename_form_patterns:
+                                match = re.search(pattern, filename)
+                                if match:
+                                    abbrev = match.group(1)
+                                    date_part = match.group(2).replace('/', '-')
+                                    extracted_form = f"{abbrev} ({date_part})"
+                                    extracted_data['report_form'] = extracted_form
+                                    logger.info(f"✅ Extracted report_form from filename: '{extracted_form}'")
+                                    break
+                            else:
+                                logger.warning(f"⚠️ Could not extract report_form from filename: {filename}")
+                        
                         return extracted_data
                         
                     except json.JSONDecodeError as e:
