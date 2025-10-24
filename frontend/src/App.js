@@ -30995,8 +30995,13 @@ const AddRecordModal = ({
       )}
 
       {/* Floating Icons for Minimized Modals */}
+      {/* TEST: Always show floating icon for debugging */}
+      <div className="fixed bottom-6 right-6 bg-red-600 text-white p-4 rounded-full shadow-2xl z-[9999]" style={{ position: 'fixed', zIndex: 9999 }}>
+        TEST ICON
+      </div>
+      
       {(showAddSurveyModal && isSurveyReportAddModalMinimized) || (isBatchProcessingSurveyReports && isSurveyReportBatchModalMinimized) ? (
-        <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-[9999]" style={{ position: 'fixed', zIndex: 9999 }}>
+        <div className="fixed bottom-20 right-6 flex flex-col gap-3 z-[9999]" style={{ position: 'fixed', zIndex: 9999 }}>
           {/* Add Survey Report - Minimized Floating Icon */}
           {showAddSurveyModal && isSurveyReportAddModalMinimized && (
             <div 
