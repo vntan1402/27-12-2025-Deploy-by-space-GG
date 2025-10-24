@@ -11630,8 +11630,14 @@ const HomePage = () => {
   const getIssuedByAbbreviation = (issuedBy) => {
     if (!issuedBy || typeof issuedBy !== 'string') return '-';
     
-    // Split by spaces and filter out empty strings
-    const words = issuedBy.trim().split(/\s+/).filter(word => word.length > 0);
+    // Words to exclude from abbreviation
+    const excludeWords = ['of', 'the', 'and', '&'];
+    
+    // Split by spaces and filter out empty strings and excluded words
+    const words = issuedBy.trim()
+      .split(/\s+/)
+      .filter(word => word.length > 0)
+      .filter(word => !excludeWords.includes(word.toLowerCase()));
     
     // Take first letter of each word, max 4 words
     const abbreviation = words
