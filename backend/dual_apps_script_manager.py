@@ -1795,6 +1795,12 @@ IMPORTANT INSTRUCTIONS FOR REPORT FORM:
 - Common maritime forms: PSC, MLC, SOLAS, MARPOL, etc.
 - If filename is "{filename}", try to extract form code from it
 
+IMPORTANT INSTRUCTIONS FOR SURVEY REPORT NO:
+- Look for "Survey Report No.", "Report No.", "Report Number"
+- **ALSO CHECK "Authorization No." or "Authorization Number"** - this often contains the report number
+- Common patterns: A/25/772, SR-2025-001, etc.
+- If "Survey Report No." is not found, try to extract from "Authorization No."
+
 Return ONLY the JSON object, no other text.
 
 JSON:"""
