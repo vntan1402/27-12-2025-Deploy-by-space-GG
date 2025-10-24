@@ -56,39 +56,53 @@ class SurveyReportBulkDeleteTester:
         self.ship_name = "BROTHER 36"
         self.ship_id = None
         
-        # Test tracking for passport workflow testing
-        self.passport_tests = {
+        # Test tracking for bulk delete functionality
+        self.bulk_delete_tests = {
             # Authentication and setup
             'authentication_successful': False,
             'user_company_identified': False,
             'ship_discovery_successful': False,
+            'survey_reports_found': False,
+            'reports_with_files_found': False,
             
-            # Passport analysis endpoint
-            'passport_analysis_endpoint_accessible': False,
-            'passport_file_upload_successful': False,
-            'document_ai_processing_working': False,
-            'field_extraction_successful': False,
+            # Company Apps Script URL configuration
+            'company_apps_script_url_loaded': False,
+            'apps_script_url_configured': False,
+            'configuration_logs_found': False,
             
-            # Folder structure verification
-            'passport_file_correct_folder': False,
-            'summary_file_correct_folder': False,
-            'crew_records_subfolder_used': False,
-            'apps_script_dual_processing': False,
+            # Bulk delete endpoint
+            'bulk_delete_endpoint_accessible': False,
+            'bulk_delete_request_accepted': False,
+            'bulk_delete_response_valid': False,
+            
+            # File deletion process
+            'original_file_deletion_attempted': False,
+            'summary_file_deletion_attempted': False,
+            'file_deletion_logs_found': False,
+            'apps_script_delete_calls_made': False,
+            
+            # Response structure verification
+            'response_includes_success': False,
+            'response_includes_deleted_count': False,
+            'response_includes_files_deleted': False,
+            'response_includes_message': False,
             
             # Backend logs verification
-            'backend_logs_passport_upload': False,
-            'backend_logs_summary_upload': False,
-            'backend_logs_dual_processing': False,
-            'backend_logs_folder_creation': False,
+            'bulk_delete_logs_found': False,
+            'company_url_logs_found': False,
+            'file_deletion_workflow_logs': False,
+            'apps_script_response_logs': False,
             
-            # Google Drive integration
-            'google_drive_file_upload': False,
-            'correct_folder_structure_created': False,
-            'file_ids_returned': False,
+            # Edge cases
+            'reports_with_original_only_handled': False,
+            'reports_with_summary_only_handled': False,
+            'reports_with_both_files_handled': False,
+            'reports_with_no_files_handled': False,
         }
         
         # Store test data
-        self.test_filename = None
+        self.test_reports = []
+        self.company_apps_script_url = None
         
     def log(self, message, level="INFO"):
         """Log messages with timestamp"""
