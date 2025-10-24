@@ -5210,6 +5210,29 @@ Analyze the following text summary of a maritime survey report and extract all k
 **ship_name**: 
 - Extract the vessel name mentioned in the report
 - Look for "Vessel Name", "Ship Name", "Name of Vessel"
+
+=== EXTRACTION EXAMPLES ===
+
+**Example 1: Cargo Gear Survey**
+Document beginning: "This document is a survey record, authorization number A/25/772, from PMDS for cargo gear, derricks, cranes, ramps, and personal/cargo lifts"
+Report form: "CG (02-19)"
+Frequent terms: "cargo gear" mentioned 15+ times
+→ survey_report_name: "survey record for cargo gear"
+→ report_form: "CG (02-19)"
+
+**Example 2: Close-up Survey**
+Document beginning: "This is a close-up survey of ballast tanks and hull structure"
+Report form: "CU (02/19)"
+Frequent terms: "ballast tank", "close-up", "tank coating"
+→ survey_report_name: "close-up survey of ballast tanks"
+→ report_form: "CU (02/19)"
+
+**Example 3: Annual Survey**
+Document beginning: "Annual survey report for main engine and auxiliary machinery"
+Report form: "AS (03/20)"
+Frequent terms: "main engine", "machinery", "annual"
+→ survey_report_name: "annual survey of main engine"
+→ report_form: "AS (03/20)"
 - May include prefixes like "MV", "M/V", "MT", "M/T"
 
 **ship_imo**: 
