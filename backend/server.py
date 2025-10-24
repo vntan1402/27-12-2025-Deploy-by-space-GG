@@ -5156,9 +5156,24 @@ Analyze the following text summary of a maritime survey report and extract all k
 === FIELD EXTRACTION RULES ===
 
 **survey_report_name**: 
-- Extract the type/name of the survey (e.g., "Annual Survey", "Special Survey", "Intermediate Survey", "Docking Survey")
-- Look for phrases like "Type of Survey", "Survey Type", "Survey Report"
-- Common survey types: Annual, Special, Intermediate, Docking, Renewal, Damage, Pre-purchase
+- **CRITICAL**: Extract from the BEGINNING (first 2-3 sentences) of the document text
+- **Format**: Should include WHAT is being surveyed, not just survey type
+- **Pattern to find**: "survey [type] for [equipment/system]" or "survey of [equipment/system]"
+- **Examples**:
+  * "survey record for cargo gear" (NOT just "survey record")
+  * "close-up survey of ballast tanks" (NOT just "close-up survey")
+  * "annual survey of main engine" (NOT just "annual survey")
+  * "survey for hull structure" (NOT just "survey")
+- **Look at first sentences** like:
+  * "This document is a survey record... for cargo gear"
+  * "This is a close-up survey of ballast tanks"
+  * "Annual survey report for main engine"
+- **Cross-validate with report_form**: 
+  * If form is "CG (02/19)", CG = Cargo Gear → survey name should mention "cargo gear"
+  * If form is "BT (01/20)", BT = Ballast Tank → survey name should mention "ballast tank"
+  * If form is "CU (02/19)", CU = Close-up → survey name should be "close-up survey of [equipment]"
+- **Check document content**: The equipment/system mentioned in survey name should appear FREQUENTLY throughout the document
+- Common survey subjects: cargo gear, ballast tanks, hull structure, machinery, boilers, main engine, steering gear, cranes, derricks, lifts
 
 **report_form**: 
 - Extract the report form or form type/number used for this survey
