@@ -6457,7 +6457,10 @@ async def analyze_survey_report_file(
                         analysis_result['_summary_text'] = enhanced_summary
                         ocr_metadata['ocr_text_merged'] = True
                         
-                        logger.info(f"✅ Enhanced summary created: {len(enhanced_summary)} chars (original: {len(current_summary)} + OCR section)")
+                        logger.info(f"✅ Enhanced summary created: {len(enhanced_summary)} chars")
+                        logger.info(f"   📄 Original summary: {len(current_summary)} chars")
+                        logger.info(f"   ➕ OCR section added: {len(ocr_section)} chars")
+                        logger.info(f"   📊 Final enhanced summary: {len(enhanced_summary)} chars")
                         
                         # RE-EXTRACT fields from enhanced summary with System AI
                         logger.info("🧠 Re-extracting fields from enhanced summary with System AI...")
