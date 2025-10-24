@@ -5828,6 +5828,66 @@ async def delete_survey_report(
         logger.error(f"Error deleting survey report: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete survey report")
 
+
+# Pydantic model for bulk delete request
+class BulkDeleteSurveyReportsRequest(BaseModel):
+    report_ids: list[str]
+
+
+@api_router.delete("/survey-reports/bulk-delete")
+async def bulk_delete_survey_reports(
+    request: BulkDeleteSurveyReportsRequest,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Bulk delete survey reports"""
+    try:
+        logger.info(f"🗑️ Bulk deleting {len(request.report_ids)} survey reports")
+        
+        deleted_count = 0
+        errors = []
+        
+        for report_id in request.report_ids:
+            try:
+                report = await mongo_db.find_one("survey_reports", {"id": report_id})
+                if not report:
+                    errors.append(f"Report {report_id} not found")
+                    continue
+                
+                # Delete from database
+                await mongo_db.delete("survey_reports", {"id": report_id})
+                deleted_count += 1
+                logger.info(f"✅ Deleted survey report: {report_id}")
+                
+            except Exception as e:
+                errors.append(f"Error deleting report {report_id}: {str(e)}")
+                logger.error(f"Error in bulk delete for report {report_id}: {e}")
+        
+        # If no reports were deleted at all, return error
+        if deleted_count == 0 and len(errors) > 0:
+            error_details = "; ".join(errors)
+            raise HTTPException(status_code=404, detail=f"Reports not found. {error_details}")
+        
+        message = f"Deleted {deleted_count} report(s)"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        logger.info(f"✅ Bulk delete completed: {deleted_count}/{len(request.report_ids)} deleted")
+        return {
+            "success": True,
+            "deleted_count": deleted_count,
+            "total_requested": len(request.report_ids),
+            "message": message,
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error in bulk delete: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Survey Report File Analysis & Upload endpoints
 @api_router.post("/survey-reports/analyze-file")
 async def analyze_survey_report_file(
