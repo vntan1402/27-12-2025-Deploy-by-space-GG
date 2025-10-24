@@ -5037,7 +5037,8 @@ async def extract_survey_report_fields_from_summary(
     summary_text: str,
     ai_provider: str,
     ai_model: str,
-    use_emergent_key: bool
+    use_emergent_key: bool,
+    filename: str = ""
 ) -> dict:
     """
     Extract survey report fields from Document AI summary using System AI
