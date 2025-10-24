@@ -14795,6 +14795,79 @@ const HomePage = () => {
                     </div>
                   )}
                   
+                  {/* Minimized Survey Report Modals - Floating Icons */}
+                  {showAddSurveyModal && isSurveyReportAddModalMinimized && (
+                    <div 
+                      onClick={() => {
+                        console.log('📂 Restoring Add Survey Report modal...');
+                        setIsSurveyReportAddModalMinimized(false);
+                      }}
+                      className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
+                    >
+                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 p-4 min-w-[280px]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-white bg-opacity-20 rounded-full p-2">
+                              <span className="text-2xl">📋</span>
+                            </div>
+                            <div>
+                              <div className="font-bold text-sm">
+                                {language === 'vi' ? 'Thêm Survey Report' : 'Add Survey Report'}
+                              </div>
+                              <div className="text-xs text-blue-100">
+                                {language === 'vi' ? 'Đang soạn...' : 'In progress...'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-white bg-opacity-20 rounded-full p-1.5 group-hover:bg-opacity-30 transition-all">
+                              <span className="text-sm">↑</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-blue-100">
+                          {language === 'vi' ? 'Click để mở lại' : 'Click to restore'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {isBatchProcessingSurveyReports && isSurveyReportBatchModalMinimized && (
+                    <div 
+                      onClick={() => {
+                        console.log('📂 Restoring Batch Processing modal...');
+                        setIsSurveyReportBatchModalMinimized(false);
+                      }}
+                      className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
+                    >
+                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 p-4 min-w-[280px]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-white bg-opacity-20 rounded-full p-2">
+                              <div className="animate-spin h-6 w-6 border-2 border-white border-t-transparent rounded-full"></div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-sm">
+                                {language === 'vi' ? 'Đang xử lý...' : 'Processing...'}
+                              </div>
+                              <div className="text-xs text-purple-100">
+                                {surveyReportBatchProgress.current}/{surveyReportBatchProgress.total} files
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-white bg-opacity-20 rounded-full p-1.5 group-hover:bg-opacity-30 transition-all">
+                              <span className="text-sm">↑</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-xs text-purple-100">
+                          {language === 'vi' ? 'Click để xem tiến trình' : 'Click to view progress'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Crew Records Section */}
 
 
