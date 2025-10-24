@@ -5190,24 +5190,24 @@ Analyze the following text summary of a maritime survey report and extract all k
 === FIELD EXTRACTION RULES ===
 
 **survey_report_name**: 
-- **CRITICAL**: Extract from the BEGINNING (first 2-3 sentences) of the document text
-- **Format**: Should include WHAT is being surveyed, not just survey type
-- **Pattern to find**: "survey [type] for [equipment/system]" or "survey of [equipment/system]"
-- **Examples**:
-  * "survey record for cargo gear" (NOT just "survey record")
-  * "close-up survey of ballast tanks" (NOT just "close-up survey")
-  * "annual survey of main engine" (NOT just "annual survey")
-  * "survey for hull structure" (NOT just "survey")
+- **CRITICAL FORMAT**: Extract ONLY the equipment/system being surveyed, NOT the survey type
+- **REMOVE survey type words**: Do NOT include "Annual", "Special", "Intermediate", "Close-up", "Docking", "Survey", "Record", "Report"
+- **ONLY extract the SUBJECT**: 
+  * "survey record for cargo gear" → Extract: "cargo gear"
+  * "close-up survey of ballast tanks" → Extract: "ballast tanks"
+  * "annual survey of main engine" → Extract: "main engine"
+  * "docking survey for hull structure" → Extract: "hull structure"
 - **Look at first sentences** like:
-  * "This document is a survey record... for cargo gear"
-  * "This is a close-up survey of ballast tanks"
-  * "Annual survey report for main engine"
+  * "This document is a survey record... for cargo gear" → Extract: "cargo gear"
+  * "This is a close-up survey of ballast tanks" → Extract: "ballast tanks"
+  * "Annual survey report for main engine" → Extract: "main engine"
 - **Cross-validate with report_form**: 
-  * If form is "CG (02/19)", CG = Cargo Gear → survey name should mention "cargo gear"
-  * If form is "BT (01/20)", BT = Ballast Tank → survey name should mention "ballast tank"
-  * If form is "CU (02/19)", CU = Close-up → survey name should be "close-up survey of [equipment]"
-- **Check document content**: The equipment/system mentioned in survey name should appear FREQUENTLY throughout the document
-- Common survey subjects: cargo gear, ballast tanks, hull structure, machinery, boilers, main engine, steering gear, cranes, derricks, lifts
+  * If form is "CG (02/19)", CG = Cargo Gear → extract "cargo gear"
+  * If form is "BT (01/20)", BT = Ballast Tank → extract "ballast tanks"
+  * If form is "ME (05/21)", ME = Main Engine → extract "main engine"
+- **Check document content**: The equipment/system should appear FREQUENTLY throughout the document
+- Common subjects: cargo gear, ballast tanks, hull structure, machinery, boilers, main engine, steering gear, cranes, derricks, lifts, tank coating, fire fighting equipment
+- **DO NOT include**: "survey", "report", "record", "annual", "special", "close-up", "docking", etc.
 
 **report_form**: 
 - Extract the report form or form type/number used for this survey
