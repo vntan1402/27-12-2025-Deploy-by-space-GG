@@ -57,6 +57,21 @@ class EnhancedOCRProcessor:
                 logger.warning(f"⚠️ Google Vision API initialization failed: {str(e)}")
                 self.vision_client = None
         
+        # Configure Tesseract path explicitly
+        import shutil
+        tesseract_path = shutil.which('tesseract')
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+            logger.info(f"✅ Tesseract path configured: {tesseract_path}")
+        else:
+            # Try common paths
+            common_paths = ['/usr/bin/tesseract', '/usr/local/bin/tesseract']
+            for path in common_paths:
+                if os.path.exists(path):
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    logger.info(f"✅ Tesseract path configured: {path}")
+                    break
+        
         # Test Tesseract OCR availability - make it optional
         try:
             tesseract_version = pytesseract.get_tesseract_version()
