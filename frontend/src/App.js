@@ -1417,6 +1417,10 @@ const HomePage = () => {
   const [surveyReportBatchResults, setSurveyReportBatchResults] = useState([]);
   const [showSurveyReportProcessingResultsModal, setShowSurveyReportProcessingResultsModal] = useState(false);
   const [selectedSurveyReports, setSelectedSurveyReports] = useState(new Set());
+  
+  // Minimize states for modals
+  const [isSurveyReportAddModalMinimized, setIsSurveyReportAddModalMinimized] = useState(false);
+  const [isSurveyReportBatchModalMinimized, setIsSurveyReportBatchModalMinimized] = useState(false);
 
   
   // Survey Report Context Menu
