@@ -48,6 +48,26 @@ class TargetedOCRProcessor:
         self.header_percent = header_percent
         self.footer_percent = footer_percent
         
+        # Configure Tesseract path explicitly
+        if TESSERACT_AVAILABLE:
+            # Try to set tesseract command path
+            import shutil
+            tesseract_path = shutil.which('tesseract')
+            if tesseract_path:
+                pytesseract.pytesseract.tesseract_cmd = tesseract_path
+                logger.info(f"✅ Tesseract path configured: {tesseract_path}")
+            else:
+                # Try common paths
+                common_paths = ['/usr/bin/tesseract', '/usr/local/bin/tesseract']
+                for path in common_paths:
+                    import os
+                    if os.path.exists(path):
+                        pytesseract.pytesseract.tesseract_cmd = path
+                        logger.info(f"✅ Tesseract path configured: {path}")
+                        break
+                else:
+                    logger.warning("⚠️ Tesseract command not found in common paths")
+        
         # Check if Tesseract is available
         if not TESSERACT_AVAILABLE:
             logger.warning("⚠️ Tesseract OCR not installed. OCR functionality will be disabled.")
