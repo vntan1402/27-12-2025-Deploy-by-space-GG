@@ -5821,10 +5821,21 @@ async def bulk_delete_survey_reports(
     """
     try:
         company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
         report_ids = request.report_ids
         
         logger.info(f"🗑️ Bulk delete survey reports request received: {len(report_ids)} report(s)")
         logger.info(f"📋 Report IDs: {report_ids}")
+        
+        # Get company Apps Script URL from companies collection (same as Drawings & Manuals)
+        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+        if not company_doc:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        company_apps_script_url = company_doc.get("company_apps_script_url")
+        logger.info(f"🔧 Company Apps Script URL: {company_apps_script_url[:50] + '...' if company_apps_script_url else 'Not configured'}")
         
         deleted_count = 0
         files_deleted = 0
@@ -5850,10 +5861,8 @@ async def bulk_delete_survey_reports(
                 original_file_id = report.get("survey_report_file_id")
                 summary_file_id = report.get("survey_report_summary_file_id")
                 
-                # Get company Apps Script URL from company_gdrive_config
-                gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
-                if gdrive_config and (gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")):
-                    company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+                # Delete files if Apps Script URL is configured
+                if company_apps_script_url:
                     
                     import aiohttp
                     
