@@ -5805,35 +5805,12 @@ async def update_survey_report(
         logger.error(f"Error updating survey report: {e}")
         raise HTTPException(status_code=500, detail="Failed to update survey report")
 
-@api_router.delete("/survey-reports/{report_id}")
-async def delete_survey_report(
-    report_id: str,
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
-):
-    """Delete a survey report"""
-    try:
-        # Check if report exists
-        existing_report = await mongo_db.find_one("survey_reports", {"id": report_id})
-        if not existing_report:
-            raise HTTPException(status_code=404, detail="Survey report not found")
-        
-        # Delete the report
-        await mongo_db.delete("survey_reports", {"id": report_id})
-        logger.info(f"✅ Survey report deleted: {report_id}")
-        return {"success": True, "message": "Survey report deleted successfully"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error deleting survey report: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete survey report")
-
-
 # Pydantic model for bulk delete request
 class BulkDeleteSurveyReportsRequest(BaseModel):
     report_ids: list[str]
 
 
+# IMPORTANT: Bulk delete MUST come BEFORE single delete to avoid routing conflict
 @api_router.delete("/survey-reports/bulk-delete")
 async def bulk_delete_survey_reports(
     request: BulkDeleteSurveyReportsRequest,
