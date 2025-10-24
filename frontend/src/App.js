@@ -13485,7 +13485,15 @@ const HomePage = () => {
                                   <td className="border border-gray-300 px-4 py-2">{report.report_form || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.survey_report_no || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{report.issued_by || '-'}</td>
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" 
+                                    title={report.issued_by}
+                                  >
+                                    {report.issued_by_abbreviation || (report.issued_by ? 
+                                      (report.issued_by.length > 8 ? `${report.issued_by.substring(0, 8)}...` : report.issued_by)
+                                      : '-'
+                                    )}
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">
                                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                                       report.status?.toLowerCase() === 'valid' ? 'bg-green-100 text-green-800' :
