@@ -5691,8 +5691,25 @@ You are a maritime test report data extraction expert. Extract the following inf
 - Common issuers: Lloyd's Register, DNV, ABS, Bureau Veritas, Class NK, Service companies, etc.
 
 **issued_date**: 
-- Extract the test date or issue date
-- Look for "Test Date", "Date of Test", "Issued Date", "Report Date", "Service Date"
+- Extract the ACTUAL DATE when the inspection/maintenance was performed
+- This is the date when the SERVICE PROVIDER conducted the test/maintenance on the equipment
+- Look for phrases like:
+  * "underwent inspection on [DATE]"
+  * "The inspection took place on [DATE]"
+  * "inspected on [DATE]"
+  * "serviced on [DATE]"
+  * "tested on [DATE]"
+  * "maintenance performed on [DATE]"
+  * "date of inspection: [DATE]"
+  * "inspection date: [DATE]"
+  * "service date: [DATE]"
+  
+- **IMPORTANT - DO NOT extract date from:**
+  * "Rev XX, issued by [COMPANY] on [DATE]" - this is the form revision date, NOT the inspection date
+  * "Form issued on [DATE]" - this is the form template date
+  * Any date related to form/template issuance or revision
+  
+- Focus on the date when the ACTUAL WORK was performed on the equipment
 - Format: YYYY-MM-DD or any recognizable date format
 
 **valid_date**: 
