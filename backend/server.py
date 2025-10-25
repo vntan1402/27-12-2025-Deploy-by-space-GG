@@ -5697,9 +5697,23 @@ You are a maritime test report data extraction expert. Extract the following inf
 - Example outputs: "Service Chart A", "Service Charts H1/H2", "SERVICE CHART K"
 
 **test_report_no**: 
-- Extract the test report number or reference number
-- Look for "Report No.", "Report Number", "Test No.", "Reference No.", "Certificate No."
-- May contain letters, numbers, dashes, slashes (e.g., "TR-2025-001", "TEST/2025/123")
+- Extract the test report number or certificate number
+- Look for these SPECIFIC phrases:
+  * "Test Report No." or "Test Report Number"
+  * "Certificate Number" or "Certificate No."
+  * "Cert. No."
+  * "Report No."
+  * "Report Number"
+  
+- Common formats:
+  * Numbers with dashes: "TR-2024-001", "CERT-123-456"
+  * Numbers with slashes: "TEST/2024/123", "2024/TR/001"
+  * Alphanumeric: "TR123456", "CERT001"
+  * With prefixes: "REP-001", "TEST-2024-001"
+  
+- Extract the complete number/code exactly as written
+- May contain letters, numbers, dashes, slashes, dots
+- Example: "TR-2024-001", "CERT-123", "TEST/2024/456"
 
 **issued_by**: 
 - Extract who issued or conducted the test
