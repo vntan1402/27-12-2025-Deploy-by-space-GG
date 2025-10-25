@@ -1421,6 +1421,8 @@ const HomePage = () => {
   // Minimize states for modals
   const [isSurveyReportAddModalMinimized, setIsSurveyReportAddModalMinimized] = useState(false);
   const [isSurveyReportBatchModalMinimized, setIsSurveyReportBatchModalMinimized] = useState(false);
+  const [isTestReportAddModalMinimized, setIsTestReportAddModalMinimized] = useState(false);
+  const [isTestReportBatchModalMinimized, setIsTestReportBatchModalMinimized] = useState(false);
 
   
   // Survey Report Context Menu
