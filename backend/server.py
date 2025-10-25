@@ -5675,10 +5675,26 @@ You are a maritime test report data extraction expert. Extract the following inf
 - If multiple equipment mentioned, choose the PRIMARY one being tested
 
 **report_form**: 
-- Extract the report form or form type/number used for this test
-- Look for "Report Form", "Form No.", "Form Type", "Test Form", "Form Used"
-- May contain codes like "IMO Form", "SOLAS Test Form", "Class Form", "Form 001", etc.
-- Extract the complete form identifier as mentioned in the document
+- Extract the SERVICE CHART or FORM used for this maintenance/inspection
+- Look for patterns like:
+  * "Service Chart [LETTER]" - e.g., "Service Chart A", "Service Chart K"
+  * "Service Charts [LETTER]/[LETTER]" - e.g., "Service Charts H1/H2"
+  * "SERVICE CHART [CODE]" - e.g., "SERVICE CHART B", "SERVICE CHART M"
+  * "Chart [CODE]"
+  * "Form [NUMBER/LETTER]"
+  
+- Common patterns:
+  * Service Chart A, B, C, D, E, F, G, H, K, L, M, N, etc.
+  * Service Charts H1/H2, K1/K2, etc. (combined charts)
+  * May be in UPPERCASE or Title Case
+  
+- Also look for:
+  * "Report Form [CODE]"
+  * "Form No. [CODE]"
+  * "Inspection Form [CODE]"
+  
+- Extract the complete chart/form identifier exactly as written
+- Example outputs: "Service Chart A", "Service Charts H1/H2", "SERVICE CHART K"
 
 **test_report_no**: 
 - Extract the test report number or reference number
