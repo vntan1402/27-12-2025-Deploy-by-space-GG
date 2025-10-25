@@ -5716,9 +5716,28 @@ You are a maritime test report data extraction expert. Extract the following inf
 - Example: "TR-2024-001", "CERT-123", "TEST/2024/456"
 
 **issued_by**: 
-- Extract who issued or conducted the test
-- Look for "Issued By", "Tested By", "Surveyor", "Inspector", "Service Provider"
-- Common issuers: Lloyd's Register, DNV, ABS, Bureau Veritas, Class NK, Service companies, etc.
+- Extract who issued or conducted the test/maintenance
+- **IMPORTANT: Extract ONLY the SHORT NAME, NOT the full legal company name**
+- Look for phrases like:
+  * "Issued By [COMPANY]"
+  * "Tested By [COMPANY]"
+  * "Surveyor: [COMPANY]"
+  * "Inspector: [COMPANY]"
+  * "Service Provider: [COMPANY]"
+  * "Conducted by [COMPANY]"
+  * "Performed by [COMPANY]"
+  
+- **Extract SHORT NAME rules:**
+  * ✅ "VITECH" (NOT "VITECH Technologies and Services JSC")
+  * ✅ "Lloyd's Register" or "LR" (NOT "Lloyd's Register of Shipping")
+  * ✅ "DNV" (NOT "Det Norske Veritas")
+  * ✅ "ABS" (NOT "American Bureau of Shipping")
+  * ✅ "Bureau Veritas" or "BV"
+  * ✅ Use the common/trade name, NOT the full legal entity name
+  
+- If the document mentions both short and full names, prefer the SHORT name
+- Remove legal suffixes like: JSC, LLC, Inc., Co., Ltd., Corporation, etc.
+- Keep only the core business/brand name
 
 **issued_date**: 
 - Extract the ACTUAL DATE when the inspection/maintenance was performed
