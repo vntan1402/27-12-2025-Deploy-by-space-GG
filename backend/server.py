@@ -5642,34 +5642,62 @@ You are a maritime test report data extraction expert. Extract the following inf
 === FIELDS TO EXTRACT ===
 
 **test_report_name**: 
-- Extract the type/name of the test (e.g., "Ballast Water Management Test", "Lifeboat Load Test", "Fire Fighting Equipment Test")
-- Look for phrases like "Type of Test", "Test Name", "Equipment Test", "System Test"
-- Common test types: BWM Test, Lifeboat Test, Fire Equipment Test, Safety Equipment Test, Navigation Equipment Test
+- This report is about MAINTENANCE/TESTING of LIFESAVING and FIREFIGHTING EQUIPMENT on ships
+- Extract the EQUIPMENT NAME that is being tested/maintained, NOT the test type
+- Common equipment names to look for:
+  * EEBD (Emergency Escape Breathing Device)
+  * SCBA (Self-Contained Breathing Apparatus)
+  * Portable Fire Extinguisher
+  * Portable Foam Applicator
+  * Life Raft / Liferaft
+  * Lifeboat / Rescue Boat
+  * CO2 System / Carbon Dioxide System
+  * Fire Detection System / Fire Alarm System
+  * Gas Detector / Gas Detection System
+  * Immersion Suit / Survival Suit
+  * Life Jacket / Lifejacket / Life Vest
+  * Hydrostatic Release Unit (HRU)
+  * EPIRB (Emergency Position Indicating Radio Beacon)
+  * SART (Search and Rescue Transponder)
+  * Fire Hose / Fire Fighting Hose
+  * Fireman Outfit / Fireman's Outfit
+  * Breathing Apparatus
+  * Fixed Fire Extinguishing System
+  * Sprinkler System
+  * Emergency Fire Pump
+  * Davit / Launching Appliance
+  
+- The equipment name will appear MULTIPLE TIMES in the summary text
+- The equipment name may also appear in the FILENAME
+- Return ONLY the equipment name (e.g., "EEBD", "Life Raft", "Portable Fire Extinguisher")
+- Do NOT add "Test" or "Report" to the name
+- Use the most common/standard name found in the document
+- If multiple equipment mentioned, choose the PRIMARY one being tested
 
 **report_form**: 
 - Extract the report form or form type/number used for this test
 - Look for "Report Form", "Form No.", "Form Type", "Test Form", "Form Used"
-- May contain codes like "IMO BWM Form", "SOLAS Test Form", "Class Form A", "Form 001", etc.
+- May contain codes like "IMO Form", "SOLAS Test Form", "Class Form", "Form 001", etc.
 - Extract the complete form identifier as mentioned in the document
 
 **test_report_no**: 
 - Extract the test report number or reference number
-- Look for "Report No.", "Report Number", "Test No.", "Reference No."
-- May contain letters, numbers, dashes, slashes (e.g., "BWM-2025-001", "TEST/2025/123")
+- Look for "Report No.", "Report Number", "Test No.", "Reference No.", "Certificate No."
+- May contain letters, numbers, dashes, slashes (e.g., "TR-2025-001", "TEST/2025/123")
 
 **issued_by**: 
 - Extract who issued or conducted the test
-- Look for "Issued By", "Tested By", "Surveyor", "Inspector", "Classification Society"
-- Common issuers: Lloyd's Register, DNV, ABS, Bureau Veritas, Class NK, etc.
+- Look for "Issued By", "Tested By", "Surveyor", "Inspector", "Service Provider"
+- Common issuers: Lloyd's Register, DNV, ABS, Bureau Veritas, Class NK, Service companies, etc.
 
 **issued_date**: 
 - Extract the test date or issue date
-- Look for "Test Date", "Date of Test", "Issued Date", "Report Date"
+- Look for "Test Date", "Date of Test", "Issued Date", "Report Date", "Service Date"
 - Format: YYYY-MM-DD or any recognizable date format
 
 **valid_date**: 
 - Extract the expiry date or next test due date
-- Look for "Valid Until", "Expiry Date", "Next Test Due", "Valid Date", "Expires"
+- Look for "Valid Until", "Expiry Date", "Next Test Due", "Valid Date", "Expires", "Next Service Due"
 - This is the date when the test/certificate expires and needs renewal
 - Format: YYYY-MM-DD or any recognizable date format
 
@@ -5683,8 +5711,8 @@ You are a maritime test report data extraction expert. Extract the following inf
 
 **note**: 
 - Extract any important notes, remarks, observations, or conditions
-- Look for "Remarks", "Notes", "Observations", "Conditions", "Comments"
-- Include test results, compliance status, special conditions, or limitations
+- Look for "Remarks", "Notes", "Observations", "Conditions", "Comments", "Test Results"
+- Include test results, compliance status, special conditions, deficiencies found, or limitations
 
 === OUTPUT FORMAT ===
 Return ONLY a JSON object with these exact field names:
@@ -5701,6 +5729,7 @@ Return ONLY a JSON object with these exact field names:
 }}
 
 **IMPORTANT:**
+- For test_report_name: Return ONLY the equipment name (e.g., "EEBD", "Life Raft"), NOT "EEBD Test" or "Life Raft Report"
 - Return ONLY the JSON object, no additional text
 - Use empty string "" if information is not found
 - Dates should be in YYYY-MM-DD format if possible
