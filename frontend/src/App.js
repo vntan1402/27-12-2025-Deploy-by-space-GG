@@ -16429,33 +16429,47 @@ const HomePage = () => {
                   )}
 
                   {/* Add Test Report Modal */}
-                  {showAddTestReportModal && (
+                  {showAddTestReportModal && !isTestReportAddModalMinimized && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                       <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
                           <h3 className="text-2xl font-bold text-gray-800">
                             {language === 'vi' ? '📋 Thêm Báo cáo Test' : '📋 Add Test Report'}
                           </h3>
-                          <button
-                            onClick={() => {
-                              setShowAddTestReportModal(false);
-                              setNewTestReport({
-                                test_report_name: '',
-                                report_form: '',
-                                test_report_no: '',
-                                issued_by: '',
-                                issued_date: '',
-                                valid_date: '',
-                                status: 'Valid',
-                                note: ''
-                              });
-                            }}
-                            className="text-gray-400 hover:text-gray-600 transition-all"
-                          >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {/* Minimize Button */}
+                            <button
+                              onClick={() => setIsTestReportAddModalMinimized(true)}
+                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                              title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
+                            >
+                              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                              </svg>
+                            </button>
+                            {/* Close Button */}
+                            <button
+                              onClick={() => {
+                                setShowAddTestReportModal(false);
+                                setNewTestReport({
+                                  test_report_name: '',
+                                  report_form: '',
+                                  test_report_no: '',
+                                  issued_by: '',
+                                  issued_date: '',
+                                  valid_date: '',
+                                  status: 'Valid',
+                                  note: ''
+                                });
+                              }}
+                              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                              title={language === 'vi' ? 'Đóng' : 'Close'}
+                            >
+                              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
                         </div>
 
                         {/* Section 1: File Upload for AI Analysis */}
