@@ -130,18 +130,19 @@ async def get_ship_anniversary_and_special_survey(ship_id: str, mongo_db: Any) -
         return None
 
 
-async def calculate_next_annual_survey_date(ship_id: str, mongo_db: Any) -> Optional[str]:
+async def calculate_next_annual_survey_date(ship_id: str, issued_date: str, mongo_db: Any) -> Optional[str]:
     """
     Calculate Next Annual Survey date based on Anniversary Date and Special Survey Cycle
     
     Logic:
     1. Get Anniversary Date (day/month) and Special Survey Cycle to (full date) from ship info
-    2. Calculate Anniversary Date for next year
+    2. Calculate Anniversary Date for next year (using year from issued_date + 1)
     3. If Anniversary Date (next year) == Special Survey Cycle to → Valid Date = Anniversary - 3 months
     4. If Anniversary Date (next year) != Special Survey Cycle to → Valid Date = Anniversary + 3 months
     
     Args:
         ship_id: Ship ID
+        issued_date: Issued date in YYYY-MM-DD format
         mongo_db: MongoDB instance
         
     Returns:
@@ -158,9 +159,16 @@ async def calculate_next_annual_survey_date(ship_id: str, mongo_db: Any) -> Opti
         month = ship_data["anniversary_month"]
         special_survey_cycle_to = ship_data["special_survey_cycle_to"]
         
-        # Calculate anniversary date for next year
-        current_year = datetime.now().year
-        next_year = current_year + 1
+        # Parse issued_date to get the year
+        try:
+            issued_dt = datetime.strptime(issued_date, "%Y-%m-%d")
+            issued_year = issued_dt.year
+        except ValueError:
+            logger.error(f"❌ Invalid issued_date format: {issued_date}")
+            return None
+        
+        # Calculate anniversary date for next year (issued year + 1)
+        next_year = issued_year + 1
         
         try:
             anniversary_next_year = datetime(next_year, month, day)
