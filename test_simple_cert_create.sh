@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://shipman-progress.preview.emergentagent.com/api"
+API_URL="https://shipsystem.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

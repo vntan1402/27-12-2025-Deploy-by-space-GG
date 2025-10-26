@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Use external backend URL
-BACKEND_URL = "https://shipman-progress.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipsystem.preview.emergentagent.com/api"
 
 def create_minimal_test_pdf():
     """Create a minimal PDF to see what AI extracts"""
