@@ -6002,6 +6002,7 @@ const HomePage = () => {
       file.name,
       setTestReportFileProgressMap,
       setTestReportSmoothProgress,
+      setTestReportFileSubStatusMap,
       testReportCurrentFileName,
       estimatedTime,
       90
