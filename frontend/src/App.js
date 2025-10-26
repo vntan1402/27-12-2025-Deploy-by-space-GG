@@ -17053,20 +17053,23 @@ const HomePage = () => {
                               : `Processing file ${testReportBatchProgress.current}/${testReportBatchProgress.total}`}
                           </p>
                           
-                          {/* Progress Bar */}
-                          <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+                          {/* Smooth Progress Bar */}
+                          <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
                             <div 
-                              className="bg-blue-600 h-4 rounded-full transition-all duration-300"
+                              className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out"
                               style={{ 
-                                width: `${testReportBatchProgress.total > 0 ? (testReportBatchProgress.current / testReportBatchProgress.total) * 100 : 0}%` 
+                                width: `${testReportSmoothProgress}%` 
                               }}
                             ></div>
                           </div>
-                          <p className="text-sm text-gray-500">
-                            {testReportBatchProgress.total > 0 
-                              ? `${Math.round((testReportBatchProgress.current / testReportBatchProgress.total) * 100)}%`
-                              : '0%'}
-                          </p>
+                          <div className="flex justify-between items-center">
+                            <p className="text-sm text-gray-500">
+                              {Math.round(testReportSmoothProgress)}%
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {language === 'vi' ? 'Thời gian ước tính dựa trên kích thước file' : 'Estimated based on file size'}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
