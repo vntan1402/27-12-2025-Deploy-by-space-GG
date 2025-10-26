@@ -212,7 +212,7 @@ Step-by-Step Calculation:
   
   Step 5: Apply Default Rule (No Special Survey data)
     → Valid Date = Anniversary + 3 months (default)
-    → Valid Date = 2026-12-05 + 90 days ≈ 2027-03-05
+    → Valid Date = 2026-12-05 + 3 months = 2027-03-05
   
 Output:
   Valid Date: 2027-03-05
@@ -220,6 +220,7 @@ Output:
 Giải thích:
   Khi không có Special Survey Cycle To,
   mặc định áp dụng +3 tháng sau Anniversary
+  (Giữ nguyên ngày 5, chỉ thay đổi tháng: 12 + 3 = 15, vượt qua năm → 2027-03)
 ```
 
 ---
