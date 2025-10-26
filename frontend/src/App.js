@@ -6395,10 +6395,25 @@ const HomePage = () => {
     try {
       setIsBatchProcessingSurveyReports(true);
       setSurveyReportBatchProgress({ current: 0, total: files.length });
+      setSurveyReportSmoothProgress(0);
+      
+      // Initialize progress, status, and sub-status for all files
+      const initialProgressMap = {};
+      const initialStatusMap = {};
+      const initialSubStatusMap = {};
+      files.forEach(file => {
+        initialProgressMap[file.name] = 0;
+        initialStatusMap[file.name] = 'waiting';
+        initialSubStatusMap[file.name] = null;
+      });
+      
+      setSurveyReportFileProgressMap(initialProgressMap);
+      setSurveyReportFileStatusMap(initialStatusMap);
+      setSurveyReportFileSubStatusMap(initialSubStatusMap);
+      setSurveyReportCurrentFileName(files[0]?.name || '');
       setSurveyReportBatchResults([]);
       
-      const MAX_PARALLEL = 10; // Max 10 files at once
-      const STAGGER_DELAY = 5000; // 5 seconds between file starts (increased to avoid rate limiting)
+      const STAGGER_DELAY = 5000; // 5 seconds between file starts
       
       const results = [];
       
