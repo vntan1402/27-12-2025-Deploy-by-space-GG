@@ -1638,6 +1638,76 @@ const HomePage = () => {
   ];
 
   // ============================================
+  // OTHER DOCUMENTS STATE MANAGEMENT
+  // ============================================
+  
+  const [otherDocuments, setOtherDocuments] = useState([]);
+  
+  const [otherDocumentSort, setOtherDocumentSort] = useState({
+    column: null,
+    direction: 'asc'
+  });
+  
+  const [otherDocumentFilters, setOtherDocumentFilters] = useState({
+    status: 'all',
+    search: ''
+  });
+  
+  const [selectedOtherDocuments, setSelectedOtherDocuments] = useState(new Set());
+  
+  // Other Documents Context Menu
+  const [otherDocumentContextMenu, setOtherDocumentContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    document: null
+  });
+  
+  const [showOtherDocumentStatusSubmenu, setShowOtherDocumentStatusSubmenu] = useState(false);
+  
+  // Other Documents Note Tooltip
+  const [otherDocumentNoteTooltip, setOtherDocumentNoteTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: '',
+    showBelow: false,
+    width: 300
+  });
+
+  // Other Documents Modal States
+  const [showAddOtherDocumentModal, setShowAddOtherDocumentModal] = useState(false);
+  const [showEditOtherDocumentModal, setShowEditOtherDocumentModal] = useState(false);
+  const [isOtherDocumentAddModalMinimized, setIsOtherDocumentAddModalMinimized] = useState(false);
+  
+  const [newOtherDocument, setNewOtherDocument] = useState({
+    document_name: '',
+    date: '',
+    status: 'Unknown',
+    note: ''
+  });
+  
+  const [editingOtherDocument, setEditingOtherDocument] = useState(null);
+  
+  // Other Documents File Upload States
+  const [otherDocumentFiles, setOtherDocumentFiles] = useState([]);
+  const [otherDocumentFileError, setOtherDocumentFileError] = useState('');
+  
+  // Other Documents Batch Processing States
+  const [isBatchProcessingOtherDocuments, setIsBatchProcessingOtherDocuments] = useState(false);
+  const [otherDocumentBatchProgress, setOtherDocumentBatchProgress] = useState({ current: 0, total: 0 });
+  const [otherDocumentSmoothProgress, setOtherDocumentSmoothProgress] = useState(0);
+  const [otherDocumentFileProgressMap, setOtherDocumentFileProgressMap] = useState({});
+  const [otherDocumentFileStatusMap, setOtherDocumentFileStatusMap] = useState({});
+  const [otherDocumentCurrentFileName, setOtherDocumentCurrentFileName] = useState('');
+  const [otherDocumentBatchResults, setOtherDocumentBatchResults] = useState([]);
+  const [showOtherDocumentProcessingResultsModal, setShowOtherDocumentProcessingResultsModal] = useState(false);
+  const [isOtherDocumentBatchModalMinimized, setIsOtherDocumentBatchModalMinimized] = useState(false);
+  
+  // Refresh state
+  const [isRefreshingOtherDocuments, setIsRefreshingOtherDocuments] = useState(false);
+
+  // ============================================
   // SMOOTH PROGRESS BAR HELPER FUNCTIONS
   // ============================================
   
