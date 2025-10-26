@@ -1587,6 +1587,10 @@ const HomePage = () => {
   const [isBatchProcessingDrawingsManuals, setIsBatchProcessingDrawingsManuals] = useState(false);
   const [drawingsManualBatchProgress, setDrawingsManualBatchProgress] = useState({ current: 0, total: 0 });
   const [drawingsManualSmoothProgress, setDrawingsManualSmoothProgress] = useState(0); // Smooth progress 0-100
+  const [drawingsManualFileProgressMap, setDrawingsManualFileProgressMap] = useState({});
+  const [drawingsManualFileStatusMap, setDrawingsManualFileStatusMap] = useState({});
+  const [drawingsManualFileSubStatusMap, setDrawingsManualFileSubStatusMap] = useState({});
+  const [drawingsManualCurrentFileName, setDrawingsManualCurrentFileName] = useState('');
   const [drawingsManualBatchResults, setDrawingsManualBatchResults] = useState([]);
   const [showDrawingsManualProcessingResultsModal, setShowDrawingsManualProcessingResultsModal] = useState(false);
 
