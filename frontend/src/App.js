@@ -5906,12 +5906,19 @@ const HomePage = () => {
       error: null
     };
     
-    // Reset progress to 0 at the start of each file
-    setTestReportSmoothProgress(0);
+    // Initialize progress for this file in the map
+    setTestReportFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
     
-    // Start smooth progress for this file
+    // Start smooth progress for this specific file
     const estimatedTime = estimateFileProcessingTime(file);
-    const progressController = startSmoothProgress(setTestReportSmoothProgress, estimatedTime, 90);
+    const progressController = startSmoothProgressForFile(
+      file.name,
+      setTestReportFileProgressMap,
+      setTestReportSmoothProgress,
+      testReportCurrentFileName,
+      estimatedTime,
+      90
+    );
     
     try {
       console.log(`📋 Processing test report ${current}/${total}: ${file.name}`);
