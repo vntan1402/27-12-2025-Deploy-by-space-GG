@@ -8723,6 +8723,24 @@ async def analyze_drawings_manual_file(
                 logger.error(f"❌ Error normalizing document_name: {norm_error}")
                 # Keep original value if normalization fails
         
+        # Normalize approved_by to standard abbreviation (same logic as issued_by)
+        if analysis_result.get('approved_by'):
+            try:
+                from issued_by_abbreviation import normalize_issued_by
+                
+                original_approved_by = analysis_result['approved_by']
+                normalized_approved_by = normalize_issued_by(original_approved_by)
+                
+                if normalized_approved_by != original_approved_by:
+                    analysis_result['approved_by'] = normalized_approved_by
+                    logger.info(f"✅ Normalized Approved By: '{original_approved_by}' → '{normalized_approved_by}'")
+                else:
+                    logger.info(f"ℹ️ Approved By kept as: '{original_approved_by}'")
+                    
+            except Exception as norm_error:
+                logger.error(f"❌ Error normalizing approved_by: {norm_error}")
+                # Keep original value if normalization fails
+        
         logger.info(f"✅ Drawings & manuals analysis completed successfully")
         return analysis_result
         
