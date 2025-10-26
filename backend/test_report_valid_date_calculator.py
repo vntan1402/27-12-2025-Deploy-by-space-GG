@@ -312,7 +312,7 @@ async def calculate_valid_date(
         elif interval_data["type"] == "next_annual_survey":
             # Calculate based on Anniversary Date and Special Survey Cycle
             logger.info(f"🎯 Equipment requires Next Annual Survey calculation")
-            valid_date = await calculate_next_annual_survey_date(ship_id, mongo_db)
+            valid_date = await calculate_next_annual_survey_date(ship_id, issued_date, mongo_db)
             
             if valid_date:
                 logger.info(f"✅ Calculated valid date (Next Annual Survey): {valid_date}")
