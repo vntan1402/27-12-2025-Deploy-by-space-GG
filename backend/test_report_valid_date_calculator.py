@@ -200,15 +200,48 @@ async def calculate_next_annual_survey_date(ship_id: str, issued_date: str, mong
                         anniversary_next_year.month == special_survey_dt.month and 
                         anniversary_next_year.day == special_survey_dt.day):
                         # Anniversary Date == Special Survey Cycle to → Subtract 3 months
-                        valid_date = anniversary_next_year - timedelta(days=90)  # Approximately 3 months
+                        # Use proper month calculation (keep day the same)
+                        new_month = anniversary_next_year.month - 3
+                        new_year = anniversary_next_year.year
+                        if new_month <= 0:
+                            new_month += 12
+                            new_year -= 1
+                        
+                        try:
+                            valid_date = datetime(new_year, new_month, anniversary_next_year.day)
+                        except ValueError:
+                            # Handle invalid date (e.g., Jan 31 - 3 months = Oct 31, but if original was May 31, Feb doesn't have 31 days)
+                            last_day = calendar.monthrange(new_year, new_month)[1]
+                            valid_date = datetime(new_year, new_month, min(anniversary_next_year.day, last_day))
+                        
                         logger.info(f"🎯 Anniversary matches Special Survey Cycle → Valid Date = Anniversary - 3M")
                     else:
                         # Anniversary Date != Special Survey Cycle to → Add 3 months
-                        valid_date = anniversary_next_year + timedelta(days=90)  # Approximately 3 months
+                        # Use proper month calculation (keep day the same)
+                        new_month = anniversary_next_year.month + 3
+                        new_year = anniversary_next_year.year + (new_month - 1) // 12
+                        new_month = ((new_month - 1) % 12) + 1
+                        
+                        try:
+                            valid_date = datetime(new_year, new_month, anniversary_next_year.day)
+                        except ValueError:
+                            # Handle invalid date (e.g., Nov 31 doesn't exist)
+                            last_day = calendar.monthrange(new_year, new_month)[1]
+                            valid_date = datetime(new_year, new_month, min(anniversary_next_year.day, last_day))
+                        
                         logger.info(f"🎯 Anniversary differs from Special Survey Cycle → Valid Date = Anniversary + 3M")
                 else:
                     # No valid special survey date, default to +3 months
-                    valid_date = anniversary_next_year + timedelta(days=90)
+                    new_month = anniversary_next_year.month + 3
+                    new_year = anniversary_next_year.year + (new_month - 1) // 12
+                    new_month = ((new_month - 1) % 12) + 1
+                    
+                    try:
+                        valid_date = datetime(new_year, new_month, anniversary_next_year.day)
+                    except ValueError:
+                        last_day = calendar.monthrange(new_year, new_month)[1]
+                        valid_date = datetime(new_year, new_month, min(anniversary_next_year.day, last_day))
+                    
                     logger.info(f"🎯 No valid Special Survey Cycle → Valid Date = Anniversary + 3M")
                     
             except Exception as parse_error:
