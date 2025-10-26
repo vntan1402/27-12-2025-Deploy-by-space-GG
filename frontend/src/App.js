@@ -18192,15 +18192,31 @@ const HomePage = () => {
                           <div className="space-y-3">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
+                                {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} 
+                                {otherDocumentFiles.length === 0 && <span className="text-red-500">*</span>}
                               </label>
                               <input
                                 type="text"
                                 value={newOtherDocument.document_name}
                                 onChange={(e) => setNewOtherDocument(prev => ({ ...prev, document_name: e.target.value }))}
-                                placeholder={language === 'vi' ? 'Tự động điền từ file name hoặc nhập thủ công' : 'Auto-filled from file or enter manually'}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                placeholder={
+                                  otherDocumentFiles.length > 1 
+                                    ? (language === 'vi' ? 'Mỗi file sẽ dùng tên riêng' : 'Each file will use its own name')
+                                    : (language === 'vi' ? 'Tự động điền từ file name hoặc nhập thủ công' : 'Auto-filled from file or enter manually')
+                                }
+                                disabled={otherDocumentFiles.length > 1}
+                                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                                  otherDocumentFiles.length > 1 ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''
+                                }`}
                               />
+                              {otherDocumentFiles.length > 1 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {language === 'vi'
+                                    ? '📝 Document Name sẽ lấy từ file name của mỗi file'
+                                    : '📝 Document Name will be taken from each file name'
+                                  }
+                                </p>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
