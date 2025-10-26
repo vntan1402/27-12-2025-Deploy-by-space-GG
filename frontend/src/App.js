@@ -17098,60 +17098,65 @@ const HomePage = () => {
                           </span>
                         </div>
 
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Tên Báo cáo Test' : 'Test Report Name'} <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newTestReport.test_report_name}
-                              onChange={(e) => setNewTestReport(prev => ({ ...prev, test_report_name: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: Ballast Water Management Test' : 'e.g. Ballast Water Management Test'}
-                            />
+                        <div className="space-y-3">
+                          {/* Row 1: Test Report Name + Report Form */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tên Báo cáo Test' : 'Test Report Name'} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={newTestReport.test_report_name}
+                                onChange={(e) => setNewTestReport(prev => ({ ...prev, test_report_name: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder={language === 'vi' ? 'VD: Ballast Water Management Test' : 'e.g. Ballast Water Management Test'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newTestReport.report_form}
+                                onChange={(e) => setNewTestReport(prev => ({ ...prev, report_form: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder={language === 'vi' ? 'VD: IMO BWM Form' : 'e.g. IMO BWM Form'}
+                              />
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newTestReport.report_form}
-                              onChange={(e) => setNewTestReport(prev => ({ ...prev, report_form: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: IMO BWM Form' : 'e.g. IMO BWM Form'}
-                            />
+                          {/* Row 2: Test Report No. + Issued By */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Số Báo cáo' : 'Test Report No.'} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={newTestReport.test_report_no}
+                                onChange={(e) => setNewTestReport(prev => ({ ...prev, test_report_no: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder={language === 'vi' ? 'VD: BWM-2025-001' : 'e.g. BWM-2025-001'}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newTestReport.issued_by}
+                                onChange={(e) => setNewTestReport(prev => ({ ...prev, issued_by: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                              />
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Số Báo cáo' : 'Test Report No.'} <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={newTestReport.test_report_no}
-                              onChange={(e) => setNewTestReport(prev => ({ ...prev, test_report_no: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: BWM-2025-001' : 'e.g. BWM-2025-001'}
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newTestReport.issued_by}
-                              onChange={(e) => setNewTestReport(prev => ({ ...prev, issued_by: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
+                          {/* Row 3: Issued Date + Valid Date */}
+                          <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày cấp' : 'Issued Date'} <span className="text-red-500">*</span>
@@ -17160,10 +17165,9 @@ const HomePage = () => {
                                 type="date"
                                 value={newTestReport.issued_date}
                                 onChange={(e) => setNewTestReport(prev => ({ ...prev, issued_date: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                               />
                             </div>
-
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
@@ -17172,11 +17176,12 @@ const HomePage = () => {
                                 type="date"
                                 value={newTestReport.valid_date}
                                 onChange={(e) => setNewTestReport(prev => ({ ...prev, valid_date: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                               />
                             </div>
                           </div>
 
+                          {/* Row 4: Note */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               {language === 'vi' ? 'Ghi chú' : 'Note'}
@@ -17184,8 +17189,8 @@ const HomePage = () => {
                             <textarea
                               value={newTestReport.note}
                               onChange={(e) => setNewTestReport(prev => ({ ...prev, note: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              rows="3"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                              rows="2"
                               placeholder={language === 'vi' ? 'Ghi chú...' : 'Notes...'}
                             />
                           </div>
