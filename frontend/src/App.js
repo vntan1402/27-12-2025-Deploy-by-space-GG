@@ -15027,14 +15027,21 @@ const HomePage = () => {
                   )}
                   
                   {/* Batch Processing Progress Modal */}
+                  {/* Survey Report Batch Processing Modal */}
                   {isBatchProcessingSurveyReports && !isSurveyReportBatchModalMinimized && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
-                      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80] p-4">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+                        {/* Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold text-gray-800 mb-2">
-                              {language === 'vi' ? 'Đang xử lý Survey Reports...' : 'Processing Survey Reports...'}
+                            <h3 className="text-xl font-bold text-gray-800">
+                              {language === 'vi' ? 'Đang xử lý Survey Reports' : 'Processing Survey Reports'}
                             </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {language === 'vi' 
+                                ? `Đã hoàn thành ${surveyReportBatchProgress.current}/${surveyReportBatchProgress.total} files`
+                                : `Completed ${surveyReportBatchProgress.current}/${surveyReportBatchProgress.total} files`}
+                            </p>
                           </div>
                           <button
                             onClick={() => setIsSurveyReportBatchModalMinimized(true)}
@@ -15046,30 +15053,91 @@ const HomePage = () => {
                             </svg>
                           </button>
                         </div>
-                        <div className="text-center">
-                          <div className="mb-4">
-                            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-                          </div>
-                          <p className="text-gray-600 mb-4">
-                            {language === 'vi' 
-                              ? `Đang xử lý file ${surveyReportBatchProgress.current}/${surveyReportBatchProgress.total}`
-                              : `Processing file ${surveyReportBatchProgress.current}/${surveyReportBatchProgress.total}`}
-                          </p>
-                          
-                          {/* Progress Bar */}
-                          <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-                            <div 
-                              className="bg-blue-600 h-4 rounded-full transition-all duration-300"
-                              style={{ 
-                                width: `${surveyReportBatchProgress.total > 0 ? (surveyReportBatchProgress.current / surveyReportBatchProgress.total) * 100 : 0}%` 
-                              }}
-                            ></div>
-                          </div>
-                          <p className="text-sm text-gray-500">
-                            {surveyReportBatchProgress.total > 0 
-                              ? `${Math.round((surveyReportBatchProgress.current / surveyReportBatchProgress.total) * 100)}%`
-                              : '0%'}
-                          </p>
+                        
+                        {/* Files List - Scrollable */}
+                        <div className="flex-1 overflow-y-auto space-y-3">
+                          {Object.keys(surveyReportFileStatusMap).map((filename) => {
+                            const status = surveyReportFileStatusMap[filename];
+                            const subStatus = surveyReportFileSubStatusMap[filename];
+                            const progress = surveyReportFileProgressMap[filename] || 0;
+                            
+                            // Determine display status text
+                            let statusText = '';
+                            if (status === 'waiting') {
+                              statusText = language === 'vi' ? 'Chờ...' : 'Waiting...';
+                            } else if (status === 'processing') {
+                              if (subStatus === 'analyzing') {
+                                statusText = language === 'vi' ? '🤖 Phân tích với AI' : '🤖 Analyzing with AI';
+                              } else if (subStatus === 'uploading') {
+                                statusText = language === 'vi' ? '☁️ Đang tải lên Drive' : '☁️ Uploading to Drive';
+                              } else {
+                                statusText = language === 'vi' ? 'Đang xử lý...' : 'Processing...';
+                              }
+                            } else if (status === 'completed') {
+                              statusText = language === 'vi' ? 'Hoàn thành' : 'Completed';
+                            } else if (status === 'error') {
+                              statusText = language === 'vi' ? 'Lỗi' : 'Error';
+                            }
+                            
+                            return (
+                              <div key={filename} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                    {status === 'waiting' && (
+                                      <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    )}
+                                    {status === 'processing' && (
+                                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 flex-shrink-0"></div>
+                                    )}
+                                    {status === 'completed' && (
+                                      <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    )}
+                                    {status === 'error' && (
+                                      <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    )}
+                                    <span className="text-sm font-medium text-gray-700 truncate" title={filename}>
+                                      {filename}
+                                    </span>
+                                  </div>
+                                  <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ml-2 ${
+                                    status === 'waiting' ? 'bg-gray-200 text-gray-600' :
+                                    status === 'processing' ? 'bg-blue-100 text-blue-700' :
+                                    status === 'completed' ? 'bg-green-100 text-green-700' :
+                                    'bg-red-100 text-red-700'
+                                  }`}>
+                                    {statusText}
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                  <div 
+                                    className={`h-2 rounded-full transition-all duration-500 ease-out ${
+                                      status === 'completed' ? 'bg-green-500' :
+                                      status === 'error' ? 'bg-red-500' :
+                                      status === 'processing' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                                      'bg-gray-300'
+                                    }`}
+                                    style={{ width: `${progress}%` }}
+                                  ></div>
+                                </div>
+                                <div className="flex justify-between items-center mt-1">
+                                  <span className="text-xs text-gray-500">
+                                    {Math.round(progress)}%
+                                  </span>
+                                  {status === 'processing' && (
+                                    <span className="text-xs text-gray-400">
+                                      {language === 'vi' ? 'Ước tính dựa trên kích thước' : 'Estimated by size'}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
