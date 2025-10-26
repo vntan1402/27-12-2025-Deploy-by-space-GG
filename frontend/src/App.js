@@ -17268,28 +17268,6 @@ const HomePage = () => {
                       </div>
                     </div>
                   )}
-                          
-                          {/* Current File Smooth Progress Bar */}
-                          <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
-                            <div 
-                              className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out"
-                              style={{ 
-                                width: `${testReportSmoothProgress}%` 
-                              }}
-                            ></div>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-sm text-gray-500">
-                              {Math.round(testReportSmoothProgress)}%
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {language === 'vi' ? 'File hiện tại' : 'Current file'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Test Report Batch Processing - Minimized Floating Button */}
                   {isBatchProcessingTestReports && isTestReportBatchModalMinimized && (
