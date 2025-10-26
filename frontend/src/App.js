@@ -16262,6 +16262,407 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* ============================================ */}
+                  {/* OTHER DOCUMENTS LIST VIEW */}
+                  {/* ============================================ */}
+                  {selectedCategory === 'documents' && selectedSubMenu === 'other_documents' && (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">
+                          {language === 'vi' ? 'Danh sách Tài liệu Khác' : 'Other Documents List'}
+                        </h3>
+                        
+                        <div className="flex gap-3">
+                          <button
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              selectedShip
+                                ? 'bg-green-600 hover:bg-green-700 text-white cursor-pointer'
+                                : 'bg-gray-400 cursor-not-allowed text-white'
+                            }`}
+                            onClick={() => selectedShip && setShowAddOtherDocumentModal(true)}
+                            disabled={!selectedShip}
+                            title={selectedShip 
+                              ? (language === 'vi' ? 'Thêm tài liệu mới' : 'Add new document')
+                              : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                            }
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            {language === 'vi' ? 'Thêm Tài liệu' : 'Add Document'}
+                          </button>
+                          
+                          {/* Refresh Button */}
+                          <button
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              selectedShip && !isRefreshingOtherDocuments
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
+                                : 'bg-gray-400 cursor-not-allowed text-white'
+                            }`}
+                            onClick={async () => {
+                              if (selectedShip && !isRefreshingOtherDocuments) {
+                                try {
+                                  setIsRefreshingOtherDocuments(true);
+                                  await fetchOtherDocuments(selectedShip.id);
+                                  toast.success(language === 'vi' ? '✅ Đã cập nhật danh sách Tài liệu Khác!' : '✅ Other Documents list updated!');
+                                } catch (error) {
+                                  console.error('Failed to refresh other documents:', error);
+                                  toast.error(language === 'vi' ? '❌ Không thể làm mới danh sách' : '❌ Failed to refresh list');
+                                } finally {
+                                  setIsRefreshingOtherDocuments(false);
+                                }
+                              }
+                            }}
+                            disabled={!selectedShip || isRefreshingOtherDocuments}
+                            title={selectedShip 
+                              ? (language === 'vi' ? 'Làm mới danh sách' : 'Refresh list')
+                              : (language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first')
+                            }
+                          >
+                            {isRefreshingOtherDocuments ? (
+                              <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            )}
+                            {language === 'vi' ? 'Làm mới' : 'Refresh'}
+                          </button>
+
+                          {/* Delete Button */}
+                          {selectedOtherDocuments.size > 0 && (
+                            <button
+                              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition-all"
+                              onClick={() => handleDeleteOtherDocuments()}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              {language === 'vi' ? `Xóa (${selectedOtherDocuments.size})` : `Delete (${selectedOtherDocuments.size})`}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Filters */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Status Filter */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Trạng thái' : 'Status'}
+                            </label>
+                            <select
+                              value={otherDocumentFilters.status}
+                              onChange={(e) => setOtherDocumentFilters(prev => ({ ...prev, status: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                              <option value="valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                              <option value="expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                              <option value="unknown">{language === 'vi' ? 'Chưa rõ' : 'Unknown'}</option>
+                            </select>
+                          </div>
+
+                          {/* Search */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tìm kiếm' : 'Search'}
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={language === 'vi' ? 'Tìm theo tên tài liệu...' : 'Search by document name...'}
+                              value={otherDocumentFilters.search}
+                              onChange={(e) => setOtherDocumentFilters(prev => ({ ...prev, search: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Clear Filters Button */}
+                        {(otherDocumentFilters.status !== 'all' || otherDocumentFilters.search) && (
+                          <div className="mt-3 flex justify-end">
+                            <button
+                              onClick={() => setOtherDocumentFilters({ status: 'all', search: '' })}
+                              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+                            >
+                              {language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Other Documents Table */}
+                      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full">
+                            <thead className="bg-gray-50 border-b border-gray-200">
+                              <tr>
+                                <th className="border border-gray-300 px-4 py-2 text-left">
+                                  <div className="flex items-center">
+                                    <input
+                                      type="checkbox"
+                                      checked={isOtherDocumentsAllSelected()}
+                                      ref={el => {
+                                        if (el) {
+                                          el.indeterminate = isOtherDocumentsIndeterminate();
+                                        }
+                                      }}
+                                      onChange={(e) => handleSelectAllOtherDocuments(e.target.checked)}
+                                      className="w-4 h-4 mr-2"
+                                    />
+                                    <span>{language === 'vi' ? 'Số TT' : 'No.'}</span>
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleOtherDocumentSort('document_name')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Tên Tài liệu' : 'Document Name'}</span>
+                                    {otherDocumentSort.column === 'document_name' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {otherDocumentSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleOtherDocumentSort('date')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Ngày' : 'Date'}</span>
+                                    {otherDocumentSort.column === 'date' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {otherDocumentSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th 
+                                  className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                                  onClick={() => handleOtherDocumentSort('status')}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span>{language === 'vi' ? 'Trạng thái' : 'Status'}</span>
+                                    {otherDocumentSort.column === 'status' && (
+                                      <span className="ml-1 text-blue-600 text-sm font-bold">
+                                        {otherDocumentSort.direction === 'asc' ? '▲' : '▼'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </th>
+                                <th className="border border-gray-300 px-4 py-2 text-center">
+                                  {language === 'vi' ? 'Ghi chú' : 'Note'}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {getFilteredOtherDocuments().length === 0 ? (
+                              <tr>
+                                <td colSpan="5" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
+                                  {language === 'vi' ? 'Không có tài liệu nào' : 'No documents found'}
+                                </td>
+                              </tr>
+                            ) : (
+                              getFilteredOtherDocuments().map((document, index) => (
+                                <tr 
+                                  key={document.id}
+                                  className={`hover:bg-blue-50 transition-colors ${
+                                    selectedOtherDocuments.has(document.id) ? 'bg-blue-100' : ''
+                                  }`}
+                                  onClick={() => handleOtherDocumentRowClick(document.id)}
+                                >
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedOtherDocuments.has(document.id)}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          handleSelectOtherDocument(document.id, e.target.checked);
+                                        }}
+                                        className="w-4 h-4 mr-2"
+                                      />
+                                      <span>{index + 1}</span>
+                                    </div>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2">
+                                    <div className="flex items-center gap-2">
+                                      {document.document_name}
+                                      {document.file_ids && document.file_ids.length > 0 && (
+                                        <span 
+                                          className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                                          title={`${language === 'vi' ? 'Xem file' : 'View file'}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (document.file_ids && document.file_ids[0]) {
+                                              window.open(`https://drive.google.com/file/d/${document.file_ids[0]}/view`, '_blank');
+                                            }
+                                          }}
+                                        >
+                                          📄
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2">{document.date ? formatDate(document.date) : '-'}</td>
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 cursor-context-menu"
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      setOtherDocumentContextMenu({
+                                        show: true,
+                                        x: e.clientX,
+                                        y: e.clientY,
+                                        document: document
+                                      });
+                                      setShowOtherDocumentStatusSubmenu(true);
+                                    }}
+                                  >
+                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                      document.status === 'Valid' ? 'bg-green-100 text-green-800' :
+                                      document.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {document.status}
+                                    </span>
+                                  </td>
+                                  <td className="border border-gray-300 px-4 py-2 text-center">
+                                    {document.note ? (
+                                      <span 
+                                        className="text-red-600 cursor-help text-lg font-bold"
+                                        onMouseEnter={(e) => handleOtherDocumentNoteMouseEnter(e, document.note)}
+                                        onMouseLeave={handleOtherDocumentNoteMouseLeave}
+                                      >
+                                        *
+                                      </span>
+                                    ) : (
+                                      '-'
+                                    )}
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Other Documents Note Tooltip */}
+                  {otherDocumentNoteTooltip.show && (
+                    <div
+                      className="fixed bg-gray-800 text-white p-3 rounded-lg shadow-2xl z-50 border border-gray-600"
+                      style={{
+                        left: `${otherDocumentNoteTooltip.x}px`,
+                        top: `${otherDocumentNoteTooltip.y}px`,
+                        width: `${otherDocumentNoteTooltip.width}px`,
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        fontSize: '14px',
+                        lineHeight: '1.5'
+                      }}
+                    >
+                      {otherDocumentNoteTooltip.content}
+                    </div>
+                  )}
+
+                  {/* Other Documents Context Menu */}
+                  {otherDocumentContextMenu.show && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-40"
+                        onClick={() => {
+                          setOtherDocumentContextMenu({ show: false, x: 0, y: 0, document: null });
+                          setShowOtherDocumentStatusSubmenu(false);
+                        }}
+                      />
+                      <div
+                        className="fixed bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                        style={{ 
+                          left: `${otherDocumentContextMenu.x}px`,
+                          top: `${otherDocumentContextMenu.y}px`,
+                          minWidth: '200px'
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            handleEditOtherDocument(otherDocumentContextMenu.document);
+                            setOtherDocumentContextMenu({ show: false, x: 0, y: 0, document: null });
+                          }}
+                          className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                        </button>
+
+                        {/* Change Status with Submenu */}
+                        <div className="relative">
+                          <button
+                            onMouseEnter={() => setShowOtherDocumentStatusSubmenu(true)}
+                            onMouseLeave={() => setShowOtherDocumentStatusSubmenu(false)}
+                            className="w-full px-4 py-2 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-all flex items-center justify-between gap-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              {language === 'vi' ? 'Đổi Trạng thái' : 'Change Status'}
+                            </div>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          
+                          {/* Status Submenu */}
+                          {showOtherDocumentStatusSubmenu && (
+                            <div
+                              className="absolute top-0 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                              style={{ 
+                                minWidth: '150px',
+                                ...(otherDocumentContextMenu.x > window.innerWidth - 400 
+                                  ? { right: '100%', marginRight: '4px' }
+                                  : { left: '100%', marginLeft: '4px' })
+                              }}
+                              onMouseEnter={() => setShowOtherDocumentStatusSubmenu(true)}
+                              onMouseLeave={() => setShowOtherDocumentStatusSubmenu(false)}
+                            >
+                              <button
+                                onClick={() => handleChangeOtherDocumentStatus(otherDocumentContextMenu.document, 'Valid')}
+                                className="w-full px-4 py-2 text-left hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all flex items-center gap-2"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                {language === 'vi' ? 'Hợp lệ' : 'Valid'}
+                              </button>
+                              <button
+                                onClick={() => handleChangeOtherDocumentStatus(otherDocumentContextMenu.document, 'Expired')}
+                                className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                {language === 'vi' ? 'Hết hạn' : 'Expired'}
+                              </button>
+                              <button
+                                onClick={() => handleChangeOtherDocumentStatus(otherDocumentContextMenu.document, 'Unknown')}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-50 text-gray-700 hover:text-gray-600 transition-all flex items-center gap-2"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                {language === 'vi' ? 'Chưa rõ' : 'Unknown'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
                   {/* Drawings & Manuals Note Tooltip */}
                   {drawingsManualNoteTooltip.show && (
                     <div
