@@ -20132,6 +20132,68 @@ async def upload_other_document(
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.post("/other-documents/upload-file-only")
+async def upload_other_document_file_only(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload a file to Google Drive without creating a record
+    Returns only the file_id for later use in creating a folder record
+    Accepts ALL file types (no filtering)
+    """
+    try:
+        logger.info(f"📤 Uploading file (file-only): {file.filename} for ship: {ship_id}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown')
+        
+        # Accept ALL file types (no validation)
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Upload to Google Drive
+        # Create path: SHIP_NAME/Class & Flag Cert/Other Documents/filename
+        folder_path = f"{ship_name}/Class & Flag Cert/Other Documents"
+        
+        # Initialize Google Drive manager
+        drive_manager = GoogleDriveManager()
+        
+        # Upload file
+        logger.info(f"📤 Uploading file to Google Drive: {folder_path}/{file.filename}")
+        file_id = await drive_manager.upload_file(
+            file_content=file_content,
+            filename=file.filename,
+            folder_path=folder_path,
+            mime_type=file.content_type or 'application/octet-stream'
+        )
+        
+        if not file_id:
+            raise HTTPException(status_code=500, detail="Failed to upload file to Google Drive")
+        
+        logger.info(f"✅ File uploaded to Google Drive with ID: {file_id}")
+        
+        return {
+            "success": True,
+            "message": "File uploaded successfully (no record created)",
+            "file_id": file_id,
+            "filename": file.filename
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading file: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Add the router to the main app
 app.include_router(api_router)
 
