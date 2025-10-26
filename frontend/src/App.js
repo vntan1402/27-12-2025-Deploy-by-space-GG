@@ -6486,6 +6486,24 @@ const HomePage = () => {
       error: null
     };
     
+    // Set status to 'processing' when starting this file
+    setSurveyReportFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+    
+    // Initialize progress for this file
+    setSurveyReportFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+    
+    // Start smooth progress for this specific file
+    const estimatedTime = estimateFileProcessingTime(file);
+    const progressController = startSmoothProgressForFile(
+      file.name,
+      setSurveyReportFileProgressMap,
+      setSurveyReportSmoothProgress,
+      setSurveyReportFileSubStatusMap,
+      surveyReportCurrentFileName,
+      estimatedTime,
+      90
+    );
+    
     try {
       console.log(`📋 Processing survey report ${current}/${total}: ${file.name}`);
       
