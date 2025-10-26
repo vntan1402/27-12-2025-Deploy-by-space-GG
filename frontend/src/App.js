@@ -8157,16 +8157,6 @@ const HomePage = () => {
   
   // Handle multiple files upload: Each file creates 1 record
   const handleMultipleFilesUpload = async () => {
-    if (otherDocumentFiles.length === 0) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn file' : 'Please select files');
-      return;
-    }
-    
-    if (!selectedShip) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
-      return;
-    }
-    
     try {
       setIsBatchProcessingOtherDocuments(true);
       setOtherDocumentBatchProgress({ current: 0, total: otherDocumentFiles.length });
@@ -8277,6 +8267,13 @@ const HomePage = () => {
         setIsBatchProcessingOtherDocuments(false);
         setShowAddOtherDocumentModal(false);
         setOtherDocumentFiles([]);
+        setIsOtherDocumentFolderUpload(false);
+        setNewOtherDocument({
+          document_name: '',
+          date: '',
+          status: 'Unknown',
+          note: ''
+        });
         if (selectedShip) {
           fetchOtherDocuments(selectedShip.id);
         }
