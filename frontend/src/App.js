@@ -1696,19 +1696,44 @@ const HomePage = () => {
   };
 
   /**
+   * Manage sub-status transitions when progress reaches 90%
+   * @param {string} filename - The filename
+   * @param {Function} setSubStatusMap - State setter for sub-status map
+   */
+  const triggerSubStatusTransitions = async (filename, setSubStatusMap) => {
+    try {
+      // When progress reaches 90%, start AI analysis phase
+      setSubStatusMap(prev => ({ ...prev, [filename]: 'analyzing' }));
+      console.log(`📊 ${filename}: Sub-status → Analyzing with AI`);
+      
+      // Wait 5 seconds for AI analysis phase
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // Then switch to uploading phase
+      setSubStatusMap(prev => ({ ...prev, [filename]: 'uploading' }));
+      console.log(`☁️ ${filename}: Sub-status → Uploading to Drive`);
+      
+    } catch (error) {
+      console.error(`Error in sub-status transitions for ${filename}:`, error);
+    }
+  };
+
+  /**
    * Start smooth progress for a specific file (parallel processing support)
    * @param {string} filename - The filename to track progress for
    * @param {Function} setProgressMap - State setter for progress map
    * @param {Function} setCurrentProgress - State setter for current displayed progress
+   * @param {Function} setSubStatusMap - State setter for sub-status map
    * @param {string} currentFileName - Current file being displayed
    * @param {number} duration - Duration in milliseconds
    * @param {number} maxProgress - Maximum progress to reach (default 90)
    * @returns {Object} - Object with stop and complete functions
    */
-  const startSmoothProgressForFile = (filename, setProgressMap, setCurrentProgress, currentFileName, duration, maxProgress = 90) => {
+  const startSmoothProgressForFile = (filename, setProgressMap, setCurrentProgress, setSubStatusMap, currentFileName, duration, maxProgress = 90) => {
     const startTime = Date.now();
     const updateInterval = 100;
     let stopped = false;
+    let subStatusTriggered = false;
     
     const intervalId = setInterval(() => {
       if (stopped) {
@@ -1728,6 +1753,12 @@ const HomePage = () => {
           setCurrentProgress(maxProgress);
         }
         
+        // Trigger sub-status transitions when reaching 90%
+        if (!subStatusTriggered && maxProgress >= 90) {
+          subStatusTriggered = true;
+          triggerSubStatusTransitions(filename, setSubStatusMap);
+        }
+        
         clearInterval(intervalId);
       } else {
         const easedProgress = maxProgress * (1 - Math.pow(1 - (elapsed / duration), 3));
@@ -1740,6 +1771,12 @@ const HomePage = () => {
         if (filename === currentFileName) {
           setCurrentProgress(finalProgress);
         }
+        
+        // Trigger sub-status transitions when reaching 90%
+        if (!subStatusTriggered && finalProgress >= 90) {
+          subStatusTriggered = true;
+          triggerSubStatusTransitions(filename, setSubStatusMap);
+        }
       }
     }, updateInterval);
     
@@ -1748,6 +1785,7 @@ const HomePage = () => {
         stopped = true;
         clearInterval(intervalId);
         setProgressMap(prev => ({ ...prev, [filename]: 0 }));
+        setSubStatusMap(prev => ({ ...prev, [filename]: null }));
         if (filename === currentFileName) {
           setCurrentProgress(0);
         }
@@ -1756,6 +1794,7 @@ const HomePage = () => {
         stopped = true;
         clearInterval(intervalId);
         setProgressMap(prev => ({ ...prev, [filename]: 100 }));
+        setSubStatusMap(prev => ({ ...prev, [filename]: null }));
         if (filename === currentFileName) {
           setCurrentProgress(100);
         }
