@@ -1428,6 +1428,8 @@ const HomePage = () => {
   const [isSurveyReportBatchModalMinimized, setIsSurveyReportBatchModalMinimized] = useState(false);
   const [isTestReportAddModalMinimized, setIsTestReportAddModalMinimized] = useState(false);
   const [isTestReportBatchModalMinimized, setIsTestReportBatchModalMinimized] = useState(false);
+  const [isDrawingManualBatchModalMinimized, setIsDrawingManualBatchModalMinimized] = useState(false);
+
 
   
   // Survey Report Context Menu
