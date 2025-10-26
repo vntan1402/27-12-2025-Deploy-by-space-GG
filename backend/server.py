@@ -19953,7 +19953,10 @@ async def create_other_document(
         doc_dict["id"] = str(uuid.uuid4())
         doc_dict["created_at"] = datetime.now(timezone.utc)
         doc_dict["updated_at"] = None
-        doc_dict["file_ids"] = []  # Initialize empty list for file IDs
+        
+        # Use provided file_ids or initialize empty list
+        if not doc_dict.get("file_ids"):
+            doc_dict["file_ids"] = []
         
         # Convert datetime fields to ISO format for MongoDB
         if doc_dict.get('date'):
