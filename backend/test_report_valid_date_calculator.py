@@ -7,6 +7,7 @@ Always calculates Valid Date from Issued Date + Equipment Interval
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import logging
+import calendar
 
 logger = logging.getLogger(__name__)
 
