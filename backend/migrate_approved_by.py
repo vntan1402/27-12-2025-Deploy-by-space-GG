@@ -10,7 +10,7 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from mongodb_database import MongoDBDatabase
+from mongodb_database import MongoDatabase
 from issued_by_abbreviation import normalize_issued_by
 import logging
 
@@ -24,7 +24,7 @@ async def migrate_drawings_manuals_approved_by():
     """
     try:
         # Initialize database
-        db = MongoDBDatabase()
+        db = MongoDatabase()
         await db.connect()
         
         logger.info("🔍 Starting migration for Drawings & Manuals - Approved By normalization...")
