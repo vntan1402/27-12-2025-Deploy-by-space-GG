@@ -7922,6 +7922,37 @@ const HomePage = () => {
     
     setOtherDocumentFiles(files);
     setOtherDocumentFileError('');
+    
+    // Auto-fill Document Name from first file name (remove extension)
+    if (files.length > 0) {
+      const firstFileName = files[0].name;
+      const nameWithoutExtension = firstFileName.substring(0, firstFileName.lastIndexOf('.')) || firstFileName;
+      setNewOtherDocument(prev => ({
+        ...prev,
+        document_name: nameWithoutExtension
+      }));
+    }
+  };
+  
+  // New unified handler for adding other documents (with or without files)
+  const handleAddOtherDocument = async () => {
+    if (!newOtherDocument.document_name) {
+      toast.error(language === 'vi' ? 'Vui lòng điền tên tài liệu' : 'Please enter document name');
+      return;
+    }
+    
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
+    
+    // If files are selected, upload them
+    if (otherDocumentFiles.length > 0) {
+      await handleAddOtherDocumentsFromFiles();
+    } else {
+      // Otherwise, just create manual entry
+      await handleAddOtherDocumentManually();
+    }
   };
   
   const handleAddOtherDocumentsFromFiles = async () => {
