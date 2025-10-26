@@ -1052,7 +1052,7 @@ class OtherDocumentBase(BaseModel):
     note: Optional[str] = None
 
 class OtherDocumentCreate(OtherDocumentBase):
-    pass
+    file_ids: Optional[List[str]] = None  # For folder uploads
 
 class OtherDocumentUpdate(BaseModel):
     document_name: Optional[str] = None
