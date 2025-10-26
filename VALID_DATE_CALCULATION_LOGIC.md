@@ -136,10 +136,10 @@ Calculation:
   1. Match "EPIRB" → Type: next_annual_survey
   2. Anniversary Next Year = 2026-05-15 (15/May in 2026)
   3. Compare: 2026-05-15 == 2026-05-15 ✅
-  4. Apply Rule A: Valid Date = 2026-05-15 - 3 months
+  4. Apply Rule A: Valid Date = 2026-05-15 - 3 months = 2026-02-15
   
 Output:
-  Valid Date: 2026-02-15 (approximately 3 months before)
+  Valid Date: 2026-02-15
 ```
 
 ---
