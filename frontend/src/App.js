@@ -18247,6 +18247,17 @@ const HomePage = () => {
                                 </select>
                               </div>
                             </div>
+                            
+                            {otherDocumentFiles.length > 1 && (
+                              <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-xs text-yellow-800">
+                                  {language === 'vi'
+                                    ? '📌 Ngày và Trạng thái sẽ được áp dụng cho tất cả files'
+                                    : '📌 Date and Status will be applied to all files'
+                                  }
+                                </p>
+                              </div>
+                            )}
 
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
