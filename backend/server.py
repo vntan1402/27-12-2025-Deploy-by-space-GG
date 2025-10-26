@@ -19912,6 +19912,226 @@ async def get_class_society_mappings(
         logger.error(f"Error getting class society mappings: {e}")
         raise HTTPException(status_code=500, detail="Failed to get class society mappings")
 
+# ============================================
+# OTHER DOCUMENTS API ENDPOINTS
+# ============================================
+
+@api_router.get("/other-documents", response_model=List[OtherDocumentResponse])
+async def get_other_documents(
+    ship_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all other documents for a specific ship"""
+    try:
+        logger.info(f"📁 Fetching other documents for ship_id: {ship_id}")
+        
+        other_documents = await mongo_db.find_all("other_documents", {"ship_id": ship_id})
+        
+        logger.info(f"✅ Found {len(other_documents)} other documents")
+        return [OtherDocumentResponse(**doc) for doc in other_documents]
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching other documents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/other-documents", response_model=OtherDocumentResponse)
+async def create_other_document(
+    document: OtherDocumentCreate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new other document (manual entry)"""
+    try:
+        logger.info(f"📝 Creating new other document: {document.document_name}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": document.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Create document
+        doc_dict = document.dict()
+        doc_dict["id"] = str(uuid.uuid4())
+        doc_dict["created_at"] = datetime.now(timezone.utc)
+        doc_dict["updated_at"] = None
+        doc_dict["file_ids"] = []  # Initialize empty list for file IDs
+        
+        # Convert datetime fields to ISO format for MongoDB
+        if doc_dict.get('date'):
+            if isinstance(doc_dict['date'], datetime):
+                doc_dict['date'] = doc_dict['date'].isoformat()
+        if isinstance(doc_dict['created_at'], datetime):
+            doc_dict['created_at'] = doc_dict['created_at'].isoformat()
+        
+        await mongo_db.create("other_documents", doc_dict)
+        
+        logger.info(f"✅ Other document created with ID: {doc_dict['id']}")
+        return OtherDocumentResponse(**doc_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating other document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/other-documents/{document_id}", response_model=OtherDocumentResponse)
+async def update_other_document(
+    document_id: str,
+    document_update: OtherDocumentUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an existing other document"""
+    try:
+        logger.info(f"📝 Updating other document: {document_id}")
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("other_documents", {"id": document_id})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Prepare update data
+        update_dict = document_update.dict(exclude_unset=True)
+        update_dict["updated_at"] = datetime.now(timezone.utc)
+        
+        # Convert datetime fields to ISO format for MongoDB
+        if update_dict.get('date'):
+            if isinstance(update_dict['date'], datetime):
+                update_dict['date'] = update_dict['date'].isoformat()
+        if isinstance(update_dict['updated_at'], datetime):
+            update_dict['updated_at'] = update_dict['updated_at'].isoformat()
+        
+        # Update document
+        await mongo_db.update("other_documents", {"id": document_id}, {"$set": update_dict})
+        
+        # Fetch updated document
+        updated_doc = await mongo_db.find_one("other_documents", {"id": document_id})
+        
+        logger.info(f"✅ Other document updated: {document_id}")
+        return OtherDocumentResponse(**updated_doc)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating other document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/other-documents/{document_id}")
+async def delete_other_document(
+    document_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete an other document"""
+    try:
+        logger.info(f"🗑️ Deleting other document: {document_id}")
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("other_documents", {"id": document_id})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Delete from MongoDB
+        await mongo_db.delete("other_documents", {"id": document_id})
+        
+        # TODO: Optionally delete files from Google Drive if needed
+        # This can be implemented later based on requirements
+        
+        logger.info(f"✅ Other document deleted: {document_id}")
+        return {"success": True, "message": "Document deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting other document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/other-documents/upload")
+async def upload_other_document(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    document_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Unknown"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload a file for other documents (PDF, JPG, folders)
+    NO AI processing - just file upload and metadata storage
+    """
+    try:
+        logger.info(f"📤 Uploading other document file: {file.filename} for ship: {ship_id}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown')
+        
+        # Validate file type
+        allowed_extensions = ['.pdf', '.jpg', '.jpeg']
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file type. Only PDF and JPG files are supported. Got: {file_extension}"
+            )
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Upload to Google Drive
+        # Create path: SHIP_NAME/Class & Flag Cert/Other Documents/filename
+        folder_path = f"{ship_name}/Class & Flag Cert/Other Documents"
+        
+        # Initialize Google Drive manager
+        drive_manager = GoogleDriveManager()
+        
+        # Upload file
+        logger.info(f"📤 Uploading file to Google Drive: {folder_path}/{file.filename}")
+        file_id = await drive_manager.upload_file(
+            file_content=file_content,
+            filename=file.filename,
+            folder_path=folder_path,
+            mime_type=file.content_type or 'application/octet-stream'
+        )
+        
+        if not file_id:
+            raise HTTPException(status_code=500, detail="Failed to upload file to Google Drive")
+        
+        logger.info(f"✅ File uploaded to Google Drive with ID: {file_id}")
+        
+        # Create document record in MongoDB
+        doc_dict = {
+            "id": str(uuid.uuid4()),
+            "ship_id": ship_id,
+            "document_name": document_name,
+            "date": date,
+            "status": status or "Unknown",
+            "note": note,
+            "file_ids": [file_id],  # Store as list to support multiple files
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": None
+        }
+        
+        await mongo_db.create("other_documents", doc_dict)
+        
+        logger.info(f"✅ Other document record created with ID: {doc_dict['id']}")
+        
+        return {
+            "success": True,
+            "message": "File uploaded successfully",
+            "document_id": doc_dict['id'],
+            "file_id": file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading other document: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Add the router to the main app
 app.include_router(api_router)
 
