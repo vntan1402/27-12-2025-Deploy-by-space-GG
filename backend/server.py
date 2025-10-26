@@ -7396,6 +7396,24 @@ async def analyze_test_report_file(
                         logger.error(f"❌ Error during Valid Date calculation (split PDF): {calc_error}")
                         # Don't fail the entire request, just log the error
                     
+                    # Normalize issued_by to standard abbreviation (split PDF)
+                    if analysis_result.get('issued_by'):
+                        try:
+                            from issued_by_abbreviation import normalize_issued_by
+                            
+                            original_issued_by = analysis_result['issued_by']
+                            normalized_issued_by = normalize_issued_by(original_issued_by)
+                            
+                            if normalized_issued_by != original_issued_by:
+                                analysis_result['issued_by'] = normalized_issued_by
+                                logger.info(f"✅ Normalized Issued By (split PDF): '{original_issued_by}' → '{normalized_issued_by}'")
+                            else:
+                                logger.info(f"ℹ️ Issued By kept as (split PDF): '{original_issued_by}'")
+                                
+                        except Exception as norm_error:
+                            logger.error(f"❌ Error normalizing issued_by (split PDF): {norm_error}")
+                            # Keep original value if normalization fails
+                    
                     # Add split metadata to response
                     analysis_result['_split_info'] = {
                         'was_split': True,
