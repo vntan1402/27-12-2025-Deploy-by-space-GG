@@ -6,7 +6,7 @@ import requests
 import json
 
 # Configuration
-BACKEND_URL = 'https://vessel-docs-sys.preview.emergentagent.com/api'
+BACKEND_URL = 'https://shipman-progress.preview.emergentagent.com/api'
 PDF_URL = 'https://customer-assets.emergentagent.com/job_shipmatrix/artifacts/fwad1ybv_2.%20CO%20DUC%20-%20PNM%20COC%20DOB.pdf'
 
 print("=" * 70)
