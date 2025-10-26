@@ -16147,7 +16147,19 @@ const HomePage = () => {
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{document.document_no || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{document.approved_by || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{document.approved_date ? formatDate(document.approved_date) : '-'}</td>
-                                  <td className="border border-gray-300 px-4 py-2">
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 cursor-context-menu"
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      setDrawingsManualContextMenu({
+                                        show: true,
+                                        x: e.clientX,
+                                        y: e.clientY,
+                                        document: document
+                                      });
+                                      setShowDrawingsManualStatusSubmenu(true);
+                                    }}
+                                  >
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       document.status === 'Valid' ? 'bg-green-100 text-green-800' :
                                       document.status === 'Approved' ? 'bg-blue-100 text-blue-800' :
