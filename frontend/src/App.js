@@ -1692,6 +1692,7 @@ const HomePage = () => {
   // Other Documents File Upload States
   const [otherDocumentFiles, setOtherDocumentFiles] = useState([]);
   const [otherDocumentFileError, setOtherDocumentFileError] = useState('');
+  const [isOtherDocumentFolderUpload, setIsOtherDocumentFolderUpload] = useState(false); // Track if it's folder upload
   
   // Other Documents Batch Processing States
   const [isBatchProcessingOtherDocuments, setIsBatchProcessingOtherDocuments] = useState(false);
