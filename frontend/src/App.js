@@ -6585,10 +6585,27 @@ const HomePage = () => {
       }
       
       result.success = true;
+      
+      // Set status to 'completed'
+      setSurveyReportFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+      
+      // Complete progress animation to 100%
+      progressController.complete();
+      
+      // Small delay to let user see the 100% progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       return result;
       
     } catch (error) {
       console.error(`❌ Error processing ${file.name}:`, error);
+      
+      // Set status to 'error'
+      setSurveyReportFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+      
+      // Stop progress animation on error
+      progressController.stop();
+      setSurveyReportSmoothProgress(0);
       
       // Handle Pydantic validation errors (array of objects) vs string errors
       let errorMsg = 'Processing failed';
