@@ -64,7 +64,12 @@ These equipment types are tied to the ship's Annual Survey cycle:
 
 #### Step 2: Calculate Anniversary Date for Next Year
 ```
-Anniversary Next Year = Anniversary Date in (Current Year + 1)
+Anniversary Next Year = Anniversary Date in (Year of Issued Date + 1)
+
+Example:
+  Issued Date: 2025-03-10 → Year = 2025
+  Anniversary: 15/May (day: 15, month: 5)
+  Anniversary Next Year = 2026-05-15 (2025 + 1 = 2026)
 ```
 
 #### Step 3: Determine Adjustment (+3M or -3M)
