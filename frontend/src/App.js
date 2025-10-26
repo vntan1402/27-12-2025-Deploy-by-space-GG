@@ -16353,8 +16353,14 @@ const HomePage = () => {
                               {/* Status Submenu */}
                               {showDrawingsManualStatusSubmenu && (
                                 <div
-                                  className="absolute left-full top-0 ml-1 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
-                                  style={{ minWidth: '150px' }}
+                                  className="absolute top-0 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                                  style={{ 
+                                    minWidth: '150px',
+                                    // Show on left if too close to right edge, otherwise show on right
+                                    ...(drawingsManualContextMenu.x > window.innerWidth - 400 
+                                      ? { right: '100%', marginRight: '4px' }
+                                      : { left: '100%', marginLeft: '4px' })
+                                  }}
                                   onMouseEnter={() => setShowDrawingsManualStatusSubmenu(true)}
                                   onMouseLeave={() => setShowDrawingsManualStatusSubmenu(false)}
                                 >
