@@ -16771,6 +16771,48 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Drawings & Manuals Batch Processing - Minimized Floating Button */}
+                  {isBatchProcessingDrawingsManuals && isDrawingManualBatchModalMinimized && (
+                    <div 
+                      onClick={() => setIsDrawingManualBatchModalMinimized(false)}
+                      className="fixed bottom-6 left-6 z-[9999] cursor-pointer group"
+                    >
+                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 p-4 min-w-[280px]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-white bg-opacity-20 rounded-full p-2">
+                              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm">
+                                {language === 'vi' ? 'Đang xử lý Drawings & Manuals' : 'Processing Drawings & Manuals'}
+                              </div>
+                              <div className="text-xs opacity-90">
+                                {drawingsManualBatchProgress.current}/{drawingsManualBatchProgress.total} files
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold">
+                              {Math.round((drawingsManualBatchProgress.current / drawingsManualBatchProgress.total) * 100)}%
+                            </div>
+                            <div className="text-xs opacity-75">
+                              {language === 'vi' ? 'Nhấn để mở rộng' : 'Click to expand'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-2 w-full bg-white bg-opacity-20 rounded-full h-2 overflow-hidden">
+                          <div 
+                            className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
+                            style={{ 
+                              width: `${(drawingsManualBatchProgress.current / drawingsManualBatchProgress.total) * 100}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Batch Processing Results Modal for Drawings & Manuals */}
                   {showDrawingsManualProcessingResultsModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
