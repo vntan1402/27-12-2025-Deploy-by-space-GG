@@ -5927,6 +5927,10 @@ const HomePage = () => {
       }
       
       result.success = true;
+      
+      // Complete progress animation to 100%
+      progressController.complete();
+      
       return result;
       
     } catch (error) {
