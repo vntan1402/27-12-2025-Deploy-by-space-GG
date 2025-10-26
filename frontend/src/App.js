@@ -17098,20 +17098,18 @@ const HomePage = () => {
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold">
-                              {testReportBatchProgress.total > 0 
-                                ? `${Math.round((testReportBatchProgress.current / testReportBatchProgress.total) * 100)}%`
-                                : '0%'}
+                              {Math.round(testReportSmoothProgress)}%
                             </div>
                             <div className="text-xs opacity-75">
                               {language === 'vi' ? 'Nhấn để mở rộng' : 'Click to expand'}
                             </div>
                           </div>
                         </div>
-                        <div className="mt-2 w-full bg-white bg-opacity-20 rounded-full h-2">
+                        <div className="mt-2 w-full bg-white bg-opacity-20 rounded-full h-2 overflow-hidden">
                           <div 
-                            className="bg-white h-2 rounded-full transition-all duration-300"
+                            className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
                             style={{ 
-                              width: `${testReportBatchProgress.total > 0 ? (testReportBatchProgress.current / testReportBatchProgress.total) * 100 : 0}%` 
+                              width: `${testReportSmoothProgress}%` 
                             }}
                           ></div>
                         </div>
