@@ -5759,43 +5759,42 @@ const HomePage = () => {
     try {
       setIsBatchProcessingTestReports(true);
       setTestReportBatchProgress({ current: 0, total: files.length });
-      setTestReportSmoothProgress(0); // Reset smooth progress
-      setTestReportCurrentFileIndex(0);
-      setTestReportCurrentFileName('');
+      setTestReportSmoothProgress(0);
+      setTestReportFileProgressMap({});
+      setTestReportCurrentFileName(files[0]?.name || ''); // Set first file as current
       setTestReportBatchResults([]);
+      
+      const STAGGER_DELAY = 5000; // 5 seconds between file starts
       
       const results = [];
       
-      // ✅ NEW: Process files SEQUENTIALLY to avoid progress bar conflicts
-      // This ensures only 1 file shows smooth progress at a time
-      for (let index = 0; index < files.length; index++) {
-        const file = files[index];
-        
-        // Set current file info
-        setTestReportCurrentFileIndex(index + 1);
-        setTestReportCurrentFileName(file.name);
-        
-        try {
-          const result = await processSingleTestReportInBatch(file, index + 1, files.length);
-          results.push(result);
-          setTestReportBatchProgress({ current: results.length, total: files.length });
-        } catch (error) {
-          const errorResult = {
-            filename: file.name,
-            success: false,
-            error: error.message || 'Processing failed',
-            testReportCreated: false,
-            fileUploaded: false
-          };
-          results.push(errorResult);
-          setTestReportBatchProgress({ current: results.length, total: files.length });
-        }
-        
-        // Small delay between files to avoid rate limiting (2 seconds instead of 5)
-        if (index < files.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      }
+      // ✅ Process files with staggered start (PARALLEL)
+      const promises = files.map((file, index) => {
+        return new Promise((resolve) => {
+          setTimeout(async () => {
+            try {
+              const result = await processSingleTestReportInBatch(file, index + 1, files.length);
+              results.push(result);
+              setTestReportBatchProgress({ current: results.length, total: files.length });
+              resolve(result);
+            } catch (error) {
+              const errorResult = {
+                filename: file.name,
+                success: false,
+                error: error.message || 'Processing failed',
+                testReportCreated: false,
+                fileUploaded: false
+              };
+              results.push(errorResult);
+              setTestReportBatchProgress({ current: results.length, total: files.length });
+              resolve(errorResult);
+            }
+          }, index * STAGGER_DELAY);
+        });
+      });
+      
+      // Wait for all files to complete
+      await Promise.all(promises);
       
       // Close batch processing modal
       setIsBatchProcessingTestReports(false);
