@@ -17163,13 +17163,23 @@ const HomePage = () => {
                           <div className="mb-4">
                             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
                           </div>
-                          <p className="text-gray-600 mb-4">
+                          
+                          {/* Overall Progress */}
+                          <p className="text-gray-600 mb-2">
                             {language === 'vi' 
-                              ? `Đang xử lý file ${testReportBatchProgress.current}/${testReportBatchProgress.total}`
-                              : `Processing file ${testReportBatchProgress.current}/${testReportBatchProgress.total}`}
+                              ? `Đã hoàn thành ${testReportBatchProgress.current}/${testReportBatchProgress.total} files`
+                              : `Completed ${testReportBatchProgress.current}/${testReportBatchProgress.total} files`}
                           </p>
                           
-                          {/* Smooth Progress Bar */}
+                          {/* Current File Name */}
+                          {testReportCurrentFileName && (
+                            <p className="text-sm text-gray-500 mb-4 truncate px-4" title={testReportCurrentFileName}>
+                              {language === 'vi' ? 'Đang xử lý: ' : 'Processing: '}
+                              <span className="font-medium">{testReportCurrentFileName}</span>
+                            </p>
+                          )}
+                          
+                          {/* Current File Smooth Progress Bar */}
                           <div className="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
                             <div 
                               className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out"
@@ -17183,7 +17193,7 @@ const HomePage = () => {
                               {Math.round(testReportSmoothProgress)}%
                             </p>
                             <p className="text-xs text-gray-400">
-                              {language === 'vi' ? 'Thời gian ước tính dựa trên kích thước file' : 'Estimated based on file size'}
+                              {language === 'vi' ? 'File hiện tại' : 'Current file'}
                             </p>
                           </div>
                         </div>
