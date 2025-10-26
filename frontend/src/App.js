@@ -7282,7 +7282,23 @@ const HomePage = () => {
     try {
       setIsBatchProcessingDrawingsManuals(true);
       setDrawingsManualBatchProgress({ current: 0, total: files.length });
+      setDrawingsManualSmoothProgress(0);
       setShowAddDrawingsManualModal(false);
+      
+      // Initialize progress, status, and sub-status for all files
+      const initialProgressMap = {};
+      const initialStatusMap = {};
+      const initialSubStatusMap = {};
+      files.forEach(file => {
+        initialProgressMap[file.name] = 0;
+        initialStatusMap[file.name] = 'waiting';
+        initialSubStatusMap[file.name] = null;
+      });
+      
+      setDrawingsManualFileProgressMap(initialProgressMap);
+      setDrawingsManualFileStatusMap(initialStatusMap);
+      setDrawingsManualFileSubStatusMap(initialSubStatusMap);
+      setDrawingsManualCurrentFileName(files[0]?.name || '');
       setDrawingsManualBatchResults([]);
       
       const STAGGER_DELAY = 5000; // 5 seconds between file starts
