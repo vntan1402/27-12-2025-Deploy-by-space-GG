@@ -18125,7 +18125,8 @@ const HomePage = () => {
                               </h4>
                             </div>
                             
-                            <div className="relative">
+                            <div className="space-y-2">
+                              {/* File Input (hidden) */}
                               <input
                                 type="file"
                                 accept=".pdf,.jpg,.jpeg"
@@ -18134,20 +18135,50 @@ const HomePage = () => {
                                 className="hidden"
                                 id="other-document-file-input"
                               />
-                              <label
-                                htmlFor="other-document-file-input"
-                                className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-all"
-                              >
-                                <svg className="w-8 h-8 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                                <p className="text-sm text-gray-600">
-                                  {language === 'vi' ? 'Click để chọn file' : 'Click to select files'}
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  {language === 'vi' ? 'PDF, JPG (nhiều file)' : 'PDF, JPG (multiple files)'}
-                                </p>
-                              </label>
+                              
+                              {/* Folder Input (hidden) */}
+                              <input
+                                type="file"
+                                webkitdirectory=""
+                                directory=""
+                                multiple
+                                onChange={handleOtherDocumentFolderSelect}
+                                className="hidden"
+                                id="other-document-folder-input"
+                              />
+                              
+                              {/* Buttons to trigger inputs */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <label
+                                  htmlFor="other-document-file-input"
+                                  className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-all"
+                                >
+                                  <svg className="w-8 h-8 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                  </svg>
+                                  <p className="text-sm font-medium text-gray-700">
+                                    {language === 'vi' ? 'Chọn Files' : 'Select Files'}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    {language === 'vi' ? 'PDF, JPG' : 'PDF, JPG'}
+                                  </p>
+                                </label>
+                                
+                                <label
+                                  htmlFor="other-document-folder-input"
+                                  className="flex flex-col items-center justify-center h-24 border-2 border-dashed border-green-300 rounded-lg cursor-pointer bg-white hover:bg-green-50 transition-all"
+                                >
+                                  <svg className="w-8 h-8 text-green-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                                  </svg>
+                                  <p className="text-sm font-medium text-gray-700">
+                                    {language === 'vi' ? 'Chọn Folder' : 'Select Folder'}
+                                  </p>
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    {language === 'vi' ? 'Toàn bộ thư mục' : 'Entire folder'}
+                                  </p>
+                                </label>
+                              </div>
                             </div>
 
                             {otherDocumentFiles.length > 0 && (
