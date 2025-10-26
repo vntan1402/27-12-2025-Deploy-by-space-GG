@@ -7901,6 +7901,7 @@ const HomePage = () => {
     if (files.length === 0) {
       setOtherDocumentFileError('');
       setOtherDocumentFiles([]);
+      setNewOtherDocument(prev => ({ ...prev, document_name: '' }));
       return;
     }
     
@@ -7923,24 +7924,28 @@ const HomePage = () => {
     setOtherDocumentFiles(files);
     setOtherDocumentFileError('');
     
-    // Auto-fill Document Name from first file name (remove extension)
-    if (files.length > 0) {
-      const firstFileName = files[0].name;
-      const nameWithoutExtension = firstFileName.substring(0, firstFileName.lastIndexOf('.')) || firstFileName;
+    // Auto-fill Document Name based on number of files
+    if (files.length === 1) {
+      // Single file: Use its name
+      const fileName = files[0].name;
+      const nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
       setNewOtherDocument(prev => ({
         ...prev,
         document_name: nameWithoutExtension
+      }));
+    } else {
+      // Multiple files: Show batch message
+      setNewOtherDocument(prev => ({
+        ...prev,
+        document_name: language === 'vi' 
+          ? `Batch Upload (${files.length} files - mỗi file sẽ tạo 1 record riêng)`
+          : `Batch Upload (${files.length} files - each will create a separate record)`
       }));
     }
   };
   
   // New unified handler for adding other documents (with or without files)
   const handleAddOtherDocument = async () => {
-    if (!newOtherDocument.document_name) {
-      toast.error(language === 'vi' ? 'Vui lòng điền tên tài liệu' : 'Please enter document name');
-      return;
-    }
-    
     if (!selectedShip) {
       toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
       return;
@@ -7950,7 +7955,11 @@ const HomePage = () => {
     if (otherDocumentFiles.length > 0) {
       await handleAddOtherDocumentsFromFiles();
     } else {
-      // Otherwise, just create manual entry
+      // Manual entry without files
+      if (!newOtherDocument.document_name) {
+        toast.error(language === 'vi' ? 'Vui lòng điền tên tài liệu' : 'Please enter document name');
+        return;
+      }
       await handleAddOtherDocumentManually();
     }
   };
