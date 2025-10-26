@@ -7950,51 +7950,33 @@ const HomePage = () => {
     if (files.length === 0) {
       setOtherDocumentFileError('');
       setOtherDocumentFiles([]);
+      setIsOtherDocumentFolderUpload(false);
       setNewOtherDocument(prev => ({ ...prev, document_name: '' }));
       return;
     }
     
-    // Filter only PDF and JPG files from folder
-    const validExtensions = ['.pdf', '.jpg', '.jpeg'];
-    const validFiles = files.filter(file => {
-      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-      return validExtensions.includes(ext);
-    });
-    
-    if (validFiles.length === 0) {
-      setOtherDocumentFileError(
-        language === 'vi' 
-          ? 'Không tìm thấy file PDF hoặc JPG trong thư mục này.' 
-          : 'No PDF or JPG files found in this folder.'
-      );
-      return;
-    }
-    
-    setOtherDocumentFiles(validFiles);
+    // Accept ALL file types for folder upload (no filtering)
+    setOtherDocumentFiles(files);
     setOtherDocumentFileError('');
+    setIsOtherDocumentFolderUpload(true); // Mark as folder upload
     
     // Get folder name from first file's path
-    const firstFile = validFiles[0];
+    const firstFile = files[0];
     const folderPath = firstFile.webkitRelativePath || '';
     const folderName = folderPath.split('/')[0] || 'Folder';
     
-    // Auto-fill Document Name with folder context
+    // Auto-fill Document Name with folder name
     setNewOtherDocument(prev => ({
       ...prev,
-      document_name: language === 'vi' 
-        ? `Folder: ${folderName} (${validFiles.length} files)`
-        : `Folder: ${folderName} (${validFiles.length} files)`
+      document_name: folderName
     }));
     
-    // Show info if some files were filtered out
-    if (validFiles.length < files.length) {
-      const filteredCount = files.length - validFiles.length;
-      toast.info(
-        language === 'vi'
-          ? `📁 Đã lọc ${validFiles.length} files (bỏ qua ${filteredCount} files không phải PDF/JPG)`
-          : `📁 Filtered ${validFiles.length} files (skipped ${filteredCount} non-PDF/JPG files)`
-      );
-    }
+    // Show info message
+    toast.info(
+      language === 'vi'
+        ? `📁 Đã chọn folder "${folderName}" với ${files.length} files (sẽ tạo 1 record duy nhất)`
+        : `📁 Selected folder "${folderName}" with ${files.length} files (will create 1 single record)`
+    );
   };
   
   // New unified handler for adding other documents (with or without files)
