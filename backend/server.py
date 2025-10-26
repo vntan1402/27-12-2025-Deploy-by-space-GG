@@ -7522,6 +7522,24 @@ async def analyze_test_report_file(
             logger.error(f"❌ Error during Valid Date calculation: {calc_error}")
             # Don't fail the entire request, just log the error
         
+        # Normalize issued_by to standard abbreviation
+        if analysis_result.get('issued_by'):
+            try:
+                from issued_by_abbreviation import normalize_issued_by
+                
+                original_issued_by = analysis_result['issued_by']
+                normalized_issued_by = normalize_issued_by(original_issued_by)
+                
+                if normalized_issued_by != original_issued_by:
+                    analysis_result['issued_by'] = normalized_issued_by
+                    logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
+                else:
+                    logger.info(f"ℹ️ Issued By kept as: '{original_issued_by}'")
+                    
+            except Exception as norm_error:
+                logger.error(f"❌ Error normalizing issued_by: {norm_error}")
+                # Keep original value if normalization fails
+        
         # Auto-calculate status if valid_date is extracted or calculated
         if analysis_result.get('valid_date'):
             try:
