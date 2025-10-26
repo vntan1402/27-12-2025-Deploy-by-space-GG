@@ -1693,6 +1693,75 @@ const HomePage = () => {
     };
   };
 
+  /**
+   * Start smooth progress for a specific file (parallel processing support)
+   * @param {string} filename - The filename to track progress for
+   * @param {Function} setProgressMap - State setter for progress map
+   * @param {Function} setCurrentProgress - State setter for current displayed progress
+   * @param {string} currentFileName - Current file being displayed
+   * @param {number} duration - Duration in milliseconds
+   * @param {number} maxProgress - Maximum progress to reach (default 90)
+   * @returns {Object} - Object with stop and complete functions
+   */
+  const startSmoothProgressForFile = (filename, setProgressMap, setCurrentProgress, currentFileName, duration, maxProgress = 90) => {
+    const startTime = Date.now();
+    const updateInterval = 100;
+    let stopped = false;
+    
+    const intervalId = setInterval(() => {
+      if (stopped) {
+        clearInterval(intervalId);
+        return;
+      }
+      
+      const elapsed = Date.now() - startTime;
+      const progress = (elapsed / duration) * maxProgress;
+      
+      if (progress >= maxProgress) {
+        // Update map
+        setProgressMap(prev => ({ ...prev, [filename]: maxProgress }));
+        
+        // Update display if this is the current file
+        if (filename === currentFileName) {
+          setCurrentProgress(maxProgress);
+        }
+        
+        clearInterval(intervalId);
+      } else {
+        const easedProgress = maxProgress * (1 - Math.pow(1 - (elapsed / duration), 3));
+        const finalProgress = Math.min(easedProgress, maxProgress);
+        
+        // Update map
+        setProgressMap(prev => ({ ...prev, [filename]: finalProgress }));
+        
+        // Update display if this is the current file
+        if (filename === currentFileName) {
+          setCurrentProgress(finalProgress);
+        }
+      }
+    }, updateInterval);
+    
+    return {
+      stop: () => {
+        stopped = true;
+        clearInterval(intervalId);
+        setProgressMap(prev => ({ ...prev, [filename]: 0 }));
+        if (filename === currentFileName) {
+          setCurrentProgress(0);
+        }
+      },
+      complete: () => {
+        stopped = true;
+        clearInterval(intervalId);
+        setProgressMap(prev => ({ ...prev, [filename]: 100 }));
+        if (filename === currentFileName) {
+          setCurrentProgress(100);
+        }
+      }
+    };
+  };
+
+
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
 
