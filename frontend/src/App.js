@@ -5833,6 +5833,10 @@ const HomePage = () => {
       error: null
     };
     
+    // Start smooth progress for this file
+    const estimatedTime = estimateFileProcessingTime(file);
+    const progressController = startSmoothProgress(setTestReportSmoothProgress, estimatedTime, 90);
+    
     try {
       console.log(`📋 Processing test report ${current}/${total}: ${file.name}`);
       
