@@ -90,14 +90,15 @@ Step-by-Step Calculation:
   
   Step 5: Apply Rule A (Anniversary == Special Survey)
     → Valid Date = Anniversary - 3 months
-    → Valid Date = 2026-05-15 - 90 days ≈ 2026-02-14
+    → Valid Date = 2026-05-15 - 3 months = 2026-02-15
   
 Output:
-  Valid Date: 2026-02-14
+  Valid Date: 2026-02-15
   
 Giải thích:
   Vì Anniversary Date trùng với Special Survey Cycle To,
   thiết bị phải được test TRƯỚC special survey → trừ 3 tháng
+  (Giữ nguyên ngày 15, chỉ thay đổi tháng: 5 - 3 = 2)
 ```
 
 ---
