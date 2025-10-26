@@ -247,11 +247,29 @@ async def calculate_next_annual_survey_date(ship_id: str, issued_date: str, mong
             except Exception as parse_error:
                 logger.warning(f"⚠️ Could not parse special_survey_cycle_to: {parse_error}")
                 # Default to +3 months
-                valid_date = anniversary_next_year + timedelta(days=90)
+                new_month = anniversary_next_year.month + 3
+                new_year = anniversary_next_year.year + (new_month - 1) // 12
+                new_month = ((new_month - 1) % 12) + 1
+                
+                try:
+                    valid_date = datetime(new_year, new_month, anniversary_next_year.day)
+                except ValueError:
+                    last_day = calendar.monthrange(new_year, new_month)[1]
+                    valid_date = datetime(new_year, new_month, min(anniversary_next_year.day, last_day))
+                
                 logger.info(f"🎯 Parse error → Valid Date = Anniversary + 3M")
         else:
             # No special survey cycle to, default to +3 months
-            valid_date = anniversary_next_year + timedelta(days=90)
+            new_month = anniversary_next_year.month + 3
+            new_year = anniversary_next_year.year + (new_month - 1) // 12
+            new_month = ((new_month - 1) % 12) + 1
+            
+            try:
+                valid_date = datetime(new_year, new_month, anniversary_next_year.day)
+            except ValueError:
+                last_day = calendar.monthrange(new_year, new_month)[1]
+                valid_date = datetime(new_year, new_month, min(anniversary_next_year.day, last_day))
+            
             logger.info(f"🎯 No Special Survey Cycle To → Valid Date = Anniversary + 3M")
         
         valid_date_str = valid_date.strftime("%Y-%m-%d")
