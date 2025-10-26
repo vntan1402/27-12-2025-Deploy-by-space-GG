@@ -1041,6 +1041,41 @@ class DrawingsManualResponse(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
 
+# ============================================
+# OTHER DOCUMENTS PYDANTIC MODELS
+# ============================================
+class OtherDocumentBase(BaseModel):
+    ship_id: str
+    document_name: str  # Required field
+    date: Optional[datetime] = None  # Generic date field
+    status: Optional[str] = "Unknown"  # Valid, Expired, Unknown
+    note: Optional[str] = None
+
+class OtherDocumentCreate(OtherDocumentBase):
+    pass
+
+class OtherDocumentUpdate(BaseModel):
+    document_name: Optional[str] = None
+    date: Optional[datetime] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+
+class OtherDocumentResponse(BaseModel):
+    id: str
+    ship_id: str
+    document_name: str
+    date: Optional[datetime] = None
+    status: str
+    note: Optional[str] = None
+    file_ids: Optional[List[str]] = None  # List of Google Drive file IDs (supports multiple files/folders)
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 # Helper function for Test Report status calculation
 def calculate_test_report_status(valid_date: Optional[datetime]) -> str:
     """
