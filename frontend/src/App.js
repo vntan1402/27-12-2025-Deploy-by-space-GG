@@ -1429,6 +1429,7 @@ const HomePage = () => {
   const [isTestReportAddModalMinimized, setIsTestReportAddModalMinimized] = useState(false);
   const [isTestReportBatchModalMinimized, setIsTestReportBatchModalMinimized] = useState(false);
   const [isDrawingManualBatchModalMinimized, setIsDrawingManualBatchModalMinimized] = useState(false);
+  const [isDrawingManualAddModalMinimized, setIsDrawingManualAddModalMinimized] = useState(false);
 
 
   
