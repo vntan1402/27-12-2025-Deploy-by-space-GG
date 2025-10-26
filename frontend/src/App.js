@@ -17883,6 +17883,105 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* Other Documents Batch Processing Modal */}
+                  {isBatchProcessingOtherDocuments && !isOtherDocumentBatchModalMinimized && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-gray-800">
+                              {language === 'vi' ? 'Đang xử lý Tài liệu Khác' : 'Processing Other Documents'}
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {language === 'vi' 
+                                ? `Đã hoàn thành ${otherDocumentBatchProgress.current}/${otherDocumentBatchProgress.total} files`
+                                : `Completed ${otherDocumentBatchProgress.current}/${otherDocumentBatchProgress.total} files`}
+                            </p>
+                          </div>
+                          
+                          {/* Minimize Button */}
+                          <button
+                            onClick={() => setIsOtherDocumentBatchModalMinimized(true)}
+                            className="ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Files List - Scrollable */}
+                        <div className="flex-1 overflow-y-auto space-y-3">
+                          {Object.keys(otherDocumentFileStatusMap).map((filename) => {
+                            const status = otherDocumentFileStatusMap[filename];
+                            const progress = otherDocumentFileProgressMap[filename] || 0;
+                            
+                            // Determine display status text
+                            let statusText = '';
+                            if (status === 'waiting') {
+                              statusText = language === 'vi' ? 'Chờ...' : 'Waiting...';
+                            } else if (status === 'processing') {
+                              statusText = language === 'vi' ? 'Đang tải lên...' : 'Uploading...';
+                            } else if (status === 'completed') {
+                              statusText = language === 'vi' ? 'Hoàn thành' : 'Completed';
+                            } else if (status === 'error') {
+                              statusText = language === 'vi' ? 'Lỗi' : 'Error';
+                            }
+                            
+                            return (
+                              <div key={filename} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-medium text-gray-800 truncate flex-1" title={filename}>
+                                    {filename}
+                                  </span>
+                                  <span className={`ml-2 text-sm font-semibold px-2 py-1 rounded ${
+                                    status === 'completed' ? 'bg-green-100 text-green-800' :
+                                    status === 'error' ? 'bg-red-100 text-red-800' :
+                                    status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-gray-100 text-gray-600'
+                                  }`}>
+                                    {statusText}
+                                  </span>
+                                </div>
+                                
+                                {/* Progress Bar */}
+                                {(status === 'processing' || status === 'waiting') && (
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                      style={{ width: `${progress}%` }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Floating Icon when Batch Processing is Minimized */}
+                  {isBatchProcessingOtherDocuments && isOtherDocumentBatchModalMinimized && (
+                    <div 
+                      className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl cursor-pointer z-50 transition-all animate-pulse"
+                      onClick={() => {
+                        console.log('📂 Restoring Batch Processing modal...');
+                        setIsOtherDocumentBatchModalMinimized(false);
+                      }}
+                      title={language === 'vi' 
+                        ? `Đang xử lý: ${otherDocumentBatchProgress.current}/${otherDocumentBatchProgress.total}`
+                        : `Processing: ${otherDocumentBatchProgress.current}/${otherDocumentBatchProgress.total}`
+                      }
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                    </div>
+                  )}
+
                   {/* Add Test Report Modal */}
                   {showAddTestReportModal && !isTestReportAddModalMinimized && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
