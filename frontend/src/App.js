@@ -15633,12 +15633,20 @@ const HomePage = () => {
                                 <th 
                                   className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
                                   onClick={() => handleTestReportSort('valid_date')}
-                                  title={language === 'vi' 
-                                    ? 'Thông tin hạn bảo dưỡng được tính bởi AI có thể gặp sai sót. Vui lòng kiểm tra và sửa lại nếu cần' 
-                                    : 'Valid Date calculated by AI may contain errors. Please verify and correct if needed'}
                                 >
                                   <div className="flex items-center justify-between">
-                                    <span>{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</span>
+                                    <div className="flex items-center gap-1">
+                                      <span>{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</span>
+                                      <span 
+                                        className="text-blue-500 cursor-help text-sm"
+                                        title={language === 'vi' 
+                                          ? 'Thông tin hạn bảo dưỡng được tính bởi AI có thể gặp sai sót. Vui lòng kiểm tra và sửa lại nếu cần' 
+                                          : 'Valid Date calculated by AI may contain errors. Please verify and correct if needed'}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        ⓘ
+                                      </span>
+                                    </div>
                                     {testReportSort.column === 'valid_date' && (
                                       <span className="ml-1 text-blue-600 text-sm font-bold">
                                         {testReportSort.direction === 'asc' ? '▲' : '▼'}
