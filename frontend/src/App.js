@@ -2416,6 +2416,14 @@ const HomePage = () => {
   }, [selectedShip, selectedSubMenu]);
 
 
+  // Fetch other documents when ship is selected and on other_documents submenu
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'other_documents') {
+      fetchOtherDocuments(selectedShip.id);
+    }
+  }, [selectedShip, selectedSubMenu]);
+
+
   // Close survey report context menu on click outside
   useEffect(() => {
     const handleClick = () => {
