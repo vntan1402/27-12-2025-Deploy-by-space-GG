@@ -90,7 +90,7 @@ async def get_ship_anniversary_and_special_survey(ship_id: str, mongo_db: Any) -
         
         # Get anniversary date from ship data
         anniversary_date = ship.get("anniversary_date")
-        special_survey_cycle_to = ship.get("special_survey_cycle_to")
+        special_survey_cycle = ship.get("special_survey_cycle")
         
         if not anniversary_date:
             logger.warning(f"⚠️ No anniversary date found for ship: {ship.get('name', 'Unknown')}")
@@ -107,6 +107,14 @@ async def get_ship_anniversary_and_special_survey(ship_id: str, mongo_db: Any) -
         if not day or not month:
             logger.warning(f"⚠️ Incomplete anniversary date for ship: day={day}, month={month}")
             return None
+        
+        # Get special_survey_cycle to_date
+        special_survey_cycle_to = None
+        if special_survey_cycle:
+            if isinstance(special_survey_cycle, dict):
+                special_survey_cycle_to = special_survey_cycle.get("to_date")
+            else:
+                special_survey_cycle_to = getattr(special_survey_cycle, "to_date", None)
         
         result = {
             "anniversary_day": day,
