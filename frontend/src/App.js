@@ -7499,8 +7499,25 @@ const HomePage = () => {
         result.success = true; // Document created without file content
       }
       
+      // Set status to 'completed'
+      setDrawingsManualFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+      
+      // Complete progress animation to 100%
+      progressController.complete();
+      
+      // Small delay to let user see the 100% progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
     } catch (error) {
       console.error(`❌ Failed to process ${file.name}:`, error);
+      
+      // Set status to 'error'
+      setDrawingsManualFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+      
+      // Stop progress animation on error
+      progressController.stop();
+      setDrawingsManualSmoothProgress(0);
+      
       result.error = error.response?.data?.detail || error.message || 'Processing failed';
     }
     
