@@ -1414,6 +1414,7 @@ const HomePage = () => {
   // Batch processing states
   const [isBatchProcessingSurveyReports, setIsBatchProcessingSurveyReports] = useState(false);
   const [surveyReportBatchProgress, setSurveyReportBatchProgress] = useState({ current: 0, total: 0 });
+  const [surveyReportSmoothProgress, setSurveyReportSmoothProgress] = useState(0); // Smooth progress 0-100
   const [surveyReportBatchResults, setSurveyReportBatchResults] = useState([]);
   const [showSurveyReportProcessingResultsModal, setShowSurveyReportProcessingResultsModal] = useState(false);
   const [selectedSurveyReports, setSelectedSurveyReports] = useState(new Set());
