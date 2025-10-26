@@ -82,8 +82,6 @@ async def migrate_drawings_manuals_approved_by():
     except Exception as e:
         logger.error(f"❌ Migration failed: {e}")
         raise
-    finally:
-        await db.close()
 
 
 if __name__ == "__main__":
