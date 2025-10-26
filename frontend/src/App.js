@@ -1415,6 +1415,10 @@ const HomePage = () => {
   const [isBatchProcessingSurveyReports, setIsBatchProcessingSurveyReports] = useState(false);
   const [surveyReportBatchProgress, setSurveyReportBatchProgress] = useState({ current: 0, total: 0 });
   const [surveyReportSmoothProgress, setSurveyReportSmoothProgress] = useState(0); // Smooth progress 0-100
+  const [surveyReportFileProgressMap, setSurveyReportFileProgressMap] = useState({});
+  const [surveyReportFileStatusMap, setSurveyReportFileStatusMap] = useState({});
+  const [surveyReportFileSubStatusMap, setSurveyReportFileSubStatusMap] = useState({});
+  const [surveyReportCurrentFileName, setSurveyReportCurrentFileName] = useState('');
   const [surveyReportBatchResults, setSurveyReportBatchResults] = useState([]);
   const [showSurveyReportProcessingResultsModal, setShowSurveyReportProcessingResultsModal] = useState(false);
   const [selectedSurveyReports, setSelectedSurveyReports] = useState(new Set());
