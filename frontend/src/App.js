@@ -5947,6 +5947,9 @@ const HomePage = () => {
       error: null
     };
     
+    // Set status to 'processing' when starting this file
+    setTestReportFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+    
     // Initialize progress for this file in the map
     setTestReportFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
     
