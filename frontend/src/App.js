@@ -5934,6 +5934,9 @@ const HomePage = () => {
       // Complete progress animation to 100%
       progressController.complete();
       
+      // Small delay to let user see the 100% progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       return result;
       
     } catch (error) {
