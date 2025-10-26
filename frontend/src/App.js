@@ -16636,8 +16636,8 @@ const HomePage = () => {
                             <textarea
                               value={newDrawingsManual.note}
                               onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, note: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              rows="3"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                              rows="2"
                               placeholder={language === 'vi' ? 'Ghi chú...' : 'Notes...'}
                             />
                           </div>
