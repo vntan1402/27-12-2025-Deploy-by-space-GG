@@ -1508,6 +1508,7 @@ const HomePage = () => {
   const [testReportSmoothProgress, setTestReportSmoothProgress] = useState(0); // Smooth progress 0-100 for CURRENT file
   const [testReportFileProgressMap, setTestReportFileProgressMap] = useState({}); // Track progress: {filename: progress%}
   const [testReportFileStatusMap, setTestReportFileStatusMap] = useState({}); // Track status: {filename: 'waiting'|'processing'|'completed'|'error'}
+  const [testReportFileSubStatusMap, setTestReportFileSubStatusMap] = useState({}); // Track sub-status: {filename: 'analyzing'|'uploading'|null}
   const [testReportCurrentFileName, setTestReportCurrentFileName] = useState(''); // Track current file name being displayed
   const [testReportBatchResults, setTestReportBatchResults] = useState([]);
   const [showTestReportProcessingResultsModal, setShowTestReportProcessingResultsModal] = useState(false);
