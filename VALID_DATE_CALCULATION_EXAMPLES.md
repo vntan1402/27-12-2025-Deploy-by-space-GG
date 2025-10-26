@@ -131,14 +131,15 @@ Step-by-Step Calculation:
   
   Step 5: Apply Rule B (Anniversary ≠ Special Survey)
     → Valid Date = Anniversary + 3 months
-    → Valid Date = 2026-08-20 + 90 days ≈ 2026-11-18
+    → Valid Date = 2026-08-20 + 3 months = 2026-11-20
   
 Output:
-  Valid Date: 2026-11-18
+  Valid Date: 2026-11-20
   
 Giải thích:
   Vì Anniversary Date KHÔNG trùng với Special Survey Cycle To,
   áp dụng window 3 tháng chuẩn → cộng 3 tháng
+  (Giữ nguyên ngày 20, chỉ thay đổi tháng: 8 + 3 = 11)
 ```
 
 ---
