@@ -5936,6 +5936,10 @@ const HomePage = () => {
     } catch (error) {
       console.error(`❌ Error processing ${file.name}:`, error);
       
+      // Stop progress animation on error
+      progressController.stop();
+      setTestReportSmoothProgress(0);
+      
       // Handle Pydantic validation errors (array of objects) vs string errors
       let errorMsg = 'Processing failed';
       if (error.response?.data?.detail) {
