@@ -15738,7 +15738,14 @@ const HomePage = () => {
                                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.test_report_no}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_by || '-'}</td>
                                   <td className="border border-gray-300 px-4 py-2">{report.issued_date ? formatDate(report.issued_date) : '-'}</td>
-                                  <td className="border border-gray-300 px-4 py-2">{report.valid_date ? formatDate(report.valid_date) : '-'}</td>
+                                  <td 
+                                    className="border border-gray-300 px-4 py-2 cursor-help"
+                                    title={language === 'vi' 
+                                      ? 'Thông tin hạn bảo dưỡng được tính bởi AI có thể gặp sai sót. Vui lòng kiểm tra và sửa lại nếu cần' 
+                                      : 'Valid Date calculated by AI may contain errors. Please verify and correct if needed'}
+                                  >
+                                    {report.valid_date ? formatDate(report.valid_date) : '-'}
+                                  </td>
                                   <td className="border border-gray-300 px-4 py-2">
                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                       report.status === 'Valid' ? 'bg-green-100 text-green-800' :
