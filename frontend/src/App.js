@@ -5845,6 +5845,12 @@ const HomePage = () => {
               const result = await processSingleTestReportInBatch(file, index + 1, files.length);
               results.push(result);
               setTestReportBatchProgress({ current: results.length, total: files.length });
+              
+              // Auto-update to next file if this is the current displayed file
+              if (file.name === testReportCurrentFileName && index < files.length - 1) {
+                setTestReportCurrentFileName(files[index + 1].name);
+              }
+              
               resolve(result);
             } catch (error) {
               const errorResult = {
@@ -5856,6 +5862,12 @@ const HomePage = () => {
               };
               results.push(errorResult);
               setTestReportBatchProgress({ current: results.length, total: files.length });
+              
+              // Auto-update to next file even on error
+              if (file.name === testReportCurrentFileName && index < files.length - 1) {
+                setTestReportCurrentFileName(files[index + 1].name);
+              }
+              
               resolve(errorResult);
             }
           }, index * STAGGER_DELAY);
