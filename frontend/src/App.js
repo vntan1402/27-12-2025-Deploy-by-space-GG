@@ -16654,7 +16654,7 @@ const HomePage = () => {
 
                   {/* Batch Processing Progress Modal for Drawings & Manuals */}
                   {/* Drawings & Manuals Batch Processing Modal */}
-                  {isBatchProcessingDrawingsManuals && (
+                  {isBatchProcessingDrawingsManuals && !isDrawingManualBatchModalMinimized && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                       <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
                         {/* Header */}
@@ -16669,6 +16669,17 @@ const HomePage = () => {
                                 : `Completed ${drawingsManualBatchProgress.current}/${drawingsManualBatchProgress.total} files`}
                             </p>
                           </div>
+                          
+                          {/* Minimize Button */}
+                          <button
+                            onClick={() => setIsDrawingManualBatchModalMinimized(true)}
+                            className="ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                            </svg>
+                          </button>
                         </div>
                         
                         {/* Files List - Scrollable */}
