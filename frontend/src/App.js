@@ -1622,6 +1622,75 @@ const HomePage = () => {
     }
   ];
 
+  // ============================================
+  // SMOOTH PROGRESS BAR HELPER FUNCTIONS
+  // ============================================
+  
+  /**
+   * Calculate estimated processing time for a file
+   * @param {File} file - The file object
+   * @param {number} pageCount - Optional page count
+   * @returns {number} Estimated time in milliseconds
+   */
+  const estimateFileProcessingTime = (file, pageCount = null) => {
+    const BASE_TIME = 30000; // 30 seconds base time
+    const TIME_PER_MB = 5000; // 5 seconds per MB
+    const TIME_PER_PAGE = 2000; // 2 seconds per page
+    
+    const fileSizeMB = file.size / (1024 * 1024);
+    let estimatedTime = BASE_TIME + (fileSizeMB * TIME_PER_MB);
+    
+    if (pageCount && pageCount > 0) {
+      estimatedTime += (pageCount * TIME_PER_PAGE);
+    }
+    
+    return estimatedTime;
+  };
+  
+  /**
+   * Start smooth progress animation for a file
+   * @param {Function} setProgress - State setter for progress (0-100)
+   * @param {number} duration - Duration in milliseconds
+   * @param {number} maxProgress - Maximum progress to reach (default 90)
+   * @returns {Object} - Object with stop function
+   */
+  const startSmoothProgress = (setProgress, duration, maxProgress = 90) => {
+    const startTime = Date.now();
+    const updateInterval = 100; // Update every 100ms
+    let stopped = false;
+    
+    const intervalId = setInterval(() => {
+      if (stopped) {
+        clearInterval(intervalId);
+        return;
+      }
+      
+      const elapsed = Date.now() - startTime;
+      const progress = (elapsed / duration) * maxProgress;
+      
+      if (progress >= maxProgress) {
+        setProgress(maxProgress);
+        clearInterval(intervalId);
+      } else {
+        // Ease-out function for smoother animation near the end
+        const easedProgress = maxProgress * (1 - Math.pow(1 - (elapsed / duration), 3));
+        setProgress(Math.min(easedProgress, maxProgress));
+      }
+    }, updateInterval);
+    
+    return {
+      stop: () => {
+        stopped = true;
+        clearInterval(intervalId);
+      },
+      complete: () => {
+        stopped = true;
+        clearInterval(intervalId);
+        setProgress(100);
+      }
+    };
+  };
+
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
 
