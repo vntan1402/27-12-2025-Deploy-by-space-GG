@@ -7944,6 +7944,58 @@ const HomePage = () => {
     }
   };
   
+  const handleOtherDocumentFolderSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) {
+      setOtherDocumentFileError('');
+      setOtherDocumentFiles([]);
+      setNewOtherDocument(prev => ({ ...prev, document_name: '' }));
+      return;
+    }
+    
+    // Filter only PDF and JPG files from folder
+    const validExtensions = ['.pdf', '.jpg', '.jpeg'];
+    const validFiles = files.filter(file => {
+      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      return validExtensions.includes(ext);
+    });
+    
+    if (validFiles.length === 0) {
+      setOtherDocumentFileError(
+        language === 'vi' 
+          ? 'Không tìm thấy file PDF hoặc JPG trong thư mục này.' 
+          : 'No PDF or JPG files found in this folder.'
+      );
+      return;
+    }
+    
+    setOtherDocumentFiles(validFiles);
+    setOtherDocumentFileError('');
+    
+    // Get folder name from first file's path
+    const firstFile = validFiles[0];
+    const folderPath = firstFile.webkitRelativePath || '';
+    const folderName = folderPath.split('/')[0] || 'Folder';
+    
+    // Auto-fill Document Name with folder context
+    setNewOtherDocument(prev => ({
+      ...prev,
+      document_name: language === 'vi' 
+        ? `Folder: ${folderName} (${validFiles.length} files)`
+        : `Folder: ${folderName} (${validFiles.length} files)`
+    }));
+    
+    // Show info if some files were filtered out
+    if (validFiles.length < files.length) {
+      const filteredCount = files.length - validFiles.length;
+      toast.info(
+        language === 'vi'
+          ? `📁 Đã lọc ${validFiles.length} files (bỏ qua ${filteredCount} files không phải PDF/JPG)`
+          : `📁 Filtered ${validFiles.length} files (skipped ${filteredCount} non-PDF/JPG files)`
+      );
+    }
+  };
+  
   // New unified handler for adding other documents (with or without files)
   const handleAddOtherDocument = async () => {
     if (!selectedShip) {
