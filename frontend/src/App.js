@@ -7649,6 +7649,451 @@ const HomePage = () => {
     }
   };
 
+  // ============================================
+  // OTHER DOCUMENTS HELPER FUNCTIONS
+  // ============================================
+  
+  // Fetch Other Documents
+  const fetchOtherDocuments = async (shipId) => {
+    try {
+      const response = await axios.get(`${API}/other-documents?ship_id=${shipId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOtherDocuments(response.data);
+    } catch (error) {
+      console.error('Failed to fetch other documents:', error);
+      toast.error(language === 'vi' ? 'Không thể tải danh sách tài liệu' : 'Failed to load documents');
+      setOtherDocuments([]);
+    }
+  };
+  
+  // Filter and Sort Other Documents
+  const getFilteredOtherDocuments = () => {
+    let filtered = [...otherDocuments];
+    
+    // Filter by status
+    if (otherDocumentFilters.status !== 'all') {
+      filtered = filtered.filter(doc => 
+        doc.status?.toLowerCase() === otherDocumentFilters.status.toLowerCase()
+      );
+    }
+    
+    // Filter by search
+    if (otherDocumentFilters.search) {
+      const searchLower = otherDocumentFilters.search.toLowerCase();
+      filtered = filtered.filter(doc => 
+        doc.document_name?.toLowerCase().includes(searchLower) ||
+        doc.note?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Sort
+    if (otherDocumentSort.column) {
+      filtered.sort((a, b) => {
+        let aVal = a[otherDocumentSort.column] || '';
+        let bVal = b[otherDocumentSort.column] || '';
+        
+        if (otherDocumentSort.column === 'date') {
+          aVal = aVal ? new Date(aVal) : new Date(0);
+          bVal = bVal ? new Date(bVal) : new Date(0);
+        } else {
+          aVal = aVal.toString().toLowerCase();
+          bVal = bVal.toString().toLowerCase();
+        }
+        
+        if (aVal < bVal) return otherDocumentSort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return otherDocumentSort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    return filtered;
+  };
+  
+  const handleOtherDocumentSort = (column) => {
+    setOtherDocumentSort(prev => ({
+      column: column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+  
+  // Other Documents Selection Handlers
+  const handleSelectOtherDocument = (documentId, checked) => {
+    setSelectedOtherDocuments(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(documentId);
+      } else {
+        newSet.delete(documentId);
+      }
+      return newSet;
+    });
+  };
+  
+  const handleOtherDocumentRowClick = (documentId) => {
+    setSelectedOtherDocuments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(documentId)) {
+        newSet.delete(documentId);
+      } else {
+        newSet.add(documentId);
+      }
+      return newSet;
+    });
+  };
+  
+  const handleSelectAllOtherDocuments = (checked) => {
+    if (checked) {
+      const allIds = new Set(getFilteredOtherDocuments().map(doc => doc.id));
+      setSelectedOtherDocuments(allIds);
+    } else {
+      setSelectedOtherDocuments(new Set());
+    }
+  };
+  
+  const isOtherDocumentsAllSelected = () => {
+    const filtered = getFilteredOtherDocuments();
+    return filtered.length > 0 && filtered.every(doc => selectedOtherDocuments.has(doc.id));
+  };
+  
+  const isOtherDocumentsIndeterminate = () => {
+    const filtered = getFilteredOtherDocuments();
+    const selectedCount = filtered.filter(doc => selectedOtherDocuments.has(doc.id)).length;
+    return selectedCount > 0 && selectedCount < filtered.length;
+  };
+  
+  // Other Documents Note Tooltip Handlers
+  const handleOtherDocumentNoteMouseEnter = (e, note) => {
+    if (!note) return;
+    
+    const rect = e.target.getBoundingClientRect();
+    const TOOLTIP_WIDTH = 300;
+    const TOOLTIP_MAX_HEIGHT = 200;
+    const TOOLTIP_OFFSET = 10;
+    
+    let x = rect.right + TOOLTIP_OFFSET;
+    let y = rect.top;
+    
+    const spaceOnRight = window.innerWidth - rect.right;
+    const spaceOnLeft = rect.left;
+    
+    if (spaceOnRight < TOOLTIP_WIDTH + 20 && spaceOnLeft > TOOLTIP_WIDTH + 20) {
+      x = rect.left - TOOLTIP_WIDTH - TOOLTIP_OFFSET;
+    }
+    
+    if (x < 10) x = 10;
+    if (x + TOOLTIP_WIDTH > window.innerWidth - 10) {
+      x = window.innerWidth - TOOLTIP_WIDTH - 10;
+    }
+    
+    const showBelow = (y + TOOLTIP_MAX_HEIGHT > window.innerHeight) && (y - rect.height - TOOLTIP_MAX_HEIGHT > 0);
+    
+    if (showBelow) {
+      y = rect.top - TOOLTIP_MAX_HEIGHT - TOOLTIP_OFFSET;
+    }
+    
+    setOtherDocumentNoteTooltip({
+      show: true,
+      x,
+      y,
+      content: note,
+      showBelow,
+      width: TOOLTIP_WIDTH
+    });
+  };
+  
+  const handleOtherDocumentNoteMouseLeave = () => {
+    setOtherDocumentNoteTooltip({
+      show: false,
+      x: 0,
+      y: 0,
+      content: '',
+      showBelow: false,
+      width: 300
+    });
+  };
+  
+  // Other Documents CRUD Handlers
+  const handleEditOtherDocument = (document) => {
+    setEditingOtherDocument({ ...document });
+    setShowEditOtherDocumentModal(true);
+  };
+  
+  const handleUpdateOtherDocument = async () => {
+    if (!editingOtherDocument || !editingOtherDocument.document_name) {
+      toast.error(language === 'vi' ? 'Vui lòng điền tên tài liệu' : 'Please enter document name');
+      return;
+    }
+    
+    try {
+      await axios.put(
+        `${API}/other-documents/${editingOtherDocument.id}`,
+        editingOtherDocument,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(language === 'vi' ? '✅ Đã cập nhật tài liệu!' : '✅ Document updated!');
+      setShowEditOtherDocumentModal(false);
+      setEditingOtherDocument(null);
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchOtherDocuments(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to update document:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to update document';
+      toast.error(language === 'vi' ? `❌ Không thể cập nhật: ${errorMsg}` : `❌ ${errorMsg}`);
+    }
+  };
+  
+  const handleAddOtherDocumentManually = async () => {
+    if (!newOtherDocument.document_name) {
+      toast.error(language === 'vi' ? 'Vui lòng điền tên tài liệu' : 'Please enter document name');
+      return;
+    }
+    
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
+    
+    try {
+      await axios.post(
+        `${API}/other-documents`,
+        {
+          ...newOtherDocument,
+          ship_id: selectedShip.id
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(language === 'vi' ? '✅ Đã thêm tài liệu!' : '✅ Document added!');
+      setShowAddOtherDocumentModal(false);
+      setNewOtherDocument({
+        document_name: '',
+        date: '',
+        status: 'Unknown',
+        note: ''
+      });
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchOtherDocuments(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to add document:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to add document';
+      toast.error(language === 'vi' ? `❌ Không thể thêm: ${errorMsg}` : `❌ ${errorMsg}`);
+    }
+  };
+  
+  const handleOtherDocumentFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) {
+      setOtherDocumentFileError('');
+      setOtherDocumentFiles([]);
+      return;
+    }
+    
+    // Check file types
+    const validExtensions = ['.pdf', '.jpg', '.jpeg'];
+    const invalidFiles = files.filter(file => {
+      const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      return !validExtensions.includes(ext);
+    });
+    
+    if (invalidFiles.length > 0) {
+      setOtherDocumentFileError(
+        language === 'vi' 
+          ? 'Chỉ hỗ trợ file PDF, JPG. Vui lòng chọn lại.' 
+          : 'Only PDF and JPG files are supported. Please select valid files.'
+      );
+      return;
+    }
+    
+    setOtherDocumentFiles(files);
+    setOtherDocumentFileError('');
+  };
+  
+  const handleAddOtherDocumentsFromFiles = async () => {
+    if (otherDocumentFiles.length === 0) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn file' : 'Please select files');
+      return;
+    }
+    
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
+    
+    try {
+      setIsBatchProcessingOtherDocuments(true);
+      setOtherDocumentBatchProgress({ current: 0, total: otherDocumentFiles.length });
+      setOtherDocumentBatchResults([]);
+      
+      // Initialize status and progress for all files
+      const initialStatusMap = {};
+      const initialProgressMap = {};
+      otherDocumentFiles.forEach(file => {
+        const filename = file.name || file.webkitRelativePath || 'unknown';
+        initialStatusMap[filename] = 'waiting';
+        initialProgressMap[filename] = 0;
+      });
+      setOtherDocumentFileStatusMap(initialStatusMap);
+      setOtherDocumentFileProgressMap(initialProgressMap);
+      
+      const results = [];
+      
+      for (let i = 0; i < otherDocumentFiles.length; i++) {
+        const file = otherDocumentFiles[i];
+        const filename = file.name || file.webkitRelativePath || 'unknown';
+        
+        try {
+          // Update status to processing
+          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'processing' }));
+          setOtherDocumentCurrentFileName(filename);
+          
+          // Simulate progress
+          const progressInterval = setInterval(() => {
+            setOtherDocumentFileProgressMap(prev => {
+              const current = prev[filename] || 0;
+              if (current < 90) {
+                return { ...prev, [filename]: Math.min(current + 10, 90) };
+              }
+              return prev;
+            });
+          }, 200);
+          
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('ship_id', selectedShip.id);
+          formData.append('document_name', filename.replace(/\.[^/.]+$/, '')); // Remove extension
+          
+          const response = await axios.post(
+            `${API}/other-documents/upload`,
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+              }
+            }
+          );
+          
+          clearInterval(progressInterval);
+          
+          // Complete progress
+          setOtherDocumentFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
+          
+          results.push({ filename, success: true, message: 'Uploaded successfully' });
+          
+        } catch (error) {
+          console.error(`Failed to upload ${filename}:`, error);
+          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'error' }));
+          results.push({
+            filename,
+            success: false,
+            message: error.response?.data?.detail || 'Upload failed'
+          });
+        }
+        
+        setOtherDocumentBatchProgress({ current: i + 1, total: otherDocumentFiles.length });
+      }
+      
+      setOtherDocumentBatchResults(results);
+      
+      // Show completion notification
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      if (failCount === 0) {
+        toast.success(language === 'vi' 
+          ? `✅ Đã tải lên ${successCount} file thành công!` 
+          : `✅ Successfully uploaded ${successCount} files!`
+        );
+      } else {
+        toast.warning(language === 'vi'
+          ? `⚠️ Đã tải lên ${successCount} file, ${failCount} file thất bại`
+          : `⚠️ Uploaded ${successCount} files, ${failCount} failed`
+        );
+      }
+      
+      // Close modal and refresh
+      setTimeout(() => {
+        setIsBatchProcessingOtherDocuments(false);
+        setShowAddOtherDocumentModal(false);
+        setOtherDocumentFiles([]);
+        if (selectedShip) {
+          fetchOtherDocuments(selectedShip.id);
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Batch processing error:', error);
+      toast.error(language === 'vi' ? '❌ Có lỗi xảy ra khi xử lý' : '❌ Processing error occurred');
+      setIsBatchProcessingOtherDocuments(false);
+    }
+  };
+  
+  const handleChangeOtherDocumentStatus = async (document, newStatus) => {
+    try {
+      await axios.put(
+        `${API}/other-documents/${document.id}`,
+        { ...document, status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(language === 'vi' ? '✅ Đã cập nhật trạng thái!' : '✅ Status updated!');
+      setOtherDocumentContextMenu({ show: false, x: 0, y: 0, document: null });
+      setShowOtherDocumentStatusSubmenu(false);
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchOtherDocuments(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast.error(language === 'vi' ? '❌ Không thể cập nhật trạng thái' : '❌ Failed to update status');
+    }
+  };
+  
+  const handleDeleteOtherDocuments = async () => {
+    if (selectedOtherDocuments.size === 0) return;
+    
+    const confirmMsg = language === 'vi' 
+      ? `Bạn có chắc muốn xóa ${selectedOtherDocuments.size} tài liệu đã chọn?`
+      : `Are you sure you want to delete ${selectedOtherDocuments.size} selected documents?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+    
+    try {
+      const deletePromises = Array.from(selectedOtherDocuments).map(id =>
+        axios.delete(`${API}/other-documents/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      );
+      
+      await Promise.all(deletePromises);
+      
+      toast.success(language === 'vi' 
+        ? `✅ Đã xóa ${selectedOtherDocuments.size} tài liệu!`
+        : `✅ Deleted ${selectedOtherDocuments.size} documents!`
+      );
+      
+      setSelectedOtherDocuments(new Set());
+      
+      // Refresh list
+      if (selectedShip) {
+        await fetchOtherDocuments(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Failed to delete documents:', error);
+      toast.error(language === 'vi' ? '❌ Không thể xóa tài liệu' : '❌ Failed to delete documents');
+    }
+  };
+
   // Context Menu Functions
   const handleCertificateRightClick = (e, certificate) => {
     e.preventDefault();
