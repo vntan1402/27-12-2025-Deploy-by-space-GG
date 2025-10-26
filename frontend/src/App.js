@@ -5833,6 +5833,9 @@ const HomePage = () => {
       error: null
     };
     
+    // Reset progress to 0 at the start of each file
+    setTestReportSmoothProgress(0);
+    
     // Start smooth progress for this file
     const estimatedTime = estimateFileProcessingTime(file);
     const progressController = startSmoothProgress(setTestReportSmoothProgress, estimatedTime, 90);
