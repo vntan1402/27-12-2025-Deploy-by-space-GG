@@ -8016,7 +8016,19 @@ const HomePage = () => {
           const formData = new FormData();
           formData.append('file', file);
           formData.append('ship_id', selectedShip.id);
+          // Each file gets its own document_name from filename
           formData.append('document_name', filename.replace(/\.[^/.]+$/, '')); // Remove extension
+          
+          // Share Date, Status, Note from form for all files
+          if (newOtherDocument.date) {
+            formData.append('date', newOtherDocument.date);
+          }
+          if (newOtherDocument.status) {
+            formData.append('status', newOtherDocument.status);
+          }
+          if (newOtherDocument.note) {
+            formData.append('note', newOtherDocument.note);
+          }
           
           const response = await axios.post(
             `${API}/other-documents/upload`,
