@@ -5757,6 +5757,7 @@ const HomePage = () => {
     try {
       setIsBatchProcessingTestReports(true);
       setTestReportBatchProgress({ current: 0, total: files.length });
+      setTestReportSmoothProgress(0); // Reset smooth progress
       setTestReportBatchResults([]);
       
       const MAX_PARALLEL = 10; // Max 10 files at once
