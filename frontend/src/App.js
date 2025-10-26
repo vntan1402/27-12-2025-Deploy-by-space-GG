@@ -7902,6 +7902,7 @@ const HomePage = () => {
     if (files.length === 0) {
       setOtherDocumentFileError('');
       setOtherDocumentFiles([]);
+      setIsOtherDocumentFolderUpload(false);
       setNewOtherDocument(prev => ({ ...prev, document_name: '' }));
       return;
     }
@@ -7924,6 +7925,7 @@ const HomePage = () => {
     
     setOtherDocumentFiles(files);
     setOtherDocumentFileError('');
+    setIsOtherDocumentFolderUpload(false); // Mark as file upload (not folder)
     
     // Auto-fill Document Name based on number of files
     if (files.length === 1) {
