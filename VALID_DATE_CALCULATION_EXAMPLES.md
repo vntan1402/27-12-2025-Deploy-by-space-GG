@@ -172,15 +172,16 @@ Step-by-Step Calculation:
   
   Step 5: Apply Rule B (Anniversary ≠ Special Survey)
     → Valid Date = Anniversary + 3 months
-    → Valid Date = 2025-03-10 + 90 days ≈ 2025-06-08
+    → Valid Date = 2025-03-10 + 3 months = 2025-06-10
   
 Output:
-  Valid Date: 2025-06-08
+  Valid Date: 2025-06-10
   
 Giải thích:
   Issued Date năm 2024 → Next Year = 2025
   Anniversary trong năm 2025 khác với Special Survey (2027)
   → Áp dụng Rule B: +3 tháng
+  (Giữ nguyên ngày 10, chỉ thay đổi tháng: 3 + 3 = 6)
 ```
 
 ---
