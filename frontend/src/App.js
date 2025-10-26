@@ -18151,13 +18151,33 @@ const HomePage = () => {
                             </div>
 
                             {otherDocumentFiles.length > 0 && (
-                              <div className="mt-3 text-sm text-gray-700">
-                                <p className="font-semibold mb-1">{language === 'vi' ? 'Đã chọn:' : 'Selected:'}</p>
-                                <ul className="list-disc list-inside max-h-24 overflow-y-auto">
+                              <div className="mt-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <p className="font-semibold text-sm text-gray-700">
+                                    {language === 'vi' ? 'Đã chọn:' : 'Selected:'}
+                                  </p>
+                                  {otherDocumentFiles.length > 1 && (
+                                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                                      {language === 'vi' 
+                                        ? `${otherDocumentFiles.length} files → ${otherDocumentFiles.length} records`
+                                        : `${otherDocumentFiles.length} files → ${otherDocumentFiles.length} records`
+                                      }
+                                    </span>
+                                  )}
+                                </div>
+                                <ul className="list-disc list-inside max-h-24 overflow-y-auto text-sm text-gray-600 bg-white p-2 rounded border border-blue-200">
                                   {otherDocumentFiles.map((file, index) => (
-                                    <li key={index}>{file.name || file.webkitRelativePath}</li>
+                                    <li key={index} className="truncate">{file.name || file.webkitRelativePath}</li>
                                   ))}
                                 </ul>
+                                {otherDocumentFiles.length > 1 && (
+                                  <p className="text-xs text-blue-600 italic">
+                                    {language === 'vi' 
+                                      ? '💡 Mỗi file sẽ tạo 1 record riêng với tên từ file name'
+                                      : '💡 Each file will create a separate record with name from file name'
+                                    }
+                                  </p>
+                                )}
                               </div>
                             )}
 
