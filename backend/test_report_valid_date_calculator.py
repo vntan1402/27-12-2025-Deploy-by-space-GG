@@ -176,7 +176,8 @@ async def calculate_next_annual_survey_date(ship_id: str, issued_date: str, mong
             logger.error(f"❌ Invalid anniversary date values: day={day}, month={month}: {e}")
             return None
         
-        logger.info(f"📅 Anniversary Date (next year): {anniversary_next_year.strftime('%Y-%m-%d')}")
+        logger.info(f"📅 Issued Date Year: {issued_year}, Next Year: {next_year}")
+        logger.info(f"📅 Anniversary Date (issued year + 1): {anniversary_next_year.strftime('%Y-%m-%d')}")
         
         # Parse special_survey_cycle_to if it exists
         if special_survey_cycle_to:
