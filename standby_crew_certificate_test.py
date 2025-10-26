@@ -43,7 +43,7 @@ try:
     else:
         raise Exception("Internal URL not working")
 except:
-    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://marine-doc-system.preview.emergentagent.com') + '/api'
+    BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://vessel-docs-sys.preview.emergentagent.com') + '/api'
     print(f"Using external backend URL: {BACKEND_URL}")
 
 class StandbyCertificateUploadTester:

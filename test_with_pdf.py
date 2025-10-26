@@ -11,7 +11,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
 # Configuration
-BACKEND_URL = 'https://marine-doc-system.preview.emergentagent.com/api'
+BACKEND_URL = 'https://vessel-docs-sys.preview.emergentagent.com/api'
 
 def authenticate():
     """Authenticate and return session"""

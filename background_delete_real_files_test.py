@@ -10,7 +10,7 @@ import json
 import time
 import subprocess
 
-BACKEND_URL = 'https://marine-doc-system.preview.emergentagent.com/api'
+BACKEND_URL = 'https://vessel-docs-sys.preview.emergentagent.com/api'
 
 def get_auth_token():
     """Get authentication token"""

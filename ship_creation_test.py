@@ -11,7 +11,7 @@ import time
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://marine-doc-system.preview.emergentagent.com/api"
+BACKEND_URL = "https://vessel-docs-sys.preview.emergentagent.com/api"
 
 def log_message(message, level="INFO"):
     """Log messages with timestamp"""

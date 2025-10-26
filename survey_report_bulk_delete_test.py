@@ -11,7 +11,7 @@ import os
 from datetime import datetime
 
 # Get backend URL from environment
-BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://marine-doc-system.preview.emergentagent.com')
+BACKEND_URL = os.getenv('REACT_APP_BACKEND_URL', 'https://vessel-docs-sys.preview.emergentagent.com')
 API_BASE = f"{BACKEND_URL}/api"
 
 def test_survey_report_bulk_delete():
