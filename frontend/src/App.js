@@ -18076,8 +18076,6 @@ const HomePage = () => {
                               type="file"
                               accept=".pdf,.jpg,.jpeg"
                               multiple
-                              webkitdirectory=""
-                              directory=""
                               onChange={handleOtherDocumentFileSelect}
                               className="hidden"
                               id="other-document-file-input"
@@ -18093,7 +18091,7 @@ const HomePage = () => {
                                 {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop files or click to select'}
                               </p>
                               <p className="text-xs text-gray-500 mt-1">
-                                {language === 'vi' ? 'Hỗ trợ: PDF, JPG, hoặc thư mục' : 'Supports: PDF, JPG, or folders'}
+                                {language === 'vi' ? 'Hỗ trợ: PDF, JPG (có thể chọn nhiều file)' : 'Supports: PDF, JPG (multiple files allowed)'}
                               </p>
                             </label>
                           </div>
