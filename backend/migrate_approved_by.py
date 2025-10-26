@@ -34,7 +34,7 @@ async def migrate_drawings_manuals_approved_by():
         logger.info("🔍 Starting migration for Drawings & Manuals - Approved By normalization...")
         
         # Get all drawings_manuals records
-        all_documents = await db.find("drawings_manuals", {})
+        all_documents = await db.find_all("drawings_manuals", {})
         
         if not all_documents:
             logger.info("✅ No documents found to migrate")
