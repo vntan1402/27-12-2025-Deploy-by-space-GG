@@ -55,6 +55,11 @@ COMPANY_ABBREVIATIONS = {
     "vietnam register": "VR",
     "vr": "VR",
     
+    # Panama Companies
+    "panama maritime documentation services": "PMDS",
+    "panama maritime documentation services inc": "PMDS",
+    "pmds": "PMDS",
+    
     # Add more as needed
 }
 
