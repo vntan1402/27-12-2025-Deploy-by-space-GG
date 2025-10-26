@@ -6055,6 +6055,9 @@ const HomePage = () => {
       
       result.success = true;
       
+      // Set status to 'completed'
+      setTestReportFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+      
       // Complete progress animation to 100%
       progressController.complete();
       
@@ -6065,6 +6068,9 @@ const HomePage = () => {
       
     } catch (error) {
       console.error(`❌ Error processing ${file.name}:`, error);
+      
+      // Set status to 'error'
+      setTestReportFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
       
       // Stop progress animation on error
       progressController.stop();
