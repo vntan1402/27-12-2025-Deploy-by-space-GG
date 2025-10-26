@@ -16553,7 +16553,8 @@ const HomePage = () => {
                           </span>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3">
+                          {/* Row 1: Document Name */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
@@ -16562,38 +16563,42 @@ const HomePage = () => {
                               type="text"
                               value={newDrawingsManual.document_name}
                               onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, document_name: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                               placeholder={language === 'vi' ? 'VD: General Arrangement Plan' : 'e.g. General Arrangement Plan'}
                             />
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Số Tài liệu' : 'Document No.'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newDrawingsManual.document_no}
-                              onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, document_no: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: GA-001-2024' : 'e.g. GA-001-2024'}
-                            />
+                          {/* Row 2: Document No. + Approved By */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Số Tài liệu' : 'Document No.'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newDrawingsManual.document_no}
+                                onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, document_no: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder={language === 'vi' ? 'VD: GA-001-2024' : 'e.g. GA-001-2024'}
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Phê duyệt bởi' : 'Approved By'}
+                              </label>
+                              <input
+                                type="text"
+                                value={newDrawingsManual.approved_by}
+                                onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, approved_by: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
+                              />
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {language === 'vi' ? 'Phê duyệt bởi' : 'Approved By'}
-                            </label>
-                            <input
-                              type="text"
-                              value={newDrawingsManual.approved_by}
-                              onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, approved_by: e.target.value }))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder={language === 'vi' ? 'VD: Lloyd\'s Register' : 'e.g. Lloyd\'s Register'}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
+                          {/* Row 3: Approved Date + Status */}
+                          <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Ngày phê duyệt' : 'Approved Date'}
@@ -16602,7 +16607,7 @@ const HomePage = () => {
                                 type="date"
                                 value={newDrawingsManual.approved_date}
                                 onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, approved_date: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                               />
                             </div>
 
@@ -16613,7 +16618,7 @@ const HomePage = () => {
                               <select
                                 value={newDrawingsManual.status}
                                 onChange={(e) => setNewDrawingsManual(prev => ({ ...prev, status: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                               >
                                 <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
                                 <option value="Approved">{language === 'vi' ? 'Đã phê duyệt' : 'Approved'}</option>
@@ -16623,6 +16628,7 @@ const HomePage = () => {
                             </div>
                           </div>
 
+                          {/* Row 4: Note */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               {language === 'vi' ? 'Ghi chú' : 'Note'}
