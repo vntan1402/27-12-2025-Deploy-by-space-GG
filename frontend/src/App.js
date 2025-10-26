@@ -18060,82 +18060,64 @@ const HomePage = () => {
                           </div>
                         </div>
 
-                        {/* File Upload Section */}
-                        <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-                          <div className="flex items-center mb-3">
-                            <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            <h4 className="text-lg font-semibold text-gray-800">
-                              {language === 'vi' ? '📤 Tải lên File' : '📤 Upload Files'}
-                            </h4>
-                          </div>
-                          
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg"
-                              multiple
-                              onChange={handleOtherDocumentFileSelect}
-                              className="hidden"
-                              id="other-document-file-input"
-                            />
-                            <label
-                              htmlFor="other-document-file-input"
-                              className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-all"
-                            >
-                              <svg className="w-10 h-10 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {/* Unified Form Section */}
+                        <div className="space-y-4">
+                          {/* File Upload Section */}
+                          <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                            <div className="flex items-center mb-3">
+                              <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                               </svg>
-                              <p className="text-sm text-gray-600">
-                                {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop files or click to select'}
-                              </p>
-                              <p className="text-xs text-gray-500 mt-1">
-                                {language === 'vi' ? 'Hỗ trợ: PDF, JPG (có thể chọn nhiều file)' : 'Supports: PDF, JPG (multiple files allowed)'}
-                              </p>
-                            </label>
+                              <h4 className="text-base font-semibold text-gray-800">
+                                {language === 'vi' ? '📤 Chọn File để Upload (không bắt buộc)' : '📤 Select File to Upload (optional)'}
+                              </h4>
+                            </div>
+                            
+                            <div className="relative">
+                              <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg"
+                                multiple
+                                onChange={handleOtherDocumentFileSelect}
+                                className="hidden"
+                                id="other-document-file-input"
+                              />
+                              <label
+                                htmlFor="other-document-file-input"
+                                className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-all"
+                              >
+                                <svg className="w-8 h-8 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p className="text-sm text-gray-600">
+                                  {language === 'vi' ? 'Click để chọn file' : 'Click to select files'}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {language === 'vi' ? 'PDF, JPG (nhiều file)' : 'PDF, JPG (multiple files)'}
+                                </p>
+                              </label>
+                            </div>
+
+                            {otherDocumentFiles.length > 0 && (
+                              <div className="mt-3 text-sm text-gray-700">
+                                <p className="font-semibold mb-1">{language === 'vi' ? 'Đã chọn:' : 'Selected:'}</p>
+                                <ul className="list-disc list-inside max-h-24 overflow-y-auto">
+                                  {otherDocumentFiles.map((file, index) => (
+                                    <li key={index}>{file.name || file.webkitRelativePath}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {otherDocumentFileError && (
+                              <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                {otherDocumentFileError}
+                              </div>
+                            )}
                           </div>
 
-                          {otherDocumentFiles.length > 0 && (
-                            <div className="mt-3 text-sm text-gray-700">
-                              <p className="font-semibold mb-1">{language === 'vi' ? 'Đã chọn:' : 'Selected:'}</p>
-                              <ul className="list-disc list-inside max-h-32 overflow-y-auto">
-                                {otherDocumentFiles.map((file, index) => (
-                                  <li key={index}>{file.name || file.webkitRelativePath}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {otherDocumentFileError && (
-                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                              {otherDocumentFileError}
-                            </div>
-                          )}
-
-                          <button
-                            onClick={handleAddOtherDocumentsFromFiles}
-                            disabled={otherDocumentFiles.length === 0 || isBatchProcessingOtherDocuments}
-                            className={`w-full mt-4 py-3 rounded-lg font-medium transition-all ${
-                              otherDocumentFiles.length === 0 || isBatchProcessingOtherDocuments
-                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
-                          >
-                            {isBatchProcessingOtherDocuments
-                              ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
-                              : (language === 'vi' ? '📤 Tải lên File' : '📤 Upload Files')
-                            }
-                          </button>
-                        </div>
-
-                        {/* Manual Entry Section */}
-                        <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-lg">
-                          <h4 className="text-lg font-semibold text-gray-800 mb-4">
-                            {language === 'vi' ? '✍️ Hoặc Nhập Thủ công' : '✍️ Or Enter Manually'}
-                          </h4>
-                          
-                          <div className="space-y-4">
+                          {/* Document Information */}
+                          <div className="space-y-3">
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
@@ -18144,7 +18126,7 @@ const HomePage = () => {
                                 type="text"
                                 value={newOtherDocument.document_name}
                                 onChange={(e) => setNewOtherDocument(prev => ({ ...prev, document_name: e.target.value }))}
-                                placeholder={language === 'vi' ? 'VD: Giấy tờ khác' : 'e.g. Other Certificate'}
+                                placeholder={language === 'vi' ? 'Tự động điền từ file name hoặc nhập thủ công' : 'Auto-filled from file or enter manually'}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                               />
                             </div>
