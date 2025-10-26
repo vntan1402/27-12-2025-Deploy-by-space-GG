@@ -267,9 +267,13 @@ Ví dụ:
 ```
 Rule A (Match): Anniversary - 3 months
   → Test TRƯỚC special survey
+  → Giữ nguyên ngày, chỉ trừ tháng
+  → Ví dụ: 2026-05-15 - 3M = 2026-02-15
   
 Rule B (No Match): Anniversary + 3 months
   → Window 3 tháng SAU anniversary (tiêu chuẩn)
+  → Giữ nguyên ngày, chỉ cộng tháng
+  → Ví dụ: 2026-08-20 + 3M = 2026-11-20
 ```
 
 ---
