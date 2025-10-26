@@ -1578,6 +1578,7 @@ const HomePage = () => {
   // Drawings & Manuals Batch Processing States
   const [isBatchProcessingDrawingsManuals, setIsBatchProcessingDrawingsManuals] = useState(false);
   const [drawingsManualBatchProgress, setDrawingsManualBatchProgress] = useState({ current: 0, total: 0 });
+  const [drawingsManualSmoothProgress, setDrawingsManualSmoothProgress] = useState(0); // Smooth progress 0-100
   const [drawingsManualBatchResults, setDrawingsManualBatchResults] = useState([]);
   const [showDrawingsManualProcessingResultsModal, setShowDrawingsManualProcessingResultsModal] = useState(false);
 
