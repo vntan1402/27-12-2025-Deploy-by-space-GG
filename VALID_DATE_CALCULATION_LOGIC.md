@@ -157,10 +157,10 @@ Calculation:
   1. Match "Lifeboat" → Type: next_annual_survey
   2. Anniversary Next Year = 2026-08-20 (20/Aug in 2026)
   3. Compare: 2026-08-20 ≠ 2028-08-20 ❌
-  4. Apply Rule B: Valid Date = 2026-08-20 + 3 months
+  4. Apply Rule B: Valid Date = 2026-08-20 + 3 months = 2026-11-20
   
 Output:
-  Valid Date: 2026-11-20 (approximately 3 months after)
+  Valid Date: 2026-11-20
 ```
 
 ---
