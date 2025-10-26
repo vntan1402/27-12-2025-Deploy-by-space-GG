@@ -17561,6 +17561,328 @@ const HomePage = () => {
                     </div>
                   )}
 
+                  {/* ============================================ */}
+                  {/* OTHER DOCUMENTS MODALS */}
+                  {/* ============================================ */}
+
+                  {/* Add Other Document Modal */}
+                  {showAddOtherDocumentModal && !isOtherDocumentAddModalMinimized && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? '📁 Thêm Tài liệu Khác' : '📁 Add Other Document'}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            {/* Minimize Button */}
+                            <button
+                              onClick={() => setIsOtherDocumentAddModalMinimized(true)}
+                              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                              title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                              </svg>
+                            </button>
+                            {/* Close Button */}
+                            <button
+                              onClick={() => {
+                                setShowAddOtherDocumentModal(false);
+                                setIsOtherDocumentAddModalMinimized(false);
+                                setNewOtherDocument({
+                                  document_name: '',
+                                  date: '',
+                                  status: 'Unknown',
+                                  note: ''
+                                });
+                                setOtherDocumentFiles([]);
+                                setOtherDocumentFileError('');
+                              }}
+                              className="text-gray-400 hover:text-gray-600 transition-all"
+                            >
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* File Upload Section */}
+                        <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+                          <div className="flex items-center mb-3">
+                            <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <h4 className="text-lg font-semibold text-gray-800">
+                              {language === 'vi' ? '📤 Tải lên File' : '📤 Upload Files'}
+                            </h4>
+                          </div>
+                          
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg"
+                              multiple
+                              webkitdirectory=""
+                              directory=""
+                              onChange={handleOtherDocumentFileSelect}
+                              className="hidden"
+                              id="other-document-file-input"
+                            />
+                            <label
+                              htmlFor="other-document-file-input"
+                              className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-blue-300 rounded-lg cursor-pointer bg-white hover:bg-blue-50 transition-all"
+                            >
+                              <svg className="w-10 h-10 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                              </svg>
+                              <p className="text-sm text-gray-600">
+                                {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop files or click to select'}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {language === 'vi' ? 'Hỗ trợ: PDF, JPG, hoặc thư mục' : 'Supports: PDF, JPG, or folders'}
+                              </p>
+                            </label>
+                          </div>
+
+                          {otherDocumentFiles.length > 0 && (
+                            <div className="mt-3 text-sm text-gray-700">
+                              <p className="font-semibold mb-1">{language === 'vi' ? 'Đã chọn:' : 'Selected:'}</p>
+                              <ul className="list-disc list-inside max-h-32 overflow-y-auto">
+                                {otherDocumentFiles.map((file, index) => (
+                                  <li key={index}>{file.name || file.webkitRelativePath}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {otherDocumentFileError && (
+                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                              {otherDocumentFileError}
+                            </div>
+                          )}
+
+                          <button
+                            onClick={handleAddOtherDocumentsFromFiles}
+                            disabled={otherDocumentFiles.length === 0 || isBatchProcessingOtherDocuments}
+                            className={`w-full mt-4 py-3 rounded-lg font-medium transition-all ${
+                              otherDocumentFiles.length === 0 || isBatchProcessingOtherDocuments
+                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                          >
+                            {isBatchProcessingOtherDocuments
+                              ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
+                              : (language === 'vi' ? '📤 Tải lên File' : '📤 Upload Files')
+                            }
+                          </button>
+                        </div>
+
+                        {/* Manual Entry Section */}
+                        <div className="p-4 bg-gray-50 border-2 border-gray-200 rounded-lg">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                            {language === 'vi' ? '✍️ Hoặc Nhập Thủ công' : '✍️ Or Enter Manually'}
+                          </h4>
+                          
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={newOtherDocument.document_name}
+                                onChange={(e) => setNewOtherDocument(prev => ({ ...prev, document_name: e.target.value }))}
+                                placeholder={language === 'vi' ? 'VD: Giấy tờ khác' : 'e.g. Other Certificate'}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  {language === 'vi' ? 'Ngày' : 'Date'}
+                                </label>
+                                <input
+                                  type="date"
+                                  value={newOtherDocument.date}
+                                  onChange={(e) => setNewOtherDocument(prev => ({ ...prev, date: e.target.value }))}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  {language === 'vi' ? 'Trạng thái' : 'Status'}
+                                </label>
+                                <select
+                                  value={newOtherDocument.status}
+                                  onChange={(e) => setNewOtherDocument(prev => ({ ...prev, status: e.target.value }))}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                                  <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                  <option value="Unknown">{language === 'vi' ? 'Chưa rõ' : 'Unknown'}</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ghi chú' : 'Note'}
+                              </label>
+                              <textarea
+                                value={newOtherDocument.note}
+                                onChange={(e) => setNewOtherDocument(prev => ({ ...prev, note: e.target.value }))}
+                                placeholder={language === 'vi' ? 'Nhập ghi chú...' : 'Enter note...'}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                rows="3"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end gap-3 mt-6">
+                            <button
+                              onClick={() => {
+                                setShowAddOtherDocumentModal(false);
+                                setNewOtherDocument({
+                                  document_name: '',
+                                  date: '',
+                                  status: 'Unknown',
+                                  note: ''
+                                });
+                              }}
+                              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                            >
+                              {language === 'vi' ? 'Hủy' : 'Cancel'}
+                            </button>
+                            <button
+                              onClick={handleAddOtherDocumentManually}
+                              disabled={!newOtherDocument.document_name}
+                              className={`px-6 py-2 rounded-lg transition-all font-medium ${
+                                !newOtherDocument.document_name
+                                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                                  : 'bg-green-600 hover:bg-green-700 text-white'
+                              }`}
+                            >
+                              {language === 'vi' ? '✅ Thêm' : '✅ Add'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Floating Icon when Add Modal is Minimized */}
+                  {showAddOtherDocumentModal && isOtherDocumentAddModalMinimized && (
+                    <div 
+                      className="fixed bottom-6 right-6 bg-green-600 hover:bg-green-700 text-white p-4 rounded-full shadow-2xl cursor-pointer z-50 transition-all"
+                      onClick={() => setIsOtherDocumentAddModalMinimized(false)}
+                      title={language === 'vi' ? 'Mở lại modal Thêm Tài liệu' : 'Restore Add Document modal'}
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Edit Other Document Modal */}
+                  {showEditOtherDocumentModal && editingOtherDocument && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-2xl font-bold text-gray-800">
+                            {language === 'vi' ? '✏️ Chỉnh sửa Tài liệu' : '✏️ Edit Document'}
+                          </h3>
+                          <button
+                            onClick={() => {
+                              setShowEditOtherDocumentModal(false);
+                              setEditingOtherDocument(null);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 transition-all"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Tên Tài liệu' : 'Document Name'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={editingOtherDocument.document_name}
+                              onChange={(e) => setEditingOtherDocument(prev => ({ ...prev, document_name: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Ngày' : 'Date'}
+                              </label>
+                              <input
+                                type="date"
+                                value={editingOtherDocument.date || ''}
+                                onChange={(e) => setEditingOtherDocument(prev => ({ ...prev, date: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {language === 'vi' ? 'Trạng thái' : 'Status'}
+                              </label>
+                              <select
+                                value={editingOtherDocument.status}
+                                onChange={(e) => setEditingOtherDocument(prev => ({ ...prev, status: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              >
+                                <option value="Valid">{language === 'vi' ? 'Hợp lệ' : 'Valid'}</option>
+                                <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                                <option value="Unknown">{language === 'vi' ? 'Chưa rõ' : 'Unknown'}</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              {language === 'vi' ? 'Ghi chú' : 'Note'}
+                            </label>
+                            <textarea
+                              value={editingOtherDocument.note || ''}
+                              onChange={(e) => setEditingOtherDocument(prev => ({ ...prev, note: e.target.value }))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              rows="3"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                          <button
+                            onClick={() => {
+                              setShowEditOtherDocumentModal(false);
+                              setEditingOtherDocument(null);
+                            }}
+                            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                          >
+                            {language === 'vi' ? 'Hủy' : 'Cancel'}
+                          </button>
+                          <button
+                            onClick={handleUpdateOtherDocument}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
+                          >
+                            {language === 'vi' ? 'Cập nhật' : 'Update'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Add Test Report Modal */}
                   {showAddTestReportModal && !isTestReportAddModalMinimized && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
