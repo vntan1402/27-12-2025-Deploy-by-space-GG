@@ -8705,6 +8705,24 @@ async def analyze_drawings_manual_file(
                 analysis_result['document_name'] = analysis_result.get('document_name') or filename
                 analysis_result['note'] = f"AI analysis failed: {str(ai_error)}"
         
+        # Normalize document_name to standard format
+        if analysis_result.get('document_name'):
+            try:
+                from document_name_normalization import normalize_document_name
+                
+                original_doc_name = analysis_result['document_name']
+                normalized_doc_name = normalize_document_name(original_doc_name)
+                
+                if normalized_doc_name != original_doc_name:
+                    analysis_result['document_name'] = normalized_doc_name
+                    logger.info(f"✅ Normalized Document Name: '{original_doc_name}' → '{normalized_doc_name}'")
+                else:
+                    logger.info(f"ℹ️ Document Name kept as: '{original_doc_name}'")
+                    
+            except Exception as norm_error:
+                logger.error(f"❌ Error normalizing document_name: {norm_error}")
+                # Keep original value if normalization fails
+        
         logger.info(f"✅ Drawings & manuals analysis completed successfully")
         return analysis_result
         
