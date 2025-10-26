@@ -7493,37 +7493,34 @@ async def analyze_test_report_file(
                     "requires_confirmation": True
                 }
         
-        # ✅ NEW: Auto-calculate Valid Date if AI extraction failed
-        if not analysis_result.get('valid_date'):
-            logger.info("🧮 AI did not extract Valid Date - attempting automatic calculation...")
+        # ✅ ALWAYS Calculate Valid Date (ignore AI extraction, calculate from issued_date + equipment interval)
+        logger.info("🧮 Calculating Valid Date from Issued Date + Equipment Interval...")
+        
+        try:
+            from test_report_valid_date_calculator import calculate_valid_date
             
-            try:
-                from test_report_valid_date_calculator import calculate_valid_date_with_database
+            test_report_name = analysis_result.get('test_report_name', '')
+            issued_date = analysis_result.get('issued_date', '')
+            
+            if test_report_name and issued_date:
+                calculated_valid_date = await calculate_valid_date(
+                    test_report_name=test_report_name,
+                    issued_date=issued_date,
+                    ship_id=ship_id,
+                    mongo_db=mongo_db
+                )
                 
-                test_report_name = analysis_result.get('test_report_name', '')
-                issued_date = analysis_result.get('issued_date', '')
-                note = analysis_result.get('note', '')
-                
-                if test_report_name and issued_date:
-                    calculated_valid_date = await calculate_valid_date_with_database(
-                        test_report_name=test_report_name,
-                        issued_date=issued_date,
-                        note=note,
-                        ship_id=ship_id,
-                        mongo_db=mongo_db
-                    )
-                    
-                    if calculated_valid_date:
-                        analysis_result['valid_date'] = calculated_valid_date
-                        logger.info(f"✅ Auto-calculated Valid Date: {calculated_valid_date}")
-                    else:
-                        logger.warning("⚠️ Could not auto-calculate Valid Date")
+                if calculated_valid_date:
+                    analysis_result['valid_date'] = calculated_valid_date
+                    logger.info(f"✅ Calculated Valid Date: {calculated_valid_date}")
                 else:
-                    logger.warning(f"⚠️ Missing required fields for Valid Date calculation: test_report_name={bool(test_report_name)}, issued_date={bool(issued_date)}")
-                    
-            except Exception as calc_error:
-                logger.error(f"❌ Error during Valid Date calculation: {calc_error}")
-                # Don't fail the entire request, just log the error
+                    logger.warning("⚠️ Could not calculate Valid Date")
+            else:
+                logger.warning(f"⚠️ Missing required fields for Valid Date calculation: test_report_name={bool(test_report_name)}, issued_date={bool(issued_date)}")
+                
+        except Exception as calc_error:
+            logger.error(f"❌ Error during Valid Date calculation: {calc_error}")
+            # Don't fail the entire request, just log the error
         
         # Auto-calculate status if valid_date is extracted or calculated
         if analysis_result.get('valid_date'):
