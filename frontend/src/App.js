@@ -15633,6 +15633,9 @@ const HomePage = () => {
                                 <th 
                                   className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
                                   onClick={() => handleTestReportSort('valid_date')}
+                                  title={language === 'vi' 
+                                    ? 'Thông tin hạn bảo dưỡng được tính bởi AI có thể gặp sai sót. Vui lòng kiểm tra và sửa lại nếu cần' 
+                                    : 'Valid Date calculated by AI may contain errors. Please verify and correct if needed'}
                                 >
                                   <div className="flex items-center justify-between">
                                     <span>{language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}</span>
