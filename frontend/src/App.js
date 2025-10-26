@@ -7368,6 +7368,24 @@ const HomePage = () => {
       error: null
     };
     
+    // Set status to 'processing' when starting this file
+    setDrawingsManualFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+    
+    // Initialize progress for this file
+    setDrawingsManualFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+    
+    // Start smooth progress for this specific file
+    const estimatedTime = estimateFileProcessingTime(file);
+    const progressController = startSmoothProgressForFile(
+      file.name,
+      setDrawingsManualFileProgressMap,
+      setDrawingsManualSmoothProgress,
+      setDrawingsManualFileSubStatusMap,
+      drawingsManualCurrentFileName,
+      estimatedTime,
+      90
+    );
+    
     try {
       console.log(`📐 Processing drawings/manual ${current}/${total}: ${file.name}`);
       
