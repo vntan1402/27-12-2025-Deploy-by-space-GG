@@ -1505,7 +1505,9 @@ const HomePage = () => {
   // Test Report Batch Processing States
   const [isBatchProcessingTestReports, setIsBatchProcessingTestReports] = useState(false);
   const [testReportBatchProgress, setTestReportBatchProgress] = useState({ current: 0, total: 0 });
-  const [testReportSmoothProgress, setTestReportSmoothProgress] = useState(0); // Smooth progress 0-100
+  const [testReportSmoothProgress, setTestReportSmoothProgress] = useState(0); // Smooth progress 0-100 for CURRENT file
+  const [testReportCurrentFileIndex, setTestReportCurrentFileIndex] = useState(0); // Track which file is currently processing
+  const [testReportCurrentFileName, setTestReportCurrentFileName] = useState(''); // Track current file name
   const [testReportBatchResults, setTestReportBatchResults] = useState([]);
   const [showTestReportProcessingResultsModal, setShowTestReportProcessingResultsModal] = useState(false);
   
