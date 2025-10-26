@@ -76,13 +76,23 @@ Example:
 
 **Rule A: If Anniversary Date (next year) == Special Survey Cycle To**
 ```
-Valid Date = Anniversary Next Year - 3 months
+Valid Date = Anniversary Next Year - 3 months (keep same day)
+
+Example:
+  Anniversary Next Year: 2026-05-15
+  Valid Date = 2026-05-15 - 3 months = 2026-02-15
+  (Month: 5 - 3 = 2, Day: 15 remains unchanged)
 ```
 *Reason: To ensure equipment is tested BEFORE the special survey*
 
 **Rule B: If Anniversary Date (next year) ≠ Special Survey Cycle To**
 ```
-Valid Date = Anniversary Next Year + 3 months
+Valid Date = Anniversary Next Year + 3 months (keep same day)
+
+Example:
+  Anniversary Next Year: 2026-08-20
+  Valid Date = 2026-08-20 + 3 months = 2026-11-20
+  (Month: 8 + 3 = 11, Day: 20 remains unchanged)
 ```
 *Reason: Standard 3-month window after anniversary*
 
