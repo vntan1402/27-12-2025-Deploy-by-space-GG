@@ -5871,16 +5871,19 @@ const HomePage = () => {
       setTestReportBatchProgress({ current: 0, total: files.length });
       setTestReportSmoothProgress(0);
       
-      // Initialize progress and status for all files
+      // Initialize progress, status, and sub-status for all files
       const initialProgressMap = {};
       const initialStatusMap = {};
+      const initialSubStatusMap = {};
       files.forEach(file => {
         initialProgressMap[file.name] = 0;
         initialStatusMap[file.name] = 'waiting'; // 'waiting', 'processing', 'completed', 'error'
+        initialSubStatusMap[file.name] = null; // null, 'analyzing', 'uploading'
       });
       
       setTestReportFileProgressMap(initialProgressMap);
       setTestReportFileStatusMap(initialStatusMap);
+      setTestReportFileSubStatusMap(initialSubStatusMap);
       setTestReportCurrentFileName(files[0]?.name || '');
       setTestReportBatchResults([]);
       
