@@ -1,69 +1,65 @@
 """
 Test Report Valid Date Calculator
 Based on IMO MSC.1/Circ.1432 and SOLAS requirements for LSA/FFA maintenance intervals
-Integrates with Certificate List and Ship Information for fallback calculations
+Always calculates Valid Date from Issued Date + Equipment Interval
 """
 
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
-import re
 import logging
 
 logger = logging.getLogger(__name__)
 
 # Equipment maintenance intervals based on IMO MSC.1/Circ.1432 and SOLAS
+# "next_annual_survey" means the valid date is calculated using Anniversary Date
 EQUIPMENT_INTERVALS = {
-    # Lifesaving Equipment - Annual service
-    "life raft": {"months": 12, "description": "Annual service (can extend to 17 months)"},
-    "liferaft": {"months": 12, "description": "Annual service"},
-    "life jacket": {"months": 12, "description": "Annual inspection"},
-    "lifejacket": {"months": 12, "description": "Annual inspection"},
-    "life vest": {"months": 12, "description": "Annual inspection"},
-    "immersion suit": {"months": 12, "description": "Annual service"},
-    "survival suit": {"months": 12, "description": "Annual service"},
-    "chemical suit": {"months": 12, "description": "Annual service"},
-    "chemical protective suit": {"months": 12, "description": "Annual service"},
-    "epirb": {"months": 12, "description": "Annual service"},
-    "sart": {"months": 12, "description": "Annual service"},
-    "hru": {"months": 12, "description": "Annual inspection"},
-    "hydrostatic release": {"months": 12, "description": "Annual inspection"},
+    # Lifesaving Equipment - Annual service (12 months)
+    "life raft": {"type": "months", "value": 12, "description": "Annual service"},
+    "liferaft": {"type": "months", "value": 12, "description": "Annual service"},
+    "life jacket": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "lifejacket": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "life vest": {"type": "months", "value": 12, "description": "Annual inspection"},
     
-    # Lifeboats - Annual with 5-year major overhaul
-    "lifeboat": {"months": 12, "description": "Annual inspection (5-year overhaul required)"},
-    "rescue boat": {"months": 12, "description": "Annual inspection (5-year overhaul required)"},
-    "davit": {"months": 12, "description": "Annual survey (5-year thorough examination)"},
-    "launching appliance": {"months": 12, "description": "Annual survey (5-year thorough examination)"},
+    # Electronic Equipment - Next Annual Survey
+    "epirb": {"type": "next_annual_survey", "description": "Next Annual Survey"},
+    "sart": {"type": "next_annual_survey", "description": "Next Annual Survey"},
+    "ais": {"type": "next_annual_survey", "description": "Next Annual Survey"},
+    "ssas": {"type": "next_annual_survey", "description": "Next Annual Survey"},
     
-    # Breathing Apparatus - Annual service
-    "eebd": {"months": 12, "description": "Annual maintenance"},
-    "emergency escape breathing device": {"months": 12, "description": "Annual maintenance"},
-    "scba": {"months": 12, "description": "Annual maintenance"},
-    "self contained breathing apparatus": {"months": 12, "description": "Annual maintenance"},
-    "breathing apparatus": {"months": 12, "description": "Annual maintenance"},
-    "fireman outfit": {"months": 12, "description": "Annual inspection"},
-    "fireman's outfit": {"months": 12, "description": "Annual inspection"},
+    # Protective Equipment - Annual maintenance (12 months)
+    "eebd": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "emergency escape breathing device": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "scba": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "self contained breathing apparatus": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "breathing apparatus": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "chemical suit": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "chemical protective suit": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "immersion suit": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "survival suit": {"type": "months", "value": 12, "description": "Annual maintenance"},
+    "fireman outfit": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "fireman's outfit": {"type": "months", "value": 12, "description": "Annual inspection"},
     
-    # Fire Extinguishers
-    "portable fire extinguisher": {"months": 12, "description": "Annual inspection (5-year maintenance, 10-year hydrostatic test)"},
-    "fire extinguisher": {"months": 12, "description": "Annual inspection (5-year maintenance)"},
-    "wheeled fire extinguisher": {"months": 60, "description": "5-year maintenance (10-year hydrostatic test)"},
+    # Fire Extinguishers - Annual inspection (12 months)
+    "portable fire extinguisher": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "fire extinguisher": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "wheeled fire extinguisher": {"type": "months", "value": 12, "description": "Annual inspection"},
     
-    # Fire Fighting Equipment
-    "portable foam applicator": {"months": 12, "description": "Annual comprehensive inspection"},
-    "foam applicator": {"months": 12, "description": "Annual comprehensive inspection"},
-    "fire hose": {"months": 12, "description": "Annual inspection"},
-    "fire fighting hose": {"months": 12, "description": "Annual inspection"},
+    # Lifeboats - Next Annual Survey
+    "lifeboat": {"type": "next_annual_survey", "description": "Next Annual Survey"},
+    "rescue boat": {"type": "next_annual_survey", "description": "Next Annual Survey"},
+    "davit": {"type": "next_annual_survey", "description": "Next Annual Survey"},
+    "launching appliance": {"type": "next_annual_survey", "description": "Next Annual Survey"},
     
-    # Fixed Systems - Annual inspection
-    "co2 system": {"months": 12, "description": "Annual inspection"},
-    "carbon dioxide system": {"months": 12, "description": "Annual inspection"},
-    "fire detection system": {"months": 12, "description": "Annual inspection"},
-    "fire alarm system": {"months": 12, "description": "Annual inspection"},
-    "sprinkler system": {"months": 12, "description": "Annual inspection"},
-    "fire pump": {"months": 12, "description": "Annual inspection"},
-    "emergency fire pump": {"months": 12, "description": "Annual inspection"},
-    "gas detector": {"months": 12, "description": "Annual calibration and service"},
-    "gas detection system": {"months": 12, "description": "Annual calibration and service"},
+    # Fixed Fire Fighting Systems - Annual inspection (12 months)
+    "co2 system": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "carbon dioxide system": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "fire detection": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "fire detection system": {"type": "months", "value": 12, "description": "Annual inspection"},
+    "fire alarm system": {"type": "months", "value": 12, "description": "Annual inspection"},
+    
+    # Gas Detection - Annual calibration (12 months)
+    "gas detector": {"type": "months", "value": 12, "description": "Annual calibration"},
+    "gas detection system": {"type": "months", "value": 12, "description": "Annual calibration"},
 }
 
 
