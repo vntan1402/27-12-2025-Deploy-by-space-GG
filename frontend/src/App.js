@@ -17234,7 +17234,26 @@ const HomePage = () => {
                         <div className="flex-1 overflow-y-auto space-y-3">
                           {Object.keys(testReportFileStatusMap).map((filename) => {
                             const status = testReportFileStatusMap[filename];
+                            const subStatus = testReportFileSubStatusMap[filename];
                             const progress = testReportFileProgressMap[filename] || 0;
+                            
+                            // Determine display status text
+                            let statusText = '';
+                            if (status === 'waiting') {
+                              statusText = language === 'vi' ? 'Chờ...' : 'Waiting...';
+                            } else if (status === 'processing') {
+                              if (subStatus === 'analyzing') {
+                                statusText = language === 'vi' ? '🤖 Phân tích với AI' : '🤖 Analyzing with AI';
+                              } else if (subStatus === 'uploading') {
+                                statusText = language === 'vi' ? '☁️ Đang tải lên Drive' : '☁️ Uploading to Drive';
+                              } else {
+                                statusText = language === 'vi' ? 'Đang xử lý...' : 'Processing...';
+                              }
+                            } else if (status === 'completed') {
+                              statusText = language === 'vi' ? 'Hoàn thành' : 'Completed';
+                            } else if (status === 'error') {
+                              statusText = language === 'vi' ? 'Lỗi' : 'Error';
+                            }
                             
                             return (
                               <div key={filename} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -17267,17 +17286,14 @@ const HomePage = () => {
                                     </span>
                                   </div>
                                   
-                                  {/* Status Text */}
+                                  {/* Status Text with Sub-status */}
                                   <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ml-2 ${
                                     status === 'waiting' ? 'bg-gray-200 text-gray-600' :
                                     status === 'processing' ? 'bg-blue-100 text-blue-700' :
                                     status === 'completed' ? 'bg-green-100 text-green-700' :
                                     'bg-red-100 text-red-700'
                                   }`}>
-                                    {status === 'waiting' && (language === 'vi' ? 'Chờ...' : 'Waiting...')}
-                                    {status === 'processing' && (language === 'vi' ? 'Đang xử lý...' : 'Processing...')}
-                                    {status === 'completed' && (language === 'vi' ? 'Hoàn thành' : 'Completed')}
-                                    {status === 'error' && (language === 'vi' ? 'Lỗi' : 'Error')}
+                                    {statusText}
                                   </span>
                                 </div>
                                 
