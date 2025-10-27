@@ -1964,16 +1964,21 @@ class DualAppsScriptManager:
         filename: str,
         content_type: str,
         ship_name: str,
-        nested_category: str
+        parent_category_path: str,
+        category_name: str
     ) -> Dict[str, Any]:
         """
-        Call existing upload_file_with_folder_creation with nested category path
+        Call existing upload_file_with_folder_creation with correct path structure
+        Creates: SHIP_NAME / parent_category_path / category_name / file
+        Example: BROTHER 36 / Class & Flag Cert/Other Documents / Radio Report / file.pdf
         """
         try:
             if not self.company_apps_script_url:
                 raise ValueError("Company Apps Script URL not configured")
             
-            logger.info(f"📡 Calling Apps Script with nested category: {nested_category}")
+            logger.info(f"📡 Calling Apps Script")
+            logger.info(f"   Parent category: {parent_category_path}")
+            logger.info(f"   Category (subfolder): {category_name}")
             
             # Encode file content
             file_base64 = base64.b64encode(file_content).decode('utf-8')
@@ -1983,8 +1988,8 @@ class DualAppsScriptManager:
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": self.parent_folder_id,
                 "ship_name": ship_name,
-                "parent_category": "Class & Flag Cert",
-                "category": nested_category,  # "Other Documents/Radio Report"
+                "parent_category": parent_category_path,  # "Class & Flag Cert/Other Documents"
+                "category": category_name,  # "Radio Report"
                 "filename": filename,
                 "file_content": file_base64,
                 "content_type": content_type
