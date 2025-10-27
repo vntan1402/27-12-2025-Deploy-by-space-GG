@@ -4687,7 +4687,8 @@ const HomePage = () => {
         }
       });
 
-      console.log('Sample certificate data:', response.data[0]); // Log first certificate for debugging
+      // Sample certificate for debugging
+      // console.log('Sample certificate data:', response.data[0]);
       
       // Force state update by clearing first then setting
       setCertificates([]);
