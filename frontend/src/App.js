@@ -1371,7 +1371,7 @@ const HomePage = () => {
     });
   })();
   
-  console.log('📊 sortedCrewData length:', sortedCrewData.length);
+  // console.log('📊 sortedCrewData length:', sortedCrewData.length);
   
   // Certificate List filters and sorting
   const [certificateFilters, setCertificateFilters] = useState({
