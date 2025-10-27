@@ -22449,7 +22449,6 @@ const HomePage = () => {
       {/* Quick Edit Survey Type Context Menu - Moved to HomePage level */}
       {quickEditMenu.show && (
         <>
-          {console.log('🎯 Rendering context menu at HomePage level:', quickEditMenu)}
           {/* Background overlay to close menu when clicking outside */}
           <div 
             className="fixed inset-0 z-[9998]"
