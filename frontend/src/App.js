@@ -17180,7 +17180,21 @@ const HomePage = () => {
                                   <td className="border border-gray-300 px-4 py-2">
                                     <div className="flex items-center gap-2">
                                       {document.document_name}
-                                      {document.file_ids && document.file_ids.length > 0 && (
+                                      {/* Folder Icon - Opens Google Drive folder if it's a folder upload */}
+                                      {document.folder_link && document.folder_id && (
+                                        <span 
+                                          className="text-yellow-600 text-sm cursor-pointer hover:text-yellow-700 transition-colors" 
+                                          title={`${language === 'vi' ? 'Mở folder trên Drive' : 'Open folder on Drive'}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(document.folder_link, '_blank');
+                                          }}
+                                        >
+                                          📁
+                                        </span>
+                                      )}
+                                      {/* File Icon - Opens first file if no folder_link (single file upload) */}
+                                      {!document.folder_link && document.file_ids && document.file_ids.length > 0 && (
                                         <span 
                                           className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                                           title={`${language === 'vi' ? 'Xem file' : 'View file'}`}
