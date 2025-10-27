@@ -1842,6 +1842,125 @@ JSON:"""
         return {}
 
 
+    async def upload_other_document_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload other document files to Google Drive
+        Path: Shipname > Class & Flag Cert > Other Documents
+        
+        Args:
+            file_content: File content (PDF, JPG, etc.)
+            filename: Filename
+            ship_name: Ship name for folder structure
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"📤 Uploading other document to Google Drive: {filename}")
+            
+            # Determine content type based on file extension
+            if filename.lower().endswith('.pdf'):
+                content_type = 'application/pdf'
+            elif filename.lower().endswith(('.jpg', '.jpeg')):
+                content_type = 'image/jpeg'
+            else:
+                content_type = 'application/octet-stream'
+            
+            # Call Company Apps Script for other document upload
+            # Path structure: Shipname > Class & Flag Cert > Other Documents
+            upload_result = await self._call_apps_script_for_other_document_upload(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                ship_name=ship_name
+            )
+            
+            if not upload_result.get('success'):
+                logger.error(f"❌ Other document file upload failed")
+                return upload_result
+            
+            # Extract file ID from Apps Script response
+            file_id = upload_result.get('file_id')
+            logger.info("✅ Other document file uploaded successfully")
+            logger.info(f"   File ID: {file_id}")
+            logger.info(f"   Path: {upload_result.get('folder_path', 'N/A')}")
+            
+            # Return structured response
+            return {
+                'success': True,
+                'message': 'Other document file uploaded successfully',
+                'file_id': file_id,
+                'file_path': upload_result.get('folder_path'),
+                'upload_details': upload_result
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading other document file: {e}")
+            return {
+                'success': False,
+                'message': f'Other document file upload failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _call_apps_script_for_other_document_upload(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Call Company Apps Script to upload other document file
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            logger.info(f"📡 Calling Company Apps Script for other document upload...")
+            
+            # Encode file content
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Prepare payload
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": self.parent_folder_id,
+                "ship_name": ship_name,
+                "parent_category": "Class & Flag Cert",  # First level folder under ShipName
+                "category": "Other Documents",  # Second level folder under Class & Flag Cert
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
+            
+            logger.info(f"✅ Company Apps Script response received")
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error calling Company Apps Script for other document: {e}")
+            return {
+                'success': False,
+                'message': f'Apps Script call failed: {str(e)}',
+                'error': str(e)
+            }
+
+
 def create_dual_apps_script_manager(company_id: str) -> DualAppsScriptManager:
     """Factory function to create DualAppsScriptManager"""
     return DualAppsScriptManager(company_id)
