@@ -20205,6 +20205,106 @@ async def upload_other_document_file_only(
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@api_router.post("/other-documents/upload-folder")
+async def upload_other_document_folder(
+    files: List[UploadFile] = File(...),
+    ship_id: str = Form(...),
+    folder_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Unknown"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload a folder with multiple files to Google Drive
+    Creates a subfolder under "Other Documents" and uploads all files into it
+    Also creates a single record with folder_id and folder_link
+    """
+    try:
+        logger.info(f"📁 Uploading folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown')
+        
+        # Get company_id from current user
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Read all files into memory
+        files_data = []
+        for file in files:
+            file_content = await file.read()
+            files_data.append((file_content, file.filename))
+            logger.info(f"   📄 Read file: {file.filename} ({len(file_content)} bytes)")
+        
+        # Upload folder to Google Drive
+        logger.info(f"📤 Creating subfolder and uploading files to Google Drive...")
+        upload_result = await dual_manager.upload_other_document_folder(
+            files=files_data,
+            folder_name=folder_name,
+            ship_name=ship_name
+        )
+        
+        if not upload_result or not upload_result.get('success'):
+            error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+            raise HTTPException(status_code=500, detail=f"Failed to upload folder to Google Drive: {error_msg}")
+        
+        folder_id = upload_result.get('folder_id')
+        folder_link = upload_result.get('folder_link')
+        file_ids = upload_result.get('file_ids', [])
+        
+        logger.info(f"✅ Folder uploaded to Google Drive")
+        logger.info(f"   Folder ID: {folder_id}")
+        logger.info(f"   Folder Link: {folder_link}")
+        logger.info(f"   Files uploaded: {len(file_ids)}/{len(files)}")
+        
+        # Create document record in MongoDB
+        doc_dict = {
+            "id": str(uuid.uuid4()),
+            "ship_id": ship_id,
+            "document_name": folder_name,
+            "date": date,
+            "status": status or "Unknown",
+            "note": note,
+            "file_ids": file_ids,
+            "folder_id": folder_id,
+            "folder_link": folder_link,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": None
+        }
+        
+        await mongo_db.create("other_documents", doc_dict)
+        
+        logger.info(f"✅ Other document folder record created with ID: {doc_dict['id']}")
+        
+        return {
+            "success": True,
+            "message": f"Folder uploaded successfully: {len(file_ids)}/{len(files)} files",
+            "document_id": doc_dict['id'],
+            "folder_id": folder_id,
+            "folder_link": folder_link,
+            "file_ids": file_ids,
+            "total_files": len(files),
+            "successful_files": len(file_ids),
+            "failed_files": upload_result.get('failed_files', [])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading folder: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Add the router to the main app
 app.include_router(api_router)
 
