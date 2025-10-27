@@ -1841,7 +1841,6 @@ JSON:"""
         logger.error(f"❌ Error extracting fields from summary: {e}")
         return {}
 
-
     async def upload_other_document_file(
         self,
         file_content: bytes,
