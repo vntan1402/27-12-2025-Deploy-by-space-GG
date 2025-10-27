@@ -20091,7 +20091,7 @@ async def upload_other_document(
         drive_manager = GoogleDriveManager()
         
         # Get company_id from current user
-        company_id = current_user.company_id
+        company_uuid = await resolve_company_id(current_user)
         
         # Upload file
         logger.info(f"📤 Uploading file to Google Drive: {folder_path}/{file.filename}")
@@ -20100,7 +20100,7 @@ async def upload_other_document(
             filename=file.filename,
             folder_path=folder_path,
             content_type=file.content_type or 'application/octet-stream',
-            company_id=company_id
+            company_id=company_uuid
         )
         
         if not upload_result or not upload_result.get('file_id'):
@@ -20175,7 +20175,7 @@ async def upload_other_document_file_only(
         drive_manager = GoogleDriveManager()
         
         # Get company_id from current user
-        company_id = current_user.company_id
+        company_uuid = await resolve_company_id(current_user)
         
         # Upload file
         logger.info(f"📤 Uploading file to Google Drive: {folder_path}/{file.filename}")
@@ -20184,7 +20184,7 @@ async def upload_other_document_file_only(
             filename=file.filename,
             folder_path=folder_path,
             content_type=file.content_type or 'application/octet-stream',
-            company_id=company_id
+            company_id=company_uuid
         )
         
         if not upload_result or not upload_result.get('file_id'):
