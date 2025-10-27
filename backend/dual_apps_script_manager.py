@@ -1884,10 +1884,12 @@ class DualAppsScriptManager:
             logger.info(f"   Folder: {folder_name}")
             logger.info(f"   Files: {len(files)}")
             
-            # Use nested category path to create subfolder
-            # parent_category: "Class & Flag Cert"
-            # category: "Other Documents/Radio Report" (nested path)
-            nested_category = f"Other Documents/{folder_name}"
+            # CORRECTED: Put "Other Documents" in parent_category, not in category
+            # This ensures Radio Report is created INSIDE Other Documents folder
+            # parent_category: "Class & Flag Cert/Other Documents"
+            # category: "Radio Report"
+            parent_category_path = "Class & Flag Cert/Other Documents"
+            category_name = folder_name  # e.g., "Radio Report"
             
             file_ids = []
             failed_files = []
