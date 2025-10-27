@@ -9,7 +9,7 @@ import tempfile
 import os
 
 # Use external backend URL
-BACKEND_URL = "https://shipsystem.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipdoclists.preview.emergentagent.com/api"
 
 def create_simple_test_pdf():
     """Create a simple PDF without valid_date to trigger auto-calculation"""

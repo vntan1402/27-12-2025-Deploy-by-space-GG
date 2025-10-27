@@ -22,7 +22,7 @@ from datetime import datetime
 import traceback
 
 # Configuration
-BACKEND_URL = 'https://shipsystem.preview.emergentagent.com/api'
+BACKEND_URL = 'https://shipdoclists.preview.emergentagent.com/api'
 print(f"Using backend URL: {BACKEND_URL}")
 
 class EnhancedDebugTester:

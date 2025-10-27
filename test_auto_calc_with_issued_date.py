@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 
 # Use external backend URL
-BACKEND_URL = "https://shipsystem.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipdoclists.preview.emergentagent.com/api"
 
 def create_test_pdf_with_proper_date():
     """Create a PDF with proper date format that AI should extract"""
