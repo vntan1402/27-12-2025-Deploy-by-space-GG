@@ -19882,7 +19882,6 @@ const HomePage = () => {
                             </div>
                             {/* Action Buttons */}
                             <div className="flex items-center space-x-3">
-                              {console.log('👤 User role check:', { user, role: user?.role, canAdd: user && (user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') })}
                               {user && (user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') && (
                                 <button 
                                   onClick={handleOpenAddCrewCertModal}
