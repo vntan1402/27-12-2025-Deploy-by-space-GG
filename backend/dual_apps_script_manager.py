@@ -1912,7 +1912,8 @@ class DualAppsScriptManager:
                         filename=filename,
                         content_type=content_type,
                         ship_name=ship_name,
-                        nested_category=nested_category
+                        parent_category_path=parent_category_path,
+                        category_name=category_name
                     )
                     
                     if file_result.get('success'):
