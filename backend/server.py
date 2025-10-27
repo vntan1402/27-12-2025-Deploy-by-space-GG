@@ -20083,30 +20083,27 @@ async def upload_other_document(
         file_content = await file.read()
         logger.info(f"✅ File read successfully: {len(file_content)} bytes")
         
-        # Upload to Google Drive
-        # Create path: SHIP_NAME/Class & Flag Cert/Other Documents/filename
-        folder_path = f"{ship_name}/Class & Flag Cert/Other Documents"
-        
-        # Initialize Google Drive manager
-        drive_manager = GoogleDriveManager()
-        
         # Get company_id from current user
         company_uuid = await resolve_company_id(current_user)
         
-        # Upload file
-        logger.info(f"📤 Uploading file to Google Drive: {folder_path}/{file.filename}")
-        upload_result = await drive_manager.upload_file_with_folder_creation(
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Upload file to Google Drive using DualAppsScriptManager
+        # Path: SHIP_NAME/Class & Flag Cert/Other Documents/filename
+        logger.info(f"📤 Uploading file to Google Drive: {ship_name}/Class & Flag Cert/Other Documents/{file.filename}")
+        upload_result = await dual_manager.upload_other_document_file(
             file_content=file_content,
             filename=file.filename,
-            folder_path=folder_path,
-            content_type=file.content_type or 'application/octet-stream',
-            company_id=company_uuid
+            ship_name=ship_name
         )
         
-        if not upload_result or not upload_result.get('file_id'):
-            raise HTTPException(status_code=500, detail="Failed to upload file to Google Drive")
+        if not upload_result or not upload_result.get('success'):
+            error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+            raise HTTPException(status_code=500, detail=f"Failed to upload file to Google Drive: {error_msg}")
         
-        file_id = upload_result['file_id']
+        file_id = upload_result.get('file_id')
         logger.info(f"✅ File uploaded to Google Drive with ID: {file_id}")
         
         # Create document record in MongoDB
