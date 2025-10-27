@@ -20242,8 +20242,11 @@ async def upload_other_document_folder(
         files_data = []
         for file in files:
             file_content = await file.read()
-            files_data.append((file_content, file.filename))
-            logger.info(f"   📄 Read file: {file.filename} ({len(file_content)} bytes)")
+            # Extract only the filename, remove any folder path
+            # e.g., "Radio Report/AIS.pdf" -> "AIS.pdf"
+            filename = os.path.basename(file.filename)
+            files_data.append((file_content, filename))
+            logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
         
         # Upload folder to Google Drive
         logger.info(f"📤 Creating subfolder and uploading files to Google Drive...")
