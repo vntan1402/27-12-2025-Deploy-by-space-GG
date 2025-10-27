@@ -20735,7 +20735,6 @@ const HomePage = () => {
                                           <label className="block text-sm font-medium text-gray-700 mb-1">
                                             {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'} <span className="text-red-500">*</span>
                                           </label>
-                                          {console.log('🔍 Rendering Date of Birth field, value:', newCrewCertificate.date_of_birth)}
                                           <input
                                             type="date"
                                             value={newCrewCertificate.date_of_birth || ''}
