@@ -20174,18 +20174,23 @@ async def upload_other_document_file_only(
         # Initialize Google Drive manager
         drive_manager = GoogleDriveManager()
         
+        # Get company_id from current user
+        company_id = current_user.company_id
+        
         # Upload file
         logger.info(f"📤 Uploading file to Google Drive: {folder_path}/{file.filename}")
-        file_id = await drive_manager.upload_file(
+        upload_result = await drive_manager.upload_file_with_folder_creation(
             file_content=file_content,
             filename=file.filename,
             folder_path=folder_path,
-            mime_type=file.content_type or 'application/octet-stream'
+            content_type=file.content_type or 'application/octet-stream',
+            company_id=company_id
         )
         
-        if not file_id:
+        if not upload_result or not upload_result.get('file_id'):
             raise HTTPException(status_code=500, detail="Failed to upload file to Google Drive")
         
+        file_id = upload_result['file_id']
         logger.info(f"✅ File uploaded to Google Drive with ID: {file_id}")
         
         return {
