@@ -1053,6 +1053,8 @@ class OtherDocumentBase(BaseModel):
 
 class OtherDocumentCreate(OtherDocumentBase):
     file_ids: Optional[List[str]] = None  # For folder uploads
+    folder_id: Optional[str] = None  # Google Drive folder ID (for folder uploads)
+    folder_link: Optional[str] = None  # Google Drive folder link (for folder uploads)
 
 class OtherDocumentUpdate(BaseModel):
     document_name: Optional[str] = None
@@ -1068,6 +1070,8 @@ class OtherDocumentResponse(BaseModel):
     status: str
     note: Optional[str] = None
     file_ids: Optional[List[str]] = None  # List of Google Drive file IDs (supports multiple files/folders)
+    folder_id: Optional[str] = None  # Google Drive folder ID if this is a folder upload
+    folder_link: Optional[str] = None  # Google Drive folder link to open in browser
     created_at: datetime
     updated_at: Optional[datetime] = None
     
