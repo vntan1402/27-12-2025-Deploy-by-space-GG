@@ -1866,7 +1866,7 @@ class DualAppsScriptManager:
     ) -> Dict[str, Any]:
         """
         Upload a folder of files to Google Drive
-        Creates a subfolder under "Other Documents" and uploads all files into it
+        Uses existing upload_file_with_folder_creation with nested category path
         Path: Shipname > Class & Flag Cert > Other Documents > folder_name
         
         Args:
@@ -1880,24 +1880,133 @@ class DualAppsScriptManager:
         try:
             await self._load_configuration()
             
-            logger.info(f"📁 Creating subfolder and uploading files to Google Drive")
+            logger.info(f"📁 Uploading folder to Google Drive using existing action")
             logger.info(f"   Folder: {folder_name}")
             logger.info(f"   Files: {len(files)}")
             
-            # Step 1: Create subfolder under "Other Documents"
-            folder_result = await self._create_other_documents_subfolder(
-                folder_name=folder_name,
-                ship_name=ship_name
-            )
+            # Use nested category path to create subfolder
+            # parent_category: "Class & Flag Cert"
+            # category: "Other Documents/Radio Report" (nested path)
+            nested_category = f"Other Documents/{folder_name}"
             
-            if not folder_result.get('success'):
-                logger.error(f"❌ Failed to create subfolder")
-                return folder_result
+            file_ids = []
+            failed_files = []
+            folder_id = None
             
-            folder_id = folder_result.get('folder_id')
-            folder_link = folder_result.get('folder_link')
-            logger.info(f"✅ Subfolder created: {folder_id}")
-            logger.info(f"   Link: {folder_link}")
+            # Upload all files using the same nested category path
+            for file_content, filename in files:
+                try:
+                    # Determine content type
+                    if filename.lower().endswith('.pdf'):
+                        content_type = 'application/pdf'
+                    elif filename.lower().endswith(('.jpg', '.jpeg')):
+                        content_type = 'image/jpeg'
+                    else:
+                        content_type = 'application/octet-stream'
+                    
+                    # Use existing upload_file_with_folder_creation
+                    file_result = await self._call_apps_script_for_folder_upload(
+                        file_content=file_content,
+                        filename=filename,
+                        content_type=content_type,
+                        ship_name=ship_name,
+                        nested_category=nested_category
+                    )
+                    
+                    if file_result.get('success'):
+                        file_ids.append(file_result.get('file_id'))
+                        
+                        # Extract folder_id from first successful upload
+                        # Apps Script returns folder info in response
+                        if not folder_id and file_result.get('folder_id'):
+                            folder_id = file_result.get('folder_id')
+                        
+                        logger.info(f"   ✅ Uploaded: {filename}")
+                    else:
+                        failed_files.append(filename)
+                        logger.warning(f"   ⚠️ Failed to upload: {filename}")
+                        
+                except Exception as e:
+                    failed_files.append(filename)
+                    logger.error(f"   ❌ Error uploading {filename}: {e}")
+            
+            # Generate folder link from folder_id
+            # If Apps Script doesn't return folder_id, we can construct it from the path
+            # but this requires parsing the response or making an additional call
+            folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
+            
+            # Return results
+            return {
+                'success': True,
+                'message': f'Folder uploaded successfully: {len(file_ids)}/{len(files)} files',
+                'folder_id': folder_id,
+                'folder_link': folder_link,
+                'file_ids': file_ids,
+                'failed_files': failed_files,
+                'total_files': len(files),
+                'successful_files': len(file_ids)
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading folder: {e}")
+            return {
+                'success': False,
+                'message': f'Folder upload failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _call_apps_script_for_folder_upload(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str,
+        nested_category: str
+    ) -> Dict[str, Any]:
+        """
+        Call existing upload_file_with_folder_creation with nested category path
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            logger.info(f"📡 Calling Apps Script with nested category: {nested_category}")
+            
+            # Encode file content
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Prepare payload using existing action
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": self.parent_folder_id,
+                "ship_name": ship_name,
+                "parent_category": "Class & Flag Cert",
+                "category": nested_category,  # "Other Documents/Radio Report"
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
+            
+            logger.info(f"✅ Apps Script response received")
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error calling Apps Script: {e}")
+            return {
+                'success': False,
+                'message': f'Apps Script call failed: {str(e)}',
+                'error': str(e)
+            }
+
             
             # Step 2: Upload all files to the created subfolder
             file_ids = []
