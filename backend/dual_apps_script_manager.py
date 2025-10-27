@@ -1997,6 +1997,9 @@ class DualAppsScriptManager:
                     result = await response.json()
             
             logger.info(f"✅ Apps Script response received")
+            logger.info(f"   Response keys: {list(result.keys())}")
+            if 'folder_id' in result:
+                logger.info(f"   Folder ID from Apps Script: {result.get('folder_id')}")
             return result
             
         except Exception as e:
