@@ -251,7 +251,7 @@ const AuthProvider = ({ children }) => {
     try {
       // Check if token exists
       if (!token) {
-        console.log('No token found');
+
         return;
       }
       
@@ -1431,7 +1431,6 @@ const HomePage = () => {
   const [isDrawingManualBatchModalMinimized, setIsDrawingManualBatchModalMinimized] = useState(false);
   const [isDrawingManualAddModalMinimized, setIsDrawingManualAddModalMinimized] = useState(false);
 
-
   
   // Survey Report Context Menu
   const [surveyReportContextMenu, setSurveyReportContextMenu] = useState({
@@ -1450,7 +1449,6 @@ const HomePage = () => {
     showBelow: false,
     width: 300
   });
-
 
   // ========== TEST REPORT STATES (NEW) ==========
   const [testReports, setTestReports] = useState([]);
@@ -1501,7 +1499,6 @@ const HomePage = () => {
     showBelow: false,
     width: 300
   });
-
 
   // Test Report File Upload States
   const [testReportFile, setTestReportFile] = useState(null);
@@ -1786,15 +1783,13 @@ const HomePage = () => {
     try {
       // When progress reaches 90%, start AI analysis phase
       setSubStatusMap(prev => ({ ...prev, [filename]: 'analyzing' }));
-      console.log(`📊 ${filename}: Sub-status → Analyzing with AI`);
-      
+
       // Wait 5 seconds for AI analysis phase
       await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Then switch to uploading phase
       setSubStatusMap(prev => ({ ...prev, [filename]: 'uploading' }));
-      console.log(`☁️ ${filename}: Sub-status → Uploading to Drive`);
-      
+
     } catch (error) {
       console.error(`Error in sub-status transitions for ${filename}:`, error);
     }
@@ -1883,7 +1878,6 @@ const HomePage = () => {
       }
     };
   };
-
 
   
   // Certificate table sorting - REMOVED DUPLICATE (now at line 964)
@@ -1997,7 +1991,6 @@ const HomePage = () => {
     }
     setSelectedSurveyReports(newSelected);
   };
-
 
   // Column resize functionality
   useEffect(() => {
@@ -2158,7 +2151,7 @@ const HomePage = () => {
 
   // Quick Edit Survey Type functions
   const handleSurveyTypeRightClick = (e, certificateId, currentValue) => {
-    console.log('🖱️ Survey Type right-click detected:', { certificateId, currentValue, x: e.clientX, y: e.clientY });
+
     e.preventDefault();
     e.stopPropagation(); // Prevent row context menu from showing
     
@@ -2173,8 +2166,7 @@ const HomePage = () => {
       position: { x: e.clientX, y: e.clientY },
       currentValue: currentValue || ''
     };
-    
-    console.log('📋 Setting quickEditMenu state:', menuState);
+
     setQuickEditMenu(menuState);
   };
 
@@ -2401,7 +2393,6 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
-
   // Fetch test reports when ship is selected and on survey_reports submenu
   useEffect(() => {
     if (selectedShip && selectedSubMenu === 'survey_reports') {
@@ -2416,14 +2407,12 @@ const HomePage = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
-
   // Fetch other documents when ship is selected and on other_documents submenu
   useEffect(() => {
     if (selectedShip && selectedSubMenu === 'other_documents') {
       fetchOtherDocuments(selectedShip.id);
     }
   }, [selectedShip, selectedSubMenu]);
-
 
   // Close survey report context menu on click outside
   useEffect(() => {
@@ -2438,7 +2427,6 @@ const HomePage = () => {
       return () => document.removeEventListener('click', handleClick);
     }
   }, [surveyReportContextMenu.show]);
-
 
   // Update newCrewData ship_sign_on and status when selectedShip changes
   useEffect(() => {
@@ -2458,7 +2446,7 @@ const HomePage = () => {
       if (savedCustomNames) {
         const parsedNames = JSON.parse(savedCustomNames);
         setCustomCertificateNames(parsedNames);
-        console.log('📚 Loaded custom certificate names from localStorage:', parsedNames);
+
       }
     } catch (error) {
       console.error('Error loading custom certificate names:', error);
@@ -2617,7 +2605,7 @@ const HomePage = () => {
           });
           
           if (response.status === 200) {
-            console.log(`✅ Deleted crew member: ${crew.full_name}`);
+
             deletedCount++;
           }
         } catch (error) {
@@ -2630,7 +2618,7 @@ const HomePage = () => {
               crewName: errorData.crew_name,
               certificateCount: errorData.certificate_count
             });
-            console.log(`⚠️ ${errorData.crew_name} has ${errorData.certificate_count} certificate(s)`);
+
           } else {
             errorCount++;
           }
@@ -2638,10 +2626,10 @@ const HomePage = () => {
       }
       
       // Always refresh crew list after deletion attempts
-      console.log('🔄 Refreshing crew list after deletion...');
+
       if (selectedShip?.name) {
         await fetchCrewMembers(selectedShip.name);
-        console.log('✅ Crew list refreshed successfully');
+
       }
       
       // Clear selection
@@ -2676,7 +2664,7 @@ const HomePage = () => {
       
       // Still refresh the list even if there was an error
       if (selectedShip?.name) {
-        console.log('🔄 Refreshing crew list after error...');
+
         await fetchCrewMembers(selectedShip.name);
       }
       setSelectedCrewMembers(new Set());
@@ -2753,7 +2741,7 @@ const HomePage = () => {
           setTimeout(() => {
             const googleDriveViewUrl = `https://drive.google.com/file/d/${c.passport_file_id}/view`;
             window.open(googleDriveViewUrl, '_blank');
-            console.log(`📄 Opening passport ${index + 1}/${crewWithFiles.length} for ${c.full_name}`);
+
           }, index * 300); // Delay to prevent browser popup blocking
         });
         
@@ -2764,8 +2752,7 @@ const HomePage = () => {
       if (crew.passport_file_id) {
         const googleDriveViewUrl = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
         window.open(googleDriveViewUrl, '_blank');
-        console.log(`📄 Opening original passport file for ${crew.full_name}: ${googleDriveViewUrl}`);
-        
+
         toast.info(language === 'vi' 
           ? 'Đang mở file hộ chiếu gốc...' 
           : 'Opening original passport file...');
@@ -2808,9 +2795,7 @@ const HomePage = () => {
         ).join('\n');
         
         await navigator.clipboard.writeText(links);
-        
-        console.log(`🔗 Copied ${crewWithFiles.length} passport file links`);
-        
+
         toast.success(language === 'vi' 
           ? `Đã sao chép ${crewWithFiles.length} link file hộ chiếu` 
           : `Copied ${crewWithFiles.length} passport file links`);
@@ -2823,9 +2808,7 @@ const HomePage = () => {
         const googleDriveLink = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
         
         await navigator.clipboard.writeText(googleDriveLink);
-        
-        console.log(`🔗 Copied original passport file link for ${crew.full_name}: ${googleDriveLink}`);
-        
+
         toast.success(language === 'vi' 
           ? 'Đã sao chép link file hộ chiếu gốc' 
           : 'Original passport file link copied to clipboard');
@@ -2871,7 +2854,7 @@ const HomePage = () => {
           setTimeout(() => {
             const googleDriveDownloadUrl = `https://drive.google.com/uc?export=download&id=${c.passport_file_id}`;
             window.open(googleDriveDownloadUrl, '_blank');
-            console.log(`📥 Downloading passport ${index + 1}/${crewWithFiles.length} for ${c.full_name}`);
+
           }, index * 300); // Delay to prevent browser popup blocking
         });
         
@@ -2888,16 +2871,13 @@ const HomePage = () => {
         
         const googleDriveDownloadUrl = `https://drive.google.com/uc?export=download&id=${crew.passport_file_id}`;
         window.open(googleDriveDownloadUrl, '_blank');
-        
-        console.log(`📥 Downloading original passport file for ${crew.full_name}: ${googleDriveDownloadUrl}`);
-        
+
         toast.success(language === 'vi' 
           ? 'Đang tải xuống file hộ chiếu gốc từ Google Drive' 
           : 'Downloading original passport file from Google Drive');
         
       } else {
-        console.log(`⚠️ No passport_file_id for ${crew.full_name}, creating fallback download`);
-        
+
         const passportInfo = `Passport Information (No original file available)\n\nName: ${crew.full_name}\nPassport No: ${crew.passport || 'Not specified'}\nDate of Birth: ${crew.date_of_birth || 'Not specified'}\nPlace of Birth: ${crew.place_of_birth || 'Not specified'}\nNationality: ${crew.nationality || 'Not specified'}\nPassport Expiry: ${crew.passport_expiry_date ? formatDateDisplay(crew.passport_expiry_date) : 'Not specified'}\nSex: ${crew.sex || 'Not specified'}\nStatus: ${crew.status || 'Not specified'}\nRank: ${crew.rank || 'Not specified'}`;
         
         const blob = new Blob([passportInfo], { type: 'text/plain' });
@@ -3017,13 +2997,7 @@ const HomePage = () => {
     if (!confirm(confirmMessage)) {
       return;
     }
-    
-    console.log(`🔄 Auto-generating filename for ${crew.full_name}:`);
-    console.log(`   Rank: "${rank}" (kept as-is)`);
-    console.log(`   Name (English): "${fullNameEn}" (kept as-is)`);
-    console.log(`   Passport Suffix: "${passportSuffix}"`);
-    console.log(`   Final: "${autoFilename}"`);
-    
+
     try {
       toast.info(language === 'vi' 
         ? 'Đang tự động đổi tên files...' 
@@ -3044,14 +3018,7 @@ const HomePage = () => {
           ? `Đã tự động đổi tên files thành công: ${response.data.renamed_files.join(', ')}`
           : `Files automatically renamed successfully: ${response.data.renamed_files.join(', ')}`
         );
-        
-        console.log(`✅ Files automatically renamed:`, {
-          original_format: autoFilename,
-          passport_file: `${autoFilename}.pdf (or original extension)`,
-          summary_file: `${autoFilename}_Summary.txt`,
-          renamed_files: response.data.renamed_files
-        });
-        
+
         // Refresh crew list to show any updated information
         if (selectedShip?.name) {
           await fetchCrewMembers(selectedShip.name);
@@ -3082,14 +3049,11 @@ const HomePage = () => {
         ? `Bắt đầu tự động đổi tên file cho ${crewList.length} thuyền viên...`
         : `Starting automatic rename for ${crewList.length} crew members...`);
 
-      console.log(`🔄 Starting bulk automatic rename for ${crewList.length} crew members`);
-
       for (let i = 0; i < crewList.length; i++) {
         const crew = crewList[i];
         
         try {
-          console.log(`📋 Processing ${i + 1}/${crewList.length}: ${crew.full_name}`);
-          
+
           // Generate filename same as single crew logic
           const rank = crew.rank || 'Unknown';
           const fullNameEn = crew.full_name_en || crew.full_name || 'Unknown';
@@ -3097,8 +3061,6 @@ const HomePage = () => {
           
           // Keep both rank and name as-is (no character replacement)
           const autoFilename = `${rank}_${fullNameEn}_${passportSuffix}`;
-
-          console.log(`   Generated filename: ${autoFilename}`);
 
           // Call rename API
           const formData = new FormData();
@@ -3119,7 +3081,7 @@ const HomePage = () => {
               filename: autoFilename,
               renamed_files: response.data.renamed_files
             });
-            console.log(`   ✅ Success: ${crew.full_name}`);
+
           } else {
             errorCount++;
             results.push({
@@ -3127,7 +3089,7 @@ const HomePage = () => {
               success: false,
               error: response.data.message || 'Unknown error'
             });
-            console.log(`   ❌ Failed: ${crew.full_name}`);
+
           }
           
         } catch (error) {
@@ -3145,7 +3107,6 @@ const HomePage = () => {
       }
 
       // Show final results
-      console.log(`📊 Bulk rename completed: ${successCount} success, ${errorCount} errors`);
 
       if (successCount > 0 && errorCount === 0) {
         toast.success(language === 'vi' 
@@ -3340,9 +3301,9 @@ const HomePage = () => {
       const isClearingPlace = !bulkPlaceSignOn || bulkPlaceSignOn.trim() === '';
       
       if (isClearingPlace) {
-        console.log(`🗑️ Clearing Place Sign On for ${selectedCrewIds.length} crew members...`);
+
       } else {
-        console.log(`🚢 Bulk updating Place Sign On to "${bulkPlaceSignOn}" for ${selectedCrewIds.length} crew members...`);
+
       }
 
       for (const crewId of selectedCrewIds) {
@@ -3350,9 +3311,7 @@ const HomePage = () => {
           const updateData = { 
             place_sign_on: isClearingPlace ? null : bulkPlaceSignOn.trim()
           };
-          
-          console.log(`📋 ${isClearingPlace ? 'Clearing' : 'Updating'} Place Sign On for crew ${crewId}`);
-          
+
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -3362,7 +3321,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ ${isClearingPlace ? 'Cleared' : 'Updated'} Place Sign On for crew ${crewId}`);
+
           }
         } catch (error) {
           errorCount++;
@@ -3424,9 +3383,6 @@ const HomePage = () => {
       let successCount = 0;
       let errorCount = 0;
 
-      console.log(`🚢 Bulk updating Ship Sign On to "${bulkShipSignOn}" for ${selectedCrewIds.length} crew members...`);
-      console.log(`   → Also updating Status to "Sign on" and clearing Date Sign Off`);
-
       for (const crewId of selectedCrewIds) {
         try {
           const updateData = {
@@ -3434,9 +3390,7 @@ const HomePage = () => {
             status: 'Sign on',        // Auto-update status to Sign on
             date_sign_off: null       // Clear date sign off
           };
-          
-          console.log(`📋 Updating crew ${crewId}:`, updateData);
-          
+
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -3446,7 +3400,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ Updated Ship Sign On, Status, and cleared Date Sign Off for crew ${crewId}`);
+
           }
         } catch (error) {
           errorCount++;
@@ -3461,9 +3415,7 @@ const HomePage = () => {
           : `Updated ship sign on, status "Sign on", and cleared date sign off for ${successCount} crew members`);
         
         // ✅ AUTO-MOVE FILES TO SHIP/Crew Records after bulk ship sign on update
-        console.log(`🎯 Bulk Ship Sign On updated to "${bulkShipSignOn}" → Triggering auto-move for crew files...`);
-        console.log(`   Crew IDs to move: ${selectedCrewIds.length} crews`);
-        
+
         // Call moveCrewFilesToShip for all successfully updated crews
         moveCrewFilesToShip(selectedCrewIds, bulkShipSignOn, null);
       } else if (successCount > 0 && errorCount > 0) {
@@ -3472,7 +3424,7 @@ const HomePage = () => {
           : `Updated ${successCount} crew members, ${errorCount} failed`);
         
         // ✅ AUTO-MOVE FILES even if some failed
-        console.log(`🎯 Partial success bulk update → Triggering auto-move for successfully updated crews...`);
+
         moveCrewFilesToShip(selectedCrewIds, bulkShipSignOn, null);
       } else {
         toast.error(language === 'vi' 
@@ -3517,23 +3469,21 @@ const HomePage = () => {
       const isClearingDate = !bulkDateSignOn || bulkDateSignOn.trim() === '';
       
       if (isClearingDate) {
-        console.log(`🗑️ Clearing Date Sign On for ${selectedCrewIds.length} crew members...`);
+
       } else {
-        console.log(`📅 Bulk updating Date Sign On to "${bulkDateSignOn}" for ${selectedCrewIds.length} crew members...`);
+
       }
 
       // Process date if not clearing
       const processedDate = isClearingDate ? null : convertDateInputToUTC(bulkDateSignOn);
       if (processedDate) {
-        console.log(`📅 Converted date: ${bulkDateSignOn} → ${processedDate}`);
+
       }
 
       for (const crewId of selectedCrewIds) {
         try {
           const updateData = { date_sign_on: processedDate };
-          
-          console.log(`📋 ${isClearingDate ? 'Clearing' : 'Updating'} Date Sign On for crew ${crewId}`);
-          
+
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -3543,7 +3493,7 @@ const HomePage = () => {
 
           if (response.data) {
             successCount++;
-            console.log(`✅ ${isClearingDate ? 'Cleared' : 'Updated'} Date Sign On for crew ${crewId}`);
+
           }
         } catch (error) {
           errorCount++;
@@ -3609,15 +3559,15 @@ const HomePage = () => {
       const isClearingDate = !bulkDateSignOff || bulkDateSignOff.trim() === '';
       
       if (isClearingDate) {
-        console.log(`🗑️ Clearing Date Sign Off for ${selectedCrewIds.length} crew members...`);
+
       } else {
-        console.log(`📅 Bulk updating Date Sign Off to "${bulkDateSignOff}" for ${selectedCrewIds.length} crew members...`);
+
       }
 
       // Process date if not clearing
       const processedDate = isClearingDate ? null : convertDateInputToUTC(bulkDateSignOff);
       if (processedDate) {
-        console.log(`📅 Converted date: ${bulkDateSignOff} → ${processedDate}`);
+
       }
 
       for (const crewId of selectedCrewIds) {
@@ -3629,7 +3579,7 @@ const HomePage = () => {
             updateData = {
               date_sign_off: null
             };
-            console.log(`📋 Clearing Date Sign Off for crew ${crewId}`);
+
           } else {
             // Auto-update Status and Ship Sign On when Date Sign Off is filled
             updateData = {
@@ -3637,11 +3587,7 @@ const HomePage = () => {
               status: 'Standby', // Auto-set to Standby when crew signs off
               ship_sign_on: '-' // Clear ship assignment when crew signs off
             };
-            console.log(`📋 Auto-updating for crew ${crewId}:`, {
-              date_sign_off: processedDate,
-              status: 'Standby',
-              ship_sign_on: '-'
-            });
+
           }
           
           const response = await axios.put(`${API}/crew/${crewId}`, updateData, {
@@ -3654,9 +3600,9 @@ const HomePage = () => {
           if (response.data) {
             successCount++;
             if (isClearingDate) {
-              console.log(`✅ Cleared Date Sign Off for crew ${crewId}`);
+
             } else {
-              console.log(`✅ Updated Date Sign Off, Status, and Ship Sign On for crew ${crewId}`);
+
             }
           }
         } catch (error) {
@@ -3678,9 +3624,7 @@ const HomePage = () => {
           
           // ✅ AUTO-MOVE FILES TO STANDBY FOLDER after bulk date sign off update
           // When date sign off is filled (not cleared), status is auto-set to Standby
-          console.log('🎯 Bulk Date Sign Off filled → Triggering auto-move for Standby crew files...');
-          console.log(`   Crew IDs to move: ${selectedCrewIds.length} crews`);
-          
+
           // Call moveStandbyCrewFiles for all successfully updated crews
           moveStandbyCrewFiles(selectedCrewIds, null);
         }
@@ -3691,7 +3635,7 @@ const HomePage = () => {
         
         // ✅ AUTO-MOVE FILES even if some failed
         if (!isClearingDate) {
-          console.log('🎯 Partial success bulk update → Triggering auto-move for successfully updated crews...');
+
           // Note: We're moving all selected IDs - backend will filter for Standby status
           moveStandbyCrewFiles(selectedCrewIds, null);
         }
@@ -3867,14 +3811,14 @@ const HomePage = () => {
           : `Rank updated to: ${newRank}`);
         
         // Refresh crew list
-        console.log('🔄 Refreshing crew list after rank update...');
+
         try {
           if (selectedShip?.name) {
             await fetchCrewMembers(selectedShip.name);
           } else {
             await fetchCrewMembers();
           }
-          console.log('✅ Crew list refreshed successfully after rank update');
+
         } catch (refreshError) {
           console.error('Failed to refresh crew list after rank update:', refreshError);
         }
@@ -3905,7 +3849,7 @@ const HomePage = () => {
     );
     
     if (existsInCommon || existsInCustom) {
-      console.log('📝 Certificate name already exists in list, skipping:', trimmedName);
+
       return;
     }
     
@@ -3916,7 +3860,7 @@ const HomePage = () => {
     // Save to localStorage
     try {
       localStorage.setItem('customCertificateNames', JSON.stringify(updatedCustomNames));
-      console.log('✅ Saved custom certificate name:', trimmedName);
+
       toast.success(language === 'vi' 
         ? `✅ Đã lưu tên chứng chỉ mới: "${trimmedName}"` 
         : `✅ Saved new certificate name: "${trimmedName}"`
@@ -3930,16 +3874,12 @@ const HomePage = () => {
   const moveCrewFilesToShip = async (crewIds, shipName, crewName = null) => {
     if (!crewIds || crewIds.length === 0) return;
     if (!shipName || shipName === '-') {
-      console.log('ℹ️ Ship name is empty or "-", skipping file move');
+
       return;
     }
     
     try {
-      console.log(`📦 Auto-moving files for ${crewIds.length} crew to ${shipName}/Crew Records folder...`);
-      console.log('   Crew IDs:', crewIds);
-      console.log('   Ship Name:', shipName);
-      console.log('   API URL:', `${API}/crew/move-files-to-ship`);
-      
+
       const response = await axios.post(
         `${API}/crew/move-files-to-ship`,
         {
@@ -3953,20 +3893,16 @@ const HomePage = () => {
           }
         }
       );
-      
-      console.log('📡 Move files API response:', response);
-      console.log('📦 Response data:', response.data);
-      
+
       if (response.data && response.data.success) {
-        console.log('✅ Files moved successfully to Ship/Crew Records folder:', response.data);
-        
+
         if (response.data.moved_count > 0) {
           toast.success(language === 'vi' 
             ? `✅ Đã tự động di chuyển ${response.data.moved_count} files${crewName ? ` của ${crewName}` : ''} vào ${shipName}/Crew Records` 
             : `✅ Automatically moved ${response.data.moved_count} files${crewName ? ` for ${crewName}` : ''} to ${shipName}/Crew Records`
           );
         } else {
-          console.log('ℹ️ No files to move (crew may not have passport/certificate files yet)');
+
           toast.info(language === 'vi'
             ? `ℹ️ ${crewName || 'Thuyền viên'} chưa có files để di chuyển (chưa upload passport/certificates)`
             : `ℹ️ ${crewName || 'Crew member'} has no files to move yet (no passport/certificates uploaded)`
@@ -3993,11 +3929,7 @@ const HomePage = () => {
     if (!crewIds || crewIds.length === 0) return;
     
     try {
-      console.log(`📦 Auto-moving files for ${crewIds.length} Standby crew to Standby Crew folder...`);
-      console.log('   Crew IDs:', crewIds);
-      console.log('   Crew Name:', crewName);
-      console.log('   API URL:', `${API}/crew/move-standby-files`);
-      
+
       const response = await axios.post(
         `${API}/crew/move-standby-files`,
         {
@@ -4010,20 +3942,16 @@ const HomePage = () => {
           }
         }
       );
-      
-      console.log('📡 Move files API response:', response);
-      console.log('📦 Response data:', response.data);
-      
+
       if (response.data && response.data.success) {
-        console.log('✅ Files moved successfully to Standby Crew folder:', response.data);
-        
+
         if (response.data.moved_count > 0) {
           toast.success(language === 'vi' 
             ? `✅ Đã tự động di chuyển ${response.data.moved_count} files${crewName ? ` của ${crewName}` : ''} vào folder Standby Crew` 
             : `✅ Automatically moved ${response.data.moved_count} files${crewName ? ` for ${crewName}` : ''} to Standby Crew folder`
           );
         } else {
-          console.log('ℹ️ No files to move (crew may not have passport/certificate files yet)');
+
           toast.info(language === 'vi'
             ? `ℹ️ ${crewName || 'Thuyền viên'} chưa có files để di chuyển (chưa upload passport/certificates)`
             : `ℹ️ ${crewName || 'Crew member'} has no files to move yet (no passport/certificates uploaded)`
@@ -4094,97 +4022,47 @@ const HomePage = () => {
         const newDateSignOff = editCrewData.date_sign_off;
         
         // Debug: Log raw values with types
-        console.log('🔍 RAW VALUES:', {
-          'oldDateSignOff (value)': oldDateSignOff,
-          'oldDateSignOff (type)': typeof oldDateSignOff,
-          'oldDateSignOff (is null)': oldDateSignOff === null,
-          'oldDateSignOff (is undefined)': oldDateSignOff === undefined,
-          'oldDateSignOff (is empty string)': oldDateSignOff === '',
-          'oldDateSignOff (falsy)': !oldDateSignOff,
-          'newDateSignOff (value)': newDateSignOff,
-          'newDateSignOff (type)': typeof newDateSignOff,
-          'newDateSignOff (is null)': newDateSignOff === null,
-          'newDateSignOff (is undefined)': newDateSignOff === undefined,
-          'newDateSignOff (is empty string)': newDateSignOff === '',
-          'newDateSignOff (truthy)': !!newDateSignOff
-        });
-        
+
         // Check if date_sign_off was newly filled (wasn't there before, now it is)
         const dateSignOffAdded = !oldDateSignOff && newDateSignOff;
-        
-        console.log('🔍 Status & Date Sign Off check:', {
-          oldStatus,
-          newStatus,
-          oldDateSignOff,
-          newDateSignOff,
-          dateSignOffAdded,
-          statusChangedToStandby: newStatus === 'standby' && oldStatus !== 'standby',
-          shouldTriggerMove: (newStatus === 'standby' && oldStatus !== 'standby') || dateSignOffAdded
-        });
-        
+
         // Trigger auto-move if:
         // 1. Status changed to Standby, OR
         // 2. Date Sign Off was newly added (which means status is now Standby)
         if ((newStatus === 'standby' && oldStatus !== 'standby') || dateSignOffAdded) {
-          console.log(`🎯 Triggering auto-move for ${editCrewData.full_name}`);
+
           if (dateSignOffAdded) {
-            console.log('   Reason: Date Sign Off was newly filled → Status auto-changed to Standby');
+
           } else {
-            console.log('   Reason: Status directly changed to Standby');
+
           }
           // Call moveStandbyCrewFiles in background (don't await - let it run async)
           moveStandbyCrewFiles([editingCrew.id], editCrewData.full_name);
         } else {
-          console.log('❌ Auto-move NOT triggered. Analysis:');
-          console.log('   - newStatus === "standby"?', newStatus === 'standby');
-          console.log('   - oldStatus !== "standby"?', oldStatus !== 'standby');
-          console.log('   - statusChangedToStandby?', newStatus === 'standby' && oldStatus !== 'standby');
-          console.log('   - !oldDateSignOff?', !oldDateSignOff);
-          console.log('   - newDateSignOff (truthy)?', !!newDateSignOff);
-          console.log('   - dateSignOffAdded?', dateSignOffAdded);
-          console.log('   Reason:', 
-            newStatus !== 'standby' 
-              ? 'new status is not standby' 
-              : oldStatus === 'standby' && !dateSignOffAdded
-                ? 'status was already standby and no new date sign off'
-                : 'unknown - check raw values above'
-          );
+
         }
         
         // ✅ AUTO-MOVE FILES TO SHIP/Crew Records when ship_sign_on changes
         const oldShipSignOn = editingCrew.ship_sign_on;
         const newShipSignOn = editCrewData.ship_sign_on;
-        
-        console.log('🔍 Ship Sign On check:', {
-          oldShipSignOn,
-          newShipSignOn,
-          shipChanged: oldShipSignOn !== newShipSignOn,
-          newShipValid: newShipSignOn && newShipSignOn !== '-'
-        });
-        
+
         if (oldShipSignOn !== newShipSignOn && newShipSignOn && newShipSignOn !== '-') {
-          console.log(`🎯 Ship Sign On changed from "${oldShipSignOn}" to "${newShipSignOn}", auto-moving files...`);
+
           // Call moveCrewFilesToShip in background (don't await - let it run async)
           moveCrewFilesToShip([editingCrew.id], newShipSignOn, editCrewData.full_name);
         } else {
-          console.log('ℹ️ Ship Sign On auto-move not triggered:', {
-            reason: oldShipSignOn === newShipSignOn 
-              ? 'ship did not change' 
-              : !newShipSignOn || newShipSignOn === '-'
-                ? 'new ship is empty or "-"'
-                : 'unknown'
-          });
+
         }
         
         // Refresh crew list
-        console.log('🔄 Refreshing crew list after updating crew...');
+
         try {
           if (selectedShip?.name) {
             await fetchCrewMembers(selectedShip.name);
           } else {
             await fetchCrewMembers();
           }
-          console.log('✅ Crew list refreshed successfully after updating crew');
+
         } catch (refreshError) {
           console.error('Failed to refresh crew list after update:', refreshError);
           toast.warning(language === 'vi' 
@@ -4217,7 +4095,7 @@ const HomePage = () => {
 
   const fetchShips = async () => {
     if (!token) {
-      console.log('No token available, skipping ships fetch');
+
       return;
     }
     
@@ -4226,11 +4104,11 @@ const HomePage = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setShips(response.data);
-      console.log('Ships fetched successfully:', response.data.length, 'ships');
+
     } catch (error) {
       console.error('Failed to fetch ships:', error);
       if (error.response?.status === 401) {
-        console.log('Unauthorized - token may be invalid');
+
       }
     }
   };
@@ -4249,7 +4127,7 @@ const HomePage = () => {
   // Fetch company logo based on user's company
   const fetchUserCompanyLogo = async () => {
     if (!user || !user.company) {
-      console.log('No user or company info available');
+
       return;
     }
 
@@ -4265,9 +4143,9 @@ const HomePage = () => {
       
       if (userCompany && userCompany.logo_url) {
         setCompanyLogo(userCompany.logo_url);
-        console.log(`✅ Company logo loaded: ${userCompany.logo_url}`);
+
       } else {
-        console.log('No logo found for user company');
+
         setCompanyLogo(null);
       }
     } catch (error) {
@@ -4287,16 +4165,11 @@ const HomePage = () => {
 
   // Filter ships by user's company
   const getUserCompanyShips = () => {
-    console.log('getUserCompanyShips called');
-    console.log('User:', user);
-    console.log('User company:', user?.company);
-    console.log('Ships:', ships);
-    console.log('Ships length:', ships.length);
-    
+
     // IMPORTANT: Backend /ships endpoint already filters by user's company
     // Ship.company stores UUID, but backend ensures only user's company ships are returned
     // So we can safely return all ships without additional filtering
-    console.log('Returning all ships (backend already filters by company)');
+
     return ships;
   };
 
@@ -4514,14 +4387,10 @@ const HomePage = () => {
           
           // Show detailed results if available
           if (result.results && result.results.length > 0) {
-            console.log('Next Survey Update Results:', result.results);
-            
+
             // Show first few updated certificates in console for debugging
             result.results.slice(0, 3).forEach((cert, index) => {
-              console.log(`Certificate ${index + 1}: ${cert.cert_name}`);
-              console.log(`  Next Survey: ${cert.old_next_survey} → ${cert.new_next_survey}`);
-              console.log(`  Next Survey Type: ${cert.old_next_survey_type} → ${cert.new_next_survey_type}`);
-              console.log(`  Reasoning: ${cert.reasoning}`);
+
             });
             
             // Show summary toast with first few changes
@@ -4681,7 +4550,7 @@ const HomePage = () => {
       const savedCache = sessionStorage.getItem('certificateLinksCache');
       if (savedCache) {
         setCertificateLinksCache(JSON.parse(savedCache));
-        console.log('✅ Loaded certificate links cache from sessionStorage');
+
       }
     } catch (error) {
       console.warn('Failed to load cache from sessionStorage:', error);
@@ -4730,11 +4599,10 @@ const HomePage = () => {
     const uncachedCertificates = certificateList.filter(cert => !existingCache[cert.id]);
     
     if (uncachedCertificates.length === 0) {
-      console.log(`✅ All links already cached for ship ${shipId} (${certificateList.length} certificates)`);
+
       return;
     }
-    
-    console.log(`🔄 Pre-fetching ${uncachedCertificates.length}/${certificateList.length} links for ship ${shipId}`);
+
     setLinksFetching(true);
     const linkCache = { ...existingCache }; // Start with existing cache
     
@@ -4796,8 +4664,7 @@ const HomePage = () => {
       }));
       
       const newCachedCount = Object.keys(linkCache).length - Object.keys(existingCache).length;
-      console.log(`✅ Pre-fetched ${newCachedCount} new links for ship ${shipId}. Total cached: ${Object.keys(linkCache).length}/${certificateList.length}`);
-      
+
     } catch (error) {
       console.error('Error pre-fetching certificate links:', error);
     } finally {
@@ -4806,7 +4673,7 @@ const HomePage = () => {
   };
 
   const fetchCertificates = async (shipId) => {
-    console.log('fetchCertificates called with shipId:', shipId);
+
     try {
       setIsRefreshing(true);
       
@@ -4819,8 +4686,7 @@ const HomePage = () => {
           'Expires': '0'
         }
       });
-      
-      console.log('Certificates fetched successfully:', response.data.length, 'certificates');
+
       console.log('Sample certificate data:', response.data[0]); // Log first certificate for debugging
       
       // Force state update by clearing first then setting
@@ -4861,7 +4727,6 @@ const HomePage = () => {
     }
   };
 
-
   // Fetch Test Reports from backend
   const fetchTestReports = async (shipId) => {
     try {
@@ -4872,7 +4737,6 @@ const HomePage = () => {
       setTestReports([]);
     }
   };
-
 
   const handleSurveyReportSort = (column) => {
     setSurveyReportSort(prev => ({
@@ -5131,7 +4995,6 @@ const HomePage = () => {
     }
   };
 
-
   // Survey Report Context Menu Handlers
   const handleSurveyReportContextMenu = (e, report) => {
     e.preventDefault();
@@ -5259,7 +5122,6 @@ const HomePage = () => {
     await handleDeleteSurveyReport(report.id);
   };
 
-
   // Survey Report Note Tooltip Handlers
   const handleNoteMouseEnter = (e, note) => {
     if (note) {
@@ -5313,7 +5175,6 @@ const HomePage = () => {
       width: 300
     });
   };
-
 
   // ========== TEST REPORT HANDLERS (NEW) ==========
   
@@ -5652,9 +5513,7 @@ const HomePage = () => {
     
     try {
       const reportIds = Array.from(selectedTestReports);
-      console.log(`🗑️ Bulk deleting ${reportCount} test reports`);
-      console.log(`📋 Report IDs to delete:`, reportIds);
-      
+
       // Delete in background
       const deletePromise = axios.delete(
         `${API}/test-reports/bulk-delete`,
@@ -5676,7 +5535,7 @@ const HomePage = () => {
       toast.dismiss(toastId);
       
       // Refresh again after successful delete to ensure data consistency
-      console.log('🔄 Refreshing test reports list after bulk delete...');
+
       if (selectedShip) {
         await fetchTestReports(selectedShip.id);
       }
@@ -5790,7 +5649,6 @@ const HomePage = () => {
       width: 300
     });
   };
-
 
   // Test Report File Upload Handlers
   const handleTestReportFileChange = async (e) => {
@@ -6099,8 +5957,7 @@ const HomePage = () => {
     );
     
     try {
-      console.log(`📋 Processing test report ${current}/${total}: ${file.name}`);
-      
+
       // Step 1: Analyze file
       const formData = new FormData();
       formData.append('test_report_file', file);
@@ -6117,14 +5974,7 @@ const HomePage = () => {
       
       // Test report endpoint returns analysis data directly (no wrapper)
       const analysis = analyzeResponse.data;
-      console.log('📊 Analysis result:', {
-        test_report_name: analysis.test_report_name,
-        test_report_no: analysis.test_report_no,
-        has_file_content: !!analysis._file_content,
-        has_filename: !!analysis._filename,
-        has_summary: !!analysis._summary_text
-      });
-      
+
       result.testReportName = analysis.test_report_name || file.name;
       result.testReportNo = analysis.test_report_no || '';
       
@@ -6139,7 +5989,7 @@ const HomePage = () => {
         if (duplicateResponse.data.is_duplicate) {
           result.error = 'DUPLICATE';
           result.duplicateInfo = duplicateResponse.data.existing_report;
-          console.log(`⚠️ Duplicate test report: ${file.name} (No: ${analysis.test_report_no}, Name: ${analysis.test_report_name})`);
+
           return result;
         }
       }
@@ -6166,8 +6016,7 @@ const HomePage = () => {
       const reportId = createResponse.data.id;
       result.testReportCreated = true;
       result.reportId = reportId;
-      console.log(`✅ Test report created: ${reportId}`);
-      
+
       // Step 3: Upload files to Google Drive
       if (analysis._file_content && analysis._filename) {
         const uploadData = {
@@ -6181,7 +6030,7 @@ const HomePage = () => {
         
         if (uploadResponse.data.success) {
           result.fileUploaded = true;
-          console.log(`✅ Files uploaded for report: ${reportId}`);
+
         } else {
           console.warn(`⚠️ File upload failed for report: ${reportId}`);
         }
@@ -6350,11 +6199,7 @@ const HomePage = () => {
         });
         
         // Store analysis data for later upload
-        console.log('📊 Storing analyzed survey report data:', {
-          has_file_content: !!analysis._file_content,
-          summary_length: analysis._summary_text?.length || 0,
-          ocr_info: analysis._ocr_info
-        });
+
         setAnalyzedSurveyReportData(analysis);
         setSurveyReportFiles([file]);
         
@@ -6404,11 +6249,7 @@ const HomePage = () => {
         });
         
         // Store analysis data for later upload
-        console.log('📊 Storing analyzed survey report data:', {
-          has_file_content: !!analysis._file_content,
-          summary_length: analysis._summary_text?.length || 0,
-          ocr_info: analysis._ocr_info
-        });
+
         setAnalyzedSurveyReportData(analysis);
         setSurveyReportFiles([file]);
         
@@ -6587,8 +6428,7 @@ const HomePage = () => {
     );
     
     try {
-      console.log(`📋 Processing survey report ${current}/${total}: ${file.name}`);
-      
+
       // Step 1: Analyze file
       const formData = new FormData();
       formData.append('survey_report_file', file);
@@ -6618,7 +6458,7 @@ const HomePage = () => {
         if (duplicateResponse.data.is_duplicate) {
           result.error = 'DUPLICATE';
           result.duplicateInfo = duplicateResponse.data.existing_report;
-          console.log(`⚠️ Duplicate survey report: ${file.name} (No: ${analysis.survey_report_no}, Name: ${analysis.survey_report_name})`);
+
           return result;
         }
       }
@@ -6645,8 +6485,7 @@ const HomePage = () => {
       const reportId = createResponse.data.id;
       result.surveyReportCreated = true;
       result.reportId = reportId;
-      console.log(`✅ Survey report created: ${reportId}`);
-      
+
       // Step 4: Upload files to Google Drive
       if (analysis._file_content && analysis._filename) {
         const uploadData = {
@@ -6660,7 +6499,7 @@ const HomePage = () => {
         
         if (uploadResponse.data.success) {
           result.fileUploaded = true;
-          console.log(`✅ Files uploaded for report: ${reportId}`);
+
         } else {
           console.warn(`⚠️ File upload failed for report: ${reportId}`);
         }
@@ -7469,8 +7308,7 @@ const HomePage = () => {
     );
     
     try {
-      console.log(`📐 Processing drawings/manual ${current}/${total}: ${file.name}`);
-      
+
       // Step 1: Analyze file
       const formData = new FormData();
       formData.append('document_file', file);
@@ -7489,17 +7327,11 @@ const HomePage = () => {
       }
       
       const analysis = analyzeResponse.data;
-      console.log('📊 Analysis result:', {
-        document_name: analysis.document_name,
-        document_no: analysis.document_no,
-        has_file_content: !!analysis._file_content,
-        split_info: analysis._split_info
-      });
-      
+
       // Check if file was split and limited
       if (analysis._split_info?.was_limited) {
         const splitInfo = analysis._split_info;
-        console.log(`⚠️ Large file limited: ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks processed`);
+
         result.warning = `Large file: processed ${splitInfo.processed_chunks}/${splitInfo.total_chunks} chunks`;
       }
       
@@ -7519,7 +7351,7 @@ const HomePage = () => {
         if (duplicateResponse.data.is_duplicate) {
           result.error = 'DUPLICATE';
           result.duplicateInfo = duplicateResponse.data.existing_document;
-          console.log(`⚠️ Duplicate document: ${file.name}`);
+
           return result;
         }
       }
@@ -7546,8 +7378,7 @@ const HomePage = () => {
       const documentId = createResponse.data.id;
       result.documentCreated = true;
       result.documentId = documentId;
-      console.log(`✅ Document created: ${documentId}`);
-      
+
       // Step 4: Upload files to Google Drive
       if (analysis._file_content && analysis._filename) {
         try {
@@ -7567,7 +7398,7 @@ const HomePage = () => {
           if (uploadResponse.data.success) {
             result.fileUploaded = true;
             result.success = true;
-            console.log(`✅ Files uploaded for document: ${documentId}`);
+
           } else {
             result.success = true; // Document created but file upload failed (non-critical)
             console.warn(`⚠️ File upload failed for document: ${documentId}`);
@@ -8463,8 +8294,7 @@ const HomePage = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        console.log(`Downloaded: ${filename}`);
+
       } else {
         throw new Error('No download URL provided');
       }
@@ -8555,7 +8385,7 @@ const HomePage = () => {
               const newTab = window.open(result.url, '_blank');
               if (newTab) {
                 openedCount++;
-                console.log(`✅ Opened tab ${index + 1}/${urlResults.length}: ${result.cert.cert_name}`);
+
               } else {
                 errorCount++;
                 console.warn(`❌ Failed to open tab for: ${result.cert.cert_name} (popup blocked)`);
@@ -8730,11 +8560,7 @@ const HomePage = () => {
         // Use the right-clicked certificate if no checkboxes are selected
         certificatesToRename = [contextMenu.certificate.id];
       }
-      
-      console.log('🔍 Certificates to rename:', certificatesToRename);
-      console.log('🔍 Selected certificates size:', selectedCertificates.size);
-      console.log('🔍 Context menu certificate:', contextMenu.certificate?.id);
-      
+
       if (certificatesToRename.length === 0) {
         toast.error(language === 'vi' ? 'Không có chứng chỉ nào được chọn!' : 'No certificates selected!');
         return;
@@ -8786,8 +8612,7 @@ const HomePage = () => {
               ...prev,
               completed: completed
             }));
-            
-            console.log(`✅ Successfully renamed: ${certificate.cert_name} → ${response.data.new_name}`);
+
           } else {
             throw new Error(response.data.message || 'Unknown error');
           }
@@ -8832,7 +8657,7 @@ const HomePage = () => {
         toast.error(language === 'vi' 
           ? `${errorCount} files không thể đổi tên. Xem chi tiết trong console.` 
           : `${errorCount} files could not be renamed. Check console for details.`);
-        console.log('❌ Rename errors:', errors);
+
       }
 
       // Refresh certificate list - Add safety check
@@ -9562,9 +9387,7 @@ const HomePage = () => {
       
       return typeMatch && statusMatch && searchMatch;
     });
-    
-    console.log(`Certificate filtering: ${certificates.length} total → ${categoryFiltered.length} in category '${targetCategory}' → ${filtered.length} after filters`);
-    
+
     // Apply sorting
     return sortCertificates(filtered);
   };
@@ -9614,8 +9437,7 @@ const HomePage = () => {
 
   // Handle category click - change category while preserving selected ship
   const handleCategoryClick = (categoryKey) => {
-    console.log(`🏷️ Category clicked: ${categoryKey}, Current ship: ${selectedShip?.name || 'None'}`);
-    
+
     // Update category
     setSelectedCategory(categoryKey);
     setHoveredCategory(null); // Hide any open dropdown
@@ -9652,15 +9474,14 @@ const HomePage = () => {
       // Auto-select first ship if no ship is currently selected
       if (!selectedShip && ships.length > 0) {
         setSelectedShip(ships[0]);
-        console.log(`🚢 Auto-selected first ship: ${ships[0].name}`);
+
       }
-      
-      console.log(`✅ Crew Records category selected - Filters reset to All, Certificates View closed`);
+
     }
     
     // Keep selectedShip intact - this is the key improvement
     // The selected ship will be preserved and the new category will show data for this ship
-    console.log(`✅ Category changed to ${categoryKey}, Ship still selected: ${selectedShip?.name || 'None'}`);
+
   };
 
   const categories = [
@@ -9692,8 +9513,7 @@ const HomePage = () => {
 
   // Handle multiple passport file upload
   const handleMultiplePassportUpload = (files) => {
-    console.log(`📁 Selected ${files.length} file(s) for passport analysis`);
-    
+
     // Validate files
     const validFiles = files.filter(file => {
       const isValidType = file.type === 'application/pdf' || file.type.startsWith('image/');
@@ -9724,11 +9544,11 @@ const HomePage = () => {
     
     if (validFiles.length === 1) {
       // Single file: use existing behavior (review before adding)
-      console.log('📄 Single file selected - using review mode');
+
       handlePassportUpload(validFiles[0]);
     } else {
       // Multiple files: batch process (auto-add after each analysis)
-      console.log(`📄📄 Multiple files selected (${validFiles.length}) - starting batch processing`);
+
       startBatchProcessing(validFiles);
     }
   };
@@ -9743,21 +9563,19 @@ const HomePage = () => {
     toast.info(language === 'vi' 
       ? `Bắt đầu xử lý ${files.length} file hộ chiếu (song song)...` 
       : `Starting parallel processing of ${files.length} passport files...`);
-    
-    console.log(`🚀 Starting PARALLEL processing with 1s staggered delays`);
-    
+
     // Create promises for all files with staggered start (1s delay between starts)
     const processingPromises = files.map((file, index) => {
       return new Promise(async (resolve) => {
         // Wait before starting this file (0s for first, 1s for second, 2s for third, etc.)
         const delayMs = index * 1000;
         if (delayMs > 0) {
-          console.log(`⏰ File ${index + 1} will start in ${delayMs / 1000}s`);
+
           await new Promise(r => setTimeout(r, delayMs));
         }
         
         // Start processing this file
-        console.log(`🔄 Starting passport ${index + 1}/${files.length}: ${file.name}`);
+
         setCurrentFileIndex(index);
         
         try {
@@ -9793,17 +9611,13 @@ const HomePage = () => {
     });
     
     // Wait for ALL files to complete
-    console.log(`⏳ Waiting for all ${files.length} files to complete...`);
+
     const collectedResults = await Promise.all(processingPromises);
     
     // Batch processing complete
     setIsBatchProcessing(false);
     setCurrentFileIndex(0);
-    
-    console.log(`✅ Batch passport processing complete. Results: ${collectedResults.length}`);
-    console.log(`   Success: ${collectedResults.filter(r => r.success).length}`);
-    console.log(`   Failed: ${collectedResults.filter(r => !r.success).length}`);
-    
+
     // Close Add Crew Modal
     setShowAddCrewModal(false);
     
@@ -9829,13 +9643,7 @@ const HomePage = () => {
     const hasPassportNumber = !!analysis.passport_number;
     const hasDateOfBirth = !!analysis.date_of_birth;
     const hasNationality = !!analysis.nationality;
-    
-    console.log('🔍 Validating document type...');
-    console.log('   Summary snippet:', summary.substring(0, 200));
-    console.log('   Has passport_number:', hasPassportNumber);
-    console.log('   Has date_of_birth:', hasDateOfBirth);
-    console.log('   Has nationality:', hasNationality);
-    
+
     // Enhanced seaman book detection keywords
     const seamanBookKeywords = [
       'seaman book', 'seamanbook', 'seaman\'s book', 'seamans book',
@@ -9885,8 +9693,7 @@ const HomePage = () => {
           : 'Missing basic information: date of birth and nationality'
       };
     }
-    
-    console.log('✅ Document validated as passport');
+
     return { isValid: true };
   };
 
@@ -9895,9 +9702,7 @@ const HomePage = () => {
     try {
       // Set current file for UI display
       setPassportFile(file);
-      
-      console.log(`🔄 Batch processing ${current}/${total}: ${file.name}`);
-      
+
       // Analyze passport
       const formData = new FormData();
       formData.append('passport_file', file);
@@ -9928,9 +9733,7 @@ const HomePage = () => {
             index: current
           };
         }
-        
-        console.log(`✅ ${file.name} validated as passport document`);
-        
+
         // Prepare crew data from analysis
         const vietnameseFullName = analysis.full_name || '';
         const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
@@ -9956,14 +9759,7 @@ const HomePage = () => {
           date_sign_on: '',
           date_sign_off: ''
         };
-        
-        console.log(`📋 Batch processing mode: ${isStandbyMode ? 'STANDBY' : 'NORMAL'}`);
-        console.log(`   Status: ${crewData.status}, Ship: ${crewData.ship_sign_on}`);
-        
-        console.log(`🔤 Auto-filled English fields for batch processing:`);
-        console.log(`   Vietnamese Full Name: "${vietnameseFullName}" → English: "${crewData.full_name_en}"`);
-        console.log(`   Vietnamese Place of Birth: "${vietnamesePlaceOfBirth}" → English: "${crewData.place_of_birth_en}"`);
-        
+
         // Auto-create crew member (without file IDs yet)
         const processedData = {
           ...crewData,
@@ -9982,15 +9778,12 @@ const HomePage = () => {
         
         if (createResponse.data && createResponse.data.id) {
           const crewId = createResponse.data.id;
-          console.log(`✅ Crew member created successfully: ${crewId}`);
-          
+
           // ✅ NOW upload passport files to Drive AFTER successful crew creation
-          console.log(`📤 Uploading passport files to Drive for crew ${crewId}...`);
-          
+
           // Determine ship name based on mode
           const targetShipName = isStandbyMode ? '-' : (selectedShip?.name || '-');
-          console.log(`📁 Target folder: ${isStandbyMode ? 'COMPANY DOCUMENT > Standby Crew' : `${targetShipName} > Crew Records`}`);
-          
+
           let uploadedPassportId = null;
           let uploadedSummaryId = null;
           
@@ -10015,9 +9808,7 @@ const HomePage = () => {
             if (uploadResponse.data && uploadResponse.data.success) {
               uploadedPassportId = uploadResponse.data.passport_file_id;
               uploadedSummaryId = uploadResponse.data.summary_file_id;
-              console.log(`✅ Passport files uploaded successfully to Drive`);
-              console.log(`   📎 Passport File ID: ${uploadedPassportId}`);
-              console.log(`   📋 Summary File ID: ${uploadedSummaryId}`);
+
             } else {
               console.warn(`⚠️ Passport file upload failed but crew was saved: ${uploadResponse.data?.message}`);
             }
@@ -10047,10 +9838,9 @@ const HomePage = () => {
         
       } else if (response.data.duplicate || response.data.error === 'DUPLICATE_PASSPORT') {
         // Handle duplicate passport
-        console.log('🔍 Duplicate detected, response data:', response.data);
+
         const existingCrew = response.data.existing_crew || {};
-        console.log('🔍 Existing crew info:', existingCrew);
-        
+
         const result = {
           filename: file.name,
           success: false,
@@ -10065,8 +9855,7 @@ const HomePage = () => {
           error: response.data.message || 'Duplicate passport',
           index: current
         };
-        
-        console.log('🔍 Returning duplicate result:', result);
+
         return result;
       } else {
         throw new Error(response.data.message || 'Analysis failed');
@@ -10103,16 +9892,14 @@ const HomePage = () => {
     setPassportFile(null);
     setIsAnalyzingPassport(true);
     setPassportError('');
-    
-    console.log('🔄 Starting fresh passport analysis for:', file.name);
-    
+
     try {
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('passport_file', file);
       
       const shipName = selectedShip?.name || 'UNKNOWN';
-      console.log('Selected ship for passport upload:', selectedShip, 'Ship name:', shipName);
+
       formData.append('ship_name', shipName);
       
       // Call backend API to analyze passport with Google Document AI
@@ -10125,11 +9912,7 @@ const HomePage = () => {
       
       if (response.data.success) {
         const analysis = response.data.analysis;
-        console.log('🔍 DEBUGGING AUTO-FILL:');
-        console.log('   Full response:', response.data);
-        console.log('   Analysis object:', analysis);
-        console.log('   Analysis keys:', Object.keys(analysis || {}));
-        
+
         if (!analysis || Object.keys(analysis).length === 0) {
           console.error('❌ Analysis object is empty or null!');
           toast.error(language === 'vi' 
@@ -10148,22 +9931,14 @@ const HomePage = () => {
           setIsAnalyzingPassport(false);
           return; // Stop processing
         }
-        
-        console.log(`✅ ${file.name} validated as passport document`);
-        
+
         // Log individual field extractions
-        console.log('   📄 Extracting fields:');
-        console.log('     full_name:', analysis.full_name);
-        console.log('     sex:', analysis.sex); 
-        console.log('     date_of_birth:', analysis.date_of_birth);
-        console.log('     place_of_birth:', analysis.place_of_birth);
-        console.log('     passport_number:', analysis.passport_number);
-        
+
         // Convert date if needed
         let convertedDate = '';
         if (analysis.date_of_birth) {
           convertedDate = convertPassportDateToInputFormat(analysis.date_of_birth);
-          console.log('     date converted:', analysis.date_of_birth, '→', convertedDate);
+
         }
         
         // Reset and populate crew data with NEW passport analysis
@@ -10186,8 +9961,7 @@ const HomePage = () => {
           nationality: analysis.nationality || '',
           passport_expiry_date: analysis.passport_expiry_date ? convertPassportDateToInputFormat(analysis.passport_expiry_date) : ''
         };
-        
-        console.log('   📋 Setting new crew data:', newData);
+
         setNewCrewData(newData);
         
         // ✅ Store analysis with file content for later upload (after crew creation)
@@ -10262,12 +10036,10 @@ const HomePage = () => {
       
       if (response.data) {
         const crewId = response.data.id;
-        console.log(`✅ Crew member created successfully: ${crewId}`);
-        
+
         // ✅ Upload passport files to Drive AFTER successful crew creation
         if (passportAnalysis?._file_content) {
-          console.log(`📤 Uploading passport files to Drive for crew ${crewId}...`);
-          
+
           try {
             const uploadResponse = await axios.post(
               `${API}/crew/${crewId}/upload-passport-files`,
@@ -10287,9 +10059,7 @@ const HomePage = () => {
             );
             
             if (uploadResponse.data && uploadResponse.data.success) {
-              console.log(`✅ Passport files uploaded successfully to Drive`);
-              console.log(`   📎 Passport File ID: ${uploadResponse.data.passport_file_id}`);
-              console.log(`   📋 Summary File ID: ${uploadResponse.data.summary_file_id}`);
+
             } else {
               console.warn(`⚠️ Passport file upload failed but crew was saved`);
               toast.warning(language === 'vi' 
@@ -10310,20 +10080,20 @@ const HomePage = () => {
         // ✅ AUTO-MOVE FILES TO STANDBY FOLDER if new crew has status "Standby"
         const crewStatus = newCrewData.status ? newCrewData.status.toLowerCase() : '';
         if (crewStatus === 'standby') {
-          console.log(`🎯 New crew ${newCrewData.full_name} has Standby status, auto-moving files...`);
+
           // Call moveStandbyCrewFiles in background (don't await - let it run async)
           moveStandbyCrewFiles([crewId], newCrewData.full_name);
         }
         
         // Refresh crew list FIRST
-        console.log('🔄 Refreshing crew list after adding new crew...');
+
         try {
           if (selectedShip?.name) {
             await fetchCrewMembers(selectedShip.name);
           } else {
             await fetchCrewMembers();
           }
-          console.log('✅ Crew list refreshed successfully after adding crew');
+
         } catch (refreshError) {
           console.error('Failed to refresh crew list after adding:', refreshError);
           toast.warning(language === 'vi' 
@@ -10357,8 +10127,7 @@ const HomePage = () => {
 
   // Fetch crew members from backend
   const fetchCrewMembers = async (shipFilter = null, statusFilter = null) => {
-    console.log('🔄 fetchCrewMembers called:', { shipFilter, statusFilter });
-    
+
     try {
       let url = `${API}/crew`;
       const params = new URLSearchParams();
@@ -10374,17 +10143,13 @@ const HomePage = () => {
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-      
-      console.log('📡 Fetching crew from:', url);
-      
+
       const response = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
-      console.log('✅ Crew members fetched:', response.data?.length || 0, 'crew');
-      
+
       if (response.data) {
         setCrewList(response.data);
       }
@@ -10443,9 +10208,7 @@ const HomePage = () => {
       if (crewId) {
         url += `?crew_id=${crewId}`;
       }
-      
-      console.log(`📋 Fetching all crew certificates (company-wide)...`);
-      
+
       const response = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -10454,7 +10217,7 @@ const HomePage = () => {
       
       if (response.data) {
         setCrewCertificates(response.data);
-        console.log(`✅ Loaded ${response.data.length} crew certificates (including Standby)`);
+
       }
       
     } catch (error) {
@@ -10468,9 +10231,7 @@ const HomePage = () => {
 
   // Handle double-click on crew name to show certificates
   const handleCrewNameDoubleClick = (crew) => {
-    console.log(`🔀 Switching to certificates view for crew: ${crew.full_name}`);
-    console.log(`🚢 Crew's ship sign on: ${crew.ship_sign_on}`);
-    
+
     // No longer need to set selectedShip - we fetch all certificates now
     setSelectedCrewForCertificates(crew);
     setShowCertificatesView(true);
@@ -10484,7 +10245,7 @@ const HomePage = () => {
 
   // Handle back button to return to crew list
   const handleBackToCrewList = () => {
-    console.log('🔙 Returning to crew list view');
+
     setShowCertificatesView(false);
     setSelectedCrewForCertificates(null);
     setCrewCertificates([]);
@@ -10493,22 +10254,18 @@ const HomePage = () => {
     setCertificateSort({ column: null, direction: 'asc' });
   };
 
-
   // ============================================
   // ADD CREW CERTIFICATE HANDLERS (Step 10)
   // ============================================
   
   const handleOpenAddCrewCertModal = () => {
-    console.log('🔵 handleOpenAddCrewCertModal called');
-    console.log('🔍 certFilters.crewName:', certFilters.crewName);
-    console.log('👥 crewList:', crewList);
-    
+
     // Priority 1: Pre-fill from filtered crew (when crew filter is not 'all')
     if (certFilters.crewName && certFilters.crewName !== 'all' && crewList && crewList.length > 0) {
       const filteredCrew = crewList.find(crew => crew.full_name === certFilters.crewName);
       
       if (filteredCrew) {
-        console.log('✅ Priority 1: Found filtered crew:', filteredCrew);
+
         setSelectedCrewForCert(filteredCrew);
         setNewCrewCertificate({
           crew_id: filteredCrew.id,
@@ -10527,31 +10284,29 @@ const HomePage = () => {
           crew_cert_summary_file_id: ''
         });
       } else {
-        console.log('⚠️ Filtered crew not found in crewList');
+
         setSelectedCrewForCert(null);
         resetAddCrewCertForm();
       }
     }
     // Priority 2: Show dropdown for crew selection (no specific crew selected)
     else {
-      console.log('✅ Priority 2: No crew pre-selected, show dropdown');
+
       setSelectedCrewForCert(null);
       resetAddCrewCertForm();
     }
-    
-    console.log('✅ Setting showAddCrewCertModal to true');
+
     setShowAddCrewCertModal(true);
     
     // Force check after state update
     setTimeout(() => {
-      console.log('⏰ State after 100ms:', showAddCrewCertModal);
+
     }, 100);
   };
 
   // Handle crew selection from dropdown in Add Crew Certificate modal
   const handleCrewSelectionInCertModal = (crewId) => {
-    console.log('🔍 Crew selected in modal:', crewId);
-    
+
     if (!crewId) {
       // Reset if empty selection
       setSelectedCrewForCert(null);
@@ -10563,14 +10318,12 @@ const HomePage = () => {
     const selectedCrew = crewList.find(crew => crew.id === crewId);
     
     if (selectedCrew) {
-      console.log('✅ Found crew:', selectedCrew);
-      console.log('   - date_of_birth from crew:', selectedCrew.date_of_birth);
+
       setSelectedCrewForCert(selectedCrew);
       
       // Auto-fill crew information
       const dateOfBirth = selectedCrew.date_of_birth ? selectedCrew.date_of_birth.split('T')[0] : '';
-      console.log('   - date_of_birth after split:', dateOfBirth);
-      
+
       setNewCrewCertificate(prev => ({
         ...prev,
         crew_id: selectedCrew.id,
@@ -10580,16 +10333,14 @@ const HomePage = () => {
         rank: selectedCrew.rank || '',
         date_of_birth: dateOfBirth
       }));
-      
-      console.log('   - newCrewCertificate updated with date_of_birth:', dateOfBirth);
-      
+
       // Debug: log state after a short delay to see if it's actually set
       setTimeout(() => {
-        console.log('   - Checking state after 100ms...');
+
         // This will be captured in closure, so we need to check in render or use a different approach
       }, 100);
     } else {
-      console.log('⚠️ Crew not found');
+
     }
   };
 
@@ -10626,8 +10377,7 @@ const HomePage = () => {
     setIsSubmittingCert(true);
 
     try {
-      console.log('✅ User confirmed: Adding duplicate certificate');
-      
+
       // API call WITHOUT ship_id parameter - backend determines folder from crew's ship_sign_on
       const response = await axios.post(
         `${API}/crew-certificates/manual`,
@@ -10641,8 +10391,7 @@ const HomePage = () => {
       );
 
       if (response.data) {
-        console.log('✅ Duplicate certificate added successfully:', response.data);
-        
+
         toast.success(language === 'vi' 
           ? '✅ Đã thêm chứng chỉ thuyền viên thành công!' 
           : '✅ Crew certificate added successfully!'
@@ -10692,12 +10441,9 @@ const HomePage = () => {
     setIsSubmittingCert(true);
 
     try {
-      console.log('📤 Submitting new crew certificate:', newCrewCertificate);
-      console.log('👤 Crew ID:', newCrewCertificate.crew_id);
-      console.log('📍 Ship/Folder will be determined by backend based on crew\'s ship_sign_on');
 
       // Check for duplicate before submitting
-      console.log('🔍 Checking for duplicate certificate...');
+
       const duplicateCheck = await axios.post(
         `${API}/crew-certificates/check-duplicate`,
         {
@@ -10734,8 +10480,7 @@ const HomePage = () => {
 
       if (response.data) {
         const certId = response.data.id;
-        console.log('✅ Crew certificate created successfully:', certId);
-        
+
         // Show success toast immediately for record creation
         toast.success(language === 'vi' 
           ? '✅ Đã lưu chứng chỉ thành công!' 
@@ -10751,17 +10496,10 @@ const HomePage = () => {
           : fetchCrewCertificates(null);
         
         await refreshPromise;
-        
-        console.log('🔍 Checking certAnalysis for file upload:');
-        console.log('   - certAnalysis exists:', !!certAnalysis);
-        console.log('   - certAnalysis.analysis exists:', !!certAnalysis?.analysis);
-        console.log('   - _file_content exists:', !!certAnalysis?.analysis?._file_content);
-        console.log('   - _filename:', certAnalysis?.analysis?._filename);
-        
+
         // ✅ Upload files to Drive in BACKGROUND (non-blocking)
         if (certAnalysis?.analysis?._file_content) {
-          console.log(`📤 Starting background upload for certificate ${certId}...`);
-          
+
           // Run upload in background without blocking
           (async () => {
             try {
@@ -10782,10 +10520,7 @@ const HomePage = () => {
               );
               
               if (uploadResponse.data && uploadResponse.data.success) {
-                console.log(`✅ Files uploaded successfully to Drive`);
-                console.log(`   📎 Certificate File ID: ${uploadResponse.data.crew_cert_file_id}`);
-                console.log(`   📋 Summary File ID: ${uploadResponse.data.crew_cert_summary_file_id}`);
-                
+
                 // Show upload success notification
                 toast.success(language === 'vi' 
                   ? '📎 File đã upload lên Drive thành công!' 
@@ -10830,8 +10565,7 @@ const HomePage = () => {
   // ============================================
   
   const handleCertFileUpload = async (file) => {
-    console.log('📄 Certificate file selected:', file.name);
-    
+
     // Reset previous states
     setCertFile(null);
     setCertAnalysis(null);
@@ -10860,13 +10594,6 @@ const HomePage = () => {
     setIsAnalyzingCert(true);
 
     try {
-      console.log('🤖 Starting AI analysis for certificate...');
-      console.log('📊 Context data:', {
-        selectedShip,
-        selectedCrewForCertificates,
-        hasShipId: !!selectedShip?.id,
-        hasCrewId: !!selectedCrewForCertificates?.id
-      });
 
       // Try to get ship_id from multiple sources
       let shipId = null;
@@ -10874,12 +10601,12 @@ const HomePage = () => {
       // Priority 1: selectedShip
       if (selectedShip?.id) {
         shipId = selectedShip.id;
-        console.log('✅ Got ship ID from selectedShip:', shipId);
+
       }
       // Priority 2: crew's ship_id
       else if (selectedCrewForCertificates?.ship_id) {
         shipId = selectedCrewForCertificates.ship_id;
-        console.log('✅ Got ship ID from crew data:', shipId);
+
       }
       // Priority 3: crew's company_id + first ship
       else if (selectedCrewForCertificates?.company_id) {
@@ -10887,7 +10614,7 @@ const HomePage = () => {
         const firstShip = companyShips?.[0];
         if (firstShip?.id) {
           shipId = firstShip.id;
-          console.log('✅ Got ship ID from first company ship:', shipId);
+
         }
       }
 
@@ -10902,17 +10629,15 @@ const HomePage = () => {
       const formData = new FormData();
       formData.append('cert_file', file);
       formData.append('ship_id', shipId);
-      
-      console.log('✅ Using ship ID:', shipId);
-      
+
       // Add crew_id if available (from selectedCrewForCert, not selectedCrewForCertificates)
       if (selectedCrewForCert) {
         formData.append('crew_id', selectedCrewForCert.id);
-        console.log('✅ Crew ID:', selectedCrewForCert.id);
+
       } else if (newCrewCertificate.crew_id) {
         // Fallback: use crew_id from form if selectedCrewForCert not set
         formData.append('crew_id', newCrewCertificate.crew_id);
-        console.log('✅ Crew ID (from form):', newCrewCertificate.crew_id);
+
       }
 
       const response = await axios.post(
@@ -10928,8 +10653,7 @@ const HomePage = () => {
       );
 
       if (response.data && response.data.success) {
-        console.log('✅ Certificate analysis completed:', response.data);
-        
+
         const analysis = response.data.analysis || {};
         
         // ✅ Store analysis with FILE CONTENT for later upload
@@ -11049,8 +10773,7 @@ const HomePage = () => {
   
   // Handle certificate holder mismatch modal - Skip button
   const handleCertMismatchSkip = () => {
-    console.log('🚫 User chose to skip certificate upload due to name mismatch');
-    
+
     // Close modal
     setCertHolderMismatchModal({
       show: false,
@@ -11072,9 +10795,7 @@ const HomePage = () => {
   // Handle certificate holder mismatch modal - Continue button (bypass validation)
   const handleCertMismatchContinue = async () => {
     const { file } = certHolderMismatchModal;
-    
-    console.log('⚠️ User chose to continue despite name mismatch - bypassing validation');
-    
+
     // Close modal first
     setCertHolderMismatchModal({
       show: false,
@@ -11110,16 +10831,14 @@ const HomePage = () => {
       formData.append('cert_file', file);
       formData.append('ship_id', shipId);
       formData.append('bypass_validation', 'true'); // ✅ KEY CHANGE: Bypass validation
-      
-      console.log('✅ Retrying with bypass_validation=true');
-      
+
       // Add crew_id if available
       if (selectedCrewForCert) {
         formData.append('crew_id', selectedCrewForCert.id);
-        console.log('✅ Crew ID:', selectedCrewForCert.id);
+
       } else if (newCrewCertificate.crew_id) {
         formData.append('crew_id', newCrewCertificate.crew_id);
-        console.log('✅ Crew ID (from form):', newCrewCertificate.crew_id);
+
       }
 
       const response = await axios.post(
@@ -11135,15 +10854,9 @@ const HomePage = () => {
       );
 
       if (response.data && response.data.success) {
-        console.log('✅ Certificate analysis completed (validation bypassed):', response.data);
-        
+
         const analysis = response.data.analysis || {};
-        
-        console.log('🔍 Debug file content in analysis:');
-        console.log('   - _file_content exists:', !!analysis._file_content);
-        console.log('   - _filename:', analysis._filename);
-        console.log('   - _content_type:', analysis._content_type);
-        
+
         // Store analysis with FILE CONTENT for later upload
         const analysisWithFiles = {
           ...response.data,
@@ -11156,9 +10869,7 @@ const HomePage = () => {
             _ship_name: analysis._ship_name
           }
         };
-        
-        console.log('🔍 certAnalysis being set with file content:', !!analysisWithFiles.analysis._file_content);
-        
+
         // Pre-fill form with AI extracted data
         setNewCrewCertificate(prev => ({
           ...prev,
@@ -11207,8 +10918,7 @@ const HomePage = () => {
 
   // Handle Date of Birth mismatch modal - Skip button
   const handleDobMismatchSkip = () => {
-    console.log('🚫 User chose to skip certificate upload due to DOB mismatch');
-    
+
     // Close modal
     setCertDobMismatchModal({
       show: false,
@@ -11231,9 +10941,7 @@ const HomePage = () => {
   // Handle Date of Birth mismatch modal - Continue button (bypass DOB validation)
   const handleDobMismatchContinue = async () => {
     const { file } = certDobMismatchModal;
-    
-    console.log('⚠️ User chose to continue despite DOB mismatch - bypassing DOB validation');
-    
+
     // Close modal first
     setCertDobMismatchModal({
       show: false,
@@ -11271,16 +10979,14 @@ const HomePage = () => {
       formData.append('ship_id', shipId);
       formData.append('bypass_validation', 'true'); // Bypass holder name validation (already passed)
       formData.append('bypass_dob_validation', 'true'); // ✅ KEY: Bypass DOB validation
-      
-      console.log('✅ Retrying with bypass_dob_validation=true');
-      
+
       // Add crew_id if available
       if (selectedCrewForCert) {
         formData.append('crew_id', selectedCrewForCert.id);
-        console.log('✅ Crew ID:', selectedCrewForCert.id);
+
       } else if (newCrewCertificate.crew_id) {
         formData.append('crew_id', newCrewCertificate.crew_id);
-        console.log('✅ Crew ID (from form):', newCrewCertificate.crew_id);
+
       }
 
       const response = await axios.post(
@@ -11295,8 +11001,7 @@ const HomePage = () => {
       );
 
       if (response.data && response.data.success) {
-        console.log('✅ Certificate analysis completed (DOB validation bypassed):', response.data);
-        
+
         const analysis = response.data.analysis || {};
         
         // Store analysis with FILE CONTENT for later upload
@@ -11447,8 +11152,7 @@ const HomePage = () => {
   };
 
   const handleEditCrewCertificate = async (cert) => {
-    console.log('✏️ Editing crew certificate:', cert);
-    
+
     // Close context menu
     setCertContextMenu({ show: false, x: 0, y: 0, cert: null });
     
@@ -11459,13 +11163,13 @@ const HomePage = () => {
     let dateOfBirth = cert.date_of_birth ? cert.date_of_birth.split('T')[0] : '';
     
     if (!dateOfBirth && cert.crew_id) {
-      console.log('⚠️ date_of_birth missing in certificate, fetching from crew member...');
+
       try {
         // Find crew member in crewList to get date_of_birth
         const crewMember = crewList.find(c => c.id === cert.crew_id);
         if (crewMember && crewMember.date_of_birth) {
           dateOfBirth = crewMember.date_of_birth.split('T')[0];
-          console.log('✅ Found date_of_birth from crew member:', dateOfBirth);
+
         }
       } catch (error) {
         console.warn('Could not fetch date_of_birth from crew member:', error);
@@ -11498,8 +11202,7 @@ const HomePage = () => {
     if (!editingCrewCert) return;
     
     try {
-      console.log('📤 Updating crew certificate:', editCrewCertData);
-      
+
       const response = await axios.put(
         `${API}/crew-certificates/${editingCrewCert.id}`,
         editCrewCertData,
@@ -11512,8 +11215,7 @@ const HomePage = () => {
       );
 
       if (response.data) {
-        console.log('✅ Crew certificate updated successfully:', response.data);
-        
+
         // Save custom certificate name if it's new
         addCustomCertificateName(editCrewCertData.cert_name);
         
@@ -11582,8 +11284,7 @@ const HomePage = () => {
     const refreshPromise = fetchCrewCertificates(null);
     
     try {
-      console.log('🗑️ Deleting crew certificate:', cert.id);
-      
+
       // Delete in background
       const deletePromise = axios.delete(
         `${API}/crew-certificates/${cert.id}`,
@@ -11601,7 +11302,7 @@ const HomePage = () => {
       toast.dismiss(toastId);
       
       // Refresh again after successful delete to ensure data consistency
-      console.log('🔄 Refreshing crew certificates list after delete...');
+
       await fetchCrewCertificates(null);
       
       // Show success
@@ -11633,8 +11334,7 @@ const HomePage = () => {
     
     if (cert.crew_cert_file_id) {
       const fileUrl = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
-      console.log('📄 Opening certificate file:', fileUrl);
-      
+
       toast.info(language === 'vi' 
         ? 'Đang mở file chứng chỉ...' 
         : 'Opening certificate file...'
@@ -11655,8 +11355,7 @@ const HomePage = () => {
     
     if (cert.crew_cert_file_id) {
       const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`;
-      console.log('⬇️ Downloading certificate file:', downloadUrl);
-      
+
       toast.info(language === 'vi' 
         ? 'Đang tải xuống file chứng chỉ...' 
         : 'Downloading certificate file...'
@@ -11737,9 +11436,7 @@ const HomePage = () => {
     
     try {
       const certIds = Array.from(selectedCrewCertificates);
-      console.log(`🗑️ Bulk deleting ${certCount} certificates`);
-      console.log(`📋 Certificate IDs to delete:`, certIds);
-      
+
       // Delete in background
       const deletePromise = axios.delete(
         `${API}/crew-certificates/bulk-delete`,
@@ -11761,7 +11458,7 @@ const HomePage = () => {
       toast.dismiss(toastId);
       
       // Refresh again after successful delete to ensure data consistency
-      console.log('🔄 Refreshing crew certificates list after bulk delete...');
+
       await fetchCrewCertificates(null);
 
       // Check if partial success (some deleted, some failed)
@@ -11907,9 +11604,7 @@ const HomePage = () => {
 
   // Handle multiple certificate file upload
   const handleMultipleCertificateUpload = (files) => {
-    console.log(`📁 Selected ${files.length} certificate file(s) for analysis`);
-    console.log(`🔍 Current modal state: showAddCrewCertModal =`, showAddCrewCertModal);
-    
+
     // Validate crew selection first
     if (!selectedCrewForCert && certFilters.crewName === 'all') {
       toast.warning(language === 'vi'
@@ -11946,14 +11641,12 @@ const HomePage = () => {
     
     if (validFiles.length === 1) {
       // Single file: use existing behavior (review before adding)
-      console.log('📄 Single file selected - using review mode');
-      console.log('⚠️ Modal should stay OPEN for review');
+
       handleCertFileUpload(validFiles[0]);
-      console.log('✅ handleCertFileUpload called, modal should still be open');
+
     } else {
       // Multiple files: batch process (auto-add after each analysis)
-      console.log(`📄📄 Multiple files selected (${validFiles.length}) - starting batch processing`);
-      console.log('⚠️ Modal will CLOSE after batch processing');
+
       startCertBatchProcessing(validFiles);
     }
   };
@@ -11971,21 +11664,19 @@ const HomePage = () => {
     
     // Capture current crew data for batch processing (avoid state access issues in async)
     const currentCrewData = filteredCrewData || [];
-    
-    console.log(`🚀 Starting PARALLEL processing with 2s staggered delays`);
-    
+
     // Create promises for all files with staggered start (2s delay between starts)
     const processingPromises = files.map((file, index) => {
       return new Promise(async (resolve) => {
         // Wait before starting this file (0s for first, 2s for second, 4s for third, etc.)
         const delayMs = index * 2000;
         if (delayMs > 0) {
-          console.log(`⏰ File ${index + 1} will start in ${delayMs / 1000}s`);
+
           await new Promise(r => setTimeout(r, delayMs));
         }
         
         // Start processing this file
-        console.log(`🔄 Starting certificate ${index + 1}/${files.length}: ${file.name}`);
+
         setCurrentCertFileIndex(index);
         
         try {
@@ -12021,17 +11712,13 @@ const HomePage = () => {
     });
     
     // Wait for ALL files to complete
-    console.log(`⏳ Waiting for all ${files.length} files to complete...`);
+
     const collectedResults = await Promise.all(processingPromises);
     
     // Batch processing complete
     setIsBatchProcessingCerts(false);
     setCurrentCertFileIndex(0);
-    
-    console.log(`✅ Batch certificate processing complete. Results: ${collectedResults.length}`);
-    console.log(`   Success: ${collectedResults.filter(r => r.success).length}`);
-    console.log(`   Failed: ${collectedResults.filter(r => !r.success).length}`);
-    
+
     // Close Add Crew Cert Modal
     setShowAddCrewCertModal(false);
     
@@ -12050,8 +11737,7 @@ const HomePage = () => {
   // Process single certificate file in batch mode (auto-add certificate)
   const processSingleCertInBatch = async (file, current, total, crewDataList) => {
     try {
-      console.log(`🔄 Batch processing cert ${current}/${total}: ${file.name}`);
-      
+
       // Get crew info
       // selectedCrewForCert is an object, so extract the ID
       const crewId = selectedCrewForCert?.id || (certFilters.crewName !== 'all' ? certFilters.crewName : null);
@@ -12097,13 +11783,7 @@ const HomePage = () => {
       if (response.data.success && response.data.analysis) {
         const analysis = response.data.analysis;
         const fileIds = analysis.file_ids || {};
-        
-        console.log(`✅ Certificate analysis completed for ${file.name}`);
-        console.log(`   📋 Cert Name: ${analysis.cert_name}`);
-        console.log(`   🔢 Cert No: ${analysis.cert_no}`);
-        console.log(`   👤 Crew: ${response.data.crew_name || crewName}`);
-        console.log(`   📕 Passport: ${response.data.passport}`);
-        
+
         // Prepare certificate data from analysis (NO ship_id in body - it's a query param)
         const certData = {
           crew_id: crewId || '',
@@ -12127,7 +11807,7 @@ const HomePage = () => {
         }
         
         // Check for duplicate in batch mode
-        console.log(`🔍 Checking for duplicate: crew_id=${certData.crew_id}, cert_no=${certData.cert_no}`);
+
         const duplicateCheck = await axios.post(
           `${API}/crew-certificates/check-duplicate`,
           {
@@ -12165,9 +11845,7 @@ const HomePage = () => {
             index: current
           };
         }
-        
-        console.log('✅ No duplicate found, proceeding to create...');
-        
+
         // Auto-create certificate (ship_id as query parameter)
         const shipId = selectedShip?.id || '';
         if (!shipId) {
@@ -12187,11 +11865,9 @@ const HomePage = () => {
         
         if (createResponse.data && createResponse.data.id) {
           const certId = createResponse.data.id;
-          console.log(`✅ Certificate created successfully: ${certId}`);
-          
+
           // ✅ NOW upload files to Drive AFTER successful database save
-          console.log(`📤 Uploading files to Drive for certificate ${certId}...`);
-          
+
           let uploadedFileId = null;
           let uploadedSummaryId = null;
           
@@ -12215,9 +11891,7 @@ const HomePage = () => {
             if (uploadResponse.data && uploadResponse.data.success) {
               uploadedFileId = uploadResponse.data.crew_cert_file_id;
               uploadedSummaryId = uploadResponse.data.crew_cert_summary_file_id;
-              console.log(`✅ Files uploaded successfully to Drive`);
-              console.log(`   📎 Certificate File ID: ${uploadedFileId}`);
-              console.log(`   📋 Summary File ID: ${uploadedSummaryId}`);
+
             } else {
               console.warn(`⚠️ File upload failed but certificate was saved: ${uploadResponse.data?.message}`);
             }
@@ -12359,7 +12033,6 @@ const HomePage = () => {
       }
 
       try {
-        console.log(`🔄 Auto-renaming crew certificate file for: ${cert.crew_name} - ${cert.cert_name}`);
 
         const response = await axios.post(
           `${API}/crew-certificates/${cert.id}/auto-rename-file`,
@@ -12381,12 +12054,6 @@ const HomePage = () => {
             ? `✅ Đã tự động đổi tên ${filesCount} file: ${filesText}\nTên mới: ${response.data.new_filename}`
             : `✅ Automatically renamed ${filesCount} file(s): ${filesText}\nNew name: ${response.data.new_filename}`
           );
-
-          console.log(`✅ File(s) renamed successfully:`, {
-            cert_id: cert.id,
-            new_filename: response.data.new_filename,
-            renamed_files: renamedFiles
-          });
 
           // Refresh certificates list
           await fetchCrewCertificates(null);
@@ -12414,13 +12081,10 @@ const HomePage = () => {
         ? `Bắt đầu tự động đổi tên file cho ${certsList.length} chứng chỉ...`
         : `Starting automatic rename for ${certsList.length} certificates...`);
 
-      console.log(`🔄 Starting bulk automatic rename for ${certsList.length} certificates`);
-
       for (let i = 0; i < certsList.length; i++) {
         const cert = certsList[i];
         
         try {
-          console.log(`📋 Processing ${i + 1}/${certsList.length}: ${cert.crew_name} - ${cert.cert_name}`);
 
           const response = await axios.post(
             `${API}/crew-certificates/${cert.id}/auto-rename-file`,
@@ -12435,10 +12099,10 @@ const HomePage = () => {
 
           if (response.data.success) {
             successCount++;
-            console.log(`   ✅ Success: ${response.data.new_filename}`);
+
           } else {
             errorCount++;
-            console.log(`   ❌ Failed: ${cert.crew_name} - ${cert.cert_name}`);
+
           }
 
         } catch (error) {
@@ -12449,8 +12113,6 @@ const HomePage = () => {
         // Add small delay between requests
         await new Promise(resolve => setTimeout(resolve, 300));
       }
-
-      console.log(`🏁 Bulk rename completed: ${successCount} success, ${errorCount} errors`);
 
       // Show final result
       if (successCount > 0 && errorCount === 0) {
@@ -12482,7 +12144,6 @@ const HomePage = () => {
       );
     }
   };
-
 
   // Reset add crew form
   const resetAddCrewForm = () => {
@@ -12528,15 +12189,9 @@ const HomePage = () => {
 
   // Load crew members when component mounts or filters change
   React.useEffect(() => {
-    console.log('📊 Crew useEffect triggered:', {
-      token: !!token,
-      selectedCategory,
-      ship_sign_on: crewFilters?.ship_sign_on,
-      status: crewFilters?.status
-    });
-    
+
     if (token && selectedCategory === 'crew') {
-      console.log('✅ Fetching crew members...');
+
       fetchCrewMembers(crewFilters?.ship_sign_on, crewFilters?.status);
     }
   }, [token, selectedCategory, crewFilters?.ship_sign_on, crewFilters?.status]);
@@ -13093,26 +12748,20 @@ const HomePage = () => {
         
         // Refresh ship data BEFORE showing alert to ensure UI updates
         try {
-          console.log('🔄 Refreshing ship data after docking calculation...');
-          console.log('   Ship ID:', shipId);
-          console.log('   Selected Ship ID:', selectedShip?.id);
-          
+
           // Fetch updated ship data
           const shipResponse = await axios.get(`${API}/ships/${shipId}`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
           });
           
           const updatedShipData = shipResponse.data;
-          console.log('✅ Updated ship data received:', updatedShipData.last_docking);
-          
+
           // ALWAYS update selectedShip (remove condition check)
           setSelectedShip(updatedShipData);
-          console.log('✅ setSelectedShip called');
-          
+
           // Also refresh the ship list
           fetchShips();
-          console.log('✅ fetchShips called');
-          
+
           // If edit modal is open, update editing ship data with formatted dates
           if (showEditShipModal && editingShipData?.id === shipId) {
             setEditingShipData(prev => ({
@@ -13133,7 +12782,7 @@ const HomePage = () => {
                   }
                 : updatedShipData.special_survey_cycle
             }));
-            console.log('✅ setEditingShipData called');
+
           }
           
           // Show alert AFTER refresh
@@ -13463,8 +13112,7 @@ const HomePage = () => {
                                         <button
                                           key={ship.id}
                                           onClick={() => {
-                                            console.log('🚢 Ship selection clicked:', ship.name);
-                                            
+
                                             setSelectedShip(ship);
                                             setCrewFilters({...crewFilters, ship_sign_on: ship.name});
                                             setShowShipSelector(false);
@@ -13478,7 +13126,7 @@ const HomePage = () => {
                                             setTimeout(() => {
                                               const refreshBtn = document.getElementById('crew-cert-refresh-btn');
                                               if (refreshBtn) {
-                                                console.log('✅ Auto-clicking crew certificates refresh button...');
+
                                                 refreshBtn.click();
                                               }
                                             }, 100);
@@ -13581,8 +13229,7 @@ const HomePage = () => {
                                         gross_tonnage: fullShipData.gross_tonnage ? String(fullShipData.gross_tonnage) : '',
                                         deadweight: fullShipData.deadweight ? String(fullShipData.deadweight) : ''
                                       };
-                                      
-                                      console.log('🔍 Edit Modal Data - Built Year:', initData.built_year, 'Type:', typeof initData.built_year);
+
                                       setEditingShipData(initData);
                                       setShowEditShipModal(true);
                                     } catch (error) {
@@ -14679,7 +14326,6 @@ const HomePage = () => {
                     </div>
                   )}
 
-
                   {/* Survey Report Context Menu */}
                   {surveyReportContextMenu.show && (
                     <div 
@@ -14797,7 +14443,6 @@ const HomePage = () => {
                       />
                     </div>
                   )}
-
 
                   {/* Certificate Context Menu */}
                   {contextMenu.show && (
@@ -15361,9 +15006,7 @@ const HomePage = () => {
                                   const response = await axios.put(`${API}/certificates/${editingCertificate.id}`, updatePayload, {
                                     headers: { 'Authorization': `Bearer ${token}` }
                                   });
-                                  
-                                  console.log('Certificate update response:', response.data);
-                                  
+
                                   // Close modal first
                                   setShowEditCertModal(false);
                                   setEditingCertificate(null);
@@ -15373,7 +15016,7 @@ const HomePage = () => {
                                   await new Promise(resolve => setTimeout(resolve, 500));
                                   
                                   // Force refresh certificate list
-                                  console.log('Refreshing certificate list after update...');
+
                                   await fetchCertificates(selectedShip.id);
                                   
                                   toast.success(language === 'vi' ? 'Cập nhật chứng chỉ thành công!' : 'Certificate updated successfully!');
@@ -15409,9 +15052,9 @@ const HomePage = () => {
                             {/* Minimize Button */}
                             <button
                               onClick={() => {
-                                console.log('🔽 Minimizing Add Survey Modal');
+
                                 setIsSurveyReportAddModalMinimized(true);
-                                console.log('State set to minimized');
+
                               }}
                               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                               title={language === 'vi' ? 'Thu nhỏ' : 'Minimize'}
@@ -16085,7 +15728,7 @@ const HomePage = () => {
                   {showAddSurveyModal && isSurveyReportAddModalMinimized && (
                     <div 
                       onClick={() => {
-                        console.log('📂 Restoring Add Survey Report modal...');
+
                         setIsSurveyReportAddModalMinimized(false);
                       }}
                       className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
@@ -16121,7 +15764,7 @@ const HomePage = () => {
                   {isBatchProcessingSurveyReports && isSurveyReportBatchModalMinimized && (
                     <div 
                       onClick={() => {
-                        console.log('📂 Restoring Batch Processing modal...');
+
                         setIsSurveyReportBatchModalMinimized(false);
                       }}
                       className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
@@ -16155,7 +15798,6 @@ const HomePage = () => {
                   )}
                   
                   {/* Crew Records Section */}
-
 
                   {/* TEST REPORT LIST (NEW) */}
                   {selectedCategory === 'documents' && selectedSubMenu === 'survey_reports' && (
@@ -18733,7 +18375,7 @@ const HomePage = () => {
                     <div 
                       className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl cursor-pointer z-50 transition-all animate-pulse"
                       onClick={() => {
-                        console.log('📂 Restoring Batch Processing modal...');
+
                         setIsOtherDocumentBatchModalMinimized(false);
                       }}
                       title={language === 'vi' 
@@ -19334,7 +18976,7 @@ const HomePage = () => {
                   {showAddTestReportModal && isTestReportAddModalMinimized && (
                     <div 
                       onClick={() => {
-                        console.log('📂 Restoring Add Test Report modal...');
+
                         setIsTestReportAddModalMinimized(false);
                       }}
                       className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
@@ -20456,11 +20098,7 @@ const HomePage = () => {
                                         if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) {
                                           // Debug: log filter mismatch
                                           if (certFilters.crewName !== 'all') {
-                                            console.log('🔍 Crew filter check:', {
-                                              filterValue: certFilters.crewName,
-                                              certCrewName: cert.crew_name,
-                                              match: cert.crew_name === certFilters.crewName
-                                            });
+
                                           }
                                           return false;
                                         }
@@ -20640,11 +20278,7 @@ const HomePage = () => {
                                         if (certFilters.crewName !== 'all' && cert.crew_name !== certFilters.crewName) {
                                           // Debug: log filter mismatch
                                           if (certFilters.crewName !== 'all') {
-                                            console.log('🔍 Crew filter check:', {
-                                              filterValue: certFilters.crewName,
-                                              certCrewName: cert.crew_name,
-                                              match: cert.crew_name === certFilters.crewName
-                                            });
+
                                           }
                                           return false;
                                         }
@@ -20834,7 +20468,7 @@ const HomePage = () => {
                                       {/* Minimize Button */}
                                       <button
                                         onClick={() => {
-                                          console.log('📦 Minimizing Add Crew Certificate modal...');
+
                                           setIsAddCrewCertModalMinimized(true);
                                           toast.info(language === 'vi' 
                                             ? 'Modal đã được thu nhỏ. Click vào biểu tượng bên dưới để mở lại.' 
@@ -21899,7 +21533,7 @@ const HomePage = () => {
                           {showAddCrewCertModal && isAddCrewCertModalMinimized && (
                             <div 
                               onClick={() => {
-                                console.log('📂 Restoring Add Crew Certificate modal...');
+
                                 setIsAddCrewCertModalMinimized(false);
                               }}
                               className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
@@ -23150,7 +22784,7 @@ const HomePage = () => {
                                   status: 'Sign on'
                                 });
                                 setShowShipDropdown(false);
-                                console.log(`🚢 Ship changed to: ${ship.name} in Add Crew Modal`);
+
                               }}
                               className={`w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors flex items-center justify-between ${
                                 selectedShip?.id === ship.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
@@ -23879,7 +23513,7 @@ const HomePage = () => {
       {showAddCrewModal && isAddCrewModalMinimized && (
         <div 
           onClick={() => {
-            console.log('📂 Restoring Add Crew modal...');
+
             setIsAddCrewModalMinimized(false);
           }}
           className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
@@ -25476,7 +25110,7 @@ const AccountControlPage = () => {
           'Content-Type': 'application/json'
         }
       });
-      console.log('Fetched AI config:', response.data);
+
       setAiConfig({
         provider: response.data.provider || 'google',
         model: response.data.model || 'gemini-2.0-flash',
@@ -25664,16 +25298,14 @@ const AccountControlPage = () => {
 
   const handleAIConfigUpdate = async () => {
     try {
-      console.log('Saving AI config:', aiConfig);
-      
+
       const response = await axios.post(`${API}/ai-config`, aiConfig, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
-      console.log('AI config save response:', response.data);
+
       toast.success(language === 'vi' ? 'Cấu hình AI thành công!' : 'AI configuration updated successfully!');
       setShowAIConfig(false);
       fetchAIConfig();
@@ -25784,7 +25416,7 @@ const AccountControlPage = () => {
       if (response.data.success) {
         toast.success(language === 'vi' ? 'Phân tích PDF thành công!' : 'PDF analysis completed!');
         // You can handle the analysis results here
-        console.log('PDF Analysis Results:', response.data.analysis);
+
       } else {
         toast.error(language === 'vi' ? 'Phân tích PDF thất bại!' : 'PDF analysis failed!');
       }
@@ -26910,13 +26542,11 @@ const AccountControlPage = () => {
             setConfig={setCompanyGdriveConfig}
             currentConfig={companyGdriveCurrentConfig}
             onClose={() => {
-              console.log('🔍 Debug - Closing Company Google Drive modal');
+
               setShowCompanyGoogleDrive(false);
             }}
             onSave={() => {
-              console.log('🔍 Debug - Company Google Drive Save clicked');
-              console.log('   editingCompany.id:', editingCompany.id);
-              
+
               if (editingCompany.id) {
                 handleCompanyGoogleDriveConfig(editingCompany.id);
               } else {
@@ -26924,9 +26554,7 @@ const AccountControlPage = () => {
               }
             }}
             onTest={() => {
-              console.log('🔍 Debug - Company Google Drive Test clicked (onTest prop)');
-              console.log('   editingCompany.id:', editingCompany.id);
-              
+
               if (editingCompany.id) {
                 handleTestCompanyGoogleDriveConnection(editingCompany.id);
               } else {
@@ -27686,11 +27314,7 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
   const [oauthLoading, setOauthLoading] = useState(false);
   
   // Debug logging on modal render
-  console.log('🔍 CompanyGoogleDriveModal rendered with:');
-  console.log('   companyId:', companyId);
-  console.log('   config:', config);
-  console.log('   authMethod:', authMethod);
-  
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -27703,10 +27327,7 @@ const CompanyGoogleDriveModal = ({ companyId, config, setConfig, currentConfig, 
   };
 
   const handleAppsScriptTest = async () => {
-    console.log('🔍 Debug - handleAppsScriptTest called');
-    console.log('   CompanyId:', companyId);
-    console.log('   Config:', config);
-    
+
     if (!companyId) {
       console.error('❌ No Company ID available in handleAppsScriptTest');
       toast.error(language === 'vi' ? 'Lỗi: Không có Company ID' : 'Error: No Company ID');
@@ -29087,17 +28708,14 @@ const CompanyFormModal = ({
             {/* Configure Button */}
             <button
               onClick={() => {
-                console.log('🔍 Debug - Configure Company Google Drive clicked');
-                console.log('   companyData:', companyData);
-                console.log('   companyData.id:', companyData.id);
-                
+
                 if (companyData.id) {
-                  console.log('✅ Using companyData.id:', companyData.id);
+
                   fetchCompanyGoogleDriveConfig(companyData.id);
                   fetchCompanyGoogleDriveStatus(companyData.id);
                   setShowCompanyGoogleDrive(true);
                 } else {
-                  console.log('❌ No company ID found');
+
                   toast.warning(language === 'vi' ? 'Vui lòng lưu công ty trước khi cấu hình Google Drive' : 'Please save company before configuring Google Drive');
                 }
               }}
@@ -30049,8 +29667,7 @@ const AddRecordModal = ({
         
         if (result.status === 'success' && result.analysis) {
           // Auto-fill certificate form with analysis data
-          console.log('🎯 Certificate analysis successful:', result.analysis);
-          
+
           // Map analysis data to certificate form fields
           const analysisData = result.analysis;
           
@@ -30104,9 +29721,7 @@ const AddRecordModal = ({
           const filledFields = Object.keys(autoFillData).filter(key => 
             autoFillData[key] && String(autoFillData[key]).trim()
           ).length;
-          
-          console.log('📋 Auto-filling certificate form with', filledFields, 'fields');
-          
+
           // Update certificate form data - CRITICAL FIX
           setCertificateData(prev => ({
             ...prev,
@@ -30421,12 +30036,7 @@ const AddRecordModal = ({
 
       if (response.data.success) {
         // Debug: Log the complete response structure
-        console.log('=== PDF ANALYSIS RESPONSE ===');
-        console.log('Full response:', response);
-        console.log('Response data:', response.data);
-        console.log('Analysis data:', response.data.analysis);
-        console.log('============================');
-        
+
         // Check if analysis contains error information
         const analysisData = response.data.analysis || {};
         if (analysisData?.error) {
@@ -30446,14 +30056,11 @@ const AddRecordModal = ({
                  String(value).toLowerCase() !== 'undefined' &&
                  !['confidence', 'processing_notes', 'error', 'processing_method', 'engine_used'].includes(key);
         });
-        
-        console.log('📊 Valid extracted fields:', validFields);
-        console.log('📊 Analysis data structure:', JSON.stringify(analysisData, null, 2));
-        
+
         // Debug specific expected fields
         const expectedFields = ['ship_name', 'imo_number', 'flag', 'class_society', 'gross_tonnage'];
         expectedFields.forEach(field => {
-          console.log(`🔍 ${field}: "${analysisData[field]}" (type: ${typeof analysisData[field]})`);
+
         });
         
         if (validFields.length === 0) {
@@ -30465,8 +30072,7 @@ const AddRecordModal = ({
         }
         
         // Auto-fill ship data with extracted information - FORCE UPDATE
-        console.log('📋 Processing extracted data for auto-fill');
-        
+
         // Convert extracted data to match frontend form field names
         // Enhanced to support ALL Ship Creation Form fields
         
@@ -30508,9 +30114,7 @@ const AddRecordModal = ({
           );
           
           if (isFullTermCertificate) {
-            console.log('🔍 Detected Full Term Class/Statutory certificate - using valid_date as special_survey_to_date');
-            console.log('   Certificate:', analysisData.cert_name);
-            console.log('   Valid Date:', analysisData.valid_date);
+
             specialSurveyToDate = analysisData.valid_date;
           }
         }
@@ -30541,16 +30145,12 @@ const AddRecordModal = ({
           special_survey_from_date: formatDateForInput(analysisData.special_survey_from_date) || '',
           special_survey_to_date: formatDateForInput(specialSurveyToDate) || '' // Use computed value
         };
-        
-        console.log('📝 Processed data for form:', processedData);
-        
+
         // Count how many fields we're actually filling
         const filledFields = Object.keys(processedData).filter(key => 
           processedData[key] && processedData[key].trim()
         ).length;
-        
-        console.log('🔢 Number of fields to fill:', filledFields);
-        
+
         if (filledFields === 0) {
           toast.warning(language === 'vi' 
             ? '⚠️ PDF được phân tích nhưng không tìm thấy thông tin tàu phù hợp'
@@ -30560,18 +30160,16 @@ const AddRecordModal = ({
         }
         
         // FORCE UPDATE: Use functional update and force re-render
-        console.log('🔄 FORCING form data update...');
+
         setShipData(prev => {
           const updatedData = {
             ...prev,
             ...processedData
           };
-          console.log('📤 Previous data:', prev);
-          console.log('📥 Updated data:', updatedData);
-          
+
           // Force a timeout to ensure state update
           setTimeout(() => {
-            console.log('⏰ Checking if form updated after timeout...');
+
           }, 100);
           
           return updatedData;
@@ -30585,12 +30183,12 @@ const AddRecordModal = ({
         
         // Show processing notes if available
         if (analysisData.processing_notes && analysisData.processing_notes.length > 0) {
-          console.log('📋 Processing notes:', analysisData.processing_notes);
+
         }
         
         // Close modal after longer delay to show auto-filled data
         setTimeout(() => {
-          console.log('🚪 Closing PDF analysis modal...');
+
           setShowPdfAnalysis(false);
         }, 2000);
         
@@ -30886,12 +30484,9 @@ const AddRecordModal = ({
         
         folderStructure[categoryName] = subfolders;
       });
-      
-      console.log('📁 Complete ship folder structure extracted from homepage sidebar:');
-      console.log(`   Categories: ${Object.keys(folderStructure).length}`);
-      console.log(`   Total subfolders: ${Object.values(folderStructure).flat().length}`);
+
       Object.entries(folderStructure).forEach(([category, subfolders]) => {
-        console.log(`   ${category}: [${subfolders.join(', ')}]`);
+
       });
       
       return folderStructure;
@@ -30975,8 +30570,7 @@ const AddRecordModal = ({
   // Google Drive Ship Folder Creation with Complete Hierarchy Structure
   const createShipGoogleDriveFolder = async (shipName, companyId) => {
     try {
-      console.log(`Creating complete Google Drive folder structure for ship: ${shipName}`);
-      
+
       // Get complete folder structure from homepage sidebar
       const folderStructure = getCompleteShipFolderStructure();
       
@@ -30987,12 +30581,7 @@ const AddRecordModal = ({
       
       const totalCategories = Object.keys(folderStructure).length;
       const totalSubfolders = Object.values(folderStructure).flat().length;
-      
-      console.log(`📋 Using complete structure from homepage sidebar:`);
-      console.log(`   Categories: ${totalCategories}`);
-      console.log(`   Total subfolders: ${totalSubfolders}`);
-      console.log(`🔄 Structure sync: Homepage Sidebar → Google Drive Complete Hierarchy`);
-      
+
       // Call backend to create complete ship folder structure on Company Google Drive
       const response = await axios.post(`${API}/companies/${companyId}/gdrive/create-ship-folder`, {
         ship_name: shipName,
@@ -31005,7 +30594,7 @@ const AddRecordModal = ({
       });
       
       if (response.data.success) {
-        console.log(`✅ Complete ship folder structure created successfully:`, response.data);
+
         toast.success(
           language === 'vi' 
             ? `📁 Đã tạo cấu trúc thư mục hoàn chỉnh "${shipName}" với ${totalCategories} danh mục và ${totalSubfolders} thư mục con`
@@ -31483,7 +31072,7 @@ const AddRecordModal = ({
                           if (selectedShip && !isMultiCertProcessing) {
                             // Create auto-fill callback for AddRecordModal context
                             const autoFillCallback = (data, fieldCount) => {
-                              console.log('🔄 Auto-filling certificate form with data:', data);
+
                               setCertificateData(prev => ({
                                 ...prev,
                                 ...data
