@@ -8020,7 +8020,7 @@ const HomePage = () => {
     }
   };
   
-  // Handle folder upload: Upload all files but create only 1 record
+  // Handle folder upload: Create subfolder and upload all files into it
   const handleFolderUpload = async () => {
     try {
       setIsBatchProcessingOtherDocuments(true);
@@ -8038,115 +8038,107 @@ const HomePage = () => {
       setOtherDocumentFileStatusMap(initialStatusMap);
       setOtherDocumentFileProgressMap(initialProgressMap);
       
-      const uploadedFileIds = [];
-      const results = [];
+      // Prepare FormData with all files
+      const formData = new FormData();
+      otherDocumentFiles.forEach(file => {
+        formData.append('files', file);
+      });
+      formData.append('ship_id', selectedShip.id);
+      formData.append('folder_name', newOtherDocument.document_name);
+      if (newOtherDocument.date) formData.append('date', newOtherDocument.date);
+      if (newOtherDocument.status) formData.append('status', newOtherDocument.status);
+      if (newOtherDocument.note) formData.append('note', newOtherDocument.note);
       
-      // Upload all files to Google Drive
-      for (let i = 0; i < otherDocumentFiles.length; i++) {
-        const file = otherDocumentFiles[i];
-        const filename = file.name || file.webkitRelativePath || 'unknown';
-        
-        try {
-          // Update status to processing
-          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'processing' }));
-          setOtherDocumentCurrentFileName(filename);
-          
-          // Simulate progress
-          const progressInterval = setInterval(() => {
-            setOtherDocumentFileProgressMap(prev => {
-              const current = prev[filename] || 0;
-              if (current < 90) {
-                return { ...prev, [filename]: Math.min(current + 10, 90) };
-              }
-              return prev;
-            });
-          }, 200);
-          
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('ship_id', selectedShip.id);
-          
-          // Upload file to get file_id
-          const response = await axios.post(
-            `${API}/other-documents/upload-file-only`,
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'multipart/form-data'
-              }
+      // Simulate progress for all files
+      const progressInterval = setInterval(() => {
+        otherDocumentFiles.forEach(file => {
+          const filename = file.name || file.webkitRelativePath || 'unknown';
+          setOtherDocumentFileProgressMap(prev => {
+            const current = prev[filename] || 0;
+            if (current < 90) {
+              return { ...prev, [filename]: Math.min(current + 10, 90) };
             }
-          );
-          
-          clearInterval(progressInterval);
-          
-          if (response.data.file_id) {
-            uploadedFileIds.push(response.data.file_id);
-          }
-          
-          // Complete progress
-          setOtherDocumentFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
-          
-          results.push({ filename, success: true, message: 'Uploaded successfully' });
-          
-        } catch (error) {
-          console.error(`Failed to upload ${filename}:`, error);
-          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'error' }));
-          results.push({
-            filename,
-            success: false,
-            message: error.response?.data?.detail || 'Upload failed'
+            return prev;
           });
-        }
-        
-        setOtherDocumentBatchProgress({ current: i + 1, total: otherDocumentFiles.length });
-      }
-      
-      // Now create 1 single record with all file_ids
-      if (uploadedFileIds.length > 0) {
-        try {
-          await axios.post(
-            `${API}/other-documents`,
-            {
-              ship_id: selectedShip.id,
-              document_name: newOtherDocument.document_name,
-              date: newOtherDocument.date || null,
-              status: newOtherDocument.status || 'Unknown',
-              note: newOtherDocument.note || null,
-              file_ids: uploadedFileIds
-            },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          
-          toast.success(language === 'vi' 
-            ? `✅ Đã tạo 1 record cho folder với ${uploadedFileIds.length} files!` 
-            : `✅ Created 1 record for folder with ${uploadedFileIds.length} files!`
-          );
-        } catch (error) {
-          console.error('Failed to create folder record:', error);
-          toast.error(language === 'vi' ? '❌ Không thể tạo record cho folder' : '❌ Failed to create folder record');
-        }
-      }
-      
-      setOtherDocumentBatchResults(results);
-      
-      // Close modal and refresh
-      setTimeout(() => {
-        setIsBatchProcessingOtherDocuments(false);
-        setShowAddOtherDocumentModal(false);
-        setOtherDocumentFiles([]);
-        setIsOtherDocumentFolderUpload(false);
-        setNewOtherDocument({
-          document_name: '',
-          date: '',
-          status: 'Unknown',
-          note: ''
         });
-        if (selectedShip) {
-          fetchOtherDocuments(selectedShip.id);
-        }
-      }, 2000);
+      }, 500);
+      
+      // Mark all as processing
+      otherDocumentFiles.forEach(file => {
+        const filename = file.name || file.webkitRelativePath || 'unknown';
+        setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'processing' }));
+      });
+      
+      try {
+        // Upload folder with all files
+        const response = await axios.post(
+          `${API}/other-documents/upload-folder`,
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+        
+        clearInterval(progressInterval);
+        
+        // Mark all successful files as completed
+        const successfulFiles = response.data.successful_files || 0;
+        const failedFiles = response.data.failed_files || [];
+        
+        otherDocumentFiles.forEach(file => {
+          const filename = file.name || file.webkitRelativePath || 'unknown';
+          if (failedFiles.includes(filename)) {
+            setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'error' }));
+            setOtherDocumentFileProgressMap(prev => ({ ...prev, [filename]: 0 }));
+          } else {
+            setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
+            setOtherDocumentFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+          }
+        });
+        
+        setOtherDocumentBatchProgress({ current: successfulFiles, total: otherDocumentFiles.length });
+        
+        toast.success(language === 'vi' 
+          ? `✅ Đã tạo folder "${newOtherDocument.document_name}" với ${successfulFiles}/${otherDocumentFiles.length} files!` 
+          : `✅ Created folder "${newOtherDocument.document_name}" with ${successfulFiles}/${otherDocumentFiles.length} files!`
+        );
+        
+        // Close modal and refresh
+        setTimeout(() => {
+          setIsBatchProcessingOtherDocuments(false);
+          setShowAddOtherDocumentModal(false);
+          setOtherDocumentFiles([]);
+          setIsOtherDocumentFolderUpload(false);
+          setNewOtherDocument({
+            document_name: '',
+            date: '',
+            status: 'Unknown',
+            note: ''
+          });
+          if (selectedShip) {
+            fetchOtherDocuments(selectedShip.id);
+          }
+        }, 2000);
+        
+      } catch (error) {
+        clearInterval(progressInterval);
+        console.error('Folder upload error:', error);
+        
+        // Mark all as error
+        otherDocumentFiles.forEach(file => {
+          const filename = file.name || file.webkitRelativePath || 'unknown';
+          setOtherDocumentFileStatusMap(prev => ({ ...prev, [filename]: 'error' }));
+        });
+        
+        toast.error(language === 'vi' 
+          ? `❌ Lỗi khi upload folder: ${error.response?.data?.detail || error.message}` 
+          : `❌ Folder upload error: ${error.response?.data?.detail || error.message}`
+        );
+        setIsBatchProcessingOtherDocuments(false);
+      }
       
     } catch (error) {
       console.error('Folder upload error:', error);
