@@ -6,7 +6,7 @@ import base64
 import json
 import logging
 import aiohttp
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from mongodb_database import mongo_db
 
 logger = logging.getLogger(__name__)
