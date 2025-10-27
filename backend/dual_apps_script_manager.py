@@ -1858,6 +1858,197 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
 
+    async def upload_other_document_folder(
+        self,
+        files: List[tuple],  # List of (file_content, filename) tuples
+        folder_name: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload a folder of files to Google Drive
+        Creates a subfolder under "Other Documents" and uploads all files into it
+        Path: Shipname > Class & Flag Cert > Other Documents > folder_name
+        
+        Args:
+            files: List of (file_content, filename) tuples
+            folder_name: Name of the subfolder to create (e.g., "Radio Report")
+            ship_name: Ship name for folder structure
+            
+        Returns:
+            dict: Upload results with folder_id, folder_link, and file_ids
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"📁 Creating subfolder and uploading files to Google Drive")
+            logger.info(f"   Folder: {folder_name}")
+            logger.info(f"   Files: {len(files)}")
+            
+            # Step 1: Create subfolder under "Other Documents"
+            folder_result = await self._create_other_documents_subfolder(
+                folder_name=folder_name,
+                ship_name=ship_name
+            )
+            
+            if not folder_result.get('success'):
+                logger.error(f"❌ Failed to create subfolder")
+                return folder_result
+            
+            folder_id = folder_result.get('folder_id')
+            folder_link = folder_result.get('folder_link')
+            logger.info(f"✅ Subfolder created: {folder_id}")
+            logger.info(f"   Link: {folder_link}")
+            
+            # Step 2: Upload all files to the created subfolder
+            file_ids = []
+            failed_files = []
+            
+            for file_content, filename in files:
+                try:
+                    # Determine content type
+                    if filename.lower().endswith('.pdf'):
+                        content_type = 'application/pdf'
+                    elif filename.lower().endswith(('.jpg', '.jpeg')):
+                        content_type = 'image/jpeg'
+                    else:
+                        content_type = 'application/octet-stream'
+                    
+                    # Upload file to the subfolder
+                    file_result = await self._upload_file_to_folder(
+                        file_content=file_content,
+                        filename=filename,
+                        content_type=content_type,
+                        folder_id=folder_id
+                    )
+                    
+                    if file_result.get('success'):
+                        file_ids.append(file_result.get('file_id'))
+                        logger.info(f"   ✅ Uploaded: {filename}")
+                    else:
+                        failed_files.append(filename)
+                        logger.warning(f"   ⚠️ Failed to upload: {filename}")
+                        
+                except Exception as e:
+                    failed_files.append(filename)
+                    logger.error(f"   ❌ Error uploading {filename}: {e}")
+            
+            # Return results
+            return {
+                'success': True,
+                'message': f'Folder uploaded successfully: {len(file_ids)}/{len(files)} files',
+                'folder_id': folder_id,
+                'folder_link': folder_link,
+                'file_ids': file_ids,
+                'failed_files': failed_files,
+                'total_files': len(files),
+                'successful_files': len(file_ids)
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading folder: {e}")
+            return {
+                'success': False,
+                'message': f'Folder upload failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _create_other_documents_subfolder(
+        self,
+        folder_name: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Create a subfolder under "Other Documents"
+        Path: Shipname > Class & Flag Cert > Other Documents > folder_name
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            logger.info(f"📁 Creating subfolder in Other Documents: {folder_name}")
+            
+            # Prepare payload to create subfolder
+            payload = {
+                "action": "create_subfolder",
+                "parent_folder_id": self.parent_folder_id,
+                "ship_name": ship_name,
+                "parent_category": "Class & Flag Cert",
+                "category": "Other Documents",
+                "subfolder_name": folder_name
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
+            
+            if result.get('success'):
+                folder_id = result.get('folder_id')
+                # Generate Google Drive folder link
+                folder_link = f"https://drive.google.com/drive/folders/{folder_id}"
+                result['folder_link'] = folder_link
+                logger.info(f"✅ Subfolder created successfully")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error creating subfolder: {e}")
+            return {
+                'success': False,
+                'message': f'Subfolder creation failed: {str(e)}',
+                'error': str(e)
+            }
+    
+    async def _upload_file_to_folder(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        folder_id: str
+    ) -> Dict[str, Any]:
+        """
+        Upload a file directly to a specific folder by folder_id
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            # Encode file content
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Prepare payload to upload directly to folder
+            payload = {
+                "action": "upload_to_folder",
+                "folder_id": folder_id,
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading file to folder: {e}")
+            return {
+                'success': False,
+                'message': f'File upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+
 
 async def extract_fields_from_summary(
     summary_text: str,
