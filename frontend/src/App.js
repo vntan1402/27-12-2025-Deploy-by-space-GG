@@ -30272,7 +30272,8 @@ const AddRecordModal = ({
         }
       });
       
-      console.log('Ship payload:', shipPayload); // Debug log
+      // Debug ship payload
+      // console.log('Ship payload:', shipPayload);
       
       const response = await axios.post(`${API}/ships`, shipPayload);
       const createdShip = response.data;
