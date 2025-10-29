@@ -326,7 +326,35 @@ const UserManagement = () => {
       fetchUsers();
     } catch (error) {
       console.error('Failed to update user:', error);
-      const errorMessage = error.response?.data?.detail || (language === 'vi' ? 'Không thể cập nhật người dùng' : 'Failed to update user');
+      
+      // Handle Pydantic validation errors
+      let errorMessage;
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        
+        // If detail is an array of validation errors (Pydantic format)
+        if (Array.isArray(detail)) {
+          errorMessage = detail.map(err => {
+            const field = err.loc?.join('.') || 'field';
+            const msg = err.msg || 'Invalid value';
+            return `${field}: ${msg}`;
+          }).join(', ');
+        } 
+        // If detail is a string
+        else if (typeof detail === 'string') {
+          errorMessage = detail;
+        }
+        // If detail is an object with message
+        else if (detail.message) {
+          errorMessage = detail.message;
+        }
+        else {
+          errorMessage = language === 'vi' ? 'Không thể cập nhật người dùng' : 'Failed to update user';
+        }
+      } else {
+        errorMessage = language === 'vi' ? 'Không thể cập nhật người dùng' : 'Failed to update user';
+      }
+      
       toast.error(errorMessage);
     } finally {
       setLoading(false);
