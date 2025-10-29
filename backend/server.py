@@ -57,6 +57,105 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize Scheduler for auto-backup
+scheduler = AsyncIOScheduler()
+
+async def auto_backup_to_google_drive():
+    """Auto backup function that runs daily at 21:00 (9 PM)"""
+    try:
+        logger.info("🕒 Starting scheduled auto-backup to Google Drive...")
+        
+        # Get Google Drive configuration
+        config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        if not config:
+            logger.warning("❌ Auto-backup skipped: Google Drive not configured")
+            return
+        
+        web_app_url = config.get("web_app_url")
+        if not web_app_url:
+            logger.warning("❌ Auto-backup skipped: Apps Script URL not configured")
+            return
+        
+        # Get current date for folder name
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        # Create daily backup folder
+        create_folder_payload = {
+            "action": "create_folder",
+            "parent_folder_id": config.get("folder_id", ""),
+            "folder_name": today
+        }
+        
+        folder_response = requests.post(web_app_url, json=create_folder_payload, timeout=30)
+        
+        if folder_response.status_code != 200:
+            logger.error(f"❌ Auto-backup failed: Could not create folder - {folder_response.text}")
+            return
+        
+        folder_result = folder_response.json()
+        if not folder_result.get("success"):
+            logger.error(f"❌ Auto-backup failed: {folder_result.get('error')}")
+            return
+        
+        daily_folder_id = folder_result.get("folder_id")
+        logger.info(f"📁 Created auto-backup folder: {today}")
+        
+        # Get ALL collections
+        all_collections = await mongo_db.list_collections()
+        files_uploaded = 0
+        
+        for collection_name in all_collections:
+            try:
+                if collection_name.startswith('system.'):
+                    continue
+                    
+                data = await mongo_db.find_all(collection_name, {})
+                if not data:
+                    continue
+                
+                json_data = json.dumps(data, default=str, indent=2, ensure_ascii=False)
+                
+                payload = {
+                    "action": "upload_file",
+                    "folder_id": daily_folder_id,
+                    "filename": f"{collection_name}.json",
+                    "content": json_data,
+                    "mimeType": "application/json"
+                }
+                
+                response = requests.post(web_app_url, json=payload, timeout=60)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get("success"):
+                        files_uploaded += 1
+                        logger.info(f"✅ Auto-backed up {collection_name}.json")
+                    
+            except Exception as e:
+                logger.error(f"❌ Failed to auto-backup {collection_name}: {e}")
+        
+        # Update last sync timestamp
+        next_sync = datetime.now(timezone.utc) + timedelta(days=1)
+        next_sync = next_sync.replace(hour=21, minute=0, second=0, microsecond=0)
+        
+        await mongo_db.update(
+            "gdrive_config",
+            {"id": "system_gdrive"},
+            {
+                "last_sync": datetime.now(timezone.utc),
+                "last_backup_folder": today,
+                "last_backup_folder_id": daily_folder_id,
+                "next_auto_sync": next_sync
+            }
+        )
+        
+        logger.info(f"🎉 Auto-backup completed: {files_uploaded}/{len(all_collections)} files uploaded to {today}/")
+        logger.info(f"⏰ Next auto-backup scheduled at: {next_sync.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        
+    except Exception as e:
+        logger.error(f"❌ Auto-backup error: {e}")
+        logger.error(traceback.format_exc())
+
 def get_emergent_llm_key():
     """Get Emergent LLM key for AI integrations"""
     try:
