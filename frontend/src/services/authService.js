@@ -12,7 +12,7 @@ export const authService = {
     formData.append('username', username);
     formData.append('password', password);
     
-    const response = await api.post('/api/login', formData, {
+    const response = await api.post('/api/auth/login', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     
