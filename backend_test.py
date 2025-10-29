@@ -1257,7 +1257,7 @@ class DeleteCompanyValidationTester:
 def main():
     """Main function to run the tests"""
     try:
-        tester = CompanyManagementTester()
+        tester = DeleteCompanyValidationTester()
         results = tester.run_all_tests()
         
         # Return appropriate exit code
