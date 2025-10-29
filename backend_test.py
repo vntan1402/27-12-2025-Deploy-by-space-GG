@@ -374,7 +374,7 @@ class CompanyManagementTester:
                 print(f"   ID: {company_response['id']}")
                 print(f"   Name VN: {company_response['name_vn']}")
                 print(f"   Name EN: {company_response['name_en']}")
-                print(f"   Code: {company_response['code']}")
+                print(f"   Code: {company_response.get('code', 'N/A')}")
                 print(f"   Address VN: {company_response['address_vn']}")
                 print(f"   Address EN: {company_response['address_en']}")
                 print(f"   Tax ID: {company_response['tax_id']}")
