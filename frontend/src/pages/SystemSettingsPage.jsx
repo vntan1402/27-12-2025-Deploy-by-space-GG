@@ -8,9 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout } from '../components/Layout';
+import { UserManagement } from '../components/SystemSettings/UserManagement';
 
 // Import components (will be created)
-// import { UserManagement } from '../components/SystemSettings/UserManagement';
 // import { CompanyManagement } from '../components/SystemSettings/CompanyManagement';
 // import { SystemGoogleDrive } from '../components/SystemSettings/SystemGoogleDrive';
 // import { AIConfig } from '../components/SystemSettings/AIConfig';
