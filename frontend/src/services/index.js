@@ -37,3 +37,7 @@ export * from './mlcService';
 
 // Users
 export * from './userService';
+
+// AI Config & Google Drive
+export * from './aiConfigService';
+export * from './gdriveService';
