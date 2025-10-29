@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-Company Management APIs Testing Script
-Tests the company management CRUD operations as specified in review request
+GET /api/companies/{company_id} Endpoint Testing Script
+Tests the newly implemented GET company by ID endpoint as specified in review request
+
+FOCUS: Test the GET /api/companies/{company_id} endpoint that was previously returning 405 Method Not Allowed
+Expected: Endpoint should now return 200 OK with company data, proper 404/401 handling
 """
 
 import requests
