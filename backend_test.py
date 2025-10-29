@@ -1215,7 +1215,7 @@ class DeleteCompanyValidationTester:
     def print_test_summary(self, test_results):
         """Print test summary"""
         print(f"\n{'='*60}")
-        print(f"GET /api/companies/{{company_id}} ENDPOINT TEST SUMMARY")
+        print(f"DELETE COMPANY VALIDATION TEST SUMMARY")
         print(f"{'='*60}")
         
         passed = 0
@@ -1230,14 +1230,14 @@ class DeleteCompanyValidationTester:
         print(f"\n📊 Results: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
         
         if passed == total:
-            print(f"🎉 All tests passed! GET /api/companies/{{company_id}} endpoint is working correctly.")
-            print(f"✅ Endpoint now returns 200 OK (not 405 Method Not Allowed)")
-            print(f"✅ Company data returned correctly with all fields")
-            print(f"✅ Proper 404 handling for non-existent companies")
-            print(f"✅ Authentication required (401 Unauthorized)")
-            print(f"✅ Success rate should be 100% now (7/7 tests passed)")
+            print(f"🎉 All tests passed! DELETE company validation is working correctly.")
+            print(f"✅ Company with ships deletion properly blocked with 400 Bad Request")
+            print(f"✅ Error message contains ship count and ship names")
+            print(f"✅ Company without ships deletion succeeds with 200 OK")
+            print(f"✅ Validation checks both company_id and company name")
+            print(f"✅ Database integrity maintained - companies with ships preserved")
         else:
-            print(f"⚠️ Some tests failed. Please check the GET /api/companies/{{company_id}} endpoint implementation.")
+            print(f"⚠️ Some tests failed. Please check the DELETE company validation implementation.")
             
             # Print specific failure analysis
             failed_tests = [name for name, result in test_results if not result]
@@ -1245,6 +1245,14 @@ class DeleteCompanyValidationTester:
                 print(f"\n❌ Failed Tests:")
                 for failed_test in failed_tests:
                     print(f"   - {failed_test}")
+                    
+        # Print validation requirements summary
+        print(f"\n🔍 VALIDATION REQUIREMENTS TESTED:")
+        print(f"   1. Check if company has ships before deletion")
+        print(f"   2. Return 400 Bad Request if ships exist")
+        print(f"   3. Include detailed error message with ship count and names")
+        print(f"   4. Allow deletion if no ships associated")
+        print(f"   5. Return 200 OK with success message for valid deletions")
 
 def main():
     """Main function to run the tests"""
