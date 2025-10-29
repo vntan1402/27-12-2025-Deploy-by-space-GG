@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { gdriveService } from '../../../services';
-import axios from 'axios';
+import api from '../../../services/api';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API_PREFIX = '/api';
 
 const SystemGoogleDriveModal = ({ onClose }) => {
   const [authMethod, setAuthMethod] = useState('apps_script');
