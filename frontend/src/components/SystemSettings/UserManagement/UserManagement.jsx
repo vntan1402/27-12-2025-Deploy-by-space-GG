@@ -381,6 +381,24 @@ const UserManagement = () => {
           currentUser={currentUser}  // Added currentUser prop
         />
       )}
+
+      {/* Edit User Modal */}
+      {showEditUser && editingUser && (
+        <EditUserModal
+          user={editingUser}
+          onClose={() => {
+            setShowEditUser(false);
+            setEditingUser(null);
+          }}
+          onSubmit={handleUpdateUser}
+          language={language}
+          companies={companies}
+          ships={ships}
+          availableRoles={getAvailableRoles()}
+          loading={loading}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   );
 };
