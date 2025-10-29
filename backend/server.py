@@ -76,15 +76,22 @@ async def auto_backup_to_google_drive():
             logger.warning("❌ Auto-backup skipped: Apps Script URL not configured")
             return
         
+        # Get API key if configured
+        api_key = config.get("api_key")
+        
         # Get current date for folder name
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         
         # Create daily backup folder
         create_folder_payload = {
             "action": "create_folder",
-            "parent_folder_id": config.get("folder_id", ""),
+            "parent_id": config.get("folder_id", ""),
             "folder_name": today
         }
+        
+        # Add API key if configured
+        if api_key:
+            create_folder_payload["api_key"] = api_key
         
         folder_response = requests.post(web_app_url, json=create_folder_payload, timeout=30)
         
@@ -97,7 +104,7 @@ async def auto_backup_to_google_drive():
             logger.error(f"❌ Auto-backup failed: {folder_result.get('error')}")
             return
         
-        daily_folder_id = folder_result.get("folder_id")
+        daily_folder_id = folder_result.get("data", {}).get("id") or folder_result.get("folder_id")
         logger.info(f"📁 Created auto-backup folder: {today}")
         
         # Get ALL collections
