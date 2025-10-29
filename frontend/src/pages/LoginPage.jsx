@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,12 +10,25 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [shake, setShake] = useState(false);
+
+  // Load saved credentials from localStorage
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('rememberedUsername');
+    if (savedUsername) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!username || !password) {
       toast.error(language === 'vi' ? 'Vui lòng nhập đầy đủ thông tin' : 'Please fill in all fields');
+      triggerShake();
       return;
     }
 
@@ -23,6 +36,14 @@ const LoginPage = () => {
     
     try {
       await login(username, password);
+      
+      // Save username if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('rememberedUsername', username);
+      } else {
+        localStorage.removeItem('rememberedUsername');
+      }
+      
       toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Login successful!');
       navigate('/');
     } catch (error) {
@@ -32,9 +53,21 @@ const LoginPage = () => {
           ? 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.' 
           : 'Login failed. Please check your credentials.'
       );
+      triggerShake();
     } finally {
       setLoading(false);
     }
+  };
+
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 650);
+  };
+
+  const fillDemoCredentials = () => {
+    setUsername('admin1');
+    setPassword('123456');
+    toast.info(language === 'vi' ? 'Đã điền thông tin demo' : 'Demo credentials filled');
   };
 
   return (
