@@ -67,26 +67,31 @@ const UserFilters = ({
         </button>
       </div>
 
-      {/* Filters Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {/* Company Filter */}
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">
-            {language === 'vi' ? 'Công ty' : 'Company'}
-          </label>
-          <select
-            value={filters.company}
-            onChange={(e) => setFilters(prev => ({ ...prev, company: e.target.value }))}
-            className="w-full px-2 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">{language === 'vi' ? 'Tất cả công ty' : 'All Companies'}</option>
-            {companies.map((company, idx) => (
-              <option key={idx} value={company.name_en || company.name_vn}>
-                {language === 'vi' ? company.name_vn : company.name_en}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* Filters Grid - Dynamic columns based on super_admin status */}
+      <div className={`grid grid-cols-1 md:grid-cols-3 gap-3 ${isSuperAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4'}`}>
+        {/* Company Filter - Only for Super Admin */}
+        {isSuperAdmin && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {language === 'vi' ? 'Công ty' : 'Company'}
+            </label>
+            <select
+              value={filters.company}
+              onChange={(e) => setFilters(prev => ({ ...prev, company: e.target.value }))}
+              className="w-full px-2 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">{language === 'vi' ? 'Tất cả công ty' : 'All Companies'}</option>
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {language === 'vi' ? (company.name_vn || company.name_en) : (company.name_en || company.name_vn)}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-blue-600 mt-1">
+              👑 {language === 'vi' ? 'Chỉ Super Admin' : 'Super Admin only'}
+            </p>
+          </div>
+        )}
 
         {/* Department Filter */}
         <div>
