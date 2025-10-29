@@ -85,9 +85,12 @@ const AddUserModal = ({
               value={userData.username}
               onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập tên đăng nhập' : 'Enter username'}
+              placeholder={language === 'vi' ? 'Ví dụ: admin1 hoặc admin1@amcsc.vn' : 'Example: admin1 or admin1@company.com'}
               disabled={loading}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'vi' ? '* Có thể là tên đơn giản (admin1) hoặc email' : '* Can be simple name (admin1) or email'}
+            </p>
           </div>
 
           {/* Email */}
