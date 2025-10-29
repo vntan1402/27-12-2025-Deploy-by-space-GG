@@ -115,92 +115,117 @@ const AddUserModal = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Tên đăng nhập' : 'Username'} *
-            </label>
-            <input
-              type="text"
-              required
-              value={userData.username}
-              onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Ví dụ: admin1 hoặc admin1@amcsc.vn' : 'Example: admin1 or admin1@company.com'}
-              disabled={loading}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? '* Có thể là tên đơn giản (admin1) hoặc email' : '* Can be simple name (admin1) or email'}
-            </p>
+          {/* Username and Email - 2 fields per row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tên đăng nhập' : 'Username'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={userData.username}
+                onChange={(e) => setUserData(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'admin1 hoặc admin1@amcsc.vn' : 'admin1 or admin1@company.com'}
+                disabled={loading}
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={userData.email}
+                onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="user@example.com"
+                disabled={loading}
+              />
+            </div>
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email *
-            </label>
-            <input
-              type="email"
-              required
-              value={userData.email}
-              onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="user@example.com"
-              disabled={loading}
-            />
+          {/* Password and Full Name - 2 fields per row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Mật khẩu' : 'Password'} *
+              </label>
+              <input
+                type="password"
+                required
+                value={userData.password}
+                onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Tối thiểu 6 ký tự' : 'Min 6 characters'}
+                minLength={6}
+                disabled={loading}
+              />
+            </div>
+
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={userData.full_name}
+                onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
+                disabled={loading}
+              />
+            </div>
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Mật khẩu' : 'Password'} *
-            </label>
-            <input
-              type="password"
-              required
-              value={userData.password}
-              onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập mật khẩu (tối thiểu 6 ký tự)' : 'Enter password (min 6 characters)'}
-              minLength={6}
-              disabled={loading}
-            />
-          </div>
+          {/* Role and Ship - 2 fields per row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Role */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Vai trò' : 'Role'} *
+              </label>
+              <select
+                required
+                value={userData.role}
+                onChange={(e) => setUserData(prev => ({ ...prev, role: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+              >
+                {availableRoles.map(role => (
+                  <option key={role} value={role}>
+                    {getRoleDisplayName(role)}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
-            </label>
-            <input
-              type="text"
-              required
-              value={userData.full_name}
-              onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
-              disabled={loading}
-            />
-          </div>
-
-          {/* Role */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Vai trò' : 'Role'} *
-            </label>
-            <select
-              required
-              value={userData.role}
-              onChange={(e) => setUserData(prev => ({ ...prev, role: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={loading}
-            >
-              {availableRoles.map(role => (
-                <option key={role} value={role}>
-                  {getRoleDisplayName(role)}
-                </option>
-              ))}
-            </select>
+            {/* Ship */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tàu' : 'Ship'}
+              </label>
+              <select
+                value={userData.ship}
+                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+              >
+                <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
+                {ships.map(ship => (
+                  <option key={ship.id} value={ship.name}>
+                    {ship.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Department - Changed to Checkboxes */}
