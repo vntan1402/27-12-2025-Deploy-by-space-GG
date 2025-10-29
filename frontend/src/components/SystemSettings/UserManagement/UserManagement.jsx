@@ -42,7 +42,7 @@ const UserManagement = () => {
     password: '',
     full_name: '',
     role: 'viewer',
-    department: 'technical',
+    department: [],  // Changed to array
     company: '',
     ship: '',
     zalo: '',
