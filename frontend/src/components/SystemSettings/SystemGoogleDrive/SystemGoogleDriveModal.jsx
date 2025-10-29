@@ -152,15 +152,12 @@ const SystemGoogleDriveModal = ({ onClose }) => {
 
     try {
       setTestLoading(true);
-      const response = await axios.post(`${API}/gdrive/test`, {
-        service_account_json: config.service_account_json,
-        folder_id: config.folder_id
-      });
+      const response = await gdriveService.test(config.service_account_json, config.folder_id);
 
-      if (response.data.success) {
-        toast.success(`Connection successful! Folder: ${response.data.folder_name}`);
+      if (response.success) {
+        toast.success(`Connection successful! Folder: ${response.folder_name}`);
       } else {
-        toast.error(response.data.message);
+        toast.error(response.message);
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message;
