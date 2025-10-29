@@ -3815,6 +3815,28 @@ async def get_companies(current_user: UserResponse = Depends(get_current_user)):
         logger.error(f"Error fetching companies: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch companies")
 
+@api_router.get("/companies/{company_id}", response_model=CompanyResponse)
+async def get_company_by_id(company_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """
+    Get a specific company by ID
+    """
+    try:
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Fix company that doesn't have 'name' field but has 'name_en' or 'name_vn'
+        if 'name' not in company:
+            company['name'] = company.get('name_en') or company.get('name_vn') or 'Unknown Company'
+        
+        return CompanyResponse(**company)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching company {company_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch company")
+
 @api_router.post("/companies", response_model=CompanyResponse)
 async def create_company(company_data: CompanyCreate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
