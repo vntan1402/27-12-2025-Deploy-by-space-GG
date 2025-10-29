@@ -475,7 +475,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     full_name: Optional[str] = None
     role: Optional[UserRole] = None
-    department: Optional[Department] = None
+    department: Optional[List[str]] = None  # Changed to List[str]
     company: Optional[str] = None
     ship: Optional[str] = None
     zalo: Optional[str] = None
