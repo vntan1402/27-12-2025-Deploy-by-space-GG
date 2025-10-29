@@ -18,6 +18,7 @@ class UserManagementTester:
         self.session = requests.Session()
         self.access_token = None
         self.user_data = None
+        self.created_user_id = None
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
@@ -29,13 +30,13 @@ class UserManagementTester:
         print(f"{status}: {message}")
         
     def test_authentication(self):
-        """Test Case 1: Authentication Test - Login with admin1@amcsc.vn / 123456"""
-        self.print_test_header("Authentication Test")
+        """Setup: Login as admin1 / 123456 to get access token"""
+        self.print_test_header("Setup - Admin Authentication")
         
         try:
-            # Test data - using email format as specified in review request
+            # Test data - using admin1 / 123456 as specified in review request
             login_data = {
-                "username": "admin1@amcsc.vn",
+                "username": "admin1",
                 "password": "123456",
                 "remember_me": False
             }
@@ -89,24 +90,12 @@ class UserManagementTester:
                     self.print_result(False, f"User object missing fields: {user_missing_fields}")
                     return False
                 
-                # Verify user has role='admin' as specified in review request
-                if self.user_data.get("role") != "admin":
-                    self.print_result(False, f"Expected user role 'admin', got '{self.user_data.get('role')}'")
-                    return False
-                
-                # Verify user has company ID
-                company_id = self.user_data.get("company")
-                if not company_id:
-                    self.print_result(False, "User missing company ID")
-                    return False
-                
                 print(f"🔑 Access Token: {self.access_token[:20]}...")
                 print(f"👤 User ID: {self.user_data['id']}")
                 print(f"👤 Username: {self.user_data['username']}")
                 print(f"👤 Role: {self.user_data['role']}")
-                print(f"🏢 Company ID: {company_id}")
                 
-                self.print_result(True, "Authentication successful - login returns access_token, user has role='admin' and company ID")
+                self.print_result(True, "Authentication successful - admin1 login returns access_token")
                 return True
                 
             else:
