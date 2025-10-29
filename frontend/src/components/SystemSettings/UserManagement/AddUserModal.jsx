@@ -249,6 +249,7 @@ const AddUserModal = ({
                   disabled={loading || !userData.company}
                 >
                   <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
+                  <option value="Standby">{language === 'vi' ? '⏸️ Standby' : '⏸️ Standby'}</option>
                   {filteredShips.map(ship => (
                     <option key={ship.id} value={ship.name}>
                       {ship.name}
@@ -262,7 +263,7 @@ const AddUserModal = ({
                 )}
                 {userData.company && filteredShips.length === 0 && (
                   <p className="text-xs text-gray-500 mt-1">
-                    {language === 'vi' ? 'Không có tàu nào' : 'No ships available'}
+                    {language === 'vi' ? 'Chọn "Standby" nếu chưa có tàu' : 'Select "Standby" if no ship assigned'}
                   </p>
                 )}
               </div>
