@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { formatDate } from '../utils/dateHelpers';
+import { formatDateDisplay } from '../utils/dateHelpers';
 
 export const ShipDetailPanel = ({ 
   ship, 
