@@ -654,10 +654,10 @@ class CompanyManagementTester:
                 if list_response.status_code == 200:
                     companies_data = list_response.json()
                     
-                    # Check if Test Company is still in the list
+                    # Check if the specific Test Company (by ID) is still in the list
                     test_company_still_exists = False
                     for company in companies_data:
-                        if company.get('id') == self.created_company_id or company.get('name_en') == 'Test Company Ltd':
+                        if company.get('id') == self.created_company_id:
                             test_company_still_exists = True
                             break
                     
