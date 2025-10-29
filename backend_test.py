@@ -156,16 +156,12 @@ class AIConfigTester:
             self.print_result(False, f"Exception during GET AI config without auth test: {str(e)}")
             return False
     
-    def test_get_company_by_id(self):
-        """Test 2: Get AMCSC Company by ID (GET /api/companies/{id}) - NEWLY IMPLEMENTED ENDPOINT"""
-        self.print_test_header("Test 2 - Get AMCSC Company by ID")
+    def test_get_ai_config_with_auth(self):
+        """Test 2: GET /api/ai-config with valid admin token (should return AI config)"""
+        self.print_test_header("Test 2 - GET AI Config With Authentication")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
-            return False
-        
-        if not self.amcsc_company_id:
-            self.print_result(False, "No AMCSC company ID available from get companies test")
             return False
         
         try:
@@ -174,82 +170,75 @@ class AIConfigTester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/companies/{self.amcsc_company_id}")
-            print(f"🔍 Getting AMCSC company by ID: {self.amcsc_company_id}")
-            print(f"🎯 TESTING: Endpoint should now return 200 OK (not 405 Method Not Allowed)")
+            print(f"📡 GET {BACKEND_URL}/ai-config")
+            print(f"🎯 Testing with valid admin token - should return current AI config")
             
-            # Make request to get company by ID
+            # Make request with authorization header
             response = self.session.get(
-                f"{BACKEND_URL}/companies/{self.amcsc_company_id}",
+                f"{BACKEND_URL}/ai-config",
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
-                company_data = response.json()
-                print(f"📄 Response Type: {type(company_data)}")
-                print(f"✅ SUCCESS: Endpoint now returns 200 OK (previously 405 Method Not Allowed)")
+                config_data = response.json()
+                print(f"📄 Response Type: {type(config_data)}")
                 
-                if not isinstance(company_data, dict):
-                    self.print_result(False, f"Expected dict response, got: {type(company_data)}")
+                if not isinstance(config_data, dict):
+                    self.print_result(False, f"Expected dict response, got: {type(config_data)}")
                     return False
                 
-                # Verify this is the AMCSC company
-                if company_data.get('id') != self.amcsc_company_id:
-                    self.print_result(False, f"Company ID mismatch: expected '{self.amcsc_company_id}', got '{company_data.get('id')}'")
-                    return False
-                
-                # Verify core required company fields are present (relaxed check)
-                core_required_fields = ["id", "name_vn", "name_en", "address_vn", "address_en", "tax_id"]
+                # Verify required AI config fields are present
+                required_fields = ["provider", "model", "use_emergent_key"]
                 missing_fields = []
                 
-                for field in core_required_fields:
-                    if field not in company_data:
+                for field in required_fields:
+                    if field not in config_data:
                         missing_fields.append(field)
                 
                 if missing_fields:
-                    self.print_result(False, f"Company response missing core required fields: {missing_fields}")
+                    self.print_result(False, f"AI config response missing required fields: {missing_fields}")
                     return False
                 
-                # Note: 'code' field may not be present in response, but that's acceptable
+                # Store original config for restoration later
+                self.original_ai_config = config_data.copy()
                 
-                # Print company details
-                print(f"\n🏢 AMCSC Company Details (All Fields):")
-                print(f"   ID: {company_data.get('id')}")
-                print(f"   Name VN: {company_data.get('name_vn')}")
-                print(f"   Name EN: {company_data.get('name_en')}")
-                print(f"   Code: {company_data.get('code')}")
-                print(f"   Address VN: {company_data.get('address_vn')}")
-                print(f"   Address EN: {company_data.get('address_en')}")
-                print(f"   Tax ID: {company_data.get('tax_id')}")
-                print(f"   Email: {company_data.get('email')}")
-                print(f"   Phone: {company_data.get('phone')}")
-                print(f"   Gmail: {company_data.get('gmail')}")
-                print(f"   Zalo: {company_data.get('zalo')}")
-                print(f"   Logo URL: {company_data.get('logo_url')}")
-                print(f"   System Expiry: {company_data.get('system_expiry')}")
-                print(f"   Created At: {company_data.get('created_at')}")
+                # Print AI config details
+                print(f"\n🤖 Current AI Configuration:")
+                print(f"   Provider: {config_data.get('provider')}")
+                print(f"   Model: {config_data.get('model')}")
+                print(f"   Use Emergent Key: {config_data.get('use_emergent_key')}")
                 
-                self.print_result(True, "✅ GET /api/companies/{id} endpoint working correctly - returns 200 OK with all company fields")
+                # Check document_ai config if present
+                document_ai = config_data.get('document_ai')
+                if document_ai:
+                    print(f"   Document AI Enabled: {document_ai.get('enabled')}")
+                    print(f"   Document AI Project ID: {document_ai.get('project_id')}")
+                    print(f"   Document AI Location: {document_ai.get('location')}")
+                    print(f"   Document AI Processor ID: {document_ai.get('processor_id')}")
+                    print(f"   Document AI Apps Script URL: {document_ai.get('apps_script_url')}")
+                else:
+                    print(f"   Document AI: Not configured")
+                
+                # Verify API key is NOT exposed in response
+                if 'api_key' in config_data:
+                    self.print_result(False, "❌ SECURITY ISSUE: API key exposed in GET response")
+                    return False
+                
+                self.print_result(True, "✅ GET /api/ai-config with auth returns valid AI configuration (API key properly hidden)")
                 return True
                 
-            elif response.status_code == 405:
-                self.print_result(False, "❌ STILL GETTING 405 Method Not Allowed - endpoint implementation may be incomplete")
-                return False
-            elif response.status_code == 404:
-                self.print_result(False, "❌ Company not found (404) - check if AMCSC company ID is correct")
-                return False
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Get company by ID failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"GET AI config failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Get company by ID failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"GET AI config failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during get company by ID test: {str(e)}")
+            self.print_result(False, f"Exception during GET AI config with auth test: {str(e)}")
             return False
     
     # Removed old test methods - keeping only DELETE company validation tests
