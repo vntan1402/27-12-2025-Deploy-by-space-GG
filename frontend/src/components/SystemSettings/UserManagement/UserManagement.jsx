@@ -67,13 +67,19 @@ const UserManagement = () => {
   }, [showUserList]);
 
   /**
-   * Fetch all users
+   * Fetch all users (filtered by current user's company)
    */
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const response = await userService.getAll();
-      const data = response.data;
+      let data = response.data;
+      
+      // Filter users by current user's company (except super_admin who sees all)
+      if (currentUser && currentUser.role !== 'super_admin' && currentUser.company) {
+        data = data.filter(user => user.company === currentUser.company);
+      }
+      
       setUsers(data);
       setFilteredUsers(data);
     } catch (error) {
