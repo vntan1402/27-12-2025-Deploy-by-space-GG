@@ -243,39 +243,60 @@ const EditUserModal = ({
               )}
             </div>
 
-            {/* Department - Changed to Checkboxes */}
+            {/* Ship */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Phòng ban' : 'Department'} *
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tàu' : 'Ship'}
               </label>
-              <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {departmentOptions.map(dept => {
-                    const isChecked = (userData.department || []).includes(dept.value);
-                    return (
-                      <label 
-                        key={dept.value}
-                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => handleDepartmentChange(dept.value)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                          disabled={loading}
-                        />
-                        <span className="text-sm text-gray-700">{dept.label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {language === 'vi' ? '* Chọn ít nhất một phòng ban. Có thể chọn nhiều phòng ban.' : '* Select at least one department. Multiple selections allowed.'}
-              </p>
+              <select
+                value={userData.ship}
+                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+              >
+                <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
+                {ships.map(ship => (
+                  <option key={ship.id} value={ship.name}>
+                    {ship.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
+          {/* Department - Full width with checkboxes */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? 'Phòng ban' : 'Department'} *
+            </label>
+            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+              <div className="grid grid-cols-2 gap-3">
+                {departmentOptions.map(dept => {
+                  const isChecked = (userData.department || []).includes(dept.value);
+                  return (
+                    <label 
+                      key={dept.value}
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => handleDepartmentChange(dept.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                        disabled={loading}
+                      />
+                      <span className="text-sm text-gray-700">{dept.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              {language === 'vi' ? '* Chọn ít nhất một phòng ban. Có thể chọn nhiều phòng ban.' : '* Select at least one department. Multiple selections allowed.'}
+            </p>
+          </div>
+
+          {/* Company and Zalo - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
             {/* Company */}
             <div>
@@ -290,24 +311,44 @@ const EditUserModal = ({
               >
                 <option value="">{language === 'vi' ? 'Chọn công ty' : 'Select company'}</option>
                 {companies.map(company => (
-                  <option key={company.id} value={company.name_en || company.name_vn}>
-                    {language === 'vi' ? company.name_vn : company.name_en}
+                  <option key={company.id} value={company.id}>
+                    {language === 'vi' ? (company.name_vn || company.name_en) : (company.name_en || company.name_vn)}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Ship */}
+            {/* Zalo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tàu' : 'Ship'}
+                Zalo *
               </label>
-              <select
-                value={userData.ship}
-                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
+              <input
+                type="text"
+                required
+                value={userData.zalo}
+                onChange={(e) => setUserData(prev => ({ ...prev, zalo: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Số điện thoại Zalo' : 'Zalo phone number'}
                 disabled={loading}
-              >
+              />
+            </div>
+          </div>
+
+          {/* Gmail - Single field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Gmail
+            </label>
+            <input
+              type="email"
+              value={userData.gmail}
+              onChange={(e) => setUserData(prev => ({ ...prev, gmail: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="user@gmail.com"
+              disabled={loading}
+            />
+          </div>
                 <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
                 {ships.map(ship => (
                   <option key={ship.id} value={ship.name}>
