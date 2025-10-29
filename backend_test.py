@@ -534,40 +534,58 @@ class UserManagementTester:
             return False
     
     def run_all_tests(self):
-        """Run all ClassAndFlagCert workflow tests"""
-        print(f"🚀 Starting ClassAndFlagCert Page Workflow Tests")
+        """Run all User Management API tests"""
+        print(f"🚀 Starting User Management APIs Testing")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
         
         test_results = []
         
-        # Test 1: Authentication Test
-        result1 = self.test_authentication()
-        test_results.append(("Authentication Test", result1))
+        # Setup: Authentication Test
+        result_auth = self.test_authentication()
+        test_results.append(("Setup - Admin Authentication", result_auth))
         
-        # Test 2: Ships API Test (only if authentication succeeded)
-        if result1:
-            result2 = self.test_ships_api()
-            test_results.append(("Ships API Test", result2))
+        # Setup: Get Users List (only if authentication succeeded)
+        if result_auth:
+            result_list = self.test_get_users_list()
+            test_results.append(("Setup - Get Users List", result_list))
         else:
-            print(f"\n⚠️ Skipping Ships API test - authentication failed")
-            test_results.append(("Ships API Test", False))
+            print(f"\n⚠️ Skipping Get Users List - authentication failed")
+            test_results.append(("Setup - Get Users List", False))
+            result_list = False
         
-        # Test 3: Individual Ship Test (only if authentication succeeded)
-        if result1:
-            result3 = self.test_individual_ship()
-            test_results.append(("Individual Ship Test", result3))
+        # Test 1: Create New User (only if authentication succeeded)
+        if result_auth:
+            result_create = self.test_create_new_user()
+            test_results.append(("Test 1 - Create New User", result_create))
         else:
-            print(f"\n⚠️ Skipping Individual Ship test - authentication failed")
-            test_results.append(("Individual Ship Test", False))
+            print(f"\n⚠️ Skipping Create New User test - authentication failed")
+            test_results.append(("Test 1 - Create New User", False))
+            result_create = False
         
-        # Test 4: Workflow Validation (only if authentication succeeded)
-        if result1:
-            result4 = self.test_workflow_validation()
-            test_results.append(("Workflow Validation", result4))
+        # Test 2: Verify Created User (only if user creation succeeded)
+        if result_create:
+            result_verify = self.test_verify_created_user()
+            test_results.append(("Test 2 - Verify Created User", result_verify))
         else:
-            print(f"\n⚠️ Skipping Workflow Validation test - authentication failed")
-            test_results.append(("Workflow Validation", False))
+            print(f"\n⚠️ Skipping Verify Created User test - user creation failed")
+            test_results.append(("Test 2 - Verify Created User", False))
+        
+        # Test 3: Update User (only if user creation succeeded)
+        if result_create:
+            result_update = self.test_update_user()
+            test_results.append(("Test 3 - Update User", result_update))
+        else:
+            print(f"\n⚠️ Skipping Update User test - user creation failed")
+            test_results.append(("Test 3 - Update User", False))
+        
+        # Test 4: Delete User (only if user creation succeeded)
+        if result_create:
+            result_delete = self.test_delete_user()
+            test_results.append(("Test 4 - Delete User", result_delete))
+        else:
+            print(f"\n⚠️ Skipping Delete User test - user creation failed")
+            test_results.append(("Test 4 - Delete User", False))
         
         # Print summary
         self.print_test_summary(test_results)
