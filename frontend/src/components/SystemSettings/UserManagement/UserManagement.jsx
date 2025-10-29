@@ -362,6 +362,44 @@ const UserManagement = () => {
         </button>
       </div>
 
+      {/* Company Filter - Only for Super Admin */}
+      {showUserList && currentUser?.role === 'super_admin' && (
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 font-medium text-blue-900">
+              <span className="text-xl">👑</span>
+              <span>{language === 'vi' ? 'Lọc theo công ty:' : 'Filter by Company:'}</span>
+            </label>
+            <select
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+              className="px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              <option value="">{language === 'vi' ? '🌐 Tất cả công ty' : '🌐 All Companies'}</option>
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {language === 'vi' ? (company.name_vn || company.name_en) : (company.name_en || company.name_vn)}
+                </option>
+              ))}
+            </select>
+            {companyFilter && (
+              <button
+                onClick={() => setCompanyFilter('')}
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+              >
+                {language === 'vi' ? 'Xóa lọc' : 'Clear filter'}
+              </button>
+            )}
+            <span className="text-sm text-blue-700">
+              {language === 'vi' 
+                ? `Hiển thị ${filteredUsers.length}/${users.length} người dùng`
+                : `Showing ${filteredUsers.length}/${users.length} users`
+              }
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Users Table */}
       {showUserList && (
         <UserTable
