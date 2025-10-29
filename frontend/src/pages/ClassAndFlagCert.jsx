@@ -32,10 +32,9 @@ const ClassAndFlagCert = () => {
       const data = response.data; // Extract data from axios response
       setShips(data);
       
-      // Auto-select first ship if available
-      if (data.length > 0 && !selectedShip) {
-        setSelectedShip(data[0]);
-      }
+      // Don't auto-select, let user choose via Ship Select button
+      // If no ship selected and ships available, could optionally show modal
+      // setShowShipModal(true); // Uncomment to auto-show modal
     } catch (error) {
       console.error('Failed to fetch ships:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách tàu' : 'Failed to load ships');
