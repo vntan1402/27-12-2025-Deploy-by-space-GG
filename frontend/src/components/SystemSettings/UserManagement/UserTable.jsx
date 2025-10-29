@@ -132,7 +132,7 @@ const UserTable = ({
                 <div className="text-xs text-gray-500">{userItem.username}</div>
               </td>
               <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                {userItem.company || '-'}
+                {getCompanyName(userItem.company)}
               </td>
               <td className="border border-gray-300 px-4 py-3 text-gray-700">
                 {Array.isArray(userItem.department) && userItem.department.length > 0
