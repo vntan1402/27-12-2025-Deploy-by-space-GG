@@ -22,6 +22,28 @@ export const userService = {
   },
 
   /**
+   * Get filtered and sorted users
+   * @param {Object} filters - Filter criteria
+   * @param {Object} sorting - Sort options
+   * @returns {Promise} Filtered list of users
+   */
+  getFiltered: async (filters = {}, sorting = {}) => {
+    const params = new URLSearchParams();
+    
+    // Add filters
+    if (filters.company) params.append('company', filters.company);
+    if (filters.department) params.append('department', filters.department);
+    if (filters.ship) params.append('ship', filters.ship);
+    
+    // Add sorting
+    if (sorting.sortBy) params.append('sort_by', sorting.sortBy);
+    if (sorting.sortOrder) params.append('sort_order', sorting.sortOrder);
+    
+    const queryString = params.toString();
+    return api.get(`${API_ENDPOINTS.USERS}${queryString ? `?${queryString}` : ''}`);
+  },
+
+  /**
    * Get user by ID
    * @param {string} userId - User ID
    * @returns {Promise} User data
