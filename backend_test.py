@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ClassAndFlagCert Page Workflow Testing Script
-Tests the authentication, ships API, and individual ship endpoints
+User Management APIs Testing Script
+Tests the user management CRUD operations as specified in review request
 """
 
 import requests
@@ -13,7 +13,7 @@ from datetime import datetime
 # Backend URL from frontend .env
 BACKEND_URL = "https://shipdata-ui-v2.preview.emergentagent.com/api"
 
-class ClassAndFlagCertTester:
+class UserManagementTester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
