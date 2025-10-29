@@ -424,9 +424,9 @@ class AIConfigTester:
         result_auth = self.test_authentication()
         test_results.append(("Setup - Admin Authentication", result_auth))
         
-        # Test 1: GET AI Config without authentication (should return 401)
+        # Test 1: GET AI Config without authentication (should return 401 or 403)
         result_get_no_auth = self.test_get_ai_config_without_auth()
-        test_results.append(("Test 1 - GET AI Config Without Auth (Should Return 401)", result_get_no_auth))
+        test_results.append(("Test 1 - GET AI Config Without Auth (Should Return 401/403)", result_get_no_auth))
         
         # Test 2: GET AI Config with authentication (should return config)
         if result_auth:
