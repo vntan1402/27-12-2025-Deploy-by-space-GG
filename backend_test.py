@@ -409,52 +409,7 @@ class AIConfigTester:
             self.print_result(False, f"Exception during AI config verification test: {str(e)}")
             return False
     
-    def create_test_ship_for_company(self, company_id, company_name, headers):
-        """Create a test ship for a company to test deletion validation"""
-        try:
-            import time
-            unique_suffix = str(int(time.time()))[-4:]  # Last 4 digits of timestamp
-            
-            test_ship_data = {
-                "name": f"TEST SHIP {unique_suffix}",
-                "imo": f"TEST{unique_suffix}",
-                "flag": "PANAMA",
-                "ship_type": "DNV GL",
-                "gross_tonnage": 1000.0,
-                "deadweight": 1500.0,
-                "built_year": 2020,
-                "company": company_id  # Associate with the company
-            }
-            
-            print(f"📡 POST {BACKEND_URL}/ships")
-            print(f"📄 Creating test ship: {test_ship_data['name']} for company {company_name}")
-            
-            # Create the test ship
-            create_response = self.session.post(
-                f"{BACKEND_URL}/ships",
-                json=test_ship_data,
-                headers=headers
-            )
-            
-            print(f"📊 Ship Create Response Status: {create_response.status_code}")
-            
-            if create_response.status_code in [200, 201]:
-                ship_response = create_response.json()
-                ship_id = ship_response.get('id')
-                ship_name = ship_response.get('name')
-                print(f"✅ Test ship created successfully: {ship_name} (ID: {ship_id})")
-                return ship_id
-            else:
-                try:
-                    error_data = create_response.json()
-                    print(f"❌ Ship creation failed: {error_data}")
-                except:
-                    print(f"❌ Ship creation failed: {create_response.text}")
-                return None
-                
-        except Exception as e:
-            print(f"❌ Exception during test ship creation: {str(e)}")
-            return None
+    def run_all_tests(self):
     
     def test_delete_company_with_ships(self, companies_with_ships):
         """Test 1: Try to delete a company that has ships (should fail with 400)"""
