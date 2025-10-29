@@ -453,13 +453,15 @@ class Department(str, Enum):
     CREWING = "crewing"
     SAFETY = "safety"
     COMMERCIAL = "commercial"
+    DPA = "dpa"
+    SUPPLY = "supply"
 
 class UserBase(BaseModel):
     username: str
     email: Optional[EmailStr] = None
     full_name: str
     role: UserRole
-    department: Department
+    department: List[str]  # Changed to List to support multiple departments
     company: Optional[str] = None
     ship: Optional[str] = None
     zalo: str  # Now required field
