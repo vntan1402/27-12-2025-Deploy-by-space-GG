@@ -41,15 +41,15 @@ async def seed_database():
         company_id = existing_company['id']
         print(f"ℹ️  Company already exists: {existing_company['name']} (ID: {company_id})")
     
-    # 2. Create test admin user
-    password = "123456"
-    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    # 2. Create test admin user (admin role)
+    password_admin1 = "123456"
+    password_hash_admin1 = bcrypt.hashpw(password_admin1.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     user_id = str(uuid.uuid4())
     user = {
         "id": user_id,
         "username": "admin1@amcsc.vn",
-        "password_hash": password_hash,
+        "password_hash": password_hash_admin1,
         "email": "admin1@amcsc.vn",
         "full_name": "Admin User",
         "role": "admin",  # lowercase to match UserRole enum
@@ -64,11 +64,11 @@ async def seed_database():
     existing_user = await db.users.find_one({"username": "admin1@amcsc.vn"})
     if not existing_user:
         await db.users.insert_one(user)
-        print(f"✅ Created user: {user['username']} (Password: {password})")
+        print(f"✅ Created user: {user['username']} (Password: {password_admin1})")
     else:
         print(f"ℹ️  User already exists: {existing_user['username']}")
     
-    # 2b. Create second admin user with simple username
+    # 2b. Create second admin user with simple username (admin role)
     user_id_2 = str(uuid.uuid4())
     user_2 = {
         "id": user_id_2,
