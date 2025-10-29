@@ -130,10 +130,19 @@ function testConnection() {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
+    
+    // Log the incoming request (without exposing API key)
+    const logPayload = { ...payload };
+    if (logPayload.api_key) {
+      logPayload.api_key = '***HIDDEN***';
+    }
+    log(`📨 Incoming request`, logPayload);
+    
+    // Validate API key FIRST
     validateApiKey(payload);
 
     const { action } = payload;
-    log(`📨 Incoming action: ${action}`);
+    log(`✅ API Key validated, processing action: ${action}`);
 
     switch (action) {
       case 'test_connection':
@@ -169,7 +178,11 @@ function doPost(e) {
         throw new Error(`Unknown action: ${action}`);
     }
   } catch (error) {
-    return errorResponse('Request failed', error);
+    // Check if it's authentication error
+    if (error.message && error.message.includes('API key')) {
+      return errorResponse('Authentication failed: ' + error.message, error);
+    }
+    return errorResponse('Request failed: ' + error.message, error);
   }
 }
 
