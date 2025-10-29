@@ -301,29 +301,53 @@ const AddUserModal = ({
             </p>
           </div>
 
-          {/* Zalo and Gmail - 2 fields per row */}
+          {/* Company and Zalo - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Company - LOCKED */}
+            {/* Company - Dropdown for Super Admin, Locked for others */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Công ty' : 'Company'} *
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={displayCompanyName}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed pr-10"
-                  disabled={true}
-                  readOnly
-                />
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+              
+              {currentUser?.role === 'super_admin' ? (
+                // Super Admin: Can select company from dropdown
+                <select
+                  required
+                  value={userData.company}
+                  onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading}
+                >
+                  <option value="">{language === 'vi' ? 'Chọn công ty' : 'Select company'}</option>
+                  {companies.map(company => (
+                    <option key={company.id} value={company.id}>
+                      {language === 'vi' ? (company.name_vn || company.name_en) : (company.name_en || company.name_vn)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                // Other users: Locked to their company
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={displayCompanyName}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed pr-10"
+                    disabled={true}
+                    readOnly
+                  />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
+              )}
+              
               <p className="text-xs text-gray-500 mt-1">
-                {language === 'vi' ? '🔒 Thuộc công ty của bạn' : '🔒 Belongs to your company'}
+                {currentUser?.role === 'super_admin' 
+                  ? (language === 'vi' ? '👑 Super Admin có thể chọn công ty' : '👑 Super Admin can select company')
+                  : (language === 'vi' ? '🔒 Thuộc công ty của bạn' : '🔒 Belongs to your company')
+                }
               </p>
             </div>
 
