@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 // Pages
 import LoginPage from '../pages/LoginPage';
 import HomePage from '../pages/HomePage';
-import ShipCertificatesPage from '../pages/ShipCertificatesPage';
+import ClassAndFlagCert from '../pages/ClassAndFlagCert';
 
 // Loading component
 const LoadingScreen = () => (
