@@ -79,18 +79,16 @@ const SystemGoogleDriveModal = ({ onClose }) => {
 
     try {
       setOauthLoading(true);
-      const oauthConfig = {
-        client_id: config.client_id,
-        client_secret: config.client_secret,
-        redirect_uri: `${window.location.origin}/oauth2callback`,
-        folder_id: config.folder_id
-      };
+      const response = await gdriveService.authorizeOAuth(
+        config.client_id,
+        config.client_secret,
+        `${window.location.origin}/oauth2callback`,
+        config.folder_id
+      );
 
-      const response = await axios.post(`${API}/gdrive/oauth/authorize`, oauthConfig);
-
-      if (response.data.success && response.data.authorization_url) {
-        sessionStorage.setItem('oauth_state', response.data.state);
-        window.location.href = response.data.authorization_url;
+      if (response.success && response.authorization_url) {
+        sessionStorage.setItem('oauth_state', response.state);
+        window.location.href = response.authorization_url;
       } else {
         toast.error('Failed to generate authorization URL');
       }
