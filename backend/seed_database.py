@@ -43,10 +43,10 @@ async def seed_database():
     existing_company = await db.companies.find_one({"code": "AMCSC"})
     if not existing_company:
         await db.companies.insert_one(company)
-        print(f"✅ Created company: {company['name']} (ID: {company_id})")
+        print(f"✅ Created company: {company['name_en']} (ID: {company_id})")
     else:
         company_id = existing_company['id']
-        print(f"ℹ️  Company already exists: {existing_company['name']} (ID: {company_id})")
+        print(f"ℹ️  Company already exists: {existing_company.get('name_en', existing_company.get('name'))} (ID: {company_id})")
     
     # 2. Create test admin user (admin role)
     password_admin1 = "123456"
