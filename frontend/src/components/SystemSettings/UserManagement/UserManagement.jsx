@@ -36,6 +36,10 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   
   // New user data
+  // State for edit user modal
+  const [showEditUser, setShowEditUser] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
   const [newUserData, setNewUserData] = useState({
     username: '',
     email: '',
