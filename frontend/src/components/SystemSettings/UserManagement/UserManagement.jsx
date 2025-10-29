@@ -345,7 +345,9 @@ const UserManagement = () => {
           language={language}
           canEditUser={canEditUser}
           canDeleteUser={canDeleteUser}
+          onEditUser={handleEditUser}
           onDeleteUser={handleDeleteUser}
+          companies={companies}
         />
       )}
 
