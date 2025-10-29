@@ -18,7 +18,8 @@ class CompanyManagementTester:
         self.session = requests.Session()
         self.access_token = None
         self.user_data = None
-        self.created_user_id = None
+        self.created_company_id = None
+        self.amcsc_company_id = None
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
