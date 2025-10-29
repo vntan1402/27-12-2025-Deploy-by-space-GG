@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-GET /api/companies/{company_id} Endpoint Testing Script
-Tests the newly implemented GET company by ID endpoint as specified in review request
+DELETE Company Validation Testing Script
+Tests the DELETE company validation logic that prevents deleting companies with ships
 
-FOCUS: Test the GET /api/companies/{company_id} endpoint that was previously returning 405 Method Not Allowed
-Expected: Endpoint should now return 200 OK with company data, proper 404/401 handling
+FOCUS: Test the DELETE /api/companies/{company_id} endpoint validation logic
+Expected: Should return 400 error with detailed message if company has ships, 200 OK if no ships
 """
 
 import requests
