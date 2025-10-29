@@ -45,7 +45,7 @@ const AppRoutes = () => {
           path="/certificates"
           element={
             <ProtectedRoute>
-              <ShipCertificatesPage />
+              <ClassAndFlagCert />
             </ProtectedRoute>
           }
         />
