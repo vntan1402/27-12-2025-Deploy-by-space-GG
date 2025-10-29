@@ -119,6 +119,11 @@ const SystemGoogleDriveModal = ({ onClose }) => {
           web_app_url: config.web_app_url,
           folder_id: config.folder_id
         };
+        
+        // Add API key if provided
+        if (config.api_key) {
+          payload.api_key = config.api_key;
+        }
       } else if (authMethod === 'oauth') {
         if (!config.client_id || !config.client_secret || !config.folder_id) {
           toast.error('Please fill in all required fields');
