@@ -414,6 +414,17 @@ class DeleteCompanyValidationTester:
             if companies_response.status_code == 200:
                 companies = companies_response.json()
                 
+                # Print all companies and their IDs for debugging
+                print(f"\n🔍 Available companies:")
+                for company in companies:
+                    company_id = company.get('id')
+                    company_name = company.get('name_en', company.get('name', ''))
+                    print(f"   - {company_name} (ID: {company_id})")
+                
+                print(f"\n🔍 Companies with ships:")
+                for company_id in companies_with_ships:
+                    print(f"   - {company_id}")
+                
                 # Look for AMCSC first
                 for company in companies:
                     company_name = company.get('name_en', company.get('name', ''))
@@ -434,6 +445,37 @@ class DeleteCompanyValidationTester:
                             target_company_id = company_id
                             target_company_name = company_name
                             break
+                
+                # If still no match, let's check if we can find the company by looking up the ship's company ID
+                if not target_company_id and companies_with_ships:
+                    # Get the first company ID that has ships
+                    ship_company_id = companies_with_ships[0]
+                    
+                    # Try to get this company by ID directly
+                    print(f"\n🔍 Trying to get company by ID: {ship_company_id}")
+                    company_by_id_response = self.session.get(
+                        f"{BACKEND_URL}/companies/{ship_company_id}",
+                        headers=headers
+                    )
+                    
+                    if company_by_id_response.status_code == 200:
+                        company_data = company_by_id_response.json()
+                        target_company_id = company_data.get('id')
+                        target_company_name = company_data.get('name_en', company_data.get('name', 'Unknown'))
+                        print(f"✅ Found company by ID: {target_company_name} ({target_company_id})")
+                    else:
+                        print(f"❌ Could not get company by ID {ship_company_id}: {company_by_id_response.status_code}")
+                        # As a last resort, let's use the AMCSC company even if it doesn't have ships in our test
+                        # We'll create a ship for it first
+                        for company in companies:
+                            company_name = company.get('name_en', company.get('name', ''))
+                            if 'AMCSC' in company_name.upper():
+                                target_company_id = company.get('id')
+                                target_company_name = company_name
+                                print(f"🔄 Using AMCSC company for testing: {target_company_name} ({target_company_id})")
+                                # We'll need to create a test ship for this company
+                                self.create_test_ship_for_company(target_company_id, target_company_name, headers)
+                                break
             
             if not target_company_id:
                 self.print_result(False, "Could not find a company with ships to test deletion")
