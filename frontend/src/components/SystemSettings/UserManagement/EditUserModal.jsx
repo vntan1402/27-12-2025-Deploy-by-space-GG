@@ -39,8 +39,7 @@ const EditUserModal = ({
         department: Array.isArray(user.department) ? user.department : (user.department ? [user.department] : []),  // Convert to array if needed
         company: user.company || '',
         ship: user.ship || '',
-        zalo: user.zalo || '',
-        gmail: user.gmail || ''
+        zalo: user.zalo || ''
       });
     }
   }, [user]);
