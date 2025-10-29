@@ -118,97 +118,42 @@ class AIConfigTester:
             self.print_result(False, f"Exception during authentication test: {str(e)}")
             return False
     
-    def test_get_all_companies(self):
-        """Test 1: Get All Companies (GET /api/companies)"""
-        self.print_test_header("Test 1 - Get All Companies")
-        
-        if not self.access_token:
-            self.print_result(False, "No access token available from authentication test")
-            return False
+    def test_get_ai_config_without_auth(self):
+        """Test 1: GET /api/ai-config without authentication (should return 401)"""
+        self.print_test_header("Test 1 - GET AI Config Without Authentication")
         
         try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
+            print(f"📡 GET {BACKEND_URL}/ai-config")
+            print(f"🎯 Testing without Authorization header - should return 401")
             
-            print(f"📡 GET {BACKEND_URL}/companies")
-            
-            # Make request to companies endpoint
+            # Make request without authorization header
             response = self.session.get(
-                f"{BACKEND_URL}/companies",
-                headers=headers
+                f"{BACKEND_URL}/ai-config",
+                headers={"Content-Type": "application/json"}
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 200:
-                companies_data = response.json()
-                print(f"📄 Response Type: {type(companies_data)}")
-                
-                if not isinstance(companies_data, list):
-                    self.print_result(False, f"Expected list response, got: {type(companies_data)}")
-                    return False
-                
-                print(f"🏢 Number of companies returned: {len(companies_data)}")
-                
-                # Look for AMCSC company and verify required fields
-                amcsc_found = False
-                for i, company in enumerate(companies_data):
-                    print(f"\n🏢 Company {i+1}: {company.get('name_en', company.get('name', 'Unknown'))}")
-                    print(f"   ID: {company.get('id', 'N/A')}")
-                    print(f"   Name VN: {company.get('name_vn', 'N/A')}")
-                    print(f"   Name EN: {company.get('name_en', 'N/A')}")
-                    print(f"   Address VN: {company.get('address_vn', 'N/A')}")
-                    print(f"   Address EN: {company.get('address_en', 'N/A')}")
-                    print(f"   Tax ID: {company.get('tax_id', 'N/A')}")
-                    print(f"   Code: {company.get('code', 'N/A')}")
-                    print(f"   Email: {company.get('email', 'N/A')}")
-                    print(f"   Phone: {company.get('phone', 'N/A')}")
-                    print(f"   Gmail: {company.get('gmail', 'N/A')}")
-                    print(f"   Zalo: {company.get('zalo', 'N/A')}")
-                    print(f"   Logo URL: {company.get('logo_url', 'N/A')}")
-                    print(f"   System Expiry: {company.get('system_expiry', 'N/A')}")
-                    print(f"   Created At: {company.get('created_at', 'N/A')}")
-                    print(f"   Updated At: {company.get('updated_at', 'N/A')}")
-                    print(f"   Is Active: {company.get('is_active', 'N/A')}")
-                    
-                    # Check if this is AMCSC company
-                    if 'AMCSC' in str(company.get('name_en', '')).upper() or 'AMCSC' in str(company.get('code', '')).upper():
-                        amcsc_found = True
-                        self.amcsc_company_id = company.get('id')
-                        print(f"   ✅ AMCSC Company Found!")
-                    
-                    # Verify required fields are present
-                    required_fields = ["id", "name_vn", "name_en", "address_vn", "address_en", "tax_id", 
-                                     "code", "email", "phone", "gmail", "zalo", "logo_url", "system_expiry", 
-                                     "created_at", "updated_at", "is_active"]
-                    missing_fields = []
-                    
-                    for field in required_fields:
-                        if field not in company:
-                            missing_fields.append(field)
-                    
-                    if missing_fields:
-                        print(f"   ⚠️ Missing fields: {missing_fields}")
-                
-                if not amcsc_found:
-                    self.print_result(False, "AMCSC company not found in companies list")
-                    return False
-                
-                self.print_result(True, f"Companies list retrieved successfully - {len(companies_data)} companies found, AMCSC company verified with all required fields")
-                return True
-                
-            else:
+            if response.status_code == 401:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Companies API failed with status {response.status_code}: {error_data}")
+                    print(f"📄 Error Response: {error_data}")
+                    self.print_result(True, "✅ GET /api/ai-config without auth correctly returns 401 Unauthorized")
+                    return True
                 except:
-                    self.print_result(False, f"Companies API failed with status {response.status_code}: {response.text}")
+                    print(f"📄 Error Response (raw): {response.text}")
+                    self.print_result(True, "✅ GET /api/ai-config without auth correctly returns 401 Unauthorized")
+                    return True
+            else:
+                try:
+                    response_data = response.json()
+                    self.print_result(False, f"❌ Expected 401, got {response.status_code}: {response_data}")
+                except:
+                    self.print_result(False, f"❌ Expected 401, got {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during get companies test: {str(e)}")
+            self.print_result(False, f"Exception during GET AI config without auth test: {str(e)}")
             return False
     
     def test_get_company_by_id(self):
