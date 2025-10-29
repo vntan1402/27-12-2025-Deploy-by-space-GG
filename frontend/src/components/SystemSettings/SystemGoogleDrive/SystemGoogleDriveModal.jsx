@@ -102,23 +102,18 @@ const SystemGoogleDriveModal = ({ onClose }) => {
 
   const handleSave = async () => {
     try {
-      let endpoint;
-      let payload;
-
       if (authMethod === 'apps_script') {
         if (!config.web_app_url || !config.folder_id) {
           toast.error('Please fill in all required fields');
           return;
         }
-        endpoint = '/gdrive/configure-proxy';
-        payload = {
-          web_app_url: config.web_app_url,
-          folder_id: config.folder_id
-        };
+        const response = await gdriveService.configureProxy(config.web_app_url, config.folder_id);
         
-        // Add API key if provided
-        if (config.api_key) {
-          payload.api_key = config.api_key;
+        if (response.success) {
+          toast.success('Google Drive configured successfully!');
+          onClose();
+        } else {
+          toast.error(response.message || 'Configuration failed');
         }
       } else if (authMethod === 'oauth') {
         if (!config.client_id || !config.client_secret || !config.folder_id) {
@@ -134,17 +129,15 @@ const SystemGoogleDriveModal = ({ onClose }) => {
           toast.error('Please fill in all required fields');
           return;
         }
-        endpoint = '/gdrive/configure';
-        payload = {
-          service_account_json: config.service_account_json,
-          folder_id: config.folder_id
-        };
+        const response = await gdriveService.configure(config.service_account_json, config.folder_id);
+        
+        if (response.success) {
+          toast.success('Google Drive configured successfully!');
+          onClose();
+        } else {
+          toast.error(response.message || 'Configuration failed');
+        }
       }
-
-      const response = await axios.post(`${API}${endpoint}`, payload);
-      
-      toast.success('Google Drive configured successfully!');
-      onClose();
     } catch (error) {
       console.error('Google Drive configuration error:', error);
       toast.error(`Failed to configure Google Drive: ${error.response?.data?.detail || error.message}`);
