@@ -3988,16 +3988,25 @@ async def delete_company(company_id: str, current_user: UserResponse = Depends(c
         
         # Check if there are any ships associated with this company (by ID or name)
         company_name = existing_company.get('name', '')
+        company_name_vn = existing_company.get('name_vn', '')
+        company_name_en = existing_company.get('name_en', '')
+        
         ships_by_id = await mongo_db.find_all("ships", {"company": company_id})
         ships_by_name = await mongo_db.find_all("ships", {"company": company_name})
         total_ships = len(ships_by_id) + len(ships_by_name)
         
         if total_ships > 0:
             ship_names = [ship.get('name', 'Unknown') for ship in ships_by_id + ships_by_name]
-            raise HTTPException(
-                status_code=400, 
-                detail=f"Cannot delete company. There are {total_ships} ships associated with this company: {', '.join(ship_names)}. Please delete or reassign the ships first."
+            ship_list = ', '.join(ship_names[:5])  # Show first 5 ships
+            if total_ships > 5:
+                ship_list += f", and {total_ships - 5} more"
+            
+            error_msg = (
+                f"Cannot delete company '{company_name_vn or company_name_en or company_name}'. "
+                f"There are {total_ships} ships associated with this company: {ship_list}. "
+                f"Please delete or reassign all ships before deleting the company."
             )
+            raise HTTPException(status_code=400, detail=error_msg)
         
         # Check if there are any users associated with this company
         users_with_company = await mongo_db.find_all("users", {"company": company_id})
