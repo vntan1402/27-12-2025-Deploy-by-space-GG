@@ -834,15 +834,31 @@ class CompanyManagementTester:
             test_results.append(("Test 1 - Get All Companies", False))
             result_get_all = False
         
-        # Test 2: Get Company by ID (only if authentication succeeded)
-        if result_auth:
+        # Test 2: Get AMCSC Company by ID (only if authentication and get all companies succeeded)
+        if result_auth and result_get_all:
             result_get_by_id = self.test_get_company_by_id()
-            test_results.append(("Test 2 - Get Company by ID", result_get_by_id))
+            test_results.append(("Test 2 - Get AMCSC Company by ID", result_get_by_id))
         else:
-            print(f"\n⚠️ Skipping Get Company by ID - authentication failed")
-            test_results.append(("Test 2 - Get Company by ID", False))
+            print(f"\n⚠️ Skipping Get Company by ID - authentication or get companies failed")
+            test_results.append(("Test 2 - Get AMCSC Company by ID", False))
         
-        # Test 3: Create New Company (only if authentication succeeded)
+        # Test 3: Get Non-existent Company (only if authentication succeeded)
+        if result_auth:
+            result_get_nonexistent = self.test_get_nonexistent_company()
+            test_results.append(("Test 3 - Get Non-existent Company (404)", result_get_nonexistent))
+        else:
+            print(f"\n⚠️ Skipping Get Non-existent Company - authentication failed")
+            test_results.append(("Test 3 - Get Non-existent Company (404)", False))
+        
+        # Test 4: Get Company Without Authentication
+        if result_get_all:  # Only need company ID from get all companies
+            result_get_no_auth = self.test_get_company_without_auth()
+            test_results.append(("Test 4 - Get Company Without Auth (401)", result_get_no_auth))
+        else:
+            print(f"\n⚠️ Skipping Get Company Without Auth - no company ID available")
+            test_results.append(("Test 4 - Get Company Without Auth (401)", False))
+        
+        # Test 5: Create New Company (only if authentication succeeded)
         if result_auth:
             result_create = self.test_create_new_company()
             test_results.append(("Test 3 - Create New Company", result_create))
