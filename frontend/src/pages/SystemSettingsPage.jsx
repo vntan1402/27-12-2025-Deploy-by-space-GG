@@ -10,10 +10,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { MainLayout } from '../components/Layout';
 import { UserManagement } from '../components/SystemSettings/UserManagement';
 import { CompanyManagement } from '../components/SystemSettings/CompanyManagement';
+import AIConfig from '../components/SystemSettings/AIConfig';
+import SystemGoogleDrive from '../components/SystemSettings/SystemGoogleDrive';
 
 // Import components (will be created)
-// import { SystemGoogleDrive } from '../components/SystemSettings/SystemGoogleDrive';
-// import { AIConfig } from '../components/SystemSettings/AIConfig';
 // import { AdminTools } from '../components/SystemSettings/AdminTools';
 
 const SystemSettingsPage = () => {
