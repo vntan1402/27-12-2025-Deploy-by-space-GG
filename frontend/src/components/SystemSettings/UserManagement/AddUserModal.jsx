@@ -89,9 +89,16 @@ const AddUserModal = ({
   };
 
   // Get current user's company name for display
-  const currentUserCompanyName = companies.find(c => 
-    c.name_en === currentUser?.company || c.name_vn === currentUser?.company
+  const currentUserCompany = companies.find(c => 
+    c.id === currentUser?.company || 
+    c.name_en === currentUser?.company || 
+    c.name_vn === currentUser?.company ||
+    c.name === currentUser?.company
   );
+  
+  const displayCompanyName = language === 'vi' 
+    ? (currentUserCompany?.name_vn || currentUserCompany?.name_en || currentUser?.company || '')
+    : (currentUserCompany?.name_en || currentUserCompany?.name_vn || currentUser?.company || '');
 
   return (
     <div 
