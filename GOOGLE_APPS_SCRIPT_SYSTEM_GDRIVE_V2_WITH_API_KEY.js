@@ -123,18 +123,11 @@ function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
     
-    // Log the incoming request (without exposing API key)
-    const logPayload = { ...payload };
-    if (logPayload.api_key) {
-      logPayload.api_key = '***HIDDEN***';
-    }
-    log(`📨 Incoming request`, logPayload);
-    
-    // Validate API key FIRST
-    validateApiKey(payload);
+    // Log the incoming request
+    log(`📨 Incoming request`, payload);
 
     const { action } = payload;
-    log(`✅ API Key validated, processing action: ${action}`);
+    log(`✅ Processing action: ${action}`);
 
     switch (action) {
       case 'test_connection':
