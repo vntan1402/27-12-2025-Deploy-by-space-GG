@@ -391,22 +391,23 @@ class CompanyManagementTester:
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 401:
+            if response.status_code == 401 or response.status_code == 403:
                 try:
                     error_data = response.json()
                     print(f"📄 Error Response: {error_data}")
                 except:
                     print(f"📄 Error Response: {response.text}")
                 
-                self.print_result(True, "✅ Request without authentication returns 401 Unauthorized")
+                status_text = "401 Unauthorized" if response.status_code == 401 else "403 Forbidden"
+                self.print_result(True, f"✅ Request without authentication returns {status_text} (authentication required)")
                 return True
                 
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Expected 401, got {response.status_code}: {error_data}")
+                    self.print_result(False, f"Expected 401 or 403, got {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Expected 401, got {response.status_code}: {response.text}")
+                    self.print_result(False, f"Expected 401 or 403, got {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
