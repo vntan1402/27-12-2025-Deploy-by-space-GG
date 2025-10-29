@@ -28,14 +28,14 @@ class ClassAndFlagCertTester:
         status = "✅ PASS" if success else "❌ FAIL"
         print(f"{status}: {message}")
         
-    def test_valid_login(self):
-        """Test Case 1: Login with valid credentials"""
-        self.print_test_header("Valid Login Test")
+    def test_authentication(self):
+        """Test Case 1: Authentication Test - Login with admin1@amcsc.vn / 123456"""
+        self.print_test_header("Authentication Test")
         
         try:
-            # Test data
+            # Test data - using email format as specified in review request
             login_data = {
-                "username": "admin1",
+                "username": "admin1@amcsc.vn",
                 "password": "123456",
                 "remember_me": False
             }
@@ -89,13 +89,24 @@ class ClassAndFlagCertTester:
                     self.print_result(False, f"User object missing fields: {user_missing_fields}")
                     return False
                 
+                # Verify user has role='admin' as specified in review request
+                if self.user_data.get("role") != "admin":
+                    self.print_result(False, f"Expected user role 'admin', got '{self.user_data.get('role')}'")
+                    return False
+                
+                # Verify user has company ID
+                company_id = self.user_data.get("company")
+                if not company_id:
+                    self.print_result(False, "User missing company ID")
+                    return False
+                
                 print(f"🔑 Access Token: {self.access_token[:20]}...")
                 print(f"👤 User ID: {self.user_data['id']}")
                 print(f"👤 Username: {self.user_data['username']}")
                 print(f"👤 Role: {self.user_data['role']}")
-                print(f"🏢 Company: {self.user_data.get('company', 'N/A')}")
+                print(f"🏢 Company ID: {company_id}")
                 
-                self.print_result(True, "Valid login successful with all required fields")
+                self.print_result(True, "Authentication successful - login returns access_token, user has role='admin' and company ID")
                 return True
                 
             else:
@@ -107,7 +118,7 @@ class ClassAndFlagCertTester:
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during valid login test: {str(e)}")
+            self.print_result(False, f"Exception during authentication test: {str(e)}")
             return False
     
     def test_invalid_login(self):
