@@ -38,10 +38,10 @@ class CompanyManagementTester:
         self.print_test_header("Setup - Admin Authentication")
         
         try:
-            # Test data - using super_admin / admin123 as specified in review request
+            # Test data - trying admin1 / 123456 (working credentials from previous tests)
             login_data = {
-                "username": "super_admin",
-                "password": "admin123",
+                "username": "admin1",
+                "password": "123456",
                 "remember_me": False
             }
             
