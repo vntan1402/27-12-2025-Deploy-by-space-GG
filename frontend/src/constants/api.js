@@ -115,6 +115,10 @@ export const API_ENDPOINTS = {
   COMPANIES: '/api/companies',
   COMPANY_BY_ID: (id) => `/api/companies/${id}`,
   COMPANY_LOGO: (id) => `/api/companies/${id}/logo`,
+  COMPANY_GDRIVE_CONFIG: (id) => `/api/companies/${id}/gdrive/config`,
+  COMPANY_GDRIVE_CONFIGURE: (id) => `/api/companies/${id}/gdrive/configure`,
+  COMPANY_GDRIVE_TEST_PROXY: (id) => `/api/companies/${id}/gdrive/configure-proxy`,
+  COMPANY_GDRIVE_STATUS: (id) => `/api/companies/${id}/gdrive/status`,
   
   // Users
   USERS: '/api/users',
