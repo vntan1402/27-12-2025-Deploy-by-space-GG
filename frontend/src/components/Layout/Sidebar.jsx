@@ -10,16 +10,15 @@ import { CategoryMenu } from './CategoryMenu';
 export const Sidebar = ({
   selectedCategory,
   onCategoryChange,
-  ships,
-  onShipSelect,
   onAddRecord
 }) => {
   const { language, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const t = {
-    systemSettings: language === 'vi' ? 'Cài đặt hệ thống' : 'System Settings',
-    logout: language === 'vi' ? 'Đăng xuất' : 'Log Out'
+    categoryTitle: language === 'vi' ? 'Management Categories' : 'Management Categories',
+    systemSettings: language === 'vi' ? 'System Settings' : 'System Settings',
+    logout: language === 'vi' ? 'LOG OUT' : 'LOG OUT'
   };
 
   const handleSystemSettings = () => {
@@ -39,15 +38,13 @@ export const Sidebar = ({
   return (
     <div className="bg-blue-600 rounded-xl shadow-lg p-4 text-white flex flex-col" style={{ height: 'calc(100vh - 120px)', overflow: 'visible' }}>
       <h3 className="text-lg font-semibold mb-6">
-        {language === 'vi' ? 'Danh mục quản lý' : 'Management Categories'}
+        {t.categoryTitle}
       </h3>
 
       <div className="flex-1" style={{ overflowY: 'auto', overflowX: 'visible' }}>
         <CategoryMenu
           selectedCategory={selectedCategory}
           onCategoryChange={onCategoryChange}
-          ships={ships}
-          onShipSelect={onShipSelect}
           onAddRecord={onAddRecord}
         />
       </div>
@@ -77,4 +74,5 @@ export const Sidebar = ({
       </div>
     </div>
   );
+};
 };
