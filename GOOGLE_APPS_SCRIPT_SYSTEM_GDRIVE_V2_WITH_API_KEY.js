@@ -30,13 +30,6 @@ function errorResponse(message, error = null) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// =================== 🔐 AUTHENTICATION ===================
-function validateApiKey(payload) {
-  if (!payload.api_key || payload.api_key !== API_KEY) {
-    throw new Error('Invalid or missing API key.');
-  }
-}
-
 // =================== 📂 DRIVE ACTIONS ===================
 
 // Create folder (if not exists)
