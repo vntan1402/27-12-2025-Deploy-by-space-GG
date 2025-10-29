@@ -174,7 +174,7 @@ function doGet() {
     <p>Status: <b>Active</b></p>
     <p>Root Folder ID: ${ROOT_FOLDER_ID}</p>
     <p>Timezone: ${TIMEZONE}</p>
-    <p>API Key Enabled ✅</p>
+    <p>API Key: <b>Disabled</b> ❌</p>
     <hr/>
     <p><i>Use POST requests with JSON payload to interact with the API.</i></p>
   `);
