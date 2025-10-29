@@ -149,4 +149,4 @@ const ClassAndFlagCert = () => {
   );
 };
 
-export default ShipCertificatesPage;
+export default ClassAndFlagCert;
