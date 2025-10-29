@@ -3419,10 +3419,16 @@ def check_permission(required_roles: List[UserRole]):
 @api_router.post("/auth/login", response_model=LoginResponse)
 async def login(credentials: LoginRequest):
     try:
+        # Debug logging
+        logger.info(f"🔐 Login attempt for username: {credentials.username}")
+        
         # Find user by username
         user = await mongo_db.find_one("users", {"username": credentials.username})
         if not user:
+            logger.warning(f"❌ User not found: {credentials.username}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        logger.info(f"✅ User found: {user.get('username')}")
         
         # Verify password
         if not bcrypt.checkpw(credentials.password.encode('utf-8'), user["password_hash"].encode('utf-8')):
