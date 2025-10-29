@@ -73,7 +73,7 @@ async def seed_database():
     user_2 = {
         "id": user_id_2,
         "username": "admin1",
-        "password_hash": password_hash,
+        "password_hash": password_hash_admin1,
         "email": "admin.simple@amcsc.vn",  # Different email to avoid duplicate
         "full_name": "Admin User (Simple Login)",
         "role": "admin",
@@ -88,9 +88,36 @@ async def seed_database():
     existing_user_2 = await db.users.find_one({"username": "admin1"})
     if not existing_user_2:
         await db.users.insert_one(user_2)
-        print(f"✅ Created user: {user_2['username']} (Password: {password})")
+        print(f"✅ Created user: {user_2['username']} (Password: {password_admin1})")
     else:
         print(f"ℹ️  User already exists: {existing_user_2['username']}")
+    
+    # 2c. Create super admin user
+    password_super = "admin123"
+    password_hash_super = bcrypt.hashpw(password_super.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    user_id_super = str(uuid.uuid4())
+    user_super = {
+        "id": user_id_super,
+        "username": "admin",
+        "password_hash": password_hash_super,
+        "email": "admin@amcsc.vn",
+        "full_name": "Super Admin",
+        "role": "super_admin",  # super_admin role
+        "company": company_id,
+        "department": "operations",
+        "zalo": "0123456789",
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "is_active": True
+    }
+    
+    existing_user_super = await db.users.find_one({"username": "admin"})
+    if not existing_user_super:
+        await db.users.insert_one(user_super)
+        print(f"✅ Created user: {user_super['username']} (Password: {password_super}) - Role: {user_super['role']}")
+    else:
+        print(f"ℹ️  User already exists: {existing_user_super['username']}")
     
     # 3. Create test ships
     ships_data = [
