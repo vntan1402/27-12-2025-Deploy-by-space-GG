@@ -68,6 +68,30 @@ async def seed_database():
     else:
         print(f"ℹ️  User already exists: {existing_user['username']}")
     
+    # 2b. Create second admin user with simple username
+    user_id_2 = str(uuid.uuid4())
+    user_2 = {
+        "id": user_id_2,
+        "username": "admin1",
+        "password_hash": password_hash,
+        "email": "admin1@company.local",
+        "full_name": "Admin User (Simple Login)",
+        "role": "admin",
+        "company": company_id,
+        "department": "operations",
+        "zalo": "0123456789",
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+        "is_active": True
+    }
+    
+    existing_user_2 = await db.users.find_one({"username": "admin1"})
+    if not existing_user_2:
+        await db.users.insert_one(user_2)
+        print(f"✅ Created user: {user_2['username']} (Password: {password})")
+    else:
+        print(f"ℹ️  User already exists: {existing_user_2['username']}")
+    
     # 3. Create test ships
     ships_data = [
         {
