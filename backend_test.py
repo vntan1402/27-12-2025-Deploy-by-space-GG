@@ -657,7 +657,7 @@ class CompanyManagementTester:
                     # Check if Test Company is still in the list
                     test_company_still_exists = False
                     for company in companies_data:
-                        if company.get('id') == self.created_company_id or company.get('code') == 'TEST':
+                        if company.get('id') == self.created_company_id or company.get('name_en') == 'Test Company Ltd':
                             test_company_still_exists = True
                             break
                     
