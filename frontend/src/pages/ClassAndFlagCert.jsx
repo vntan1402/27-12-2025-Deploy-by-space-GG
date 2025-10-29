@@ -27,7 +27,8 @@ const ClassAndFlagCert = () => {
   const fetchShips = async () => {
     try {
       setLoading(true);
-      const data = await shipService.getAllShips();
+      const response = await shipService.getAllShips();
+      const data = response.data; // Extract data from axios response
       setShips(data);
       
       // Auto-select first ship if available
