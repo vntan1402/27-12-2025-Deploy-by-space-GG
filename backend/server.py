@@ -13371,7 +13371,145 @@ async def sync_to_drive(current_user: UserResponse = Depends(check_permission([U
     except Exception as e:
         logger.error(f"Error syncing to Google Drive: {e}")
         raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
-    """Legacy sync endpoint - redirects to proxy version"""
+
+@api_router.post("/gdrive/sync-from-drive")
+async def sync_from_drive(
+    folder_date: str = None,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Restore collections from Google Drive backup folder"""
+    try:
+        # Get Google Drive configuration
+        config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        if not config:
+            raise HTTPException(status_code=400, detail="Google Drive not configured")
+        
+        web_app_url = config.get("web_app_url")
+        if not web_app_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Use specified folder or last backup folder
+        if not folder_date:
+            folder_date = config.get("last_backup_folder")
+            if not folder_date:
+                raise HTTPException(status_code=400, detail="No backup folder specified and no recent backup found")
+        
+        logger.info(f"🔄 Starting restore from folder: {folder_date}")
+        
+        # List files in the backup folder
+        list_payload = {
+            "action": "list_files",
+            "parent_folder_id": config.get("folder_id"),
+            "folder_name": folder_date
+        }
+        
+        list_response = requests.post(web_app_url, json=list_payload, timeout=30)
+        
+        if list_response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Failed to list backup files: {list_response.text}")
+        
+        list_result = list_response.json()
+        if not list_result.get("success"):
+            raise HTTPException(status_code=500, detail=f"Failed to list backup files: {list_result.get('error')}")
+        
+        files = list_result.get("files", [])
+        logger.info(f"📁 Found {len(files)} backup files in {folder_date}/")
+        
+        files_restored = 0
+        restore_details = []
+        
+        for file_info in files:
+            try:
+                filename = file_info.get("name")
+                file_id = file_info.get("id")
+                
+                if not filename.endswith(".json"):
+                    continue
+                
+                collection_name = filename.replace(".json", "")
+                
+                # Download file content
+                download_payload = {
+                    "action": "download_file",
+                    "file_id": file_id
+                }
+                
+                download_response = requests.post(web_app_url, json=download_payload, timeout=60)
+                
+                if download_response.status_code != 200:
+                    restore_details.append({
+                        "collection": collection_name,
+                        "status": "failed",
+                        "error": f"HTTP {download_response.status_code}"
+                    })
+                    continue
+                
+                download_result = download_response.json()
+                if not download_result.get("success"):
+                    restore_details.append({
+                        "collection": collection_name,
+                        "status": "failed",
+                        "error": download_result.get("error")
+                    })
+                    continue
+                
+                # Parse JSON content
+                content = download_result.get("content")
+                data = json.loads(content)
+                
+                if not isinstance(data, list):
+                    restore_details.append({
+                        "collection": collection_name,
+                        "status": "failed",
+                        "error": "Invalid data format (not a list)"
+                    })
+                    continue
+                
+                # Clear existing collection and insert new data
+                await mongo_db.database[collection_name].delete_many({})
+                
+                if data:
+                    await mongo_db.database[collection_name].insert_many(data)
+                    files_restored += 1
+                    restore_details.append({
+                        "collection": collection_name,
+                        "status": "restored",
+                        "records": len(data)
+                    })
+                    logger.info(f"✅ Restored {collection_name} ({len(data)} records)")
+                else:
+                    restore_details.append({
+                        "collection": collection_name,
+                        "status": "skipped",
+                        "records": 0,
+                        "note": "Empty collection"
+                    })
+                    
+            except Exception as e:
+                restore_details.append({
+                    "collection": collection_name if 'collection_name' in locals() else "unknown",
+                    "status": "failed",
+                    "error": str(e)
+                })
+                logger.error(f"❌ Failed to restore collection: {e}")
+        
+        logger.info(f"🎉 Restore completed: {files_restored}/{len(files)} collections restored from {folder_date}/")
+        
+        return {
+            "success": True,
+            "message": f"Restore completed. {files_restored} collections restored from folder '{folder_date}'",
+            "files_restored": files_restored,
+            "total_files": len(files),
+            "backup_folder": folder_date,
+            "restore_details": restore_details
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error restoring from Google Drive: {e}")
+        raise HTTPException(status_code=500, detail=f"Restore failed: {str(e)}")
+
 @api_router.post("/gdrive/configure-proxy")
 async def configure_google_drive_proxy(
     config_data: dict,
