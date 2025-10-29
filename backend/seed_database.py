@@ -74,7 +74,7 @@ async def seed_database():
         "id": user_id_2,
         "username": "admin1",
         "password_hash": password_hash,
-        "email": "admin1@amcsc.vn",  # Use same valid email domain
+        "email": "admin.simple@amcsc.vn",  # Different email to avoid duplicate
         "full_name": "Admin User (Simple Login)",
         "role": "admin",
         "company": company_id,
