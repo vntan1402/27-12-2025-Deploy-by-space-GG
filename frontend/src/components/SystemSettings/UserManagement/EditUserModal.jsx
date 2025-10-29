@@ -24,8 +24,7 @@ const EditUserModal = ({
     department: [],  // Changed to array
     company: '',
     ship: '',
-    zalo: '',
-    gmail: ''
+    zalo: ''
   });
 
   // Initialize form data when user prop changes
