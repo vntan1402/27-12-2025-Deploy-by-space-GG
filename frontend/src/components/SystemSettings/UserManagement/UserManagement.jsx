@@ -323,7 +323,19 @@ const UserManagement = () => {
   const handleUpdateUser = async (userId, updatedData) => {
     try {
       setLoading(true);
-      await userService.update(userId, updatedData);
+      
+      // Clean data: remove email if empty (to avoid validation error)
+      const dataToSend = { ...updatedData };
+      if (!dataToSend.email || dataToSend.email.trim() === '') {
+        delete dataToSend.email; // Don't send email field if empty
+      }
+      
+      // Remove password if empty (don't change password)
+      if (!dataToSend.password || dataToSend.password.trim() === '') {
+        delete dataToSend.password;
+      }
+      
+      await userService.update(userId, dataToSend);
       
       toast.success(language === 'vi' ? 'Cập nhật người dùng thành công!' : 'User updated successfully!');
       
