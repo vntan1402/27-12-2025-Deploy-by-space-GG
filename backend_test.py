@@ -478,7 +478,7 @@ class AIConfigTester:
         
         if passed == total:
             print(f"🎉 All tests passed! AI Config endpoints are working correctly.")
-            print(f"✅ GET /api/ai-config without auth returns 401 Unauthorized")
+            print(f"✅ GET /api/ai-config without auth returns 401/403 (authentication required)")
             print(f"✅ GET /api/ai-config with admin token returns current AI configuration")
             print(f"✅ POST /api/ai-config with valid payload updates configuration")
             print(f"✅ API key is properly hidden in GET responses (security)")
