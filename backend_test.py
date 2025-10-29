@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://vessel-admin.preview.emergentagent.com/api"
+BACKEND_URL = "https://ship-cert-system.preview.emergentagent.com/api"
 
 class DeleteCompanyValidationTester:
     def __init__(self):
