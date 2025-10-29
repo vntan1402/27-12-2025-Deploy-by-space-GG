@@ -13,7 +13,8 @@ async def seed_database():
     # Connect to MongoDB
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
     client = AsyncIOMotorClient(mongo_url)
-    db = client.shipmanagement
+    db_name = os.getenv('DB_NAME', 'ship_management')
+    db = client[db_name]
     
     print("🌱 Starting database seeding...")
     
