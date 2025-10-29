@@ -96,7 +96,7 @@ class CompanyManagementTester:
                 print(f"👤 Username: {self.user_data['username']}")
                 print(f"👤 Role: {self.user_data['role']}")
                 
-                self.print_result(True, "Authentication successful - super_admin login returns access_token")
+                self.print_result(True, "Authentication successful - admin1 login returns access_token")
                 return True
                 
             else:
