@@ -459,36 +459,40 @@ class ClassAndFlagCertTester:
             return False
     
     def run_all_tests(self):
-        """Run all authentication tests"""
-        print(f"🚀 Starting Backend Authentication Tests")
+        """Run all ClassAndFlagCert workflow tests"""
+        print(f"🚀 Starting ClassAndFlagCert Page Workflow Tests")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
         
         test_results = []
         
-        # Test 1: Valid Login
-        result1 = self.test_valid_login()
-        test_results.append(("Valid Login", result1))
+        # Test 1: Authentication Test
+        result1 = self.test_authentication()
+        test_results.append(("Authentication Test", result1))
         
-        # Test 2: Invalid Login
-        result2 = self.test_invalid_login()
-        test_results.append(("Invalid Login", result2))
-        
-        # Test 3: Token Authentication (only if login succeeded)
+        # Test 2: Ships API Test (only if authentication succeeded)
         if result1:
-            result3 = self.test_token_authentication()
-            test_results.append(("Token Authentication", result3))
+            result2 = self.test_ships_api()
+            test_results.append(("Ships API Test", result2))
         else:
-            print(f"\n⚠️ Skipping Token Authentication test - login failed")
-            test_results.append(("Token Authentication", False))
+            print(f"\n⚠️ Skipping Ships API test - authentication failed")
+            test_results.append(("Ships API Test", False))
         
-        # Test 4: User Data Validation (only if login succeeded)
+        # Test 3: Individual Ship Test (only if authentication succeeded)
         if result1:
-            result4 = self.test_user_data_validation()
-            test_results.append(("User Data Validation", result4))
+            result3 = self.test_individual_ship()
+            test_results.append(("Individual Ship Test", result3))
         else:
-            print(f"\n⚠️ Skipping User Data Validation test - login failed")
-            test_results.append(("User Data Validation", False))
+            print(f"\n⚠️ Skipping Individual Ship test - authentication failed")
+            test_results.append(("Individual Ship Test", False))
+        
+        # Test 4: Workflow Validation (only if authentication succeeded)
+        if result1:
+            result4 = self.test_workflow_validation()
+            test_results.append(("Workflow Validation", result4))
+        else:
+            print(f"\n⚠️ Skipping Workflow Validation test - authentication failed")
+            test_results.append(("Workflow Validation", False))
         
         # Print summary
         self.print_test_summary(test_results)
