@@ -241,19 +241,7 @@ class AIConfigTester:
             self.print_result(False, f"Exception during GET AI config with auth test: {str(e)}")
             return False
     
-    # Removed old test methods - keeping only DELETE company validation tests
-    
-    # Removed old test methods - keeping only DELETE company validation tests
-    
-    # Removed old test methods - keeping only DELETE company validation tests
-    
-    # Removed old test methods - keeping only DELETE company validation tests
-    
-    # Removed old test methods - keeping only DELETE company validation tests
-    
-    # Removed old test methods - keeping only DELETE company validation tests
-    
-    def test_get_ships(self):
+    def test_post_ai_config_with_valid_payload(self):
         """Get ships to find companies with ships"""
         self.print_test_header("Setup - Get Ships List")
         
