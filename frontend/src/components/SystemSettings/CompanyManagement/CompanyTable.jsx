@@ -142,14 +142,7 @@ const CompanyTable = ({
                   </span>
                 </td>
                 <td className="border border-gray-300 px-4 py-3">
-                  <div className="flex justify-center space-x-2 flex-wrap gap-1">
-                    <button
-                      onClick={() => onConfigureGoogleDrive(company)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs transition-all font-medium"
-                      title={language === 'vi' ? 'Cấu hình Google Drive' : 'Configure Google Drive'}
-                    >
-                      ☁️ {language === 'vi' ? 'Drive' : 'Drive'}
-                    </button>
+                  <div className="flex justify-center space-x-2">
                     <button
                       onClick={() => onEditCompany(company)}
                       disabled={!canEditCompany(company)}
