@@ -20756,9 +20756,21 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 @app.on_event("startup")
 async def startup_event():
     await mongo_db.connect()
+    
+    # Start the scheduler for auto-backup
+    scheduler.add_job(
+        auto_backup_to_google_drive,
+        CronTrigger(hour=21, minute=0),  # Run at 21:00 (9 PM) every day
+        id='auto_backup_gdrive',
+        name='Auto backup to Google Drive',
+        replace_existing=True
+    )
+    scheduler.start()
+    logger.info("✅ Scheduler started - Auto-backup will run daily at 21:00 UTC")
 
 @app.on_event("shutdown") 
 async def shutdown_event():
+    scheduler.shutdown()
     await mongo_db.disconnect()
 
 if __name__ == "__main__":
