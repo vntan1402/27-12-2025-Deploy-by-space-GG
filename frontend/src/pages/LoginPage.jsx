@@ -41,9 +41,9 @@ const LoginPage = () => {
     try {
       await login(trimmedUsername, trimmedPassword);
       
-      // Save username if remember me is checked
+      // Save username if remember me is checked (save trimmed version)
       if (rememberMe) {
-        localStorage.setItem('rememberedUsername', username);
+        localStorage.setItem('rememberedUsername', trimmedUsername);
       } else {
         localStorage.removeItem('rememberedUsername');
       }
