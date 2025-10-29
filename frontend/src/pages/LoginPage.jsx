@@ -26,7 +26,11 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!username || !password) {
+    // Trim whitespace from username and password
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim();
+    
+    if (!trimmedUsername || !trimmedPassword) {
       toast.error(language === 'vi' ? 'Vui lòng nhập đầy đủ thông tin' : 'Please fill in all fields');
       triggerShake();
       return;
@@ -35,7 +39,7 @@ const LoginPage = () => {
     setLoading(true);
     
     try {
-      await login(username, password);
+      await login(trimmedUsername, trimmedPassword);
       
       // Save username if remember me is checked
       if (rememberMe) {
