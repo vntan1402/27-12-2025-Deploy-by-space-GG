@@ -61,7 +61,7 @@ async def seed_database():
         "full_name": "Admin User",
         "role": "admin",  # lowercase to match UserRole enum
         "company": company_id,
-        "department": "operations",  # Valid Department enum value
+        "department": ["operations", "technical"],  # Changed to array
         "zalo": "0123456789",  # Required field
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
