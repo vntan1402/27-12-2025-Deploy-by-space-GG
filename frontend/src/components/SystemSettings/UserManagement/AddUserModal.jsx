@@ -260,8 +260,9 @@ const AddUserModal = ({
             </p>
           </div>
 
+          {/* Zalo and Gmail - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Company - LOCKED to current user's company */}
+            {/* Company - LOCKED */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Công ty' : 'Company'} *
@@ -273,7 +274,7 @@ const AddUserModal = ({
                     ? (currentUserCompanyName?.name_vn || currentUser?.company || '')
                     : (currentUserCompanyName?.name_en || currentUser?.company || '')
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed pr-10"
                   disabled={true}
                   readOnly
                 />
@@ -284,32 +285,10 @@ const AddUserModal = ({
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {language === 'vi' ? '🔒 Người dùng mới sẽ thuộc công ty của bạn' : '🔒 New user will belong to your company'}
+                {language === 'vi' ? '🔒 Thuộc công ty của bạn' : '🔒 Belongs to your company'}
               </p>
             </div>
 
-            {/* Ship */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tàu' : 'Ship'}
-              </label>
-              <select
-                value={userData.ship}
-                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={loading}
-              >
-                <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
-                {ships.map(ship => (
-                  <option key={ship.id} value={ship.name}>
-                    {ship.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
             {/* Zalo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -325,21 +304,21 @@ const AddUserModal = ({
                 disabled={loading}
               />
             </div>
+          </div>
 
-            {/* Gmail */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gmail
-              </label>
-              <input
-                type="email"
-                value={userData.gmail}
-                onChange={(e) => setUserData(prev => ({ ...prev, gmail: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="user@gmail.com"
-                disabled={loading}
-              />
-            </div>
+          {/* Gmail - Single field */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Gmail
+            </label>
+            <input
+              type="email"
+              value={userData.gmail}
+              onChange={(e) => setUserData(prev => ({ ...prev, gmail: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="user@gmail.com"
+              disabled={loading}
+            />
           </div>
 
           {/* Action Buttons */}
