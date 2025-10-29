@@ -279,91 +279,258 @@ class UserManagementTester:
             self.print_result(False, f"Exception during user creation test: {str(e)}")
             return False
     
-    def test_workflow_validation(self):
-        """Test Case 4: Validate complete ClassAndFlagCert workflow"""
-        self.print_test_header("Workflow Validation Test")
+    def test_verify_created_user(self):
+        """Test 2: Verify Created User - GET /api/users to list all users and verify testviewer1 is in the list"""
+        self.print_test_header("Test 2 - Verify Created User")
         
-        if not self.user_data or not self.access_token:
-            self.print_result(False, "Missing user data or access token from authentication test")
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        if not self.created_user_id:
+            self.print_result(False, "No created user ID available from user creation test")
             return False
         
         try:
-            print(f"🔍 Validating complete ClassAndFlagCert workflow...")
-            
-            # Validate authentication results
-            print(f"✅ Authentication: User '{self.user_data.get('username')}' with role '{self.user_data.get('role')}'")
-            
-            # Validate authorization
-            if self.user_data.get("role") != "admin":
-                self.print_result(False, f"User role validation failed - expected 'admin', got '{self.user_data.get('role')}'")
-                return False
-            
-            # Validate company assignment
-            company_id = self.user_data.get("company")
-            if not company_id:
-                self.print_result(False, "User missing company assignment")
-                return False
-            
-            print(f"✅ Authorization: Admin role confirmed")
-            print(f"✅ Company Assignment: {company_id}")
-            
-            # Test ships endpoint accessibility with authentication
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json"
             }
             
-            print(f"🔍 Testing ships endpoint accessibility...")
-            response = self.session.get(f"{BACKEND_URL}/ships", headers=headers)
+            print(f"📡 GET {BACKEND_URL}/users")
+            print(f"🔍 Looking for testviewer1 in user list...")
             
-            if response.status_code != 200:
-                self.print_result(False, f"Ships endpoint not accessible: {response.status_code}")
-                return False
+            # Make request to users endpoint
+            response = self.session.get(
+                f"{BACKEND_URL}/users",
+                headers=headers
+            )
             
-            ships_data = response.json()
-            if not isinstance(ships_data, list) or len(ships_data) == 0:
-                self.print_result(False, "Ships endpoint returned invalid or empty data")
-                return False
+            print(f"📊 Response Status: {response.status_code}")
             
-            print(f"✅ Ships API: {len(ships_data)} ships accessible")
-            
-            # Validate no 500 errors occurred
-            print(f"✅ No 500 Errors: All endpoints returned valid responses")
-            
-            # Validate ship data matches seeded data expectations
-            expected_ships = ["BROTHER 36", "PACIFIC STAR", "OCEAN VOYAGER"]
-            found_ships = [ship.get('name') for ship in ships_data]
-            
-            if not all(ship in found_ships for ship in expected_ships):
-                self.print_result(False, f"Ship data doesn't match seeded data - expected {expected_ships}, found {found_ships}")
-                return False
-            
-            print(f"✅ Seeded Data: All expected ships present")
-            
-            # Validate no validation errors in responses
-            for ship in ships_data:
-                required_fields = ["id", "name", "imo", "ship_type", "flag", "company"]
-                missing_fields = [field for field in required_fields if field not in ship or ship[field] is None]
-                if missing_fields:
-                    self.print_result(False, f"Validation errors in ship data - missing fields: {missing_fields}")
+            if response.status_code == 200:
+                users_data = response.json()
+                print(f"📄 Response Type: {type(users_data)}")
+                
+                if not isinstance(users_data, list):
+                    self.print_result(False, f"Expected list response, got: {type(users_data)}")
                     return False
-            
-            print(f"✅ Data Validation: No validation errors in responses")
-            
-            # Print workflow summary
-            print(f"\n📋 ClassAndFlagCert Workflow Summary:")
-            print(f"   🔐 Authentication: SUCCESS (admin1@amcsc.vn)")
-            print(f"   👤 User Role: {self.user_data.get('role')} (ADMIN)")
-            print(f"   🏢 Company: {company_id}")
-            print(f"   🚢 Ships Available: {len(ships_data)}")
-            print(f"   📊 Data Quality: All required fields present")
-            print(f"   🚫 Error Rate: 0% (no 500 errors)")
-            
-            self.print_result(True, "ClassAndFlagCert workflow validation successful - all components working correctly")
-            return True
-            
+                
+                print(f"👥 Total users in list: {len(users_data)}")
+                
+                # Look for testviewer1 in the list
+                testviewer1_found = False
+                testviewer1_data = None
+                
+                for user in users_data:
+                    if user.get('username') == 'testviewer1':
+                        testviewer1_found = True
+                        testviewer1_data = user
+                        break
+                
+                if not testviewer1_found:
+                    self.print_result(False, "testviewer1 not found in users list")
+                    return False
+                
+                # Verify testviewer1 has correct role
+                if testviewer1_data.get('role') != 'viewer':
+                    self.print_result(False, f"testviewer1 role mismatch: expected 'viewer', got '{testviewer1_data.get('role')}'")
+                    return False
+                
+                # Verify testviewer1 has correct ID
+                if testviewer1_data.get('id') != self.created_user_id:
+                    self.print_result(False, f"testviewer1 ID mismatch: expected '{self.created_user_id}', got '{testviewer1_data.get('id')}'")
+                    return False
+                
+                # Print testviewer1 details from list
+                print(f"\n👤 Found testviewer1 in users list:")
+                print(f"   ID: {testviewer1_data['id']}")
+                print(f"   Username: {testviewer1_data['username']}")
+                print(f"   Email: {testviewer1_data.get('email', 'N/A')}")
+                print(f"   Full Name: {testviewer1_data.get('full_name', 'N/A')}")
+                print(f"   Role: {testviewer1_data['role']}")
+                print(f"   Department: {testviewer1_data.get('department', 'N/A')}")
+                print(f"   Company: {testviewer1_data.get('company', 'N/A')}")
+                
+                self.print_result(True, "testviewer1 found in users list with correct role 'viewer'")
+                return True
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Users list API failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Users list API failed with status {response.status_code}: {response.text}")
+                return False
+                
         except Exception as e:
-            self.print_result(False, f"Exception during workflow validation: {str(e)}")
+            self.print_result(False, f"Exception during verify created user test: {str(e)}")
+            return False
+    
+    def test_update_user(self):
+        """Test 3: Update User (PUT /api/users/{user_id}) - Update testviewer1 full_name"""
+        self.print_test_header("Test 3 - Update User")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        if not self.created_user_id:
+            self.print_result(False, "No created user ID available from user creation test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Update data - change full_name as specified in review request
+            update_data = {
+                "full_name": "Updated Viewer Name"
+            }
+            
+            print(f"📡 PUT {BACKEND_URL}/users/{self.created_user_id}")
+            print(f"📄 Updating user full_name to: '{update_data['full_name']}'")
+            
+            # Make request to update user
+            response = self.session.put(
+                f"{BACKEND_URL}/users/{self.created_user_id}",
+                json=update_data,
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                user_response = response.json()
+                print(f"📄 Response Type: {type(user_response)}")
+                
+                if not isinstance(user_response, dict):
+                    self.print_result(False, f"Expected dict response, got: {type(user_response)}")
+                    return False
+                
+                # Verify update was successful
+                if user_response.get('full_name') != update_data['full_name']:
+                    self.print_result(False, f"Full name update failed: expected '{update_data['full_name']}', got '{user_response.get('full_name')}'")
+                    return False
+                
+                # Verify other fields remain unchanged
+                if user_response.get('username') != 'testviewer1':
+                    self.print_result(False, f"Username changed unexpectedly: got '{user_response.get('username')}'")
+                    return False
+                
+                if user_response.get('role') != 'viewer':
+                    self.print_result(False, f"Role changed unexpectedly: got '{user_response.get('role')}'")
+                    return False
+                
+                # Print updated user details
+                print(f"\n👤 Updated User Details:")
+                print(f"   ID: {user_response['id']}")
+                print(f"   Username: {user_response['username']}")
+                print(f"   Email: {user_response.get('email', 'N/A')}")
+                print(f"   Full Name: {user_response['full_name']} ✅ UPDATED")
+                print(f"   Role: {user_response['role']}")
+                print(f"   Department: {user_response.get('department', 'N/A')}")
+                
+                if 'updated_at' in user_response:
+                    print(f"   Updated At: {user_response['updated_at']}")
+                
+                self.print_result(True, "User update successful - full_name changed to 'Updated Viewer Name'")
+                return True
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"User update failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"User update failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during user update test: {str(e)}")
+            return False
+    
+    def test_delete_user(self):
+        """Test 4: Delete User (DELETE /api/users/{user_id}) - Delete testviewer1"""
+        self.print_test_header("Test 4 - Delete User")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        if not self.created_user_id:
+            self.print_result(False, "No created user ID available from user creation test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 DELETE {BACKEND_URL}/users/{self.created_user_id}")
+            print(f"🗑️ Deleting testviewer1 user...")
+            
+            # Make request to delete user
+            response = self.session.delete(
+                f"{BACKEND_URL}/users/{self.created_user_id}",
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200 or response.status_code == 204:
+                # Check if response has content
+                if response.status_code == 200:
+                    try:
+                        delete_response = response.json()
+                        print(f"📄 Delete Response: {delete_response}")
+                    except:
+                        print(f"📄 Delete Response: No JSON content")
+                else:
+                    print(f"📄 Delete Response: 204 No Content (successful)")
+                
+                # Verify user is actually deleted by trying to get users list
+                print(f"\n🔍 Verifying user deletion by checking users list...")
+                
+                list_response = self.session.get(
+                    f"{BACKEND_URL}/users",
+                    headers=headers
+                )
+                
+                if list_response.status_code == 200:
+                    users_data = list_response.json()
+                    
+                    # Check if testviewer1 is still in the list
+                    testviewer1_still_exists = False
+                    for user in users_data:
+                        if user.get('id') == self.created_user_id or user.get('username') == 'testviewer1':
+                            testviewer1_still_exists = True
+                            break
+                    
+                    if testviewer1_still_exists:
+                        self.print_result(False, "testviewer1 still exists in users list after deletion")
+                        return False
+                    
+                    print(f"✅ Verification: testviewer1 no longer in users list ({len(users_data)} users remaining)")
+                    
+                else:
+                    print(f"⚠️ Could not verify deletion - users list request failed: {list_response.status_code}")
+                
+                self.print_result(True, "User deletion successful - testviewer1 removed from system")
+                return True
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"User deletion failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"User deletion failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during user deletion test: {str(e)}")
             return False
     
     def run_all_tests(self):
