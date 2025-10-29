@@ -179,8 +179,8 @@ const UserManagement = () => {
    */
   const handleAddUser = async () => {
     try {
-      // Validate required fields
-      if (!newUserData.username || !newUserData.email || !newUserData.password || !newUserData.full_name) {
+      // Validate required fields (email is optional now)
+      if (!newUserData.username || !newUserData.password || !newUserData.full_name || !newUserData.zalo) {
         toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields');
         return;
       }
@@ -203,11 +203,10 @@ const UserManagement = () => {
         password: '',
         full_name: '',
         role: 'viewer',
-        department: 'technical',
+        department: [],  // Array
         company: '',
         ship: '',
-        zalo: '',
-        gmail: ''
+        zalo: ''
       });
       
       setShowAddUser(false);
