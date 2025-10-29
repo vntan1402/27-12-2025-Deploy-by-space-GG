@@ -163,10 +163,6 @@ function doPost(e) {
         throw new Error(`Unknown action: ${action}`);
     }
   } catch (error) {
-    // Check if it's authentication error
-    if (error.message && error.message.includes('API key')) {
-      return errorResponse('Authentication failed: ' + error.message, error);
-    }
     return errorResponse('Request failed: ' + error.message, error);
   }
 }
