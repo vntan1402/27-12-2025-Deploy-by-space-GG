@@ -410,8 +410,6 @@ class AIConfigTester:
             return False
     
     def run_all_tests(self):
-    
-    def test_delete_company_with_ships(self, companies_with_ships):
         """Test 1: Try to delete a company that has ships (should fail with 400)"""
         self.print_test_header("Test 1 - Delete Company WITH Ships (Should Fail)")
         
