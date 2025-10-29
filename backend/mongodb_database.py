@@ -186,6 +186,16 @@ class MongoDatabase:
             logger.error(f"Error counting documents in {collection}: {e}")
             raise
 
+    async def list_collections(self) -> List[str]:
+        """List all collection names in the database"""
+        try:
+            collection_names = await self.database.list_collection_names()
+            # Filter out system collections
+            return [name for name in collection_names if not name.startswith('system.')]
+        except Exception as e:
+            logger.error(f"Error listing collections: {e}")
+            raise
+
     # Specialized methods for common operations
     async def find_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
         """Find user by username"""
