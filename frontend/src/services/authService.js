@@ -8,12 +8,9 @@ export const authService = {
    * Login user
    */
   login: async (username, password) => {
-    const formData = new FormData();
-    formData.append('username', username);
-    formData.append('password', password);
-    
-    const response = await api.post('/api/auth/login', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    const response = await api.post('/api/auth/login', {
+      username,
+      password
     });
     
     return response;
