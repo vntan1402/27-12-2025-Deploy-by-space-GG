@@ -53,8 +53,7 @@ const UserManagement = () => {
     department: [],  // Changed to array
     company: '',
     ship: '',
-    zalo: '',
-    gmail: ''
+    zalo: ''
   });
 
   // Fetch data on mount
