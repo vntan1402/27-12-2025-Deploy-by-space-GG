@@ -6,15 +6,8 @@ const HomePage = () => {
   const { language } = useAuth();
   
   // State management
-  const [selectedCategory, setSelectedCategory] = useState('crew');
-  const [selectedSubMenu, setSelectedSubMenu] = useState('crew_list');
-  const [ships, setShips] = useState([
-    // Mock data for demonstration
-    { id: '1', name: 'PACIFIC OCEAN', flag: 'Panama', class_society: 'BV' },
-    { id: '2', name: 'ATLANTIC STAR', flag: 'Liberia', class_society: 'DNV' },
-    { id: '3', name: 'INDIAN PEARL', flag: 'Marshall Islands', class_society: 'ABS' },
-  ]);
-  const [selectedShip, setSelectedShip] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('ship_certificates');
+  const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
@@ -22,12 +15,8 @@ const HomePage = () => {
     setSelectedSubMenu(null);
   };
 
-  const handleShipSelect = (ship) => {
-    setSelectedShip(ship);
-  };
-
   const handleAddRecord = () => {
-    alert(language === 'vi' ? 'Chức năng thêm tàu sẽ được triển khai trong Phase 4' : 'Add ship feature will be implemented in Phase 4');
+    alert(language === 'vi' ? 'Chức năng thêm record sẽ được triển khai trong Phase 4' : 'Add record feature will be implemented in Phase 4');
   };
 
   return (
