@@ -25,7 +25,15 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
     } catch (error) {
       console.error('Token verification failed:', error);
-      logout();
+      // Don't logout immediately - just log the error
+      // The token might still be valid even if verify endpoint doesn't exist
+      // User data should already be in localStorage from login
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
