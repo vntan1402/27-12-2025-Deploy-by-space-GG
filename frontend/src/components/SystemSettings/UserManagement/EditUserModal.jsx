@@ -21,7 +21,7 @@ const EditUserModal = ({
     password: '',  // Optional - only if changing
     full_name: '',
     role: 'viewer',
-    department: 'technical',
+    department: [],  // Changed to array
     company: '',
     ship: '',
     zalo: '',
@@ -37,7 +37,7 @@ const EditUserModal = ({
         password: '',  // Keep empty, only fill if user wants to change
         full_name: user.full_name || '',
         role: user.role || 'viewer',
-        department: user.department || 'technical',
+        department: Array.isArray(user.department) ? user.department : (user.department ? [user.department] : []),  // Convert to array if needed
         company: user.company || '',
         ship: user.ship || '',
         zalo: user.zalo || '',
@@ -54,12 +54,19 @@ const EditUserModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate at least one department is selected
+    if (!userData.department || userData.department.length === 0) {
+      alert(language === 'vi' ? 'Vui lòng chọn ít nhất một phòng ban' : 'Please select at least one department');
+      return;
+    }
+    
     // Pass userId and userData to parent
     onSubmit(user.id, userData);
   };
 
   /**
-   * Get department options
+   * Get department options with DPA and Supply
    */
   const departmentOptions = [
     { value: 'technical', label: language === 'vi' ? 'Kỹ thuật' : 'Technical' },
@@ -67,8 +74,29 @@ const EditUserModal = ({
     { value: 'safety', label: language === 'vi' ? 'An toàn' : 'Safety' },
     { value: 'commercial', label: language === 'vi' ? 'Thương mại' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
-    { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' }
+    { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
+    { value: 'dpa', label: 'DPA' },
+    { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
+
+  /**
+   * Handle department checkbox change
+   */
+  const handleDepartmentChange = (deptValue) => {
+    const currentDepts = userData.department || [];
+    const isChecked = currentDepts.includes(deptValue);
+    
+    let newDepts;
+    if (isChecked) {
+      // Remove department
+      newDepts = currentDepts.filter(d => d !== deptValue);
+    } else {
+      // Add department
+      newDepts = [...currentDepts, deptValue];
+    }
+    
+    setUserData(prev => ({ ...prev, department: newDepts }));
+  };
 
   /**
    * Get role display name
