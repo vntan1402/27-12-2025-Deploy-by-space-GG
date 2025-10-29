@@ -6,9 +6,15 @@ import uuid
 from datetime import datetime, timezone
 import sys
 import os
+from dotenv import load_dotenv
+from pathlib import Path
 
 # Add the backend directory to Python path
 sys.path.append('/app/backend')
+
+# Load environment variables from backend/.env
+backend_dir = Path('/app/backend')
+load_dotenv(backend_dir / '.env')
 
 from mongodb_database import mongo_db
 
