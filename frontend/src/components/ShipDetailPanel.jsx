@@ -129,15 +129,15 @@ export const ShipDetailPanel = ({
               <div className="space-y-3">
                 <div>
                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 1:' : 'Last Docking 1:'}</span>
-                  <div className="mt-1">{formatDate(ship.last_docking) || '-'}</div>
+                  <div className="mt-1">{formatDateDisplay(ship.last_docking) || '-'}</div>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Docking 2:' : 'Last Docking 2:'}</span>
-                  <div className="mt-1">{formatDate(ship.last_docking_2) || '-'}</div>
+                  <div className="mt-1">{formatDateDisplay(ship.last_docking_2) || '-'}</div>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Next Docking:' : 'Next Docking:'}</span>
-                  <div className="mt-1">{formatDate(ship.next_docking) || '-'}</div>
+                  <div className="mt-1">{formatDateDisplay(ship.next_docking) || '-'}</div>
                 </div>
               </div>
               
@@ -149,11 +149,11 @@ export const ShipDetailPanel = ({
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Special Survey:' : 'Last Special Survey:'}</span>
-                  <div className="mt-1">{formatDate(ship.last_special_survey) || '-'}</div>
+                  <div className="mt-1">{formatDateDisplay(ship.last_special_survey) || '-'}</div>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Last Intermediate:' : 'Last Intermediate:'}</span>
-                  <div className="mt-1">{formatDate(ship.last_intermediate_survey) || '-'}</div>
+                  <div className="mt-1">{formatDateDisplay(ship.last_intermediate_survey) || '-'}</div>
                 </div>
               </div>
               
@@ -165,7 +165,7 @@ export const ShipDetailPanel = ({
                 </div>
                 <div>
                   <span className="font-semibold text-gray-700">{language === 'vi' ? 'Keel Laid:' : 'Keel Laid:'}</span>
-                  <div className="mt-1">{formatDate(ship.keel_laid) || '-'}</div>
+                  <div className="mt-1">{formatDateDisplay(ship.keel_laid) || '-'}</div>
                 </div>
               </div>
             </div>
