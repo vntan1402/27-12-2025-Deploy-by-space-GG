@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 // Pages
 import LoginPage from '../pages/LoginPage';
 import HomePage from '../pages/HomePage';
+import ShipCertificatesPage from '../pages/ShipCertificatesPage';
 
 // Loading component
 const LoadingScreen = () => (
@@ -37,6 +38,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/certificates"
+          element={
+            <ProtectedRoute>
+              <ShipCertificatesPage />
             </ProtectedRoute>
           }
         />
