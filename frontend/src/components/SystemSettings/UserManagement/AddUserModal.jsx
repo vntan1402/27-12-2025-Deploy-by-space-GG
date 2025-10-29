@@ -214,8 +214,8 @@ const AddUserModal = ({
             </div>
           </div>
 
-          {/* Role and Ship - 2 fields per row */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Role - Full width or with Ship based on department */}
+          <div className={isShipCrewSelected ? "grid grid-cols-2 gap-4" : ""}>
             {/* Role */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -236,25 +236,37 @@ const AddUserModal = ({
               </select>
             </div>
 
-            {/* Ship */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tàu' : 'Ship'}
-              </label>
-              <select
-                value={userData.ship}
-                onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={loading}
-              >
-                <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
-                {ships.map(ship => (
-                  <option key={ship.id} value={ship.name}>
-                    {ship.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Ship - Only show if ship_crew is selected in department */}
+            {isShipCrewSelected && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tàu' : 'Ship'}
+                </label>
+                <select
+                  value={userData.ship}
+                  onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading || !userData.company}
+                >
+                  <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
+                  {filteredShips.map(ship => (
+                    <option key={ship.id} value={ship.name}>
+                      {ship.name}
+                    </option>
+                  ))}
+                </select>
+                {!userData.company && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    {language === 'vi' ? 'Chọn công ty trước' : 'Select company first'}
+                  </p>
+                )}
+                {userData.company && filteredShips.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {language === 'vi' ? 'Không có tàu nào' : 'No ships available'}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Department - Changed to Checkboxes */}
