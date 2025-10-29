@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://ship-cert-system.preview.emergentagent.com/api"
+BACKEND_URL = "https://mern-drive-sync.preview.emergentagent.com/api"
 
 class AIConfigTester:
     def __init__(self):
