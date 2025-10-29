@@ -121,58 +121,124 @@ class ClassAndFlagCertTester:
             self.print_result(False, f"Exception during authentication test: {str(e)}")
             return False
     
-    def test_invalid_login(self):
-        """Test Case 2: Login with invalid credentials"""
-        self.print_test_header("Invalid Login Test")
+    def test_ships_api(self):
+        """Test Case 2: Ships API Test - GET /api/ships endpoint"""
+        self.print_test_header("Ships API Test")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
         
         try:
-            # Test data with invalid credentials
-            login_data = {
-                "username": "invalid",
-                "password": "wrong",
-                "remember_me": False
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
             }
             
-            print(f"🔐 Testing login with invalid credentials: {login_data['username']}/{login_data['password']}")
-            print(f"📡 POST {BACKEND_URL}/auth/login")
+            print(f"📡 GET {BACKEND_URL}/ships")
             
-            # Make login request
-            response = self.session.post(
-                f"{BACKEND_URL}/auth/login",
-                json=login_data,
-                headers={"Content-Type": "application/json"}
+            # Make request to ships endpoint
+            response = self.session.get(
+                f"{BACKEND_URL}/ships",
+                headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 401:
-                try:
-                    error_data = response.json()
-                    print(f"📄 Error Response: {error_data}")
+            if response.status_code == 200:
+                ships_data = response.json()
+                print(f"📄 Response Type: {type(ships_data)}")
+                
+                if not isinstance(ships_data, list):
+                    self.print_result(False, f"Expected list response, got: {type(ships_data)}")
+                    return False
+                
+                print(f"🚢 Number of ships returned: {len(ships_data)}")
+                
+                # Verify response returns list of 3 ships
+                if len(ships_data) != 3:
+                    self.print_result(False, f"Expected 3 ships, got {len(ships_data)}")
+                    return False
+                
+                # Expected ship names
+                expected_ships = ["BROTHER 36", "PACIFIC STAR", "OCEAN VOYAGER"]
+                found_ships = []
+                
+                # Verify each ship has required fields and check specific ships
+                required_fields = ["id", "name", "imo", "ship_type", "flag", "company", "gross_tonnage"]
+                brother_36_found = False
+                
+                for ship in ships_data:
+                    print(f"\n🚢 Ship: {ship.get('name', 'Unknown')}")
                     
-                    # Check if error message is present
-                    if "detail" in error_data:
-                        print(f"🚫 Error Message: {error_data['detail']}")
-                        self.print_result(True, "Invalid login correctly returned 401 Unauthorized with error message")
-                        return True
-                    else:
-                        self.print_result(False, "401 response missing error message")
+                    # Check required fields
+                    missing_fields = []
+                    for field in required_fields:
+                        if field not in ship:
+                            missing_fields.append(field)
+                    
+                    if missing_fields:
+                        self.print_result(False, f"Ship '{ship.get('name', 'Unknown')}' missing fields: {missing_fields}")
                         return False
-                        
-                except:
-                    self.print_result(True, "Invalid login correctly returned 401 Unauthorized")
-                    return True
                     
+                    # Print ship details
+                    print(f"   ID: {ship['id']}")
+                    print(f"   Name: {ship['name']}")
+                    print(f"   IMO: {ship['imo']}")
+                    print(f"   Ship Type: {ship['ship_type']}")
+                    print(f"   Flag: {ship['flag']}")
+                    print(f"   Company: {ship['company']}")
+                    print(f"   Gross Tonnage: {ship['gross_tonnage']}")
+                    
+                    found_ships.append(ship['name'])
+                    
+                    # Check BROTHER 36 specific requirements
+                    if ship['name'] == "BROTHER 36":
+                        brother_36_found = True
+                        
+                        # Verify BROTHER 36 has IMO: 8743531, ship_type: DNV GL, flag: PANAMA
+                        if ship['imo'] != "8743531":
+                            self.print_result(False, f"BROTHER 36 expected IMO '8743531', got '{ship['imo']}'")
+                            return False
+                        
+                        if ship['ship_type'] != "DNV GL":
+                            self.print_result(False, f"BROTHER 36 expected ship_type 'DNV GL', got '{ship['ship_type']}'")
+                            return False
+                        
+                        if ship['flag'] != "PANAMA":
+                            self.print_result(False, f"BROTHER 36 expected flag 'PANAMA', got '{ship['flag']}'")
+                            return False
+                        
+                        print(f"   ✅ BROTHER 36 verification: IMO={ship['imo']}, Type={ship['ship_type']}, Flag={ship['flag']}")
+                
+                # Verify all expected ships are present
+                missing_ships = []
+                for expected_ship in expected_ships:
+                    if expected_ship not in found_ships:
+                        missing_ships.append(expected_ship)
+                
+                if missing_ships:
+                    self.print_result(False, f"Missing expected ships: {missing_ships}")
+                    return False
+                
+                if not brother_36_found:
+                    self.print_result(False, "BROTHER 36 ship not found in response")
+                    return False
+                
+                print(f"\n✅ Found all expected ships: {found_ships}")
+                self.print_result(True, "Ships API test successful - 3 ships with required fields, BROTHER 36 verified")
+                return True
+                
             else:
                 try:
-                    response_data = response.json()
-                    self.print_result(False, f"Expected 401, got {response.status_code}: {response_data}")
+                    error_data = response.json()
+                    self.print_result(False, f"Ships API failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Expected 401, got {response.status_code}: {response.text}")
+                    self.print_result(False, f"Ships API failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during invalid login test: {str(e)}")
+            self.print_result(False, f"Exception during ships API test: {str(e)}")
             return False
     
     def test_token_authentication(self):
