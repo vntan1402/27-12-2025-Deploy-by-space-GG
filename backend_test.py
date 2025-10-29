@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Authentication Testing Script
-Tests the login API endpoint and token authentication functionality
+ClassAndFlagCert Page Workflow Testing Script
+Tests the authentication, ships API, and individual ship endpoints
 """
 
 import requests
@@ -13,7 +13,7 @@ from datetime import datetime
 # Backend URL from frontend .env
 BACKEND_URL = "https://shipdata-ui-v2.preview.emergentagent.com/api"
 
-class BackendAuthTester:
+class ClassAndFlagCertTester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
