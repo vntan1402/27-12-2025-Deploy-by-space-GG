@@ -1,3 +1,8 @@
+/**
+ * SubMenuBar Component
+ * Displays sub-categories for the selected main category
+ * Extracted from App.js (lines 13498-13516)
+ */
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -38,15 +43,6 @@ const SUB_MENU_ITEMS = {
   ]
 };
 
-/**
- * SubMenuBar Component
- * Displays sub-categories for the selected main category
- * 
- * @param {Object} props
- * @param {string} props.selectedCategory - Currently selected main category
- * @param {string} props.selectedSubMenu - Currently selected sub-menu
- * @param {Function} props.onSubMenuChange - Callback when sub-menu changes
- */
 export const SubMenuBar = ({
   selectedCategory,
   selectedSubMenu,
@@ -64,19 +60,19 @@ export const SubMenuBar = ({
 
   return (
     <div className="mb-6">
-      <div className="flex gap-2 flex-wrap">
+      <div className="grid grid-cols-5 gap-1 w-full">
         {subMenuItems.map((item) => (
           <button
             key={item.key}
             onClick={() => onSubMenuChange(item.key)}
-            className={`px-4 py-3 rounded-lg text-sm font-medium transition-all text-center flex-1 min-w-0 ${
+            className={`px-2 py-3 rounded-lg text-sm font-medium transition-all text-center whitespace-nowrap flex-1 ${
               selectedSubMenu === item.key
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-105'
-                : 'bg-white hover:bg-gray-50 text-gray-700 hover:shadow-md hover:transform hover:scale-102 border border-gray-200'
+                ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-md hover:transform hover:scale-102'
             }`}
             style={{ minHeight: '48px' }}
           >
-            <span className="block leading-tight">
+            <span className="text-xs leading-tight">
               {language === 'vi' ? item.name_vi : item.name_en}
             </span>
           </button>
