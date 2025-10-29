@@ -4,58 +4,7 @@
  */
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-
-// Main categories configuration
-const MAIN_CATEGORIES = [
-  {
-    key: 'crew',
-    name_vi: 'Thông tin Thuyền viên',
-    name_en: 'Crew Information',
-    icon: '👥'
-  },
-  {
-    key: 'ship_certificates',
-    name_vi: 'Chứng chỉ Tàu',
-    name_en: 'Ship Certificates',
-    icon: '📜'
-  },
-  {
-    key: 'crew_certificates',
-    name_vi: 'Chứng chỉ Thuyền viên',
-    name_en: 'Crew Certificates',
-    icon: '🎓'
-  },
-  {
-    key: 'survey_reports',
-    name_vi: 'Báo cáo Khảo sát',
-    name_en: 'Survey Reports',
-    icon: '📋'
-  },
-  {
-    key: 'test_reports',
-    name_vi: 'Báo cáo Thử nghiệm',
-    name_en: 'Test Reports',
-    icon: '🧪'
-  },
-  {
-    key: 'drawings',
-    name_vi: 'Bản vẽ & Hướng dẫn',
-    name_en: 'Drawings & Manuals',
-    icon: '📊'
-  },
-  {
-    key: 'other_docs',
-    name_vi: 'Tài liệu khác',
-    name_en: 'Other Documents',
-    icon: '📄'
-  },
-  {
-    key: 'mlc',
-    name_vi: 'MLC',
-    name_en: 'MLC Documents',
-    icon: '⚓'
-  }
-];
+import { MAIN_CATEGORIES } from '../../utils/constants';
 
 export const CategoryMenu = ({
   selectedCategory,
@@ -176,4 +125,5 @@ export const CategoryMenu = ({
       </div>
     </div>
   );
+};
 };
