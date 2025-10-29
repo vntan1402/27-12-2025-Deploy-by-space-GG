@@ -595,7 +595,7 @@ class UserManagementTester:
     def print_test_summary(self, test_results):
         """Print test summary"""
         print(f"\n{'='*60}")
-        print(f"TEST SUMMARY")
+        print(f"USER MANAGEMENT APIs TEST SUMMARY")
         print(f"{'='*60}")
         
         passed = 0
@@ -610,14 +610,24 @@ class UserManagementTester:
         print(f"\n📊 Results: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
         
         if passed == total:
-            print(f"🎉 All tests passed! ClassAndFlagCert page workflow is working correctly.")
+            print(f"🎉 All tests passed! User Management APIs are working correctly.")
+            print(f"✅ All CRUD operations working correctly")
+            print(f"✅ Proper validation and error handling")
+            print(f"✅ No 500 errors detected")
         else:
-            print(f"⚠️ Some tests failed. Please check the ClassAndFlagCert workflow implementation.")
+            print(f"⚠️ Some tests failed. Please check the User Management API implementation.")
+            
+            # Print specific failure analysis
+            failed_tests = [name for name, result in test_results if not result]
+            if failed_tests:
+                print(f"\n❌ Failed Tests:")
+                for failed_test in failed_tests:
+                    print(f"   - {failed_test}")
 
 def main():
     """Main function to run the tests"""
     try:
-        tester = ClassAndFlagCertTester()
+        tester = UserManagementTester()
         results = tester.run_all_tests()
         
         # Return appropriate exit code
