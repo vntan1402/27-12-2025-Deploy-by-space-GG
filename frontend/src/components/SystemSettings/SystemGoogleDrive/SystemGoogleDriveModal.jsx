@@ -10,6 +10,7 @@ const SystemGoogleDriveModal = ({ onClose }) => {
   const [config, setConfig] = useState({
     auth_method: 'apps_script',
     web_app_url: '',
+    api_key: '',
     client_id: '',
     client_secret: '',
     folder_id: '',
