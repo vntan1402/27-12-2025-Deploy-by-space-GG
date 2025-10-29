@@ -13424,18 +13424,23 @@ async def sync_to_drive(current_user: UserResponse = Depends(check_permission([U
                     "mimeType": "application/json"
                 }
                 
+                # Add API key if configured
+                if api_key:
+                    payload["api_key"] = api_key
+                
                 response = requests.post(web_app_url, json=payload, timeout=60)
                 
                 if response.status_code == 200:
                     result = response.json()
                     if result.get("success"):
                         files_uploaded += 1
+                        file_data = result.get("data", {})
                         upload_details.append({
                             "collection": collection_name,
                             "filename": f"{collection_name}.json",
                             "status": "uploaded",
                             "records": len(data),
-                            "file_id": result.get("file_id")
+                            "file_id": file_data.get("id") or result.get("file_id")
                         })
                         logger.info(f"✅ Uploaded {collection_name}.json ({len(data)} records)")
                     else:
