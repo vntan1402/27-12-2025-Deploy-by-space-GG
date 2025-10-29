@@ -13633,6 +13633,7 @@ async def configure_google_drive_proxy(
     try:
         web_app_url = config_data.get("web_app_url")
         folder_id = config_data.get("folder_id")
+        api_key = config_data.get("api_key")  # Optional API key for enhanced security
         
         if not web_app_url or not folder_id:
             raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
@@ -13642,6 +13643,10 @@ async def configure_google_drive_proxy(
             "action": "test_connection",
             "folder_id": folder_id
         }
+        
+        # Add API key if provided
+        if api_key:
+            test_payload["api_key"] = api_key
         
         response = requests.post(web_app_url, json=test_payload, timeout=30)
         
@@ -13666,6 +13671,11 @@ async def configure_google_drive_proxy(
                     "test_result": "success"
                 }
                 
+                # Store API key if provided (for future requests)
+                if api_key:
+                    config_update["api_key"] = api_key
+                    config_update["api_key_enabled"] = True
+                
                 await mongo_db.update(
                     "gdrive_config",
                     {"id": "system_gdrive"},
@@ -13676,10 +13686,11 @@ async def configure_google_drive_proxy(
                 return {
                     "success": True,
                     "message": "Google Drive configuration successful!",
-                    "folder_name": result.get("folder_name", "Unknown"),
+                    "folder_name": result.get("data", {}).get("folder_name") or result.get("folder_name", "Unknown"),
                     "folder_id": folder_id,
                     "test_result": "PASSED",
-                    "configuration_saved": True
+                    "configuration_saved": True,
+                    "api_key_enabled": bool(api_key)
                 }
             else:
                 return {
