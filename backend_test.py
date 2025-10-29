@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-DELETE Company Validation Testing Script
-Tests the DELETE company validation logic that prevents deleting companies with ships
+AI Config Endpoints Testing Script
+Tests the AI Config endpoints to verify they work correctly
 
-FOCUS: Test the DELETE /api/companies/{company_id} endpoint validation logic
-Expected: Should return 400 error with detailed message if company has ships, 200 OK if no ships
+FOCUS: Test the GET and POST /api/ai-config endpoints
+Expected: GET should return current AI configuration, POST should update AI configuration
 """
 
 import requests
