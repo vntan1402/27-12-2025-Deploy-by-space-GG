@@ -322,6 +322,93 @@ class AIConfigTester:
             self.print_result(False, f"Exception during POST AI config test: {str(e)}")
             return False
     
+    def test_verify_ai_config_update(self):
+        """Test 4: Verify AI config was actually updated by getting it again"""
+        self.print_test_header("Test 4 - Verify AI Config Update")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 GET {BACKEND_URL}/ai-config")
+            print(f"🎯 Verifying AI config was updated with new values")
+            
+            # Make request to get updated AI config
+            response = self.session.get(
+                f"{BACKEND_URL}/ai-config",
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                config_data = response.json()
+                print(f"📄 Updated AI Configuration:")
+                print(f"   Provider: {config_data.get('provider')}")
+                print(f"   Model: {config_data.get('model')}")
+                print(f"   Use Emergent Key: {config_data.get('use_emergent_key')}")
+                
+                # Verify the values match what we sent in the POST request
+                expected_values = {
+                    "provider": "google",
+                    "model": "gemini-2.0-flash",
+                    "use_emergent_key": True
+                }
+                
+                verification_results = {}
+                for field, expected_value in expected_values.items():
+                    actual_value = config_data.get(field)
+                    verification_results[field] = actual_value == expected_value
+                    status = "✅" if verification_results[field] else "❌"
+                    print(f"   {status} {field}: expected '{expected_value}', got '{actual_value}'")
+                
+                # Check document_ai config
+                document_ai = config_data.get('document_ai')
+                if document_ai:
+                    print(f"   Document AI Enabled: {document_ai.get('enabled')}")
+                    print(f"   Document AI Location: {document_ai.get('location')}")
+                    
+                    # Verify document_ai values
+                    doc_ai_expected = {
+                        "enabled": False,
+                        "location": "us"
+                    }
+                    
+                    for field, expected_value in doc_ai_expected.items():
+                        actual_value = document_ai.get(field)
+                        verification_results[f"document_ai.{field}"] = actual_value == expected_value
+                        status = "✅" if verification_results[f"document_ai.{field}"] else "❌"
+                        print(f"   {status} document_ai.{field}: expected '{expected_value}', got '{actual_value}'")
+                
+                # Check if all verifications passed
+                all_verified = all(verification_results.values())
+                
+                if all_verified:
+                    self.print_result(True, "✅ AI configuration successfully updated and verified")
+                    return True
+                else:
+                    failed_fields = [field for field, result in verification_results.items() if not result]
+                    self.print_result(False, f"❌ AI config update verification failed for fields: {failed_fields}")
+                    return False
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"GET AI config verification failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"GET AI config verification failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during AI config verification test: {str(e)}")
+            return False
+    
     def create_test_ship_for_company(self, company_id, company_name, headers):
         """Create a test ship for a company to test deletion validation"""
         try:
