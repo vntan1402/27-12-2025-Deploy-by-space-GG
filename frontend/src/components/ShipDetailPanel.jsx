@@ -12,7 +12,8 @@ export const ShipDetailPanel = ({
   onClose,
   showEditButton = true,
   onEditShip,
-  showShipParticular = true 
+  showShipParticular = true,
+  onShipSelect // New prop for ship selection
 }) => {
   const { language } = useAuth();
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
