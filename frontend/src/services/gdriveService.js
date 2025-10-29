@@ -3,19 +3,19 @@ import api from './api';
 export const gdriveService = {
   // Get Google Drive status
   getStatus: async () => {
-    const response = await api.get('/gdrive/status');
+    const response = await api.get('/api/gdrive/status');
     return response.data;
   },
 
   // Get Google Drive configuration
   getConfig: async () => {
-    const response = await api.get('/gdrive/config');
+    const response = await api.get('/api/gdrive/config');
     return response.data;
   },
 
   // Configure with Apps Script
   configureProxy: async (webAppUrl, folderId) => {
-    const response = await api.post('/gdrive/configure-proxy', {
+    const response = await api.post('/api/gdrive/configure-proxy', {
       web_app_url: webAppUrl,
       folder_id: folderId
     });
@@ -24,7 +24,7 @@ export const gdriveService = {
 
   // Configure with OAuth
   authorizeOAuth: async (clientId, clientSecret, redirectUri, folderId) => {
-    const response = await api.post('/gdrive/oauth/authorize', {
+    const response = await api.post('/api/gdrive/oauth/authorize', {
       client_id: clientId,
       client_secret: clientSecret,
       redirect_uri: redirectUri,
@@ -35,7 +35,7 @@ export const gdriveService = {
 
   // Configure with Service Account
   configure: async (serviceAccountJson, folderId) => {
-    const response = await api.post('/gdrive/configure', {
+    const response = await api.post('/api/gdrive/configure', {
       service_account_json: serviceAccountJson,
       folder_id: folderId
     });
@@ -44,7 +44,7 @@ export const gdriveService = {
 
   // Test connection
   test: async (serviceAccountJson, folderId) => {
-    const response = await api.post('/gdrive/test', {
+    const response = await api.post('/api/gdrive/test', {
       service_account_json: serviceAccountJson,
       folder_id: folderId
     });
