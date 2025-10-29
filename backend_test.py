@@ -242,12 +242,12 @@ class AIConfigTester:
             return False
     
     def test_post_ai_config_with_valid_payload(self):
-        """Get ships to find companies with ships"""
-        self.print_test_header("Setup - Get Ships List")
+        """Test 3: POST /api/ai-config with valid payload (should update AI configuration)"""
+        self.print_test_header("Test 3 - POST AI Config With Valid Payload")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
-            return False, []
+            return False
         
         try:
             headers = {
@@ -255,59 +255,72 @@ class AIConfigTester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/ships")
+            # Test payload as specified in the review request
+            test_config = {
+                "provider": "google",
+                "model": "gemini-2.0-flash",
+                "api_key": "EMERGENT_LLM_KEY",
+                "use_emergent_key": True,
+                "document_ai": {
+                    "enabled": False,
+                    "project_id": "",
+                    "location": "us",
+                    "processor_id": "",
+                    "apps_script_url": ""
+                }
+            }
             
-            # Make request to ships endpoint
-            response = self.session.get(
-                f"{BACKEND_URL}/ships",
+            print(f"📡 POST {BACKEND_URL}/ai-config")
+            print(f"🎯 Testing with valid AI config payload")
+            print(f"📄 Payload: {json.dumps(test_config, indent=2)}")
+            
+            # Make request to update AI config
+            response = self.session.post(
+                f"{BACKEND_URL}/ai-config",
+                json=test_config,
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
-                ships_data = response.json()
-                print(f"📄 Response Type: {type(ships_data)}")
+                response_data = response.json()
+                print(f"📄 Response Type: {type(response_data)}")
+                print(f"📄 Response Data: {response_data}")
                 
-                if not isinstance(ships_data, list):
-                    self.print_result(False, f"Expected list response, got: {type(ships_data)}")
-                    return False, []
-                
-                print(f"🚢 Number of ships returned: {len(ships_data)}")
-                
-                # Print ship details and find companies with ships
-                companies_with_ships = set()
-                for i, ship in enumerate(ships_data):
-                    print(f"\n🚢 Ship {i+1}: {ship.get('name', 'Unknown')}")
-                    print(f"   ID: {ship.get('id', 'N/A')}")
-                    print(f"   Company: {ship.get('company', 'N/A')}")
-                    print(f"   IMO: {ship.get('imo', 'N/A')}")
-                    print(f"   Flag: {ship.get('flag', 'N/A')}")
-                    print(f"   Ship Type: {ship.get('ship_type', 'N/A')}")
+                # Verify success message
+                if 'message' in response_data:
+                    message = response_data['message']
+                    print(f"✅ Success Message: {message}")
                     
-                    # Track companies that have ships
-                    company = ship.get('company')
-                    if company:
-                        companies_with_ships.add(company)
+                    if 'updated successfully' in message.lower():
+                        self.print_result(True, "✅ POST /api/ai-config successfully updates AI configuration")
+                        return True
+                    else:
+                        self.print_result(False, f"Unexpected success message: {message}")
+                        return False
+                else:
+                    self.print_result(False, "Success response missing 'message' field")
+                    return False
                 
-                print(f"\n📊 Companies with ships: {len(companies_with_ships)}")
-                for company in companies_with_ships:
-                    print(f"   - {company}")
-                
-                self.print_result(True, f"Ships list retrieved successfully - {len(ships_data)} ships found")
-                return True, list(companies_with_ships)
-                
+            elif response.status_code == 403:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"❌ Access denied (403): {error_data} - User may not have admin/super_admin role")
+                except:
+                    self.print_result(False, f"❌ Access denied (403): {response.text} - User may not have admin/super_admin role")
+                return False
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Ships API failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"POST AI config failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Ships API failed with status {response.status_code}: {response.text}")
-                return False, []
+                    self.print_result(False, f"POST AI config failed with status {response.status_code}: {response.text}")
+                return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during get ships test: {str(e)}")
-            return False, []
+            self.print_result(False, f"Exception during POST AI config test: {str(e)}")
+            return False
     
     def create_test_ship_for_company(self, company_id, company_name, headers):
         """Create a test ship for a company to test deletion validation"""
