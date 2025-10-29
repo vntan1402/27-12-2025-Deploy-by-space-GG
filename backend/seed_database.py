@@ -52,8 +52,10 @@ async def seed_database():
         "password_hash": password_hash,
         "email": "admin1@amcsc.vn",
         "full_name": "Admin User",
-        "role": "ADMIN",
+        "role": "admin",  # lowercase to match UserRole enum
         "company": company_id,
+        "department": "",  # Add required field
+        "zalo": "",  # Add required field
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
         "is_active": True
