@@ -298,6 +298,116 @@ class CompanyManagementTester:
             self.print_result(False, f"Exception during get company by ID test: {str(e)}")
             return False
     
+    def test_get_nonexistent_company(self):
+        """Test 3: Get Non-existent Company (GET /api/companies/{non_existent_id}) - Should return 404"""
+        self.print_test_header("Test 3 - Get Non-existent Company (404 Test)")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Use a non-existent company ID
+            non_existent_id = "non-existent-id-12345"
+            
+            print(f"📡 GET {BACKEND_URL}/companies/{non_existent_id}")
+            print(f"🔍 Testing with non-existent company ID: {non_existent_id}")
+            print(f"🎯 EXPECTED: 404 Not Found with error message 'Company not found'")
+            
+            # Make request to get non-existent company
+            response = self.session.get(
+                f"{BACKEND_URL}/companies/{non_existent_id}",
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 404:
+                try:
+                    error_data = response.json()
+                    print(f"📄 Error Response: {error_data}")
+                    
+                    # Check if error message contains "Company not found" or similar
+                    error_message = str(error_data).lower()
+                    if "company not found" in error_message or "not found" in error_message:
+                        print(f"✅ Correct error message: Company not found")
+                        self.print_result(True, "✅ Non-existent company returns 404 Not Found with correct error message")
+                        return True
+                    else:
+                        self.print_result(False, f"404 returned but error message incorrect: {error_data}")
+                        return False
+                        
+                except:
+                    # Even if JSON parsing fails, 404 is the correct response
+                    print(f"📄 Error Response: {response.text}")
+                    self.print_result(True, "✅ Non-existent company returns 404 Not Found")
+                    return True
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Expected 404, got {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Expected 404, got {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during non-existent company test: {str(e)}")
+            return False
+    
+    def test_get_company_without_auth(self):
+        """Test 4: Get Company Without Authentication - Should return 401"""
+        self.print_test_header("Test 4 - Get Company Without Authentication (401 Test)")
+        
+        if not self.amcsc_company_id:
+            self.print_result(False, "No AMCSC company ID available from get companies test")
+            return False
+        
+        try:
+            # No Authorization header
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 GET {BACKEND_URL}/companies/{self.amcsc_company_id}")
+            print(f"🔍 Testing without Authorization header")
+            print(f"🎯 EXPECTED: 401 Unauthorized")
+            
+            # Make request without authentication
+            response = self.session.get(
+                f"{BACKEND_URL}/companies/{self.amcsc_company_id}",
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 401:
+                try:
+                    error_data = response.json()
+                    print(f"📄 Error Response: {error_data}")
+                except:
+                    print(f"📄 Error Response: {response.text}")
+                
+                self.print_result(True, "✅ Request without authentication returns 401 Unauthorized")
+                return True
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Expected 401, got {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Expected 401, got {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during authentication test: {str(e)}")
+            return False
+    
     def test_create_new_company(self):
         """Test 3: Create New Company (POST /api/companies)"""
         self.print_test_header("Test 3 - Create New Company")
