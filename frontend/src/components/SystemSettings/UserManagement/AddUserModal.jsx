@@ -277,10 +277,7 @@ const AddUserModal = ({
               <div className="relative">
                 <input
                   type="text"
-                  value={language === 'vi' 
-                    ? (currentUserCompanyName?.name_vn || currentUser?.company || '')
-                    : (currentUserCompanyName?.name_en || currentUser?.company || '')
-                  }
+                  value={displayCompanyName}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed pr-10"
                   disabled={true}
                   readOnly
