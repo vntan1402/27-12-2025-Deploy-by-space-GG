@@ -157,8 +157,8 @@ const CompanyManagement = () => {
     }
 
     const confirmMessage = language === 'vi' 
-      ? `Bạn có chắc muốn xóa công ty "${company.name_vn || company.name_en}"?`
-      : `Are you sure you want to delete company "${company.name_en || company.name_vn}"?`;
+      ? `Bạn có chắc muốn xóa công ty "${company.name_vn || company.name_en}"?\n\nLưu ý: Công ty này sẽ bị xóa vĩnh viễn.`
+      : `Are you sure you want to delete company "${company.name_en || company.name_vn}"?\n\nNote: This company will be permanently deleted.`;
     
     if (!window.confirm(confirmMessage)) {
       return;
@@ -167,12 +167,62 @@ const CompanyManagement = () => {
     try {
       setLoading(true);
       await companyService.delete(company.id);
-      toast.success(language === 'vi' ? 'Xóa công ty thành công!' : 'Company deleted successfully!');
+      toast.success(language === 'vi' ? '✅ Xóa công ty thành công!' : '✅ Company deleted successfully!');
       fetchCompanies();
     } catch (error) {
       console.error('Failed to delete company:', error);
-      const errorMessage = error.response?.data?.detail || (language === 'vi' ? 'Không thể xóa công ty' : 'Failed to delete company');
-      toast.error(errorMessage);
+      
+      // Handle specific error cases
+      const errorDetail = error.response?.data?.detail || '';
+      
+      if (error.response?.status === 400) {
+        // Check if error is about ships
+        if (errorDetail.includes('ships') || errorDetail.includes('ship')) {
+          const shipCount = errorDetail.match(/(\d+)\s+ships?/i);
+          const count = shipCount ? shipCount[1] : '';
+          
+          if (language === 'vi') {
+            toast.error(
+              `❌ Không thể xóa công ty!\n\n` +
+              `Công ty này còn ${count} tàu đang hoạt động.\n\n` +
+              `⚠️ Vui lòng xóa hoặc chuyển nhượng tất cả các tàu trước khi xóa công ty.`,
+              { duration: 6000 }
+            );
+          } else {
+            toast.error(
+              `❌ Cannot delete company!\n\n` +
+              `This company has ${count} ships.\n\n` +
+              `⚠️ Please delete or reassign all ships before deleting the company.`,
+              { duration: 6000 }
+            );
+          }
+        } 
+        // Check if error is about users
+        else if (errorDetail.includes('users') || errorDetail.includes('user')) {
+          if (language === 'vi') {
+            toast.error(
+              `❌ Không thể xóa công ty!\n\n` +
+              `Công ty này còn người dùng đang hoạt động.\n\n` +
+              `⚠️ Vui lòng xóa hoặc chuyển nhượng tất cả người dùng trước khi xóa công ty.`,
+              { duration: 6000 }
+            );
+          } else {
+            toast.error(
+              `❌ Cannot delete company!\n\n` +
+              `This company has active users.\n\n` +
+              `⚠️ Please delete or reassign all users before deleting the company.`,
+              { duration: 6000 }
+            );
+          }
+        } else {
+          // Generic 400 error
+          toast.error(errorDetail || (language === 'vi' ? '❌ Không thể xóa công ty' : '❌ Failed to delete company'));
+        }
+      } else {
+        // Other errors
+        const errorMessage = errorDetail || (language === 'vi' ? '❌ Không thể xóa công ty' : '❌ Failed to delete company');
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
