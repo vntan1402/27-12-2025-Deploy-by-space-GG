@@ -241,87 +241,134 @@ class ClassAndFlagCertTester:
             self.print_result(False, f"Exception during ships API test: {str(e)}")
             return False
     
-    def test_token_authentication(self):
-        """Test Case 3: Verify token authentication with protected endpoint"""
-        self.print_test_header("Token Authentication Test")
+    def test_individual_ship(self):
+        """Test Case 3: Individual Ship Test - GET /api/ships/{ship_id} for BROTHER 36"""
+        self.print_test_header("Individual Ship Test")
         
         if not self.access_token:
-            self.print_result(False, "No access token available from previous login test")
+            self.print_result(False, "No access token available from authentication test")
             return False
         
         try:
-            # Test protected endpoint - /users requires ADMIN role
+            # First, get the ship ID for BROTHER 36 from the ships list
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json"
             }
             
-            print(f"🔐 Testing protected endpoint with token: {self.access_token[:20]}...")
-            print(f"📡 GET {BACKEND_URL}/users")
+            print(f"📡 Getting ships list to find BROTHER 36 ID...")
             
-            # Make request to protected endpoint
+            # Get ships list
             response = self.session.get(
-                f"{BACKEND_URL}/users",
+                f"{BACKEND_URL}/ships",
+                headers=headers
+            )
+            
+            if response.status_code != 200:
+                self.print_result(False, f"Failed to get ships list: {response.status_code}")
+                return False
+            
+            ships_data = response.json()
+            brother_36_id = None
+            
+            for ship in ships_data:
+                if ship.get('name') == "BROTHER 36":
+                    brother_36_id = ship.get('id')
+                    break
+            
+            if not brother_36_id:
+                self.print_result(False, "BROTHER 36 ship not found in ships list")
+                return False
+            
+            print(f"🚢 Found BROTHER 36 ID: {brother_36_id}")
+            print(f"📡 GET {BACKEND_URL}/ships/{brother_36_id}")
+            
+            # Make request to individual ship endpoint
+            response = self.session.get(
+                f"{BACKEND_URL}/ships/{brother_36_id}",
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
-                try:
-                    users_data = response.json()
-                    print(f"📄 Response Type: {type(users_data)}")
-                    
-                    if isinstance(users_data, list):
-                        print(f"👥 Number of users returned: {len(users_data)}")
-                        
-                        # Check if our admin1 user is in the list
-                        admin_user_found = False
-                        for user in users_data:
-                            if user.get("username") == "admin1":
-                                admin_user_found = True
-                                print(f"👤 Found admin1 user: {user}")
-                                break
-                        
-                        if admin_user_found:
-                            self.print_result(True, "Token authentication successful - accessed protected endpoint and found admin1 user")
-                        else:
-                            self.print_result(True, "Token authentication successful - accessed protected endpoint")
-                        return True
-                    else:
-                        self.print_result(False, f"Expected list response, got: {type(users_data)}")
-                        return False
-                        
-                except Exception as e:
-                    self.print_result(False, f"Error parsing response: {str(e)}")
-                    return False
-                    
-            elif response.status_code == 401:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Token authentication failed - 401 Unauthorized: {error_data}")
-                except:
-                    self.print_result(False, f"Token authentication failed - 401 Unauthorized: {response.text}")
-                return False
+                ship_data = response.json()
+                print(f"📄 Response Type: {type(ship_data)}")
                 
-            elif response.status_code == 403:
+                if not isinstance(ship_data, dict):
+                    self.print_result(False, f"Expected dict response, got: {type(ship_data)}")
+                    return False
+                
+                # Verify ship details are returned correctly
+                required_fields = ["id", "name", "imo", "ship_type", "flag", "company", "gross_tonnage"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in ship_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Individual ship response missing fields: {missing_fields}")
+                    return False
+                
+                # Verify this is indeed BROTHER 36 with correct details
+                if ship_data.get('name') != "BROTHER 36":
+                    self.print_result(False, f"Expected ship name 'BROTHER 36', got '{ship_data.get('name')}'")
+                    return False
+                
+                if ship_data.get('id') != brother_36_id:
+                    self.print_result(False, f"Expected ship ID '{brother_36_id}', got '{ship_data.get('id')}'")
+                    return False
+                
+                if ship_data.get('imo') != "8743531":
+                    self.print_result(False, f"Expected IMO '8743531', got '{ship_data.get('imo')}'")
+                    return False
+                
+                if ship_data.get('ship_type') != "DNV GL":
+                    self.print_result(False, f"Expected ship_type 'DNV GL', got '{ship_data.get('ship_type')}'")
+                    return False
+                
+                if ship_data.get('flag') != "PANAMA":
+                    self.print_result(False, f"Expected flag 'PANAMA', got '{ship_data.get('flag')}'")
+                    return False
+                
+                # Print ship details for verification
+                print(f"\n🚢 BROTHER 36 Details:")
+                print(f"   ID: {ship_data['id']}")
+                print(f"   Name: {ship_data['name']}")
+                print(f"   IMO: {ship_data['imo']}")
+                print(f"   Ship Type: {ship_data['ship_type']}")
+                print(f"   Flag: {ship_data['flag']}")
+                print(f"   Company: {ship_data['company']}")
+                print(f"   Gross Tonnage: {ship_data['gross_tonnage']}")
+                
+                # Check for additional fields that might be present
+                additional_fields = ["created_at", "deadweight", "built_year", "ship_owner"]
+                for field in additional_fields:
+                    if field in ship_data:
+                        print(f"   {field.replace('_', ' ').title()}: {ship_data[field]}")
+                
+                self.print_result(True, "Individual ship test successful - BROTHER 36 details returned correctly")
+                return True
+                
+            elif response.status_code == 404:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Token valid but insufficient permissions - 403 Forbidden: {error_data}")
+                    self.print_result(False, f"Ship not found - 404: {error_data}")
                 except:
-                    self.print_result(False, f"Token valid but insufficient permissions - 403 Forbidden: {response.text}")
+                    self.print_result(False, f"Ship not found - 404: {response.text}")
                 return False
                 
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Unexpected response {response.status_code}: {error_data}")
+                    self.print_result(False, f"Individual ship API failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Unexpected response {response.status_code}: {response.text}")
+                    self.print_result(False, f"Individual ship API failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during token authentication test: {str(e)}")
+            self.print_result(False, f"Exception during individual ship test: {str(e)}")
             return False
     
     def test_user_data_validation(self):
