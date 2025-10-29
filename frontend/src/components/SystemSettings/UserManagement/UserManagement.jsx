@@ -3,11 +3,11 @@
  * Main component for managing users with role-based permissions
  */
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useAuth } from '../../../contexts/AuthContext';
-import { userService } from '../../../services/userService';
-import { shipService } from '../../../services/shipService';
-import { companyService } from '../../../services/companyService';
+import userService from '../../../services/userService';
+import shipService from '../../../services/shipService';
+import companyService from '../../../services/companyService';
 import AddUserModal from './AddUserModal';
 import UserTable from './UserTable';
 
