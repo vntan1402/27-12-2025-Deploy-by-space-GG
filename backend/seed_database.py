@@ -181,8 +181,14 @@ async def seed_database():
     print(f"   🏢 Companies: {companies_count}")
     print("\n✅ Database seeding completed!")
     print("\n🔑 Login Credentials:")
-    print(f"   Username: admin1@amcsc.vn")
-    print(f"   Password: 123456")
+    print(f"   1. Super Admin:")
+    print(f"      Username: admin")
+    print(f"      Password: admin123")
+    print(f"      Role: super_admin")
+    print(f"   2. Admin:")
+    print(f"      Username: admin1 (or admin1@amcsc.vn)")
+    print(f"      Password: 123456")
+    print(f"      Role: admin")
     
     client.close()
 
