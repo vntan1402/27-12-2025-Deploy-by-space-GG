@@ -112,7 +112,7 @@ async def seed_database():
         "full_name": "Super Admin",
         "role": "super_admin",  # super_admin role
         "company": company_id,
-        "department": "operations",
+        "department": ["operations", "safety", "dpa"],  # Changed to array with DPA
         "zalo": "0123456789",
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
