@@ -182,10 +182,29 @@ function listFolders({ parent_id }) {
 
 /**
  * List files inside folder
+ * Supports both direct folder_id or parent_id + folder_name
  */
-function listFiles({ folder_id }) {
-  // Validate folder
-  const folder = validateFolderId(folder_id);
+function listFiles({ folder_id, parent_folder_id, folder_name }) {
+  let folder;
+  
+  // Case 1: Direct folder_id provided
+  if (folder_id) {
+    folder = validateFolderId(folder_id);
+  }
+  // Case 2: Parent folder + subfolder name (for backup restore)
+  else if (parent_folder_id && folder_name) {
+    const parentFolder = validateFolderId(parent_folder_id);
+    const subfolders = parentFolder.getFoldersByName(folder_name);
+    
+    if (!subfolders.hasNext()) {
+      throw new Error(`Subfolder '${folder_name}' not found in parent folder`);
+    }
+    
+    folder = subfolders.next();
+  }
+  else {
+    throw new Error('Either folder_id or (parent_folder_id + folder_name) is required');
+  }
   
   const files = folder.getFiles();
   const list = [];
@@ -203,7 +222,9 @@ function listFiles({ folder_id }) {
   }
   
   log('📑 Listed files', { 
-    folder_id: maskSensitiveData(folder_id),
+    folder_id: folder_id ? maskSensitiveData(folder_id) : undefined,
+    parent_folder_id: parent_folder_id ? maskSensitiveData(parent_folder_id) : undefined,
+    folder_name: folder_name,
     count: list.length 
   });
   
