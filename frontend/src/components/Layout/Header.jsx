@@ -3,10 +3,12 @@
  * Extracted from App.js (lines 12886-12926)
  */
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const Header = () => {
-  const { user, language, toggleLanguage } = useAuth();
+  const { user, logout, language, toggleLanguage } = useAuth();
+  const navigate = useNavigate();
 
   // Get role display name
   const getRoleDisplayName = (role) => {
@@ -31,13 +33,13 @@ export const Header = () => {
           🚀 V2 MODULAR
         </span>
       </div>
-
+      
       <div className="w-full px-4 py-4">
         <div className="flex justify-between items-center">
           {/* Left side - Logo & Title */}
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-gray-800">
-              {language === 'vi' ? 'Hệ thống quản lý tàu biển' : 'Ship Management System'}
+              {language === 'vi' ? 'Hệ thống quản lí tàu biển' : 'Ship Management System'}
             </h1>
             <span className="text-blue-600 text-sm">
               {language === 'vi' ? 'Với sự hỗ trợ AI' : 'With AI Support'}
@@ -47,7 +49,7 @@ export const Header = () => {
               V2
             </span>
           </div>
-
+          
           {/* Right side - Actions */}
           <div className="flex items-center space-x-4">
             {/* Language Toggle */}
@@ -57,7 +59,7 @@ export const Header = () => {
             >
               {language === 'en' ? 'VI' : 'EN'}
             </button>
-
+            
             {/* User Info */}
             <span className="text-sm text-gray-600">
               {user?.full_name} ({getRoleDisplayName(user?.role)})

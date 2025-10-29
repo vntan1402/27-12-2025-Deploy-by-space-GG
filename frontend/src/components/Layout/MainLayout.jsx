@@ -1,6 +1,6 @@
 /**
  * Main Layout Component
- * Extracted from App.js
+ * Provides consistent layout structure for all pages
  */
 import React from 'react';
 import { Header } from './Header';
