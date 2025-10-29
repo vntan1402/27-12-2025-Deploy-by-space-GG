@@ -61,11 +61,10 @@ const SystemSettingsPage = () => {
         {/* User Management - Manager, Admin, Super Admin */}
         {(user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              {language === 'vi' ? 'Quản lý người dùng' : 'User Management'}
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
+              👥 {language === 'vi' ? 'Quản lý người dùng' : 'User Management'}
             </h2>
-            <p className="text-gray-600">User Management module will be implemented here</p>
-            {/* <UserManagement /> */}
+            <UserManagement />
           </div>
         )}
 
