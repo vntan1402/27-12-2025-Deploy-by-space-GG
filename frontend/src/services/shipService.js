@@ -94,4 +94,25 @@ export const shipService = {
   deleteLogo: async (shipId) => {
     return api.delete(API_ENDPOINTS.SHIP_LOGO(shipId));
   },
+
+  // Alias methods for backward compatibility
+  getAllShips: async () => {
+    return shipService.getAll();
+  },
+
+  getShipById: async (shipId) => {
+    return shipService.getById(shipId);
+  },
+
+  createShip: async (shipData) => {
+    return shipService.create(shipData);
+  },
+
+  updateShip: async (shipId, shipData) => {
+    return shipService.update(shipId, shipData);
+  },
+
+  deleteShip: async (shipId, options) => {
+    return shipService.delete(shipId, options);
+  },
 };
