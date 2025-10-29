@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://pickup-where-left-8.preview.emergentagent.com/api"
+API_URL="https://flexvessel.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
