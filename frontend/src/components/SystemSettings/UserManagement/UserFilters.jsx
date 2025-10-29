@@ -12,8 +12,12 @@ const UserFilters = ({
   companies,
   ships,
   language,
-  onClearFilters
+  onClearFilters,
+  currentUser  // Added currentUser prop
 }) => {
+  // Check if current user is super_admin
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
   /**
    * Department options
    */
@@ -24,7 +28,9 @@ const UserFilters = ({
     { value: 'safety', label: language === 'vi' ? 'An toàn' : 'Safety' },
     { value: 'commercial', label: language === 'vi' ? 'Thương mại' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
-    { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' }
+    { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
+    { value: 'dpa', label: 'DPA' },
+    { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
 
   /**
