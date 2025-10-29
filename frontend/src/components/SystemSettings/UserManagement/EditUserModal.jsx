@@ -236,24 +236,36 @@ const EditUserModal = ({
               )}
             </div>
 
-            {/* Department */}
+            {/* Department - Changed to Checkboxes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 {language === 'vi' ? 'Phòng ban' : 'Department'} *
               </label>
-              <select
-                required
-                value={userData.department}
-                onChange={(e) => setUserData(prev => ({ ...prev, department: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={loading}
-              >
-                {departmentOptions.map(dept => (
-                  <option key={dept.value} value={dept.value}>
-                    {dept.label}
-                  </option>
-                ))}
-              </select>
+              <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {departmentOptions.map(dept => {
+                    const isChecked = (userData.department || []).includes(dept.value);
+                    return (
+                      <label 
+                        key={dept.value}
+                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleDepartmentChange(dept.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                          disabled={loading}
+                        />
+                        <span className="text-sm text-gray-700">{dept.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' ? '* Chọn ít nhất một phòng ban. Có thể chọn nhiều phòng ban.' : '* Select at least one department. Multiple selections allowed.'}
+              </p>
             </div>
           </div>
 
