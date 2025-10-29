@@ -294,14 +294,16 @@ class CompanyManagementTester:
                 "Content-Type": "application/json"
             }
             
-            # Test data as specified in review request
+            # Test data as specified in review request (with unique tax_id)
+            import time
+            unique_suffix = str(int(time.time()))[-6:]  # Last 6 digits of timestamp
             new_company_data = {
                 "name_vn": "Công ty Test",
                 "name_en": "Test Company Ltd",
                 "code": "TEST",
                 "address_vn": "Hà Nội, Việt Nam",
                 "address_en": "Hanoi, Vietnam",
-                "tax_id": "9876543210",
+                "tax_id": f"987654{unique_suffix}",  # Unique tax ID
                 "email": "test@company.vn",
                 "phone": "+84 987 654 321",
                 "gmail": "test@company.vn",
