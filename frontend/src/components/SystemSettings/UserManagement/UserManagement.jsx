@@ -71,7 +71,7 @@ const UserManagement = () => {
   }, [showUserList]);
 
   /**
-   * Fetch all users (filtered by current user's company)
+   * Fetch all users (filtered by current user's company for non-super_admin)
    */
   const fetchUsers = async () => {
     try {
@@ -85,7 +85,8 @@ const UserManagement = () => {
       }
       
       setUsers(data);
-      setFilteredUsers(data);
+      // Apply company filter if set (for super_admin)
+      applyFilters(data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách người dùng' : 'Failed to load users');
@@ -93,6 +94,27 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
+
+  /**
+   * Apply company filter to user list
+   */
+  const applyFilters = (userList) => {
+    let filtered = [...userList];
+    
+    // Apply company filter (only for super_admin)
+    if (companyFilter && currentUser?.role === 'super_admin') {
+      filtered = filtered.filter(user => user.company === companyFilter);
+    }
+    
+    setFilteredUsers(filtered);
+  };
+
+  // Re-apply filters when companyFilter changes
+  useEffect(() => {
+    if (users.length > 0) {
+      applyFilters(users);
+    }
+  }, [companyFilter, users]);
 
   /**
    * Fetch companies
