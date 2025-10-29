@@ -23,11 +23,18 @@ async def seed_database():
     company_id = str(uuid.uuid4())
     company = {
         "id": company_id,
-        "name": "AMCSC",
+        "name_vn": "Công ty Cổ phần Quản lý và Vận hành Tàu biển AMCSC",
+        "name_en": "AMCSC Shipping Management Company",
         "code": "AMCSC",
+        "address_vn": "Thành phố Hồ Chí Minh, Việt Nam",
+        "address_en": "Ho Chi Minh City, Vietnam",
+        "tax_id": "0123456789",
         "email": "contact@amcsc.vn",
         "phone": "+84 123 456 789",
-        "address": "Ho Chi Minh City, Vietnam",
+        "gmail": "contact@amcsc.vn",
+        "zalo": "0123456789",
+        "logo_url": "",
+        "system_expiry": None,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
         "is_active": True
