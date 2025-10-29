@@ -905,7 +905,7 @@ class CompanyManagementTester:
     def print_test_summary(self, test_results):
         """Print test summary"""
         print(f"\n{'='*60}")
-        print(f"COMPANY MANAGEMENT APIs TEST SUMMARY")
+        print(f"GET /api/companies/{{company_id}} ENDPOINT TEST SUMMARY")
         print(f"{'='*60}")
         
         passed = 0
