@@ -31,102 +31,76 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              {language === 'vi' ? 'Hệ thống quản lý tàu' : 'Ship Management System'}
-            </h1>
-            <p className="text-sm text-gray-600">Frontend V2.0.0</p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={toggleLanguage}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              {language === 'vi' ? '🇬🇧 English' : '🇻🇳 Tiếng Việt'}
-            </button>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">
-                {user?.username || 'User'}
-              </span>
-              <button
-                onClick={logout}
-                className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600"
-              >
-                {language === 'vi' ? 'Đăng xuất' : 'Logout'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              {language === 'vi' ? '🎉 Chào mừng đến Frontend V2!' : '🎉 Welcome to Frontend V2!'}
-            </h2>
-            
-            <div className="space-y-4 text-left max-w-2xl mx-auto mt-8">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="font-semibold text-blue-900 mb-2">
-                  ✅ {language === 'vi' ? 'Hoàn thành Phase 0' : 'Phase 0 Complete'}
-                </h3>
-                <ul className="text-sm text-blue-800 space-y-1 ml-4">
-                  <li>• {language === 'vi' ? 'Frontend V1 đã backup' : 'Frontend V1 backed up'}</li>
-                  <li>• {language === 'vi' ? 'Frontend V2 với cấu trúc mới' : 'Frontend V2 with new architecture'}</li>
-                  <li>• {language === 'vi' ? 'Auth system hoạt động' : 'Auth system working'}</li>
-                  <li>• {language === 'vi' ? 'TailwindCSS đã setup' : 'TailwindCSS configured'}</li>
-                  <li>• {language === 'vi' ? 'API service layer sẵn sàng' : 'API service layer ready'}</li>
-                </ul>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h3 className="font-semibold text-yellow-900 mb-2">
-                  🚧 {language === 'vi' ? 'Tiếp theo' : 'Next Steps'}
-                </h3>
-                <ul className="text-sm text-yellow-800 space-y-1 ml-4">
-                  <li>• Phase 1: {language === 'vi' ? 'Extract utilities từ V1' : 'Extract utilities from V1'}</li>
-                  <li>• Phase 2: {language === 'vi' ? 'Tạo API service layer' : 'Create API service layer'}</li>
-                  <li>• Phase 3: {language === 'vi' ? 'Tạo custom hooks' : 'Create custom hooks'}</li>
-                  <li>• Phase 4-7: {language === 'vi' ? 'Migrate từng feature' : 'Migrate features'}</li>
-                </ul>
-              </div>
-
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="font-semibold text-green-900 mb-2">
-                  📂 {language === 'vi' ? 'Cấu trúc mới' : 'New Structure'}
-                </h3>
-                <div className="text-sm text-green-800 font-mono">
-                  <div>/src</div>
-                  <div className="ml-4">├── components/ (UI components)</div>
-                  <div className="ml-4">├── features/ (Feature modules)</div>
-                  <div className="ml-4">├── hooks/ (Custom hooks)</div>
-                  <div className="ml-4">├── services/ (API services)</div>
-                  <div className="ml-4">├── utils/ (Utilities)</div>
-                  <div className="ml-4">├── contexts/ (React contexts)</div>
-                  <div className="ml-4">└── pages/ (Page components)</div>
+    <MainLayout>
+      <div className="flex h-full">
+        <Sidebar 
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          ships={ships}
+          selectedShip={selectedShip}
+          onShipSelect={handleShipSelect}
+          onAddRecord={handleAddRecord}
+        />
+        
+        <div className="flex-1 flex flex-col">
+          <SubMenuBar 
+            selectedCategory={selectedCategory}
+            selectedSubMenu={selectedSubMenu}
+            onSubMenuChange={setSelectedSubMenu}
+          />
+          
+          <main className="flex-1 p-6 bg-gray-50">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                {language === 'vi' ? 'Chào mừng đến hệ thống quản lý tàu' : 'Welcome to Ship Management System'}
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 mb-2">
+                    👥 {language === 'vi' ? 'Quản lý thuyền viên' : 'Crew Management'}
+                  </h3>
+                  <p className="text-sm text-blue-800">
+                    {language === 'vi' ? 'Quản lý thông tin thuyền viên, hợp đồng và chứng chỉ' : 'Manage crew information, contracts and certificates'}
+                  </p>
+                </div>
+                
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-green-900 mb-2">
+                    🚢 {language === 'vi' ? 'Quản lý tàu' : 'Ship Management'}
+                  </h3>
+                  <p className="text-sm text-green-800">
+                    {language === 'vi' ? 'Thông tin tàu, bảo trì và kiểm định' : 'Ship information, maintenance and inspections'}
+                  </p>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-purple-900 mb-2">
+                    📊 {language === 'vi' ? 'Báo cáo' : 'Reports'}
+                  </h3>
+                  <p className="text-sm text-purple-800">
+                    {language === 'vi' ? 'Báo cáo và thống kê hệ thống' : 'System reports and analytics'}
+                  </p>
                 </div>
               </div>
-
-              <div className="text-center mt-8">
-                <p className="text-gray-600">
-                  {language === 'vi' 
-                    ? 'Features sẽ được migrate từ V1 sang V2 dần dần...' 
-                    : 'Features will be migrated from V1 to V2 gradually...'}
-                </p>
-              </div>
+              
+              {selectedShip && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    {language === 'vi' ? 'Tàu được chọn:' : 'Selected Ship:'}
+                  </h3>
+                  <div className="text-sm text-gray-600">
+                    <p><strong>{language === 'vi' ? 'Tên:' : 'Name:'}</strong> {selectedShip.name}</p>
+                    <p><strong>{language === 'vi' ? 'Cờ:' : 'Flag:'}</strong> {selectedShip.flag}</p>
+                    <p><strong>{language === 'vi' ? 'Hội đăng kiểm:' : 'Class Society:'}</strong> {selectedShip.class_society}</p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </div>
+    </MainLayout>
   );
 };
 
