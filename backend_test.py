@@ -819,12 +819,350 @@ class DeleteCompanyValidationTester:
             self.print_result(False, f"Exception during company deletion test: {str(e)}")
             return False
     
+    def test_get_ships(self):
+        """Get ships to find companies with ships"""
+        self.print_test_header("Setup - Get Ships List")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False, []
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 GET {BACKEND_URL}/ships")
+            
+            # Make request to ships endpoint
+            response = self.session.get(
+                f"{BACKEND_URL}/ships",
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                ships_data = response.json()
+                print(f"📄 Response Type: {type(ships_data)}")
+                
+                if not isinstance(ships_data, list):
+                    self.print_result(False, f"Expected list response, got: {type(ships_data)}")
+                    return False, []
+                
+                print(f"🚢 Number of ships returned: {len(ships_data)}")
+                
+                # Print ship details and find companies with ships
+                companies_with_ships = set()
+                for i, ship in enumerate(ships_data):
+                    print(f"\n🚢 Ship {i+1}: {ship.get('name', 'Unknown')}")
+                    print(f"   ID: {ship.get('id', 'N/A')}")
+                    print(f"   Company: {ship.get('company', 'N/A')}")
+                    print(f"   IMO: {ship.get('imo', 'N/A')}")
+                    print(f"   Flag: {ship.get('flag', 'N/A')}")
+                    print(f"   Ship Type: {ship.get('ship_type', 'N/A')}")
+                    
+                    # Track companies that have ships
+                    company = ship.get('company')
+                    if company:
+                        companies_with_ships.add(company)
+                
+                print(f"\n📊 Companies with ships: {len(companies_with_ships)}")
+                for company in companies_with_ships:
+                    print(f"   - {company}")
+                
+                self.print_result(True, f"Ships list retrieved successfully - {len(ships_data)} ships found")
+                return True, list(companies_with_ships)
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Ships API failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Ships API failed with status {response.status_code}: {response.text}")
+                return False, []
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during get ships test: {str(e)}")
+            return False, []
+    
+    def test_delete_company_with_ships(self, companies_with_ships):
+        """Test 1: Try to delete a company that has ships (should fail with 400)"""
+        self.print_test_header("Test 1 - Delete Company WITH Ships (Should Fail)")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        if not companies_with_ships:
+            self.print_result(False, "No companies with ships found for testing")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Find a company that has ships (try AMCSC first, then any company)
+            target_company_id = None
+            target_company_name = None
+            
+            # Get all companies to find the company ID
+            companies_response = self.session.get(
+                f"{BACKEND_URL}/companies",
+                headers=headers
+            )
+            
+            if companies_response.status_code == 200:
+                companies = companies_response.json()
+                
+                # Look for AMCSC first
+                for company in companies:
+                    company_name = company.get('name_en', company.get('name', ''))
+                    company_id = company.get('id')
+                    
+                    if 'AMCSC' in company_name.upper() and company_id in companies_with_ships:
+                        target_company_id = company_id
+                        target_company_name = company_name
+                        break
+                
+                # If AMCSC not found, use any company with ships
+                if not target_company_id:
+                    for company in companies:
+                        company_id = company.get('id')
+                        company_name = company.get('name_en', company.get('name', ''))
+                        
+                        if company_id in companies_with_ships:
+                            target_company_id = company_id
+                            target_company_name = company_name
+                            break
+            
+            if not target_company_id:
+                self.print_result(False, "Could not find a company with ships to test deletion")
+                return False
+            
+            print(f"📡 DELETE {BACKEND_URL}/companies/{target_company_id}")
+            print(f"🎯 Testing deletion of company: {target_company_name}")
+            print(f"🎯 EXPECTED: Should return 400 Bad Request with detailed error message")
+            print(f"🎯 EXPECTED: Error should mention ships and provide ship names")
+            
+            # Make request to delete company with ships
+            response = self.session.delete(
+                f"{BACKEND_URL}/companies/{target_company_id}",
+                headers=headers
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 400:
+                try:
+                    error_data = response.json()
+                    print(f"📄 Error Response: {error_data}")
+                    
+                    # Check if error message contains expected content
+                    error_detail = error_data.get('detail', '')
+                    
+                    # Verify error message contains key elements
+                    checks = {
+                        'contains_cannot_delete': 'Cannot delete company' in error_detail,
+                        'contains_ships_count': any(word in error_detail for word in ['ships', 'ship']),
+                        'contains_company_name': target_company_name in error_detail or any(name in error_detail for name in [target_company_name]),
+                        'contains_instruction': 'delete' in error_detail.lower() or 'reassign' in error_detail.lower()
+                    }
+                    
+                    print(f"\n🔍 Error Message Validation:")
+                    for check_name, check_result in checks.items():
+                        status = "✅" if check_result else "❌"
+                        print(f"   {status} {check_name}: {check_result}")
+                    
+                    all_checks_passed = all(checks.values())
+                    
+                    if all_checks_passed:
+                        self.print_result(True, "✅ Company with ships deletion properly blocked with detailed error message")
+                        return True
+                    else:
+                        failed_checks = [name for name, result in checks.items() if not result]
+                        self.print_result(False, f"Error message validation failed: {failed_checks}")
+                        return False
+                        
+                except Exception as e:
+                    print(f"📄 Error Response (raw): {response.text}")
+                    # Even if JSON parsing fails, 400 is the correct response
+                    if 'Cannot delete company' in response.text and 'ships' in response.text:
+                        self.print_result(True, "✅ Company with ships deletion properly blocked (raw text validation)")
+                        return True
+                    else:
+                        self.print_result(False, f"400 returned but error message format incorrect: {e}")
+                        return False
+                        
+            elif response.status_code == 200:
+                self.print_result(False, "❌ CRITICAL: Company with ships was deleted successfully - validation not working!")
+                return False
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Expected 400, got {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Expected 400, got {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during delete company with ships test: {str(e)}")
+            return False
+    
+    def test_delete_company_without_ships(self):
+        """Test 2: Create a new company (no ships) and try to delete it (should succeed with 200)"""
+        self.print_test_header("Test 2 - Delete Company WITHOUT Ships (Should Succeed)")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            # Step 1: Create a new test company (no ships)
+            import time
+            unique_suffix = str(int(time.time()))[-6:]  # Last 6 digits of timestamp
+            new_company_data = {
+                "name_vn": "Công ty Test Delete",
+                "name_en": "Test Delete Company Ltd",
+                "address_vn": "Hà Nội, Việt Nam",
+                "address_en": "Hanoi, Vietnam",
+                "tax_id": f"DELETE{unique_suffix}",  # Unique tax ID
+                "email": "testdelete@company.vn",
+                "phone": "+84 987 654 999",
+                "gmail": "testdelete@company.vn",
+                "zalo": "0987654999",
+                "logo_url": "https://via.placeholder.com/150",
+                "system_expiry": "2025-12-31"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/companies")
+            print(f"📄 Creating test company: {new_company_data['name_en']}")
+            print(f"   Tax ID: {new_company_data['tax_id']}")
+            
+            # Create the company
+            create_response = self.session.post(
+                f"{BACKEND_URL}/companies",
+                json=new_company_data,
+                headers=headers
+            )
+            
+            print(f"📊 Create Response Status: {create_response.status_code}")
+            
+            if create_response.status_code not in [200, 201]:
+                try:
+                    error_data = create_response.json()
+                    self.print_result(False, f"Company creation failed with status {create_response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Company creation failed with status {create_response.status_code}: {create_response.text}")
+                return False
+            
+            company_response = create_response.json()
+            test_company_id = company_response.get('id')
+            test_company_name = company_response.get('name_en')
+            
+            if not test_company_id:
+                self.print_result(False, "Company creation succeeded but no ID returned")
+                return False
+            
+            print(f"✅ Test company created successfully")
+            print(f"   ID: {test_company_id}")
+            print(f"   Name: {test_company_name}")
+            
+            # Step 2: Try to delete the company (should succeed)
+            print(f"\n📡 DELETE {BACKEND_URL}/companies/{test_company_id}")
+            print(f"🎯 Testing deletion of company WITHOUT ships: {test_company_name}")
+            print(f"🎯 EXPECTED: Should return 200 OK with success message")
+            
+            # Make request to delete company without ships
+            delete_response = self.session.delete(
+                f"{BACKEND_URL}/companies/{test_company_id}",
+                headers=headers
+            )
+            
+            print(f"📊 Delete Response Status: {delete_response.status_code}")
+            
+            if delete_response.status_code == 200:
+                try:
+                    success_data = delete_response.json()
+                    print(f"📄 Success Response: {success_data}")
+                    
+                    # Verify success message
+                    message = success_data.get('message', '')
+                    company_id_returned = success_data.get('company_id', '')
+                    
+                    print(f"\n🔍 Success Response Validation:")
+                    print(f"   ✅ Message: {message}")
+                    print(f"   ✅ Company ID: {company_id_returned}")
+                    
+                    # Step 3: Verify company is actually deleted
+                    print(f"\n🔍 Verifying company deletion by checking companies list...")
+                    
+                    verify_response = self.session.get(
+                        f"{BACKEND_URL}/companies",
+                        headers=headers
+                    )
+                    
+                    if verify_response.status_code == 200:
+                        companies_data = verify_response.json()
+                        
+                        # Check if the test company is still in the list
+                        test_company_still_exists = False
+                        for company in companies_data:
+                            if company.get('id') == test_company_id:
+                                test_company_still_exists = True
+                                break
+                        
+                        if test_company_still_exists:
+                            self.print_result(False, "Test company still exists in companies list after deletion")
+                            return False
+                        
+                        print(f"✅ Verification: Test company no longer in companies list")
+                        
+                    else:
+                        print(f"⚠️ Could not verify deletion - companies list request failed: {verify_response.status_code}")
+                    
+                    self.print_result(True, "✅ Company without ships deleted successfully with proper response")
+                    return True
+                        
+                except Exception as e:
+                    print(f"📄 Success Response (raw): {delete_response.text}")
+                    # Even if JSON parsing fails, 200 is the correct response
+                    self.print_result(True, "✅ Company without ships deleted successfully (raw response)")
+                    return True
+                    
+            elif delete_response.status_code == 400:
+                try:
+                    error_data = delete_response.json()
+                    self.print_result(False, f"❌ UNEXPECTED: Company without ships deletion blocked with 400: {error_data}")
+                except:
+                    self.print_result(False, f"❌ UNEXPECTED: Company without ships deletion blocked with 400: {delete_response.text}")
+                return False
+            else:
+                try:
+                    error_data = delete_response.json()
+                    self.print_result(False, f"Expected 200, got {delete_response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Expected 200, got {delete_response.status_code}: {delete_response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during delete company without ships test: {str(e)}")
+            return False
+    
     def run_all_tests(self):
-        """Run all Company Management API tests"""
-        print(f"🚀 Starting GET /api/companies/{{company_id}} Endpoint Testing")
-        print(f"🎯 FOCUS: Testing newly implemented GET company by ID endpoint")
-        print(f"🔍 Previous Issue: Endpoint returned 405 Method Not Allowed")
-        print(f"✅ Expected: Endpoint should now return 200 OK with company data")
+        """Run all DELETE Company Validation tests"""
+        print(f"🚀 Starting DELETE Company Validation Testing")
+        print(f"🎯 FOCUS: Testing DELETE company validation logic")
+        print(f"🔍 Expected: 400 error if company has ships, 200 OK if no ships")
+        print(f"✅ Validation: Should check ships by company_id and company name")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
         
@@ -834,71 +1172,40 @@ class DeleteCompanyValidationTester:
         result_auth = self.test_authentication()
         test_results.append(("Setup - Admin Authentication", result_auth))
         
-        # Test 1: Get All Companies (only if authentication succeeded)
+        # Setup: Get Companies List
         if result_auth:
-            result_get_all = self.test_get_all_companies()
-            test_results.append(("Test 1 - Get All Companies", result_get_all))
+            result_get_companies = self.test_get_all_companies()
+            test_results.append(("Setup - Get Companies List", result_get_companies))
         else:
-            print(f"\n⚠️ Skipping Get All Companies - authentication failed")
-            test_results.append(("Test 1 - Get All Companies", False))
-            result_get_all = False
+            print(f"\n⚠️ Skipping Get Companies - authentication failed")
+            test_results.append(("Setup - Get Companies List", False))
+            result_get_companies = False
         
-        # Test 2: Get AMCSC Company by ID (only if authentication and get all companies succeeded)
-        if result_auth and result_get_all:
-            result_get_by_id = self.test_get_company_by_id()
-            test_results.append(("Test 2 - Get AMCSC Company by ID", result_get_by_id))
-        else:
-            print(f"\n⚠️ Skipping Get Company by ID - authentication or get companies failed")
-            test_results.append(("Test 2 - Get AMCSC Company by ID", False))
-        
-        # Test 3: Get Non-existent Company (only if authentication succeeded)
+        # Setup: Get Ships List
         if result_auth:
-            result_get_nonexistent = self.test_get_nonexistent_company()
-            test_results.append(("Test 3 - Get Non-existent Company (404)", result_get_nonexistent))
+            result_get_ships, companies_with_ships = self.test_get_ships()
+            test_results.append(("Setup - Get Ships List", result_get_ships))
         else:
-            print(f"\n⚠️ Skipping Get Non-existent Company - authentication failed")
-            test_results.append(("Test 3 - Get Non-existent Company (404)", False))
+            print(f"\n⚠️ Skipping Get Ships - authentication failed")
+            test_results.append(("Setup - Get Ships List", False))
+            result_get_ships = False
+            companies_with_ships = []
         
-        # Test 4: Get Company Without Authentication
-        if result_get_all:  # Only need company ID from get all companies
-            result_get_no_auth = self.test_get_company_without_auth()
-            test_results.append(("Test 4 - Get Company Without Auth (401)", result_get_no_auth))
+        # Test 1: Delete Company WITH Ships (should fail)
+        if result_auth and result_get_ships:
+            result_delete_with_ships = self.test_delete_company_with_ships(companies_with_ships)
+            test_results.append(("Test 1 - Delete Company WITH Ships (Should Fail)", result_delete_with_ships))
         else:
-            print(f"\n⚠️ Skipping Get Company Without Auth - no company ID available")
-            test_results.append(("Test 4 - Get Company Without Auth (401)", False))
+            print(f"\n⚠️ Skipping Delete Company WITH Ships - setup failed")
+            test_results.append(("Test 1 - Delete Company WITH Ships (Should Fail)", False))
         
-        # Test 5: Create New Company (only if authentication succeeded)
+        # Test 2: Delete Company WITHOUT Ships (should succeed)
         if result_auth:
-            result_create = self.test_create_new_company()
-            test_results.append(("Test 5 - Create New Company", result_create))
+            result_delete_without_ships = self.test_delete_company_without_ships()
+            test_results.append(("Test 2 - Delete Company WITHOUT Ships (Should Succeed)", result_delete_without_ships))
         else:
-            print(f"\n⚠️ Skipping Create New Company test - authentication failed")
-            test_results.append(("Test 5 - Create New Company", False))
-            result_create = False
-        
-        # Test 6: Update Company (only if company creation succeeded)
-        if result_create:
-            result_update = self.test_update_company()
-            test_results.append(("Test 6 - Update Company", result_update))
-        else:
-            print(f"\n⚠️ Skipping Update Company test - company creation failed")
-            test_results.append(("Test 6 - Update Company", False))
-        
-        # Test 7: Upload Company Logo (only if company creation succeeded)
-        if result_create:
-            result_upload = self.test_upload_company_logo()
-            test_results.append(("Test 7 - Upload Company Logo", result_upload))
-        else:
-            print(f"\n⚠️ Skipping Upload Company Logo test - company creation failed")
-            test_results.append(("Test 7 - Upload Company Logo", False))
-        
-        # Test 8: Delete Company (only if company creation succeeded)
-        if result_create:
-            result_delete = self.test_delete_company()
-            test_results.append(("Test 8 - Delete Company", result_delete))
-        else:
-            print(f"\n⚠️ Skipping Delete Company test - company creation failed")
-            test_results.append(("Test 8 - Delete Company", False))
+            print(f"\n⚠️ Skipping Delete Company WITHOUT Ships - authentication failed")
+            test_results.append(("Test 2 - Delete Company WITHOUT Ships (Should Succeed)", False))
         
         # Print summary
         self.print_test_summary(test_results)
