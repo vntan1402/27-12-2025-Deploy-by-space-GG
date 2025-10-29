@@ -861,35 +861,35 @@ class CompanyManagementTester:
         # Test 5: Create New Company (only if authentication succeeded)
         if result_auth:
             result_create = self.test_create_new_company()
-            test_results.append(("Test 3 - Create New Company", result_create))
+            test_results.append(("Test 5 - Create New Company", result_create))
         else:
             print(f"\n⚠️ Skipping Create New Company test - authentication failed")
-            test_results.append(("Test 3 - Create New Company", False))
+            test_results.append(("Test 5 - Create New Company", False))
             result_create = False
         
-        # Test 4: Update Company (only if company creation succeeded)
+        # Test 6: Update Company (only if company creation succeeded)
         if result_create:
             result_update = self.test_update_company()
-            test_results.append(("Test 4 - Update Company", result_update))
+            test_results.append(("Test 6 - Update Company", result_update))
         else:
             print(f"\n⚠️ Skipping Update Company test - company creation failed")
-            test_results.append(("Test 4 - Update Company", False))
+            test_results.append(("Test 6 - Update Company", False))
         
-        # Test 5: Upload Company Logo (only if company creation succeeded)
+        # Test 7: Upload Company Logo (only if company creation succeeded)
         if result_create:
             result_upload = self.test_upload_company_logo()
-            test_results.append(("Test 5 - Upload Company Logo", result_upload))
+            test_results.append(("Test 7 - Upload Company Logo", result_upload))
         else:
             print(f"\n⚠️ Skipping Upload Company Logo test - company creation failed")
-            test_results.append(("Test 5 - Upload Company Logo", False))
+            test_results.append(("Test 7 - Upload Company Logo", False))
         
-        # Test 6: Delete Company (only if company creation succeeded)
+        # Test 8: Delete Company (only if company creation succeeded)
         if result_create:
             result_delete = self.test_delete_company()
-            test_results.append(("Test 6 - Delete Company", result_delete))
+            test_results.append(("Test 8 - Delete Company", result_delete))
         else:
             print(f"\n⚠️ Skipping Delete Company test - company creation failed")
-            test_results.append(("Test 6 - Delete Company", False))
+            test_results.append(("Test 8 - Delete Company", False))
         
         # Print summary
         self.print_test_summary(test_results)
