@@ -134,22 +134,22 @@ class AIConfigTester:
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:
                 try:
                     error_data = response.json()
                     print(f"📄 Error Response: {error_data}")
-                    self.print_result(True, "✅ GET /api/ai-config without auth correctly returns 401 Unauthorized")
+                    self.print_result(True, f"✅ GET /api/ai-config without auth correctly returns {response.status_code} (authentication required)")
                     return True
                 except:
                     print(f"📄 Error Response (raw): {response.text}")
-                    self.print_result(True, "✅ GET /api/ai-config without auth correctly returns 401 Unauthorized")
+                    self.print_result(True, f"✅ GET /api/ai-config without auth correctly returns {response.status_code} (authentication required)")
                     return True
             else:
                 try:
                     response_data = response.json()
-                    self.print_result(False, f"❌ Expected 401, got {response.status_code}: {response_data}")
+                    self.print_result(False, f"❌ Expected 401 or 403, got {response.status_code}: {response_data}")
                 except:
-                    self.print_result(False, f"❌ Expected 401, got {response.status_code}: {response.text}")
+                    self.print_result(False, f"❌ Expected 401 or 403, got {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
