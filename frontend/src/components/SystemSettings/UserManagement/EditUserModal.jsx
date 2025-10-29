@@ -98,6 +98,35 @@ const EditUserModal = ({
     setUserData(prev => ({ ...prev, department: newDepts }));
   };
 
+  // Check if ship_crew is selected in department
+  const isShipCrewSelected = userData.department && Array.isArray(userData.department) && userData.department.includes('ship_crew');
+
+  // Filter ships by user's company
+  const getFilteredShips = () => {
+    if (!userData.company) return [];
+    
+    // Find the selected company
+    const selectedCompany = companies.find(c => 
+      c.id === userData.company ||
+      c.name_en === userData.company ||
+      c.name_vn === userData.company ||
+      c.name === userData.company
+    );
+    
+    if (!selectedCompany) return [];
+    
+    // Filter ships by company
+    return ships.filter(ship => 
+      ship.company === userData.company || 
+      ship.company === selectedCompany.id ||
+      ship.company === selectedCompany.name_en || 
+      ship.company === selectedCompany.name_vn ||
+      ship.company === selectedCompany.name
+    );
+  };
+
+  const filteredShips = getFilteredShips();
+
   /**
    * Get role display name
    */
