@@ -16,12 +16,34 @@ const AddUserModal = ({
   loading,
   currentUser  // Added currentUser prop
 }) => {
-  // Lock company field to current user's company on mount
+  // Lock company field to current user's company on mount (only for non-super_admin)
   useEffect(() => {
-    if (currentUser?.company && !userData.company) {
+    if (currentUser?.role !== 'super_admin' && currentUser?.company && !userData.company) {
       setUserData(prev => ({ ...prev, company: currentUser.company }));
     }
   }, [currentUser, userData.company, setUserData]);
+
+  // Check if ship_crew is selected in department
+  const isShipCrewSelected = userData.department && Array.isArray(userData.department) && userData.department.includes('ship_crew');
+
+  // Filter ships by selected company
+  const getFilteredShips = () => {
+    if (!userData.company) return [];
+    
+    // Find the selected company
+    const selectedCompany = companies.find(c => c.id === userData.company);
+    if (!selectedCompany) return [];
+    
+    // Filter ships by company (check both company ID and company name)
+    return ships.filter(ship => 
+      ship.company === userData.company || 
+      ship.company === selectedCompany.name_en || 
+      ship.company === selectedCompany.name_vn ||
+      ship.company === selectedCompany.name
+    );
+  };
+
+  const filteredShips = getFilteredShips();
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
