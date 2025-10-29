@@ -124,7 +124,7 @@ class AIConfigTester:
         
         try:
             print(f"📡 GET {BACKEND_URL}/ai-config")
-            print(f"🎯 Testing without Authorization header - should return 401")
+            print(f"🎯 Testing without Authorization header - should return 401 or 403")
             
             # Make request without authorization header
             response = self.session.get(
