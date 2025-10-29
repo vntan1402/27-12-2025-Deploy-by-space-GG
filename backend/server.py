@@ -3429,9 +3429,17 @@ async def login(credentials: LoginRequest):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         logger.info(f"✅ User found: {user.get('username')}")
+        logger.info(f"✅ User found: {user.get('username')}")
         
         # Verify password
-        if not bcrypt.checkpw(credentials.password.encode('utf-8'), user["password_hash"].encode('utf-8')):
+        try:
+            password_match = bcrypt.checkpw(credentials.password.encode('utf-8'), user["password_hash"].encode('utf-8'))
+            logger.info(f"🔑 Password verification result: {password_match}")
+            if not password_match:
+                logger.warning(f"❌ Password mismatch for user: {credentials.username}")
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+        except Exception as pw_error:
+            logger.error(f"❌ Password verification error: {pw_error}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Check if user is active
