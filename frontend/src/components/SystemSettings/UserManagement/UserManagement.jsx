@@ -191,7 +191,14 @@ const UserManagement = () => {
       }
 
       setLoading(true);
-      await userService.create(newUserData);
+      
+      // Clean data: remove email if empty (to avoid validation error)
+      const dataToSend = { ...newUserData };
+      if (!dataToSend.email || dataToSend.email.trim() === '') {
+        delete dataToSend.email; // Don't send email field if empty
+      }
+      
+      await userService.create(dataToSend);
       
       toast.success(language === 'vi' ? 'Thêm người dùng thành công!' : 'User added successfully!');
       
