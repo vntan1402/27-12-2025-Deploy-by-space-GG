@@ -110,7 +110,22 @@ const UserTable = ({
                 {userItem.company || '-'}
               </td>
               <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                {userItem.department || '-'}
+                {Array.isArray(userItem.department) && userItem.department.length > 0
+                  ? userItem.department.map(dept => {
+                      const deptLabels = {
+                        technical: language === 'vi' ? 'Kỹ thuật' : 'Technical',
+                        operations: language === 'vi' ? 'Vận hành' : 'Operations',
+                        safety: language === 'vi' ? 'An toàn' : 'Safety',
+                        commercial: language === 'vi' ? 'Thương mại' : 'Commercial',
+                        crewing: language === 'vi' ? 'Thuyền viên' : 'Crewing',
+                        ship_crew: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew',
+                        dpa: 'DPA',
+                        supply: language === 'vi' ? 'Vật tư' : 'Supply'
+                      };
+                      return deptLabels[dept] || dept;
+                    }).join(', ')
+                  : (userItem.department || '-')
+                }
               </td>
               <td className="border border-gray-300 px-4 py-3">
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(userItem.role)}`}>
