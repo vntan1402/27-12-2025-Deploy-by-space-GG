@@ -130,6 +130,10 @@ async def auto_backup_to_google_drive():
                     "mimeType": "application/json"
                 }
                 
+                # Add API key if configured
+                if api_key:
+                    payload["api_key"] = api_key
+                
                 response = requests.post(web_app_url, json=payload, timeout=60)
                 
                 if response.status_code == 200:
