@@ -1,5 +1,5 @@
 /**
- * Ship Certificates Page
+ * Class And Flag Cert Page
  * Main page for Class & Flag Cert category
  */
 import React, { useState, useEffect } from 'react';
@@ -9,7 +9,7 @@ import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { shipService } from '../services';
 import { toast } from 'sonner';
 
-const ShipCertificatesPage = () => {
+const ClassAndFlagCert = () => {
   const { language } = useAuth();
   
   // State
