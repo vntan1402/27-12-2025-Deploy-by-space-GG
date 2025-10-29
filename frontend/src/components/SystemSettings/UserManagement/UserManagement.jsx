@@ -246,6 +246,42 @@ const UserManagement = () => {
   };
 
   /**
+   * Handle edit user button click
+   */
+  const handleEditUser = (user) => {
+    if (!canEditUser(user)) {
+      toast.error(language === 'vi' ? 'Bạn không có quyền chỉnh sửa người dùng này' : 'You do not have permission to edit this user');
+      return;
+    }
+    
+    setEditingUser(user);
+    setShowEditUser(true);
+  };
+
+  /**
+   * Handle update user
+   */
+  const handleUpdateUser = async (userId, updatedData) => {
+    try {
+      setLoading(true);
+      await userService.update(userId, updatedData);
+      
+      toast.success(language === 'vi' ? 'Cập nhật người dùng thành công!' : 'User updated successfully!');
+      
+      // Close modal and refresh list
+      setShowEditUser(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      const errorMessage = error.response?.data?.detail || (language === 'vi' ? 'Không thể cập nhật người dùng' : 'Failed to update user');
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
    * Handle delete user
    */
   const handleDeleteUser = async (targetUser) => {
