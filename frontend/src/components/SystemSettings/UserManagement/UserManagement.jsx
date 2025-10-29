@@ -36,6 +36,9 @@ const UserManagement = () => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [loading, setLoading] = useState(false);
   
+  // Filter state (for super_admin)
+  const [companyFilter, setCompanyFilter] = useState('');
+  
   // New user data
   // State for edit user modal
   const [showEditUser, setShowEditUser] = useState(false);
