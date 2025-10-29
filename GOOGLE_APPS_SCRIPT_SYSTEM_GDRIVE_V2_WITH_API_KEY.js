@@ -1,13 +1,12 @@
 // =========================================================
 // 🚢 GOOGLE DRIVE BACKUP PROXY
+// Version: v2.0 (No API Key Edition)
 // Author: Vu Ngoc Tan + GPT-5
-// Version: v2.0 (Enhanced Security & Stability)
 // Date: 2025-10-29
 // =========================================================
 
 // =================== 🔧 CONFIG ===================
 const ROOT_FOLDER_ID = '1UeKVBrqaEsND4WziUUL2h-JIyOZ7maVB'; // 👈 Replace with your folder ID
-const API_KEY = 'Vntan1402sms'; // 👈 Add secret key for authentication
 const TIMEZONE = 'GMT+7';
 const DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss';
 
