@@ -2,7 +2,7 @@
 
 # Test script for Crew Certificates Backend APIs (Steps 1-5)
 
-API_URL="https://flexvessel.preview.emergentagent.com/api"
+API_URL="https://shipdata-ui-v2.preview.emergentagent.com/api"
 
 echo "=========================================="
 echo "CREW CERTIFICATES BACKEND API TESTING"
