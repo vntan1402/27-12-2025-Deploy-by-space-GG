@@ -15,6 +15,7 @@ const ClassAndFlagCert = () => {
   // State
   const [selectedCategory] = useState('ship_certificates');
   const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
+  const [showShipModal, setShowShipModal] = useState(false);
   const [ships, setShips] = useState([]);
   const [selectedShip, setSelectedShip] = useState(null);
   const [loading, setLoading] = useState(false);
