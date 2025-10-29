@@ -196,61 +196,61 @@ const ClassAndFlagCert = () => {
                 <p className="text-lg">{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-5 gap-3">
                 {ships.map(ship => (
                   <div
                     key={ship.id}
                     onClick={() => setSelectedShip(ship)}
-                    className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50"
+                    className="border-2 border-gray-200 rounded-lg p-3 hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50"
                   >
                     {/* Ship Icon */}
-                    <div className="text-center mb-4">
-                      <div className="text-5xl">🚢</div>
+                    <div className="text-center mb-2">
+                      <div className="text-2xl">🚢</div>
                     </div>
                     
                     {/* Ship Name */}
-                    <h4 className="text-xl font-bold text-gray-800 text-center mb-3">
+                    <h4 className="text-sm font-bold text-gray-800 text-center mb-2 line-clamp-2 min-h-[2.5rem]">
                       {ship.name}
                     </h4>
                     
                     {/* Ship Details */}
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-1 text-xs">
                       {ship.imo && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">IMO:</span>
-                          <span className="font-semibold text-gray-800">{ship.imo}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-[10px]">IMO:</span>
+                          <span className="font-semibold text-gray-800 text-[10px]">{ship.imo}</span>
                         </div>
                       )}
                       {ship.flag && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
-                          <span className="font-semibold text-gray-800">{ship.flag}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-[10px]">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
+                          <span className="font-semibold text-gray-800 text-[10px] truncate ml-1">{ship.flag}</span>
                         </div>
                       )}
                       {ship.ship_type && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">{language === 'vi' ? 'Loại:' : 'Type:'}</span>
-                          <span className="font-semibold text-gray-800">{ship.ship_type}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-[10px]">{language === 'vi' ? 'Loại:' : 'Type:'}</span>
+                          <span className="font-semibold text-gray-800 text-[10px] truncate ml-1">{ship.ship_type}</span>
                         </div>
                       )}
                       {ship.built_year && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">{language === 'vi' ? 'Năm đóng:' : 'Built Year:'}</span>
-                          <span className="font-semibold text-gray-800">{ship.built_year}</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 text-[10px]">{language === 'vi' ? 'Năm:' : 'Year:'}</span>
+                          <span className="font-semibold text-gray-800 text-[10px]">{ship.built_year}</span>
                         </div>
                       )}
                     </div>
                     
                     {/* Select Button */}
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-2 pt-2 border-t border-gray-200">
                       <button
-                        className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all"
+                        className="w-full py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded font-medium transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedShip(ship);
                         }}
                       >
-                        {language === 'vi' ? 'Chọn tàu này' : 'Select this ship'}
+                        {language === 'vi' ? 'Chọn' : 'Select'}
                       </button>
                     </div>
                   </div>
