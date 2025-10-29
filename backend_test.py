@@ -305,54 +305,7 @@ class DeleteCompanyValidationTester:
     
     # Removed old test methods - keeping only DELETE company validation tests
     
-    def test_get_company_without_auth(self):
-        """Test 4: Get Company Without Authentication - Should return 401"""
-        self.print_test_header("Test 4 - Get Company Without Authentication (401 Test)")
-        
-        if not self.amcsc_company_id:
-            self.print_result(False, "No AMCSC company ID available from get companies test")
-            return False
-        
-        try:
-            # No Authorization header
-            headers = {
-                "Content-Type": "application/json"
-            }
-            
-            print(f"📡 GET {BACKEND_URL}/companies/{self.amcsc_company_id}")
-            print(f"🔍 Testing without Authorization header")
-            print(f"🎯 EXPECTED: 401 Unauthorized or 403 Forbidden")
-            
-            # Make request without authentication
-            response = self.session.get(
-                f"{BACKEND_URL}/companies/{self.amcsc_company_id}",
-                headers=headers
-            )
-            
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 401 or response.status_code == 403:
-                try:
-                    error_data = response.json()
-                    print(f"📄 Error Response: {error_data}")
-                except:
-                    print(f"📄 Error Response: {response.text}")
-                
-                status_text = "401 Unauthorized" if response.status_code == 401 else "403 Forbidden"
-                self.print_result(True, f"✅ Request without authentication returns {status_text} (authentication required)")
-                return True
-                
-            else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Expected 401 or 403, got {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"Expected 401 or 403, got {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.print_result(False, f"Exception during authentication test: {str(e)}")
-            return False
+    # Removed old test methods - keeping only DELETE company validation tests
     
     def test_create_new_company(self):
         """Test 3: Create New Company (POST /api/companies)"""
