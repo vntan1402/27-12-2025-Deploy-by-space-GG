@@ -116,9 +116,6 @@ const UserTable = ({
             <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
               Zalo
             </th>
-            <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
-              Gmail
-            </th>
             <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
               {language === 'vi' ? 'Thao tác' : 'Actions'}
             </th>
@@ -162,9 +159,6 @@ const UserTable = ({
               </td>
               <td className="border border-gray-300 px-4 py-3 text-gray-700">
                 {userItem.zalo || '-'}
-              </td>
-              <td className="border border-gray-300 px-4 py-3 text-gray-700">
-                {userItem.gmail || '-'}
               </td>
               <td className="border border-gray-300 px-4 py-3">
                 <div className="flex justify-center space-x-2">
