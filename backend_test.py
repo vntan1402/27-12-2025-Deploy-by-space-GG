@@ -33,14 +33,14 @@ class AIConfigTester:
         print(f"{status}: {message}")
         
     def test_authentication(self):
-        """Setup: Login as admin1 / 123456 to get access token"""
+        """Setup: Login as admin / admin123 to get access token"""
         self.print_test_header("Setup - Admin Authentication")
         
         try:
-            # Test data - trying admin1 / 123456 (working credentials from previous tests)
+            # Test data - using admin/admin123 credentials as specified in the review request
             login_data = {
-                "username": "admin1",
-                "password": "123456",
+                "username": "admin",
+                "password": "admin123",
                 "remember_me": False
             }
             
@@ -98,7 +98,12 @@ class AIConfigTester:
                 print(f"👤 Username: {self.user_data['username']}")
                 print(f"👤 Role: {self.user_data['role']}")
                 
-                self.print_result(True, "Authentication successful - admin1 login returns access_token")
+                # Check if user has admin or super_admin role for AI config access
+                if self.user_data['role'] not in ['admin', 'super_admin']:
+                    self.print_result(False, f"User role '{self.user_data['role']}' may not have permission for AI config endpoints")
+                    return False
+                
+                self.print_result(True, "Authentication successful - admin login returns access_token with proper role")
                 return True
                 
             else:
