@@ -102,3 +102,5 @@ export const userService = {
     return api.post(`${API_ENDPOINTS.USER_BY_ID(userId)}/permissions`, permissions);
   },
 };
+
+export default userService;
