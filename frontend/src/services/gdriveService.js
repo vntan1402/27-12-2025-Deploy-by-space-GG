@@ -49,5 +49,17 @@ export const gdriveService = {
       folder_id: folderId
     });
     return response.data;
+  },
+
+  // Sync to Drive (Backup)
+  syncToDrive: async () => {
+    const response = await api.post('/api/gdrive/sync-to-drive');
+    return response.data;
+  },
+
+  // Sync from Drive (Restore)
+  syncFromDrive: async () => {
+    const response = await api.post('/api/gdrive/sync-from-drive');
+    return response.data;
   }
 };
