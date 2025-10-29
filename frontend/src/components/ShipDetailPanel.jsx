@@ -41,13 +41,24 @@ export const ShipDetailPanel = ({
               {ship.name}
             </h2>
             <div className="flex items-center gap-2">
+              {/* Ship Select Button */}
+              {onShipSelect && (
+                <button
+                  onClick={onShipSelect}
+                  className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
+                >
+                  <span className="mr-1">🚢</span>
+                  {language === 'vi' ? 'Chọn tàu' : 'Ship Select'}
+                </button>
+              )}
+              
               {/* Ship Particular Button */}
               {showShipParticular && (
                 <button
                   onClick={() => setShowFullShipInfo(!showFullShipInfo)}
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-all flex items-center"
                 >
-                  <span className="mr-1">🚢</span>
+                  <span className="mr-1">📋</span>
                   {language === 'vi' ? 'Thông số kỹ thuật' : 'Ship Particular'}
                   <span className="ml-1 text-xs">
                     {showFullShipInfo ? '▲' : '▼'}
