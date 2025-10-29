@@ -31,14 +31,14 @@ class CompanyManagementTester:
         print(f"{status}: {message}")
         
     def test_authentication(self):
-        """Setup: Login as admin1 / 123456 to get access token"""
+        """Setup: Login as super_admin / admin123 to get access token"""
         self.print_test_header("Setup - Admin Authentication")
         
         try:
-            # Test data - using admin1 / 123456 as specified in review request
+            # Test data - using super_admin / admin123 as specified in review request
             login_data = {
-                "username": "admin1",
-                "password": "123456",
+                "username": "super_admin",
+                "password": "admin123",
                 "remember_me": False
             }
             
