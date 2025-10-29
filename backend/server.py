@@ -13236,8 +13236,141 @@ async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permiss
         logger.error(f"Error syncing to Google Drive: {e}")
         raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
 
-@api_router.post("/gdrive/sync-to-drive") 
+@api_router.post("/gdrive/sync-to-drive")
 async def sync_to_drive(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+    """Sync ALL collections to Google Drive with daily folder structure"""
+    try:
+        # Get Google Drive configuration
+        config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+        if not config:
+            raise HTTPException(status_code=400, detail="Google Drive not configured")
+        
+        web_app_url = config.get("web_app_url")
+        if not web_app_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Get current date for folder name (format: YYYY-MM-DD)
+        from datetime import datetime, timezone
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        
+        # Create daily backup folder via Apps Script
+        create_folder_payload = {
+            "action": "create_folder",
+            "parent_folder_id": config.get("folder_id", ""),
+            "folder_name": today
+        }
+        
+        folder_response = requests.post(web_app_url, json=create_folder_payload, timeout=30)
+        
+        if folder_response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Failed to create daily folder: {folder_response.text}")
+        
+        folder_result = folder_response.json()
+        if not folder_result.get("success"):
+            raise HTTPException(status_code=500, detail=f"Failed to create daily folder: {folder_result.get('error')}")
+        
+        daily_folder_id = folder_result.get("folder_id")
+        logger.info(f"📁 Created daily backup folder: {today} (ID: {daily_folder_id})")
+        
+        # Get ALL collections from database
+        all_collections = await mongo_db.list_collections()
+        logger.info(f"📦 Found {len(all_collections)} collections to backup")
+        
+        files_uploaded = 0
+        upload_details = []
+        
+        for collection_name in all_collections:
+            try:
+                # Skip system collections
+                if collection_name.startswith('system.'):
+                    continue
+                    
+                # Get data from collection
+                data = await mongo_db.find_all(collection_name, {})
+                if not data:
+                    logger.info(f"⚠️ Collection {collection_name} is empty, skipping...")
+                    continue
+                
+                # Convert to JSON string
+                json_data = json.dumps(data, default=str, indent=2, ensure_ascii=False)
+                
+                # Upload to Google Drive via Apps Script (into daily folder)
+                payload = {
+                    "action": "upload_file",
+                    "folder_id": daily_folder_id,
+                    "filename": f"{collection_name}.json",
+                    "content": json_data,
+                    "mimeType": "application/json"
+                }
+                
+                response = requests.post(web_app_url, json=payload, timeout=60)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get("success"):
+                        files_uploaded += 1
+                        upload_details.append({
+                            "collection": collection_name,
+                            "filename": f"{collection_name}.json",
+                            "status": "uploaded",
+                            "records": len(data),
+                            "file_id": result.get("file_id")
+                        })
+                        logger.info(f"✅ Uploaded {collection_name}.json ({len(data)} records)")
+                    else:
+                        upload_details.append({
+                            "collection": collection_name,
+                            "filename": f"{collection_name}.json", 
+                            "status": "failed",
+                            "error": result.get("error")
+                        })
+                        logger.error(f"❌ Failed to upload {collection_name}: {result.get('error')}")
+                else:
+                    upload_details.append({
+                        "collection": collection_name,
+                        "filename": f"{collection_name}.json",
+                        "status": "failed", 
+                        "error": f"HTTP {response.status_code}"
+                    })
+                    logger.error(f"❌ HTTP error uploading {collection_name}: {response.status_code}")
+                    
+            except Exception as e:
+                upload_details.append({
+                    "collection": collection_name,
+                    "filename": f"{collection_name}.json",
+                    "status": "failed",
+                    "error": str(e)
+                })
+                logger.error(f"❌ Exception uploading {collection_name}: {e}")
+        
+        # Update last sync timestamp
+        await mongo_db.update(
+            "gdrive_config",
+            {"id": "system_gdrive"},
+            {
+                "last_sync": datetime.now(timezone.utc),
+                "last_backup_folder": today,
+                "last_backup_folder_id": daily_folder_id
+            }
+        )
+        
+        logger.info(f"🎉 Backup completed: {files_uploaded}/{len(all_collections)} files uploaded to {today}/")
+        
+        return {
+            "success": True,
+            "message": f"Backup completed. {files_uploaded} collections uploaded to folder '{today}'",
+            "files_uploaded": files_uploaded,
+            "total_collections": len(all_collections),
+            "backup_folder": today,
+            "backup_folder_id": daily_folder_id,
+            "upload_details": upload_details
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error syncing to Google Drive: {e}")
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
     """Legacy sync endpoint - redirects to proxy version"""
 @api_router.post("/gdrive/configure-proxy")
 async def configure_google_drive_proxy(
