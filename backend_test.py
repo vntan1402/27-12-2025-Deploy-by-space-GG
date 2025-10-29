@@ -818,7 +818,10 @@ class CompanyManagementTester:
     
     def run_all_tests(self):
         """Run all Company Management API tests"""
-        print(f"🚀 Starting Company Management APIs Testing")
+        print(f"🚀 Starting GET /api/companies/{{company_id}} Endpoint Testing")
+        print(f"🎯 FOCUS: Testing newly implemented GET company by ID endpoint")
+        print(f"🔍 Previous Issue: Endpoint returned 405 Method Not Allowed")
+        print(f"✅ Expected: Endpoint should now return 200 OK with company data")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
         
