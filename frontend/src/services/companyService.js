@@ -81,4 +81,42 @@ export const companyService = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+
+  /**
+   * Get company Google Drive configuration
+   * @param {string} companyId - Company ID
+   * @returns {Promise} Google Drive config
+   */
+  getGDriveConfig: async (companyId) => {
+    return api.get(API_ENDPOINTS.COMPANY_GDRIVE_CONFIG(companyId));
+  },
+
+  /**
+   * Get company Google Drive status
+   * @param {string} companyId - Company ID
+   * @returns {Promise} Google Drive status
+   */
+  getGDriveStatus: async (companyId) => {
+    return api.post(API_ENDPOINTS.COMPANY_GDRIVE_STATUS(companyId));
+  },
+
+  /**
+   * Configure company Google Drive
+   * @param {string} companyId - Company ID
+   * @param {object} configData - Configuration data
+   * @returns {Promise} Configuration result
+   */
+  configureGDrive: async (companyId, configData) => {
+    return api.post(API_ENDPOINTS.COMPANY_GDRIVE_CONFIGURE(companyId), configData);
+  },
+
+  /**
+   * Test company Google Drive connection (Apps Script)
+   * @param {string} companyId - Company ID
+   * @param {object} testData - Test data (web_app_url, folder_id)
+   * @returns {Promise} Test result
+   */
+  testGDriveConnection: async (companyId, testData) => {
+    return api.post(API_ENDPOINTS.COMPANY_GDRIVE_TEST_PROXY(companyId), testData);
+  },
 };
