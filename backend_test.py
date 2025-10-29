@@ -16,7 +16,7 @@ from datetime import datetime
 # Backend URL from frontend .env
 BACKEND_URL = "https://ship-cert-system.preview.emergentagent.com/api"
 
-class DeleteCompanyValidationTester:
+class AIConfigTester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
