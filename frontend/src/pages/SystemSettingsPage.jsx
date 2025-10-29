@@ -9,9 +9,9 @@ import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout } from '../components/Layout';
 import { UserManagement } from '../components/SystemSettings/UserManagement';
+import { CompanyManagement } from '../components/SystemSettings/CompanyManagement';
 
 // Import components (will be created)
-// import { CompanyManagement } from '../components/SystemSettings/CompanyManagement';
 // import { SystemGoogleDrive } from '../components/SystemSettings/SystemGoogleDrive';
 // import { AIConfig } from '../components/SystemSettings/AIConfig';
 // import { AdminTools } from '../components/SystemSettings/AdminTools';
