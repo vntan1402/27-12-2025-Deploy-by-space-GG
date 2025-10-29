@@ -81,22 +81,20 @@ const SystemSettingsPage = () => {
         {/* System Google Drive - Super Admin Only */}
         {user.role === 'super_admin' && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'System Google Drive Configuration'}
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
+              📁 {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'System Google Drive Configuration'}
             </h2>
-            <p className="text-gray-600">System Google Drive module will be implemented here</p>
-            {/* <SystemGoogleDrive /> */}
+            <SystemGoogleDrive user={user} />
           </div>
         )}
 
         {/* AI Configuration - Admin, Super Admin */}
         {(user.role === 'admin' || user.role === 'super_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              {language === 'vi' ? 'Cấu hình AI' : 'AI Configuration'}
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
+              🤖 {language === 'vi' ? 'Cấu hình AI' : 'AI Configuration'}
             </h2>
-            <p className="text-gray-600">AI Configuration module will be implemented here</p>
-            {/* <AIConfig /> */}
+            <AIConfig user={user} />
           </div>
         )}
 
