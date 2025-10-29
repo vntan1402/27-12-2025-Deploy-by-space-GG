@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout } from '../components/Layout';
 import { UserManagement } from '../components/SystemSettings/UserManagement';
