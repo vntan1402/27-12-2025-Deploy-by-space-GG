@@ -137,73 +137,80 @@ const EditUserModal = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Username (Read-only) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Tên đăng nhập' : 'Username'}
-            </label>
-            <input
-              type="text"
-              value={userData.username}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-              disabled
-              readOnly
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? 'Tên đăng nhập không thể thay đổi' : 'Username cannot be changed'}
-            </p>
+          {/* Username (Read-only) and Email - 2 fields per row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Username (Read-only) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Tên đăng nhập' : 'Username'}
+              </label>
+              <input
+                type="text"
+                value={userData.username}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                disabled
+                readOnly
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' ? 'Không thể thay đổi' : 'Cannot be changed'}
+              </p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                value={userData.email}
+                onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="user@example.com"
+                disabled={loading}
+              />
+            </div>
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              value={userData.email}
-              onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="user@example.com"
-              disabled={loading}
-            />
+          {/* Password and Full Name - 2 fields per row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Password (Optional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Mật khẩu mới' : 'New Password'}
+              </label>
+              <input
+                type="password"
+                value={userData.password}
+                onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Để trống nếu giữ nguyên' : 'Leave empty to keep current'}
+                minLength={6}
+                disabled={loading}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' ? 'Chỉ điền để đổi' : 'Fill only to change'}
+              </p>
+            </div>
+
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={userData.full_name}
+                onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
+                disabled={loading}
+              />
+            </div>
           </div>
 
-          {/* Password (Optional) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Mật khẩu mới' : 'New Password'}
-            </label>
-            <input
-              type="password"
-              value={userData.password}
-              onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Để trống nếu không đổi mật khẩu' : 'Leave empty to keep current password'}
-              minLength={6}
-              disabled={loading}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? '* Chỉ điền nếu muốn thay đổi mật khẩu' : '* Only fill if you want to change password'}
-            </p>
-          </div>
-
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
-            </label>
-            <input
-              type="text"
-              required
-              value={userData.full_name}
-              onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
-              disabled={loading}
-            />
-          </div>
-
+          {/* Role and Ship - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
             {/* Role */}
             <div>
