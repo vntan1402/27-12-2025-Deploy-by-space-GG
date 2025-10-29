@@ -56,20 +56,9 @@ const SystemGoogleDriveModal = ({ onClose }) => {
     try {
       setTestLoading(true);
       
-      // Prepare payload
-      const payload = {
-        web_app_url: config.web_app_url,
-        folder_id: config.folder_id
-      };
-      
-      // Add API key if provided
-      if (config.api_key) {
-        payload.api_key = config.api_key;
-      }
-      
-      const response = await axios.post(`${API}/gdrive/configure-proxy`, payload);
+      const response = await gdriveService.configureProxy(config.web_app_url, config.folder_id);
 
-      if (response.data.success) {
+      if (response.success) {
         toast.success('Apps Script proxy working!');
       } else {
         toast.error('Apps Script proxy error');
