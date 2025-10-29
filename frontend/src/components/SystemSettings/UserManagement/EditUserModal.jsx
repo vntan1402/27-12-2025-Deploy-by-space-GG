@@ -303,8 +303,6 @@ const EditUserModal = ({
                 )}
               </div>
             )}
-              </select>
-            </div>
           </div>
 
           {/* Department - Full width with checkboxes */}
