@@ -309,15 +309,23 @@ const CompanyFormModal = ({
           {mode === 'edit' && company && onConfigureGoogleDrive && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                {language === 'vi' ? 'Google Drive của công ty' : 'Company Google Drive'}
+                ☁️ {language === 'vi' ? 'Google Drive của công ty' : 'Company Google Drive'}
               </h3>
-              <button
-                type="button"
-                onClick={() => onConfigureGoogleDrive(company)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-all"
-              >
-                {language === 'vi' ? 'Cấu hình Google Drive' : 'Configure Google Drive'}
-              </button>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                <p className="text-sm text-blue-700 mb-3">
+                  {language === 'vi' 
+                    ? 'Cấu hình Google Drive riêng cho công ty này để lưu trữ tài liệu. Hỗ trợ Apps Script, OAuth 2.0 và Service Account.'
+                    : 'Configure dedicated Google Drive for this company to store documents. Supports Apps Script, OAuth 2.0, and Service Account.'
+                  }
+                </p>
+                <button
+                  type="button"
+                  onClick={() => onConfigureGoogleDrive(company)}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all font-medium flex items-center gap-2"
+                >
+                  ⚙️ {language === 'vi' ? 'Cấu hình Google Drive' : 'Configure Google Drive'}
+                </button>
+              </div>
             </div>
           )}
 
