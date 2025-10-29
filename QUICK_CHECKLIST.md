@@ -9,7 +9,7 @@
 
 - ✅ **Phase 0:** Setup & Infrastructure (100%)
 - ✅ **Phase 1:** Foundation & Utilities (100%)
-- ⏳ **Phase 2:** API Service Layer (0%)
+- ✅ **Phase 2:** API Service Layer (100%)
 - ⏳ **Phase 3:** Custom Hooks (0%)
 - ⏳ **Phase 4:** Ship Management (0%)
 - ⏳ **Phase 5:** Crew Management (0%)
@@ -73,7 +73,7 @@
 |----------|----------|-------|---|
 | Setup | 12 | 12 | 100% ✅ |
 | Utilities | 8 | 8 | 100% ✅ |
-| Services | 2 | 15 | 13% ⏳ |
+| Services | 15 | 15 | 100% ⏳ |
 | Hooks | 0 | 8 | 0% ⏳ |
 | Components | 2 | 102+ | 2% ⏳ |
 | Pages | 2 | 17+ | 12% ⏳ |

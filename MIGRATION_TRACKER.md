@@ -191,10 +191,10 @@
 |---------|--------|-----------|---------------|-------------|
 | `api.js` | ✅ | Base config | Multiple | `services/api.js` |
 | `authService.js` | ✅ | 3 methods | Lines 250-350 | `services/authService.js` |
-| `shipService.js` | ⏳ | 8 methods | Lines 1200-1500 | `services/shipService.js` |
-| `crewService.js` | ⏳ | 9 methods | Lines 2000-2500 | `services/crewService.js` |
-| `certificateService.js` | ⏳ | 11 methods | Lines 5000-6000 | `services/certificateService.js` |
-| `crewCertificateService.js` | ⏳ | 11 methods | Lines 7000-8000 | `services/crewCertificateService.js` |
+| `shipService.js` | ✅ | 8 methods | Lines 1200-1500 | `services/shipService.js` |
+| `crewService.js` | ✅ | 9 methods | Lines 2000-2500 | `services/crewService.js` |
+| `shipCertificateService.js` | ✅ | 11 methods | Lines 5000-6000 | `services/certificateService.js` |
+| `crewCertificateService.js` | ✅ | 11 methods | Lines 7000-8000 | `services/crewCertificateService.js` |
 | `surveyReportService.js` | ⏳ | 10 methods | Lines 10000-11000 | `services/surveyReportService.js` |
 | `testReportService.js` | ⏳ | 10 methods | Lines 13000-14000 | `services/testReportService.js` |
 | `drawingsService.js` | ⏳ | 8 methods | Lines 16000-17000 | `services/drawingsService.js` |
