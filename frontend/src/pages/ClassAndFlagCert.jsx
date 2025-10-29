@@ -82,28 +82,6 @@ const ClassAndFlagCert = () => {
         </h1>
       </div>
 
-      {/* Ship Selector Dropdown */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {language === 'vi' ? 'Chọn tàu:' : 'Select Ship:'}
-        </label>
-        <select
-          value={selectedShip?.id || ''}
-          onChange={(e) => {
-            const ship = ships.find(s => s.id === e.target.value);
-            setSelectedShip(ship);
-          }}
-          className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">{language === 'vi' ? 'Chọn tàu...' : 'Select a ship...'}</option>
-          {ships.map(ship => (
-            <option key={ship.id} value={ship.id}>
-              {ship.name} {ship.imo ? `(IMO: ${ship.imo})` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Ship Detail Panel */}
       {selectedShip && (
         <ShipDetailPanel
@@ -112,6 +90,65 @@ const ClassAndFlagCert = () => {
           onEditShip={handleEditShip}
           showShipParticular={true}
         />
+      )}
+
+      {/* Ship Selection Modal */}
+      {showShipModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowShipModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Chọn tàu' : 'Select Ship'}
+                </h2>
+                <button
+                  onClick={() => setShowShipModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
+                </div>
+              ) : ships.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {ships.map(ship => (
+                    <button
+                      key={ship.id}
+                      onClick={() => {
+                        setSelectedShip(ship);
+                        setShowShipModal(false);
+                      }}
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        selectedShip?.id === ship.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="font-semibold text-gray-800">{ship.name}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {ship.imo && `IMO: ${ship.imo}`}
+                        {ship.flag && ` • ${language === 'vi' ? 'Cờ' : 'Flag'}: ${ship.flag}`}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* SubMenu Bar */}
