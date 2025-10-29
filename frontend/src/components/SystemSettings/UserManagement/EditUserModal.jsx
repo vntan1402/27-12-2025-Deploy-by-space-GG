@@ -349,48 +349,6 @@ const EditUserModal = ({
               disabled={loading}
             />
           </div>
-                <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
-                {ships.map(ship => (
-                  <option key={ship.id} value={ship.name}>
-                    {ship.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Zalo */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Zalo *
-              </label>
-              <input
-                type="text"
-                required
-                value={userData.zalo}
-                onChange={(e) => setUserData(prev => ({ ...prev, zalo: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'vi' ? 'Số điện thoại Zalo' : 'Zalo phone number'}
-                disabled={loading}
-              />
-            </div>
-
-            {/* Gmail */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gmail
-              </label>
-              <input
-                type="email"
-                value={userData.gmail}
-                onChange={(e) => setUserData(prev => ({ ...prev, gmail: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="user@gmail.com"
-                disabled={loading}
-              />
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
