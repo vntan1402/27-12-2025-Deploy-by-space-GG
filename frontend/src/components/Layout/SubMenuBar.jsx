@@ -29,14 +29,14 @@ export const SubMenuBar = ({
           <button
             key={item.key}
             onClick={() => onSubMenuChange(item.key)}
-            className={`px-2 py-3 rounded-lg text-sm font-medium transition-all text-center whitespace-nowrap flex-1 ${
+            className={`px-2 py-3 rounded-lg font-medium transition-all text-center whitespace-nowrap flex-1 ${
               selectedSubMenu === item.key
                 ? 'bg-blue-600 text-white shadow-lg transform scale-105'
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-700 hover:shadow-md hover:transform hover:scale-102'
             }`}
             style={{ minHeight: '48px' }}
           >
-            <span className="text-xs leading-tight">
+            <span className="text-base leading-tight">
               {language === 'vi' ? item.name_vi : item.name_en}
             </span>
           </button>
