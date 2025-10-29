@@ -505,7 +505,7 @@ class AIConfigTester:
 def main():
     """Main function to run the tests"""
     try:
-        tester = DeleteCompanyValidationTester()
+        tester = AIConfigTester()
         results = tester.run_all_tests()
         
         # Return appropriate exit code
