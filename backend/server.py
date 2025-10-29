@@ -13367,12 +13367,19 @@ async def sync_to_drive(current_user: UserResponse = Depends(check_permission([U
         from datetime import datetime, timezone
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         
+        # Get API key if configured
+        api_key = config.get("api_key")
+        
         # Create daily backup folder via Apps Script
         create_folder_payload = {
             "action": "create_folder",
-            "parent_folder_id": config.get("folder_id", ""),
+            "parent_id": config.get("folder_id", ""),
             "folder_name": today
         }
+        
+        # Add API key if configured
+        if api_key:
+            create_folder_payload["api_key"] = api_key
         
         folder_response = requests.post(web_app_url, json=create_folder_payload, timeout=30)
         
@@ -13383,7 +13390,7 @@ async def sync_to_drive(current_user: UserResponse = Depends(check_permission([U
         if not folder_result.get("success"):
             raise HTTPException(status_code=500, detail=f"Failed to create daily folder: {folder_result.get('error')}")
         
-        daily_folder_id = folder_result.get("folder_id")
+        daily_folder_id = folder_result.get("data", {}).get("id") or folder_result.get("folder_id")
         logger.info(f"📁 Created daily backup folder: {today} (ID: {daily_folder_id})")
         
         # Get ALL collections from database
