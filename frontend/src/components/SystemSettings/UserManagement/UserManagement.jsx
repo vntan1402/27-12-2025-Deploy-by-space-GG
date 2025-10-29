@@ -9,6 +9,7 @@ import userService from '../../../services/userService';
 import { shipService } from '../../../services/shipService';
 import { companyService } from '../../../services/companyService';
 import AddUserModal from './AddUserModal';
+import EditUserModal from './EditUserModal';
 import UserTable from './UserTable';
 
 /**
