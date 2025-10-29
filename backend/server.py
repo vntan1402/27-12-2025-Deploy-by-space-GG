@@ -13109,41 +13109,54 @@ async def get_gdrive_status(current_user: UserResponse = Depends(get_current_use
     try:
         config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
         if not config:
-            return {"status": "not_configured", "message": "Google Drive not configured"}
+            return {
+                "status": "not_configured",
+                "configured": False,
+                "message": "Google Drive not configured"
+            }
         
-        # Test connection
+        # Count local collections
+        all_collections = await mongo_db.list_collections()
+        local_files_count = len([c for c in all_collections if not c.startswith('system.')])
+        
+        # Get number of backup folders on Drive
+        drive_files_count = 0
         auth_method = config.get("auth_method", "apps_script")
         
         if auth_method == "apps_script":
-            # Handle both system config (apps_script_url) and company config (web_app_url)
             script_url = config.get("apps_script_url") or config.get("web_app_url")
-            if not script_url:
-                return {"status": "error", "message": "Apps Script URL not configured"}
-            
-            try:
-                # Test connection to Apps Script - include folder_id parameter
-                folder_id = config.get("folder_id")
-                payload = {"action": "test_connection"}
-                if folder_id:
-                    payload["folder_id"] = folder_id
-                response = requests.post(script_url, json=payload, timeout=10)
-                if response.status_code == 200:
-                    result = response.json()
-                    if result.get("success"):
-                        return {"status": "connected", "message": "Google Drive connected via Apps Script"}
-                    else:
-                        return {"status": "error", "message": f"Apps Script error: {result.get('error')}"}
-                else:
-                    return {"status": "error", "message": f"Apps Script connection failed: {response.status_code}"}
-            except Exception as e:
-                return {"status": "error", "message": f"Connection test failed: {str(e)}"}
+            if script_url:
+                try:
+                    # List backup folders
+                    folder_id = config.get("folder_id")
+                    payload = {
+                        "action": "list_folders",
+                        "parent_folder_id": folder_id
+                    }
+                    response = requests.post(script_url, json=payload, timeout=10)
+                    if response.status_code == 200:
+                        result = response.json()
+                        if result.get("success"):
+                            drive_files_count = len(result.get("folders", []))
+                except:
+                    pass
         
-        else:
-            return {"status": "error", "message": "Unsupported authentication method"}
+        return {
+            "status": "connected",
+            "configured": True,
+            "auth_method": auth_method,
+            "folder_id": config.get("folder_id"),
+            "service_account_email": config.get("service_account_email"),
+            "last_sync": config.get("last_sync"),
+            "last_backup_folder": config.get("last_backup_folder"),
+            "local_files": local_files_count,
+            "drive_files": drive_files_count,
+            "message": "Google Drive configured"
+        }
         
     except Exception as e:
         logger.error(f"Error checking Google Drive status: {e}")
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "configured": False, "message": str(e)}
 
 @api_router.post("/gdrive/sync-to-drive-proxy")
 async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
