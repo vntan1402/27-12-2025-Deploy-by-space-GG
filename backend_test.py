@@ -517,14 +517,14 @@ class ClassAndFlagCertTester:
         print(f"\n📊 Results: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
         
         if passed == total:
-            print(f"🎉 All tests passed! Backend authentication is working correctly.")
+            print(f"🎉 All tests passed! ClassAndFlagCert page workflow is working correctly.")
         else:
-            print(f"⚠️ Some tests failed. Please check the backend authentication implementation.")
+            print(f"⚠️ Some tests failed. Please check the ClassAndFlagCert workflow implementation.")
 
 def main():
     """Main function to run the tests"""
     try:
-        tester = BackendAuthTester()
+        tester = ClassAndFlagCertTester()
         results = tester.run_all_tests()
         
         # Return appropriate exit code
