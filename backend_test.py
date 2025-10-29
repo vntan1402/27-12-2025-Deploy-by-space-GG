@@ -34,7 +34,7 @@ class CompanyManagementTester:
         print(f"{status}: {message}")
         
     def test_authentication(self):
-        """Setup: Login as super_admin / admin123 to get access token"""
+        """Setup: Login as admin1 / 123456 to get access token"""
         self.print_test_header("Setup - Admin Authentication")
         
         try:
