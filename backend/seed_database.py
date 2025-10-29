@@ -17,6 +17,7 @@ async def seed_database():
     db = client[db_name]
     
     print("🌱 Starting database seeding...")
+    print(f"📊 Using database: {db_name}")
     
     # 1. Create test company
     company_id = str(uuid.uuid4())
