@@ -13650,9 +13650,9 @@ async def sync_from_drive(
 @api_router.post("/gdrive/configure-proxy")
 async def configure_google_drive_proxy(
     config_data: dict,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(get_current_user)
 ):
-    """Configure Google Drive Apps Script proxy and test connection"""
+    """Configure Google Drive Apps Script proxy and test connection - All authenticated users can test"""
     try:
         web_app_url = config_data.get("web_app_url")
         folder_id = config_data.get("folder_id")
