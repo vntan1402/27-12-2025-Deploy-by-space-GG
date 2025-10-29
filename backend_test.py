@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-User Management APIs Testing Script
-Tests the user management CRUD operations as specified in review request
+Company Management APIs Testing Script
+Tests the company management CRUD operations as specified in review request
 """
 
 import requests
@@ -13,7 +13,7 @@ from datetime import datetime
 # Backend URL from frontend .env
 BACKEND_URL = "https://shipdata-ui-v2.preview.emergentagent.com/api"
 
-class UserManagementTester:
+class CompanyManagementTester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
