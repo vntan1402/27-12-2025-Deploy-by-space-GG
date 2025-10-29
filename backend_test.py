@@ -169,134 +169,114 @@ class UserManagementTester:
             self.print_result(False, f"Exception during users list test: {str(e)}")
             return False
     
-    def test_individual_ship(self):
-        """Test Case 3: Individual Ship Test - GET /api/ships/{ship_id} for BROTHER 36"""
-        self.print_test_header("Individual Ship Test")
+    def test_create_new_user(self):
+        """Test 1: Create New User (POST /api/users)"""
+        self.print_test_header("Test 1 - Create New User")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
             return False
         
         try:
-            # First, get the ship ID for BROTHER 36 from the ships list
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 Getting ships list to find BROTHER 36 ID...")
+            # Test data as specified in review request
+            new_user_data = {
+                "username": "testviewer1",
+                "email": "testviewer1@test.com",
+                "password": "password123",
+                "full_name": "Test Viewer One",
+                "role": "viewer",
+                "department": "technical",
+                "company": "AMCSC",
+                "ship": "",
+                "zalo": "0123456789",
+                "gmail": ""
+            }
             
-            # Get ships list
-            response = self.session.get(
-                f"{BACKEND_URL}/ships",
-                headers=headers
-            )
+            print(f"📡 POST {BACKEND_URL}/users")
+            print(f"📄 Creating user: {new_user_data['username']} ({new_user_data['full_name']})")
+            print(f"   Email: {new_user_data['email']}")
+            print(f"   Role: {new_user_data['role']}")
+            print(f"   Department: {new_user_data['department']}")
+            print(f"   Company: {new_user_data['company']}")
+            print(f"   Zalo: {new_user_data['zalo']}")
             
-            if response.status_code != 200:
-                self.print_result(False, f"Failed to get ships list: {response.status_code}")
-                return False
-            
-            ships_data = response.json()
-            brother_36_id = None
-            
-            for ship in ships_data:
-                if ship.get('name') == "BROTHER 36":
-                    brother_36_id = ship.get('id')
-                    break
-            
-            if not brother_36_id:
-                self.print_result(False, "BROTHER 36 ship not found in ships list")
-                return False
-            
-            print(f"🚢 Found BROTHER 36 ID: {brother_36_id}")
-            print(f"📡 GET {BACKEND_URL}/ships/{brother_36_id}")
-            
-            # Make request to individual ship endpoint
-            response = self.session.get(
-                f"{BACKEND_URL}/ships/{brother_36_id}",
+            # Make request to create user
+            response = self.session.post(
+                f"{BACKEND_URL}/users",
+                json=new_user_data,
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 200:
-                ship_data = response.json()
-                print(f"📄 Response Type: {type(ship_data)}")
+            if response.status_code == 201 or response.status_code == 200:
+                user_response = response.json()
+                print(f"📄 Response Type: {type(user_response)}")
                 
-                if not isinstance(ship_data, dict):
-                    self.print_result(False, f"Expected dict response, got: {type(ship_data)}")
+                if not isinstance(user_response, dict):
+                    self.print_result(False, f"Expected dict response, got: {type(user_response)}")
                     return False
                 
-                # Verify ship details are returned correctly
-                required_fields = ["id", "name", "imo", "ship_type", "flag", "company", "gross_tonnage"]
+                # Verify response has all required fields
+                required_fields = ["id", "username", "email", "full_name", "role", "department", "company", "zalo"]
                 missing_fields = []
                 
                 for field in required_fields:
-                    if field not in ship_data:
+                    if field not in user_response:
                         missing_fields.append(field)
                 
                 if missing_fields:
-                    self.print_result(False, f"Individual ship response missing fields: {missing_fields}")
+                    self.print_result(False, f"User response missing fields: {missing_fields}")
                     return False
                 
-                # Verify this is indeed BROTHER 36 with correct details
-                if ship_data.get('name') != "BROTHER 36":
-                    self.print_result(False, f"Expected ship name 'BROTHER 36', got '{ship_data.get('name')}'")
+                # Store created user ID for later tests
+                self.created_user_id = user_response.get('id')
+                
+                # Verify user data matches what was sent
+                if user_response.get('username') != new_user_data['username']:
+                    self.print_result(False, f"Username mismatch: expected '{new_user_data['username']}', got '{user_response.get('username')}'")
                     return False
                 
-                if ship_data.get('id') != brother_36_id:
-                    self.print_result(False, f"Expected ship ID '{brother_36_id}', got '{ship_data.get('id')}'")
+                if user_response.get('email') != new_user_data['email']:
+                    self.print_result(False, f"Email mismatch: expected '{new_user_data['email']}', got '{user_response.get('email')}'")
                     return False
                 
-                if ship_data.get('imo') != "8743531":
-                    self.print_result(False, f"Expected IMO '8743531', got '{ship_data.get('imo')}'")
+                if user_response.get('role') != new_user_data['role']:
+                    self.print_result(False, f"Role mismatch: expected '{new_user_data['role']}', got '{user_response.get('role')}'")
                     return False
                 
-                if ship_data.get('ship_type') != "DNV GL":
-                    self.print_result(False, f"Expected ship_type 'DNV GL', got '{ship_data.get('ship_type')}'")
-                    return False
+                # Print created user details
+                print(f"\n👤 Created User Details:")
+                print(f"   ID: {user_response['id']}")
+                print(f"   Username: {user_response['username']}")
+                print(f"   Email: {user_response['email']}")
+                print(f"   Full Name: {user_response['full_name']}")
+                print(f"   Role: {user_response['role']}")
+                print(f"   Department: {user_response['department']}")
+                print(f"   Company: {user_response['company']}")
+                print(f"   Zalo: {user_response['zalo']}")
                 
-                if ship_data.get('flag') != "PANAMA":
-                    self.print_result(False, f"Expected flag 'PANAMA', got '{ship_data.get('flag')}'")
-                    return False
+                if 'created_at' in user_response:
+                    print(f"   Created At: {user_response['created_at']}")
                 
-                # Print ship details for verification
-                print(f"\n🚢 BROTHER 36 Details:")
-                print(f"   ID: {ship_data['id']}")
-                print(f"   Name: {ship_data['name']}")
-                print(f"   IMO: {ship_data['imo']}")
-                print(f"   Ship Type: {ship_data['ship_type']}")
-                print(f"   Flag: {ship_data['flag']}")
-                print(f"   Company: {ship_data['company']}")
-                print(f"   Gross Tonnage: {ship_data['gross_tonnage']}")
-                
-                # Check for additional fields that might be present
-                additional_fields = ["created_at", "deadweight", "built_year", "ship_owner"]
-                for field in additional_fields:
-                    if field in ship_data:
-                        print(f"   {field.replace('_', ' ').title()}: {ship_data[field]}")
-                
-                self.print_result(True, "Individual ship test successful - BROTHER 36 details returned correctly")
+                self.print_result(True, f"User created successfully - testviewer1 with role 'viewer' and all required fields")
                 return True
-                
-            elif response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Ship not found - 404: {error_data}")
-                except:
-                    self.print_result(False, f"Ship not found - 404: {response.text}")
-                return False
                 
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Individual ship API failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"User creation failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Individual ship API failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"User creation failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during individual ship test: {str(e)}")
+            self.print_result(False, f"Exception during user creation test: {str(e)}")
             return False
     
     def test_workflow_validation(self):
