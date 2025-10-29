@@ -4012,10 +4012,16 @@ async def delete_company(company_id: str, current_user: UserResponse = Depends(c
         users_with_company = await mongo_db.find_all("users", {"company": company_id})
         if users_with_company:
             user_names = [user.get('username', 'Unknown') for user in users_with_company]
-            raise HTTPException(
-                status_code=400,
-                detail=f"Cannot delete company. The following users are associated with this company: {', '.join(user_names)}. Please reassign or delete these users first."
+            user_list = ', '.join(user_names[:5])  # Show first 5 users
+            if len(users_with_company) > 5:
+                user_list += f", and {len(users_with_company) - 5} more"
+            
+            error_msg = (
+                f"Cannot delete company '{company_name_vn or company_name_en or company_name}'. "
+                f"There are {len(users_with_company)} users associated with this company: {user_list}. "
+                f"Please delete or reassign all users before deleting the company."
             )
+            raise HTTPException(status_code=400, detail=error_msg)
         
         # Delete company Google Drive configuration if exists
         try:
