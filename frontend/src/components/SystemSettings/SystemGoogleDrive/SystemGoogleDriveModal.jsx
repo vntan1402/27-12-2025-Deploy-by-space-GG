@@ -300,6 +300,22 @@ const SystemGoogleDriveModal = ({ onClose }) => {
                 </p>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  🔐 API Key (Optional - Recommended for Security)
+                </label>
+                <input
+                  type="password"
+                  value={config.api_key}
+                  onChange={(e) => setConfig(prev => ({ ...prev, api_key: e.target.value }))}
+                  placeholder="Enter API Key from Apps Script (e.g., Vntan1402sms)"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Set API_KEY in Apps Script code for enhanced security. Leave empty if not using API key authentication.
+                </p>
+              </div>
+
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium text-gray-800">Test Apps Script Connection</h4>
