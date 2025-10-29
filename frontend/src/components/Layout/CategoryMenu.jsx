@@ -1,8 +1,9 @@
 /**
  * Category Menu Component
- * Extracted from App.js - Simplified version without ships popup
+ * Extracted from App.js - Simplified version with navigation
  */
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { MAIN_CATEGORIES } from '../../utils/constants';
 
@@ -12,9 +13,24 @@ export const CategoryMenu = ({
   onAddRecord
 }) => {
   const { language } = useAuth();
+  const navigate = useNavigate();
 
   const handleCategoryClick = (categoryKey) => {
     onCategoryChange(categoryKey);
+    
+    // Navigate to corresponding page
+    const routes = {
+      'ship_certificates': '/certificates',
+      'crew': '/crew',
+      'ism': '/ism',
+      'isps': '/isps',
+      'mlc': '/mlc',
+      'supplies': '/supplies'
+    };
+    
+    if (routes[categoryKey]) {
+      navigate(routes[categoryKey]);
+    }
   };
 
   // Get category display name
