@@ -12,8 +12,33 @@ const UserTable = ({
   canEditUser,
   canDeleteUser,
   onEditUser,
-  onDeleteUser
+  onDeleteUser,
+  companies  // Added companies prop
 }) => {
+  /**
+   * Get company name from company ID or name
+   */
+  const getCompanyName = (companyIdOrName) => {
+    if (!companyIdOrName) return '-';
+    
+    // Try to find company by ID first
+    const companyById = companies.find(c => c.id === companyIdOrName);
+    if (companyById) {
+      return language === 'vi' ? (companyById.name_vn || companyById.name_en) : (companyById.name_en || companyById.name_vn);
+    }
+    
+    // Try to find by name (legacy support)
+    const companyByName = companies.find(c => 
+      c.name_en === companyIdOrName || c.name_vn === companyIdOrName || c.name === companyIdOrName
+    );
+    if (companyByName) {
+      return language === 'vi' ? (companyByName.name_vn || companyByName.name_en) : (companyByName.name_en || companyByName.name_vn);
+    }
+    
+    // If not found, return the original value
+    return companyIdOrName;
+  };
+
   /**
    * Get role badge color
    */
