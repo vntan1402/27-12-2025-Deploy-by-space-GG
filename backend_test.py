@@ -495,7 +495,7 @@ class AIConfigTester:
                     
         # Print endpoint requirements summary
         print(f"\n🔍 ENDPOINT REQUIREMENTS TESTED:")
-        print(f"   1. GET /api/ai-config requires authentication (401 without token)")
+        print(f"   1. GET /api/ai-config requires authentication (401/403 without token)")
         print(f"   2. GET /api/ai-config returns current AI configuration")
         print(f"   3. POST /api/ai-config requires admin/super_admin role")
         print(f"   4. POST /api/ai-config updates AI configuration with valid payload")
