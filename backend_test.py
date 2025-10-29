@@ -205,8 +205,8 @@ class CompanyManagementTester:
             return False
     
     def test_get_company_by_id(self):
-        """Test 2: Get Company by ID (GET /api/companies/{id}) - Note: This endpoint may not exist"""
-        self.print_test_header("Test 2 - Get Company by ID")
+        """Test 2: Get AMCSC Company by ID (GET /api/companies/{id}) - NEWLY IMPLEMENTED ENDPOINT"""
+        self.print_test_header("Test 2 - Get AMCSC Company by ID")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
@@ -224,6 +224,7 @@ class CompanyManagementTester:
             
             print(f"📡 GET {BACKEND_URL}/companies/{self.amcsc_company_id}")
             print(f"🔍 Getting AMCSC company by ID: {self.amcsc_company_id}")
+            print(f"🎯 TESTING: Endpoint should now return 200 OK (not 405 Method Not Allowed)")
             
             # Make request to get company by ID
             response = self.session.get(
@@ -236,6 +237,7 @@ class CompanyManagementTester:
             if response.status_code == 200:
                 company_data = response.json()
                 print(f"📄 Response Type: {type(company_data)}")
+                print(f"✅ SUCCESS: Endpoint now returns 200 OK (previously 405 Method Not Allowed)")
                 
                 if not isinstance(company_data, dict):
                     self.print_result(False, f"Expected dict response, got: {type(company_data)}")
@@ -246,27 +248,43 @@ class CompanyManagementTester:
                     self.print_result(False, f"Company ID mismatch: expected '{self.amcsc_company_id}', got '{company_data.get('id')}'")
                     return False
                 
+                # Verify all required company fields are present
+                required_fields = ["id", "name_vn", "name_en", "code", "address_vn", "address_en", "tax_id"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in company_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Company response missing required fields: {missing_fields}")
+                    return False
+                
                 # Print company details
-                print(f"\n🏢 AMCSC Company Details:")
+                print(f"\n🏢 AMCSC Company Details (All Fields):")
                 print(f"   ID: {company_data.get('id')}")
                 print(f"   Name VN: {company_data.get('name_vn')}")
                 print(f"   Name EN: {company_data.get('name_en')}")
+                print(f"   Code: {company_data.get('code')}")
                 print(f"   Address VN: {company_data.get('address_vn')}")
                 print(f"   Address EN: {company_data.get('address_en')}")
                 print(f"   Tax ID: {company_data.get('tax_id')}")
-                print(f"   Code: {company_data.get('code')}")
                 print(f"   Email: {company_data.get('email')}")
                 print(f"   Phone: {company_data.get('phone')}")
                 print(f"   Gmail: {company_data.get('gmail')}")
                 print(f"   Zalo: {company_data.get('zalo')}")
                 print(f"   Logo URL: {company_data.get('logo_url')}")
                 print(f"   System Expiry: {company_data.get('system_expiry')}")
+                print(f"   Created At: {company_data.get('created_at')}")
                 
-                self.print_result(True, "AMCSC company retrieved by ID successfully with all fields")
+                self.print_result(True, "✅ GET /api/companies/{id} endpoint working correctly - returns 200 OK with all company fields")
                 return True
                 
+            elif response.status_code == 405:
+                self.print_result(False, "❌ STILL GETTING 405 Method Not Allowed - endpoint implementation may be incomplete")
+                return False
             elif response.status_code == 404:
-                self.print_result(False, "GET /api/companies/{id} endpoint not found - this endpoint may not be implemented")
+                self.print_result(False, "❌ Company not found (404) - check if AMCSC company ID is correct")
                 return False
             else:
                 try:
