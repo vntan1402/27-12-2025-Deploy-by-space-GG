@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://shipdata-ui-v2.preview.emergentagent.com/api"
+API_URL="https://vessel-admin.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \

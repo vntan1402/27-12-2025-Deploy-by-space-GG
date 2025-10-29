@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://shipdata-ui-v2.preview.emergentagent.com/api"
+BACKEND_URL = "https://vessel-admin.preview.emergentagent.com/api"
 
 class CompanyManagementTester:
     def __init__(self):
