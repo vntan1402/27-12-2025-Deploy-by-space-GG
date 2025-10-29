@@ -110,9 +110,9 @@ class UserManagementTester:
             self.print_result(False, f"Exception during authentication test: {str(e)}")
             return False
     
-    def test_ships_api(self):
-        """Test Case 2: Ships API Test - GET /api/ships endpoint"""
-        self.print_test_header("Ships API Test")
+    def test_get_users_list(self):
+        """Setup: Get current user list (GET /api/users)"""
+        self.print_test_header("Setup - Get Current User List")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
@@ -124,110 +124,49 @@ class UserManagementTester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/ships")
+            print(f"📡 GET {BACKEND_URL}/users")
             
-            # Make request to ships endpoint
+            # Make request to users endpoint
             response = self.session.get(
-                f"{BACKEND_URL}/ships",
+                f"{BACKEND_URL}/users",
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
-                ships_data = response.json()
-                print(f"📄 Response Type: {type(ships_data)}")
+                users_data = response.json()
+                print(f"📄 Response Type: {type(users_data)}")
                 
-                if not isinstance(ships_data, list):
-                    self.print_result(False, f"Expected list response, got: {type(ships_data)}")
+                if not isinstance(users_data, list):
+                    self.print_result(False, f"Expected list response, got: {type(users_data)}")
                     return False
                 
-                print(f"🚢 Number of ships returned: {len(ships_data)}")
+                print(f"👥 Number of users returned: {len(users_data)}")
                 
-                # Verify response returns list of 3 ships
-                if len(ships_data) != 3:
-                    self.print_result(False, f"Expected 3 ships, got {len(ships_data)}")
-                    return False
+                # Print existing users for reference
+                for i, user in enumerate(users_data):
+                    print(f"\n👤 User {i+1}: {user.get('username', 'Unknown')}")
+                    print(f"   ID: {user.get('id', 'N/A')}")
+                    print(f"   Email: {user.get('email', 'N/A')}")
+                    print(f"   Full Name: {user.get('full_name', 'N/A')}")
+                    print(f"   Role: {user.get('role', 'N/A')}")
+                    print(f"   Department: {user.get('department', 'N/A')}")
+                    print(f"   Company: {user.get('company', 'N/A')}")
                 
-                # Expected ship names
-                expected_ships = ["BROTHER 36", "PACIFIC STAR", "OCEAN VOYAGER"]
-                found_ships = []
-                
-                # Verify each ship has required fields and check specific ships
-                required_fields = ["id", "name", "imo", "ship_type", "flag", "company", "gross_tonnage"]
-                brother_36_found = False
-                
-                for ship in ships_data:
-                    print(f"\n🚢 Ship: {ship.get('name', 'Unknown')}")
-                    
-                    # Check required fields
-                    missing_fields = []
-                    for field in required_fields:
-                        if field not in ship:
-                            missing_fields.append(field)
-                    
-                    if missing_fields:
-                        self.print_result(False, f"Ship '{ship.get('name', 'Unknown')}' missing fields: {missing_fields}")
-                        return False
-                    
-                    # Print ship details
-                    print(f"   ID: {ship['id']}")
-                    print(f"   Name: {ship['name']}")
-                    print(f"   IMO: {ship['imo']}")
-                    print(f"   Ship Type: {ship['ship_type']}")
-                    print(f"   Flag: {ship['flag']}")
-                    print(f"   Company: {ship['company']}")
-                    print(f"   Gross Tonnage: {ship['gross_tonnage']}")
-                    
-                    found_ships.append(ship['name'])
-                    
-                    # Check BROTHER 36 specific requirements
-                    if ship['name'] == "BROTHER 36":
-                        brother_36_found = True
-                        
-                        # Verify BROTHER 36 has IMO: 8743531, ship_type: DNV GL, flag: PANAMA
-                        if ship['imo'] != "8743531":
-                            self.print_result(False, f"BROTHER 36 expected IMO '8743531', got '{ship['imo']}'")
-                            return False
-                        
-                        if ship['ship_type'] != "DNV GL":
-                            self.print_result(False, f"BROTHER 36 expected ship_type 'DNV GL', got '{ship['ship_type']}'")
-                            return False
-                        
-                        if ship['flag'] != "PANAMA":
-                            self.print_result(False, f"BROTHER 36 expected flag 'PANAMA', got '{ship['flag']}'")
-                            return False
-                        
-                        print(f"   ✅ BROTHER 36 verification: IMO={ship['imo']}, Type={ship['ship_type']}, Flag={ship['flag']}")
-                
-                # Verify all expected ships are present
-                missing_ships = []
-                for expected_ship in expected_ships:
-                    if expected_ship not in found_ships:
-                        missing_ships.append(expected_ship)
-                
-                if missing_ships:
-                    self.print_result(False, f"Missing expected ships: {missing_ships}")
-                    return False
-                
-                if not brother_36_found:
-                    self.print_result(False, "BROTHER 36 ship not found in response")
-                    return False
-                
-                print(f"\n✅ Found all expected ships: {found_ships}")
-                self.print_result(True, "Ships API test successful - 3 ships with required fields, BROTHER 36 verified")
+                self.print_result(True, f"Users list retrieved successfully - {len(users_data)} users found")
                 return True
                 
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Ships API failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"Users API failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Ships API failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"Users API failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during ships API test: {str(e)}")
+            self.print_result(False, f"Exception during users list test: {str(e)}")
             return False
     
     def test_individual_ship(self):
