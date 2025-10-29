@@ -920,13 +920,14 @@ class CompanyManagementTester:
         print(f"\n📊 Results: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
         
         if passed == total:
-            print(f"🎉 All tests passed! Company Management APIs are working correctly.")
-            print(f"✅ All CRUD operations working correctly")
-            print(f"✅ Proper validation and error handling")
-            print(f"✅ No 500 errors detected")
-            print(f"✅ Proper field mapping between frontend and backend")
+            print(f"🎉 All tests passed! GET /api/companies/{{company_id}} endpoint is working correctly.")
+            print(f"✅ Endpoint now returns 200 OK (not 405 Method Not Allowed)")
+            print(f"✅ Company data returned correctly with all fields")
+            print(f"✅ Proper 404 handling for non-existent companies")
+            print(f"✅ Authentication required (401 Unauthorized)")
+            print(f"✅ Success rate should be 100% now (7/7 tests passed)")
         else:
-            print(f"⚠️ Some tests failed. Please check the Company Management API implementation.")
+            print(f"⚠️ Some tests failed. Please check the GET /api/companies/{{company_id}} endpoint implementation.")
             
             # Print specific failure analysis
             failed_tests = [name for name, result in test_results if not result]
