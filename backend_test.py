@@ -381,7 +381,7 @@ class CompanyManagementTester:
             
             print(f"📡 GET {BACKEND_URL}/companies/{self.amcsc_company_id}")
             print(f"🔍 Testing without Authorization header")
-            print(f"🎯 EXPECTED: 401 Unauthorized")
+            print(f"🎯 EXPECTED: 401 Unauthorized or 403 Forbidden")
             
             # Make request without authentication
             response = self.session.get(
