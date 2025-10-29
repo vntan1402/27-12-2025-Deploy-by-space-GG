@@ -3,91 +3,70 @@
  * Main categories and configurations
  */
 
-// Main Categories for Navigation
+// Main Categories for Navigation (6 categories from V1)
 export const MAIN_CATEGORIES = [
   {
-    key: 'crew',
-    name_vi: 'Thông tin Thuyền viên',
-    name_en: 'Crew Information',
-    icon: '👥'
-  },
-  {
     key: 'ship_certificates',
-    name_vi: 'Chứng chỉ Tàu',
-    name_en: 'Ship Certificates',
+    name_vi: 'Class & Flag Cert',
+    name_en: 'Class & Flag Cert',
     icon: '📜'
   },
   {
-    key: 'crew_certificates',
-    name_vi: 'Chứng chỉ Thuyền viên',
-    name_en: 'Crew Certificates',
-    icon: '🎓'
+    key: 'crew',
+    name_vi: 'Crew Records',
+    name_en: 'Crew Records',
+    icon: '👥'
   },
   {
-    key: 'survey_reports',
-    name_vi: 'Báo cáo Khảo sát',
-    name_en: 'Survey Reports',
+    key: 'ism',
+    name_vi: 'ISM Records',
+    name_en: 'ISM Records',
     icon: '📋'
   },
   {
-    key: 'test_reports',
-    name_vi: 'Báo cáo Thử nghiệm',
-    name_en: 'Test Reports',
-    icon: '🧪'
-  },
-  {
-    key: 'drawings',
-    name_vi: 'Bản vẽ & Hướng dẫn',
-    name_en: 'Drawings & Manuals',
-    icon: '📊'
-  },
-  {
-    key: 'other_docs',
-    name_vi: 'Tài liệu khác',
-    name_en: 'Other Documents',
-    icon: '📄'
+    key: 'isps',
+    name_vi: 'ISPS Records',
+    name_en: 'ISPS Records',
+    icon: '🛡️'
   },
   {
     key: 'mlc',
-    name_vi: 'MLC',
-    name_en: 'MLC Documents',
+    name_vi: 'MLC Records',
+    name_en: 'MLC Records',
     icon: '⚓'
+  },
+  {
+    key: 'supplies',
+    name_vi: 'Supplies',
+    name_en: 'Supplies',
+    icon: '📦'
   }
 ];
 
-// Sub-menu items for each category
+// Sub-menu tabs shown in main content area (not in sidebar)
 export const SUB_MENU_ITEMS = {
-  crew: [
-    { key: 'crew_list', name_vi: 'Danh sách', name_en: 'List' },
-    { key: 'crew_passport', name_vi: 'Hộ chiếu', name_en: 'Passport' },
-    { key: 'crew_summary', name_vi: 'Tổng hợp', name_en: 'Summary' }
-  ],
   ship_certificates: [
-    { key: 'cert_list', name_vi: 'Danh sách', name_en: 'List' },
-    { key: 'cert_expiring', name_vi: 'Sắp hết hạn', name_en: 'Expiring Soon' },
-    { key: 'cert_expired', name_vi: 'Đã hết hạn', name_en: 'Expired' }
+    { key: 'certificates', name_vi: 'Certificates', name_en: 'Certificates' },
+    { key: 'class_survey', name_vi: 'Class Survey Report', name_en: 'Class Survey Report' },
+    { key: 'test_report', name_vi: 'Test Report', name_en: 'Test Report' },
+    { key: 'drawings', name_vi: 'Drawings & Manuals', name_en: 'Drawings & Manuals' },
+    { key: 'other_docs', name_vi: 'Other Documents', name_en: 'Other Documents' }
   ],
-  crew_certificates: [
-    { key: 'crew_cert_list', name_vi: 'Danh sách', name_en: 'List' },
-    { key: 'crew_cert_expiring', name_vi: 'Sắp hết hạn', name_en: 'Expiring Soon' },
-    { key: 'crew_cert_expired', name_vi: 'Đã hết hạn', name_en: 'Expired' }
+  crew: [
+    { key: 'crew_list', name_vi: 'Crew List', name_en: 'Crew List' },
+    { key: 'certificates', name_vi: 'Certificates', name_en: 'Certificates' },
+    { key: 'passport', name_vi: 'Passport', name_en: 'Passport' }
   ],
-  survey_reports: [
-    { key: 'survey_list', name_vi: 'Danh sách', name_en: 'List' },
-    { key: 'survey_recent', name_vi: 'Gần đây', name_en: 'Recent' }
+  ism: [
+    { key: 'ism_list', name_vi: 'ISM Documents', name_en: 'ISM Documents' }
   ],
-  test_reports: [
-    { key: 'test_list', name_vi: 'Danh sách', name_en: 'List' },
-    { key: 'test_recent', name_vi: 'Gần đây', name_en: 'Recent' }
-  ],
-  drawings: [
-    { key: 'drawing_list', name_vi: 'Danh sách', name_en: 'List' },
-    { key: 'manual_list', name_vi: 'Hướng dẫn', name_en: 'Manuals' }
-  ],
-  other_docs: [
-    { key: 'other_list', name_vi: 'Danh sách', name_en: 'List' }
+  isps: [
+    { key: 'isps_list', name_vi: 'ISPS Documents', name_en: 'ISPS Documents' }
   ],
   mlc: [
-    { key: 'mlc_list', name_vi: 'Danh sách', name_en: 'List' }
+    { key: 'mlc_list', name_vi: 'MLC Documents', name_en: 'MLC Documents' }
+  ],
+  supplies: [
+    { key: 'supplies_list', name_vi: 'Supplies List', name_en: 'Supplies List' }
   ]
 };
