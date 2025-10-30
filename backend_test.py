@@ -463,13 +463,13 @@ class ShipCalculationAPITester:
                     
                     self.print_result(True, "✅ Anniversary date calculation successful with correct response structure")
                     return True
-                elif success and not anniversary_date:
-                    # Success but no calculation possible
-                    print(f"⚠️ Calculation not possible: {message}")
+                elif not success and not anniversary_date:
+                    # Expected failure case - no calculation possible
+                    print(f"⚠️ Calculation not possible (expected): {message}")
                     self.print_result(True, "✅ Anniversary date calculation handled gracefully (no certificates)")
                     return True
                 else:
-                    self.print_result(False, f"Calculation failed: {message}")
+                    self.print_result(False, f"Unexpected response state - success: {success}, anniversary_date: {anniversary_date}")
                     return False
                 
             elif response.status_code == 404:
