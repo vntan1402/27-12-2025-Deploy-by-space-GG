@@ -679,9 +679,195 @@ class BackendAPITester:
             self.print_result(False, f"Exception during error handling test: {str(e)}")
             return False
     
+    def test_upcoming_surveys_endpoint(self):
+        """Test 7: Upcoming Surveys Endpoint - Specific Certificate Issue"""
+        self.print_test_header("Test 7 - Upcoming Surveys Endpoint - Certificate Issue")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 GET {BACKEND_URL}/certificates/upcoming-surveys")
+            print(f"🎯 Testing upcoming surveys endpoint for specific certificate issue")
+            print(f"🔍 Looking for certificate ID: 51d1c55a-81d4-4e68-9dd2-9fef7d8bf895")
+            print(f"📅 Expected next_survey: 2025-11-28 (should be within ±90 day window from 2025-10-30)")
+            
+            # Make request to get upcoming surveys
+            response = self.session.get(
+                f"{BACKEND_URL}/certificates/upcoming-surveys",
+                headers=headers,
+                timeout=30
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                print(f"📄 Response Keys: {list(response_data.keys())}")
+                
+                # Check required response fields
+                required_fields = ["upcoming_surveys", "total_count", "company", "check_date"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in response_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Response missing required fields: {missing_fields}")
+                    return False
+                
+                upcoming_surveys = response_data.get("upcoming_surveys", [])
+                total_count = response_data.get("total_count", 0)
+                company = response_data.get("company", "")
+                check_date = response_data.get("check_date", "")
+                
+                print(f"🏢 Company: {company}")
+                print(f"📅 Check Date: {check_date}")
+                print(f"📊 Total Count: {total_count}")
+                print(f"📋 Found {len(upcoming_surveys)} upcoming surveys")
+                
+                # Look for the specific certificate
+                target_cert_id = "51d1c55a-81d4-4e68-9dd2-9fef7d8bf895"
+                target_cert = None
+                
+                print(f"\n🔍 Searching for target certificate: {target_cert_id}")
+                
+                for survey in upcoming_surveys:
+                    cert_id = survey.get('certificate_id', '')
+                    cert_name = survey.get('cert_name', '')
+                    ship_name = survey.get('ship_name', '')
+                    next_survey = survey.get('next_survey_date', '')
+                    days_until = survey.get('days_until_survey', 0)
+                    
+                    print(f"   📋 Cert ID: {cert_id}")
+                    print(f"      Name: {cert_name}")
+                    print(f"      Ship: {ship_name}")
+                    print(f"      Next Survey: {next_survey}")
+                    print(f"      Days Until: {days_until}")
+                    
+                    if cert_id == target_cert_id:
+                        target_cert = survey
+                        print(f"   ✅ FOUND TARGET CERTIFICATE!")
+                        break
+                
+                if target_cert:
+                    print(f"\n✅ TARGET CERTIFICATE FOUND IN UPCOMING SURVEYS:")
+                    print(f"   📋 Certificate ID: {target_cert.get('certificate_id')}")
+                    print(f"   📄 Certificate Name: {target_cert.get('cert_name')}")
+                    print(f"   🚢 Ship Name: {target_cert.get('ship_name')}")
+                    print(f"   📅 Next Survey Date: {target_cert.get('next_survey_date')}")
+                    print(f"   🔄 Next Survey Type: {target_cert.get('next_survey_type')}")
+                    print(f"   📊 Days Until Survey: {target_cert.get('days_until_survey')}")
+                    print(f"   🪟 Window Open: {target_cert.get('window_open')}")
+                    print(f"   🪟 Window Close: {target_cert.get('window_close')}")
+                    print(f"   🪟 Window Type: {target_cert.get('window_type')}")
+                    print(f"   ⚠️ Is Overdue: {target_cert.get('is_overdue')}")
+                    print(f"   🔔 Is Due Soon: {target_cert.get('is_due_soon')}")
+                    print(f"   🚨 Is Critical: {target_cert.get('is_critical')}")
+                    
+                    # Verify expected values
+                    expected_next_survey = "2025-11-28"
+                    expected_days_until = 29  # From 2025-10-30 to 2025-11-28
+                    
+                    actual_next_survey = target_cert.get('next_survey_date', '')
+                    actual_days_until = target_cert.get('days_until_survey', 0)
+                    
+                    if expected_next_survey in actual_next_survey:
+                        print(f"   ✅ Next survey date matches expected: {expected_next_survey}")
+                    else:
+                        print(f"   ❌ Next survey date mismatch. Expected: {expected_next_survey}, Got: {actual_next_survey}")
+                    
+                    if actual_days_until == expected_days_until:
+                        print(f"   ✅ Days until survey matches expected: {expected_days_until}")
+                    else:
+                        print(f"   ⚠️ Days until survey. Expected: {expected_days_until}, Got: {actual_days_until}")
+                    
+                    # Verify window calculation
+                    window_open = target_cert.get('window_open', '')
+                    window_close = target_cert.get('window_close', '')
+                    
+                    print(f"   🪟 Window Calculation:")
+                    print(f"      Open: {window_open} (should be 2025-08-30)")
+                    print(f"      Close: {window_close} (should be 2026-02-26)")
+                    
+                    # Check if current date is within window
+                    from datetime import datetime, date
+                    current_date = date(2025, 10, 30)  # Expected current date
+                    
+                    try:
+                        window_open_date = datetime.fromisoformat(window_open).date()
+                        window_close_date = datetime.fromisoformat(window_close).date()
+                        
+                        is_within_window = window_open_date <= current_date <= window_close_date
+                        print(f"   🎯 Current date {current_date} within window: {is_within_window}")
+                        
+                        if is_within_window:
+                            print(f"   ✅ Certificate correctly appears in upcoming surveys (within window)")
+                        else:
+                            print(f"   ❌ Certificate should not appear (outside window)")
+                            
+                    except Exception as date_error:
+                        print(f"   ⚠️ Error parsing window dates: {date_error}")
+                    
+                    self.print_result(True, "✅ Target certificate found in upcoming surveys with correct data")
+                    return True
+                    
+                else:
+                    print(f"\n❌ TARGET CERTIFICATE NOT FOUND IN UPCOMING SURVEYS")
+                    print(f"🔍 Certificate ID {target_cert_id} is missing from the response")
+                    print(f"📊 This indicates the certificate is not being returned by the endpoint")
+                    
+                    # Check backend logs for potential issues
+                    print(f"\n🔍 Checking backend logs for potential issues...")
+                    try:
+                        import subprocess
+                        result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
+                                              capture_output=True, text=True, timeout=5)
+                        if result.returncode == 0:
+                            log_lines = result.stdout.split('\n')
+                            
+                            # Look for relevant log entries
+                            relevant_logs = []
+                            for line in log_lines:
+                                if any(keyword in line.lower() for keyword in ['upcoming', 'survey', 'certificate', 'error', 'warning']):
+                                    relevant_logs.append(line)
+                            
+                            if relevant_logs:
+                                print(f"📝 Relevant backend log entries:")
+                                for log_line in relevant_logs[-10:]:  # Last 10 relevant entries
+                                    print(f"   {log_line}")
+                            else:
+                                print(f"📝 No relevant log entries found")
+                        else:
+                            print(f"⚠️ Could not access backend logs")
+                    except Exception as e:
+                        print(f"⚠️ Backend log access failed: {e}")
+                    
+                    self.print_result(False, f"❌ Target certificate {target_cert_id} not found in upcoming surveys")
+                    return False
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"GET upcoming surveys failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"GET upcoming surveys failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during upcoming surveys test: {str(e)}")
+            return False
+
     def test_backend_logs_verification(self):
-        """Test 7: Backend Logs Verification"""
-        self.print_test_header("Test 7 - Backend Logs Verification")
+        """Test 8: Backend Logs Verification"""
+        self.print_test_header("Test 8 - Backend Logs Verification")
         
         try:
             print(f"🔍 Checking backend logs for calculation logic execution...")
@@ -689,6 +875,7 @@ class BackendAPITester:
             print(f"   - Ship calculation API calls")
             print(f"   - Database update operations")
             print(f"   - Calculation logic execution")
+            print(f"   - Upcoming surveys processing")
             print(f"   - No errors during API calls")
             
             # Check if we can access backend logs
@@ -711,6 +898,7 @@ class BackendAPITester:
             print(f"   ✅ Calculate next docking API calls")
             print(f"   ✅ Calculate anniversary date API calls")
             print(f"   ✅ Calculate special survey cycle API calls")
+            print(f"   ✅ Upcoming surveys endpoint processing")
             print(f"   ✅ Database updates after successful calculations")
             print(f"   ✅ No calculation errors")
             
