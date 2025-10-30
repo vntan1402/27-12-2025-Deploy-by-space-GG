@@ -11803,6 +11803,24 @@ def classify_by_filename(filename: str) -> dict:
             "filename": filename  # Add filename for certificate file_name field
         }
 
+def run_async_in_thread(coro):
+    """Helper to run async coroutine in a separate thread with new event loop"""
+    def run_in_new_loop():
+        try:
+            # Create new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                # Run the coroutine
+                loop.run_until_complete(coro)
+            finally:
+                loop.close()
+        except Exception as e:
+            logger.error(f"Background task error in thread: {e}")
+    
+    # Submit to thread pool
+    background_executor.submit(run_in_new_loop)
+
 async def create_google_drive_folder_background(ship_dict: dict, current_user):
     """Background task to create Google Drive folder structure with timeout"""
     ship_name = ship_dict.get('name', 'Unknown Ship')
