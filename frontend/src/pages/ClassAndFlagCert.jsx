@@ -864,7 +864,7 @@ const ClassAndFlagCert = () => {
         selectedShip={selectedShip}
         allShips={ships}
         onShipChange={setSelectedShip}
-        aiConfig={null} // TODO: Fetch AI config from context or API
+        aiConfig={aiConfig}
       />
     </MainLayout>
   );
