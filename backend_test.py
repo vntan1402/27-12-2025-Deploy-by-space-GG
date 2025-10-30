@@ -273,11 +273,11 @@ class ShipCalculationAPITester:
             self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
-    def test_gdrive_delete_ship_folder_main(self):
-        """Test 3: MAIN TEST - Google Drive Folder Deletion Endpoint"""
-        self.print_test_header("Test 3 - Google Drive Ship Folder Deletion (MAIN TEST)")
+    def test_calculate_next_docking(self):
+        """Test 3: Calculate Next Docking API"""
+        self.print_test_header("Test 3 - Calculate Next Docking API")
         
-        if not self.access_token or not self.company_id or not self.test_ship_name:
+        if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
@@ -287,22 +287,14 @@ class ShipCalculationAPITester:
                 "Content-Type": "application/json"
             }
             
-            # Test payload
-            payload = {
-                "ship_name": self.test_ship_name
-            }
+            print(f"📡 POST {BACKEND_URL}/ships/{self.test_ship_id}/calculate-next-docking")
+            print(f"🎯 Testing next docking calculation for ship: {self.test_ship_name}")
             
-            print(f"📡 POST {BACKEND_URL}/companies/{self.company_id}/gdrive/delete-ship-folder")
-            print(f"🎯 Testing Google Drive folder deletion for ship: {self.test_ship_name}")
-            print(f"📄 Payload: {json.dumps(payload, indent=2)}")
-            print(f"⚠️ WARNING: This is a REAL deletion test - the Google Drive folder will be moved to trash")
-            
-            # Make request to delete ship folder from Google Drive
+            # Make request to calculate next docking
             response = self.session.post(
-                f"{BACKEND_URL}/companies/{self.company_id}/gdrive/delete-ship-folder",
-                json=payload,
+                f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-next-docking",
                 headers=headers,
-                timeout=60  # Longer timeout for Google Drive operations
+                timeout=30
             )
             
             print(f"📊 Response Status: {response.status_code}")
@@ -312,7 +304,7 @@ class ShipCalculationAPITester:
                 print(f"📄 Response Data: {json.dumps(response_data, indent=2)}")
                 
                 # Check required response fields
-                required_fields = ["success", "message", "ship_name"]
+                required_fields = ["success", "message"]
                 missing_fields = []
                 
                 for field in required_fields:
@@ -323,72 +315,49 @@ class ShipCalculationAPITester:
                     self.print_result(False, f"Response missing required fields: {missing_fields}")
                     return False
                 
-                # Verify response content
                 success = response_data.get("success")
                 message = response_data.get("message")
-                ship_name = response_data.get("ship_name")
+                next_docking = response_data.get("next_docking")
                 
                 print(f"✅ Success: {success}")
                 print(f"📝 Message: {message}")
-                print(f"🚢 Ship Name: {ship_name}")
                 
-                # Check for additional fields
-                if "folder_name" in response_data:
-                    print(f"📁 Folder Name: {response_data['folder_name']}")
-                if "files_deleted" in response_data:
-                    print(f"📄 Files Deleted: {response_data['files_deleted']}")
-                if "subfolders_deleted" in response_data:
-                    print(f"📁 Subfolders Deleted: {response_data['subfolders_deleted']}")
-                if "deleted_timestamp" in response_data:
-                    print(f"⏰ Deleted Timestamp: {response_data['deleted_timestamp']}")
-                if "warning" in response_data:
-                    print(f"⚠️ Warning: {response_data['warning']}")
-                
-                # Verify success and ship name match
-                if success and ship_name == self.test_ship_name:
-                    if "deleted successfully" in message:
-                        self.print_result(True, "✅ Google Drive folder deletion successful with correct response structure")
-                        return True
-                    elif "not found" in message.lower():
-                        self.print_result(True, "✅ Google Drive folder deletion handled gracefully (folder not found)")
-                        return True
-                    else:
-                        self.print_result(False, f"Unexpected success message: {message}")
-                        return False
-                else:
-                    self.print_result(False, f"Response validation failed - success: {success}, ship_name match: {ship_name == self.test_ship_name}")
-                    return False
-                
-            elif response.status_code == 400:
-                try:
-                    error_data = response.json()
-                    print(f"📄 Error Response: {error_data}")
-                    detail = error_data.get("detail", "")
+                if success and next_docking:
+                    # Verify next_docking structure
+                    expected_fields = ["date", "calculation_method", "interval_months"]
+                    next_docking_missing = []
                     
-                    if "Missing ship_name" in detail:
-                        self.print_result(False, "❌ Unexpected 400 error - ship_name was provided")
-                    elif "not configured" in detail:
-                        self.print_result(False, f"❌ Configuration issue: {detail}")
-                    else:
-                        self.print_result(False, f"❌ Bad request: {detail}")
-                except:
-                    self.print_result(False, f"❌ Bad request (400): {response.text}")
-                return False
+                    for field in expected_fields:
+                        if field not in next_docking:
+                            next_docking_missing.append(field)
+                    
+                    if next_docking_missing:
+                        self.print_result(False, f"next_docking missing fields: {next_docking_missing}")
+                        return False
+                    
+                    print(f"📅 Next Docking Date: {next_docking['date']}")
+                    print(f"🔧 Calculation Method: {next_docking['calculation_method']}")
+                    print(f"📊 Interval Months: {next_docking['interval_months']}")
+                    
+                    self.print_result(True, "✅ Next docking calculation successful with correct response structure")
+                    return True
+                elif success and not next_docking:
+                    # Success but no calculation possible
+                    print(f"⚠️ Calculation not possible: {message}")
+                    self.print_result(True, "✅ Next docking calculation handled gracefully (no last_docking date)")
+                    return True
+                else:
+                    self.print_result(False, f"Calculation failed: {message}")
+                    return False
                 
             elif response.status_code == 404:
                 try:
                     error_data = response.json()
                     detail = error_data.get("detail", "")
                     print(f"📄 Error Response: {error_data}")
-                    
-                    if "Company not found" in detail:
-                        self.print_result(False, f"❌ Company not found: {self.company_id}")
-                    elif "not configured" in detail:
-                        self.print_result(False, f"❌ Google Drive not configured for company: {detail}")
-                    else:
-                        self.print_result(False, f"❌ Not found: {detail}")
+                    self.print_result(False, f"❌ Ship not found: {detail}")
                 except:
-                    self.print_result(False, f"❌ Not found (404): {response.text}")
+                    self.print_result(False, f"❌ Ship not found (404): {response.text}")
                 return False
                 
             elif response.status_code == 500:
@@ -410,7 +379,7 @@ class ShipCalculationAPITester:
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during Google Drive folder deletion test: {str(e)}")
+            self.print_result(False, f"Exception during next docking calculation test: {str(e)}")
             return False
     
     def test_error_handling(self):
