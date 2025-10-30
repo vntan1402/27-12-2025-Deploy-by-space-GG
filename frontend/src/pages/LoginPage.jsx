@@ -69,7 +69,7 @@ const LoginPage = () => {
   };
 
   const fillDemoCredentials = () => {
-    setUsername('admin1@amcsc.vn');
+    setUsername('admin1');
     setPassword('123456');
     toast.info(language === 'vi' ? 'Đã điền thông tin demo' : 'Demo credentials filled');
   };
