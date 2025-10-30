@@ -12,12 +12,13 @@ const HomePage = () => {
   const [companyLogo, setCompanyLogo] = useState(null);
   const [companyName, setCompanyName] = useState(null);
   const [showAddShipModal, setShowAddShipModal] = useState(false);
+  const [modalKey, setModalKey] = useState(0); // Add key to force re-mount modal
 
   useEffect(() => {
     if (user && user.company) {
       fetchUserCompanyData();
     }
-  }, [user]);
+  }, [user, language]); // Add language dependency
 
   const fetchUserCompanyData = async () => {
     try {
