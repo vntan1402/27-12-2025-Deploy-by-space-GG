@@ -426,7 +426,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
             <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
               📅 {t.surveyDates}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Last Docking */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
