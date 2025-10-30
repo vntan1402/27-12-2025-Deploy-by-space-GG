@@ -75,6 +75,9 @@ const HomePage = () => {
   };
 
   const handleShipCreated = (shipId, shipName) => {
+    // Ensure modal is closed before navigation
+    setShowAddShipModal(false);
+    
     // Navigate to certificates page where ship list is displayed
     navigate('/certificates', { 
       state: { 
