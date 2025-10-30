@@ -63,6 +63,30 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/test-report"
+          element={
+            <ProtectedRoute>
+              <TestReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/drawings-manuals"
+          element={
+            <ProtectedRoute>
+              <DrawingsManuals />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/other-documents"
+          element={
+            <ProtectedRoute>
+              <OtherDocuments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
