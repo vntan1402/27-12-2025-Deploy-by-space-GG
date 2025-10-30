@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { shipService, companyService } from '../../services';
 import { toast } from 'react-toastify';
 
-const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated }) => {
+const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) => {
   const { language, user } = useAuth();
   const navigate = useNavigate();
   
