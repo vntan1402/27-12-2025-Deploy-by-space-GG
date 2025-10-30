@@ -874,6 +874,151 @@ const ClassAndFlagCert = () => {
     }
   };
 
+  // Handle show auto rename dialog
+  const handleShowAutoRenameDialog = () => {
+    setShowAutoRenameDialog(true);
+    setContextMenu(null);
+  };
+
+  // Execute batch auto rename
+  const handleExecuteBatchAutoRename = async () => {
+    try {
+      // Get certificates to rename
+      let certificatesToRename = [];
+      
+      if (selectedCertificates.size > 0) {
+        // Use selected certificates if any are checked
+        certificatesToRename = Array.from(selectedCertificates);
+      } else if (contextMenu.certificate?.id) {
+        // Use the right-clicked certificate if no checkboxes are selected
+        certificatesToRename = [contextMenu.certificate.id];
+      }
+
+      if (certificatesToRename.length === 0) {
+        toast.error(language === 'vi' ? 'Không có chứng chỉ nào được chọn!' : 'No certificates selected!');
+        return;
+      }
+
+      // Filter certificates that have Google Drive file IDs
+      const allCertificates = getFilteredCertificates();
+      const validCertificates = certificatesToRename.map(certId => {
+        const cert = allCertificates.find(c => c.id === certId);
+        return cert;
+      }).filter(cert => cert && cert.google_drive_file_id);
+
+      if (validCertificates.length === 0) {
+        toast.error(
+          language === 'vi' 
+            ? 'Không có chứng chỉ nào có file trên Google Drive!' 
+            : 'No certificates have Google Drive files!'
+        );
+        return;
+      }
+
+      // Initialize progress
+      setBatchRenameProgress({
+        isRunning: true,
+        completed: 0,
+        total: validCertificates.length,
+        current: '',
+        errors: []
+      });
+
+      const errors = [];
+      let completed = 0;
+
+      // Process each certificate sequentially
+      for (const certificate of validCertificates) {
+        try {
+          // Update progress
+          setBatchRenameProgress(prev => ({
+            ...prev,
+            current: `${certificate.cert_name || certificate.cert_abbreviation || 'Unknown'} (${certificate.cert_no || 'No Number'})`
+          }));
+
+          // Make the auto-rename API call
+          const response = await api.post(`/api/certificates/${certificate.id}/auto-rename-file`);
+          
+          if (response.data?.success) {
+            completed++;
+            setBatchRenameProgress(prev => ({
+              ...prev,
+              completed: completed
+            }));
+          } else {
+            throw new Error(response.data?.message || 'Unknown error');
+          }
+          
+          // Small delay between requests
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+        } catch (error) {
+          console.error(`❌ Failed to rename ${certificate.cert_name}:`, error);
+          
+          let errorMessage = certificate.cert_name || certificate.cert_abbreviation || 'Unknown Certificate';
+          if (error.response?.status === 501) {
+            const detail = error.response.data?.detail || '';
+            const suggestedMatch = detail.match(/Suggested filename: (.+)/);
+            if (suggestedMatch) {
+              errorMessage += ` (${language === 'vi' ? 'Gợi ý' : 'Suggested'}: ${suggestedMatch[1]})`;
+            }
+          } else {
+            errorMessage += ` (${error.message || 'Unknown error'})`;
+          }
+          
+          errors.push(errorMessage);
+          setBatchRenameProgress(prev => ({
+            ...prev,
+            errors: [...prev.errors, errorMessage]
+          }));
+        }
+      }
+
+      // Show completion message
+      const successCount = completed;
+      const errorCount = errors.length;
+
+      if (successCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `Đã đổi tên ${successCount}/${validCertificates.length} files thành công!` 
+            : `Successfully renamed ${successCount}/${validCertificates.length} files!`
+        );
+      }
+      
+      if (errorCount > 0) {
+        toast.error(
+          language === 'vi' 
+            ? `${errorCount} files không thể đổi tên. Xem chi tiết trong dialog.` 
+            : `${errorCount} files could not be renamed. Check details in dialog.`
+        );
+      }
+
+      // Refresh certificate list
+      if (successCount > 0 && selectedShip?.id) {
+        await fetchCertificates(selectedShip.id);
+      }
+
+      // Close dialog after completion
+      setTimeout(() => {
+        setShowAutoRenameDialog(false);
+        setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
+        setSelectedCertificates(new Set());
+      }, 2000);
+
+    } catch (error) {
+      console.error('❌ Batch auto rename error:', error);
+      toast.error(
+        language === 'vi' 
+          ? 'Lỗi khi thực hiện batch auto rename!' 
+          : 'Error during batch auto rename!'
+      );
+      
+      // Reset progress on error
+      setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
+    }
+  };
+
   const handleAddRecord = () => {
     console.log('Add Ship button clicked from ClassAndFlagCert');
     setShowAddShipModal(true);
