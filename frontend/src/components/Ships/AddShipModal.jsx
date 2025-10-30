@@ -185,6 +185,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
           // Basic Information
           name: analysisData.ship_name || '', 
           imo_number: analysisData.imo_number || '',
+          ship_type: analysisData.ship_type || '',
           class_society: analysisData.class_society || '', 
           flag: analysisData.flag || '',
           gross_tonnage: analysisData.gross_tonnage ? String(analysisData.gross_tonnage) : '',
