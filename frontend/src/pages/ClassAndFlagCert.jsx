@@ -51,6 +51,9 @@ const ClassAndFlagCert = () => {
   const [isUpdatingSurveyTypes, setIsUpdatingSurveyTypes] = useState(false);
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
   
+  // AI Config state
+  const [aiConfig, setAiConfig] = useState(null);
+  
   // Context menu state (for right-click actions)
   const [contextMenu, setContextMenu] = useState(null);
   const [surveyTypeContextMenu, setSurveyTypeContextMenu] = useState(null);
