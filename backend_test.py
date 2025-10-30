@@ -36,14 +36,14 @@ class DeleteShipGDriveTester:
         print(f"{status}: {message}")
         
     def test_authentication(self):
-        """Setup: Login as admin / admin123 to get access token"""
+        """Setup: Login as admin1/123456 to get access token"""
         self.print_test_header("Setup - Admin Authentication")
         
         try:
-            # Test data - using admin/admin123 credentials as specified in the review request
+            # Test data - using admin1/123456 credentials as specified in the review request
             login_data = {
-                "username": "admin",
-                "password": "admin123",
+                "username": "admin1",
+                "password": "123456",
                 "remember_me": False
             }
             
