@@ -103,10 +103,10 @@ const AddShipModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     
     // Validate required fields
-    if (!formData.name || !formData.flag || !formData.ship_type || !formData.company) {
+    if (!formData.name || !formData.flag || !formData.class_society || !formData.company) {
       toast.error(language === 'vi' 
-        ? 'Vui lòng điền đầy đủ thông tin bắt buộc (Name, Flag, Ship Type, Company)' 
-        : 'Please fill in all required fields (Name, Flag, Ship Type, Company)'
+        ? 'Vui lòng điền đầy đủ thông tin bắt buộc (Name, Flag, Class Society, Company)' 
+        : 'Please fill in all required fields (Name, Flag, Class Society, Company)'
       );
       return;
     }
