@@ -410,6 +410,17 @@ const ClassAndFlagCert = () => {
   const handleUpcomingSurvey = async () => {
     try {
       console.log('🔍 Checking upcoming surveys...');
+      
+      // First check server current date
+      try {
+        const dateResponse = await api.get('/api/system/current-datetime');
+        console.log('📅 Server current date/time:', dateResponse.data);
+        console.log(`Server date: ${dateResponse.data.formatted}`);
+        console.log(`Timezone: ${dateResponse.data.timezone} (${dateResponse.data.timezone_offset})`);
+      } catch (dateError) {
+        console.warn('Could not fetch server datetime:', dateError);
+      }
+      
       const response = await api.get('/api/certificates/upcoming-surveys');
       const data = response.data;
       
