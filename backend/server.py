@@ -11970,8 +11970,14 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
         logger.info(f"Apps Script URL: {script_url}")
         logger.info(f"Payload: {payload}")
         
-        # Increased timeout to handle large folder structure creation (90s for optimal reliability)
-        response = requests.post(script_url, json=payload, timeout=180)  # 180s timeout for complex folder operations
+        # Use asyncio.to_thread to run blocking requests.post in thread pool
+        # This prevents blocking the main event loop
+        response = await asyncio.to_thread(
+            requests.post,
+            script_url,
+            json=payload,
+            timeout=180
+        )
         response.raise_for_status()
         
         result = response.json()
