@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { shipService, companyService } from '../../services';
 import api from '../../services/api';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
   const { language, user } = useAuth();
