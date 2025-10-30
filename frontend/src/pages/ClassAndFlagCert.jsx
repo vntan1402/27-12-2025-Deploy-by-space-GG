@@ -1443,7 +1443,7 @@ const ClassAndFlagCert = () => {
       {/* Context Menu for Certificate Actions */}
       {contextMenu && (
         <div
-          className="fixed bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-200 min-w-[200px]"
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-[9999] border border-gray-200 min-w-[200px]"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           {/* Header showing selection count */}
