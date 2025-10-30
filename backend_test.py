@@ -151,20 +151,37 @@ class DeleteShipGDriveTester:
                 companies = response.json()
                 print(f"📄 Found {len(companies)} companies")
                 
-                # Find user's company by name
-                user_company_name = self.user_data['company']
+                # Find user's company by ID or name
+                user_company_identifier = self.user_data['company']
+                
+                # First try to match by ID (if user.company is already a UUID)
                 for company in companies:
-                    if (company.get('name_en') == user_company_name or 
-                        company.get('name_vn') == user_company_name or
-                        company.get('name') == user_company_name):
+                    if company.get('id') == user_company_identifier:
                         self.company_id = company['id']
-                        print(f"🏢 Found company ID: {self.company_id}")
+                        print(f"🏢 Found company by ID: {self.company_id}")
                         print(f"🏢 Company Name (EN): {company.get('name_en')}")
                         print(f"🏢 Company Name (VN): {company.get('name_vn')}")
                         self.print_result(True, f"Successfully found company ID: {self.company_id}")
                         return True
                 
-                self.print_result(False, f"Company '{user_company_name}' not found in companies list")
+                # If not found by ID, try by name
+                for company in companies:
+                    if (company.get('name_en') == user_company_identifier or 
+                        company.get('name_vn') == user_company_identifier or
+                        company.get('name') == user_company_identifier):
+                        self.company_id = company['id']
+                        print(f"🏢 Found company by name: {self.company_id}")
+                        print(f"🏢 Company Name (EN): {company.get('name_en')}")
+                        print(f"🏢 Company Name (VN): {company.get('name_vn')}")
+                        self.print_result(True, f"Successfully found company ID: {self.company_id}")
+                        return True
+                
+                # Debug: Print all companies to see what's available
+                print(f"🔍 Available companies:")
+                for company in companies:
+                    print(f"   ID: {company.get('id')}, Name EN: {company.get('name_en')}, Name VN: {company.get('name_vn')}")
+                
+                self.print_result(False, f"Company '{user_company_identifier}' not found in companies list")
                 return False
                 
             else:
