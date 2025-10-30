@@ -52,6 +52,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/class-survey-report"
+          element={
+            <ProtectedRoute>
+              <ClassSurveyReport />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
