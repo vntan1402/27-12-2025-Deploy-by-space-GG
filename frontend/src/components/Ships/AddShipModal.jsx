@@ -499,29 +499,6 @@ const AddShipModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Owner Information Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
-              👤 {t.ownerInfo}
-            </h3>
-            <div className="grid grid-cols-1 gap-4">
-              {/* Ship Owner */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.shipOwner} {t.optional}
-                </label>
-                <input
-                  type="text"
-                  name="ship_owner"
-                  value={formData.ship_owner}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., Pacific Shipping Company Ltd."
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button
