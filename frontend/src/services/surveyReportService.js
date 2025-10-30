@@ -66,8 +66,8 @@ export const surveyReportService = {
    * @returns {Promise} Delete result
    */
   bulkDelete: async (reportIds) => {
-    return api.post(API_ENDPOINTS.SURVEY_REPORT_BULK_DELETE, {
-      report_ids: reportIds,
+    return api.delete(API_ENDPOINTS.SURVEY_REPORT_BULK_DELETE, {
+      data: { report_ids: reportIds }
     });
   },
 
