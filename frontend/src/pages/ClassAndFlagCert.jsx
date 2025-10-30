@@ -85,6 +85,16 @@ const ClassAndFlagCert = () => {
     notes: ''
   });
 
+  // Auto rename state
+  const [showAutoRenameDialog, setShowAutoRenameDialog] = useState(false);
+  const [batchRenameProgress, setBatchRenameProgress] = useState({
+    isRunning: false,
+    completed: 0,
+    total: 0,
+    current: '',
+    errors: []
+  });
+
   // Fetch ships on mount
   useEffect(() => {
     fetchShips();
