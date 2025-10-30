@@ -232,16 +232,28 @@ class ShipCalculationAPITester:
                     self.print_result(False, "No ships found in the system")
                     return False
                 
-                # Look for any ship to use for testing
+                # Look for BROTHER 36 first (likely has more data), then any ship
                 target_ship = None
+                brother_36_ship = None
+                
                 for ship in ships:
                     ship_name = ship.get('name', '')
                     print(f"🚢 Ship: {ship_name} (ID: {ship.get('id')})")
                     
-                    # Use first ship found
+                    if 'BROTHER 36' in ship_name.upper():
+                        brother_36_ship = ship
+                        print(f"✅ Found BROTHER 36 with potentially more data")
+                    
+                    # Use first ship as fallback
                     if not target_ship:
                         target_ship = ship
-                        print(f"✅ Selected test ship: {ship_name}")
+                
+                # Prefer BROTHER 36 if available
+                if brother_36_ship:
+                    target_ship = brother_36_ship
+                    print(f"✅ Selected test ship: {target_ship.get('name')} (preferred for testing)")
+                elif target_ship:
+                    print(f"✅ Selected test ship: {target_ship.get('name')} (fallback)")
                 
                 if target_ship:
                     self.test_ship_id = target_ship['id']
