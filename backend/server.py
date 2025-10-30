@@ -3617,6 +3617,20 @@ async def login(credentials: LoginRequest):
         logger.error(f"Login error: {e}")
         raise HTTPException(status_code=500, detail="Login failed")
 
+@api_router.get("/verify-token")
+async def verify_token_endpoint(current_user: UserResponse = Depends(get_current_user)):
+    """
+    Verify if the current token is valid and return user info
+    """
+    try:
+        return {
+            "valid": True,
+            "user": current_user.dict()
+        }
+    except Exception as e:
+        logger.error(f"Token verification error: {e}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 # User management endpoints
 @api_router.get("/users", response_model=List[UserResponse])
 async def get_users(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
