@@ -57,14 +57,17 @@ const AddShipModal = ({ isOpen, onClose }) => {
   const fetchCompanies = async () => {
     try {
       setIsLoadingCompanies(true);
-      const companies = await companyService.getAll();
-      setAvailableCompanies(companies || []);
+      const response = await companyService.getAll();
+      // Handle both array and object responses
+      const companies = Array.isArray(response) ? response : (response.data || []);
+      setAvailableCompanies(companies);
     } catch (error) {
       console.error('Failed to fetch companies:', error);
       toast.error(language === 'vi' 
         ? '❌ Không thể tải danh sách công ty'
         : '❌ Failed to load companies list'
       );
+      setAvailableCompanies([]);
     } finally {
       setIsLoadingCompanies(false);
     }
