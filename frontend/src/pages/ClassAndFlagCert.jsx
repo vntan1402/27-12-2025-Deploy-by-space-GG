@@ -44,10 +44,19 @@ const ClassAndFlagCert = () => {
 
   const fetchShips = async () => {
     try {
+      console.log('Fetching ships...');
       setLoading(true);
       const response = await shipService.getAllShips();
-      const data = response.data; // Extract data from axios response
-      setShips(data);
+      console.log('Ships fetched successfully:', response);
+      const data = response.data || response || []; // Handle different response formats
+      
+      // Ensure data is array
+      if (!Array.isArray(data)) {
+        console.error('Ships response is not an array:', data);
+        setShips([]);
+      } else {
+        setShips(data);
+      }
       
       // Don't auto-select, let user choose via Ship Select button
       // If no ship selected and ships available, could optionally show modal
@@ -55,7 +64,9 @@ const ClassAndFlagCert = () => {
     } catch (error) {
       console.error('Failed to fetch ships:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách tàu' : 'Failed to load ships');
+      setShips([]); // Set empty array on error
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
