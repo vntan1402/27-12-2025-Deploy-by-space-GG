@@ -21,7 +21,9 @@ const AddShipModal = ({ isOpen, onClose }) => {
     imo: '',
     flag: '',
     ship_type: '',
-    company: user?.company || '',
+    class_society: '',
+    company: '',
+    ship_owner: '',
     
     // Technical Details
     gross_tonnage: '',
@@ -36,9 +38,6 @@ const AddShipModal = ({ isOpen, onClose }) => {
     next_docking: '',
     last_special_survey: '',
     last_intermediate_survey: '',
-    
-    // Owner Info
-    ship_owner: ''
   });
 
   useEffect(() => {
