@@ -60,6 +60,9 @@ api_router = APIRouter(prefix="/api")
 # Create thread pool for truly background tasks
 background_executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="background_task")
 
+# Set to keep references to background tasks to prevent garbage collection
+background_tasks = set()
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
