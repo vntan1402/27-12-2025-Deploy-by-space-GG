@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar } from '../components/Layout';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
-import { EditShipModal, DeleteShipConfirmationModal } from '../components/Ships';
+import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
 import { shipService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ const ClassAndFlagCert = () => {
   const [selectedCategory] = useState('ship_certificates');
   const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
   const [showShipModal, setShowShipModal] = useState(false);
+  const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [showDeleteShipModal, setShowDeleteShipModal] = useState(false);
   const [ships, setShips] = useState([]);
