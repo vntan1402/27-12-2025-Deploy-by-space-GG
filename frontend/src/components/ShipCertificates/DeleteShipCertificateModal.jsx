@@ -28,7 +28,7 @@ export const DeleteShipCertificateModal = ({
       setIsDeleting(true);
 
       // Delete certificate (backend will automatically handle Google Drive deletion if file exists)
-      await api.delete(`/api/ships/certificates/${certificate.id}`);
+      await api.delete(`/api/certificates/${certificate.id}`);
       
       const hasFile = certificate.google_drive_file_id || certificate.gdrive_file_id;
       
