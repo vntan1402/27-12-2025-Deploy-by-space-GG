@@ -1,87 +1,59 @@
 <analysis>
-The AI engineer's work on the  application centered around enhancing ship management features. Initially, a critical Not authenticated error in  was resolved by ensuring API calls used the authenticated  instance. UI adjustments to  were made, removing the sub-menu and adding a dynamic company logo.
-
-The core focus then shifted to the Add New Ship and Edit Ship functionalities. For Add New Ship, a new modal () was created with extensive form fields, AI certificate analysis integration (using the Emergent LLM key), and backend Google Drive folder creation. Multiple iterations addressed UI layout refinements,  to  field mismatches, separation of  and  fields, and date format parsing for backend compatibility. The ship card display in  was corrected to show  instead of , and UI elements were rearranged for better aesthetics. Abbreviated class society names and updated Vietnamese labels were also implemented.
-
-Subsequently, the Edit Ship modal () was developed, mirroring the Add Ship layout but without AI analysis and with specific editable field requirements. The Delete Ship feature was then integrated into the , complete with a confirmation modal offering database-only or database-and-Google-Drive deletion options. The current outstanding issue is the Google Drive folder deletion failing due to a naming mismatch between the backend's API call () and the actual Apps Script action () in the actively used v4.3 script.
+The previous AI engineer diligently enhanced the  application, addressing numerous feature requests and critical bugs. Initial work fixed Delete Ship Google Drive issues and improved Add New Ship UX with a two-call pattern. The engineer resolved front-end issues like unclickable buttons and toast library conflicts, and backend freezes due to synchronous I/O by using .
+Recent efforts focused on two main areas: implementing recalculation icons for ship survey dates and building out the comprehensive Certificate List functionality. The recalculation icons for Next Docking, Special Survey Cycle, and Anniversary Date were successfully integrated into , with backend APIs and frontend service methods confirmed. The Certificate List was extensively developed, including creating new components for the table, filters, action buttons, and various modals for adding, editing, deleting certificates, and handling duplicates/mismatches. AI auto-fill for certificates was fixed, and multi-certificate upload timeouts were resolved by sequential processing. The current focus is debugging an issue where an upcoming survey due within the specified window is not being displayed.
 </analysis>
 
 <product_requirements>
-The primary objective was to evolve  into a modular , establishing core features like authentication, layout, ship certificate display, and user/company management. Specific new features and enhancements include:
-
-- **AI Config Module**: Integrate into System Settings for displaying and configuring AI provider/model.
-- **System Google Drive Configuration**: Connect via Apps Script, enable Sync to/from Drive for DB backup/restore, daily auto-backup, and secure Apps Script proxy connectivity.
-- **UI Enhancements**: Remove the sub-menu bar from  and add a dynamic company logo banner.
-- **Add New Ship Flow**:
-    - Change sidebar text Add new record to Add New Ship.
-    - Implement a comprehensive form for adding ships with:
-        - Specific layout for Basic Information, Technical Details.
-        - Survey Dates arranged in a 4-field row.
-        - IMO, Flag, Class Society, Ship Type in a 4-field row, with Ship Type becoming optional.
-        - Company dropdown showing only the current user's company (locked field).
-        - AI-powered certificate analysis for auto-populating ship data.
-        - Redirect to Ship Detail page on successful creation.
-        - Initiate a background task for Google Drive folder structure creation upon ship creation.
-- **Ship Card Display Correction**: Ensure ship cards display the  (e.g., DNV GL) instead of  (e.g., Bulk Carrier).
-- **Class & Flag Cert Page UI Refinement**: Move the Ship Select button and Please select a ship to view information text to the same row as the page title, removing the existing placeholder section.
-- **Class Society Abbreviation**: Display shortened, professional abbreviations for class society names in ship cards and detail panels.
-- **Vietnamese Label Update**: Change Hội đăng kiểm / Tổ chức Phân cấp to Đăng kiểm for improved terminology.
-- **Edit Ship Modal**: Implement a modal to edit existing ship information, replicating the Add Ship modal's layout, excluding AI analysis, locking the Company field, making Ship Owner editable, and using Update Ship as the submit button text.
-- **Delete Ship Feature**: Integrate a delete option within the Edit Ship modal, including a confirmation modal with options to delete only from the database or to delete both database records and the corresponding Google Drive folder structure.
+The overarching goal is to evolve  into a modular  with enhanced ship management. Key features include a secure Google Drive integration for DB backup/restore, UI improvements (dynamic logo, no sub-menu), and a streamlined Add New Ship flow with AI analysis, database-first creation, and background Google Drive folder provisioning. Ship display was refined ( over , Vietnamese labels). Edit Ship and Delete Ship modals were implemented, supporting DB-only or DB+Drive deletion. Recalculation icons for Next Docking, Special Survey Cycle, and Anniversary Date were added to trigger V1-based calculations. The Certificate List was developed to mirror V1's layout, functions, filters, and search, using V2's date handling. The Add Ship Certificate flow now includes AI auto-fill, duplicate/mismatch handling, sequential multi-upload, and auto-refresh. Edit/Delete Certificate functionalities are implemented, as are quick and bulk survey type updates. An Upcoming Survey Check modal displays certificates due within a ±3 month window, which is currently under debug.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend**: React.js, Context API (Auth), React Router, custom hooks,  with authenticated  instance.
-- **Backend**: FastAPI, MongoDB (using UUIDs and ISO strings for DateTime), Pydantic, JWT authentication, APScheduler for scheduled tasks.
-- **Integrations**: Google Drive API (via Apps Script proxy), API Key authentication, Emergent LLM key for AI analysis.
-- **Deployment**: Google Apps Script Web App deployments, Kubernetes ingress rules.
+- **Frontend**: React.js, Context API, React Router, custom hooks, , .
+- **Backend**: FastAPI, MongoDB (UUIDs, ISO strings), Pydantic, JWT auth, , .
+- **Integrations**: Google Drive API (Apps Script proxy), API Key, Emergent LLM key.
+- **Utilities**: Date helper functions.
 </key_technical_concepts>
 
 <code_architecture>
 
--   **backend/server.py**: FastAPI app.
-    -   *Changes*: Added  and  endpoints. Implemented . Modified , , ,  models to correctly separate  and  fields. Added  handler for detailed error logging.
--   **frontend/src/pages/HomePage.jsx**: Main user dashboard.
-    -   *Changes*: Removed  component, added  fetching and rendering logic with a new banner UI. Integrated  and fixed its import for named exports.
--   **frontend/src/components/Layout/CategoryMenu.jsx**: Sidebar menu component.
-    -   *Changes*: Updated ADD_NEW_RECORD button text to ADD_NEW_SHIP.
--   **frontend/src/components/SystemSettings/SystemGoogleDrive/SystemGoogleDriveModal.jsx**: Modal for GDrive configuration.
-    -   *Changes*: Replaced direct  calls with  methods to ensure JWT authentication.
--   **frontend/src/components/Ships/AddShipModal.jsx**: (New file, created and modified). Form for adding new ships.
-    -   *Changes*: Initial creation. Implemented specific form layout (Basic Information, Technical Details, Survey Dates as 4-field row, IMO/Flag/Class Society/Ship Type as 4-field row with Ship Type optional). Integrated AI certificate analysis and auto-population logic. Corrected  to . Added  field. Fixed date formatting for backend. Corrected API response data access ().
--   **frontend/src/components/Ships/EditShipModal.jsx**: (New file, created). Form for editing existing ships.
-    -   *Changes*: Created based on  with user-defined requirements: no AI analysis, Company field locked, Ship Owner editable, Update Ship button text.
--   **frontend/src/components/Ships/DeleteShipConfirmationModal.jsx**: (New file, created). Confirmation modal for deleting ships.
-    -   *Changes*: Initial creation with two deletion options: database-only, or database and Google Drive folder.
--   **frontend/src/components/Ships/index.js**:
-    -   *Changes*: Exports , , and .
--   **frontend/src/services/shipService.js**:
-    -   *Changes*: Added  method. Updated ,  to handle new data structures and  to accept an options object.
--   **frontend/src/constants/api.js**:
-    -   *Changes*: Added  endpoint definition.
--   **frontend/src/pages/ClassAndFlagCert.jsx**: Page displaying ship cards and detail.
-    -   *Changes*: Corrected ship card display to show  instead of . Rearranged UI for Ship Select button and descriptive text. Applied  helper. Integrated  and  handlers. Updated Vietnamese labels for Class Society to Đăng kiểm.
--   **frontend/src/components/ShipDetailPanel.jsx**: Panel for displaying detailed ship information.
-    -   *Changes*: Applied  helper. Updated Vietnamese labels for Tổ chức Phân cấp to Đăng kiểm.
--   **frontend/src/utils/shipHelpers.js**: (New file, created). Utility for ship-related helper functions.
-    -   *Changes*: Created  to abbreviate common classification society names.
--   **frontend/src/utils/index.js**:
-    -   *Changes*: Exports functions from .
--   **GOOGLE_APPS_SCRIPT_V4.3.js (Conceptual, based on latest provided script)**: The active Google Apps Script.
-    -   *Summary*: A merged script combining functionalities for ship management, file operations (rename, move, delete), folder structure management (e.g., , ), enhanced file uploads, passport handling, and various debug/test actions.
+-   ****: FastAPI application. Confirmed/used API endpoints for ship calculation, certificate CRUD, multi-upload, upcoming surveys. Added  endpoint and debug logs for date.
+-   ****: Main page for certificates. Heavily modified to integrate ship calculation icons, a comprehensive certificate list (table, filters, action buttons), and modals for Add/Edit/Delete Ship Certificates, Duplicate/Mismatch handling, and Upcoming Surveys. Manages all related states and handlers. Fixed syntax errors, implemented UI conditional rendering, and updated context menu handlers.
+-   ****: Displays ship details. Modified to include clickable icons for Next Docking, Special Survey Cycle, Anniversary Date to trigger recalculations.
+-   ****: New directory for certificate list components.
+    -   ****: Displays certificate data, implemented V1-style sort icons.
+    -   ****: UI for filtering certificates.
+    -   ****: Action buttons for certificate management.
+    -   ****: Modal for displaying upcoming surveys.
+-   ****: New directory for ship certificate modals.
+    -   ****: Form for adding certificates, with AI auto-fill, multi-upload (sequential to avoid timeouts), duplicate/mismatch detection. Fixed API endpoint and AI response field.
+    -   ****: Form for editing certificates. Fixed API endpoint.
+    -   ****: Confirmation for deleting certificates. Fixed API endpoint.
+    -   ****: Modal for handling duplicate certificates.
+    -   ****: Modal for handling ship name mismatches.
+-   ****: Contains methods for ship calculations.
+-   ****: Handles ship certificate API calls.
+-   ****: Defines API endpoints, including new calculation and certificate routes.
+-   ****: Utility functions for date handling.
+-   ****: Document explaining certificate abbreviation logic.
+-   ****: Document explaining upcoming survey window logic.
 </code_architecture>
 
 <pending_tasks>
 - The Sync from Drive (restore database) functionality UI integration and full testing in the frontend are still pending.
-- The Google Drive folder deletion logic is currently failing because the backend is sending an incorrect action name () to the Apps Script, which expects .
+- Debug the Upcoming Survey Check logic: Investigate why a survey due on 28/11/2025 is not showing as upcoming when the server date is 30/10/2025, despite falling within the ±3 month window.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was implementing the Delete Ship feature within the  application. This involved creating the  component and integrating it into the  and . The feature was successfully implemented, offering users options to delete a ship's data from the database only, or from both the database and its corresponding Google Drive folder structure. The UI for the delete button and the confirmation modal matches the V1 design.
+Immediately before this summary, the AI engineer was debugging the Upcoming Survey Check feature. The user reported that a survey due on 28/11/2025 was not appearing as upcoming in the , even when the current server date was identified as 30/10/2025. This is unexpected as 28/11/2025 falls within the backend's ±3 month window from 30/10/2025 (less than 1 month away).
 
-However, during testing, it was discovered that the Google Drive folder deletion part of the feature was not working. Upon investigation, the AI engineer identified a mismatch: the backend's  method was configured to send a Google Apps Script action named , but the currently deployed Apps Script (v4.3, provided in Chat Message 517) only supports an action named  for deleting ship folders. The engineer's last action was to acknowledge this discrepancy and plan to fix the backend endpoint and frontend calls accordingly.
+Prior work in this area involved:
+1.  **Backend Logic Analysis**: Verified 's  endpoint logic, which applies a ±3 month window around the  date.
+2.  **Debugging Tools**: Added a new API endpoint  in  and a corresponding frontend component to accurately retrieve and display the server's current date/time to isolate potential timezone or date-value issues.
+3.  **Documentation**: Created  to explain the 3-month window design choice.
+
+The current stage is to investigate the discrepancy between the expected and observed behavior of the upcoming survey display, focusing on checking backend logs and the actual certificate data.
 </current_work>
 
 <optional_next_step>
-Fix the backend and frontend to use the correct Apps Script action name () for Google Drive folder deletion.
+Check backend logs and certificate data to diagnose why the 28/11/2025 survey is not displayed as upcoming.
 </optional_next_step>
