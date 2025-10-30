@@ -23,7 +23,16 @@ const HomePage = () => {
 
   const fetchUserCompanyData = async () => {
     try {
-      const companies = await companyService.getAll();
+      const response = await companyService.getAll();
+      const companies = response.data || response || []; // Handle different response formats
+      
+      // Ensure companies is an array
+      if (!Array.isArray(companies)) {
+        console.error('Companies response is not an array:', companies);
+        setCompanyLogo(null);
+        setCompanyName(null);
+        return;
+      }
       
       // Find company by name (user.company is the company name)
       const userCompany = companies.find(c => 
