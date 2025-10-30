@@ -4755,6 +4755,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         
         logger.info(f"Current server date: {current_date.isoformat()}")
         logger.info(f"Current server datetime: {datetime.now().isoformat()}")
+        logger.info(f"Server timezone: {datetime.now().astimezone().tzinfo}")
         
         upcoming_surveys = []
         
