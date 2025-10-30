@@ -325,8 +325,8 @@ const AddShipModal = ({ isOpen, onClose }) => {
         // Close modal
         onClose();
         
-        // Navigate to ship detail page
-        navigate(`/ships/${response.id}`);
+        // Navigate to home page (ship detail page will be implemented in Phase 4)
+        navigate('/');
         
         // Note: Background task for Google Drive folder creation
         // is handled automatically by backend
