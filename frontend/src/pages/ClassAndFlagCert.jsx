@@ -1014,7 +1014,6 @@ const ClassAndFlagCert = () => {
               onUpcomingSurvey={handleUpcomingSurvey}
               onAddCertificate={handleAddShipCertificate}
               onRefresh={handleRefreshCertificates}
-              onBulkDelete={handleBulkDelete}
             />
 
             {/* Certificate Filters */}
