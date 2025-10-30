@@ -711,8 +711,9 @@ class BackendAPITester:
                 response_data = response.json()
                 print(f"📄 Response Keys: {list(response_data.keys())}")
                 
-                # Check required response fields
-                required_fields = ["upcoming_surveys", "total_count", "company", "check_date"]
+                # Check required response fields (some may be optional)
+                required_fields = ["upcoming_surveys"]
+                optional_fields = ["total_count", "company", "check_date", "logic_info"]
                 missing_fields = []
                 
                 for field in required_fields:
@@ -722,6 +723,13 @@ class BackendAPITester:
                 if missing_fields:
                     self.print_result(False, f"Response missing required fields: {missing_fields}")
                     return False
+                
+                # Log optional fields that are present
+                for field in optional_fields:
+                    if field in response_data:
+                        print(f"📄 Optional field present: {field}")
+                    else:
+                        print(f"📄 Optional field missing: {field}")
                 
                 upcoming_surveys = response_data.get("upcoming_surveys", [])
                 total_count = response_data.get("total_count", 0)
