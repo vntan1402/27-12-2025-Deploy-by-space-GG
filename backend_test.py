@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-Delete Ship Google Drive Folder Deletion Testing Script
-Tests the Delete Ship Google Drive folder deletion fix
+Ship Calculation APIs Testing Script
+Tests the three ship calculation APIs that have been integrated with the frontend
 
-FOCUS: Test the /api/companies/{company_id}/gdrive/delete-ship-folder endpoint
-Expected: Action name should be 'delete_complete_ship_structure' (not 'delete_ship_folder')
+FOCUS: Test the ship calculation endpoints:
+1. POST /api/ships/{ship_id}/calculate-next-docking
+2. POST /api/ships/{ship_id}/calculate-anniversary-date  
+3. POST /api/ships/{ship_id}/calculate-special-survey-cycle
 """
 
 import requests
