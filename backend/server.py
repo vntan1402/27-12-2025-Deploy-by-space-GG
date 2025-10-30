@@ -14642,8 +14642,8 @@ async def auto_rename_certificate_file(
             raise HTTPException(status_code=404, detail="Ship not found for certificate")
         
         # Build new filename using naming convention with priority: Mappings → Database → Cert Name
-        ship_name = ship.get("name", "Unknown Ship").replace(" ", "_")
-        cert_type = certificate.get("cert_type", "Unknown Type").replace(" ", "_")
+        ship_name = ship.get("name", "Unknown Ship")  # Keep spaces in ship name
+        cert_type = certificate.get("cert_type", "Unknown Type")  # Keep spaces in cert type
         cert_name = certificate.get("cert_name", "Unknown Certificate")
         cert_abbreviation = certificate.get("cert_abbreviation", "")
         issue_date = certificate.get("issue_date")
@@ -14662,9 +14662,8 @@ async def auto_rename_certificate_file(
                 final_abbreviation = await generate_certificate_abbreviation(cert_name)
                 logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Generated abbreviation '{cert_name}' → '{final_abbreviation}'")
         
-        # Use final abbreviation for filename
-        cert_identifier = final_abbreviation.replace(" ", "_")
-        cert_identifier = cert_identifier.replace(" ", "_")
+        # Use final abbreviation for filename (keep spaces if any)
+        cert_identifier = final_abbreviation
         
         # Format issue date
         date_str = ""
@@ -14683,7 +14682,8 @@ async def auto_rename_certificate_file(
         else:
             date_str = "NoDate"
         
-        # Build new filename: Ship_name_Cert_type_Cert_identifier_Issue_date.pdf
+        # Build new filename: Ship name_Cert type_Cert identifier_Issue date.pdf
+        # Use underscore ONLY to separate fields, keep spaces within fields
         original_filename = certificate.get("file_name", "")
         file_extension = ""
         if original_filename and "." in original_filename:
@@ -14693,9 +14693,13 @@ async def auto_rename_certificate_file(
         
         new_filename = f"{ship_name}_{cert_type}_{cert_identifier}_{date_str}{file_extension}"
         
-        # Clean up filename (remove special characters except underscores and dots)
+        # Clean up filename: Remove special characters but KEEP spaces and underscores
+        # Only allow: letters, numbers, spaces, underscores, hyphens, and dots
         import re
-        new_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', new_filename)
+        new_filename = re.sub(r'[^a-zA-Z0-9 ._-]', '', new_filename)
+        
+        # Remove multiple consecutive spaces
+        new_filename = re.sub(r'\s+', ' ', new_filename)
         
         # Get company ID from current user
         company_id = await resolve_company_id(current_user)
