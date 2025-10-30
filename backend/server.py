@@ -57,6 +57,9 @@ security = HTTPBearer()
 app = FastAPI(title="Ship Management System API", version="2.0.0 - MongoDB")
 api_router = APIRouter(prefix="/api")
 
+# Create thread pool for truly background tasks
+background_executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="background_task")
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
