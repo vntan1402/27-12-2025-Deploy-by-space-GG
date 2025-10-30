@@ -456,6 +456,9 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           : `✅ Ship ${shipName} created successfully!`
         );
         
+        // Wait a bit for user to see the success message before closing modal
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
         // Close modal and reset form
         handleClose();
         
@@ -466,6 +469,9 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           // Fallback: navigate to certificates page
           navigate('/certificates');
         }
+        
+        // Wait a bit after navigation to ensure page is loaded
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Start background monitoring for Google Drive folder creation
         // Show info toast that folder creation is in progress
