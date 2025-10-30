@@ -241,11 +241,17 @@ const DrawingsManuals = () => {
     setSelectedSubMenu(submenuKey);
     
     // Navigate to different pages based on submenu
-    if (submenuKey === 'certificates') {
-      window.location.href = '/certificates';
+    const routes = {
+      'certificates': '/certificates',
+      'class_survey': '/class-survey-report',
+      'test_report': '/test-report',
+      'other_docs': '/other-documents'
+    };
+    
+    if (routes[submenuKey] && routes[submenuKey] !== '/drawings-manuals') {
+      window.location.href = routes[submenuKey];
     }
-    // Stay on this page if class_survey is selected (already here)
-    // Add more routes for other submenus as needed
+    // Stay on this page if drawings_manuals is selected (already here)
   };
 
   return (
