@@ -4723,6 +4723,22 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
         logger.error(f"Error updating certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to update certificate")
 
+@api_router.get("/system/current-datetime")
+async def get_current_datetime():
+    """
+    Get current server date and time for debugging
+    """
+    from datetime import datetime
+    now = datetime.now()
+    return {
+        "current_date": now.date().isoformat(),
+        "current_datetime": now.isoformat(),
+        "current_timestamp": now.timestamp(),
+        "timezone": str(now.astimezone().tzinfo),
+        "timezone_offset": now.astimezone().strftime('%z'),
+        "formatted": now.strftime('%d/%m/%Y %H:%M:%S')
+    }
+
 @api_router.get("/certificates/upcoming-surveys")
 async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_user)):
     """
