@@ -10,15 +10,16 @@ const HomePage = () => {
   // State management
   const [selectedCategory, setSelectedCategory] = useState('ship_certificates');
   const [companyLogo, setCompanyLogo] = useState(null);
+  const [companyName, setCompanyName] = useState(null);
   const [showAddShipModal, setShowAddShipModal] = useState(false);
 
   useEffect(() => {
     if (user && user.company) {
-      fetchUserCompanyLogo();
+      fetchUserCompanyData();
     }
   }, [user]);
 
-  const fetchUserCompanyLogo = async () => {
+  const fetchUserCompanyData = async () => {
     try {
       const companies = await companyService.getAll();
       
@@ -29,14 +30,27 @@ const HomePage = () => {
         c.name === user.company
       );
       
-      if (userCompany && userCompany.logo_url) {
-        setCompanyLogo(userCompany.logo_url);
+      if (userCompany) {
+        // Set company logo if available
+        if (userCompany.logo_url) {
+          setCompanyLogo(userCompany.logo_url);
+        } else {
+          setCompanyLogo(null);
+        }
+        
+        // Set company name (prefer Vietnamese name if available, fallback to English or name field)
+        const displayName = language === 'vi' 
+          ? (userCompany.name_vn || userCompany.name_en || userCompany.name)
+          : (userCompany.name_en || userCompany.name_vn || userCompany.name);
+        setCompanyName(displayName);
       } else {
         setCompanyLogo(null);
+        setCompanyName(null);
       }
     } catch (error) {
-      console.error('Failed to fetch user company logo:', error);
+      console.error('Failed to fetch user company data:', error);
       setCompanyLogo(null);
+      setCompanyName(null);
     }
   };
 
