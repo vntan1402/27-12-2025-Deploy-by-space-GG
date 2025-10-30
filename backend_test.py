@@ -1002,7 +1002,7 @@ class BackendAPITester:
     def print_test_summary(self, test_results):
         """Print test summary"""
         print(f"\n{'='*80}")
-        print(f"SHIP CALCULATION APIs TEST SUMMARY")
+        print(f"BACKEND APIs TEST SUMMARY")
         print(f"{'='*80}")
         
         passed = 0
