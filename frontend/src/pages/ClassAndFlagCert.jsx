@@ -100,6 +100,21 @@ const ClassAndFlagCert = () => {
     toast.success(language === 'vi' ? 'Cập nhật tàu thành công!' : 'Ship updated successfully!');
   };
 
+  // Handle ship update after recalculation
+  const handleShipUpdate = async (shipId) => {
+    try {
+      const response = await api.get(`/api/ships/${shipId}`);
+      const updatedShip = response.data;
+      
+      // Update ships list
+      setShips(ships.map(s => s.id === updatedShip.id ? updatedShip : s));
+      // Update selected ship
+      setSelectedShip(updatedShip);
+    } catch (error) {
+      console.error('Error refreshing ship data:', error);
+      toast.error(language === 'vi' ? 'Không thể làm mới dữ liệu tàu' : 'Failed to refresh ship data');
+  };
+
   const handleDeleteShipClick = (ship) => {
     setDeleteShipData(ship);
     setShowDeleteShipModal(true);
