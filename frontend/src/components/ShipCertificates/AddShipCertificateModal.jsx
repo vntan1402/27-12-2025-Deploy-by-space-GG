@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { DuplicateShipCertificateModal } from './DuplicateShipCertificateModal';
+import { ShipNameMismatchModal } from './ShipNameMismatchModal';
 
 export const AddShipCertificateModal = ({ 
   isOpen, 
@@ -58,7 +60,17 @@ export const AddShipCertificateModal = ({
     show: false,
     duplicates: [],
     currentFile: null,
-    analysisResult: null
+    analysisResult: null,
+    uploadResult: null
+  });
+
+  // Mismatch modal state
+  const [mismatchModal, setMismatchModal] = useState({
+    show: false,
+    extractedShipName: '',
+    currentFile: null,
+    analysisResult: null,
+    uploadResult: null
   });
 
   // Update ship_id when selectedShip changes
