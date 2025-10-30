@@ -19265,11 +19265,6 @@ async def update_crew_certificate(
         raise HTTPException(status_code=500, detail=f"Failed to update crew certificate: {str(e)}")
 
 
-# Bulk Delete Model (must be before specific routes)
-class BulkDeleteRequest(BaseModel):
-    certificate_ids: List[str]
-
-
 @api_router.delete("/crew-certificates/bulk-delete")
 async def bulk_delete_crew_certificates(
     request: BulkDeleteRequest,
