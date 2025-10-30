@@ -282,6 +282,16 @@ const ClassAndFlagCert = () => {
           </div>
         )}
       </div>
+
+      {/* Edit Ship Modal */}
+      {showEditShipModal && selectedShip && (
+        <EditShipModal
+          isOpen={showEditShipModal}
+          onClose={() => setShowEditShipModal(false)}
+          ship={selectedShip}
+          onShipUpdated={handleShipUpdated}
+        />
+      )}
     </MainLayout>
   );
 };
