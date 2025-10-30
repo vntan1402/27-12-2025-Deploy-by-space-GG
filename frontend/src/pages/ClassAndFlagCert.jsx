@@ -51,7 +51,17 @@ const ClassAndFlagCert = () => {
   };
 
   const handleEditShip = (ship) => {
-    toast.info(language === 'vi' ? 'Chức năng sửa tàu sẽ được triển khai trong Phase 4' : 'Edit ship feature will be implemented in Phase 4');
+    setShowEditShipModal(true);
+  };
+
+  const handleShipUpdated = (updatedShip) => {
+    // Update ships list
+    setShips(ships.map(s => s.id === updatedShip.id ? updatedShip : s));
+    // Update selected ship
+    setSelectedShip(updatedShip);
+    // Refresh ships list
+    fetchShips();
+    toast.success(language === 'vi' ? 'Cập nhật tàu thành công!' : 'Ship updated successfully!');
   };
 
   return (
