@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Ship Calculation APIs Testing Script
-Tests the three ship calculation APIs that have been integrated with the frontend
+Backend API Testing Script
+Tests backend APIs including ship calculation and upcoming surveys endpoints
 
-FOCUS: Test the ship calculation endpoints:
+FOCUS: Test the backend endpoints:
 1. POST /api/ships/{ship_id}/calculate-next-docking
 2. POST /api/ships/{ship_id}/calculate-anniversary-date  
 3. POST /api/ships/{ship_id}/calculate-special-survey-cycle
+4. GET /api/certificates/upcoming-surveys (NEW: Testing specific certificate issue)
 """
 
 import requests
