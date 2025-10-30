@@ -968,6 +968,10 @@ class CertificateUpdate(BaseModel):
     notes: Optional[str] = None  # NEW: Notes field for reference certificates
     exclude_from_auto_update: Optional[bool] = None  # NEW: Exclude from auto update Next Survey
 
+class BulkDeleteRequest(BaseModel):
+    """Request model for bulk delete operations"""
+    certificate_ids: List[str]
+
 class CertificateResponse(BaseModel):
     # Make all fields optional to handle legacy data with missing fields
     id: str
