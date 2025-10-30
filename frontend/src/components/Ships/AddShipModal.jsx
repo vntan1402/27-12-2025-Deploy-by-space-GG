@@ -59,8 +59,8 @@ const AddShipModal = ({ isOpen, onClose }) => {
     try {
       setIsLoadingCompanies(true);
       const response = await companyService.getAll();
-      // Handle both array and object responses
-      const companies = Array.isArray(response) ? response : (response.data || []);
+      // Response is axios response object, get data from it
+      const companies = response.data || [];
       setAvailableCompanies(companies);
       
       // Find and set user's company name
