@@ -1,59 +1,53 @@
 <analysis>
-The previous AI engineer diligently enhanced the  application, addressing numerous feature requests and critical bugs. Initial work fixed Delete Ship Google Drive issues and improved Add New Ship UX with a two-call pattern. The engineer resolved front-end issues like unclickable buttons and toast library conflicts, and backend freezes due to synchronous I/O by using .
-Recent efforts focused on two main areas: implementing recalculation icons for ship survey dates and building out the comprehensive Certificate List functionality. The recalculation icons for Next Docking, Special Survey Cycle, and Anniversary Date were successfully integrated into , with backend APIs and frontend service methods confirmed. The Certificate List was extensively developed, including creating new components for the table, filters, action buttons, and various modals for adding, editing, deleting certificates, and handling duplicates/mismatches. AI auto-fill for certificates was fixed, and multi-certificate upload timeouts were resolved by sequential processing. The current focus is debugging an issue where an upcoming survey due within the specified window is not being displayed.
+The previous AI engineer focused on enhancing the  application, particularly the Certificate List functionality and associated features. Key initial work involved fixing Google Drive issues, improving UX, and resolving backend performance problems. Recent efforts debugged the Upcoming Survey Check feature, ensuring certificates due within a ±3 month window are displayed, which involved extensive backend and frontend logic verification and fixing an authentication issue. Subsequently, the engineer implemented displaying company names instead of IDs, added an Exclude from Auto Update checkbox for certificate next survey dates, and refactored bulk operations (delete, view, download, copy links, auto rename) to be accessible via a context menu, mimicking the V1 behavior. The Auto Rename File feature was implemented with a specific naming format. Frontend issues like JSX syntax errors, null reference errors for context menus, context menu positioning, and duplicate context menu options were debugged and resolved. The final fix addressed an unwanted Original File Name tooltip.
 </analysis>
 
 <product_requirements>
-The overarching goal is to evolve  into a modular  with enhanced ship management. Key features include a secure Google Drive integration for DB backup/restore, UI improvements (dynamic logo, no sub-menu), and a streamlined Add New Ship flow with AI analysis, database-first creation, and background Google Drive folder provisioning. Ship display was refined ( over , Vietnamese labels). Edit Ship and Delete Ship modals were implemented, supporting DB-only or DB+Drive deletion. Recalculation icons for Next Docking, Special Survey Cycle, and Anniversary Date were added to trigger V1-based calculations. The Certificate List was developed to mirror V1's layout, functions, filters, and search, using V2's date handling. The Add Ship Certificate flow now includes AI auto-fill, duplicate/mismatch handling, sequential multi-upload, and auto-refresh. Edit/Delete Certificate functionalities are implemented, as are quick and bulk survey type updates. An Upcoming Survey Check modal displays certificates due within a ±3 month window, which is currently under debug.
+The  application aims to enhance ship management, transitioning from  to . Core features include a secure Google Drive integration for DB backup/restore, dynamic UI elements, and a streamlined Add New Ship flow with AI analysis. Ship details display , and UI elements are localized to Vietnamese. Edit Ship and Delete Ship modals support various deletion options. Recalculation icons for Next Docking, Special Survey Cycle, and Anniversary Date were added. The Certificate List mirrors V1’s layout, supporting filters, search, and sorting. Add Ship Certificate includes AI auto-fill, duplicate/mismatch handling, and sequential multi-upload. Edit/Delete certificate functionalities and quick/bulk survey type updates are implemented. The Upcoming Survey Check modal displays certificates due within a ±3 month window. Newer requirements involve displaying company names, an Exclude from Auto Update checkbox, file management (double-click to open PDF, file upload with certificate, file link pre-fetching), and advanced features like batch operations (delete, export, download, copy links via context menu), certificate notes, and an auto-rename file feature with a specific naming format.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend**: React.js, Context API, React Router, custom hooks, , .
-- **Backend**: FastAPI, MongoDB (UUIDs, ISO strings), Pydantic, JWT auth, , .
-- **Integrations**: Google Drive API (Apps Script proxy), API Key, Emergent LLM key.
+- **Frontend**: React.js, Context API, React Router, custom hooks, , , Tailwind CSS.
+- **Backend**: FastAPI, MongoDB (UUIDs, ISO strings), Pydantic, JWT authentication, , .
+- **Integrations**: Google Drive API (via Apps Script proxy), Emergent LLM key.
 - **Utilities**: Date helper functions.
 </key_technical_concepts>
 
 <code_architecture>
 
--   ****: FastAPI application. Confirmed/used API endpoints for ship calculation, certificate CRUD, multi-upload, upcoming surveys. Added  endpoint and debug logs for date.
--   ****: Main page for certificates. Heavily modified to integrate ship calculation icons, a comprehensive certificate list (table, filters, action buttons), and modals for Add/Edit/Delete Ship Certificates, Duplicate/Mismatch handling, and Upcoming Surveys. Manages all related states and handlers. Fixed syntax errors, implemented UI conditional rendering, and updated context menu handlers.
--   ****: Displays ship details. Modified to include clickable icons for Next Docking, Special Survey Cycle, Anniversary Date to trigger recalculations.
--   ****: New directory for certificate list components.
-    -   ****: Displays certificate data, implemented V1-style sort icons.
-    -   ****: UI for filtering certificates.
-    -   ****: Action buttons for certificate management.
-    -   ****: Modal for displaying upcoming surveys.
--   ****: New directory for ship certificate modals.
-    -   ****: Form for adding certificates, with AI auto-fill, multi-upload (sequential to avoid timeouts), duplicate/mismatch detection. Fixed API endpoint and AI response field.
-    -   ****: Form for editing certificates. Fixed API endpoint.
-    -   ****: Confirmation for deleting certificates. Fixed API endpoint.
-    -   ****: Modal for handling duplicate certificates.
-    -   ****: Modal for handling ship name mismatches.
--   ****: Contains methods for ship calculations.
--   ****: Handles ship certificate API calls.
--   ****: Defines API endpoints, including new calculation and certificate routes.
--   ****: Utility functions for date handling.
--   ****: Document explaining certificate abbreviation logic.
--   ****: Document explaining upcoming survey window logic.
+-   ****: The core FastAPI backend. Changes included adding , returning  in , handling  in certificate updates and auto-survey logic, defining  and , ensuring  is in , and modifying file naming logic for auto-rename.
+-   ****: Handles MongoDB interactions. Debugged for  environment variable issues.
+-   ****: Manages Google Drive interactions. Confirmed existing  endpoint.
+-   ****: The main page for certificate management. This file saw extensive modifications:
+    -   Updated  to use the correct Google Drive view endpoint.
+    -   Implemented state and function for link caching (, ).
+    -   Integrated  with new props for loading/status.
+    -   Added handlers for , , .
+    -   Refactored the context menu to include bulk operations (delete, view, download, copy links, auto rename) and ensure  is available for single selections only.
+    -   Integrated  and .
+    -   Fixed multiple JSX syntax errors and runtime errors related to context menu initialization and rendering, ensuring optional chaining for null objects.
+    -   Implemented context menu position adjustment and click-outside handler for better UX.
+-   ****: Displays certificate data. Modified to accept  prop, render a notes icon, and remove a problematic custom Original File Name tooltip.
+-   ****: Removed the incorrect bulk delete button, adapting to the new context menu approach.
+-   ****: Modified to display  instead of .
+-   ****: Modified to include an  checkbox and updated its prefill logic.
+-   ****: *New file created* to handle viewing/editing certificate notes.
+-   ****: *New file created* for displaying auto-rename progress.
+-   ****: Involved in debugging login issues.
+-   ****: Involved in debugging login issues.
+-   ****: Involved in debugging login issues.
 </code_architecture>
 
 <pending_tasks>
-- The Sync from Drive (restore database) functionality UI integration and full testing in the frontend are still pending.
-- Debug the Upcoming Survey Check logic: Investigate why a survey due on 28/11/2025 is not showing as upcoming when the server date is 30/10/2025, despite falling within the ±3 month window.
+-   Sync from Drive (restore database) functionality UI integration and full testing in the frontend.
+-   Bulk export/download (for certificates via context menu).
+-   Certificate File Viewer (embedded PDF viewer in modal, navigation, zoom, etc.).
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was debugging the Upcoming Survey Check feature. The user reported that a survey due on 28/11/2025 was not appearing as upcoming in the , even when the current server date was identified as 30/10/2025. This is unexpected as 28/11/2025 falls within the backend's ±3 month window from 30/10/2025 (less than 1 month away).
-
-Prior work in this area involved:
-1.  **Backend Logic Analysis**: Verified 's  endpoint logic, which applies a ±3 month window around the  date.
-2.  **Debugging Tools**: Added a new API endpoint  in  and a corresponding frontend component to accurately retrieve and display the server's current date/time to isolate potential timezone or date-value issues.
-3.  **Documentation**: Created  to explain the 3-month window design choice.
-
-The current stage is to investigate the discrepancy between the expected and observed behavior of the upcoming survey display, focusing on checking backend logs and the actual certificate data.
+Immediately before this summary request, the AI engineer was addressing a UI anomaly where an Original File Name tooltip with a black background was being displayed in the  component. This custom tooltip was identified as redundant and visually inconsistent, as native HTML  attributes were already providing tooltip functionality. The task involved locating and removing the specific JSX code responsible for rendering this custom tooltip in . This fix was implemented to streamline the UI and rely on the standard browser tooltip behavior.
 </current_work>
 
 <optional_next_step>
-Check backend logs and certificate data to diagnose why the 28/11/2025 survey is not displayed as upcoming.
+Verify that the custom Original File Name tooltip is no longer displayed, and native HTML tooltips function correctly in the Certificate List table.
 </optional_next_step>
