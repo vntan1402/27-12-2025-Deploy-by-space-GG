@@ -274,15 +274,30 @@ const AddShipModal = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Ship Type / Class Society */}
+              {/* Ship Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t.shipType} <span className="text-red-500">*</span>
+                  {t.shipType} {t.optional}
                 </label>
                 <input
                   type="text"
                   name="ship_type"
                   value={formData.ship_type}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Bulk Carrier, Container, Tanker"
+                />
+              </div>
+
+              {/* Class Society */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.classSociety} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="class_society"
+                  value={formData.class_society}
                   onChange={handleChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -291,7 +306,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* Company */}
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {t.company} <span className="text-red-500">*</span>
                 </label>
@@ -302,9 +317,21 @@ const AddShipModal = ({ isOpen, onClose }) => {
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' ? 'Tàu sẽ được gán cho công ty của bạn' : 'Ship will be assigned to your company'}
-                </p>
+              </div>
+
+              {/* Ship Owner */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t.shipOwner} {t.optional}
+                </label>
+                <input
+                  type="text"
+                  name="ship_owner"
+                  value={formData.ship_owner}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Pacific Shipping Company Ltd."
+                />
               </div>
             </div>
           </div>
