@@ -595,6 +595,21 @@ const AddShipModal = ({ isOpen, onClose }) => {
                   placeholder="DNV GL, ABS, LR..."
                 />
               </div>
+
+              {/* Ship Type */}
+              <div className="col-span-12">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại tàu' : 'Ship Type'} *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={shipData.ship_type}
+                  onChange={(e) => setShipData(prev => ({ ...prev, ship_type: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Container, Bulk Carrier, Tanker...' : 'Container, Bulk Carrier, Tanker...'}
+                />
+              </div>
             </div>
           </div>
 
