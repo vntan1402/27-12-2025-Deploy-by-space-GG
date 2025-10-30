@@ -73,6 +73,18 @@ const ClassAndFlagCert = () => {
     checkDate: ''
   });
 
+  // Link caching state for certificate files
+  const [certificateLinksCache, setCertificateLinksCache] = useState({});
+  const [linksFetching, setLinksFetching] = useState(false);
+  const [linksFetchProgress, setLinksFetchProgress] = useState({ ready: 0, total: 0 });
+
+  // Notes modal state
+  const [notesModal, setNotesModal] = useState({
+    show: false,
+    certificate: null,
+    notes: ''
+  });
+
   // Fetch ships on mount
   useEffect(() => {
     fetchShips();
