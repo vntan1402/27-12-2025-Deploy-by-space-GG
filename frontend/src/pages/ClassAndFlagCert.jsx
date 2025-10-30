@@ -407,9 +407,37 @@ const ClassAndFlagCert = () => {
   };
 
   // Handle upcoming survey check (placeholder)
-  const handleUpcomingSurvey = () => {
-    // TODO: Implement upcoming survey check from V1
-    toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+  const handleUpcomingSurvey = async () => {
+    try {
+      const response = await api.get('/api/certificates/upcoming-surveys');
+      const data = response.data;
+      
+      if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
+        setUpcomingSurveyModal({
+          show: true,
+          surveys: data.upcoming_surveys,
+          totalCount: data.total_count,
+          company: data.company,
+          checkDate: data.check_date
+        });
+        
+        toast.info(language === 'vi' 
+          ? `⚠️ Có ${data.total_count} chứng chỉ sắp đến hạn survey`
+          : `⚠️ ${data.total_count} certificates with upcoming surveys`
+        );
+      } else {
+        toast.success(language === 'vi' 
+          ? '✅ Không có survey sắp đến hạn'
+          : '✅ No upcoming surveys'
+        );
+      }
+    } catch (error) {
+      console.error('Error checking upcoming surveys:', error);
+      toast.error(language === 'vi' 
+        ? '❌ Lỗi kiểm tra upcoming surveys'
+        : '❌ Error checking upcoming surveys'
+      );
+    }
   };
 
   // Handle add certificate (placeholder)
