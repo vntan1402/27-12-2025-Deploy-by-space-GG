@@ -244,7 +244,7 @@ const TestReport = () => {
     const routes = {
       'certificates': '/certificates',
       'class_survey': '/class-survey-report',
-      'drawings_manuals': '/drawings-manuals',
+      'drawings': '/drawings-manuals',
       'other_docs': '/other-documents'
     };
     
