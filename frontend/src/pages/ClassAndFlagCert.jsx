@@ -3,6 +3,7 @@
  * Main page for Class & Flag Cert category
  */
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar } from '../components/Layout';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
@@ -14,6 +15,7 @@ import { shortenClassSociety } from '../utils/shipHelpers';
 
 const ClassAndFlagCert = () => {
   const { language, user } = useAuth();
+  const location = useLocation();
   
   // State
   const [selectedCategory] = useState('ship_certificates');
@@ -31,6 +33,17 @@ const ClassAndFlagCert = () => {
   useEffect(() => {
     fetchShips();
   }, []);
+
+  // Handle navigation from Add Ship - refresh when new ship is created
+  useEffect(() => {
+    if (location.state?.refresh) {
+      console.log('Refreshing ship list after new ship creation:', location.state);
+      fetchShips();
+      
+      // Clear the location state to prevent re-triggering on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const fetchShips = async () => {
     try {
