@@ -6,3 +6,4 @@
 export { CertificateTable } from './CertificateTable';
 export { CertificateFilters } from './CertificateFilters';
 export { CertificateActionButtons } from './CertificateActionButtons';
+export { UpcomingSurveyModal } from './UpcomingSurveyModal';
