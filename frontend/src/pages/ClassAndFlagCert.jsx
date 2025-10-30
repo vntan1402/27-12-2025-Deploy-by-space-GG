@@ -99,6 +99,247 @@ const ClassAndFlagCert = () => {
     }
   };
 
+  // ===== CERTIFICATE FUNCTIONS =====
+  
+  // Fetch certificates for selected ship
+  const fetchCertificates = async (shipId) => {
+    if (!shipId) {
+      setCertificates([]);
+      return;
+    }
+    
+    try {
+      setCertificatesLoading(true);
+      const response = await api.get(`/api/ships/${shipId}/certificates`);
+      const data = response.data || [];
+      setCertificates(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to fetch certificates:', error);
+      toast.error(language === 'vi' ? 'Không thể tải danh sách chứng chỉ' : 'Failed to load certificates');
+      setCertificates([]);
+    } finally {
+      setCertificatesLoading(false);
+    }
+  };
+
+  // Fetch certificates when ship is selected
+  useEffect(() => {
+    if (selectedShip?.id) {
+      fetchCertificates(selectedShip.id);
+    } else {
+      setCertificates([]);
+    }
+  }, [selectedShip?.id]);
+
+  // Get unique certificate types for filter dropdown
+  const getUniqueCertificateTypes = () => {
+    const types = new Set();
+    certificates.forEach(cert => {
+      if (cert.cert_type) types.add(cert.cert_type);
+    });
+    return Array.from(types).sort();
+  };
+
+  // Get certificate status
+  const getCertificateStatus = (cert) => {
+    if (!cert.valid_date) return 'Unknown';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const validDate = new Date(cert.valid_date);
+    validDate.setHours(0, 0, 0, 0);
+    
+    if (validDate < today) return 'Expired';
+    
+    const diffTime = validDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 30) return 'Over Due';
+    return 'Valid';
+  };
+
+  // Apply filters and sort to certificates
+  const getFilteredCertificates = () => {
+    let filtered = [...certificates];
+
+    // Apply certificate type filter
+    if (certificateFilters.certificateType !== 'all') {
+      filtered = filtered.filter(cert => cert.cert_type === certificateFilters.certificateType);
+    }
+
+    // Apply status filter
+    if (certificateFilters.status !== 'all') {
+      filtered = filtered.filter(cert => getCertificateStatus(cert) === certificateFilters.status);
+    }
+
+    // Apply search filter
+    if (certificateFilters.search) {
+      const searchLower = certificateFilters.search.toLowerCase();
+      filtered = filtered.filter(cert => 
+        (cert.cert_name && cert.cert_name.toLowerCase().includes(searchLower)) ||
+        (cert.cert_abbreviation && cert.cert_abbreviation.toLowerCase().includes(searchLower)) ||
+        (cert.cert_no && cert.cert_no.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply sorting
+    if (certificateSort.column) {
+      filtered.sort((a, b) => {
+        let aVal = a[certificateSort.column];
+        let bVal = b[certificateSort.column];
+
+        // Handle date sorting
+        if (['issue_date', 'valid_date', 'last_endorse', 'next_survey'].includes(certificateSort.column)) {
+          return compareDates(aVal, bVal) * (certificateSort.direction === 'asc' ? 1 : -1);
+        }
+
+        // Handle string sorting
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+        if (aVal < bVal) return certificateSort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return certificateSort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  };
+
+  // Handle certificate sort
+  const handleCertificateSort = (column) => {
+    setCertificateSort(prev => ({
+      column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  // Handle certificate selection
+  const handleSelectCertificate = (certId) => {
+    setSelectedCertificates(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(certId)) {
+        newSet.delete(certId);
+      } else {
+        newSet.add(certId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle select all certificates
+  const handleSelectAllCertificates = (checked) => {
+    if (checked) {
+      const allIds = getFilteredCertificates().map(cert => cert.id);
+      setSelectedCertificates(new Set(allIds));
+    } else {
+      setSelectedCertificates(new Set());
+    }
+  };
+
+  // Handle certificate double click - open PDF
+  const handleCertificateDoubleClick = async (cert) => {
+    if (!cert.google_drive_file_id) {
+      toast.warning(language === 'vi' ? 'Chứng chỉ chưa có file đính kèm' : 'Certificate has no attached file');
+      return;
+    }
+
+    try {
+      const response = await api.get(`/api/certificates/${cert.id}/file-link`);
+      if (response.data?.file_link) {
+        window.open(response.data.file_link, '_blank');
+      } else {
+        toast.error(language === 'vi' ? 'Không thể lấy link file' : 'Failed to get file link');
+      }
+    } catch (error) {
+      console.error('Error opening certificate file:', error);
+      toast.error(language === 'vi' ? 'Không thể mở file' : 'Failed to open file');
+    }
+  };
+
+  // Handle certificate right click - context menu
+  const handleCertificateRightClick = (e, cert) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      certificate: cert,
+    });
+  };
+
+  // Handle survey type right click - quick edit
+  const handleSurveyTypeRightClick = (e, certId, currentType) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSurveyTypeContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      certId,
+      currentType,
+    });
+  };
+
+  // Close context menus on click outside
+  useEffect(() => {
+    const handleClick = () => {
+      setContextMenu(null);
+      setSurveyTypeContextMenu(null);
+    };
+    
+    if (contextMenu || surveyTypeContextMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu, surveyTypeContextMenu]);
+
+  // Handle refresh certificates
+  const handleRefreshCertificates = async () => {
+    if (!selectedShip?.id) return;
+    
+    setIsRefreshing(true);
+    try {
+      await fetchCertificates(selectedShip.id);
+      toast.success(language === 'vi' ? 'Đã cập nhật danh sách chứng chỉ!' : 'Certificate list refreshed!');
+    } catch (error) {
+      console.error('Error refreshing certificates:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Handle update survey types (placeholder - implement based on V1 logic)
+  const handleUpdateSurveyTypes = async () => {
+    if (!selectedShip?.id) return;
+    
+    setIsUpdatingSurveyTypes(true);
+    try {
+      // TODO: Implement update survey types logic from V1
+      toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+    } catch (error) {
+      console.error('Error updating survey types:', error);
+      toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+    } finally {
+      setIsUpdatingSurveyTypes(false);
+    }
+  };
+
+  // Handle upcoming survey check (placeholder)
+  const handleUpcomingSurvey = () => {
+    // TODO: Implement upcoming survey check from V1
+    toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+  };
+
+  // Handle add certificate (placeholder)
+  const handleAddCertificate = () => {
+    if (!selectedShip) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
+    // TODO: Open add certificate modal
+    toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+  };
+
   const handleAddRecord = () => {
     console.log('Add Ship button clicked from ClassAndFlagCert');
     setShowAddShipModal(true);
