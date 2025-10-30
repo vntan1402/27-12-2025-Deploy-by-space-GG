@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
   SHIPS: '/api/ships',
   SHIP_BY_ID: (id) => `/api/ships/${id}`,
   SHIP_LOGO: (id) => `/api/ships/${id}/logo`,
+  SHIP_ANALYZE_CERTIFICATE: '/api/analyze-ship-certificate',
   
   // Crew
   CREWS: '/api/crews',
