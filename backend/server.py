@@ -637,7 +637,8 @@ class ShipBase(BaseModel):
     name: str
     imo: Optional[str] = None
     flag: str
-    ship_type: str  # Class society (e.g., "DNV GL", "ABS", "Lloyd's Register")
+    ship_type: Optional[str] = None  # Ship type (e.g., "Container Ship", "Bulk Carrier", "Tanker")
+    class_society: Optional[str] = None  # Class society (e.g., "DNV GL", "ABS", "Lloyd's Register", "BV")
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None  # Legacy field - year only (for backward compatibility)
@@ -651,8 +652,8 @@ class ShipBase(BaseModel):
     special_survey_cycle: Optional[SpecialSurveyCycle] = None  # Special survey cycle management
     dry_dock_cycle: Optional[DryDockCycle] = None  # Dry dock cycle management
     anniversary_date: Optional[AnniversaryDate] = None  # Enhanced anniversary date with auto-calculation
-    ship_owner: Optional[str] = None
-    company: str  # Company that owns/manages the ship
+    ship_owner: Optional[str] = None  # Ship owner company name
+    company: str  # Company that manages the ship (current user's company)
     
     # Legacy fields for backward compatibility
     legacy_anniversary_date: Optional[datetime] = None  # Original datetime field for compatibility
