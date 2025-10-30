@@ -20,7 +20,7 @@ from datetime import datetime
 # Backend URL from frontend .env
 BACKEND_URL = "https://fleet-cert-dash.preview.emergentagent.com/api"
 
-class ShipCalculationAPITester:
+class BackendAPITester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
