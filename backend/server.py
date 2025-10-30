@@ -15007,6 +15007,11 @@ async def update_ship_next_survey(
         results = []
         
         for cert in certificates:
+            # Skip certificates that are excluded from auto-update
+            if cert.get('exclude_from_auto_update', False):
+                logger.info(f"⏭️ Skipping certificate {cert.get('id')} - excluded from auto-update")
+                continue
+            
             # Calculate next survey info
             survey_info = calculate_next_survey_info(cert, ship_data)
             
