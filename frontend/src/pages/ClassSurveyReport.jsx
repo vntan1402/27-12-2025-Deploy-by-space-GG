@@ -395,7 +395,7 @@ const ClassSurveyReport = () => {
                 {ships.map(ship => (
                   <div
                     key={ship.id}
-                    onClick={() => setSelectedShip(ship)}
+                    onClick={() => updateSelectedShip(ship)}
                     className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50"
                   >
                     {/* Ship Icon */}
