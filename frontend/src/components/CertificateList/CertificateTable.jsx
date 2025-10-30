@@ -17,6 +17,7 @@ export const CertificateTable = ({
   onDoubleClick,
   onRightClick,
   onSurveyTypeRightClick,
+  onNotesClick,
 }) => {
   // Get sort icon for column
   const getSortIcon = (column) => {
