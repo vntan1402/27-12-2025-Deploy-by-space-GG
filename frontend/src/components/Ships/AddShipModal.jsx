@@ -322,7 +322,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
       // Prepare ship data for API
       const apiData = {
         name: shipData.name.trim(),
-        imo_number: shipData.imo_number.trim(),
+        imo: shipData.imo_number.trim(), // Backend expects 'imo', not 'imo_number'
         class_society: shipData.class_society.trim(),
         flag: shipData.flag.trim(),
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
