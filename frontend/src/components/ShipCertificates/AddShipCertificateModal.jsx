@@ -80,6 +80,96 @@ export const AddShipCertificateModal = ({
     }
   }, [selectedShip?.id]);
 
+  // Handle duplicate resolution
+  const handleDuplicateResolution = async (action) => {
+    const { uploadResult } = duplicateModal;
+    
+    if (action === 'skip') {
+      toast.info(language === 'vi' ? 'Đã bỏ qua file trùng' : 'Skipped duplicate file');
+      setDuplicateModal({ show: false, duplicates: [], currentFile: null, analysisResult: null, uploadResult: null });
+      return;
+    }
+
+    if (action === 'replace' || action === 'keep_both') {
+      try {
+        // Call backend API to handle duplicate action
+        const response = await api.post(
+          `/api/ships/${selectedShip.id}/certificates/resolve-duplicate`,
+          {
+            file_id: uploadResult?.file_id,
+            action: action,
+            analysis: duplicateModal.analysisResult
+          }
+        );
+
+        if (response.data.success) {
+          toast.success(language === 'vi' 
+            ? action === 'replace' ? '✅ Đã thay thế certificate cũ' : '✅ Đã lưu cả hai certificate'
+            : action === 'replace' ? '✅ Replaced old certificate' : '✅ Kept both certificates'
+          );
+          
+          // Auto-fill form with analysis data
+          if (duplicateModal.analysisResult) {
+            const analysisData = duplicateModal.analysisResult;
+            const autoFillData = {
+              cert_name: analysisData.cert_name || '',
+              cert_no: analysisData.cert_no || '',
+              issue_date: formatCertDate(analysisData.issue_date),
+              valid_date: formatCertDate(analysisData.valid_date),
+              issued_by: analysisData.issued_by || '',
+              ship_id: selectedShip.id
+            };
+            
+            setCertificateData(prev => ({
+              ...prev,
+              ...autoFillData
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error resolving duplicate:', error);
+        toast.error(language === 'vi' ? '❌ Lỗi xử lý duplicate' : '❌ Error resolving duplicate');
+      }
+    }
+
+    setDuplicateModal({ show: false, duplicates: [], currentFile: null, analysisResult: null, uploadResult: null });
+  };
+
+  // Handle ship name mismatch resolution
+  const handleMismatchContinue = () => {
+    // User chose to continue despite mismatch
+    toast.info(language === 'vi' 
+      ? 'Tiếp tục với tàu đã chọn'
+      : 'Continuing with selected ship'
+    );
+    
+    // Auto-fill form with analysis data
+    if (mismatchModal.analysisResult) {
+      const analysisData = mismatchModal.analysisResult;
+      const autoFillData = {
+        cert_name: analysisData.cert_name || '',
+        cert_no: analysisData.cert_no || '',
+        issue_date: formatCertDate(analysisData.issue_date),
+        valid_date: formatCertDate(analysisData.valid_date),
+        issued_by: analysisData.issued_by || '',
+        ship_id: selectedShip.id
+      };
+      
+      setCertificateData(prev => ({
+        ...prev,
+        ...autoFillData
+      }));
+    }
+  };
+
+  const handleMismatchCancel = () => {
+    // User cancelled upload
+    toast.warning(language === 'vi' 
+      ? 'Đã hủy upload certificate'
+      : 'Cancelled certificate upload'
+    );
+  };
+
   // Date conversion helper (convert YYYY-MM-DD to UTC ISO string)
   const convertDateInputToUTC = (dateInput) => {
     if (!dateInput) return null;
