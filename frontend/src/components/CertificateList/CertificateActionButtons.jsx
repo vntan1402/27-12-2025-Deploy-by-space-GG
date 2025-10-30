@@ -12,10 +12,13 @@ export const CertificateActionButtons = ({
   isUpdatingSurveyTypes = false,
   isMultiCertProcessing = false,
   isRefreshing = false,
+  linksFetching = false,
+  linksFetchProgress = { ready: 0, total: 0 },
   onUpdateSurveyTypes,
   onUpcomingSurvey,
   onAddCertificate,
   onRefresh,
+  onBulkDelete,
 }) => {
   return (
     <div className="flex justify-between items-center mb-4">
@@ -31,6 +34,27 @@ export const CertificateActionButtons = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             {selectedCertificatesCount} {language === 'vi' ? 'đã chọn' : 'selected'}
+          </div>
+        )}
+
+        {/* Links Loading Indicator */}
+        {linksFetching && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+            <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {language === 'vi' ? 'Đang tải links...' : 'Loading links...'}
+          </div>
+        )}
+
+        {/* Links Ready Indicator */}
+        {!linksFetching && linksFetchProgress.total > 0 && (
+          <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {linksFetchProgress.ready}/{linksFetchProgress.total} {language === 'vi' ? 'links sẵn sàng' : 'links ready'}
           </div>
         )}
       </div>
