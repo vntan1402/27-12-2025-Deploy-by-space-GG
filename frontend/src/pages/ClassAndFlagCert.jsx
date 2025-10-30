@@ -1722,6 +1722,99 @@ const ClassAndFlagCert = () => {
         onSave={handleSaveNotes}
         language={language}
       />
+
+      {/* Auto Rename Progress Dialog */}
+      {showAutoRenameDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full">
+            {/* Header */}
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-orange-600 mb-2">
+                🔄 {language === 'vi' ? 'Đổi tên tự động' : 'Auto Rename Files'}
+              </h3>
+              {!batchRenameProgress.isRunning && (
+                <p className="text-sm text-gray-600">
+                  {language === 'vi' 
+                    ? `Đổi tên ${selectedCertificates.size > 0 ? selectedCertificates.size : 1} file(s) theo định dạng chuẩn trên Google Drive`
+                    : `Rename ${selectedCertificates.size > 0 ? selectedCertificates.size : 1} file(s) to standard format on Google Drive`}
+                </p>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            {batchRenameProgress.isRunning && (
+              <div className="mb-6">
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>{language === 'vi' ? 'Tiến độ' : 'Progress'}</span>
+                  <span className="font-medium">
+                    {batchRenameProgress.completed}/{batchRenameProgress.total}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div 
+                    className="bg-orange-600 h-full transition-all duration-300 ease-out"
+                    style={{ width: `${(batchRenameProgress.completed / batchRenameProgress.total) * 100}%` }}
+                  ></div>
+                </div>
+                {batchRenameProgress.current && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    {language === 'vi' ? 'Đang xử lý' : 'Processing'}: {batchRenameProgress.current}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Errors */}
+            {batchRenameProgress.errors.length > 0 && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg max-h-40 overflow-y-auto">
+                <h4 className="text-sm font-semibold text-red-800 mb-2">
+                  ⚠️ {language === 'vi' ? 'Lỗi' : 'Errors'} ({batchRenameProgress.errors.length})
+                </h4>
+                <ul className="text-xs text-red-700 space-y-1">
+                  {batchRenameProgress.errors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3">
+              {!batchRenameProgress.isRunning && (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowAutoRenameDialog(false);
+                      setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
+                    }}
+                    className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium transition-all"
+                  >
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={handleExecuteBatchAutoRename}
+                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-all flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {language === 'vi' ? 'Bắt đầu' : 'Start'}
+                  </button>
+                </>
+              )}
+              {batchRenameProgress.isRunning && (
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {language === 'vi' ? 'Đang xử lý...' : 'Processing...'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 };
