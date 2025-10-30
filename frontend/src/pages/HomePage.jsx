@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar } from '../components/Layout';
-import { AddShipModal } from '../components/Ships';
+import AddShipModal from '../components/Ships/AddShipModal';
 import { companyService } from '../services';
 
 const HomePage = () => {
