@@ -332,13 +332,21 @@ const ClassAndFlagCert = () => {
   };
 
   // Handle add certificate (placeholder)
-  const handleAddCertificate = () => {
+  const handleAddShipCertificate = () => {
     if (!selectedShip) {
       toast.warning(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
       return;
     }
-    // TODO: Open add certificate modal
-    toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+    setShowAddShipCertificateModal(true);
+  };
+
+  // Handle ship certificate success
+  const handleShipCertificateSuccess = async () => {
+    // Refresh certificate list
+    if (selectedShip?.id) {
+      await fetchCertificates(selectedShip.id);
+    }
+    toast.success(language === 'vi' ? '✅ Đã thêm certificate thành công!' : '✅ Certificate added successfully!');
   };
 
   const handleAddRecord = () => {
