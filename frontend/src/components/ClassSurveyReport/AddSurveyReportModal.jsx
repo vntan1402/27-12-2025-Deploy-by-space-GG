@@ -14,6 +14,11 @@ import { toast } from 'sonner';
 export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAdded }) => {
   const { language } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [fileContent, setFileContent] = useState(null); // Base64 content for upload
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     survey_report_name: '',
