@@ -27,6 +27,33 @@ const ClassAndFlagCert = () => {
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Certificate states
+  const [certificates, setCertificates] = useState([]);
+  const [certificatesLoading, setCertificatesLoading] = useState(false);
+  const [selectedCertificates, setSelectedCertificates] = useState(new Set());
+  
+  // Filter states
+  const [certificateFilters, setCertificateFilters] = useState({
+    certificateType: 'all',
+    status: 'all',
+    search: '',
+  });
+  
+  // Sort state
+  const [certificateSort, setCertificateSort] = useState({
+    column: 'cert_abbreviation',
+    direction: 'asc',
+  });
+  
+  // Action states
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUpdatingSurveyTypes, setIsUpdatingSurveyTypes] = useState(false);
+  const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
+  
+  // Context menu state (for right-click actions)
+  const [contextMenu, setContextMenu] = useState(null);
+  const [surveyTypeContextMenu, setSurveyTypeContextMenu] = useState(null);
+
   // Fetch ships on mount
   useEffect(() => {
     fetchShips();
