@@ -1,7 +1,3 @@
-/**
- * Class And Flag Cert Page
- * Main page for Class & Flag Cert category
- */
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,7 +6,7 @@ import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal } from '../components/Ships';
 import { shipService } from '../services';
 import api from '../services/api';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
 
 const ClassAndFlagCert = () => {
