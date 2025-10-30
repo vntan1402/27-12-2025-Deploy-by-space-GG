@@ -160,6 +160,9 @@ const ClassAndFlagCert = () => {
       const response = await api.get(`/api/ships/${shipId}/certificates`);
       const data = response.data || [];
       setCertificates(Array.isArray(data) ? data : []);
+      
+      // Pre-fetch Google Drive links in background
+      prefetchCertificateLinks(data);
     } catch (error) {
       console.error('Failed to fetch certificates:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách chứng chỉ' : 'Failed to load certificates');
@@ -167,6 +170,56 @@ const ClassAndFlagCert = () => {
     } finally {
       setCertificatesLoading(false);
     }
+  };
+
+  // Pre-fetch Google Drive links for certificates
+  const prefetchCertificateLinks = async (certs) => {
+    if (!certs || certs.length === 0) return;
+
+    // Filter certificates that have file IDs and are not already cached
+    const certsWithFiles = certs.filter(cert => 
+      cert.google_drive_file_id && !certificateLinksCache[cert.google_drive_file_id]
+    );
+
+    if (certsWithFiles.length === 0) {
+      setLinksFetchProgress({ ready: certs.filter(c => c.google_drive_file_id).length, total: certs.filter(c => c.google_drive_file_id).length });
+      return;
+    }
+
+    setLinksFetching(true);
+    setLinksFetchProgress({ ready: 0, total: certsWithFiles.length });
+
+    let fetchedCount = 0;
+    const newCache = { ...certificateLinksCache };
+
+    // Fetch links in batches to avoid overwhelming the server
+    const batchSize = 5;
+    for (let i = 0; i < certsWithFiles.length; i += batchSize) {
+      const batch = certsWithFiles.slice(i, i + batchSize);
+      
+      await Promise.allSettled(
+        batch.map(async (cert) => {
+          try {
+            const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+            if (response.data?.success && response.data?.view_url) {
+              newCache[cert.google_drive_file_id] = response.data.view_url;
+              fetchedCount++;
+              setLinksFetchProgress({ ready: fetchedCount, total: certsWithFiles.length });
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch link for certificate ${cert.cert_abbreviation}:`, error);
+          }
+        })
+      );
+
+      // Small delay between batches
+      if (i + batchSize < certsWithFiles.length) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    setCertificateLinksCache(newCache);
+    setLinksFetching(false);
   };
 
   // Fetch certificates when ship is selected
