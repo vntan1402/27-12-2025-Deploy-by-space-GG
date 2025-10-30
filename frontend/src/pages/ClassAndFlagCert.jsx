@@ -793,16 +793,54 @@ const ClassAndFlagCert = () => {
             )}
           </div>
         ) : (
+          /* Certificate List Section */
           <div>
-            <h3 className="text-xl font-semibold mb-4">
-              {language === 'vi' ? 'Danh sách chứng chỉ' : 'Certificate List'}
-            </h3>
-            <p className="text-gray-600">
-              {language === 'vi' 
-                ? 'Nội dung danh sách chứng chỉ sẽ được triển khai trong Phase 4' 
-                : 'Certificate list content will be implemented in Phase 4'
-              }
-            </p>
+            {/* Action Buttons */}
+            <CertificateActionButtons
+              language={language}
+              selectedShip={selectedShip}
+              selectedCertificatesCount={selectedCertificates.size}
+              isUpdatingSurveyTypes={isUpdatingSurveyTypes}
+              isMultiCertProcessing={isMultiCertProcessing}
+              isRefreshing={isRefreshing}
+              onUpdateSurveyTypes={handleUpdateSurveyTypes}
+              onUpcomingSurvey={handleUpcomingSurvey}
+              onAddCertificate={handleAddCertificate}
+              onRefresh={handleRefreshCertificates}
+            />
+
+            {/* Certificate Filters */}
+            <CertificateFilters
+              filters={certificateFilters}
+              onFilterChange={setCertificateFilters}
+              certificateTypes={getUniqueCertificateTypes()}
+              totalCount={certificates.length}
+              filteredCount={getFilteredCertificates().length}
+              language={language}
+              linksFetching={false}
+              linksReady={0}
+            />
+
+            {/* Certificate Table */}
+            {certificatesLoading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
+              </div>
+            ) : (
+              <CertificateTable
+                certificates={getFilteredCertificates()}
+                language={language}
+                selectedCertificates={selectedCertificates}
+                onSelectCertificate={handleSelectCertificate}
+                onSelectAllCertificates={handleSelectAllCertificates}
+                onSort={handleCertificateSort}
+                sortConfig={certificateSort}
+                onDoubleClick={handleCertificateDoubleClick}
+                onRightClick={handleCertificateRightClick}
+                onSurveyTypeRightClick={handleSurveyTypeRightClick}
+              />
+            )}
           </div>
         )}
       </div>
