@@ -110,7 +110,7 @@ export const EditShipCertificateModal = ({
         notes: editData.notes || null
       };
 
-      await api.put(`/api/ships/certificates/${certificate.id}`, updatePayload);
+      await api.put(`/api/certificates/${certificate.id}`, updatePayload);
       
       toast.success(language === 'vi' 
         ? '✅ Chứng chỉ đã được cập nhật thành công!' 
