@@ -61,7 +61,23 @@ const ClassAndFlagCert = () => {
   // Fetch ships on mount
   useEffect(() => {
     fetchShips();
+    fetchAiConfig();
   }, []);
+
+  // Fetch AI Config
+  const fetchAiConfig = async () => {
+    try {
+      const response = await api.get('/api/ai-config');
+      if (response.data && response.data.length > 0) {
+        // Use first active config
+        const activeConfig = response.data.find(config => config.is_active) || response.data[0];
+        setAiConfig(activeConfig);
+      }
+    } catch (error) {
+      console.error('Error fetching AI config:', error);
+      // Don't show error toast, just log it
+    }
+  };
 
   // Handle navigation from Add Ship - refresh when new ship is created
   useEffect(() => {
