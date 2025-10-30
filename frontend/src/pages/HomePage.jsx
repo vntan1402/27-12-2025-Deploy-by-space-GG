@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar } from '../components/Layout';
+import { AddShipModal } from '../components/Ships';
 import { companyService } from '../services';
 
 const HomePage = () => {
@@ -9,6 +10,7 @@ const HomePage = () => {
   // State management
   const [selectedCategory, setSelectedCategory] = useState('ship_certificates');
   const [companyLogo, setCompanyLogo] = useState(null);
+  const [showAddShipModal, setShowAddShipModal] = useState(false);
 
   useEffect(() => {
     if (user && user.company) {
@@ -40,6 +42,10 @@ const HomePage = () => {
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
+  };
+
+  const handleAddShip = () => {
+    setShowAddShipModal(true);
   };
 
   const handleAddRecord = () => {
