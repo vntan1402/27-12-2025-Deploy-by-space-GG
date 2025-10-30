@@ -531,10 +531,232 @@ export const AddShipCertificateModal = ({
             )}
           </div>
 
-          {/* Certificate Form Fields - TO BE CONTINUED IN NEXT PART */}
-          
+          {/* Certificate Form Fields */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">
+              {language === 'vi' ? 'Thông tin chứng chỉ (Nhập thủ công)' : 'Certificate Information (Manual Entry)'}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {language === 'vi' 
+                ? 'Điền hoặc chỉnh sửa thông tin chứng chỉ được trích xuất từ file'
+                : 'Fill in or edit the certificate information extracted from file'
+              }
+            </p>
+
+            {/* Row 1: Certificate Name & Abbreviation */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={certificateData.cert_name}
+                  onChange={(e) => setCertificateData({ ...certificateData, cert_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Nhập tên chứng chỉ' : 'Enter certificate name'}
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
+                </label>
+                <input
+                  type="text"
+                  value={certificateData.cert_abbreviation}
+                  onChange={(e) => setCertificateData({ ...certificateData, cert_abbreviation: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
+                />
+              </div>
+            </div>
+
+            {/* Row 2: Certificate Number & Type */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'}
+                </label>
+                <input
+                  type="text"
+                  value={certificateData.cert_no}
+                  onChange={(e) => setCertificateData({ ...certificateData, cert_no: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                  placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter certificate number'}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'}
+                </label>
+                <select
+                  value={certificateData.cert_type}
+                  onChange={(e) => setCertificateData({ ...certificateData, cert_type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="Full Term">Full Term</option>
+                  <option value="Interim">Interim</option>
+                  <option value="Provisional">Provisional</option>
+                  <option value="Short term">Short term</option>
+                  <option value="Conditional">Conditional</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Row 3: Issue Date & Valid Date */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
+                </label>
+                <input
+                  type="date"
+                  value={certificateData.issue_date}
+                  onChange={(e) => setCertificateData({ ...certificateData, issue_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+                </label>
+                <input
+                  type="date"
+                  value={certificateData.valid_date}
+                  onChange={(e) => setCertificateData({ ...certificateData, valid_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Row 4: Last Endorse & Next Survey (conditional) */}
+            {certificateData.cert_type === 'Full Term' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                  </label>
+                  <input
+                    type="date"
+                    value={certificateData.last_endorse}
+                    onChange={(e) => setCertificateData({ ...certificateData, last_endorse: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+                  </label>
+                  <input
+                    type="date"
+                    value={certificateData.next_survey}
+                    onChange={(e) => setCertificateData({ ...certificateData, next_survey: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Row 5: Next Survey Type (if next_survey is set) */}
+            {certificateData.next_survey && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
+                  </label>
+                  <select
+                    value={certificateData.next_survey_type}
+                    onChange={(e) => setCertificateData({ ...certificateData, next_survey_type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
+                    <option value="Annual">Annual</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Renewal">Renewal</option>
+                    <option value="Special">Special</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Row 6: Issued By & Abbreviation */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                </label>
+                <input
+                  type="text"
+                  value={certificateData.issued_by}
+                  onChange={(e) => setCertificateData({ ...certificateData, issued_by: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Tên tổ chức cấp' : 'Issuing organization'}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên viết tắt (Issued By)' : 'Issued By Abbreviation'}
+                </label>
+                <input
+                  type="text"
+                  value={certificateData.issued_by_abbreviation}
+                  onChange={(e) => setCertificateData({ ...certificateData, issued_by_abbreviation: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Viết tắt' : 'Abbreviation'}
+                />
+              </div>
+            </div>
+
+            {/* Row 7: Notes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Ghi chú' : 'Notes'}
+              </label>
+              <textarea
+                value={certificateData.notes}
+                onChange={(e) => setCertificateData({ ...certificateData, notes: e.target.value })}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'Thêm ghi chú...' : 'Add notes...'}
+              />
+            </div>
+          </div>
+
+          {/* Footer Buttons */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              disabled={isSubmitting}
+            >
+              {language === 'vi' ? 'Hủy' : 'Cancel'}
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !selectedShip || !certificateData.cert_name}
+              className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                isSubmitting || !selectedShip || !certificateData.cert_name
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {isSubmitting 
+                ? (language === 'vi' ? '⏳ Đang lưu...' : '⏳ Saving...') 
+                : (language === 'vi' ? '✅ Lưu Certificate' : '✅ Save Certificate')
+              }
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 };
+
