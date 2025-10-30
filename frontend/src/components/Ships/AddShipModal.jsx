@@ -527,6 +527,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
             // Silently fail - don't show error to user as it's background operation
           }
         })();
+        }, 1000); // Wait 1 second after navigation before showing Google Drive toast
         
       } else {
         throw new Error('Invalid response from server');
