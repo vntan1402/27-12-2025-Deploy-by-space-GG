@@ -7,7 +7,7 @@ FOCUS: Test the backend endpoints:
 1. POST /api/ships/{ship_id}/calculate-next-docking
 2. POST /api/ships/{ship_id}/calculate-anniversary-date  
 3. POST /api/ships/{ship_id}/calculate-special-survey-cycle
-4. GET /api/certificates/upcoming-surveys (NEW: Testing specific certificate issue)
+4. GET /api/certificates/upcoming-surveys (NEW: Testing company_name field inclusion)
 """
 
 import requests
