@@ -229,12 +229,24 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
     try {
       toast.info(language === 'vi' ? '📤 Đang upload file lên Google Drive...' : '📤 Uploading file to Google Drive...');
 
-      await surveyReportService.uploadFiles(reportId, {
-        filename: filename,
-        file_content: base64Content
-      });
+      // Convert base64 back to Blob
+      const byteCharacters = atob(base64Content);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      await surveyReportService.uploadFiles(reportId, file, null);
 
       toast.success(language === 'vi' ? '✅ Upload file thành công!' : '✅ File uploaded successfully!');
+      
+      // Refresh list to show file icons
+      if (onReportAdded) {
+        onReportAdded();
+      }
     } catch (error) {
       console.error('Failed to upload file:', error);
       toast.error(language === 'vi' ? '❌ Upload file thất bại' : '❌ File upload failed');
