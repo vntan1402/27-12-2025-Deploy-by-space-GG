@@ -671,6 +671,7 @@ class ShipUpdate(BaseModel):
     imo: Optional[str] = None
     flag: Optional[str] = None
     ship_type: Optional[str] = None
+    class_society: Optional[str] = None  # Class society field
     gross_tonnage: Optional[float] = None
     deadweight: Optional[float] = None
     built_year: Optional[int] = None  # Legacy field - year only (for backward compatibility)
