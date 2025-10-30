@@ -4225,19 +4225,11 @@ async def create_ship(
         # Immediately return ship response after database creation
         ship_response = ShipResponse(**ship_dict)
         
-        # Start Google Drive folder creation as truly fire-and-forget background task
-        # Wrap in a function that won't be cancelled when response returns
-        async def start_background_task():
-            try:
-                await create_google_drive_folder_background(ship_dict, current_user)
-            except Exception as e:
-                logger.error(f"Background task failed but doesn't affect response: {e}")
+        # Start Google Drive folder creation in separate thread (truly non-blocking)
+        # This ensures the task runs independently and doesn't block the response
+        run_async_in_thread(create_google_drive_folder_background(ship_dict, current_user))
         
-        # Create task without awaiting - truly non-blocking
-        task = asyncio.create_task(start_background_task())
-        # Don't keep reference - allow garbage collection but task continues
-        
-        logger.info(f"Ship '{ship_dict.get('name')}' created successfully in database. Google Drive folder creation started in background.")
+        logger.info(f"Ship '{ship_dict.get('name')}' created successfully in database. Google Drive folder creation started in separate thread.")
         
         return ship_response
         
