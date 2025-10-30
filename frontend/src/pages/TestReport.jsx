@@ -280,7 +280,7 @@ const TestReport = () => {
       {/* Page Title with Ship Select Button */}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">
-          {language === 'vi' ? 'CLASS SURVEY REPORT' : 'CLASS SURVEY REPORT'}
+          {language === 'vi' ? 'TEST REPORT' : 'TEST REPORT'}
         </h1>
         
         {!selectedShip && (
