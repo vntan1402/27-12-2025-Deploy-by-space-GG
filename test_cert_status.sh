@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://ship-cert-sync.preview.emergentagent.com/api"
+API_URL="https://navdrive.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

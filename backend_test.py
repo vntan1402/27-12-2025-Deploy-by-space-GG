@@ -15,7 +15,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://ship-cert-sync.preview.emergentagent.com/api"
+BACKEND_URL = "https://navdrive.preview.emergentagent.com/api"
 
 class DeleteShipGDriveTester:
     def __init__(self):
