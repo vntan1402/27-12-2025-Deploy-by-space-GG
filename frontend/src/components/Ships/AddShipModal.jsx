@@ -362,9 +362,9 @@ const AddShipModal = ({ isOpen, onClose }) => {
         keel_laid: shipData.keel_laid || null,
         ship_owner: shipData.ship_owner.trim(),
         company: shipData.company.trim(),
-        // Docking information
-        last_docking: shipData.last_docking || null,
-        last_docking_2: shipData.last_docking_2 || null,
+        // Docking information - convert MM/YYYY format to YYYY-MM-DD
+        last_docking: formatLastDockingForBackend(shipData.last_docking),
+        last_docking_2: formatLastDockingForBackend(shipData.last_docking_2),
         next_docking: shipData.next_docking || null,
         // Survey information
         last_special_survey: shipData.last_special_survey || null,
