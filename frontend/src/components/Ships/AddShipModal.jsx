@@ -305,6 +305,33 @@ const AddShipModal = ({ isOpen, onClose }) => {
     }
   };
 
+  // Helper function to convert last docking MM/YYYY to datetime for backend
+  const formatLastDockingForBackend = (dockingStr) => {
+    if (!dockingStr || dockingStr.trim() === '') return null;
+    
+    try {
+      // If in MM/YYYY format, convert to YYYY-MM-01 (first day of month)
+      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{1,2}\/\d{4}$/)) {
+        const parts = dockingStr.split('/');
+        if (parts.length === 2) {
+          const [month, year] = parts;
+          return `${year}-${month.padStart(2, '0')}-01`;
+        }
+      }
+      
+      // If already in YYYY-MM-DD format, return as is
+      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dockingStr;
+      }
+      
+      // Otherwise return null for invalid format
+      return null;
+    } catch (error) {
+      console.error('Last docking format error:', error);
+      return null;
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
