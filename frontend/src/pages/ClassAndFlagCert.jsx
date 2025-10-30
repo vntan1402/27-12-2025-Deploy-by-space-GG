@@ -261,6 +261,7 @@ const ClassAndFlagCert = () => {
           onEditShip={handleEditShip}
           showShipParticular={true}
           onShipSelect={() => setShowShipModal(true)}
+          onShipUpdate={handleShipUpdate}
         />
       )}
 
