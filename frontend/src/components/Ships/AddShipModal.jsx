@@ -370,9 +370,13 @@ const AddShipModal = ({ isOpen, onClose }) => {
       }
     } catch (error) {
       console.error('Failed to create ship:', error);
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
-        ? `❌ Lỗi tạo tàu: ${error.response?.data?.detail || error.message}`
-        : `❌ Failed to create ship: ${error.response?.data?.detail || error.message}`
+        ? `❌ Lỗi tạo tàu: ${errorMessage}`
+        : `❌ Failed to create ship: ${errorMessage}`
       );
     } finally {
       setIsSubmitting(false);
