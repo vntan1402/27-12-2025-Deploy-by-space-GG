@@ -460,8 +460,8 @@ const ClassSurveyReport = () => {
             )}
           </div>
         ) : (
-          /* Class Survey Report List Section - Placeholder */
-          <ClassSurveyReportList />
+          /* Class Survey Report List Section */
+          <ClassSurveyReportList selectedShip={selectedShip} />
         )}
       </div>
 
