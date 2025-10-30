@@ -1,13 +1,13 @@
 /**
- * Class Survey Report Page
+ * Other Documents Page
  * Similar structure to ClassAndFlagCert but without certificate list
- * Shows Class Survey Report List (placeholder) instead
+ * Shows Other Documents List (placeholder) instead
  */
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar } from '../components';
-import { ClassSurveyReportList } from '../components/ClassSurveyReport';
+import { OtherDocumentsListComponent } from '../components/OtherDocuments';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
 import { shipService } from '../services';
@@ -15,13 +15,13 @@ import api from '../services/api';
 import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
 
-const ClassSurveyReport = () => {
+const OtherDocuments = () => {
   const { language, user } = useAuth();
   const location = useLocation();
   
   // State
   const [selectedCategory] = useState('ship_certificates');
-  const [selectedSubMenu, setSelectedSubMenu] = useState('class_survey');
+  const [selectedSubMenu, setSelectedSubMenu] = useState('other_docs');
   const [showShipModal, setShowShipModal] = useState(false);
   const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
