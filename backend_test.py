@@ -791,7 +791,7 @@ class ShipCalculationAPITester:
     def print_test_summary(self, test_results):
         """Print test summary"""
         print(f"\n{'='*80}")
-        print(f"DELETE SHIP GOOGLE DRIVE FOLDER DELETION TEST SUMMARY")
+        print(f"SHIP CALCULATION APIs TEST SUMMARY")
         print(f"{'='*80}")
         
         passed = 0
@@ -806,19 +806,21 @@ class ShipCalculationAPITester:
         print(f"\n📊 Results: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
         
         if passed == total:
-            print(f"🎉 All tests passed! Delete Ship Google Drive folder deletion is working correctly.")
+            print(f"🎉 All tests passed! Ship calculation APIs are working correctly.")
             print(f"✅ Authentication with admin1/123456 successful")
             print(f"✅ Company ID resolution working")
             print(f"✅ Ships list retrieval working")
-            print(f"✅ Google Drive folder deletion endpoint accessible")
+            print(f"✅ Calculate Next Docking API working")
+            print(f"✅ Calculate Anniversary Date API working")
+            print(f"✅ Calculate Special Survey Cycle API working")
             print(f"✅ Error handling working correctly")
             print(f"✅ Backend logs verification completed")
-        elif passed >= 3:  # If at least setup and main test passed
-            print(f"✅ Core functionality working! Delete Ship Google Drive folder deletion is functional.")
-            print(f"✅ Main Google Drive deletion endpoint working")
+        elif passed >= 5:  # If at least setup and main calculation tests passed
+            print(f"✅ Core functionality working! Ship calculation APIs are functional.")
+            print(f"✅ Main calculation endpoints working")
             print(f"⚠️ Some auxiliary tests may have failed")
         else:
-            print(f"❌ Critical tests failed. Please check the Delete Ship Google Drive implementation.")
+            print(f"❌ Critical tests failed. Please check the ship calculation API implementation.")
             
             # Print specific failure analysis
             failed_tests = [name for name, result in test_results if not result]
@@ -828,26 +830,28 @@ class ShipCalculationAPITester:
                     print(f"   - {failed_test}")
                     
         # Print endpoint requirements summary
-        print(f"\n🔍 DELETE SHIP GOOGLE DRIVE REQUIREMENTS TESTED:")
+        print(f"\n🔍 SHIP CALCULATION API REQUIREMENTS TESTED:")
         print(f"   1. Authentication required (admin1/123456 credentials)")
         print(f"   2. Company ID resolution from user data")
         print(f"   3. Ships list accessible for test ship selection")
-        print(f"   4. POST /api/companies/{{company_id}}/gdrive/delete-ship-folder endpoint")
-        print(f"   5. Correct action name: 'delete_complete_ship_structure' (not 'delete_ship_folder')")
-        print(f"   6. Proper payload structure: parent_folder_id, ship_name, permanent_delete")
-        print(f"   7. Error handling for missing ship_name and non-existent ships")
-        print(f"   8. Response structure validation")
+        print(f"   4. POST /api/ships/{{ship_id}}/calculate-next-docking endpoint")
+        print(f"   5. POST /api/ships/{{ship_id}}/calculate-anniversary-date endpoint")
+        print(f"   6. POST /api/ships/{{ship_id}}/calculate-special-survey-cycle endpoint")
+        print(f"   7. Proper response structure validation")
+        print(f"   8. Error handling for non-existent ships")
+        print(f"   9. Database updates after successful calculations")
         
         print(f"\n🎯 KEY SUCCESS CRITERIA:")
-        print(f"   ✅ Google Drive deletion endpoint works correctly")
-        print(f"   ✅ Apps Script receives 'delete_complete_ship_structure' action")
-        print(f"   ✅ Error handling is proper")
-        print(f"   ✅ Response structure matches documentation")
-        print(f"   ✅ No backend errors in processing")
+        print(f"   ✅ All three calculation endpoints return proper JSON responses")
+        print(f"   ✅ Success cases return success: true")
+        print(f"   ✅ Failed calculations return success: false with helpful messages")
+        print(f"   ✅ Ship data is persisted to database after successful calculation")
+        print(f"   ✅ Response format matches what frontend expects")
+        print(f"   ✅ No backend errors during API calls")
         
         if self.test_ship_name:
             print(f"\n🚢 Test Ship Used: {self.test_ship_name}")
-            print(f"⚠️ Note: Google Drive folder for this ship may have been moved to trash during testing")
+            print(f"📋 Note: Ship data may have been updated during calculation testing")
 
 def main():
     """Main function to run the tests"""
