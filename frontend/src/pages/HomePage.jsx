@@ -80,7 +80,10 @@ const HomePage = () => {
       {/* Add Ship Modal */}
       <AddShipModal 
         isOpen={showAddShipModal}
-        onClose={() => setShowAddShipModal(false)}
+        onClose={() => {
+          console.log('Closing Add Ship modal');
+          setShowAddShipModal(false);
+        }}
       />
       
       {/* Company Logo Banner */}
