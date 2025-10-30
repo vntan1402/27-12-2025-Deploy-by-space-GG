@@ -90,7 +90,6 @@ const HomePage = () => {
     >
       {/* Add Ship Modal */}
       <AddShipModal 
-        key={modalKey}
         isOpen={showAddShipModal}
         onClose={() => {
           console.log('Closing Add Ship modal');
