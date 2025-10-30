@@ -48,27 +48,46 @@ const AddShipModal = ({ isOpen, onClose }) => {
 
   const fetchUserCompany = async () => {
     try {
-      const allCompanies = await companyService.getAll();
+      const response = await companyService.getAll();
+      const allCompanies = response.data || response;
       
-      // Find user's company
-      const userCompany = allCompanies.find(c => 
-        c.name_vn === user.company || 
-        c.name_en === user.company || 
-        c.name === user.company
-      );
+      // Find user's company by matching name
+      const userCompany = allCompanies.find(c => {
+        const companyNames = [
+          c.name,
+          c.name_en,
+          c.name_vn
+        ].filter(Boolean);
+        
+        return companyNames.some(name => 
+          name === user.company || 
+          name.toLowerCase() === user.company?.toLowerCase()
+        );
+      });
       
       if (userCompany) {
         setCompanies([userCompany]);
+        // Set company name (prefer name_en, then name_vn, then name)
+        const companyName = userCompany.name_en || userCompany.name_vn || userCompany.name;
         setFormData(prev => ({
           ...prev,
-          company: userCompany.name || userCompany.name_en || userCompany.name_vn
+          company: companyName
         }));
       } else {
+        // If no match found, use user.company as fallback
         setCompanies([]);
+        setFormData(prev => ({
+          ...prev,
+          company: user.company || ''
+        }));
       }
     } catch (error) {
       console.error('Failed to fetch company:', error);
-      toast.error(language === 'vi' ? 'Không thể tải thông tin công ty' : 'Failed to load company info');
+      // On error, fallback to user.company
+      setFormData(prev => ({
+        ...prev,
+        company: user.company || ''
+      }));
     }
   };
 
