@@ -460,8 +460,8 @@ const OtherDocuments = () => {
             )}
           </div>
         ) : (
-          /* Class Survey Report List Section - Placeholder */
-          <ClassSurveyReportList />
+          /* Other Documents List Section - Placeholder */
+          <OtherDocumentsListComponent />
         )}
       </div>
 
