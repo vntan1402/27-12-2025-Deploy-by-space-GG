@@ -39,6 +39,117 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
     }));
   };
 
+  // File upload handlers
+  const handleFileSelect = async (file) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error(language === 'vi' ? 'Chỉ hỗ trợ file PDF' : 'Only PDF files are supported');
+      return;
+    }
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error(language === 'vi' ? 'File quá lớn (tối đa 50MB)' : 'File too large (max 50MB)');
+      return;
+    }
+
+    setUploadedFile(file);
+    
+    // Read file as base64 for later upload
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result.split(',')[1];
+      setFileContent(base64);
+    };
+    reader.readAsDataURL(file);
+
+    // Start AI analysis
+    await analyzeFile(file);
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
+    setFileContent(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // AI Analysis
+  const analyzeFile = async (file) => {
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Không có tàu được chọn' : 'No ship selected');
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      toast.info(language === 'vi' ? '🤖 Đang phân tích file với AI...' : '🤖 Analyzing file with AI...');
+
+      const formData = new FormData();
+      formData.append('survey_report_file', file);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('bypass_validation', 'false');
+
+      const response = await surveyReportService.analyzeFile(selectedShip.id, file);
+      
+      if (response.success && response.analysis) {
+        const analysis = response.analysis;
+        
+        // Auto-populate form fields
+        setFormData(prev => ({
+          ...prev,
+          survey_report_name: analysis.survey_report_name || prev.survey_report_name,
+          report_form: analysis.report_form || prev.report_form,
+          survey_report_no: analysis.survey_report_no || prev.survey_report_no,
+          issued_date: analysis.issued_date || prev.issued_date,
+          issued_by: analysis.issued_by || prev.issued_by,
+          status: analysis.status || prev.status,
+          note: analysis.note || prev.note,
+          surveyor_name: analysis.surveyor_name || prev.surveyor_name
+        }));
+
+        toast.success(language === 'vi' ? '✅ Phân tích hoàn tất! Vui lòng kiểm tra và chỉnh sửa nếu cần.' : '✅ Analysis complete! Please review and edit if needed.');
+      } else {
+        toast.warning(language === 'vi' ? '⚠️ Không thể phân tích file. Vui lòng nhập thủ công.' : '⚠️ Could not analyze file. Please enter manually.');
+      }
+    } catch (error) {
+      console.error('AI analysis error:', error);
+      toast.error(language === 'vi' ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.' : '❌ Analysis failed. Please enter manually.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
