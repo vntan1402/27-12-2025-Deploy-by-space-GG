@@ -4,9 +4,11 @@
  * Extracted from V1 App.js (lines 13060-13400)
  */
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDateDisplay } from '../utils/dateHelpers';
 import { shortenClassSociety } from '../utils/shipHelpers';
+import { shipService } from '../services';
 
 export const ShipDetailPanel = ({ 
   ship, 
