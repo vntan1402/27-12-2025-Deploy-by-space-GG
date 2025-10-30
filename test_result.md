@@ -63,6 +63,32 @@
 
 user_problem_statement: "Fix Delete Ship Google Drive folder deletion feature. The Apps Script action name mismatch is causing Google Drive deletion to fail. Backend endpoint '/api/companies/{company_id}/gdrive/delete-ship-folder' is sending action 'delete_ship_folder' but Apps Script v4.3 expects 'delete_complete_ship_structure'. Need to update backend to use correct action name and test both deletion options: database-only and database + Google Drive folder."
 
+backend:
+  - task: "Delete Ship Google Drive Folder Deletion - Action Name Fix"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "Fixed Apps Script action name mismatch in /api/companies/{company_id}/gdrive/delete-ship-folder endpoint. Changed action from 'delete_ship_folder' to 'delete_complete_ship_structure' to match Apps Script v4.3 expectations. Also updated payload structure to use 'parent_folder_id' instead of 'main_folder_id' and added 'permanent_delete: false' parameter for safety (moves to trash by default). The GoogleDriveManager.delete_ship_structure() method already had the correct action name, so no changes needed there."
+
+frontend:
+  - task: "Delete Ship Feature - Two-Call Pattern Implementation"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/frontend/src/pages/ClassAndFlagCert.jsx, /app/frontend/src/services/shipService.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "Implemented two-call pattern for Delete Ship feature matching V1 design for better UX. IMPLEMENTATION DETAILS: (1) Call 1: DELETE /api/ships/{shipId} - deletes ship from database only (quick operation), modal closes and ship list refreshes immediately. (2) Call 2: POST /api/companies/{company_id}/gdrive/delete-ship-folder - runs in background without blocking UI, shows separate toast notifications for Google Drive deletion progress/success/failure. (3) Removed shipService.delete() parameters since database deletion doesn't need options. (4) Google Drive deletion is triggered only if user selects 'with_gdrive' option, runs asynchronously in background. BENEFITS: Better UX - users don't wait for slow Google Drive deletion, immediate feedback for database deletion, graceful error handling for Google Drive failures without affecting main flow. TESTING REQUIRED: Test database-only deletion (option: 'db_only'), test database + Google Drive deletion (option: 'with_gdrive'), verify modal closes immediately after database deletion, verify Google Drive deletion notifications appear correctly, verify error handling for Google Drive failures."
+
 frontend:
   - task: "Certificate Name Searchable Dropdown in Edit Modal"
     implemented: true
