@@ -338,11 +338,30 @@ export const CertificateTable = ({
                     }
                   </span>
                 </td>
-                <td className="border border-gray-300 px-4 py-2 text-center" title={cert.notes}>
+                <td 
+                  className="border border-gray-300 px-4 py-2 text-center" 
+                  title={cert.notes || (language === 'vi' ? 'Click để thêm ghi chú' : 'Click to add notes')}
+                >
                   {cert.has_notes ? (
-                    <span className="text-orange-600 font-bold cursor-help text-lg">*</span>
+                    <span 
+                      className="text-orange-600 font-bold cursor-pointer text-lg hover:text-orange-700"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onNotesClick) onNotesClick(cert);
+                      }}
+                    >
+                      *
+                    </span>
                   ) : (
-                    <span className="text-gray-400">-</span>
+                    <span 
+                      className="text-gray-400 cursor-pointer hover:text-gray-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onNotesClick) onNotesClick(cert);
+                      }}
+                    >
+                      +
+                    </span>
                   )}
                 </td>
               </tr>
