@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://mern-drive-sync-1.preview.emergentagent.com/api"
+API_URL="https://ship-cert-sync.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \
