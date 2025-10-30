@@ -43,11 +43,12 @@ const AddShipModal = ({ isOpen, onClose }) => {
   // State for companies list (for ship_owner dropdown)
   const [availableCompanies, setAvailableCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+  const [userCompanyName, setUserCompanyName] = useState('');
   
   // State for form submission
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch companies on mount
+  // Fetch companies on mount and get user's company name
   useEffect(() => {
     if (isOpen) {
       fetchCompanies();
