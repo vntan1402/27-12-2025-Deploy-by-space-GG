@@ -274,76 +274,67 @@ export const EditShipCertificateModal = ({
 
           {/* Row 3: Last Endorse + Next Survey + Next Survey Type (conditional on Full Term) */}
           {editData.cert_type === 'Full Term' && (
-            <>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
-                  </label>
-                  <input
-                    type="date"
-                    value={editData.last_endorse}
-                    onChange={(e) => setEditData({ ...editData, last_endorse: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
-                  </label>
-                  <input
-                    type="date"
-                    value={editData.next_survey}
-                    onChange={(e) => setEditData({ ...editData, next_survey: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-
-                {editData.next_survey && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
-                    </label>
-                    <select
-                      value={editData.next_survey_type}
-                      onChange={(e) => setEditData({ ...editData, next_survey_type: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">{language === 'vi' ? '-- Chọn --' : '-- Select --'}</option>
-                      <option value="Annual">Annual</option>
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Renewal">Renewal</option>
-                      <option value="Special">Special</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              {/* Checkbox: Exclude from Auto Update */}
-              <div className="mt-3">
-                <label className="flex items-start space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editData.exclude_from_auto_update}
-                    onChange={(e) => setEditData({ ...editData, exclude_from_auto_update: e.target.checked })}
-                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">
-                    {language === 'vi' 
-                      ? 'Không tự động cập nhật Next Survey và Next Survey Type cho Giấy chứng nhận này'
-                      : 'Do not automatically update Next Survey and Next Survey Type for this certificate'}
-                  </span>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
                 </label>
-                {editData.exclude_from_auto_update && (
-                  <p className="text-xs text-gray-500 ml-6 mt-1">
-                    {language === 'vi' 
-                      ? '⚠️ Khi chọn, hệ thống sẽ không tự động cập nhật Next Survey khi click nút "Update Next Survey"'
-                      : '⚠️ When checked, system will not automatically update Next Survey when clicking "Update Next Survey" button'}
-                  </p>
-                )}
+                <input
+                  type="date"
+                  value={editData.last_endorse}
+                  onChange={(e) => setEditData({ ...editData, last_endorse: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
-            </>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+                </label>
+                <input
+                  type="date"
+                  value={editData.next_survey}
+                  onChange={(e) => setEditData({ ...editData, next_survey: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                
+                {/* Checkbox: Exclude from Auto Update - Same column as Next Survey */}
+                <div className="mt-2">
+                  <label className="flex items-start space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editData.exclude_from_auto_update}
+                      onChange={(e) => setEditData({ ...editData, exclude_from_auto_update: e.target.checked })}
+                      className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-xs text-gray-700 leading-tight">
+                      {language === 'vi' 
+                        ? 'Không tự động cập nhật'
+                        : 'Exclude from auto-update'}
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {editData.next_survey && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
+                  </label>
+                  <select
+                    value={editData.next_survey_type}
+                    onChange={(e) => setEditData({ ...editData, next_survey_type: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">{language === 'vi' ? '-- Chọn --' : '-- Select --'}</option>
+                    <option value="Annual">Annual</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Renewal">Renewal</option>
+                    <option value="Special">Special</option>
+                  </select>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Row 4: Notes */}
