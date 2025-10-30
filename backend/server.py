@@ -966,6 +966,7 @@ class CertificateUpdate(BaseModel):
     category: Optional[str] = None
     sensitivity_level: Optional[str] = None
     notes: Optional[str] = None  # NEW: Notes field for reference certificates
+    exclude_from_auto_update: Optional[bool] = None  # NEW: Exclude from auto update Next Survey
 
 class CertificateResponse(BaseModel):
     # Make all fields optional to handle legacy data with missing fields
