@@ -1346,7 +1346,7 @@ const ClassAndFlagCert = () => {
                     <button
                       key={ship.id}
                       onClick={() => {
-                        setSelectedShip(ship);
+                        updateSelectedShip(ship);
                         setShowShipModal(false);
                       }}
                       className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
