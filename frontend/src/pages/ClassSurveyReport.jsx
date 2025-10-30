@@ -32,10 +32,27 @@ const ClassSurveyReport = () => {
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Fetch ships on mount
+  // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
     fetchShips();
   }, []);
+
+  // Restore selected ship after ships are loaded
+  useEffect(() => {
+    if (ships.length > 0 && !selectedShip) {
+      const savedShipId = localStorage.getItem('selectedShipId');
+      if (savedShipId) {
+        const savedShip = ships.find(s => s.id === savedShipId);
+        if (savedShip) {
+          console.log('Restoring selected ship:', savedShip.name);
+          setSelectedShip(savedShip);
+        } else {
+          // Ship not found, clear localStorage
+          localStorage.removeItem('selectedShipId');
+        }
+      }
+    }
+  }, [ships]);
 
   // Handle navigation from Add Ship - refresh when new ship is created
   useEffect(() => {
@@ -72,6 +89,19 @@ const ClassSurveyReport = () => {
       setLoading(false);
     }
   };
+
+  // Helper function to update selected ship and save to localStorage
+  const updateSelectedShip = (ship) => {
+    setSelectedShip(ship);
+    if (ship) {
+      localStorage.setItem('selectedShipId', ship.id);
+      console.log('Saved ship to localStorage:', ship.name, ship.id);
+    } else {
+      localStorage.removeItem('selectedShipId');
+      console.log('Removed ship from localStorage');
+    }
+  };
+
 
   const handleAddRecord = () => {
     console.log('Add Ship button clicked from ClassSurveyReport');
