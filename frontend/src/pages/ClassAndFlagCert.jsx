@@ -736,6 +736,63 @@ const ClassAndFlagCert = () => {
         )}
       </div>
 
+      {/* Context Menu for Certificate Actions */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-200"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+        >
+          <button
+            onClick={() => {
+              // TODO: Implement edit certificate
+              toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            {language === 'vi' ? 'Sửa' : 'Edit'}
+          </button>
+          <button
+            onClick={() => {
+              // TODO: Implement delete certificate
+              toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            {language === 'vi' ? 'Xóa' : 'Delete'}
+          </button>
+        </div>
+      )}
+
+      {/* Survey Type Context Menu */}
+      {surveyTypeContextMenu && (
+        <div
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-200"
+          style={{ top: surveyTypeContextMenu.y, left: surveyTypeContextMenu.x }}
+        >
+          {['Annual', 'Intermediate', 'Renewal', 'Special'].map(type => (
+            <button
+              key={type}
+              onClick={() => {
+                // TODO: Implement quick survey type edit
+                toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+                setSurveyTypeContextMenu(null);
+              }}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100"
+            >
+              {type}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Add Ship Modal */}
       <AddShipModal 
         isOpen={showAddShipModal}
