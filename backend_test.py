@@ -709,14 +709,15 @@ class ShipCalculationAPITester:
             return False
 
     def run_all_tests(self):
-        """Run all Delete Ship Google Drive folder deletion tests"""
-        print(f"🚀 Starting Delete Ship Google Drive Folder Deletion Testing")
-        print(f"🎯 FOCUS: Testing /api/companies/{{company_id}}/gdrive/delete-ship-folder endpoint")
-        print(f"🔍 Expected: Action name should be 'delete_complete_ship_structure' (not 'delete_ship_folder')")
+        """Run all Ship Calculation API tests"""
+        print(f"🚀 Starting Ship Calculation APIs Testing")
+        print(f"🎯 FOCUS: Testing ship calculation endpoints:")
+        print(f"   1. POST /api/ships/{{ship_id}}/calculate-next-docking")
+        print(f"   2. POST /api/ships/{{ship_id}}/calculate-anniversary-date")
+        print(f"   3. POST /api/ships/{{ship_id}}/calculate-special-survey-cycle")
         print(f"🔐 Authentication: Using admin1/123456 credentials")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
-        print(f"⚠️ WARNING: This includes REAL Google Drive deletion tests")
         
         test_results = []
         
@@ -742,27 +743,45 @@ class ShipCalculationAPITester:
             test_results.append(("Test 2 - Get Ships List", False))
             result_ships_list = False
         
-        # Test 3: MAIN TEST - Google Drive Folder Deletion
-        if result_auth and result_company_id and result_ships_list:
-            result_gdrive_delete = self.test_gdrive_delete_ship_folder_main()
-            test_results.append(("Test 3 - Google Drive Ship Folder Deletion (MAIN TEST)", result_gdrive_delete))
+        # Test 3: Calculate Next Docking
+        if result_auth and result_ships_list:
+            result_next_docking = self.test_calculate_next_docking()
+            test_results.append(("Test 3 - Calculate Next Docking API", result_next_docking))
         else:
-            print(f"\n⚠️ Skipping Google Drive folder deletion - setup tests failed")
-            test_results.append(("Test 3 - Google Drive Ship Folder Deletion (MAIN TEST)", False))
-            result_gdrive_delete = False
+            print(f"\n⚠️ Skipping Calculate Next Docking - setup tests failed")
+            test_results.append(("Test 3 - Calculate Next Docking API", False))
+            result_next_docking = False
         
-        # Test 4: Error Handling
-        if result_auth and result_company_id:
-            result_error_handling = self.test_error_handling()
-            test_results.append(("Test 4 - Error Handling", result_error_handling))
+        # Test 4: Calculate Anniversary Date
+        if result_auth and result_ships_list:
+            result_anniversary = self.test_calculate_anniversary_date()
+            test_results.append(("Test 4 - Calculate Anniversary Date API", result_anniversary))
         else:
-            print(f"\n⚠️ Skipping Error Handling - setup tests failed")
-            test_results.append(("Test 4 - Error Handling", False))
+            print(f"\n⚠️ Skipping Calculate Anniversary Date - setup tests failed")
+            test_results.append(("Test 4 - Calculate Anniversary Date API", False))
+            result_anniversary = False
+        
+        # Test 5: Calculate Special Survey Cycle
+        if result_auth and result_ships_list:
+            result_special_survey = self.test_calculate_special_survey_cycle()
+            test_results.append(("Test 5 - Calculate Special Survey Cycle API", result_special_survey))
+        else:
+            print(f"\n⚠️ Skipping Calculate Special Survey Cycle - setup tests failed")
+            test_results.append(("Test 5 - Calculate Special Survey Cycle API", False))
+            result_special_survey = False
+        
+        # Test 6: Error Handling
+        if result_auth:
+            result_error_handling = self.test_error_handling()
+            test_results.append(("Test 6 - Error Handling", result_error_handling))
+        else:
+            print(f"\n⚠️ Skipping Error Handling - authentication failed")
+            test_results.append(("Test 6 - Error Handling", False))
             result_error_handling = False
         
-        # Test 5: Backend Logs Verification
+        # Test 7: Backend Logs Verification
         result_logs = self.test_backend_logs_verification()
-        test_results.append(("Test 5 - Backend Logs Verification", result_logs))
+        test_results.append(("Test 7 - Backend Logs Verification", result_logs))
         
         # Print summary
         self.print_test_summary(test_results)
