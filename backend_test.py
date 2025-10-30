@@ -44,9 +44,9 @@ class BackendAPITester:
         self.print_test_header("Setup - Admin Authentication")
         
         try:
-            # Test data - using admin1/123456 credentials as specified in the review request
+            # Test data - using admin1@amcsc.vn/123456 credentials as specified in the review request
             login_data = {
-                "username": "admin1",
+                "username": "admin1@amcsc.vn",
                 "password": "123456",
                 "remember_me": False
             }
