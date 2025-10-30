@@ -336,8 +336,8 @@ const AddShipModal = ({ isOpen, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate required fields
-    if (!shipData.name || !shipData.imo_number || !shipData.ship_type || !shipData.class_society || 
+    // Validate required fields (Ship Type is now optional)
+    if (!shipData.name || !shipData.imo_number || !shipData.class_society || 
         !shipData.flag || !shipData.company || !shipData.ship_owner) {
       toast.error(language === 'vi' 
         ? '❌ Vui lòng điền đầy đủ các trường bắt buộc'
