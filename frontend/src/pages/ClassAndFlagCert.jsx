@@ -1337,7 +1337,7 @@ const ClassAndFlagCert = () => {
       <SubMenuBar 
         selectedCategory={selectedCategory}
         selectedSubMenu={selectedSubMenu}
-        onSubMenuChange={setSelectedSubMenu}
+        onSubMenuChange={handleSubMenuChange}
       />
       
       {/* Main Content */}
