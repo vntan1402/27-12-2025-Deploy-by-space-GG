@@ -63,6 +63,8 @@ const HomePage = () => {
     console.log('Add Ship button clicked, current modal state:', showAddShipModal);
     // Force close first in case modal is stuck
     setShowAddShipModal(false);
+    // Increment modal key to force complete re-mount
+    setModalKey(prev => prev + 1);
     // Then open it in next tick
     setTimeout(() => {
       setShowAddShipModal(true);
