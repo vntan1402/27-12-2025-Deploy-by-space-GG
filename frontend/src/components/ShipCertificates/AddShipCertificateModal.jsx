@@ -947,6 +947,30 @@ export const AddShipCertificateModal = ({
             </button>
           </div>
         </form>
+
+        {/* Duplicate Ship Certificate Modal */}
+        <DuplicateShipCertificateModal
+          isOpen={duplicateModal.show}
+          onClose={() => setDuplicateModal({ show: false, duplicates: [], currentFile: null, analysisResult: null, uploadResult: null })}
+          duplicates={duplicateModal.duplicates}
+          currentFile={duplicateModal.currentFile}
+          analysisResult={duplicateModal.analysisResult}
+          onResolution={handleDuplicateResolution}
+          language={language}
+        />
+
+        {/* Ship Name Mismatch Modal */}
+        <ShipNameMismatchModal
+          isOpen={mismatchModal.show}
+          onClose={() => setMismatchModal({ show: false, extractedShipName: '', currentFile: null, analysisResult: null, uploadResult: null })}
+          extractedShipName={mismatchModal.extractedShipName}
+          selectedShipName={selectedShip?.name}
+          currentFile={mismatchModal.currentFile}
+          analysisResult={mismatchModal.analysisResult}
+          onContinue={handleMismatchContinue}
+          onCancel={handleMismatchCancel}
+          language={language}
+        />
       </div>
     </div>
   );
