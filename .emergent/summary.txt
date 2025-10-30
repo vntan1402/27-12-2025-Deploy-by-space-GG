@@ -1,63 +1,52 @@
 <analysis>
-The AI engineer successfully migrated  to  and implemented core features like authentication, layout, ship certificate display, user, and company management. The current focus involved implementing the AI Config Module and System Google Drive Configuration. After initial backend verification, frontend components and services were created and integrated into . A critical issue arose due to missing  prefixes in frontend service calls, leading to 404 errors, which was successfully resolved. Subsequently, the System Google Drive functionality was enhanced to include database backup/restore (, ) and daily auto-sync via APScheduler. A Google Apps Script was provided for the proxy, which required an API key for enhanced security. The latest challenge involves debugging persistent Apps Script deployment issues, where POST requests fail despite correct settings confirmed by the user, indicating an environmental or deployment configuration nuance.
+The trajectory details the AI engineer's work on the  application, focusing on two main feature developments: System Google Drive configuration and the Add New Ship flow. Initial work involved debugging persistent Not authenticated errors with the Google Apps Script proxy. After extensive troubleshooting, including multiple Apps Script deployments (with and without API keys), comparing frontend V1 and V2, and backend permission checks, the root cause was identified as  directly using  instead of the authenticated  instance. This was fixed, successfully connecting the Apps Script. Subsequently, the user requested UI adjustments to the HomePage (removing sub-menu, adding company logo) which were completed. The current task involves implementing the Add New Ship feature, including modifying sidebar text, building a new modal with specific form layouts, and integrating AI-powered certificate analysis for ship data. The engineer is currently restructuring the  file to accommodate extensive form fields and logic.
 </analysis>
 
 <product_requirements>
-The primary goal is migrating  to a modular . This involved:
--   **Core Setup**: Modular React  with extracted utilities and services.
--   **Login Page**: Functional authentication with UI/UX enhancements.
--   **Home Page**: Replication of  layout with a 6-category sidebar.
--   **Class and Flag Certificate Page**: Interactive ship selection via modal and cards.
--   **System Settings**:
-    -   **User Management**: Role-based permissions, multi-department support, company filtering, and refined add/edit user modals (compact, email optional, Gmail removed).
-    -   **Company Management**: Google Drive configuration (modal-based) and pre-deletion validation.
--   **New Features (In Progress)**:
-    -   **AI Config Module**: Integration into System Settings, displaying current provider/model, and configuration modal.
-    -   **System Google Drive Configuration**:
-        -   Initially, a configuration modal mirroring V1 for connecting to Google Drive using Apps Script, OAuth 2.0, or Service Account.
-        -   **Updated Requirement**: Implement Sync to Drive (backup all database collections), Sync from Drive (restore database), and automatic daily backup at 21:00 UTC, saving each backup in a daily-named folder. Status monitoring (configuration, auth method, last sync, local/drive file counts). Implement API Key authentication for the Apps Script proxy.
+The primary goal was to migrate  to a modular  with core features like authentication, layout, ship certificate display, user, and company management. New features include:
+- **AI Config Module**: Integration into System Settings, displaying current provider/model, and configuration modal.
+- **System Google Drive Configuration**: Initially for connecting via Apps Script, later expanded to include Sync to Drive (DB backup), Sync from Drive (DB restore), and daily auto-backup. This feature involved securing the Apps Script proxy with API keys (later made optional/dynamic) and ensuring robust connectivity.
+- **UI Enhancements**: Removing the sub-menu bar from the HomePage and adding a dynamic company logo banner.
+- **Add New Ship Flow**: Changing sidebar button text, implementing a full form for adding new ships with specific layout requirements (e.g., Company dropdown showing only current user's company), redirecting to Ship Detail page on success, and initiating a background task for Google Drive folder structure creation, including Add ship from Certificate with AI analysis.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js, TailwindCSS, Context API (Auth), React Router, custom hooks, 'sonner' for toasts.
--   **Backend**: FastAPI, MongoDB (UUIDs, ISO strings for DateTime), Pydantic for data validation, JWT for authentication, APScheduler for scheduled tasks.
--   **Integrations**: Google Drive API (via Apps Script proxy), API Key authentication.
+- **Frontend**: React.js, Context API (Auth), React Router, custom hooks,  (with custom  instance for authentication).
+- **Backend**: FastAPI, MongoDB (using UUIDs, ISO strings for DateTime), Pydantic, JWT authentication, APScheduler for scheduled tasks.
+- **Integrations**: Google Drive API (via Apps Script proxy), API Key authentication.
+- **Deployment**: Google Apps Script Web App deployments, Kubernetes ingress rules.
 </key_technical_concepts>
 
 <code_architecture>
 
--   **backend/server.py**: Main FastAPI application.
-    -   *Changes*: Added endpoints for AI Config (), System Google Drive (, , , ). Integrated APScheduler for daily auto-backup, importing . Updated  to accept optional  and ensure  is passed in all Apps Script proxy calls (sync functions, auto-backup).
--   **backend/mongodb_database.py**: MongoDB helper.
-    -   *Changes*: Added  method to retrieve all collection names for backup.
--   **frontend/src/pages/SystemSettingsPage.jsx**: Integrates System Settings sections.
-    -   *Changes*: Imported and rendered  and  components.
--   **frontend/src/components/SystemSettings/AIConfig/**: New directory for AI configuration.
-    -   *Summary*: Contains  (main component) and  (configuration modal).
--   **frontend/src/components/SystemSettings/SystemGoogleDrive/**: New directory for System Google Drive configuration.
-    -   *Summary*: Contains  (main component displaying status and buttons) and  (modal for configuring Apps Script/OAuth/Service Account, now includes API Key field, and logic for Sync buttons).
--   **frontend/src/services/aiConfigService.js**: New service for AI Config API interactions.
-    -   *Changes*: Added  prefix to all API calls.
--   **frontend/src/services/gdriveService.js**: New service for System Google Drive API interactions.
-    -   *Changes*: Added  prefix to all API calls and ensured  is passed for Apps Script tests.
--   **frontend/src/services/index.js**: Exports all services.
-    -   *Changes*: Exported  and .
--   **GOOGLE_APPS_SCRIPT_SYSTEM_GDRIVE_V2_WITH_API_KEY.js**: Google Apps Script for Google Drive proxy.
-    -   *Summary*: Implements , , , , , ,  actions, includes API key validation and improved error logging.
--   **test_apps_script_api_key.sh**: Shell script for quick testing of Apps Script API key.
+-   **backend/server.py**: FastAPI app.
+    -   *Changes*: Added  endpoint (modified  to  for test connection), and  (for company-specific Drive). Implemented .
+-   **frontend/src/pages/HomePage.jsx**: Main user dashboard.
+    -   *Changes*: Removed  component, added  fetching and rendering logic with a new banner UI. Integrated .
+-   **frontend/src/components/Layout/CategoryMenu.jsx**: Sidebar menu component.
+    -   *Changes*: Updated ADD_NEW_RECORD button text to ADD_NEW_SHIP.
+-   **frontend/src/components/SystemSettings/SystemGoogleDrive/SystemGoogleDriveModal.jsx**: Modal for GDrive configuration.
+    -   *Changes*: Replaced direct  calls with  methods to ensure JWT authentication headers are sent, resolving Not authenticated errors.
+-   **frontend/src/components/Ships/AddShipModal.jsx**: (New file, currently being modified) Form for adding new ships.
+    -   *Changes*: Initial creation and subsequent layout adjustments based on user feedback, including reorganizing Basic Information and Technical Details fields, and placeholder for Add ship from Certificate with AI Analysis.
+-   **GOOGLE_APPS_SCRIPT_V3_SECURE.js**: (New file) Secure Apps Script proxy.
+    -   *Summary*: Dynamic  from request, masked sensitive logging, and enhanced  to search by subfolder name.
 </code_architecture>
 
 <pending_tasks>
--   The Sync from Drive (restore database) functionality has been implemented in the backend, but its UI integration and full testing in the frontend are still pending.
--   The Apps Script deployment needs to be correctly configured on the user's side to accept POST requests and complete the  and subsequent Google Drive operations.
+- The Sync from Drive (restore database) functionality UI integration and full testing in the frontend are still pending.
+- The Add New Ship modal () requires further layout adjustments and the implementation of the Add ship from Certificate with AI Analysis feature.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was actively debugging the Not authenticated error reported by the user when testing the System Google Drive Apps Script configuration. The Apps Script was updated to include API Key authentication. Initially, a bug was found and fixed in the frontend's  where the  was not being sent during the  call.
-
-After this frontend fix, the issue persisted, indicating a problem with the Google Apps Script deployment itself. The AI engineer confirmed that the provided Apps Script URL was active via GET requests, but POST requests were failing with an HTML redirect or Page Not Found, implying that the Apps Script deployment settings (specifically Who has access not being set to Anyone) were incorrect to handle POST requests from external sources. The engineer provided detailed guides and scripts to help the user re-deploy the Apps Script correctly. The user has shared a screenshot confirming their settings are correct, but the POST request issue still exists.
+Immediately before this summary request, the AI engineer was implementing the Add New Ship feature. This involved:
+1.  **Sidebar Button Text Update**: Changed Add new record to Add New Ship in .
+2.  **AddShipModal Component**: Created  and integrated it into .
+3.  **Layout Refinements**: Applied several layout changes to  based on user feedback. This included fixing a Failed to load company info error, ensuring the Company field displays the company name, renaming Ship Type / Class Society to Class Society, moving Ship Owner to the same row as Company, and arranging Survey Dates fields into a 4-field row.
+4.  **Implementing AI Certificate Analysis**: Began the process of adding Add ship from Certificate with AI Analysis to , reviewing V1 frontend code and backend APIs ().
+The engineer is currently in the process of restructuring and updating  to accommodate the complex form layout and the AI certificate analysis feature. The file content is becoming extensive.
 </current_work>
 
 <optional_next_step>
-Re-evaluate the Apps Script deployment instructions and the provided URL with the troubleshoot_agent to address the persistent POST request failure.
+Complete the implementation of the Add ship from Certificate with AI Analysis feature and the remaining layout adjustments in .
 </optional_next_step>
