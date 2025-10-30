@@ -122,42 +122,61 @@ class DeleteShipGDriveTester:
             self.print_result(False, f"Exception during authentication test: {str(e)}")
             return False
     
-    def test_get_ai_config_without_auth(self):
-        """Test 1: GET /api/ai-config without authentication (should return 401)"""
-        self.print_test_header("Test 1 - GET AI Config Without Authentication")
+    def test_get_company_id(self):
+        """Test 1: Get user's company_id from login response"""
+        self.print_test_header("Test 1 - Get Company ID")
+        
+        if not self.access_token or not self.user_data:
+            self.print_result(False, "No access token or user data available from authentication test")
+            return False
         
         try:
-            print(f"📡 GET {BACKEND_URL}/ai-config")
-            print(f"🎯 Testing without Authorization header - should return 401 or 403")
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
             
-            # Make request without authorization header
+            # Get companies to find the user's company ID
+            print(f"📡 GET {BACKEND_URL}/companies")
+            print(f"🎯 Finding company ID for user's company: {self.user_data['company']}")
+            
             response = self.session.get(
-                f"{BACKEND_URL}/ai-config",
-                headers={"Content-Type": "application/json"}
+                f"{BACKEND_URL}/companies",
+                headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code in [401, 403]:
-                try:
-                    error_data = response.json()
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(True, f"✅ GET /api/ai-config without auth correctly returns {response.status_code} (authentication required)")
-                    return True
-                except:
-                    print(f"📄 Error Response (raw): {response.text}")
-                    self.print_result(True, f"✅ GET /api/ai-config without auth correctly returns {response.status_code} (authentication required)")
-                    return True
+            if response.status_code == 200:
+                companies = response.json()
+                print(f"📄 Found {len(companies)} companies")
+                
+                # Find user's company by name
+                user_company_name = self.user_data['company']
+                for company in companies:
+                    if (company.get('name_en') == user_company_name or 
+                        company.get('name_vn') == user_company_name or
+                        company.get('name') == user_company_name):
+                        self.company_id = company['id']
+                        print(f"🏢 Found company ID: {self.company_id}")
+                        print(f"🏢 Company Name (EN): {company.get('name_en')}")
+                        print(f"🏢 Company Name (VN): {company.get('name_vn')}")
+                        self.print_result(True, f"Successfully found company ID: {self.company_id}")
+                        return True
+                
+                self.print_result(False, f"Company '{user_company_name}' not found in companies list")
+                return False
+                
             else:
                 try:
-                    response_data = response.json()
-                    self.print_result(False, f"❌ Expected 401 or 403, got {response.status_code}: {response_data}")
+                    error_data = response.json()
+                    self.print_result(False, f"GET companies failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"❌ Expected 401 or 403, got {response.status_code}: {response.text}")
+                    self.print_result(False, f"GET companies failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during GET AI config without auth test: {str(e)}")
+            self.print_result(False, f"Exception during get company ID test: {str(e)}")
             return False
     
     def test_get_ai_config_with_auth(self):
