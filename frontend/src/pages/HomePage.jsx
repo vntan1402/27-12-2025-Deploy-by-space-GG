@@ -1,12 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar } from '../components/Layout';
+import { companyService } from '../services';
 
 const HomePage = () => {
-  const { language } = useAuth();
+  const { language, user } = useAuth();
   
   // State management
   const [selectedCategory, setSelectedCategory] = useState('ship_certificates');
+  const [companyLogo, setCompanyLogo] = useState(null);
+
+  useEffect(() => {
+    if (user && user.company) {
+      fetchUserCompanyLogo();
+    }
+  }, [user]);
+
+  const fetchUserCompanyLogo = async () => {
+    try {
+      const companies = await companyService.getAll();
+      
+      // Find company by name (user.company is the company name)
+      const userCompany = companies.find(c => 
+        c.name_vn === user.company || 
+        c.name_en === user.company || 
+        c.name === user.company
+      );
+      
+      if (userCompany && userCompany.logo_url) {
+        setCompanyLogo(userCompany.logo_url);
+      } else {
+        setCompanyLogo(null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user company logo:', error);
+      setCompanyLogo(null);
+    }
+  };
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
