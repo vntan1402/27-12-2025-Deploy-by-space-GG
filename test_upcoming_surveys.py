@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 
 # Backend URL
-BACKEND_URL = "https://marine-doc-tracker.preview.emergentagent.com/api"
+BACKEND_URL = "https://cert-tracker-8.preview.emergentagent.com/api"
 
 def test_upcoming_surveys():
     """Test the upcoming surveys endpoint with detailed logging"""
