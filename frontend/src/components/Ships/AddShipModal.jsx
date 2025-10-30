@@ -640,7 +640,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
               {/* Class Society */}
               <div className="col-span-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Class Society' : 'Class Society'} *
+                  {language === 'vi' ? 'Đăng kiểm' : 'Class Society'} *
                 </label>
                 <input
                   type="text"
