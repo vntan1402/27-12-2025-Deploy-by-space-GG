@@ -1065,10 +1065,11 @@ const ClassAndFlagCert = () => {
       {/* Upcoming Survey Modal */}
       <UpcomingSurveyModal
         isOpen={upcomingSurveyModal.show}
-        onClose={() => setUpcomingSurveyModal({ show: false, surveys: [], totalCount: 0, company: '', checkDate: '' })}
+        onClose={() => setUpcomingSurveyModal({ show: false, surveys: [], totalCount: 0, company: '', companyName: '', checkDate: '' })}
         surveys={upcomingSurveyModal.surveys}
         totalCount={upcomingSurveyModal.totalCount}
         company={upcomingSurveyModal.company}
+        companyName={upcomingSurveyModal.companyName}
         checkDate={upcomingSurveyModal.checkDate}
         language={language}
       />
