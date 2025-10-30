@@ -109,7 +109,7 @@ const LoginPage = () => {
                 {language === 'vi' ? '🧪 Tài khoản Demo' : '🧪 Demo Account'}
               </p>
               <p className="text-xs text-yellow-700">
-                <span className="font-mono bg-yellow-100 px-1 rounded">admin1@amcsc.vn</span> / 
+                <span className="font-mono bg-yellow-100 px-1 rounded">admin1</span> / 
                 <span className="font-mono bg-yellow-100 px-1 rounded ml-1">123456</span>
               </p>
               <button
