@@ -37,6 +37,9 @@ export const EditShipCertificateModal = ({
   // Load certificate data when modal opens
   useEffect(() => {
     if (certificate) {
+      console.log('📋 Loading certificate data:', certificate);
+      console.log('🔍 exclude_from_auto_update value:', certificate.exclude_from_auto_update);
+      
       setEditData({
         cert_name: certificate.cert_name || '',
         cert_abbreviation: certificate.cert_abbreviation || '',
@@ -50,7 +53,7 @@ export const EditShipCertificateModal = ({
         issued_by: certificate.issued_by || '',
         issued_by_abbreviation: certificate.issued_by_abbreviation || '',
         notes: certificate.notes || '',
-        exclude_from_auto_update: certificate.exclude_from_auto_update || false
+        exclude_from_auto_update: certificate.exclude_from_auto_update === true
       });
     }
   }, [certificate]);
