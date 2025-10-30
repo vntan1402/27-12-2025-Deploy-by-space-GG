@@ -5049,6 +5049,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
             "upcoming_surveys": upcoming_surveys,
             "total_count": len(upcoming_surveys),
             "company": user_company,
+            "company_name": company_name,
             "check_date": current_date.isoformat(),
             "logic_info": {
                 "description": "Each certificate creates its own survey window based on certificate type and Next Survey rules. Current date must fall within certificate's window.",
