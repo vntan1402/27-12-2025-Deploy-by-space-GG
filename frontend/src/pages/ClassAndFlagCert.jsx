@@ -1540,8 +1540,19 @@ const ClassAndFlagCert = () => {
               <span className="ml-auto text-xs bg-gray-100 text-gray-600 px-1 rounded">🔗</span>
             )}
           </button>
-        </div>
-      )}
+
+          {/* Auto Rename File */}
+          <button
+            onClick={handleShowAutoRenameDialog}
+            className="w-full px-4 py-2 text-left hover:bg-orange-50 text-orange-600 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            Auto Rename File
+          </button>
+
+          <div className="border-t border-gray-200 my-1"></div>
 
       {/* Survey Type Context Menu */}
       {surveyTypeContextMenu && (
