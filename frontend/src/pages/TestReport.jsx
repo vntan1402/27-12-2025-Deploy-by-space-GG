@@ -503,4 +503,4 @@ const TestReport = () => {
   );
 };
 
-export default ClassSurveyReport;
+export default TestReport;
