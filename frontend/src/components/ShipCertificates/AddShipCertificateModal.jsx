@@ -253,13 +253,17 @@ export const AddShipCertificateModal = ({
     });
 
     try {
+      console.log('📤 Uploading certificates to:', `/api/certificates/multi-upload?ship_id=${selectedShip.id}`);
+      
       const response = await api.post(
-        `/api/ships/${selectedShip.id}/certificates/multi-upload`,
+        `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
         formData,
         {
           headers: { 'Content-Type': 'multipart/form-data' }
         }
       );
+
+      console.log('📥 Upload response:', response.data);
 
       if (response.data && response.data.results) {
         const results = response.data.results;
@@ -277,9 +281,12 @@ export const AddShipCertificateModal = ({
           total: results.length
         });
 
+        console.log('📊 Summary:', { successCount, failedCount, duplicateCount, mismatchCount });
+
         // Handle first duplicate
         const firstDuplicate = results.find(r => r.status === 'duplicate');
         if (firstDuplicate) {
+          console.log('⚠️ Duplicate detected:', firstDuplicate);
           setDuplicateModal({
             show: true,
             duplicates: firstDuplicate.duplicates || [],
@@ -293,6 +300,7 @@ export const AddShipCertificateModal = ({
         // Handle first ship name mismatch
         const firstMismatch = results.find(r => r.status === 'ship_mismatch');
         if (firstMismatch) {
+          console.log('⚠️ Ship mismatch detected:', firstMismatch);
           setMismatchModal({
             show: true,
             extractedShipName: firstMismatch.extracted_ship_name,
@@ -304,22 +312,30 @@ export const AddShipCertificateModal = ({
         }
 
         // Auto-fill form with first successful result
-        const firstSuccess = results.find(r => r.status === 'success' && r.analysis);
-        if (firstSuccess && firstSuccess.analysis) {
-          const analysisData = firstSuccess.analysis;
+        const firstSuccess = results.find(r => r.status === 'success' && r.extracted_info);
+        console.log('✅ First success result:', firstSuccess);
+        
+        if (firstSuccess && firstSuccess.extracted_info) {
+          const analysis = firstSuccess.extracted_info;
+          console.log('🔍 Extracted info:', analysis);
+          
           const autoFillData = {
-            cert_name: analysisData.cert_name || analysisData.certificate_name || '',
-            cert_no: analysisData.cert_no || analysisData.certificate_number || '',
-            issue_date: formatCertDate(analysisData.issue_date),
-            valid_date: formatCertDate(analysisData.valid_date || analysisData.expiry_date),
-            issued_by: analysisData.issued_by || '',
+            cert_name: analysis.cert_name || analysis.certificate_name || '',
+            cert_no: analysis.cert_no || analysis.certificate_number || '',
+            issue_date: formatCertDate(analysis.issue_date),
+            valid_date: formatCertDate(analysis.valid_date || analysis.expiry_date),
+            issued_by: analysis.issued_by || '',
             ship_id: selectedShip.id
           };
 
+          console.log('📝 Auto-fill data:', autoFillData);
+
           // Count filled fields
           const filledFields = Object.keys(autoFillData).filter(key => 
-            autoFillData[key] && String(autoFillData[key]).trim()
+            autoFillData[key] && String(autoFillData[key]).trim() && key !== 'ship_id'
           ).length;
+
+          console.log('✍️ Filling', filledFields, 'fields');
 
           setCertificateData(prev => ({
             ...prev,
@@ -330,6 +346,8 @@ export const AddShipCertificateModal = ({
             ? `✅ Phân tích certificate thành công! Đã điền ${filledFields} trường thông tin.`
             : `✅ Certificate analysis successful! Auto-filled ${filledFields} fields.`
           );
+        } else {
+          console.warn('⚠️ No successful result with extracted_info found');
         }
 
         // Show summary toast
@@ -347,7 +365,8 @@ export const AddShipCertificateModal = ({
         }
       }
     } catch (error) {
-      console.error('Multi cert upload error:', error);
+      console.error('❌ Multi cert upload error:', error);
+      console.error('Error details:', error.response?.data);
       toast.error(language === 'vi' 
         ? `❌ Lỗi upload: ${error.response?.data?.detail || error.message}`
         : `❌ Upload error: ${error.response?.data?.detail || error.message}`
