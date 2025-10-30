@@ -1205,6 +1205,18 @@ const ClassAndFlagCert = () => {
     }
   };
 
+  // Handle submenu navigation
+  const handleSubMenuChange = (submenuKey) => {
+    setSelectedSubMenu(submenuKey);
+    
+    // Navigate to different pages based on submenu
+    if (submenuKey === 'class_survey') {
+      window.location.href = '/class-survey-report';
+    }
+    // Stay on this page if certificates is selected (already here)
+    // Add more routes for other submenus as needed
+  };
+
   return (
     <MainLayout
       sidebar={
