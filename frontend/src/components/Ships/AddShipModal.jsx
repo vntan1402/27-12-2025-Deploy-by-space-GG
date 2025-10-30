@@ -83,15 +83,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
       setIsSubmitting(false);
       setUserCompanyName('');
     }
-  }, [isOpen, user?.company]); // Add user?.company to dependencies
-
-  // Log mount/unmount for debugging
-  useEffect(() => {
-    console.log('AddShipModal mounted/updated, isOpen:', isOpen);
-    return () => {
-      console.log('AddShipModal cleanup');
-    };
-  }, [isOpen]);
+  }, [isOpen, user?.company]);
 
   const fetchCompanies = async () => {
     try {
