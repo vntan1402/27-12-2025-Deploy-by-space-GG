@@ -62,6 +62,30 @@ const AddShipModal = ({ isOpen, onClose }) => {
       // Handle both array and object responses
       const companies = Array.isArray(response) ? response : (response.data || []);
       setAvailableCompanies(companies);
+      
+      // Find and set user's company name
+      if (user && user.company && companies.length > 0) {
+        const userCompany = companies.find(c => 
+          c.id === user.company || 
+          c.name_vn === user.company || 
+          c.name_en === user.company ||
+          c.name === user.company
+        );
+        
+        if (userCompany) {
+          const companyName = language === 'vi' ? userCompany.name_vn : userCompany.name_en;
+          setUserCompanyName(companyName);
+          
+          // Update shipData with company name
+          setShipData(prev => ({
+            ...prev,
+            company: companyName
+          }));
+        } else {
+          // Fallback to user.company if not found in list
+          setUserCompanyName(user.company);
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch companies:', error);
       toast.error(language === 'vi' 
@@ -69,6 +93,10 @@ const AddShipModal = ({ isOpen, onClose }) => {
         : '❌ Failed to load companies list'
       );
       setAvailableCompanies([]);
+      // Fallback to user.company
+      if (user && user.company) {
+        setUserCompanyName(user.company);
+      }
     } finally {
       setIsLoadingCompanies(false);
     }
