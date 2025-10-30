@@ -16,12 +16,176 @@ export const ShipDetailPanel = ({
   showEditButton = true,
   onEditShip,
   showShipParticular = true,
-  onShipSelect // New prop for ship selection
+  onShipSelect, // New prop for ship selection
+  onShipUpdate // Callback to refresh ship data after recalculation
 }) => {
   const { language } = useAuth();
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
 
   if (!ship) return null;
+
+  // Format anniversary date (day + month)
+  const formatAnniversaryDate = (anniversaryDate) => {
+    if (!anniversaryDate) return '-';
+    
+    // Handle enhanced anniversary date format
+    if (anniversaryDate.day && anniversaryDate.month) {
+      const monthNames = [
+        '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      return `${anniversaryDate.day} ${monthNames[anniversaryDate.month]}`;
+    }
+    
+    // Handle legacy datetime format
+    if (typeof anniversaryDate === 'string') {
+      try {
+        const date = new Date(anniversaryDate);
+        const monthNames = [
+          '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+        return `${date.getDate()} ${monthNames[date.getMonth() + 1]}`;
+      } catch {
+        return '-';
+      }
+    }
+    
+    return '-';
+  };
+
+  // Format special survey cycle (date range)
+  const formatSpecialSurveyCycle = (specialSurveyCycle) => {
+    if (!specialSurveyCycle) return '-';
+    
+    // Handle enhanced special survey cycle format with dd/MM/yyyy format
+    if (specialSurveyCycle.from_date && specialSurveyCycle.to_date) {
+      try {
+        const fromDate = new Date(specialSurveyCycle.from_date);
+        const toDate = new Date(specialSurveyCycle.to_date);
+        
+        // Format as dd/MM/yyyy
+        const formatDate = (date) => {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
+        };
+        
+        const fromStr = formatDate(fromDate);
+        const toStr = formatDate(toDate);
+        
+        return `${fromStr} - ${toStr}`;
+      } catch {
+        return '-';
+      }
+    }
+    
+    // Handle legacy months format  
+    if (typeof specialSurveyCycle === 'number') {
+      return `${specialSurveyCycle} ${language === 'vi' ? 'tháng' : 'months'}`;
+    }
+    
+    return '-';
+  };
+
+  // Recalculate Next Docking
+  const handleRecalculateNextDocking = async () => {
+    if (!ship?.id || isRecalculating) return;
+    
+    setIsRecalculating(true);
+    try {
+      const result = await shipService.calculateNextDocking(ship.id);
+      
+      if (result.success) {
+        let message = `Next docking calculated: ${result.next_docking.date}`;
+        
+        if (result.next_docking.last_docking_date) {
+          message += `\nBased on last docking: ${result.next_docking.last_docking_date}`;
+        }
+        
+        if (result.next_docking.calculation_method) {
+          message += `\nMethod: ${result.next_docking.calculation_method}`;
+        }
+        
+        if (result.next_docking.interval_months) {
+          message += `\nInterval: ${result.next_docking.interval_months} months`;
+        }
+        
+        toast.success(message);
+        
+        // Refresh ship data
+        if (onShipUpdate) {
+          await onShipUpdate(ship.id);
+        }
+      } else {
+        toast.warning(result.message || 'Unable to calculate next docking date. Last docking date required.');
+      }
+    } catch (error) {
+      console.error('Error recalculating next docking:', error);
+      toast.error('Failed to recalculate next docking date');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  // Recalculate Special Survey Cycle
+  const handleRecalculateSpecialSurveyCycle = async () => {
+    if (!ship?.id || isRecalculating) return;
+    
+    setIsRecalculating(true);
+    try {
+      const result = await shipService.calculateSpecialSurveyCycle(ship.id);
+      
+      if (result.success) {
+        let message = `Special Survey cycle calculated: ${result.special_survey_cycle.display}`;
+        message += `\nCycle Type: ${result.special_survey_cycle.cycle_type}`;
+        message += `\nIntermediate Survey Required: ${result.special_survey_cycle.intermediate_required ? 'Yes' : 'No'}`;
+        
+        toast.success(message);
+        
+        // Refresh ship data
+        if (onShipUpdate) {
+          await onShipUpdate(ship.id);
+        }
+      } else {
+        toast.warning(result.message || 'Unable to calculate Special Survey cycle from certificates');
+      }
+    } catch (error) {
+      console.error('Error recalculating special survey cycle:', error);
+      toast.error('Failed to recalculate special survey cycle');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  // Recalculate Anniversary Date
+  const handleRecalculateAnniversaryDate = async () => {
+    if (!ship?.id || isRecalculating) return;
+    
+    setIsRecalculating(true);
+    try {
+      const result = await shipService.calculateAnniversaryDate(ship.id);
+      
+      if (result.success) {
+        const message = `Anniversary date calculated: ${result.anniversary_date.display}\nSource: ${result.anniversary_date.source}`;
+        toast.success(message);
+        
+        // Refresh ship data
+        if (onShipUpdate) {
+          await onShipUpdate(ship.id);
+        }
+      } else {
+        toast.warning(result.message || 'Unable to calculate anniversary date from certificates');
+      }
+    } catch (error) {
+      console.error('Error recalculating anniversary date:', error);
+      toast.error('Failed to recalculate anniversary date');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
 
   return (
     <div className="grid md:grid-cols-3 gap-6 mb-6">
