@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { shipService, companyService } from '../../services';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) => {
   const { language, user } = useAuth();
