@@ -30,7 +30,8 @@ export const EditShipCertificateModal = ({
     next_survey_type: '',
     issued_by: '',
     issued_by_abbreviation: '',
-    notes: ''
+    notes: '',
+    exclude_from_auto_update: false
   });
 
   // Load certificate data when modal opens
