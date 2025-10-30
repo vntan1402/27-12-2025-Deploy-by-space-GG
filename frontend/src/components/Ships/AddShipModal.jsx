@@ -493,8 +493,9 @@ const AddShipModal = ({ isOpen, onClose }) => {
                     type="text"
                     required
                     disabled
-                    value={shipData.company}
+                    value={userCompanyName || shipData.company}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                    placeholder={isLoadingCompanies ? (language === 'vi' ? 'Đang tải...' : 'Loading...') : ''}
                   />
                   <div className="absolute right-3 top-2 text-gray-400">
                     🔒
