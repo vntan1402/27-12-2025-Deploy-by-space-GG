@@ -333,17 +333,65 @@ const ClassAndFlagCert = () => {
     }
   };
 
-  // Handle update survey types (placeholder - implement based on V1 logic)
+  // Handle update survey types (placeholder)
   const handleUpdateSurveyTypes = async () => {
-    if (!selectedShip?.id) return;
+    if (!selectedShip?.id) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn tàu trước' : 'Please select a ship first');
+      return;
+    }
     
-    setIsUpdatingSurveyTypes(true);
     try {
-      // TODO: Implement update survey types logic from V1
-      toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+      setIsUpdatingSurveyTypes(true);
+      
+      toast.info(language === 'vi' 
+        ? 'Đang cập nhật Next Survey dựa trên quy định IMO và chu kỳ 5 năm...'
+        : 'Updating Next Survey based on IMO regulations and 5-year cycle...'
+      );
+
+      // Call backend API to update next survey types
+      const response = await api.post(`/api/ships/${selectedShip.id}/update-next-survey`);
+      
+      const result = response.data;
+      
+      if (result.success) {
+        // Show detailed success message
+        toast.success(language === 'vi' 
+          ? `✅ Đã cập nhật Next Survey cho ${result.updated_count}/${result.total_certificates} chứng chỉ của tàu ${result.ship_name}`
+          : `✅ Updated Next Survey for ${result.updated_count}/${result.total_certificates} certificates of ship ${result.ship_name}`
+        );
+        
+        // Show sample changes
+        if (result.results && result.results.length > 0) {
+          const sampleChanges = result.results.slice(0, 2);
+          const changesSummary = sampleChanges.map(cert => 
+            `${cert.cert_name}: ${cert.new_next_survey_type}`
+          ).join('; ');
+          
+          if (changesSummary) {
+            setTimeout(() => {
+              toast.info(language === 'vi' 
+                ? `Ví dụ cập nhật: ${changesSummary}`
+                : `Sample updates: ${changesSummary}`, 
+                { duration: 8000 }
+              );
+            }, 2000);
+          }
+        }
+        
+        // Refresh certificates list
+        await fetchCertificates(selectedShip.id);
+      } else {
+        toast.warning(result.message || (language === 'vi' 
+          ? 'Không thể cập nhật Next Survey'
+          : 'Could not update Next Survey'
+        ));
+      }
     } catch (error) {
-      console.error('Error updating survey types:', error);
-      toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+      console.error('Next Survey update error:', error);
+      toast.error(language === 'vi' 
+        ? `❌ Lỗi khi cập nhật Next Survey: ${error.response?.data?.detail || error.message}`
+        : `❌ Error updating Next Survey: ${error.response?.data?.detail || error.message}`
+      );
     } finally {
       setIsUpdatingSurveyTypes(false);
     }
