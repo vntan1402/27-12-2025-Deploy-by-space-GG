@@ -14633,7 +14633,7 @@ async def delete_ship_folder_from_gdrive(
         
         # Get Apps Script configuration
         apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
-        main_folder_id = gdrive_config_doc.get("main_folder_id")
+        main_folder_id = gdrive_config_doc.get("folder_id") or gdrive_config_doc.get("main_folder_id")
         
         if not apps_script_url:
             raise HTTPException(status_code=400, detail="Apps Script URL not configured")
