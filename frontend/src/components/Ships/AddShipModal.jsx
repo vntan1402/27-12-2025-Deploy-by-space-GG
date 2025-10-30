@@ -53,6 +53,35 @@ const AddShipModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       fetchCompanies();
+    } else {
+      // Reset form when modal closes to prevent stale state
+      setShipData({
+        name: '',
+        imo_number: '',
+        ship_type: '',
+        class_society: '',
+        flag: '',
+        gross_tonnage: '',
+        deadweight: '',
+        built_year: '',
+        delivery_date: '',
+        keel_laid: '',
+        ship_owner: '',
+        company: user?.company || '',
+        last_docking: '',
+        last_docking_2: '',
+        next_docking: '',
+        last_special_survey: '',
+        last_intermediate_survey: '',
+        special_survey_from_date: '',
+        special_survey_to_date: '',
+        anniversary_date_day: '',
+        anniversary_date_month: '',
+      });
+      setPdfFile(null);
+      setIsPdfAnalyzing(false);
+      setIsSubmitting(false);
+      setUserCompanyName('');
     }
   }, [isOpen]);
 
