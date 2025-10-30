@@ -310,17 +310,22 @@ const AddShipModal = ({ isOpen, onClose }) => {
     if (!dockingStr || dockingStr.trim() === '') return null;
     
     try {
-      // If in MM/YYYY format, convert to YYYY-MM-01 (first day of month)
-      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{1,2}\/\d{4}$/)) {
-        const parts = dockingStr.split('/');
-        if (parts.length === 2) {
-          const [month, year] = parts;
-          return `${year}-${month.padStart(2, '0')}-01`;
-        }
+      // If in MM/YYYY format, convert to ISO datetime (YYYY-MM-01T00:00:00Z)
+      const mmYyyyPattern = /^\d{1,2}\/\d{4}$/;
+      if (typeof dockingStr === 'string' && mmYyyyPattern.test(dockingStr.trim())) {
+        const [month, year] = dockingStr.trim().split('/');
+        const paddedMonth = month.padStart(2, '0');
+        // Convert to ISO datetime (first day of the month)
+        return `${year}-${paddedMonth}-01T00:00:00Z`;
       }
       
-      // If already in YYYY-MM-DD format, return as is
+      // If already in YYYY-MM-DD format, convert to ISO datetime
       if (typeof dockingStr === 'string' && dockingStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return `${dockingStr}T00:00:00Z`;
+      }
+      
+      // If already in ISO datetime format, return as is
+      if (typeof dockingStr === 'string' && (dockingStr.includes('T') || dockingStr.includes('Z'))) {
         return dockingStr;
       }
       
