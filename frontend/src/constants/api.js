@@ -22,6 +22,9 @@ export const API_ENDPOINTS = {
   SHIP_BY_ID: (id) => `/api/ships/${id}`,
   SHIP_LOGO: (id) => `/api/ships/${id}/logo`,
   SHIP_ANALYZE_CERTIFICATE: '/api/analyze-ship-certificate',
+  SHIP_CALCULATE_NEXT_DOCKING: (id) => `/api/ships/${id}/calculate-next-docking`,
+  SHIP_CALCULATE_ANNIVERSARY_DATE: (id) => `/api/ships/${id}/calculate-anniversary-date`,
+  SHIP_CALCULATE_SPECIAL_SURVEY: (id) => `/api/ships/${id}/calculate-special-survey-cycle`,
   
   // Crew
   CREWS: '/api/crews',
