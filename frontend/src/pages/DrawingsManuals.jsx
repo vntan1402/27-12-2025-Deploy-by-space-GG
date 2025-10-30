@@ -21,7 +21,7 @@ const DrawingsManuals = () => {
   
   // State
   const [selectedCategory] = useState('ship_certificates');
-  const [selectedSubMenu, setSelectedSubMenu] = useState('drawings_manuals');
+  const [selectedSubMenu, setSelectedSubMenu] = useState('drawings');
   const [showShipModal, setShowShipModal] = useState(false);
   const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
