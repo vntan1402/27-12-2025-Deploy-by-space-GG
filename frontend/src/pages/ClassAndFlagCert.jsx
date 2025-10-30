@@ -399,6 +399,16 @@ const ClassAndFlagCert = () => {
         )}
       </div>
 
+      {/* Add Ship Modal */}
+      <AddShipModal 
+        isOpen={showAddShipModal}
+        onClose={() => {
+          console.log('Closing Add Ship modal');
+          setShowAddShipModal(false);
+        }}
+        onShipCreated={handleShipCreated}
+      />
+
       {/* Edit Ship Modal */}
       {showEditShipModal && selectedShip && (
         <EditShipModal
