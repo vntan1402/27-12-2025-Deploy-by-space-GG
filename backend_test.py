@@ -214,7 +214,7 @@ class ShipCalculationAPITester:
             }
             
             print(f"📡 GET {BACKEND_URL}/ships")
-            print(f"🎯 Getting list of ships to find test ship (preferably BROTHER 36)")
+            print(f"🎯 Getting list of ships to find test ship for calculation APIs")
             
             # Make request to get ships
             response = self.session.get(
@@ -232,30 +232,28 @@ class ShipCalculationAPITester:
                     self.print_result(False, "No ships found in the system")
                     return False
                 
-                # Look for BROTHER 36 first, then any ship
+                # Look for any ship to use for testing
                 target_ship = None
                 for ship in ships:
                     ship_name = ship.get('name', '')
                     print(f"🚢 Ship: {ship_name} (ID: {ship.get('id')})")
                     
-                    if 'BROTHER 36' in ship_name.upper():
+                    # Use first ship found
+                    if not target_ship:
                         target_ship = ship
-                        print(f"✅ Found preferred test ship: {ship_name}")
-                        break
-                
-                # If BROTHER 36 not found, use first ship
-                if not target_ship and ships:
-                    target_ship = ships[0]
-                    print(f"⚠️ BROTHER 36 not found, using first ship: {target_ship.get('name')}")
+                        print(f"✅ Selected test ship: {ship_name}")
                 
                 if target_ship:
                     self.test_ship_id = target_ship['id']
                     self.test_ship_name = target_ship['name']
+                    self.test_ship_data = target_ship
                     print(f"🎯 Test Ship Selected:")
                     print(f"   ID: {self.test_ship_id}")
                     print(f"   Name: {self.test_ship_name}")
                     print(f"   IMO: {target_ship.get('imo', 'N/A')}")
                     print(f"   Flag: {target_ship.get('flag', 'N/A')}")
+                    print(f"   Last Docking: {target_ship.get('last_docking', 'N/A')}")
+                    print(f"   Next Docking: {target_ship.get('next_docking', 'N/A')}")
                     
                     self.print_result(True, f"Successfully found test ship: {self.test_ship_name}")
                     return True
