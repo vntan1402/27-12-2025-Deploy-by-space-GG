@@ -13,6 +13,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
   const [shipData, setShipData] = useState({
     name: '',
     imo_number: '',
+    ship_type: '',
     class_society: '',
     flag: '',
     gross_tonnage: '',
