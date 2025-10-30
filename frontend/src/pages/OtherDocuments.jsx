@@ -503,4 +503,4 @@ const OtherDocuments = () => {
   );
 };
 
-export default ClassSurveyReport;
+export default OtherDocuments;
