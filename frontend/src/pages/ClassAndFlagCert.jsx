@@ -102,11 +102,35 @@ const ClassAndFlagCert = () => {
     errors: []
   });
 
-  // Fetch ships on mount
+  // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
     fetchShips();
     fetchAiConfig();
+    
+    // Restore selected ship from localStorage
+    const savedShipId = localStorage.getItem('selectedShipId');
+    if (savedShipId) {
+      // We'll set the ship after ships are loaded
+      console.log('Found saved ship ID:', savedShipId);
+    }
   }, []);
+
+  // Restore selected ship after ships are loaded
+  useEffect(() => {
+    if (ships.length > 0 && !selectedShip) {
+      const savedShipId = localStorage.getItem('selectedShipId');
+      if (savedShipId) {
+        const savedShip = ships.find(s => s.id === savedShipId);
+        if (savedShip) {
+          console.log('Restoring selected ship:', savedShip.name);
+          setSelectedShip(savedShip);
+        } else {
+          // Ship not found, clear localStorage
+          localStorage.removeItem('selectedShipId');
+        }
+      }
+    }
+  }, [ships]);
 
   // Close context menus on click outside
   useEffect(() => {
