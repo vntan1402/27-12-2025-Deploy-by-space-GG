@@ -1545,6 +1545,17 @@ const ClassAndFlagCert = () => {
         checkDate={upcomingSurveyModal.checkDate}
         language={language}
       />
+
+      {/* Certificate Notes Modal */}
+      <CertificateNotesModal
+        isOpen={notesModal.show}
+        onClose={() => setNotesModal({ show: false, certificate: null, notes: '' })}
+        certificate={notesModal.certificate}
+        notes={notesModal.notes}
+        onNotesChange={(newNotes) => setNotesModal(prev => ({ ...prev, notes: newNotes }))}
+        onSave={handleSaveNotes}
+        language={language}
+      />
     </MainLayout>
   );
 };
