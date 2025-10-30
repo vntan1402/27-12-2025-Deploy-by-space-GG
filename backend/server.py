@@ -5189,6 +5189,118 @@ async def delete_certificate(cert_id: str, current_user: UserResponse = Depends(
         logger.error(f"Error deleting certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete certificate")
 
+@api_router.post("/certificates/bulk-delete")
+async def bulk_delete_ship_certificates(
+    request: BulkDeleteRequest,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Bulk delete ship certificates with Google Drive file cleanup
+    """
+    try:
+        cert_ids = request.certificate_ids
+        
+        logger.info(f"🗑️ Bulk delete ship certificates request: {len(cert_ids)} certificate(s)")
+        logger.info(f"📋 Certificate IDs: {cert_ids}")
+        
+        deleted_count = 0
+        gdrive_files_deleted = 0
+        errors = []
+        
+        for cert_id in cert_ids:
+            try:
+                logger.info(f"🔍 Checking certificate: {cert_id}")
+                
+                # Check if certificate exists
+                cert = await mongo_db.find_one("certificates", {"id": cert_id})
+                
+                if not cert:
+                    logger.warning(f"⚠️ Certificate not found: {cert_id}")
+                    errors.append(f"Certificate {cert_id} not found")
+                    continue
+                
+                logger.info(f"✅ Found certificate: {cert.get('cert_name')}")
+                
+                # Get company ID for Google Drive operations
+                ship_id = cert.get("ship_id")
+                company_id = None
+                
+                if ship_id:
+                    ship = await mongo_db.find_one("ships", {"id": ship_id})
+                    if ship:
+                        company_name = ship.get("company")
+                        if company_name:
+                            # Find company by name to get ID
+                            company = await mongo_db.find_one("companies", {"name": company_name})
+                            if not company:
+                                company = await mongo_db.find_one("companies", {"name_en": company_name})
+                            if not company:
+                                company = await mongo_db.find_one("companies", {"name_vn": company_name})
+                            if company:
+                                company_id = company.get("id")
+                
+                # Delete from Google Drive if file exists
+                gdrive_file_id = cert.get("google_drive_file_id") or cert.get("gdrive_file_id")
+                if gdrive_file_id and company_id:
+                    logger.info(f"🗑️ Deleting file from Google Drive: {gdrive_file_id}")
+                    try:
+                        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+                        
+                        if gdrive_config_doc:
+                            apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+                            
+                            if apps_script_url:
+                                import aiohttp
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": gdrive_file_id,
+                                    "permanent_delete": False
+                                }
+                                
+                                async with aiohttp.ClientSession() as session:
+                                    async with session.post(
+                                        apps_script_url,
+                                        json=payload,
+                                        headers={"Content-Type": "application/json"},
+                                        timeout=aiohttp.ClientTimeout(total=30)
+                                    ) as response:
+                                        if response.status == 200:
+                                            result = await response.json()
+                                            if result.get("success"):
+                                                logger.info(f"✅ Google Drive file deleted: {gdrive_file_id}")
+                                                gdrive_files_deleted += 1
+                                            else:
+                                                logger.warning(f"⚠️ Google Drive delete failed: {result.get('error')}")
+                                        else:
+                                            logger.warning(f"⚠️ Apps Script error: HTTP {response.status}")
+                    except Exception as e:
+                        logger.error(f"❌ Error deleting Google Drive file: {e}")
+                
+                # Delete from database
+                result = await mongo_db.delete_one("certificates", {"id": cert_id})
+                if result:
+                    deleted_count += 1
+                    logger.info(f"✅ Certificate deleted from database: {cert_id}")
+                else:
+                    logger.warning(f"⚠️ Failed to delete certificate from database: {cert_id}")
+                    errors.append(f"Failed to delete certificate {cert_id}")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error deleting certificate {cert_id}: {e}")
+                errors.append(f"Error deleting {cert_id}: {str(e)}")
+        
+        return {
+            "success": True,
+            "deleted_count": deleted_count,
+            "gdrive_files_deleted": gdrive_files_deleted,
+            "total_requested": len(cert_ids),
+            "errors": errors if errors else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in bulk delete ship certificates: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to bulk delete certificates: {str(e)}")
+
 # Certificate abbreviation mapping endpoints
 @api_router.get("/certificate-abbreviation-mappings", response_model=List[CertificateAbbreviationMappingResponse])
 async def get_certificate_abbreviation_mappings(current_user: UserResponse = Depends(get_current_user)):
