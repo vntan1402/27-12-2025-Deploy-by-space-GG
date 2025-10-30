@@ -398,6 +398,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
     setShipData({
       name: '',
       imo_number: '',
+      ship_type: '',
       class_society: '',
       flag: '',
       gross_tonnage: '',
