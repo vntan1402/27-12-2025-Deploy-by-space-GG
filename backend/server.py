@@ -4749,9 +4749,31 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         user_company = current_user.company
         logger.info(f"Checking upcoming surveys for company: {user_company}")
         
-        # Get all ships belonging to user's company
-        ships = await mongo_db.find_all("ships", {"company": user_company})
+        # Get company record to get company name for dual lookup
+        company_record = await mongo_db.find_one("companies", {"id": user_company})
+        company_name = None
+        if company_record:
+            company_name = company_record.get('name_en') or company_record.get('name_vn')
+            logger.info(f"Company name: {company_name}")
+        
+        # Dual lookup: Get all ships by company ID OR company name
+        # This handles data inconsistency where some ships use ID, others use name
+        ships_by_id = await mongo_db.find_all("ships", {"company": user_company})
+        ships_by_name = []
+        if company_name:
+            ships_by_name = await mongo_db.find_all("ships", {"company": company_name})
+        
+        # Combine and deduplicate ships
+        all_ships_dict = {}
+        for ship in ships_by_id + ships_by_name:
+            ship_id = ship.get('id')
+            if ship_id and ship_id not in all_ships_dict:
+                all_ships_dict[ship_id] = ship
+        
+        ships = list(all_ships_dict.values())
         ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+        
+        logger.info(f"Found {len(ships)} ships for company (by ID: {len(ships_by_id)}, by name: {len(ships_by_name)})")
         
         if not ship_ids:
             logger.info(f"No ships found for company: {user_company}")
