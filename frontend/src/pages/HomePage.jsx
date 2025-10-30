@@ -55,13 +55,19 @@ const HomePage = () => {
   return (
     <MainLayout
       sidebar={
-        <Sidebar 
+        <Sidebar
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
-          onAddRecord={handleAddRecord}
+          onAddRecord={handleAddShip}
         />
       }
     >
+      {/* Add Ship Modal */}
+      <AddShipModal 
+        isOpen={showAddShipModal}
+        onClose={() => setShowAddShipModal(false)}
+      />
+      
       {/* Company Logo Banner */}
       {companyLogo ? (
         <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative mb-6 shadow-md">
