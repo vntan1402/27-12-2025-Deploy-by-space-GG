@@ -179,9 +179,9 @@ class DeleteShipGDriveTester:
             self.print_result(False, f"Exception during get company ID test: {str(e)}")
             return False
     
-    def test_get_ai_config_with_auth(self):
-        """Test 2: GET /api/ai-config with valid admin token (should return AI config)"""
-        self.print_test_header("Test 2 - GET AI Config With Authentication")
+    def test_get_ships_list(self):
+        """Test 2: Get list of ships to find a test ship"""
+        self.print_test_header("Test 2 - Get Ships List")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
@@ -193,75 +193,66 @@ class DeleteShipGDriveTester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/ai-config")
-            print(f"🎯 Testing with valid admin token - should return current AI config")
+            print(f"📡 GET {BACKEND_URL}/ships")
+            print(f"🎯 Getting list of ships to find test ship (preferably BROTHER 36)")
             
-            # Make request with authorization header
+            # Make request to get ships
             response = self.session.get(
-                f"{BACKEND_URL}/ai-config",
+                f"{BACKEND_URL}/ships",
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
-                config_data = response.json()
-                print(f"📄 Response Type: {type(config_data)}")
+                ships = response.json()
+                print(f"📄 Found {len(ships)} ships")
                 
-                if not isinstance(config_data, dict):
-                    self.print_result(False, f"Expected dict response, got: {type(config_data)}")
+                if not ships:
+                    self.print_result(False, "No ships found in the system")
                     return False
                 
-                # Verify required AI config fields are present
-                required_fields = ["provider", "model", "use_emergent_key"]
-                missing_fields = []
+                # Look for BROTHER 36 first, then any ship
+                target_ship = None
+                for ship in ships:
+                    ship_name = ship.get('name', '')
+                    print(f"🚢 Ship: {ship_name} (ID: {ship.get('id')})")
+                    
+                    if 'BROTHER 36' in ship_name.upper():
+                        target_ship = ship
+                        print(f"✅ Found preferred test ship: {ship_name}")
+                        break
                 
-                for field in required_fields:
-                    if field not in config_data:
-                        missing_fields.append(field)
+                # If BROTHER 36 not found, use first ship
+                if not target_ship and ships:
+                    target_ship = ships[0]
+                    print(f"⚠️ BROTHER 36 not found, using first ship: {target_ship.get('name')}")
                 
-                if missing_fields:
-                    self.print_result(False, f"AI config response missing required fields: {missing_fields}")
-                    return False
-                
-                # Store original config for restoration later
-                self.original_ai_config = config_data.copy()
-                
-                # Print AI config details
-                print(f"\n🤖 Current AI Configuration:")
-                print(f"   Provider: {config_data.get('provider')}")
-                print(f"   Model: {config_data.get('model')}")
-                print(f"   Use Emergent Key: {config_data.get('use_emergent_key')}")
-                
-                # Check document_ai config if present
-                document_ai = config_data.get('document_ai')
-                if document_ai:
-                    print(f"   Document AI Enabled: {document_ai.get('enabled')}")
-                    print(f"   Document AI Project ID: {document_ai.get('project_id')}")
-                    print(f"   Document AI Location: {document_ai.get('location')}")
-                    print(f"   Document AI Processor ID: {document_ai.get('processor_id')}")
-                    print(f"   Document AI Apps Script URL: {document_ai.get('apps_script_url')}")
+                if target_ship:
+                    self.test_ship_id = target_ship['id']
+                    self.test_ship_name = target_ship['name']
+                    print(f"🎯 Test Ship Selected:")
+                    print(f"   ID: {self.test_ship_id}")
+                    print(f"   Name: {self.test_ship_name}")
+                    print(f"   IMO: {target_ship.get('imo', 'N/A')}")
+                    print(f"   Flag: {target_ship.get('flag', 'N/A')}")
+                    
+                    self.print_result(True, f"Successfully found test ship: {self.test_ship_name}")
+                    return True
                 else:
-                    print(f"   Document AI: Not configured")
-                
-                # Verify API key is NOT exposed in response
-                if 'api_key' in config_data:
-                    self.print_result(False, "❌ SECURITY ISSUE: API key exposed in GET response")
+                    self.print_result(False, "No suitable test ship found")
                     return False
-                
-                self.print_result(True, "✅ GET /api/ai-config with auth returns valid AI configuration (API key properly hidden)")
-                return True
                 
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"GET AI config failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"GET ships failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"GET AI config failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"GET ships failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during GET AI config with auth test: {str(e)}")
+            self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
     def test_post_ai_config_with_valid_payload(self):
