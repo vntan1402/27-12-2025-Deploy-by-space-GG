@@ -732,9 +732,9 @@ class BackendAPITester:
                         print(f"📄 Optional field missing: {field}")
                 
                 upcoming_surveys = response_data.get("upcoming_surveys", [])
-                total_count = response_data.get("total_count", 0)
-                company = response_data.get("company", "")
-                check_date = response_data.get("check_date", "")
+                total_count = response_data.get("total_count", len(upcoming_surveys))
+                company = response_data.get("company", "Unknown")
+                check_date = response_data.get("check_date", "Unknown")
                 
                 print(f"🏢 Company: {company}")
                 print(f"📅 Check Date: {check_date}")
