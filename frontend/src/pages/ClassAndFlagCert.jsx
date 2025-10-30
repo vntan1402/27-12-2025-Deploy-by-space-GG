@@ -1224,7 +1224,7 @@ const ClassAndFlagCert = () => {
       
       // Navigate back to ship list if current ship was deleted
       if (selectedShip && selectedShip.id === shipId) {
-        setSelectedShip(null);
+        updateSelectedShip(null);
       }
 
     } catch (error) {
