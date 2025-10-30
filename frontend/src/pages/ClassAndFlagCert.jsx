@@ -366,11 +366,18 @@ const ClassAndFlagCert = () => {
 
   // Handle ship certificate success
   const handleShipCertificateSuccess = async () => {
-    // Refresh certificate list
+    // Refresh certificate list with loading indicator
     if (selectedShip?.id) {
-      await fetchCertificates(selectedShip.id);
+      setCertificatesLoading(true);
+      try {
+        await fetchCertificates(selectedShip.id);
+        toast.success(language === 'vi' ? '✅ Đã cập nhật danh sách certificate!' : '✅ Certificate list updated!');
+      } catch (error) {
+        console.error('Error refreshing certificates:', error);
+      } finally {
+        setCertificatesLoading(false);
+      }
     }
-    toast.success(language === 'vi' ? '✅ Đã thêm certificate thành công!' : '✅ Certificate added successfully!');
   };
 
   const handleAddRecord = () => {
