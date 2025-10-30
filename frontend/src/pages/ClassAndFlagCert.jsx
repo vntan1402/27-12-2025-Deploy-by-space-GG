@@ -8,6 +8,7 @@ import { MainLayout, Sidebar, SubMenuBar } from '../components/Layout';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { shipService } from '../services';
 import { toast } from 'sonner';
+import { shortenClassSociety } from '../utils/shipHelpers';
 
 const ClassAndFlagCert = () => {
   const { language } = useAuth();
