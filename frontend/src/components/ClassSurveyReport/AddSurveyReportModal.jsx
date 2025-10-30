@@ -271,6 +271,90 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
               </p>
             </div>
 
+            {/* File Upload Area - PHASE 2 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {language === 'vi' ? '📄 Upload File PDF (Tùy chọn - AI sẽ tự động điền)' : '📄 Upload PDF File (Optional - AI will auto-fill)'}
+              </label>
+              
+              {!uploadedFile ? (
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+                    isDragOver 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="text-4xl">📄</div>
+                    <p className="text-sm text-gray-600">
+                      {language === 'vi' 
+                        ? 'Kéo thả file PDF vào đây hoặc click để chọn' 
+                        : 'Drag & drop PDF file here or click to select'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {language === 'vi' ? 'Chỉ hỗ trợ file PDF, tối đa 50MB' : 'PDF only, max 50MB'}
+                    </p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                </div>
+              ) : (
+                <div className="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">📄</span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{uploadedFile.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveFile}
+                      className="text-red-500 hover:text-red-700 p-2"
+                      disabled={isAnalyzing}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {isAnalyzing && (
+                    <div className="mt-3 flex items-center gap-2 text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-sm">
+                        {language === 'vi' ? '🤖 Đang phân tích với AI...' : '🤖 Analyzing with AI...'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Divider */}
+            {uploadedFile && (
+              <div className="border-t border-gray-200 pt-4">
+                <p className="text-sm text-gray-600 mb-4">
+                  {language === 'vi' 
+                    ? '✏️ Vui lòng kiểm tra và chỉnh sửa thông tin nếu cần:' 
+                    : '✏️ Please review and edit information if needed:'}
+                </p>
+              </div>
+            )}
+
             {/* Row 1: Survey Report Name + Report Form */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Survey Report Name */}
