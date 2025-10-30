@@ -49,7 +49,8 @@ export const EditShipCertificateModal = ({
         next_survey_type: certificate.next_survey_type || '',
         issued_by: certificate.issued_by || '',
         issued_by_abbreviation: certificate.issued_by_abbreviation || '',
-        notes: certificate.notes || ''
+        notes: certificate.notes || '',
+        exclude_from_auto_update: certificate.exclude_from_auto_update || false
       });
     }
   }, [certificate]);
