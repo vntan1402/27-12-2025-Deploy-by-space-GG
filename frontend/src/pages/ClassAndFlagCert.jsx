@@ -61,7 +61,16 @@ const ClassAndFlagCert = () => {
   };
 
   const handleAddRecord = () => {
-    toast.info(language === 'vi' ? 'Chức năng thêm record sẽ được triển khai trong Phase 4' : 'Add record feature will be implemented in Phase 4');
+    console.log('Add Ship button clicked from ClassAndFlagCert');
+    setShowAddShipModal(true);
+  };
+
+  const handleShipCreated = (shipId, shipName) => {
+    // Close modal
+    setShowAddShipModal(false);
+    // Refresh ship list to show new ship
+    fetchShips();
+    // Don't need to navigate - already on this page!
   };
 
   const handleEditShip = (ship) => {
