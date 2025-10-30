@@ -1302,7 +1302,7 @@ const ClassAndFlagCert = () => {
       {selectedShip && (
         <ShipDetailPanel
           ship={selectedShip}
-          onClose={() => setSelectedShip(null)}
+          onClose={() => updateSelectedShip(null)}
           onEditShip={handleEditShip}
           showShipParticular={true}
           onShipSelect={() => setShowShipModal(true)}
