@@ -1,9 +1,12 @@
 /**
  * Add Survey Report Modal
- * Manual input modal for creating new survey reports
- * Phase 1: Manual input only (no AI analysis)
+ * Phase 2: With AI Analysis + File Upload
+ * - Drag & drop PDF file
+ * - AI auto-fill form fields
+ * - Manual edit before saving
+ * - Upload files in background
  */
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { surveyReportService } from '../../services';
 import { toast } from 'sonner';
