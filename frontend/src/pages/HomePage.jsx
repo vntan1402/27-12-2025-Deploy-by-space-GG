@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar } from '../components/Layout';
 import AddShipModal from '../components/Ships/AddShipModal';
@@ -6,6 +7,7 @@ import { companyService } from '../services';
 
 const HomePage = () => {
   const { language, user } = useAuth();
+  const navigate = useNavigate();
   
   // State management
   const [selectedCategory, setSelectedCategory] = useState('ship_certificates');
