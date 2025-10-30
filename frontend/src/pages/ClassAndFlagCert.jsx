@@ -116,16 +116,16 @@ const ClassAndFlagCert = () => {
         setContextMenu(null);
       }
       // Close survey type context menu
-      if (surveyTypeContextMenu.show) {
+      if (surveyTypeContextMenu?.show) {
         setSurveyTypeContextMenu({ show: false, x: 0, y: 0, certificate: null, currentType: '' });
       }
     };
 
-    if (contextMenu || surveyTypeContextMenu.show) {
+    if (contextMenu || surveyTypeContextMenu?.show) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [contextMenu, surveyTypeContextMenu.show]);
+  }, [contextMenu, surveyTypeContextMenu]);
 
   // Fetch AI Config
   const fetchAiConfig = async () => {
