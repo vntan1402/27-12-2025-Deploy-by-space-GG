@@ -460,8 +460,8 @@ const TestReport = () => {
             )}
           </div>
         ) : (
-          /* Class Survey Report List Section - Placeholder */
-          <ClassSurveyReportList />
+          /* Test Report List Section - Placeholder */
+          <TestReportList />
         )}
       </div>
 
