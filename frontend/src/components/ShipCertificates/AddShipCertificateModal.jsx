@@ -483,7 +483,7 @@ export const AddShipCertificateModal = ({
         next_survey: certificateData.next_survey ? convertDateInputToUTC(certificateData.next_survey) : null
       };
 
-      const response = await api.post('/api/ships/certificates', certPayload);
+      const response = await api.post('/api/certificates', certPayload);
       
       toast.success(language === 'vi' 
         ? '✅ Chứng chỉ đã được thêm thành công!' 
