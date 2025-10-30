@@ -206,6 +206,18 @@ const ClassAndFlagCert = () => {
     }
   };
 
+  // Helper function to update selected ship and save to localStorage
+  const updateSelectedShip = (ship) => {
+    setSelectedShip(ship);
+    if (ship) {
+      localStorage.setItem('selectedShipId', ship.id);
+      console.log('Saved ship to localStorage:', ship.name, ship.id);
+    } else {
+      localStorage.removeItem('selectedShipId');
+      console.log('Removed ship from localStorage');
+    }
+  };
+
   // ===== CERTIFICATE FUNCTIONS =====
   
   // Fetch certificates for selected ship
