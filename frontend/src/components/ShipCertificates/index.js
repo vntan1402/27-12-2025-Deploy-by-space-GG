@@ -4,3 +4,5 @@
  */
 
 export { AddShipCertificateModal } from './AddShipCertificateModal';
+export { DuplicateShipCertificateModal } from './DuplicateShipCertificateModal';
+export { ShipNameMismatchModal } from './ShipNameMismatchModal';
