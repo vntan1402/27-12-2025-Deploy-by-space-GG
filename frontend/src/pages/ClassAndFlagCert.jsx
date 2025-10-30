@@ -6,21 +6,25 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar } from '../components/Layout';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
-import { EditShipModal } from '../components/Ships';
+import { EditShipModal, DeleteShipConfirmationModal } from '../components/Ships';
 import { shipService } from '../services';
-import { toast } from 'sonner';
+import api from '../services/api';
+import { toast } from 'react-toastify';
 import { shortenClassSociety } from '../utils/shipHelpers';
 
 const ClassAndFlagCert = () => {
-  const { language } = useAuth();
+  const { language, user } = useAuth();
   
   // State
   const [selectedCategory] = useState('ship_certificates');
   const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
   const [showShipModal, setShowShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
+  const [showDeleteShipModal, setShowDeleteShipModal] = useState(false);
   const [ships, setShips] = useState([]);
   const [selectedShip, setSelectedShip] = useState(null);
+  const [deleteShipData, setDeleteShipData] = useState(null);
+  const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Fetch ships on mount
