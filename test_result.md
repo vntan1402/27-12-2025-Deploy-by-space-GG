@@ -49,6 +49,7 @@
 ##
 ## test_plan:
   current_focus:
+    - "Delete Ship Feature - Google Drive Folder Deletion Fix"
     - "Certificate Name Searchable Dropdown in Edit Modal"
     - "Auto Move Standby Files Feature"
     - "Standby Crew Folder Detection Enhancement"
@@ -59,6 +60,8 @@
     - "Document AI Passport Analysis Integration"
   test_all: false
   test_priority: "high_first"
+
+user_problem_statement: "Fix Delete Ship Google Drive folder deletion feature. The Apps Script action name mismatch is causing Google Drive deletion to fail. Backend endpoint '/api/companies/{company_id}/gdrive/delete-ship-folder' is sending action 'delete_ship_folder' but Apps Script v4.3 expects 'delete_complete_ship_structure'. Need to update backend to use correct action name and test both deletion options: database-only and database + Google Drive folder."
 
 frontend:
   - task: "Certificate Name Searchable Dropdown in Edit Modal"
