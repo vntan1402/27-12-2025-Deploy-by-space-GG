@@ -348,7 +348,10 @@ const AddShipModal = ({ isOpen, onClose }) => {
 
       const response = await shipService.create(apiData);
       
-      if (response && response.id) {
+      console.log('Ship creation response:', response);
+      
+      if (response && response.data && response.data.id) {
+        const shipId = response.data.id;
         toast.success(language === 'vi' 
           ? `✅ Tạo tàu ${shipData.name} thành công!`
           : `✅ Ship ${shipData.name} created successfully!`
