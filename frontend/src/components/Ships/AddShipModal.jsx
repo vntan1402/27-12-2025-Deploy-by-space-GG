@@ -5,7 +5,7 @@ import { shipService, companyService } from '../../services';
 import api from '../../services/api';
 import { toast } from 'react-toastify';
 
-const AddShipModal = ({ isOpen, onClose }) => {
+const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
   const { language, user } = useAuth();
   const navigate = useNavigate();
   
