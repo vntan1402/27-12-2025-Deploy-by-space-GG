@@ -1970,6 +1970,10 @@ async def enhance_certificate_response(cert_dict: dict) -> dict:
         # Add has_notes flag
         cert_dict['has_notes'] = bool(cert_dict.get('notes'))
         
+        # Preserve exclude_from_auto_update flag (default to False if not present)
+        if 'exclude_from_auto_update' not in cert_dict:
+            cert_dict['exclude_from_auto_update'] = False
+        
         # Ensure next_survey_display is included if available
         if 'next_survey_display' not in cert_dict:
             cert_dict['next_survey_display'] = None
