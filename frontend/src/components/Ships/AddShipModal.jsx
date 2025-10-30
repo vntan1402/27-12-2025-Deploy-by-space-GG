@@ -385,19 +385,19 @@ const AddShipModal = ({ isOpen, onClose }) => {
         gross_tonnage: shipData.gross_tonnage ? parseFloat(shipData.gross_tonnage) : null,
         deadweight: shipData.deadweight ? parseFloat(shipData.deadweight) : null,
         built_year: shipData.built_year ? parseInt(shipData.built_year) : null,
-        delivery_date: shipData.delivery_date || null,
-        keel_laid: shipData.keel_laid || null,
+        delivery_date: convertDateInputToUTC(shipData.delivery_date),
+        keel_laid: convertDateInputToUTC(shipData.keel_laid),
         ship_owner: shipData.ship_owner.trim(),
         company: shipData.company.trim(),
-        // Docking information - convert MM/YYYY format to YYYY-MM-DD
+        // Docking information - convert MM/YYYY format to ISO datetime
         last_docking: formatLastDockingForBackend(shipData.last_docking),
         last_docking_2: formatLastDockingForBackend(shipData.last_docking_2),
-        next_docking: shipData.next_docking || null,
-        // Survey information
-        last_special_survey: shipData.last_special_survey || null,
-        last_intermediate_survey: shipData.last_intermediate_survey || null,
-        special_survey_from_date: shipData.special_survey_from_date || null,
-        special_survey_to_date: shipData.special_survey_to_date || null,
+        next_docking: convertDateInputToUTC(shipData.next_docking),
+        // Survey information - convert to ISO datetime
+        last_special_survey: convertDateInputToUTC(shipData.last_special_survey),
+        last_intermediate_survey: convertDateInputToUTC(shipData.last_intermediate_survey),
+        special_survey_from_date: convertDateInputToUTC(shipData.special_survey_from_date),
+        special_survey_to_date: convertDateInputToUTC(shipData.special_survey_to_date),
         // Anniversary date
         anniversary_date_day: shipData.anniversary_date_day ? parseInt(shipData.anniversary_date_day) : null,
         anniversary_date_month: shipData.anniversary_date_month ? parseInt(shipData.anniversary_date_month) : null,
