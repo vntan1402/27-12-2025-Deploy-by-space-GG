@@ -181,9 +181,15 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       };
 
       // Create survey report
-      await surveyReportService.create(reportData);
+      const createResponse = await surveyReportService.create(reportData);
+      const createdReport = createResponse.data || createResponse;
 
       toast.success(language === 'vi' ? '✅ Đã thêm báo cáo survey' : '✅ Survey report added successfully');
+
+      // Upload files in background if file was selected
+      if (uploadedFile && fileContent && createdReport.id) {
+        uploadFilesInBackground(createdReport.id, uploadedFile.name, fileContent);
+      }
 
       // Reset form
       setFormData({
@@ -196,6 +202,8 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
         note: '',
         surveyor_name: ''
       });
+      setUploadedFile(null);
+      setFileContent(null);
 
       // Callback to refresh list
       if (onReportAdded) {
@@ -211,6 +219,23 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       );
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Upload files in background
+  const uploadFilesInBackground = async (reportId, filename, base64Content) => {
+    try {
+      toast.info(language === 'vi' ? '📤 Đang upload file lên Google Drive...' : '📤 Uploading file to Google Drive...');
+
+      await surveyReportService.uploadFiles(reportId, {
+        filename: filename,
+        file_content: base64Content
+      });
+
+      toast.success(language === 'vi' ? '✅ Upload file thành công!' : '✅ File uploaded successfully!');
+    } catch (error) {
+      console.error('Failed to upload file:', error);
+      toast.error(language === 'vi' ? '❌ Upload file thất bại' : '❌ File upload failed');
     }
   };
 
