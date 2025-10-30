@@ -462,18 +462,17 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           navigate('/certificates');
         }
         
-        // Wait a bit after navigation to ensure page is loaded
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Start background monitoring for Google Drive folder creation
-        // Show info toast that folder creation is in progress
-        toast.info(language === 'vi' 
-          ? '📁 Đang tạo folder Google Drive...'
-          : '📁 Creating Google Drive folder...'
-        );
-        
-        // Poll Google Drive folder creation status in background (non-blocking)
-        (async () => {
+        // Start background monitoring IMMEDIATELY without waiting
+        // Use setTimeout instead of await to avoid blocking
+        setTimeout(() => {
+          // Show info toast that folder creation is in progress
+          toast.info(language === 'vi' 
+            ? '📁 Đang tạo folder Google Drive...'
+            : '📁 Creating Google Drive folder...'
+          );
+          
+          // Poll Google Drive folder creation status in background (non-blocking)
+          (async () => {
           try {
             // Wait a bit before first check (give backend time to start)
             await new Promise(resolve => setTimeout(resolve, 3000));
