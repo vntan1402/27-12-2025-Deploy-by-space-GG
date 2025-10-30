@@ -442,7 +442,7 @@ const ClassSurveyReport = () => {
                         className="w-full py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded font-medium transition-all"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedShip(ship);
+                          updateSelectedShip(ship);
                         }}
                       >
                         {language === 'vi' ? 'Chọn' : 'Select'}
