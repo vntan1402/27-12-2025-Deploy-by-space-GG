@@ -380,6 +380,21 @@ const ClassAndFlagCert = () => {
           onClose={() => setShowEditShipModal(false)}
           ship={selectedShip}
           onShipUpdated={handleShipUpdated}
+          onDeleteShip={handleDeleteShipClick}
+        />
+      )}
+
+      {/* Delete Ship Confirmation Modal */}
+      {showDeleteShipModal && deleteShipData && (
+        <DeleteShipConfirmationModal
+          isOpen={showDeleteShipModal}
+          onClose={() => {
+            setShowDeleteShipModal(false);
+            setDeleteShipData(null);
+          }}
+          ship={deleteShipData}
+          onConfirm={handleDeleteShip}
+          isDeleting={isDeletingShip}
         />
       )}
     </MainLayout>
