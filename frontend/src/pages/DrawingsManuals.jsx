@@ -503,4 +503,4 @@ const DrawingsManuals = () => {
   );
 };
 
-export default ClassSurveyReport;
+export default DrawingsManuals;
