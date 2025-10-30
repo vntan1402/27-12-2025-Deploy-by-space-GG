@@ -68,6 +68,92 @@ const ClassAndFlagCert = () => {
     toast.success(language === 'vi' ? 'Cập nhật tàu thành công!' : 'Ship updated successfully!');
   };
 
+  const handleDeleteShipClick = (ship) => {
+    setDeleteShipData(ship);
+    setShowDeleteShipModal(true);
+  };
+
+  const handleDeleteShip = async (shipId, deleteOption) => {
+    try {
+      setIsDeletingShip(true);
+      
+      // Show initial loading message
+      toast.info(language === 'vi' 
+        ? `Đang xóa tàu ${deleteShipData?.name}...`
+        : `Deleting ship ${deleteShipData?.name}...`
+      );
+
+      // Delete ship from database (with optional Google Drive deletion)
+      const deleteGoogleDriveFolder = deleteOption === 'with_gdrive';
+      const params = deleteGoogleDriveFolder ? '?delete_google_drive_folder=true' : '';
+      
+      const response = await shipService.delete(shipId + params);
+
+      // If user chose to delete Google Drive folder as well
+      if (deleteOption === 'with_gdrive') {
+        try {
+          // Get user's company ID for Google Drive operations
+          const userCompanyId = user?.company || user?.company_id;
+          
+          if (userCompanyId && deleteShipData?.name) {
+            toast.info(language === 'vi' 
+              ? 'Đang xóa folder Google Drive...'
+              : 'Deleting Google Drive folder...'
+            );
+
+            const gdriveResponse = await api.post(`/api/companies/${userCompanyId}/gdrive/delete-ship-folder`, {
+              ship_name: deleteShipData.name
+            });
+
+            if (gdriveResponse && gdriveResponse.data) {
+              toast.success(language === 'vi' 
+                ? 'Đã xóa folder Google Drive thành công'
+                : 'Google Drive folder deleted successfully'
+              );
+            }
+          }
+        } catch (gdriveError) {
+          console.error('Google Drive deletion error:', gdriveError);
+          toast.warning(language === 'vi' 
+            ? 'Đã xóa dữ liệu tàu nhưng có lỗi khi xóa folder Google Drive'
+            : 'Ship data deleted but Google Drive folder deletion failed'
+          );
+        }
+      }
+
+      // Success message
+      toast.success(language === 'vi' 
+        ? `Đã xóa tàu "${deleteShipData?.name}" thành công`
+        : `Ship "${deleteShipData?.name}" deleted successfully`
+      );
+
+      // Refresh ships list
+      await fetchShips();
+
+      // Close modals and reset states
+      setShowDeleteShipModal(false);
+      setShowEditShipModal(false);
+      setDeleteShipData(null);
+      
+      // Navigate back to ship list if current ship was deleted
+      if (selectedShip && selectedShip.id === shipId) {
+        setSelectedShip(null);
+      }
+
+    } catch (error) {
+      console.error('Ship deletion error:', error);
+      
+      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error occurred';
+      
+      toast.error(language === 'vi' 
+        ? `Không thể xóa tàu: ${errorMessage}`
+        : `Failed to delete ship: ${errorMessage}`
+      );
+    } finally {
+      setIsDeletingShip(false);
+    }
+  };
+
   return (
     <MainLayout
       sidebar={
