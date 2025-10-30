@@ -565,6 +565,95 @@ const ClassAndFlagCert = () => {
     }
   };
 
+  // Handle bulk delete certificates
+  const handleBulkDelete = async () => {
+    if (selectedCertificates.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ cần xóa' : 'Please select certificates to delete');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      language === 'vi' 
+        ? `Bạn có chắc chắn muốn xóa ${selectedCertificates.size} chứng chỉ đã chọn?`
+        : `Are you sure you want to delete ${selectedCertificates.size} selected certificates?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const certIds = Array.from(selectedCertificates);
+      
+      // Call backend bulk delete API
+      const response = await api.post('/api/certificates/bulk-delete', {
+        certificate_ids: certIds
+      });
+
+      if (response.data.success) {
+        toast.success(
+          language === 'vi'
+            ? `✅ Đã xóa ${response.data.deleted_count} chứng chỉ`
+            : `✅ Deleted ${response.data.deleted_count} certificates`
+        );
+        
+        // Clear selection
+        setSelectedCertificates(new Set());
+        
+        // Refresh certificate list
+        if (selectedShip?.id) {
+          await fetchCertificates(selectedShip.id);
+        }
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi xóa chứng chỉ'
+          : '❌ Error deleting certificates'
+      );
+    }
+  };
+
+  // Handle notes click
+  const handleNotesClick = (cert) => {
+    setNotesModal({
+      show: true,
+      certificate: cert,
+      notes: cert.notes || ''
+    });
+  };
+
+  // Handle save notes
+  const handleSaveNotes = async () => {
+    if (!notesModal.certificate) return;
+
+    try {
+      await api.put(`/api/certificates/${notesModal.certificate.id}`, {
+        notes: notesModal.notes
+      });
+
+      toast.success(
+        language === 'vi'
+          ? '✅ Đã lưu ghi chú'
+          : '✅ Notes saved'
+      );
+
+      // Close modal
+      setNotesModal({ show: false, certificate: null, notes: '' });
+
+      // Refresh certificates
+      if (selectedShip?.id) {
+        await fetchCertificates(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Save notes error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi lưu ghi chú'
+          : '❌ Error saving notes'
+      );
+    }
+  };
+
   const handleAddRecord = () => {
     console.log('Add Ship button clicked from ClassAndFlagCert');
     setShowAddShipModal(true);
