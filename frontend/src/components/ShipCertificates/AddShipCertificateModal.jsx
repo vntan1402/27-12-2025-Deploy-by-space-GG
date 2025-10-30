@@ -268,12 +268,40 @@ export const AddShipCertificateModal = ({
         // Count success/failed
         const successCount = results.filter(r => r.status === 'success').length;
         const failedCount = results.filter(r => r.status === 'error').length;
+        const duplicateCount = results.filter(r => r.status === 'duplicate').length;
+        const mismatchCount = results.filter(r => r.status === 'ship_mismatch').length;
         
         setUploadSummary({
           success: successCount,
           failed: failedCount,
           total: results.length
         });
+
+        // Handle first duplicate
+        const firstDuplicate = results.find(r => r.status === 'duplicate');
+        if (firstDuplicate) {
+          setDuplicateModal({
+            show: true,
+            duplicates: firstDuplicate.duplicates || [],
+            currentFile: { name: firstDuplicate.filename },
+            analysisResult: firstDuplicate.analysis,
+            uploadResult: firstDuplicate
+          });
+          return; // Stop processing to show modal
+        }
+
+        // Handle first ship name mismatch
+        const firstMismatch = results.find(r => r.status === 'ship_mismatch');
+        if (firstMismatch) {
+          setMismatchModal({
+            show: true,
+            extractedShipName: firstMismatch.extracted_ship_name,
+            currentFile: { name: firstMismatch.filename },
+            analysisResult: firstMismatch.analysis,
+            uploadResult: firstMismatch
+          });
+          return; // Stop processing to show modal
+        }
 
         // Auto-fill form with first successful result
         const firstSuccess = results.find(r => r.status === 'success' && r.analysis);
@@ -304,10 +332,19 @@ export const AddShipCertificateModal = ({
           );
         }
 
-        toast.success(language === 'vi'
-          ? `✅ Upload hoàn tất: ${successCount} thành công, ${failedCount} thất bại`
-          : `✅ Upload complete: ${successCount} success, ${failedCount} failed`
-        );
+        // Show summary toast
+        let summaryMessage = '';
+        if (successCount > 0) summaryMessage += `${successCount} ${language === 'vi' ? 'thành công' : 'success'}`;
+        if (duplicateCount > 0) summaryMessage += `, ${duplicateCount} ${language === 'vi' ? 'trùng' : 'duplicate'}`;
+        if (mismatchCount > 0) summaryMessage += `, ${mismatchCount} ${language === 'vi' ? 'không khớp' : 'mismatch'}`;
+        if (failedCount > 0) summaryMessage += `, ${failedCount} ${language === 'vi' ? 'thất bại' : 'failed'}`;
+
+        if (summaryMessage) {
+          toast.success(language === 'vi'
+            ? `✅ Upload hoàn tất: ${summaryMessage}`
+            : `✅ Upload complete: ${summaryMessage}`
+          );
+        }
       }
     } catch (error) {
       console.error('Multi cert upload error:', error);
