@@ -18,7 +18,6 @@ export const CertificateActionButtons = ({
   onUpcomingSurvey,
   onAddCertificate,
   onRefresh,
-  onBulkDelete,
 }) => {
   return (
     <div className="flex justify-between items-center mb-4">
