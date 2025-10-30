@@ -255,12 +255,12 @@ class DeleteShipGDriveTester:
             self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
-    def test_post_ai_config_with_valid_payload(self):
-        """Test 3: POST /api/ai-config with valid payload (should update AI configuration)"""
-        self.print_test_header("Test 3 - POST AI Config With Valid Payload")
+    def test_gdrive_delete_ship_folder_main(self):
+        """Test 3: MAIN TEST - Google Drive Folder Deletion Endpoint"""
+        self.print_test_header("Test 3 - Google Drive Ship Folder Deletion (MAIN TEST)")
         
-        if not self.access_token:
-            self.print_result(False, "No access token available from authentication test")
+        if not self.access_token or not self.company_id or not self.test_ship_name:
+            self.print_result(False, "Missing required data from previous tests")
             return False
         
         try:
@@ -269,71 +269,130 @@ class DeleteShipGDriveTester:
                 "Content-Type": "application/json"
             }
             
-            # Test payload as specified in the review request
-            test_config = {
-                "provider": "google",
-                "model": "gemini-2.0-flash",
-                "api_key": "EMERGENT_LLM_KEY",
-                "use_emergent_key": True,
-                "document_ai": {
-                    "enabled": False,
-                    "project_id": "",
-                    "location": "us",
-                    "processor_id": "",
-                    "apps_script_url": ""
-                }
+            # Test payload
+            payload = {
+                "ship_name": self.test_ship_name
             }
             
-            print(f"📡 POST {BACKEND_URL}/ai-config")
-            print(f"🎯 Testing with valid AI config payload")
-            print(f"📄 Payload: {json.dumps(test_config, indent=2)}")
+            print(f"📡 POST {BACKEND_URL}/companies/{self.company_id}/gdrive/delete-ship-folder")
+            print(f"🎯 Testing Google Drive folder deletion for ship: {self.test_ship_name}")
+            print(f"📄 Payload: {json.dumps(payload, indent=2)}")
+            print(f"⚠️ WARNING: This is a REAL deletion test - the Google Drive folder will be moved to trash")
             
-            # Make request to update AI config
+            # Make request to delete ship folder from Google Drive
             response = self.session.post(
-                f"{BACKEND_URL}/ai-config",
-                json=test_config,
-                headers=headers
+                f"{BACKEND_URL}/companies/{self.company_id}/gdrive/delete-ship-folder",
+                json=payload,
+                headers=headers,
+                timeout=60  # Longer timeout for Google Drive operations
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
                 response_data = response.json()
-                print(f"📄 Response Type: {type(response_data)}")
-                print(f"📄 Response Data: {response_data}")
+                print(f"📄 Response Data: {json.dumps(response_data, indent=2)}")
                 
-                # Verify success message
-                if 'message' in response_data:
-                    message = response_data['message']
-                    print(f"✅ Success Message: {message}")
-                    
-                    if 'updated successfully' in message.lower():
-                        self.print_result(True, "✅ POST /api/ai-config successfully updates AI configuration")
+                # Check required response fields
+                required_fields = ["success", "message", "ship_name"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in response_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Response missing required fields: {missing_fields}")
+                    return False
+                
+                # Verify response content
+                success = response_data.get("success")
+                message = response_data.get("message")
+                ship_name = response_data.get("ship_name")
+                
+                print(f"✅ Success: {success}")
+                print(f"📝 Message: {message}")
+                print(f"🚢 Ship Name: {ship_name}")
+                
+                # Check for additional fields
+                if "folder_name" in response_data:
+                    print(f"📁 Folder Name: {response_data['folder_name']}")
+                if "files_deleted" in response_data:
+                    print(f"📄 Files Deleted: {response_data['files_deleted']}")
+                if "subfolders_deleted" in response_data:
+                    print(f"📁 Subfolders Deleted: {response_data['subfolders_deleted']}")
+                if "deleted_timestamp" in response_data:
+                    print(f"⏰ Deleted Timestamp: {response_data['deleted_timestamp']}")
+                if "warning" in response_data:
+                    print(f"⚠️ Warning: {response_data['warning']}")
+                
+                # Verify success and ship name match
+                if success and ship_name == self.test_ship_name:
+                    if "deleted successfully" in message:
+                        self.print_result(True, "✅ Google Drive folder deletion successful with correct response structure")
+                        return True
+                    elif "not found" in message.lower():
+                        self.print_result(True, "✅ Google Drive folder deletion handled gracefully (folder not found)")
                         return True
                     else:
                         self.print_result(False, f"Unexpected success message: {message}")
                         return False
                 else:
-                    self.print_result(False, "Success response missing 'message' field")
+                    self.print_result(False, f"Response validation failed - success: {success}, ship_name match: {ship_name == self.test_ship_name}")
                     return False
                 
-            elif response.status_code == 403:
+            elif response.status_code == 400:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"❌ Access denied (403): {error_data} - User may not have admin/super_admin role")
+                    print(f"📄 Error Response: {error_data}")
+                    detail = error_data.get("detail", "")
+                    
+                    if "Missing ship_name" in detail:
+                        self.print_result(False, "❌ Unexpected 400 error - ship_name was provided")
+                    elif "not configured" in detail:
+                        self.print_result(False, f"❌ Configuration issue: {detail}")
+                    else:
+                        self.print_result(False, f"❌ Bad request: {detail}")
                 except:
-                    self.print_result(False, f"❌ Access denied (403): {response.text} - User may not have admin/super_admin role")
+                    self.print_result(False, f"❌ Bad request (400): {response.text}")
                 return False
+                
+            elif response.status_code == 404:
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    print(f"📄 Error Response: {error_data}")
+                    
+                    if "Company not found" in detail:
+                        self.print_result(False, f"❌ Company not found: {self.company_id}")
+                    elif "not configured" in detail:
+                        self.print_result(False, f"❌ Google Drive not configured for company: {detail}")
+                    else:
+                        self.print_result(False, f"❌ Not found: {detail}")
+                except:
+                    self.print_result(False, f"❌ Not found (404): {response.text}")
+                return False
+                
+            elif response.status_code == 500:
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    print(f"📄 Error Response: {error_data}")
+                    self.print_result(False, f"❌ Server error: {detail}")
+                except:
+                    self.print_result(False, f"❌ Server error (500): {response.text}")
+                return False
+                
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"POST AI config failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"POST AI config failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during POST AI config test: {str(e)}")
+            self.print_result(False, f"Exception during Google Drive folder deletion test: {str(e)}")
             return False
     
     def test_verify_ai_config_update(self):
