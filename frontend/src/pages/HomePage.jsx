@@ -59,6 +59,7 @@ const HomePage = () => {
   };
 
   const handleAddShip = () => {
+    console.log('Add Ship button clicked, current modal state:', showAddShipModal);
     setShowAddShipModal(true);
   };
 
