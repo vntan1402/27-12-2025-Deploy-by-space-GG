@@ -1246,11 +1246,17 @@ const ClassAndFlagCert = () => {
     setSelectedSubMenu(submenuKey);
     
     // Navigate to different pages based on submenu
-    if (submenuKey === 'class_survey') {
-      window.location.href = '/class-survey-report';
+    const routes = {
+      'class_survey': '/class-survey-report',
+      'test_report': '/test-report',
+      'drawings_manuals': '/drawings-manuals',
+      'other_docs': '/other-documents'
+    };
+    
+    if (routes[submenuKey]) {
+      window.location.href = routes[submenuKey];
     }
     // Stay on this page if certificates is selected (already here)
-    // Add more routes for other submenus as needed
   };
 
   return (
