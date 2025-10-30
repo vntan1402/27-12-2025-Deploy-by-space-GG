@@ -76,11 +76,13 @@ const ClassAndFlagCert = () => {
     setShowAddShipModal(true);
   };
 
-  const handleShipCreated = (shipId, shipName) => {
+  const handleShipCreated = async (shipId, shipName) => {
+    console.log('Ship created callback triggered:', shipId, shipName);
     // Close modal
     setShowAddShipModal(false);
     // Refresh ship list to show new ship
-    fetchShips();
+    await fetchShips();
+    console.log('Ship list refreshed after creation');
     // Don't need to navigate - already on this page!
   };
 
