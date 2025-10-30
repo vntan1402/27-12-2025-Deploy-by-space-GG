@@ -419,8 +419,8 @@ const AddShipModal = ({ isOpen, onClose }) => {
           : `✅ Ship ${shipName} created successfully!`
         );
         
-        // Close modal
-        onClose();
+        // Close modal and reset form
+        handleClose();
         
         // Navigate to home page and it will auto-refresh the ship list
         navigate('/');
