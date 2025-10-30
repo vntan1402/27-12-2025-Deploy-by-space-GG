@@ -14643,10 +14643,10 @@ async def delete_ship_folder_from_gdrive(
         
         # Call Apps Script to delete ship folder
         payload = {
-            "action": "delete_ship_folder",
+            "action": "delete_complete_ship_structure",
+            "parent_folder_id": main_folder_id,
             "ship_name": ship_name,
-            "main_folder_id": main_folder_id,
-            "company_name": company.get("name_en", "Unknown Company")
+            "permanent_delete": False  # Move to trash by default for safety
         }
         
         logger.info(f"🗑️ Deleting ship folder '{ship_name}' from Google Drive for company {company_id}")
