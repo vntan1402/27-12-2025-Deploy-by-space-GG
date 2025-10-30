@@ -60,15 +60,8 @@ const HomePage = () => {
   };
 
   const handleAddShip = () => {
-    console.log('Add Ship button clicked, current modal state:', showAddShipModal);
-    // Force close first in case modal is stuck
-    setShowAddShipModal(false);
-    // Increment modal key to force complete re-mount
-    setModalKey(prev => prev + 1);
-    // Then open it in next tick
-    setTimeout(() => {
-      setShowAddShipModal(true);
-    }, 0);
+    console.log('Add Ship button clicked');
+    setShowAddShipModal(true);
   };
 
   const handleShipCreated = (shipId, shipName) => {
