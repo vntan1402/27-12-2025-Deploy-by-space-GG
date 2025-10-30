@@ -411,19 +411,84 @@ const AddShipModal = ({ isOpen, onClose }) => {
       
       if (response && response.data && response.data.id) {
         const shipId = response.data.id;
+        const shipName = shipData.name;
+        
+        // Show success message for database creation
         toast.success(language === 'vi' 
-          ? `✅ Tạo tàu ${shipData.name} thành công!`
-          : `✅ Ship ${shipData.name} created successfully!`
+          ? `✅ Tạo tàu ${shipName} thành công!`
+          : `✅ Ship ${shipName} created successfully!`
         );
         
         // Close modal
         onClose();
         
-        // Navigate to home page (ship detail page will be implemented in Phase 4)
+        // Navigate to home page and it will auto-refresh the ship list
         navigate('/');
         
-        // Note: Background task for Google Drive folder creation
-        // is handled automatically by backend
+        // Start background monitoring for Google Drive folder creation
+        // Show info toast that folder creation is in progress
+        toast.info(language === 'vi' 
+          ? '📁 Đang tạo folder Google Drive...'
+          : '📁 Creating Google Drive folder...'
+        );
+        
+        // Poll Google Drive folder creation status in background (non-blocking)
+        (async () => {
+          try {
+            // Wait a bit before first check (give backend time to start)
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Poll every 3 seconds for max 60 seconds (20 attempts)
+            let attempts = 0;
+            const maxAttempts = 20;
+            
+            while (attempts < maxAttempts) {
+              try {
+                const shipDetail = await shipService.getById(shipId);
+                
+                if (shipDetail && shipDetail.data) {
+                  const status = shipDetail.data.gdrive_folder_status;
+                  
+                  if (status === 'completed') {
+                    toast.success(language === 'vi' 
+                      ? `✅ Folder Google Drive cho tàu ${shipName} đã được tạo thành công`
+                      : `✅ Google Drive folder for ship ${shipName} created successfully`
+                    );
+                    break;
+                  } else if (status === 'failed' || status === 'timeout' || status === 'error') {
+                    const errorMsg = shipDetail.data.gdrive_folder_error || 'Unknown error';
+                    toast.warning(language === 'vi' 
+                      ? `⚠️ Không thể tạo folder Google Drive cho tàu ${shipName}: ${errorMsg}`
+                      : `⚠️ Failed to create Google Drive folder for ship ${shipName}: ${errorMsg}`
+                    );
+                    break;
+                  }
+                  
+                  // Status is still "pending" or not set yet, continue polling
+                }
+              } catch (pollError) {
+                console.error('Error polling ship status:', pollError);
+                // Continue polling even if one check fails
+              }
+              
+              attempts++;
+              await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds before next check
+            }
+            
+            // If we've exhausted all attempts without success/failure
+            if (attempts >= maxAttempts) {
+              console.log('Google Drive folder creation status check timed out after 60 seconds');
+              toast.info(language === 'vi' 
+                ? `📁 Folder Google Drive cho tàu ${shipName} đang được tạo trong nền. Bạn có thể tiếp tục làm việc.`
+                : `📁 Google Drive folder for ship ${shipName} is being created in background. You can continue working.`
+              );
+            }
+          } catch (error) {
+            console.error('Error monitoring Google Drive folder creation:', error);
+            // Silently fail - don't show error to user as it's background operation
+          }
+        })();
+        
       } else {
         throw new Error('Invalid response from server');
       }
