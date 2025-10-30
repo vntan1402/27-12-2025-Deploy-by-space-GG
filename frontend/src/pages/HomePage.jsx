@@ -99,9 +99,14 @@ const HomePage = () => {
               <h2 className="text-3xl font-bold mb-2">
                 {language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}
               </h2>
-              <p className="text-xl">
+              <p className="text-xl mb-3">
                 {language === 'vi' ? 'Hệ thống quản lý tàu biển' : 'Ship Management System'}
               </p>
+              {companyName && (
+                <p className="text-2xl font-semibold text-blue-200">
+                  {companyName}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -112,6 +117,11 @@ const HomePage = () => {
             <h2 className="text-3xl font-bold mb-3 text-gray-800">
               {language === 'vi' ? 'Hệ thống quản lý tàu biển' : 'Ship Management System'}
             </h2>
+            {companyName && (
+              <p className="text-2xl font-semibold mb-3 text-blue-600">
+                {companyName}
+              </p>
+            )}
             <p className="text-lg mb-3 text-gray-700">
               {language === 'vi' ? 'Chào mừng bạn đến với hệ thống' : 'Welcome to the system'}
             </p>
