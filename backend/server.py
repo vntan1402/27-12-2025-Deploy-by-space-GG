@@ -693,14 +693,6 @@ class ShipUpdate(BaseModel):
 class ShipResponse(ShipBase):
     id: str
     created_at: datetime
-    # Legacy compatibility
-    class_society: Optional[str] = None
-
-    def __init__(self, **data):
-        # Map ship_type to class_society for backward compatibility
-        if 'ship_type' in data and 'class_society' not in data:
-            data['class_society'] = data['ship_type']
-        super().__init__(**data)
 
 class CompanyBase(BaseModel):
     name_vn: str
