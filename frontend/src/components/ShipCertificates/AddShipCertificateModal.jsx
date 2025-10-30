@@ -231,7 +231,7 @@ export const AddShipCertificateModal = ({
     return '';
   };
 
-  // Handle multi cert upload with AI analysis
+  // Handle multi cert upload with AI analysis - Sequential with delay (V1 pattern)
   const handleMultiCertUpload = async (files) => {
     if (!selectedShip?.id) {
       toast.error(language === 'vi' 
@@ -244,132 +244,212 @@ export const AddShipCertificateModal = ({
     if (!files || files.length === 0) return;
 
     setIsMultiCertProcessing(true);
-    setMultiCertUploads([]);
-    setUploadSummary({ success: 0, failed: 0, total: files.length });
+    const fileArray = Array.from(files);
+    const totalFiles = fileArray.length;
 
-    const formData = new FormData();
-    Array.from(files).forEach(file => {
-      formData.append('files', file);
-    });
+    // Initialize upload tracking with detailed status
+    const initialUploads = fileArray.map((file, index) => ({
+      index,
+      filename: file.name,
+      size: file.size,
+      status: 'pending', // pending, uploading, completed, error
+      progress: 0,
+      stage: language === 'vi' ? 'Đang chờ...' : 'Waiting...',
+      extracted_info: null,
+      error: null
+    }));
+    
+    setMultiCertUploads(initialUploads);
+    setUploadSummary({ success: 0, failed: 0, total: totalFiles });
+
+    // Show batch info
+    toast.info(language === 'vi' 
+      ? `🚀 Bắt đầu upload ${totalFiles} file (delay 0.5s giữa các file)...`
+      : `🚀 Starting upload of ${totalFiles} files (0.5s delay between files)...`
+    );
+
+    let successCount = 0;
+    let failedCount = 0;
+    let firstSuccessInfo = null;
 
     try {
-      console.log('📤 Uploading certificates to:', `/api/certificates/multi-upload?ship_id=${selectedShip.id}`);
-      
-      const response = await api.post(
-        `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        }
-      );
-
-      console.log('📥 Upload response:', response.data);
-
-      if (response.data && response.data.results) {
-        const results = response.data.results;
-        setMultiCertUploads(results);
-
-        // Count success/failed
-        const successCount = results.filter(r => r.status === 'success').length;
-        const failedCount = results.filter(r => r.status === 'error').length;
-        const duplicateCount = results.filter(r => r.status === 'duplicate').length;
-        const mismatchCount = results.filter(r => r.status === 'ship_mismatch').length;
+      // Upload files sequentially with delay (V1 pattern to avoid timeout)
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
         
-        setUploadSummary({
-          success: successCount,
-          failed: failedCount,
-          total: results.length
-        });
-
-        console.log('📊 Summary:', { successCount, failedCount, duplicateCount, mismatchCount });
-
-        // Handle first duplicate
-        const firstDuplicate = results.find(r => r.status === 'duplicate');
-        if (firstDuplicate) {
-          console.log('⚠️ Duplicate detected:', firstDuplicate);
-          setDuplicateModal({
-            show: true,
-            duplicates: firstDuplicate.duplicates || [],
-            currentFile: { name: firstDuplicate.filename },
-            analysisResult: firstDuplicate.analysis,
-            uploadResult: firstDuplicate
-          });
-          return; // Stop processing to show modal
+        // Delay between uploads (except for first file)
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500)); // 0.5s delay
         }
 
-        // Handle first ship name mismatch
-        const firstMismatch = results.find(r => r.status === 'ship_mismatch');
-        if (firstMismatch) {
-          console.log('⚠️ Ship mismatch detected:', firstMismatch);
-          setMismatchModal({
-            show: true,
-            extractedShipName: firstMismatch.extracted_ship_name,
-            currentFile: { name: firstMismatch.filename },
-            analysisResult: firstMismatch.analysis,
-            uploadResult: firstMismatch
-          });
-          return; // Stop processing to show modal
-        }
+        try {
+          // Update status to uploading
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? {
+                  ...upload,
+                  status: 'uploading',
+                  stage: language === 'vi' 
+                    ? `Đang upload... (${i + 1}/${totalFiles})`
+                    : `Uploading... (${i + 1}/${totalFiles})`
+                }
+              : upload
+          ));
 
-        // Auto-fill form with first successful result
-        const firstSuccess = results.find(r => r.status === 'success' && r.extracted_info);
-        console.log('✅ First success result:', firstSuccess);
-        
-        if (firstSuccess && firstSuccess.extracted_info) {
-          const analysis = firstSuccess.extracted_info;
-          console.log('🔍 Extracted info:', analysis);
-          
-          const autoFillData = {
-            cert_name: analysis.cert_name || analysis.certificate_name || '',
-            cert_no: analysis.cert_no || analysis.certificate_number || '',
-            issue_date: formatCertDate(analysis.issue_date),
-            valid_date: formatCertDate(analysis.valid_date || analysis.expiry_date),
-            issued_by: analysis.issued_by || '',
-            ship_id: selectedShip.id
-          };
+          // Create FormData for single file
+          const formData = new FormData();
+          formData.append('files', file);
 
-          console.log('📝 Auto-fill data:', autoFillData);
+          console.log(`📤 [${i + 1}/${totalFiles}] Uploading:`, file.name);
 
-          // Count filled fields
-          const filledFields = Object.keys(autoFillData).filter(key => 
-            autoFillData[key] && String(autoFillData[key]).trim() && key !== 'ship_id'
-          ).length;
-
-          console.log('✍️ Filling', filledFields, 'fields');
-
-          setCertificateData(prev => ({
-            ...prev,
-            ...autoFillData
-          }));
-
-          toast.success(language === 'vi' 
-            ? `✅ Phân tích certificate thành công! Đã điền ${filledFields} trường thông tin.`
-            : `✅ Certificate analysis successful! Auto-filled ${filledFields} fields.`
+          // Upload single file
+          const response = await api.post(
+            `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
+            formData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              onUploadProgress: (progressEvent) => {
+                const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setMultiCertUploads(prev => prev.map((upload, idx) => 
+                  idx === i 
+                    ? {
+                        ...upload,
+                        progress: progress,
+                        stage: language === 'vi' 
+                          ? `Upload ${progress}%... (${i + 1}/${totalFiles})`
+                          : `Uploading ${progress}%... (${i + 1}/${totalFiles})`
+                      }
+                    : upload
+                ));
+              }
+            }
           );
-        } else {
-          console.warn('⚠️ No successful result with extracted_info found');
-        }
 
-        // Show summary toast
-        let summaryMessage = '';
-        if (successCount > 0) summaryMessage += `${successCount} ${language === 'vi' ? 'thành công' : 'success'}`;
-        if (duplicateCount > 0) summaryMessage += `, ${duplicateCount} ${language === 'vi' ? 'trùng' : 'duplicate'}`;
-        if (mismatchCount > 0) summaryMessage += `, ${mismatchCount} ${language === 'vi' ? 'không khớp' : 'mismatch'}`;
-        if (failedCount > 0) summaryMessage += `, ${failedCount} ${language === 'vi' ? 'thất bại' : 'failed'}`;
+          console.log(`📥 [${i + 1}/${totalFiles}] Response:`, response.data);
 
-        if (summaryMessage) {
-          toast.success(language === 'vi'
-            ? `✅ Upload hoàn tất: ${summaryMessage}`
-            : `✅ Upload complete: ${summaryMessage}`
+          // Process response
+          const results = response.data.results || [];
+          const result = results[0]; // Single file result
+
+          if (result && (result.status === 'success' || result.status === 'completed')) {
+            successCount++;
+            
+            // Update status to completed
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'completed',
+                    progress: 100,
+                    stage: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed',
+                    extracted_info: result.extracted_info
+                  }
+                : upload
+            ));
+
+            // Store first success for auto-fill
+            if (!firstSuccessInfo && result.extracted_info) {
+              firstSuccessInfo = result.extracted_info;
+              console.log('✅ First success with extracted_info:', firstSuccessInfo);
+            }
+
+            toast.success(language === 'vi' 
+              ? `✅ ${file.name} (${i + 1}/${totalFiles})`
+              : `✅ ${file.name} (${i + 1}/${totalFiles})`
+            );
+
+          } else {
+            // Handle error or other status
+            failedCount++;
+            const errorMsg = result?.message || result?.error || 'Unknown error';
+            
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'error',
+                    progress: 0,
+                    stage: language === 'vi' ? '❌ Thất bại' : '❌ Failed',
+                    error: errorMsg
+                  }
+                : upload
+            ));
+
+            toast.error(language === 'vi' 
+              ? `❌ ${file.name}: ${errorMsg}`
+              : `❌ ${file.name}: ${errorMsg}`
+            );
+          }
+
+        } catch (fileError) {
+          failedCount++;
+          console.error(`❌ [${i + 1}/${totalFiles}] Upload error:`, fileError);
+          
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? {
+                  ...upload,
+                  status: 'error',
+                  progress: 0,
+                  stage: language === 'vi' ? '❌ Lỗi' : '❌ Error',
+                  error: fileError.response?.data?.detail || fileError.message
+                }
+              : upload
+          ));
+
+          toast.error(language === 'vi' 
+            ? `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
+            : `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
           );
         }
       }
+
+      // Update summary
+      setUploadSummary({
+        success: successCount,
+        failed: failedCount,
+        total: totalFiles
+      });
+
+      // Auto-fill form with first success
+      if (firstSuccessInfo) {
+        const autoFillData = {
+          cert_name: firstSuccessInfo.cert_name || firstSuccessInfo.certificate_name || '',
+          cert_no: firstSuccessInfo.cert_no || firstSuccessInfo.certificate_number || '',
+          issue_date: formatCertDate(firstSuccessInfo.issue_date),
+          valid_date: formatCertDate(firstSuccessInfo.valid_date || firstSuccessInfo.expiry_date),
+          issued_by: firstSuccessInfo.issued_by || '',
+          ship_id: selectedShip.id
+        };
+
+        console.log('📝 Auto-filling form:', autoFillData);
+
+        const filledFields = Object.keys(autoFillData).filter(key => 
+          autoFillData[key] && String(autoFillData[key]).trim() && key !== 'ship_id'
+        ).length;
+
+        setCertificateData(prev => ({
+          ...prev,
+          ...autoFillData
+        }));
+
+        toast.success(language === 'vi' 
+          ? `✅ Đã điền ${filledFields} trường thông tin!`
+          : `✅ Auto-filled ${filledFields} fields!`
+        );
+      }
+
+      // Final summary toast
+      toast.success(language === 'vi'
+        ? `🎉 Hoàn tất: ${successCount} thành công, ${failedCount} thất bại`
+        : `🎉 Complete: ${successCount} success, ${failedCount} failed`
+      );
+
     } catch (error) {
-      console.error('❌ Multi cert upload error:', error);
-      console.error('Error details:', error.response?.data);
+      console.error('❌ Batch upload error:', error);
       toast.error(language === 'vi' 
-        ? `❌ Lỗi upload: ${error.response?.data?.detail || error.message}`
-        : `❌ Upload error: ${error.response?.data?.detail || error.message}`
+        ? `❌ Lỗi upload: ${error.message}`
+        : `❌ Upload error: ${error.message}`
       );
     } finally {
       setIsMultiCertProcessing(false);
