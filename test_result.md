@@ -56,6 +56,7 @@
     - "Standby Crew Certificate File Upload Issue Investigation"
     - "Survey Report AI Analysis Fix - Configuration Loading"
     - "Test Report Batch Upload Debug - Chemical Suit and Co2 Files"
+    - "Upcoming Surveys Endpoint - Certificate Issue Investigation"
   stuck_tasks: 
     - "Document AI Passport Analysis Integration"
   test_all: false
