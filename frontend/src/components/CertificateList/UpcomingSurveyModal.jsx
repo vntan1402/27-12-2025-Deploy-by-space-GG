@@ -12,10 +12,14 @@ export const UpcomingSurveyModal = ({
   surveys = [],
   totalCount = 0,
   company = '',
+  companyName = '',
   checkDate = '',
   language
 }) => {
   if (!isOpen) return null;
+
+  // Use company name if available, fallback to company ID
+  const displayCompany = companyName || company;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
@@ -32,8 +36,8 @@ export const UpcomingSurveyModal = ({
           </p>
           <div className="text-sm text-gray-600 mb-4">
             {language === 'vi' 
-              ? `Tổng cộng: ${totalCount} chứng chỉ | Công ty: ${company}`
-              : `Total: ${totalCount} certificates | Company: ${company}`}
+              ? `Tổng cộng: ${totalCount} chứng chỉ | Công ty: ${displayCompany}`
+              : `Total: ${totalCount} certificates | Company: ${displayCompany}`}
           </div>
           {checkDate && (
             <div className="text-xs text-gray-500">
