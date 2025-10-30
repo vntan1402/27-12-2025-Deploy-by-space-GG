@@ -281,15 +281,30 @@ const ClassAndFlagCert = () => {
     }
 
     try {
-      const response = await api.get(`/api/certificates/${cert.id}/file-link`);
-      if (response.data?.file_link) {
-        window.open(response.data.file_link, '_blank');
+      // Check cache first
+      if (certificateLinksCache[cert.google_drive_file_id]) {
+        window.open(certificateLinksCache[cert.google_drive_file_id], '_blank', 'noopener,noreferrer');
+        toast.success(language === 'vi' ? 'Đang mở file chứng chỉ...' : 'Opening certificate file...');
+        return;
+      }
+
+      // Fetch from API if not cached
+      const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+      if (response.data?.success && response.data?.view_url) {
+        // Cache the link
+        setCertificateLinksCache(prev => ({
+          ...prev,
+          [cert.google_drive_file_id]: response.data.view_url
+        }));
+        
+        window.open(response.data.view_url, '_blank', 'noopener,noreferrer');
+        toast.success(language === 'vi' ? 'Đang mở file chứng chỉ...' : 'Opening certificate file...');
       } else {
-        toast.error(language === 'vi' ? 'Không thể lấy link file' : 'Failed to get file link');
+        toast.error(language === 'vi' ? 'Không thể mở file chứng chỉ' : 'Cannot open certificate file');
       }
     } catch (error) {
       console.error('Error opening certificate file:', error);
-      toast.error(language === 'vi' ? 'Không thể mở file' : 'Failed to open file');
+      toast.error(language === 'vi' ? 'Lỗi khi mở file chứng chỉ' : 'Error opening certificate file');
     }
   };
 
