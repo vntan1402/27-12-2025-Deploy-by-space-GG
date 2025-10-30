@@ -1513,8 +1513,8 @@ const ClassAndFlagCert = () => {
 
           <div className="border-t border-gray-200 my-1"></div>
 
-          {/* Edit - always for the right-clicked certificate */}
-          {contextMenu.certificate && (
+          {/* Edit - only show for single selection */}
+          {contextMenu.certificate && selectedCertificates.size <= 1 && (
             <button
               onClick={() => {
                 setEditingCertificate(contextMenu.certificate);
