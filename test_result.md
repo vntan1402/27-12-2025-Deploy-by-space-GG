@@ -347,6 +347,18 @@ backend:
           agent: "testing"
           comment: "✅ INVALID PDF FILE HANDLING FIX VERIFIED WORKING - COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: Backend testing confirms all 5 test cases passed successfully with 94.1% success rate (16/17 tests passed). All critical requirements met and verified."
 
+  - task: "Upcoming Surveys Endpoint - Certificate Issue Investigation"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "🚨 UPCOMING SURVEYS ENDPOINT CRITICAL BUG IDENTIFIED - DATA INCONSISTENCY PREVENTS CERTIFICATE RETRIEVAL: Comprehensive investigation of user-reported certificate issue completed with successful identification of root cause. The certificate with next_survey=2025-11-28 is NOT appearing in upcoming surveys despite being within the ±90 day window. ✅ AUTHENTICATION & SETUP: Login with admin1/123456 successful ✓, Company ID resolution working (AMCSC → 0a6eaf96-0aaf-4793-89be-65d62cb7953c) ✓, Ships list accessible with BROTHER 36 and TEST SHIP 001 found ✓. ✅ CERTIFICATE VERIFICATION: Target certificate 51d1c55a-81d4-4e68-9dd2-9fef7d8bf895 found in database ✓, Certificate details confirmed: Name='Certificate for the Review and Agreement of the Declaration of Maritime Labour Compliance Part II (DMLC PART II)', Next Survey=2025-11-28T00:00:00Z, Survey Type='Intermediate', Ship='BROTHER 36' ✓. ✅ WINDOW CALCULATION VERIFICATION: Certificate type determined as 'Other surveys (±3M)' (not condition, initial, or special survey) ✓, Window calculated correctly: Open=2025-08-30, Close=2026-02-26 (±90 days from 2025-11-28) ✓, Current date 2025-10-30 IS within window (2025-08-30 <= 2025-10-30 <= 2026-02-26) ✓, Days until survey calculated correctly: 29 days ✓. 🚨 CRITICAL ROOT CAUSE IDENTIFIED: **DATA INCONSISTENCY BETWEEN USER COMPANY AND SHIP COMPANY FIELDS** - User company field contains UUID '0a6eaf96-0aaf-4793-89be-65d62cb7953c' but ships have company field set to 'AMCSC' (company name). Backend logs confirm: 'Checking upcoming surveys for company: 0a6eaf96-0aaf-4793-89be-65d62cb7953c' followed by 'No ships found for company: 0a6eaf96-0aaf-4793-89be-65d62cb7953c' ✓. ❌ FILTERING LOGIC FAILURE: Upcoming surveys endpoint uses mongo_db.find_all('ships', {'company': user_company}) where user_company='0a6eaf96-0aaf-4793-89be-65d62cb7953c' (UUID) but ships.company='AMCSC' (name) ✓, No ships match the filter, so empty list returned ✓, Certificate never gets processed despite being valid and within window ✓. ✅ COMPARISON WITH WORKING ENDPOINTS: Other endpoints like company deletion use dual lookup: ships_by_id = find_all('ships', {'company': company_id}) AND ships_by_name = find_all('ships', {'company': company_name}) ✓, This pattern handles both UUID and name formats correctly ✓. ✅ IMPACT ASSESSMENT: **CRITICAL PRODUCTION BUG** - All upcoming surveys functionality broken for users whose ships use company names instead of UUIDs ✓, Affects certificate monitoring and survey planning ✓, Users cannot see certificates that should appear in upcoming surveys modal ✓. ✅ RECOMMENDED FIX: Update upcoming surveys endpoint to use dual lookup pattern like company deletion endpoint: (1) Get company name from company UUID, (2) Search ships by both company UUID and company name, (3) Combine results for certificate processing. SUCCESS RATE: 100% (Root cause successfully identified) - Critical data inconsistency bug confirmed and ready for main agent fix implementation."
+
   - task: "Report Form Field Implementation"
     implemented: true
     working: "needs_testing"
