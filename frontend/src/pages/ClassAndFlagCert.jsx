@@ -1141,7 +1141,7 @@ const ClassAndFlagCert = () => {
       // Update ships list
       setShips(ships.map(s => s.id === updatedShip.id ? updatedShip : s));
       // Update selected ship
-      setSelectedShip(updatedShip);
+      updateSelectedShip(updatedShip);
     } catch (error) {
       console.error('Error refreshing ship data:', error);
       toast.error(language === 'vi' ? 'Không thể làm mới dữ liệu tàu' : 'Failed to refresh ship data');
