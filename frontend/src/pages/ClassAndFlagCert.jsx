@@ -31,6 +31,7 @@ const ClassAndFlagCert = () => {
   const [certificates, setCertificates] = useState([]);
   const [certificatesLoading, setCertificatesLoading] = useState(false);
   const [selectedCertificates, setSelectedCertificates] = useState(new Set());
+  const [showAddShipCertificateModal, setShowAddShipCertificateModal] = useState(false);
   
   // Filter states
   const [certificateFilters, setCertificateFilters] = useState({
