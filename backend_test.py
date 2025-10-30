@@ -19,7 +19,7 @@ from datetime import datetime
 # Backend URL from frontend .env
 BACKEND_URL = "https://navdrive.preview.emergentagent.com/api"
 
-class DeleteShipGDriveTester:
+class ShipCalculationAPITester:
     def __init__(self):
         self.session = requests.Session()
         self.access_token = None
