@@ -64,6 +64,18 @@
 user_problem_statement: "Fix Delete Ship Google Drive folder deletion feature. The Apps Script action name mismatch is causing Google Drive deletion to fail. Backend endpoint '/api/companies/{company_id}/gdrive/delete-ship-folder' is sending action 'delete_ship_folder' but Apps Script v4.3 expects 'delete_complete_ship_structure'. Need to update backend to use correct action name and test both deletion options: database-only and database + Google Drive folder. ADDITIONAL REQUEST: Display company name on HomePage below 'Ship Management System' text with font size one size larger. ADDITIONAL REQUEST 2: Change Create Ship flow - create ship in database immediately, close modal and refresh list, then create Google Drive folder in background with separate notification when complete. ADDITIONAL REQUEST 3: Add recalculation icons to 'Next Docking', 'Special Survey Cycle', and 'Anniversary Date' in Detailed Ship Information panel to trigger automatic recalculation based on V1 logic."
 
 backend:
+  - task: "Recalculation APIs - Next Docking, Special Survey Cycle, Anniversary Date"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "Backend calculation APIs already implemented and ready for integration. Three POST endpoints available: (1) /api/ships/{ship_id}/calculate-next-docking - Calculates next docking date based on IMO requirements and last docking date, (2) /api/ships/{ship_id}/calculate-anniversary-date - Calculates anniversary date from ship certificates, (3) /api/ships/{ship_id}/calculate-special-survey-cycle - Calculates special survey cycle from Full Term certificates. TESTING REQUIRED: Test each endpoint with valid ship_id, verify response format and calculation accuracy, test error handling (missing last_docking for next docking, missing certificates for anniversary/special survey), confirm ship data is updated in database after successful calculation."
+
   - task: "Delete Ship Google Drive Folder Deletion - Action Name Fix"
     implemented: true
     working: true
