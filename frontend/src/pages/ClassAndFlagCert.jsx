@@ -871,6 +871,28 @@ const ClassAndFlagCert = () => {
         onShipChange={setSelectedShip}
         aiConfig={aiConfig}
       />
+
+      {/* Edit Ship Certificate Modal */}
+      <EditShipCertificateModal
+        isOpen={showEditShipCertificateModal}
+        onClose={() => {
+          setShowEditShipCertificateModal(false);
+          setEditingCertificate(null);
+        }}
+        onSuccess={handleShipCertificateSuccess}
+        certificate={editingCertificate}
+      />
+
+      {/* Delete Ship Certificate Modal */}
+      <DeleteShipCertificateModal
+        isOpen={showDeleteShipCertificateModal}
+        onClose={() => {
+          setShowDeleteShipCertificateModal(false);
+          setDeletingCertificate(null);
+        }}
+        onSuccess={handleShipCertificateSuccess}
+        certificate={deletingCertificate}
+      />
     </MainLayout>
   );
 };
