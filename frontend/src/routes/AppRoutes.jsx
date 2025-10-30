@@ -7,6 +7,9 @@ import LoginPage from '../pages/LoginPage';
 import HomePage from '../pages/HomePage';
 import ClassAndFlagCert from '../pages/ClassAndFlagCert';
 import ClassSurveyReport from '../pages/ClassSurveyReport';
+import TestReport from '../pages/TestReport';
+import DrawingsManuals from '../pages/DrawingsManuals';
+import OtherDocuments from '../pages/OtherDocuments';
 import SystemSettingsPage from '../pages/SystemSettingsPage';
 
 // Loading component
