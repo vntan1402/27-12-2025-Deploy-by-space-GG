@@ -56,6 +56,46 @@ const HomePage = () => {
         />
       }
     >
+      {/* Company Logo Banner */}
+      {companyLogo ? (
+        <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative mb-6 shadow-md">
+          <img 
+            src={companyLogo.startsWith('http') ? companyLogo : `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`}
+            alt="Company Logo"
+            className="max-w-full max-h-full object-contain"
+            onError={(e) => {
+              console.error('Failed to load company logo:', e);
+              e.target.style.display = 'none';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/50 flex items-center justify-center">
+            <div className="bg-black/50 backdrop-blur-sm text-white p-6 rounded-lg text-center">
+              <h2 className="text-3xl font-bold mb-2">
+                {language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}
+              </h2>
+              <p className="text-xl">
+                {language === 'vi' ? 'Hệ thống quản lý tàu biển' : 'Ship Management System'}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full h-96 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center mb-6 shadow-md border border-blue-100">
+          <div className="text-center text-gray-600">
+            <div className="text-7xl mb-4">🚢</div>
+            <h2 className="text-3xl font-bold mb-3 text-gray-800">
+              {language === 'vi' ? 'Hệ thống quản lý tàu biển' : 'Ship Management System'}
+            </h2>
+            <p className="text-lg mb-3 text-gray-700">
+              {language === 'vi' ? 'Chào mừng bạn đến với hệ thống' : 'Welcome to the system'}
+            </p>
+            <p className="text-sm text-gray-500">
+              {language === 'vi' ? 'Logo công ty sẽ hiển thị ở đây khi được tải lên' : 'Company logo will be displayed here when uploaded'}
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Main Content */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
