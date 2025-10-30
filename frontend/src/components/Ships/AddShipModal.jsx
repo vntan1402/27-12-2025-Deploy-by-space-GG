@@ -346,6 +346,8 @@ const AddShipModal = ({ isOpen, onClose }) => {
         anniversary_date_month: shipData.anniversary_date_month ? parseInt(shipData.anniversary_date_month) : null,
       };
 
+      console.log('Creating ship with data:', apiData);
+      
       const response = await shipService.create(apiData);
       
       console.log('Ship creation response:', response);
