@@ -68,6 +68,17 @@ const HomePage = () => {
     }, 0);
   };
 
+  const handleShipCreated = (shipId, shipName) => {
+    // Navigate to certificates page where ship list is displayed
+    navigate('/certificates', { 
+      state: { 
+        refresh: true, 
+        newShipId: shipId,
+        newShipName: shipName 
+      } 
+    });
+  };
+
   const handleAddRecord = () => {
     alert(language === 'vi' ? 'Chức năng thêm record sẽ được triển khai trong Phase 4' : 'Add record feature will be implemented in Phase 4');
   };
