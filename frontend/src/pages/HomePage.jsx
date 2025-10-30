@@ -60,7 +60,12 @@ const HomePage = () => {
 
   const handleAddShip = () => {
     console.log('Add Ship button clicked, current modal state:', showAddShipModal);
-    setShowAddShipModal(true);
+    // Force close first in case modal is stuck
+    setShowAddShipModal(false);
+    // Then open it in next tick
+    setTimeout(() => {
+      setShowAddShipModal(true);
+    }, 0);
   };
 
   const handleAddRecord = () => {
