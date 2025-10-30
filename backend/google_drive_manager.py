@@ -491,7 +491,7 @@ class GoogleDriveManager:
             
             # Make request to Apps Script (same pattern as existing functions)
             import requests
-            response = requests.post(script_url, json=payload, timeout=90)  # 90s timeout like create function
+            response = requests.post(script_url, json=payload, timeout=180)  # 180s timeout for complex folder operations
             response.raise_for_status()
             
             result = response.json()
