@@ -227,7 +227,7 @@ const ClassAndFlagCert = () => {
                       )}
                       {ship.class_society && (
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600 text-xs">{language === 'vi' ? 'Hội đăng kiểm:' : 'Class Society:'}</span>
+                          <span className="text-gray-600 text-xs">{language === 'vi' ? 'Đăng kiểm:' : 'Class Society:'}</span>
                           <span className="font-semibold text-gray-800 text-xs truncate ml-1">{shortenClassSociety(ship.class_society)}</span>
                         </div>
                       )}
