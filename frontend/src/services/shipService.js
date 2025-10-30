@@ -95,6 +95,21 @@ export const shipService = {
     return api.delete(API_ENDPOINTS.SHIP_LOGO(shipId));
   },
 
+  /**
+   * Analyze ship certificate with AI
+   * @param {File} certificateFile - Certificate PDF file
+   * @returns {Promise} Analysis result
+   */
+  analyzeCertificate: async (certificateFile) => {
+    const formData = new FormData();
+    formData.append('file', certificateFile);
+    
+    return api.post(API_ENDPOINTS.SHIP_ANALYZE_CERTIFICATE, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 90000 // 90 seconds for AI analysis
+    });
+  },
+
   // Alias methods for backward compatibility
   getAllShips: async () => {
     return shipService.getAll();
