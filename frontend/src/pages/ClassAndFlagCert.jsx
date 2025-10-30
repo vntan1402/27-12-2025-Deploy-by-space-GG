@@ -1280,8 +1280,8 @@ const ClassAndFlagCert = () => {
             </div>
           )}
           
-          {/* Edit - only show for single selection */}
-          {selectedCertificates.size === 1 && (
+          {/* Edit - always for the right-clicked certificate */}
+          {contextMenu.certificate && (
             <button
               onClick={() => {
                 setEditingCertificate(contextMenu.certificate);
