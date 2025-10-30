@@ -820,16 +820,72 @@ const ClassAndFlagCert = () => {
           {['Annual', 'Intermediate', 'Renewal', 'Special'].map(type => (
             <button
               key={type}
-              onClick={() => {
-                // TODO: Implement quick survey type edit
-                toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+              onClick={async () => {
+                try {
+                  // Quick update survey type
+                  await api.put(`/api/certificates/${surveyTypeContextMenu.certId}`, {
+                    next_survey_type: type
+                  });
+
+                  toast.success(language === 'vi' 
+                    ? `✅ Đã cập nhật loại kiểm tra thành "${type}"`
+                    : `✅ Survey type updated to "${type}"`
+                  );
+
+                  // Refresh certificate list
+                  if (selectedShip?.id) {
+                    await fetchCertificates(selectedShip.id);
+                  }
+                } catch (error) {
+                  console.error('Error updating survey type:', error);
+                  toast.error(language === 'vi' 
+                    ? '❌ Lỗi cập nhật loại kiểm tra'
+                    : '❌ Failed to update survey type'
+                  );
+                }
+                
                 setSurveyTypeContextMenu(null);
               }}
-              className="w-full px-4 py-2 text-left hover:bg-gray-100"
+              className={`w-full px-4 py-2 text-left hover:bg-gray-100 ${
+                surveyTypeContextMenu.currentType === type ? 'bg-blue-50 font-semibold text-blue-700' : ''
+              }`}
             >
+              {surveyTypeContextMenu.currentType === type && '✓ '}
               {type}
             </button>
           ))}
+          
+          {/* Clear option */}
+          <div className="border-t my-1"></div>
+          <button
+            onClick={async () => {
+              try {
+                await api.put(`/api/certificates/${surveyTypeContextMenu.certId}`, {
+                  next_survey_type: null
+                });
+
+                toast.success(language === 'vi' 
+                  ? '✅ Đã xóa loại kiểm tra'
+                  : '✅ Survey type cleared'
+                );
+
+                if (selectedShip?.id) {
+                  await fetchCertificates(selectedShip.id);
+                }
+              } catch (error) {
+                console.error('Error clearing survey type:', error);
+                toast.error(language === 'vi' 
+                  ? '❌ Lỗi xóa loại kiểm tra'
+                  : '❌ Failed to clear survey type'
+                );
+              }
+              
+              setSurveyTypeContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-600 italic"
+          >
+            {language === 'vi' ? '— Không có —' : '— None —'}
+          </button>
         </div>
       )}
 
