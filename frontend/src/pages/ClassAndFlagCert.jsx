@@ -777,8 +777,8 @@ const ClassAndFlagCert = () => {
         >
           <button
             onClick={() => {
-              // TODO: Implement edit certificate
-              toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+              setEditingCertificate(contextMenu.certificate);
+              setShowEditShipCertificateModal(true);
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
@@ -790,8 +790,8 @@ const ClassAndFlagCert = () => {
           </button>
           <button
             onClick={() => {
-              // TODO: Implement delete certificate
-              toast.info(language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development');
+              setDeletingCertificate(contextMenu.certificate);
+              setShowDeleteShipCertificateModal(true);
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center gap-2"
