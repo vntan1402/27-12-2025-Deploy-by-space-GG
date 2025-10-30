@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-AI Config Endpoints Testing Script
-Tests the AI Config endpoints to verify they work correctly
+Delete Ship Google Drive Folder Deletion Testing Script
+Tests the Delete Ship Google Drive folder deletion fix
 
-FOCUS: Test the GET and POST /api/ai-config endpoints
-Expected: GET should return current AI configuration, POST should update AI configuration
+FOCUS: Test the /api/companies/{company_id}/gdrive/delete-ship-folder endpoint
+Expected: Action name should be 'delete_complete_ship_structure' (not 'delete_ship_folder')
 """
 
 import requests
 import json
 import sys
 import os
+import time
 from datetime import datetime
 
 # Backend URL from frontend .env
