@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { MainLayout, Sidebar, SubMenuBar } from '../components/Layout';
+import { MainLayout, Sidebar } from '../components/Layout';
 
 const HomePage = () => {
   const { language } = useAuth();
   
   // State management
   const [selectedCategory, setSelectedCategory] = useState('ship_certificates');
-  const [selectedSubMenu, setSelectedSubMenu] = useState('certificates');
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
-    // Reset sub-menu when category changes
-    setSelectedSubMenu(null);
   };
 
   const handleAddRecord = () => {
