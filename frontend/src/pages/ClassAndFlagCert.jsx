@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons } from '../components';
+import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons, AddShipCertificateModal } from '../components';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
 import { shipService, shipCertificateService } from '../services';
