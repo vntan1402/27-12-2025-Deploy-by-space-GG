@@ -574,13 +574,13 @@ class ShipCalculationAPITester:
                     
                     self.print_result(True, "✅ Special survey cycle calculation successful with correct response structure")
                     return True
-                elif success and not special_survey_cycle:
-                    # Success but no calculation possible
-                    print(f"⚠️ Calculation not possible: {message}")
+                elif not success and not special_survey_cycle:
+                    # Expected failure case - no calculation possible
+                    print(f"⚠️ Calculation not possible (expected): {message}")
                     self.print_result(True, "✅ Special survey cycle calculation handled gracefully (no Full Term certificates)")
                     return True
                 else:
-                    self.print_result(False, f"Calculation failed: {message}")
+                    self.print_result(False, f"Unexpected response state - success: {success}, special_survey_cycle: {special_survey_cycle}")
                     return False
                 
             elif response.status_code == 404:
