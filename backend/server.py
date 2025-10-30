@@ -4207,7 +4207,6 @@ async def get_ships(current_user: UserResponse = Depends(get_current_user)):
 @api_router.post("/ships", response_model=ShipResponse)
 async def create_ship(
     ship_data: ShipCreate,
-    background_tasks: BackgroundTasks,  # Add FastAPI BackgroundTasks
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     try:
