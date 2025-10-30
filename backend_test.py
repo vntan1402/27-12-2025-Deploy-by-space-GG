@@ -85,7 +85,7 @@ class DeleteShipGDriveTester:
                     return False
                 
                 # Verify user object has required fields
-                user_required_fields = ["username", "role", "id"]
+                user_required_fields = ["username", "role", "id", "company"]
                 user_missing_fields = []
                 
                 for field in user_required_fields:
@@ -100,13 +100,14 @@ class DeleteShipGDriveTester:
                 print(f"👤 User ID: {self.user_data['id']}")
                 print(f"👤 Username: {self.user_data['username']}")
                 print(f"👤 Role: {self.user_data['role']}")
+                print(f"🏢 Company: {self.user_data['company']}")
                 
-                # Check if user has admin or super_admin role for AI config access
-                if self.user_data['role'] not in ['admin', 'super_admin']:
-                    self.print_result(False, f"User role '{self.user_data['role']}' may not have permission for AI config endpoints")
+                # Check if user has admin or super_admin role for delete operations
+                if self.user_data['role'] not in ['admin', 'super_admin', 'manager']:
+                    self.print_result(False, f"User role '{self.user_data['role']}' may not have permission for delete operations")
                     return False
                 
-                self.print_result(True, "Authentication successful - admin login returns access_token with proper role")
+                self.print_result(True, "Authentication successful - admin1 login returns access_token with proper role and company")
                 return True
                 
             else:
