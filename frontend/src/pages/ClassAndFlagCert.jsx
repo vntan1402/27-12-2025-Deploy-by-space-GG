@@ -69,6 +69,7 @@ const ClassAndFlagCert = () => {
     surveys: [],
     totalCount: 0,
     company: '',
+    companyName: '',
     checkDate: ''
   });
 
