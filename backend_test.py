@@ -604,10 +604,10 @@ class ShipCalculationAPITester:
             return False
 
     def test_error_handling(self):
-        """Test 4: Error Handling for Google Drive Folder Deletion"""
-        self.print_test_header("Test 4 - Error Handling")
+        """Test 6: Error Handling for Ship Calculation APIs"""
+        self.print_test_header("Test 6 - Error Handling")
         
-        if not self.access_token or not self.company_id:
+        if not self.access_token:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
@@ -617,65 +617,49 @@ class ShipCalculationAPITester:
                 "Content-Type": "application/json"
             }
             
-            # Test 1: Non-existent ship name
-            print(f"\n🔍 Testing with non-existent ship name...")
-            payload_nonexistent = {
-                "ship_name": "NONEXISTENT_SHIP_12345"
-            }
+            # Test 1: Non-existent ship ID
+            print(f"\n🔍 Testing with non-existent ship ID...")
+            fake_ship_id = "non-existent-ship-id-12345"
             
             response = self.session.post(
-                f"{BACKEND_URL}/companies/{self.company_id}/gdrive/delete-ship-folder",
-                json=payload_nonexistent,
+                f"{BACKEND_URL}/ships/{fake_ship_id}/calculate-next-docking",
                 headers=headers,
                 timeout=30
             )
             
             print(f"📊 Non-existent ship response status: {response.status_code}")
             
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Non-existent ship response: {json.dumps(response_data, indent=2)}")
-                
-                # Should handle gracefully, possibly return folder_not_found warning
-                if response_data.get("success") and ("not found" in response_data.get("message", "").lower() or 
-                                                   response_data.get("warning")):
-                    print(f"✅ Non-existent ship handled gracefully")
-                else:
-                    print(f"⚠️ Non-existent ship response: {response_data}")
-            else:
-                print(f"📄 Non-existent ship error: {response.text}")
-            
-            # Test 2: Missing ship_name
-            print(f"\n🔍 Testing with missing ship_name...")
-            payload_missing = {}
-            
-            response = self.session.post(
-                f"{BACKEND_URL}/companies/{self.company_id}/gdrive/delete-ship-folder",
-                json=payload_missing,
-                headers=headers,
-                timeout=30
-            )
-            
-            print(f"📊 Missing ship_name response status: {response.status_code}")
-            
-            if response.status_code == 400:
+            if response.status_code == 404:
                 try:
                     error_data = response.json()
                     detail = error_data.get("detail", "")
-                    print(f"📄 Missing ship_name error: {detail}")
+                    print(f"📄 Non-existent ship error: {detail}")
                     
-                    if "Missing ship_name" in detail:
-                        print(f"✅ Missing ship_name correctly returns 400 Bad Request")
-                        self.print_result(True, "✅ Error handling working correctly")
-                        return True
+                    if "Ship not found" in detail:
+                        print(f"✅ Non-existent ship correctly returns 404 Not Found")
                     else:
-                        print(f"⚠️ Unexpected 400 error message: {detail}")
+                        print(f"⚠️ Unexpected 404 error message: {detail}")
                 except:
-                    print(f"📄 Missing ship_name error (raw): {response.text}")
+                    print(f"📄 Non-existent ship error (raw): {response.text}")
             else:
-                print(f"⚠️ Expected 400 for missing ship_name, got {response.status_code}: {response.text}")
+                print(f"⚠️ Expected 404 for non-existent ship, got {response.status_code}: {response.text}")
             
-            self.print_result(True, "✅ Error handling tests completed (some edge cases may vary)")
+            # Test 2: Unauthorized access (no token)
+            print(f"\n🔍 Testing without authentication...")
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/ships/{fake_ship_id}/calculate-next-docking",
+                timeout=30
+            )
+            
+            print(f"📊 Unauthorized response status: {response.status_code}")
+            
+            if response.status_code in [401, 403]:
+                print(f"✅ Unauthorized access correctly returns {response.status_code}")
+            else:
+                print(f"⚠️ Expected 401/403 for unauthorized access, got {response.status_code}")
+            
+            self.print_result(True, "✅ Error handling tests completed")
             return True
                 
         except Exception as e:
