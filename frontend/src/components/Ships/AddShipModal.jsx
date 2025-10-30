@@ -279,6 +279,28 @@ const AddShipModal = ({ isOpen, onClose }) => {
     }
   };
 
+  // Helper function to convert date input (YYYY-MM-DD) to UTC datetime for backend
+  const convertDateInputToUTC = (dateStr) => {
+    if (!dateStr || dateStr.trim() === '') return null;
+    
+    try {
+      // If already in ISO datetime format, return as is
+      if (dateStr.includes('T') || dateStr.includes('Z')) {
+        return dateStr;
+      }
+      
+      // Convert YYYY-MM-DD to ISO datetime (UTC)
+      if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return `${dateStr}T00:00:00Z`;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Date conversion error:', error);
+      return null;
+    }
+  };
+
   // Helper function to format last docking for display (MM/YYYY)
   const formatLastDockingForDisplay = (dockingStr) => {
     if (!dockingStr || dockingStr === 'null' || dockingStr === 'N/A') return '';
