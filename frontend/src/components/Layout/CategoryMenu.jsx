@@ -71,13 +71,14 @@ export const CategoryMenu = ({
       <div className="mt-6">
         <button
           onClick={onAddRecord}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm font-medium"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm font-medium flex items-center justify-center gap-2"
           style={{
             background: 'linear-gradient(135deg, #48bb78, #38a169)',
             border: '2px solid #2f855a'
           }}
         >
-          {language === 'vi' ? 'ADD NEW RECORD' : 'ADD NEW RECORD'}
+          <span className="text-xl">🚢</span>
+          {language === 'vi' ? 'THÊM TÀU MỚI' : 'ADD NEW SHIP'}
         </button>
       </div>
     </div>
