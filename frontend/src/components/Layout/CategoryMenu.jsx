@@ -70,17 +70,11 @@ export const CategoryMenu = ({
       {/* Action Button */}
       <div className="mt-6">
         <button
-          onClick={(e) => {
-            console.log('Add Ship button clicked from CategoryMenu', e);
-            onAddRecord();
-          }}
+          onClick={onAddRecord}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-all shadow-sm font-medium flex items-center justify-center gap-2"
           style={{
             background: 'linear-gradient(135deg, #48bb78, #38a169)',
-            border: '2px solid #2f855a',
-            pointerEvents: 'auto', // Ensure button is clickable
-            position: 'relative',
-            zIndex: 10
+            border: '2px solid #2f855a'
           }}
           type="button"
         >
