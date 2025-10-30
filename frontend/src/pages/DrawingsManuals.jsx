@@ -251,7 +251,7 @@ const DrawingsManuals = () => {
     if (routes[submenuKey] && routes[submenuKey] !== '/drawings-manuals') {
       window.location.href = routes[submenuKey];
     }
-    // Stay on this page if drawings_manuals is selected (already here)
+    // Stay on this page if drawings is selected (already here)
   };
 
   return (
