@@ -62,6 +62,15 @@ const ClassAndFlagCert = () => {
   // Context menu state (for right-click actions)
   const [contextMenu, setContextMenu] = useState(null);
   const [surveyTypeContextMenu, setSurveyTypeContextMenu] = useState(null);
+  
+  // Upcoming survey modal state
+  const [upcomingSurveyModal, setUpcomingSurveyModal] = useState({
+    show: false,
+    surveys: [],
+    totalCount: 0,
+    company: '',
+    checkDate: ''
+  });
 
   // Fetch ships on mount
   useEffect(() => {
