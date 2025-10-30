@@ -219,7 +219,7 @@ const ClassSurveyReport = () => {
       
       // Clear selected ship if current ship was deleted
       if (selectedShip && selectedShip.id === shipId) {
-        setSelectedShip(null);
+        updateSelectedShip(null);
       }
 
     } catch (error) {
