@@ -980,9 +980,18 @@ class BackendAPITester:
             test_results.append(("Test 6 - Error Handling", False))
             result_error_handling = False
         
-        # Test 7: Backend Logs Verification
+        # Test 7: Upcoming Surveys Endpoint
+        if result_auth:
+            result_upcoming_surveys = self.test_upcoming_surveys_endpoint()
+            test_results.append(("Test 7 - Upcoming Surveys Endpoint", result_upcoming_surveys))
+        else:
+            print(f"\n⚠️ Skipping Upcoming Surveys - authentication failed")
+            test_results.append(("Test 7 - Upcoming Surveys Endpoint", False))
+            result_upcoming_surveys = False
+        
+        # Test 8: Backend Logs Verification
         result_logs = self.test_backend_logs_verification()
-        test_results.append(("Test 7 - Backend Logs Verification", result_logs))
+        test_results.append(("Test 8 - Backend Logs Verification", result_logs))
         
         # Print summary
         self.print_test_summary(test_results)
