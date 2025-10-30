@@ -407,6 +407,7 @@ const AddShipModal = ({ isOpen, onClose }) => {
     });
     setPdfFile(null);
     setIsPdfAnalyzing(false);
+    setUserCompanyName('');
     
     onClose();
   };
