@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDateDisplay } from '../utils/dateHelpers';
+import { shortenClassSociety } from '../utils/shipHelpers';
 
 export const ShipDetailPanel = ({ 
   ship, 
