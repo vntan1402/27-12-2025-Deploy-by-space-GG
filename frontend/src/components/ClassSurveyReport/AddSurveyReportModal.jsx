@@ -115,15 +115,17 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       setIsAnalyzing(true);
       toast.info(language === 'vi' ? '🤖 Đang phân tích file với AI...' : '🤖 Analyzing file with AI...');
 
-      const formData = new FormData();
-      formData.append('survey_report_file', file);
-      formData.append('ship_id', selectedShip.id);
-      formData.append('bypass_validation', 'false');
-
-      const response = await surveyReportService.analyzeFile(selectedShip.id, file);
+      // Call analyze API (backend will use system AI config)
+      const response = await surveyReportService.analyzeFile(
+        selectedShip.id,
+        file,
+        'google', // Will be ignored, backend uses system config
+        'gemini-2.0-flash', // Will be ignored
+        true // Will be ignored
+      );
       
-      if (response.success && response.analysis) {
-        const analysis = response.analysis;
+      if (response.data?.success && response.data?.analysis) {
+        const analysis = response.data.analysis;
         
         // Auto-populate form fields
         setFormData(prev => ({
