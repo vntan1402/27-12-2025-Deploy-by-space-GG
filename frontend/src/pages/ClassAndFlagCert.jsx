@@ -435,6 +435,7 @@ const ClassAndFlagCert = () => {
           surveys: data.upcoming_surveys,
           totalCount: data.total_count,
           company: data.company,
+          companyName: data.company_name,
           checkDate: data.check_date
         });
         
