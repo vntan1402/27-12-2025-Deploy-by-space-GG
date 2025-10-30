@@ -74,33 +74,30 @@ const ClassAndFlagCert = () => {
         />
       }
     >
-      {/* Page Title */}
-      <div className="mb-4">
+      {/* Page Title with Ship Select Button */}
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">
           {language === 'vi' ? 'CLASS & FLAG CERT' : 'CLASS & FLAG CERT'}
         </h1>
+        
+        {!selectedShip && (
+          <div className="flex items-center gap-4">
+            <p className="text-gray-600">
+              {language === 'vi' ? 'Vui lòng chọn tàu để xem thông tin' : 'Please select a ship to view information'}
+            </p>
+            <button
+              onClick={() => setShowShipModal(true)}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              <span>🚢</span>
+              {language === 'vi' ? 'Chọn tàu' : 'Ship Select'}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Ship Selection Placeholder or Ship Detail Panel */}
-      {!selectedShip ? (
-        <div className="mb-6 bg-white rounded-lg shadow-md p-6 border-2 border-dashed border-gray-300">
-          <div className="flex items-center justify-center gap-4">
-            <div className="text-center">
-              <div className="text-4xl mb-2">🚢</div>
-              <p className="text-gray-600 mb-4">
-                {language === 'vi' ? 'Vui lòng chọn tàu để xem thông tin' : 'Please select a ship to view information'}
-              </p>
-              <button
-                onClick={() => setShowShipModal(true)}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 mx-auto"
-              >
-                <span>🚢</span>
-                {language === 'vi' ? 'Chọn tàu' : 'Ship Select'}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
+      {/* Ship Detail Panel */}
+      {selectedShip && (
         <ShipDetailPanel
           ship={selectedShip}
           onClose={() => setSelectedShip(null)}
