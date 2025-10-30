@@ -910,13 +910,14 @@ class BackendAPITester:
             return False
 
     def run_all_tests(self):
-        """Run all Ship Calculation API tests"""
-        print(f"🚀 Starting Ship Calculation APIs Testing")
-        print(f"🎯 FOCUS: Testing ship calculation endpoints:")
+        """Run all Backend API tests"""
+        print(f"🚀 Starting Backend API Testing")
+        print(f"🎯 FOCUS: Testing backend endpoints:")
         print(f"   1. POST /api/ships/{{ship_id}}/calculate-next-docking")
         print(f"   2. POST /api/ships/{{ship_id}}/calculate-anniversary-date")
         print(f"   3. POST /api/ships/{{ship_id}}/calculate-special-survey-cycle")
-        print(f"🔐 Authentication: Using admin1/123456 credentials")
+        print(f"   4. GET /api/certificates/upcoming-surveys (PRIORITY: Certificate Issue)")
+        print(f"🔐 Authentication: Using admin1@amcsc.vn/123456 credentials")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
         
