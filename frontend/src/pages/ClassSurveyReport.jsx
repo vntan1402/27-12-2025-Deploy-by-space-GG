@@ -241,11 +241,17 @@ const ClassSurveyReport = () => {
     setSelectedSubMenu(submenuKey);
     
     // Navigate to different pages based on submenu
-    if (submenuKey === 'certificates') {
-      window.location.href = '/certificates';
+    const routes = {
+      'certificates': '/certificates',
+      'test_report': '/test-report',
+      'drawings_manuals': '/drawings-manuals',
+      'other_docs': '/other-documents'
+    };
+    
+    if (routes[submenuKey] && routes[submenuKey] !== '/class-survey-report') {
+      window.location.href = routes[submenuKey];
     }
     // Stay on this page if class_survey is selected (already here)
-    // Add more routes for other submenus as needed
   };
 
   return (
