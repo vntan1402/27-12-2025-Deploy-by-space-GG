@@ -85,9 +85,8 @@ const ClassAndFlagCert = () => {
 
       // Delete ship from database (with optional Google Drive deletion)
       const deleteGoogleDriveFolder = deleteOption === 'with_gdrive';
-      const params = deleteGoogleDriveFolder ? '?delete_google_drive_folder=true' : '';
       
-      const response = await shipService.delete(shipId + params);
+      const response = await shipService.delete(shipId, { delete_gdrive: deleteGoogleDriveFolder });
 
       // If user chose to delete Google Drive folder as well
       if (deleteOption === 'with_gdrive') {
