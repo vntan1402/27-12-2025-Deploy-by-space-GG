@@ -672,28 +672,44 @@ const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) =
           </div>
 
           {/* Form Actions */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t">
+          <div className="flex items-center justify-between pt-4 border-t">
+            {/* Delete Button - Left side */}
             <button
               type="button"
-              onClick={handleClose}
+              onClick={() => onDeleteShip && onDeleteShip(ship)}
               disabled={isSubmitting}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all font-medium flex items-center disabled:opacity-50"
             >
-              {language === 'vi' ? 'Hủy' : 'Cancel'}
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              {language === 'vi' ? 'Xóa tàu' : 'Delete Ship'}
             </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isSubmitting && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              )}
-              {isSubmitting 
-                ? (language === 'vi' ? 'Đang cập nhật...' : 'Updating...') 
-                : (language === 'vi' ? 'Cập nhật tàu' : 'Update Ship')
-              }
-            </button>
+
+            {/* Cancel and Update Buttons - Right side */}
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSubmitting && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {isSubmitting 
+                  ? (language === 'vi' ? 'Đang cập nhật...' : 'Updating...') 
+                  : (language === 'vi' ? 'Cập nhật tàu' : 'Update Ship')
+                }
+              </button>
+            </div>
           </div>
         </form>
       </div>
