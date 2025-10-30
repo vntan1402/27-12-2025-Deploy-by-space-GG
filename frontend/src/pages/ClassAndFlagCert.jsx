@@ -113,6 +113,7 @@ const ClassAndFlagCert = () => {
     } catch (error) {
       console.error('Error refreshing ship data:', error);
       toast.error(language === 'vi' ? 'Không thể làm mới dữ liệu tàu' : 'Failed to refresh ship data');
+    }
   };
 
   const handleDeleteShipClick = (ship) => {
