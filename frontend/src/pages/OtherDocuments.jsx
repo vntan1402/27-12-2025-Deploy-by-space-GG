@@ -241,11 +241,17 @@ const OtherDocuments = () => {
     setSelectedSubMenu(submenuKey);
     
     // Navigate to different pages based on submenu
-    if (submenuKey === 'certificates') {
-      window.location.href = '/certificates';
+    const routes = {
+      'certificates': '/certificates',
+      'class_survey': '/class-survey-report',
+      'test_report': '/test-report',
+      'drawings_manuals': '/drawings-manuals'
+    };
+    
+    if (routes[submenuKey] && routes[submenuKey] !== '/other-documents') {
+      window.location.href = routes[submenuKey];
     }
-    // Stay on this page if class_survey is selected (already here)
-    // Add more routes for other submenus as needed
+    // Stay on this page if other_docs is selected (already here)
   };
 
   return (
