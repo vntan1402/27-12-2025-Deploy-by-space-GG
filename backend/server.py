@@ -4753,6 +4753,9 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         from datetime import datetime, timedelta
         current_date = datetime.now().date()
         
+        logger.info(f"Current server date: {current_date.isoformat()}")
+        logger.info(f"Current server datetime: {datetime.now().isoformat()}")
+        
         upcoming_surveys = []
         
         for cert in all_certificates:
