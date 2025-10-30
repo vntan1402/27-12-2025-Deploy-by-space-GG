@@ -350,7 +350,7 @@ backend:
 
   - task: "Upcoming Surveys Endpoint - Certificate Issue Investigation"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
