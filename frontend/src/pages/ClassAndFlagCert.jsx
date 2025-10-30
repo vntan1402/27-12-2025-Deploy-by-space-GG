@@ -227,10 +227,10 @@ const ClassAndFlagCert = () => {
                           <span className="font-semibold text-gray-800 text-xs truncate ml-1">{ship.flag}</span>
                         </div>
                       )}
-                      {ship.ship_type && (
+                      {ship.class_society && (
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600 text-xs">{language === 'vi' ? 'Hội đăng kiểm:' : 'Class Society:'}</span>
-                          <span className="font-semibold text-gray-800 text-xs truncate ml-1">{ship.ship_type}</span>
+                          <span className="font-semibold text-gray-800 text-xs truncate ml-1">{ship.class_society}</span>
                         </div>
                       )}
                       {ship.built_year && (
