@@ -100,6 +100,7 @@ const HomePage = () => {
           console.log('Closing Add Ship modal');
           setShowAddShipModal(false);
         }}
+        onShipCreated={handleShipCreated}
       />
       
       {/* Company Logo Banner */}
