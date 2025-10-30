@@ -4221,7 +4221,7 @@ async def create_ship(
         ship_response = ShipResponse(**ship_dict)
         
         # Start Google Drive folder creation as background task (non-blocking)
-        asyncio.create_task(create_google_drive_folder_background(ship_dict, current_user))
+        background_tasks.add_task(create_google_drive_folder_background, ship_dict, current_user)
         
         logger.info(f"Ship '{ship_dict.get('name')}' created successfully in database. Google Drive folder creation started in background.")
         
