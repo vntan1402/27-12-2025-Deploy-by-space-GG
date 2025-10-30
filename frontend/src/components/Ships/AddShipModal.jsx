@@ -83,7 +83,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
       setIsSubmitting(false);
       setUserCompanyName('');
     }
-  }, [isOpen]);
+  }, [isOpen, user?.company]); // Add user?.company to dependencies
 
   const fetchCompanies = async () => {
     try {
