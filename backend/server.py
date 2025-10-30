@@ -11942,7 +11942,7 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
         logger.info(f"Payload: {payload}")
         
         # Increased timeout to handle large folder structure creation (90s for optimal reliability)
-        response = requests.post(script_url, json=payload, timeout=90)
+        response = requests.post(script_url, json=payload, timeout=180)  # 180s timeout for complex folder operations
         response.raise_for_status()
         
         result = response.json()
