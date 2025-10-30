@@ -919,10 +919,13 @@ const ClassAndFlagCert = () => {
               isUpdatingSurveyTypes={isUpdatingSurveyTypes}
               isMultiCertProcessing={isMultiCertProcessing}
               isRefreshing={isRefreshing}
+              linksFetching={linksFetching}
+              linksFetchProgress={linksFetchProgress}
               onUpdateSurveyTypes={handleUpdateSurveyTypes}
               onUpcomingSurvey={handleUpcomingSurvey}
               onAddCertificate={handleAddShipCertificate}
               onRefresh={handleRefreshCertificates}
+              onBulkDelete={handleBulkDelete}
             />
 
             {/* Certificate Filters */}
