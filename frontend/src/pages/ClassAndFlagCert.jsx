@@ -836,6 +836,17 @@ const ClassAndFlagCert = () => {
           isDeleting={isDeletingShip}
         />
       )}
+
+      {/* Add Ship Certificate Modal */}
+      <AddShipCertificateModal
+        isOpen={showAddShipCertificateModal}
+        onClose={() => setShowAddShipCertificateModal(false)}
+        onSuccess={handleShipCertificateSuccess}
+        selectedShip={selectedShip}
+        allShips={ships}
+        onShipChange={setSelectedShip}
+        aiConfig={null} // TODO: Fetch AI config from context or API
+      />
     </MainLayout>
   );
 };
