@@ -15,6 +15,7 @@ export const shortenClassSociety = (classSociety) => {
   
   // Common abbreviations mapping
   const abbreviations = {
+    // IACS Members (International Association of Classification Societies)
     'American Bureau of Shipping': 'ABS',
     'Bureau Veritas': 'BV',
     'China Classification Society': 'CCS',
@@ -26,9 +27,26 @@ export const shortenClassSociety = (classSociety) => {
     'Polish Register of Shipping': 'PRS',
     'Registro Italiano Navale': 'RINA',
     'Russian Maritime Register of Shipping': 'RS',
+    
+    // Vietnam
+    'Vietnam Register': 'VR',
+    'Đăng Kiểm Việt Nam': 'VR',
+    'Dang Kiem Viet Nam': 'VR',
+    'Vietnam Register of Shipping': 'VR',
+    
+    // Panama RO (Recognized Organizations - Authorized by Panama)
+    'Panama Maritime Documentation Services': 'PMDS',
+    'International Register of Shipping': 'IRS Panama',
+    'Bureau International des Conteneurs': 'BIC',
+    'International Ship Registries': 'ISR',
+    'Hellenic Register of Shipping': 'HRS',
+    'International Naval Surveys Bureau': 'INSB',
+    'ISTHMUS Bureau of Shipping': 'IBS',
+    'Conarina': 'Conarina',
+    'USCG': 'USCG',
   };
   
-  // Check for exact match in abbreviations
+  // Check for exact match or substring match in abbreviations
   for (const [full, abbr] of Object.entries(abbreviations)) {
     if (name.toLowerCase().includes(full.toLowerCase())) {
       return abbr;
@@ -47,9 +65,30 @@ export const shortenClassSociety = (classSociety) => {
     return 'LR';
   }
   
-  // Panama Maritime Documentation Services, Inc. → Panama Maritime
-  if (name.toLowerCase().includes('panama maritime')) {
-    return 'Panama Maritime';
+  // ClassNK variants
+  if (name.toLowerCase().includes('classnk') || name.toLowerCase().includes('class nk')) {
+    return 'NK';
+  }
+  
+  // China Classification Society variants
+  if (name.toLowerCase().includes('china') && name.toLowerCase().includes('class')) {
+    return 'CCS';
+  }
+  
+  // For names with Inc., LLC, Ltd - try to extract meaningful part
+  if (name.match(/,?\s*(Inc\.|LLC|Ltd|Limited|Corporation|Corp\.)$/i)) {
+    const cleanName = name.replace(/,?\s*(Inc\.|LLC|Ltd|Limited|Corporation|Corp\.)$/i, '').trim();
+    
+    // If cleaned name is still long, try to abbreviate
+    if (cleanName.length > 30) {
+      const words = cleanName.split(/\s+/);
+      if (words.length >= 3) {
+        // Create abbreviation from first letters of words
+        return words.map(w => w.charAt(0).toUpperCase()).join('');
+      }
+    }
+    
+    return cleanName;
   }
   
   // For names with commas, take first part if it's reasonably short
