@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { MainLayout, Sidebar, SubMenuBar } from '../components/Layout';
+import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons } from '../components';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
-import { shipService } from '../services';
+import { shipService, shipCertificateService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
+import { compareDates } from '../utils/dateHelpers';
 
 const ClassAndFlagCert = () => {
   const { language, user } = useAuth();
