@@ -99,7 +99,7 @@ export const ShipDetailPanel = ({
             <span className="ml-2 font-bold">{ship.name}</span>
           </div>
           <div>
-            <span className="font-semibold">{language === 'vi' ? 'Tổ chức Phân cấp:' : 'Class Society:'}</span>
+            <span className="font-semibold">{language === 'vi' ? 'Đăng kiểm:' : 'Class Society:'}</span>
             <span className="ml-2">{shortenClassSociety(ship.class_society) || '-'}</span>
           </div>
           <div>
