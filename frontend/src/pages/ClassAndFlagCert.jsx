@@ -1256,6 +1256,7 @@ const ClassAndFlagCert = () => {
                 onDoubleClick={handleCertificateDoubleClick}
                 onRightClick={handleCertificateRightClick}
                 onSurveyTypeRightClick={handleSurveyTypeRightClick}
+                onNotesClick={handleNotesClick}
               />
             )}
           </div>
