@@ -388,7 +388,7 @@ const DrawingsManuals = () => {
           /* Ship Cards Grid - Show all ships for selection */
           <div>
             <h3 className="text-xl font-semibold mb-6 text-gray-800">
-              {language === 'vi' ? 'Chọn tàu để xem Class Survey Report' : 'Select a ship to view Class Survey Report'}
+              {language === 'vi' ? 'Chọn tàu để xem Drawings & Manuals' : 'Select a ship to view Drawings & Manuals'}
             </h3>
             
             {ships.length === 0 ? (
