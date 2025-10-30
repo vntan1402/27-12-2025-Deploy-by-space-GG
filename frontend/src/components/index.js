@@ -3,3 +3,6 @@ export * from './Layout';
 
 // Re-export Certificate List components
 export * from './CertificateList';
+
+// Re-export Ship Certificates components
+export * from './ShipCertificates';
