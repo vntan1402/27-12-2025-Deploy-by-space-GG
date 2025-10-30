@@ -170,14 +170,15 @@ const AddShipModal = ({ isOpen, onClose }) => {
     basicInfo: language === 'vi' ? 'Thông Tin Cơ Bản' : 'Basic Information',
     technicalDetails: language === 'vi' ? 'Chi Tiết Kỹ Thuật' : 'Technical Details',
     surveyDates: language === 'vi' ? 'Ngày Đăng Kiểm' : 'Survey Dates',
-    ownerInfo: language === 'vi' ? 'Thông Tin Chủ Sở Hữu' : 'Owner Information',
     
     // Fields
     shipName: language === 'vi' ? 'Tên Tàu' : 'Ship Name',
     imoNumber: language === 'vi' ? 'Số IMO' : 'IMO Number',
     flag: language === 'vi' ? 'Cờ' : 'Flag',
-    shipType: language === 'vi' ? 'Loại Tàu / Class Society' : 'Ship Type / Class Society',
+    shipType: language === 'vi' ? 'Loại Tàu' : 'Ship Type',
+    classSociety: language === 'vi' ? 'Class Society' : 'Class Society',
     company: language === 'vi' ? 'Công Ty' : 'Company',
+    shipOwner: language === 'vi' ? 'Chủ Tàu' : 'Ship Owner',
     grossTonnage: language === 'vi' ? 'Gross Tonnage' : 'Gross Tonnage',
     deadweight: language === 'vi' ? 'Deadweight (DWT)' : 'Deadweight (DWT)',
     builtYear: language === 'vi' ? 'Năm Đóng' : 'Built Year',
@@ -188,7 +189,6 @@ const AddShipModal = ({ isOpen, onClose }) => {
     nextDocking: language === 'vi' ? 'Docking Tiếp Theo' : 'Next Docking',
     lastSpecialSurvey: language === 'vi' ? 'Special Survey Gần Nhất' : 'Last Special Survey',
     lastIntermediateSurvey: language === 'vi' ? 'Intermediate Survey Gần Nhất' : 'Last Intermediate Survey',
-    shipOwner: language === 'vi' ? 'Chủ Tàu' : 'Ship Owner',
     
     // Buttons
     cancel: language === 'vi' ? 'Hủy' : 'Cancel',
