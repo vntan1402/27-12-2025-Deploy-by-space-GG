@@ -125,7 +125,7 @@ const ClassSurveyReport = () => {
     // Update ships list
     setShips(ships.map(s => s.id === updatedShip.id ? updatedShip : s));
     // Update selected ship
-    setSelectedShip(updatedShip);
+    updateSelectedShip(updatedShip);
     // Refresh ships list
     fetchShips();
     toast.success(language === 'vi' ? 'Cập nhật tàu thành công!' : 'Ship updated successfully!');
