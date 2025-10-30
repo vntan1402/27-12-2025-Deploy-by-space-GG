@@ -61,7 +61,14 @@ const ClassAndFlagCert = () => {
   
   // Context menu state (for right-click actions)
   const [contextMenu, setContextMenu] = useState(null);
-  const [surveyTypeContextMenu, setSurveyTypeContextMenu] = useState(null);
+  // Survey type context menu state
+  const [surveyTypeContextMenu, setSurveyTypeContextMenu] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    certificate: null,
+    currentType: ''
+  });
   
   // Upcoming survey modal state
   const [upcomingSurveyModal, setUpcomingSurveyModal] = useState({
