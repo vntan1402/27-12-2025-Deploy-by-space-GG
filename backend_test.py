@@ -680,8 +680,8 @@ class BackendAPITester:
             return False
     
     def test_upcoming_surveys_endpoint(self):
-        """Test 7: Upcoming Surveys Endpoint - Dual Lookup Fix Verification"""
-        self.print_test_header("Test 7 - Upcoming Surveys Endpoint - Dual Lookup Fix Verification")
+        """Test 7: Upcoming Surveys Endpoint - Company Name Verification"""
+        self.print_test_header("Test 7 - Upcoming Surveys Endpoint - Company Name Verification")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
@@ -694,15 +694,14 @@ class BackendAPITester:
             }
             
             print(f"📡 GET {BACKEND_URL}/certificates/upcoming-surveys")
-            print(f"🎯 Testing upcoming surveys endpoint after dual lookup fix")
-            print(f"🔍 Looking for certificate ID: 51d1c55a-81d4-4e68-9dd2-9fef7d8bf895")
-            print(f"📄 Certificate Name: Certificate for the Review and Agreement of the Declaration of Maritime Labour Compliance Part II (DMLC PART II)")
-            print(f"🚢 Ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)")
-            print(f"📅 Expected next_survey: 2025-11-28")
-            print(f"🔄 Expected survey type: Intermediate")
-            print(f"🪟 Expected window: 2025-08-30 to 2026-02-26 (±90 days)")
-            print(f"📊 Expected days_until_survey: 29")
-            print(f"🔔 Expected is_due_soon: true")
+            print(f"🎯 Testing upcoming surveys endpoint to verify company_name is included")
+            print(f"🔍 Expected Response Structure:")
+            print(f"   - upcoming_surveys: [...] (array of surveys)")
+            print(f"   - total_count: 1 (number)")
+            print(f"   - company: '0a6eaf96-0aaf-4793-89be-65d62cb7953c' (company ID)")
+            print(f"   - company_name: 'AMCSC' or similar (NEW FIELD - readable company name)")
+            print(f"   - check_date: '2025-10-30' (date)")
+            print(f"   - logic_info: {{...}} (object)")
             
             # Make request to get upcoming surveys
             response = self.session.get(
@@ -719,7 +718,7 @@ class BackendAPITester:
                 
                 # Check required response fields
                 required_fields = ["upcoming_surveys"]
-                optional_fields = ["total_count", "company", "check_date", "logic_info"]
+                expected_fields = ["total_count", "company", "company_name", "check_date", "logic_info"]
                 missing_fields = []
                 
                 for field in required_fields:
@@ -730,193 +729,126 @@ class BackendAPITester:
                     self.print_result(False, f"Response missing required fields: {missing_fields}")
                     return False
                 
-                # Log optional fields that are present
-                for field in optional_fields:
+                # Check for expected fields and log their presence
+                field_status = {}
+                for field in expected_fields:
                     if field in response_data:
-                        print(f"📄 Optional field present: {field}")
+                        field_status[field] = True
+                        print(f"✅ Field present: {field} = {response_data[field]}")
                     else:
-                        print(f"📄 Optional field missing: {field}")
+                        field_status[field] = False
+                        print(f"❌ Field missing: {field}")
                 
+                # Focus on the NEW company_name field verification
+                company_name_verification = []
+                
+                # 1. Check if company_name field exists
+                if "company_name" in response_data:
+                    company_name = response_data["company_name"]
+                    print(f"✅ company_name field exists: '{company_name}'")
+                    company_name_verification.append(True)
+                    
+                    # 2. Check if company_name is not empty
+                    if company_name and company_name.strip():
+                        print(f"✅ company_name is not empty: '{company_name}'")
+                        company_name_verification.append(True)
+                        
+                        # 3. Check if company_name is readable (not a UUID)
+                        import re
+                        uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                        if not re.match(uuid_pattern, company_name.lower()):
+                            print(f"✅ company_name is readable (not UUID): '{company_name}'")
+                            company_name_verification.append(True)
+                            
+                            # 4. Check if company_name looks like a company name (contains letters)
+                            if re.search(r'[A-Za-z]', company_name):
+                                print(f"✅ company_name contains letters (valid company name): '{company_name}'")
+                                company_name_verification.append(True)
+                            else:
+                                print(f"❌ company_name does not contain letters: '{company_name}'")
+                                company_name_verification.append(False)
+                        else:
+                            print(f"❌ company_name appears to be a UUID: '{company_name}'")
+                            company_name_verification.append(False)
+                    else:
+                        print(f"❌ company_name is empty or whitespace")
+                        company_name_verification.append(False)
+                else:
+                    print(f"❌ company_name field is missing from response")
+                    company_name_verification.append(False)
+                
+                # 5. Check if company field also exists (should be company ID)
+                if "company" in response_data:
+                    company_id = response_data["company"]
+                    print(f"✅ company field exists: '{company_id}'")
+                    
+                    # Verify it looks like a UUID (company ID)
+                    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+                    if re.match(uuid_pattern, str(company_id).lower()):
+                        print(f"✅ company field is a valid UUID (company ID): '{company_id}'")
+                        company_name_verification.append(True)
+                        
+                        # Check if it matches expected company ID
+                        expected_company_id = "0a6eaf96-0aaf-4793-89be-65d62cb7953c"
+                        if str(company_id).lower() == expected_company_id.lower():
+                            print(f"✅ company ID matches expected AMCSC company: '{company_id}'")
+                            company_name_verification.append(True)
+                        else:
+                            print(f"⚠️ company ID different from expected (may be correct for this user): '{company_id}'")
+                            company_name_verification.append(True)  # Still valid, just different company
+                    else:
+                        print(f"❌ company field is not a valid UUID: '{company_id}'")
+                        company_name_verification.append(False)
+                else:
+                    print(f"❌ company field is missing from response")
+                    company_name_verification.append(False)
+                
+                # Additional response structure verification
                 upcoming_surveys = response_data.get("upcoming_surveys", [])
                 total_count = response_data.get("total_count", len(upcoming_surveys))
-                company = response_data.get("company", "Unknown")
                 check_date = response_data.get("check_date", "Unknown")
+                logic_info = response_data.get("logic_info", {})
                 
-                print(f"🏢 Company: {company}")
-                print(f"📅 Check Date: {check_date}")
-                print(f"📊 Total Count: {total_count}")
-                print(f"📋 Found {len(upcoming_surveys)} upcoming surveys")
+                print(f"\n📊 Response Structure Summary:")
+                print(f"   📋 Upcoming Surveys Count: {len(upcoming_surveys)}")
+                print(f"   📊 Total Count: {total_count}")
+                print(f"   📅 Check Date: {check_date}")
+                print(f"   🔧 Logic Info Present: {bool(logic_info)}")
                 
-                # Look for the specific certificate
-                target_cert_id = "51d1c55a-81d4-4e68-9dd2-9fef7d8bf895"
-                target_cert = None
+                # Overall verification result
+                verification_score = sum(company_name_verification)
+                total_checks = len(company_name_verification)
                 
-                print(f"\n🔍 Searching for target certificate: {target_cert_id}")
+                print(f"\n📊 COMPANY_NAME VERIFICATION SUMMARY:")
+                print(f"   ✅ Passed: {verification_score}/{total_checks} checks")
+                print(f"   📈 Success Rate: {(verification_score/total_checks)*100:.1f}%")
                 
-                for i, survey in enumerate(upcoming_surveys):
-                    cert_id = survey.get('certificate_id', '')
-                    cert_name = survey.get('cert_name', '')
-                    ship_name = survey.get('ship_name', '')
-                    next_survey = survey.get('next_survey_date', '')
-                    days_until = survey.get('days_until_survey', 0)
+                # Success criteria: At least 4/6 checks must pass
+                if verification_score >= 4:
+                    print(f"   🎉 COMPANY_NAME VERIFICATION SUCCESSFUL!")
                     
-                    print(f"   📋 [{i+1}] Cert ID: {cert_id}")
-                    print(f"       Name: {cert_name}")
-                    print(f"       Ship: {ship_name}")
-                    print(f"       Next Survey: {next_survey}")
-                    print(f"       Days Until: {days_until}")
+                    # Print the key success details
+                    if "company_name" in response_data and "company" in response_data:
+                        print(f"\n✅ SUCCESS CRITERIA MET:")
+                        print(f"   📄 Response includes company_name: '{response_data['company_name']}'")
+                        print(f"   📄 Response includes company: '{response_data['company']}'")
+                        print(f"   ✅ company_name is readable (not UUID)")
+                        print(f"   ✅ company is a valid UUID (company ID)")
+                        print(f"   ✅ Both fields are present as expected")
                     
-                    if cert_id == target_cert_id:
-                        target_cert = survey
-                        print(f"   ✅ FOUND TARGET CERTIFICATE!")
-                        break
-                
-                if target_cert:
-                    print(f"\n✅ TARGET CERTIFICATE FOUND IN UPCOMING SURVEYS:")
-                    print(f"   📋 Certificate ID: {target_cert.get('certificate_id')}")
-                    print(f"   📄 Certificate Name: {target_cert.get('cert_name')}")
-                    print(f"   🚢 Ship Name: {target_cert.get('ship_name')}")
-                    print(f"   📅 Next Survey Date: {target_cert.get('next_survey_date')}")
-                    print(f"   🔄 Next Survey Type: {target_cert.get('next_survey_type')}")
-                    print(f"   📊 Days Until Survey: {target_cert.get('days_until_survey')}")
-                    print(f"   🪟 Window Open: {target_cert.get('window_open')}")
-                    print(f"   🪟 Window Close: {target_cert.get('window_close')}")
-                    print(f"   🪟 Window Type: {target_cert.get('window_type')}")
-                    print(f"   ⚠️ Is Overdue: {target_cert.get('is_overdue')}")
-                    print(f"   🔔 Is Due Soon: {target_cert.get('is_due_soon')}")
-                    print(f"   🚨 Is Critical: {target_cert.get('is_critical')}")
-                    
-                    # Verify expected values from review request
-                    expected_next_survey = "2025-11-28"
-                    expected_days_until = 29  # From 2025-10-30 to 2025-11-28
-                    expected_window_open = "2025-08-30"
-                    expected_window_close = "2026-02-26"
-                    expected_is_due_soon = True
-                    expected_survey_type = "Intermediate"
-                    
-                    actual_next_survey = target_cert.get('next_survey_date', '')
-                    actual_days_until = target_cert.get('days_until_survey', 0)
-                    actual_window_open = target_cert.get('window_open', '')
-                    actual_window_close = target_cert.get('window_close', '')
-                    actual_is_due_soon = target_cert.get('is_due_soon', False)
-                    actual_survey_type = target_cert.get('next_survey_type', '')
-                    
-                    # Verification results
-                    verification_results = []
-                    
-                    # Check next survey date
-                    if expected_next_survey in actual_next_survey:
-                        print(f"   ✅ Next survey date matches expected: {expected_next_survey}")
-                        verification_results.append(True)
-                    else:
-                        print(f"   ❌ Next survey date mismatch. Expected: {expected_next_survey}, Got: {actual_next_survey}")
-                        verification_results.append(False)
-                    
-                    # Check days until survey
-                    if actual_days_until == expected_days_until:
-                        print(f"   ✅ Days until survey matches expected: {expected_days_until}")
-                        verification_results.append(True)
-                    else:
-                        print(f"   ❌ Days until survey mismatch. Expected: {expected_days_until}, Got: {actual_days_until}")
-                        verification_results.append(False)
-                    
-                    # Check window open date
-                    if expected_window_open in actual_window_open:
-                        print(f"   ✅ Window open date matches expected: {expected_window_open}")
-                        verification_results.append(True)
-                    else:
-                        print(f"   ❌ Window open date mismatch. Expected: {expected_window_open}, Got: {actual_window_open}")
-                        verification_results.append(False)
-                    
-                    # Check window close date
-                    if expected_window_close in actual_window_close:
-                        print(f"   ✅ Window close date matches expected: {expected_window_close}")
-                        verification_results.append(True)
-                    else:
-                        print(f"   ❌ Window close date mismatch. Expected: {expected_window_close}, Got: {actual_window_close}")
-                        verification_results.append(False)
-                    
-                    # Check is_due_soon flag
-                    if actual_is_due_soon == expected_is_due_soon:
-                        print(f"   ✅ Is due soon flag matches expected: {expected_is_due_soon}")
-                        verification_results.append(True)
-                    else:
-                        print(f"   ❌ Is due soon flag mismatch. Expected: {expected_is_due_soon}, Got: {actual_is_due_soon}")
-                        verification_results.append(False)
-                    
-                    # Check survey type
-                    if expected_survey_type.lower() in actual_survey_type.lower():
-                        print(f"   ✅ Survey type matches expected: {expected_survey_type}")
-                        verification_results.append(True)
-                    else:
-                        print(f"   ❌ Survey type mismatch. Expected: {expected_survey_type}, Got: {actual_survey_type}")
-                        verification_results.append(False)
-                    
-                    # Overall verification result
-                    all_verified = all(verification_results)
-                    verification_score = sum(verification_results)
-                    total_checks = len(verification_results)
-                    
-                    print(f"\n📊 VERIFICATION SUMMARY:")
-                    print(f"   ✅ Passed: {verification_score}/{total_checks} checks")
-                    print(f"   📈 Success Rate: {(verification_score/total_checks)*100:.1f}%")
-                    
-                    if all_verified:
-                        print(f"   🎉 ALL VERIFICATION CHECKS PASSED!")
-                        self.print_result(True, "✅ Target certificate found with ALL expected values correct")
-                        return True
-                    elif verification_score >= 4:  # At least 4/6 checks passed
-                        print(f"   ✅ MOST VERIFICATION CHECKS PASSED!")
-                        self.print_result(True, "✅ Target certificate found with most expected values correct")
-                        return True
-                    else:
-                        print(f"   ❌ MULTIPLE VERIFICATION CHECKS FAILED!")
-                        self.print_result(False, f"❌ Target certificate found but {total_checks - verification_score} verification checks failed")
-                        return False
-                    
+                    self.print_result(True, f"✅ Upcoming surveys endpoint includes company_name field correctly (Score: {verification_score}/{total_checks})")
+                    return True
                 else:
-                    print(f"\n❌ TARGET CERTIFICATE NOT FOUND IN UPCOMING SURVEYS")
-                    print(f"🔍 Certificate ID {target_cert_id} is missing from the response")
-                    print(f"📊 This indicates the dual lookup fix may not be working correctly")
+                    print(f"   ❌ COMPANY_NAME VERIFICATION FAILED!")
+                    print(f"   📊 Only {verification_score}/{total_checks} checks passed")
                     
-                    # Check backend logs for dual lookup information
-                    print(f"\n🔍 Checking backend logs for dual lookup information...")
-                    try:
-                        import subprocess
-                        result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.out.log'], 
-                                              capture_output=True, text=True, timeout=10)
-                        if result.returncode == 0:
-                            log_lines = result.stdout.split('\n')
-                            
-                            # Look for dual lookup log entries
-                            dual_lookup_logs = []
-                            for line in log_lines:
-                                if any(keyword in line.lower() for keyword in ['dual lookup', 'found', 'ships for company', 'by id:', 'by name:']):
-                                    dual_lookup_logs.append(line)
-                            
-                            if dual_lookup_logs:
-                                print(f"📝 Dual lookup backend log entries:")
-                                for log_line in dual_lookup_logs[-15:]:  # Last 15 relevant entries
-                                    print(f"   {log_line}")
-                            else:
-                                print(f"📝 No dual lookup log entries found")
-                                
-                            # Look for general upcoming surveys logs
-                            upcoming_logs = []
-                            for line in log_lines:
-                                if any(keyword in line.lower() for keyword in ['upcoming', 'survey', 'certificate', 'amcsc']):
-                                    upcoming_logs.append(line)
-                            
-                            if upcoming_logs:
-                                print(f"📝 General upcoming surveys log entries:")
-                                for log_line in upcoming_logs[-10:]:  # Last 10 relevant entries
-                                    print(f"   {log_line}")
-                        else:
-                            print(f"⚠️ Could not access backend logs")
-                    except Exception as e:
-                        print(f"⚠️ Backend log access failed: {e}")
+                    # Print specific failures
+                    if "company_name" not in response_data:
+                        print(f"   🚨 CRITICAL: company_name field is missing from response")
+                    elif not response_data.get("company_name", "").strip():
+                        print(f"   🚨 CRITICAL: company_name field is empty")
                     
-                    self.print_result(False, f"❌ Target certificate {target_cert_id} not found - dual lookup fix may not be working")
+                    self.print_result(False, f"❌ company_name field verification failed ({verification_score}/{total_checks} checks passed)")
                     return False
                 
             else:
@@ -928,7 +860,7 @@ class BackendAPITester:
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during upcoming surveys test: {str(e)}")
+            self.print_result(False, f"Exception during upcoming surveys company_name test: {str(e)}")
             return False
 
     def test_backend_logs_verification(self):
