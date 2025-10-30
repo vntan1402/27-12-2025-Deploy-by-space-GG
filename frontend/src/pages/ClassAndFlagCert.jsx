@@ -409,8 +409,13 @@ const ClassAndFlagCert = () => {
   // Handle upcoming survey check (placeholder)
   const handleUpcomingSurvey = async () => {
     try {
+      console.log('🔍 Checking upcoming surveys...');
       const response = await api.get('/api/certificates/upcoming-surveys');
       const data = response.data;
+      
+      console.log('📊 Upcoming surveys response:', data);
+      console.log(`Total certificates checked: ${data.total_count || 0}`);
+      console.log(`Surveys in window: ${data.upcoming_surveys?.length || 0}`);
       
       if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
         setUpcomingSurveyModal({
@@ -422,17 +427,19 @@ const ClassAndFlagCert = () => {
         });
         
         toast.info(language === 'vi' 
-          ? `⚠️ Có ${data.total_count} chứng chỉ sắp đến hạn survey`
-          : `⚠️ ${data.total_count} certificates with upcoming surveys`
+          ? `⚠️ Có ${data.upcoming_surveys.length} chứng chỉ trong survey window (±3 tháng)`
+          : `⚠️ ${data.upcoming_surveys.length} certificates in survey window (±3 months)`
         );
       } else {
+        console.log('✅ No surveys in current window (±3 months from today)');
         toast.success(language === 'vi' 
-          ? '✅ Không có survey sắp đến hạn'
-          : '✅ No upcoming surveys'
+          ? '✅ Không có survey trong window hiện tại (±3 tháng)\n💡 Surveys xa hơn sẽ không hiển thị'
+          : '✅ No surveys in current window (±3 months)\n💡 Future surveys beyond window won\'t show'
         );
       }
     } catch (error) {
-      console.error('Error checking upcoming surveys:', error);
+      console.error('❌ Error checking upcoming surveys:', error);
+      console.error('Error details:', error.response?.data);
       toast.error(language === 'vi' 
         ? '❌ Lỗi kiểm tra upcoming surveys'
         : '❌ Error checking upcoming surveys'
