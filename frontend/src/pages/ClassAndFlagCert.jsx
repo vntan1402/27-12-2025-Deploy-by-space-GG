@@ -1265,34 +1265,124 @@ const ClassAndFlagCert = () => {
       {/* Context Menu for Certificate Actions */}
       {contextMenu && (
         <div
-          className="fixed bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-200"
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-200 min-w-[200px]"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
+          {/* Header showing selection count */}
+          {selectedCertificates.size > 1 ? (
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 border-b border-gray-200">
+              {selectedCertificates.size} {language === 'vi' ? 'chứng chỉ đã chọn' : 'certificates selected'}
+            </div>
+          ) : (
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 border-b border-gray-200">
+              {contextMenu.certificate?.cert_abbreviation || contextMenu.certificate?.cert_name}
+            </div>
+          )}
+          
+          {/* Edit - only show for single selection */}
+          {selectedCertificates.size === 1 && (
+            <button
+              onClick={() => {
+                setEditingCertificate(contextMenu.certificate);
+                setShowEditShipCertificateModal(true);
+                setContextMenu(null);
+              }}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-blue-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              {language === 'vi' ? 'Chỉnh sửa chứng chỉ' : 'Edit Certificate'}
+            </button>
+          )}
+          
+          {/* Delete - works for single and multiple */}
           <button
             onClick={() => {
-              setEditingCertificate(contextMenu.certificate);
-              setShowEditShipCertificateModal(true);
+              if (selectedCertificates.size > 1) {
+                handleBulkDelete();
+              } else {
+                setDeletingCertificate(contextMenu.certificate);
+                setShowDeleteShipCertificateModal(true);
+              }
               setContextMenu(null);
             }}
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            {language === 'vi' ? 'Sửa' : 'Edit'}
-          </button>
-          <button
-            onClick={() => {
-              setDeletingCertificate(contextMenu.certificate);
-              setShowDeleteShipCertificateModal(true);
-              setContextMenu(null);
-            }}
-            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600 flex items-center gap-2"
+            className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            {language === 'vi' ? 'Xóa' : 'Delete'}
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Xóa ${selectedCertificates.size} chứng chỉ` : `Delete ${selectedCertificates.size} certificates`)
+              : (language === 'vi' ? 'Xóa chứng chỉ' : 'Delete Certificate')
+            }
+          </button>
+
+          <div className="border-t border-gray-200 my-1"></div>
+
+          {/* View File - works for single and multiple */}
+          <button
+            onClick={() => {
+              if (selectedCertificates.size > 1) {
+                handleBulkView();
+              } else if (contextMenu.certificate) {
+                handleCertificateDoubleClick(contextMenu.certificate);
+              }
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Xem file (${selectedCertificates.size} chứng chỉ)` : `View Files (${selectedCertificates.size} certificates)`)
+              : (language === 'vi' ? 'Xem file' : 'View File')
+            }
+            {contextMenu.certificate?.google_drive_file_id && selectedCertificates.size === 1 && (
+              <span className="ml-auto text-xs bg-green-100 text-green-600 px-1 rounded">📄</span>
+            )}
+          </button>
+
+          {/* Download - works for single and multiple */}
+          <button
+            onClick={() => {
+              handleBulkDownload();
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Tải xuống (${selectedCertificates.size} file)` : `Download (${selectedCertificates.size} files)`)
+              : (language === 'vi' ? 'Tải xuống file' : 'Download File')
+            }
+            {contextMenu.certificate?.google_drive_file_id && selectedCertificates.size === 1 && (
+              <span className="ml-auto text-xs bg-blue-100 text-blue-600 px-1 rounded">📥</span>
+            )}
+          </button>
+
+          {/* Copy Link - works for single and multiple */}
+          <button
+            onClick={() => {
+              handleBulkCopyLinks();
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-700 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Sao chép link (${selectedCertificates.size} file)` : `Copy Links (${selectedCertificates.size} files)`)
+              : (language === 'vi' ? 'Sao chép link' : 'Copy Link')
+            }
+            {contextMenu.certificate?.google_drive_file_id && selectedCertificates.size === 1 && (
+              <span className="ml-auto text-xs bg-gray-100 text-gray-600 px-1 rounded">🔗</span>
+            )}
           </button>
         </div>
       )}
