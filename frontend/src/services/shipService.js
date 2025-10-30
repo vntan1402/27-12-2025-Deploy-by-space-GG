@@ -126,4 +126,31 @@ export const shipService = {
   deleteShip: async (shipId, options) => {
     return shipService.delete(shipId, options);
   },
+
+  /**
+   * Calculate next docking date based on IMO requirements
+   * @param {string} shipId - Ship ID
+   * @returns {Promise} Calculation result
+   */
+  calculateNextDocking: async (shipId) => {
+    return api.post(API_ENDPOINTS.SHIP_CALCULATE_NEXT_DOCKING(shipId));
+  },
+
+  /**
+   * Calculate anniversary date from certificates
+   * @param {string} shipId - Ship ID
+   * @returns {Promise} Calculation result
+   */
+  calculateAnniversaryDate: async (shipId) => {
+    return api.post(API_ENDPOINTS.SHIP_CALCULATE_ANNIVERSARY_DATE(shipId));
+  },
+
+  /**
+   * Calculate special survey cycle from Full Term certificates
+   * @param {string} shipId - Ship ID
+   * @returns {Promise} Calculation result
+   */
+  calculateSpecialSurveyCycle: async (shipId) => {
+    return api.post(API_ENDPOINTS.SHIP_CALCULATE_SPECIAL_SURVEY(shipId));
+  },
 };
