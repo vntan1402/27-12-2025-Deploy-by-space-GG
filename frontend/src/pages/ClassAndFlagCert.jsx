@@ -705,7 +705,7 @@ const ClassAndFlagCert = () => {
               isRefreshing={isRefreshing}
               onUpdateSurveyTypes={handleUpdateSurveyTypes}
               onUpcomingSurvey={handleUpcomingSurvey}
-              onAddCertificate={handleAddCertificate}
+              onAddCertificate={handleAddShipCertificate}
               onRefresh={handleRefreshCertificates}
             />
 
