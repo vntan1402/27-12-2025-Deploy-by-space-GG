@@ -1651,7 +1651,7 @@ const ClassAndFlagCert = () => {
       )}
 
       {/* Survey Type Context Menu */}
-      {surveyTypeContextMenu.show && (
+      {surveyTypeContextMenu?.show && (
         <div
           className="fixed bg-white shadow-lg rounded-lg py-2 z-50 border border-gray-200"
           style={{ top: surveyTypeContextMenu.y, left: surveyTypeContextMenu.x }}
