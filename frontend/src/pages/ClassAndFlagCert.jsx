@@ -386,9 +386,31 @@ const ClassAndFlagCert = () => {
   // Handle certificate right click - context menu
   const handleCertificateRightClick = (e, cert) => {
     e.preventDefault();
+    
+    // Calculate position with boundary check
+    const menuWidth = 250; // Approximate menu width
+    const menuHeight = 400; // Approximate menu height
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Check if menu would overflow right edge
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10; // 10px padding
+    }
+    
+    // Check if menu would overflow bottom edge
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10; // 10px padding
+    }
+    
+    // Ensure menu doesn't go off left or top edge
+    if (x < 10) x = 10;
+    if (y < 10) y = 10;
+    
     setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
+      x: x,
+      y: y,
       certificate: cert,
     });
   };
