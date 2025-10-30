@@ -451,8 +451,13 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         // Close modal and reset form
         handleClose();
         
-        // Navigate to home page and it will auto-refresh the ship list
-        navigate('/');
+        // Notify parent component about ship creation (will navigate and refresh)
+        if (onShipCreated) {
+          onShipCreated(shipId, shipName);
+        } else {
+          // Fallback: navigate to certificates page
+          navigate('/certificates');
+        }
         
         // Start background monitoring for Google Drive folder creation
         // Show info toast that folder creation is in progress
