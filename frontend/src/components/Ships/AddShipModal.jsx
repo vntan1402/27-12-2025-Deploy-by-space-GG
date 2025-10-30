@@ -40,6 +40,11 @@ const AddShipModal = ({ isOpen, onClose }) => {
     last_intermediate_survey: '',
   });
 
+  // Certificate upload states
+  const [certFile, setCertFile] = useState(null);
+  const [isAnalyzingCert, setIsAnalyzingCert] = useState(false);
+  const [certAnalysisResult, setCertAnalysisResult] = useState(null);
+
   useEffect(() => {
     if (isOpen) {
       fetchUserCompany();
