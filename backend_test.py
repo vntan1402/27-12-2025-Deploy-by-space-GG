@@ -1153,20 +1153,26 @@ class BackendAPITester:
                         print(f"⚠️ Log check failed: {e}")
                     
                     # Overall success determination
-                    if success_score >= 4:  # At least 4/5 criteria must pass
-                        print(f"\n🎉 PROVIDER MISMATCH FIX VERIFIED SUCCESSFUL!")
-                        print(f"✅ _file_content field now present: {len(file_content)} characters")
-                        print(f"✅ _summary_text field now present: {len(summary_text)} characters")
-                        print(f"✅ AI extraction now working (provider check fixed)")
-                        print(f"✅ No 'AI extraction not supported for non-Emergent configurations' error")
-                        self.print_result(True, f"✅ Survey Report AI Analysis working correctly after provider mismatch fix (Score: {success_score}/{total_criteria})")
+                    if success_score >= 5:  # At least 5/7 criteria must pass
+                        print(f"\n🎉 TESSERACT OCR INSTALLATION VERIFIED SUCCESSFUL!")
+                        print(f"✅ _file_content field present: {len(file_content)} characters")
+                        print(f"✅ _summary_text field present: {len(summary_text)} characters")
+                        print(f"✅ _ocr_info metadata present with success indicators")
+                        print(f"✅ OCR section merged into summary text")
+                        print(f"✅ Header/footer text extraction working")
+                        print(f"✅ No 'OCR processor not available' errors")
+                        self.print_result(True, f"✅ Survey Report AI Analysis with OCR working correctly after Tesseract installation (Score: {success_score}/{total_criteria})")
                         return True
                     else:
-                        print(f"\n❌ PROVIDER MISMATCH FIX VERIFICATION FAILED!")
-                        print(f"❌ Score: {success_score}/{total_criteria} (need ≥4)")
+                        print(f"\n❌ TESSERACT OCR INSTALLATION VERIFICATION FAILED!")
+                        print(f"❌ Score: {success_score}/{total_criteria} (need ≥5)")
                         if not all(critical_fields_present):
-                            print(f"🚨 CRITICAL: _file_content and/or _summary_text still missing - provider fix not working")
-                        self.print_result(False, f"❌ Survey Report AI Analysis still has issues after provider mismatch fix (Score: {success_score}/{total_criteria})")
+                            print(f"🚨 CRITICAL: OCR fields missing or not working properly")
+                        if not ocr_section_present:
+                            print(f"🚨 CRITICAL: OCR section not found in summary text")
+                        if not (header_section_present or footer_section_present):
+                            print(f"🚨 CRITICAL: Header/footer sections not extracted")
+                        self.print_result(False, f"❌ Survey Report AI Analysis OCR still not working after Tesseract installation (Score: {success_score}/{total_criteria})")
                         return False
                         
                 else:
