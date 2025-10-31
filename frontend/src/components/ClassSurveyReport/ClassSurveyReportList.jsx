@@ -904,7 +904,10 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                       {report.survey_report_file_id && (
                         <span 
                           className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
-                          title={`${language === 'vi' ? 'File gốc' : 'Original file'}`}
+                          title={language === 'vi' 
+                            ? `📄 File gốc\n📁 Đường dẫn: Ships/${selectedShip?.name || 'Ship Name'}/Class & Flag Document/` 
+                            : `📄 Original file\n📁 Path: Ships/${selectedShip?.name || 'Ship Name'}/Class & Flag Document/`
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
                             window.open(`https://drive.google.com/file/d/${report.survey_report_file_id}/view`, '_blank');
@@ -916,7 +919,10 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                       {report.survey_report_summary_file_id && (
                         <span 
                           className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
-                          title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}`}
+                          title={language === 'vi' 
+                            ? `📋 File tóm tắt (Summary)\n📁 Đường dẫn: SUMMARY/Class & Flag Document/` 
+                            : `📋 Summary file\n📁 Path: SUMMARY/Class & Flag Document/`
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
                             window.open(`https://drive.google.com/file/d/${report.survey_report_summary_file_id}/view`, '_blank');
