@@ -46,12 +46,36 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
     
     if (fileArray.length === 0) return;
 
-    // Only support single file for now
+    // Multi-file: Trigger batch processing
     if (fileArray.length > 1) {
-      toast.error(language === 'vi' ? 'Chỉ hỗ trợ 1 file tại một thời điểm' : 'Only one file supported at a time');
+      // Validate all files
+      const invalidFiles = fileArray.filter(f => !f.name.toLowerCase().endsWith('.pdf'));
+      if (invalidFiles.length > 0) {
+        toast.error(language === 'vi' ? 'Tất cả files phải là PDF' : 'All files must be PDF');
+        return;
+      }
+
+      const oversizedFiles = fileArray.filter(f => f.size > 50 * 1024 * 1024);
+      if (oversizedFiles.length > 0) {
+        toast.error(language === 'vi' ? 'Một số files quá lớn (tối đa 50MB/file)' : 'Some files are too large (max 50MB/file)');
+        return;
+      }
+
+      // Close modal and start batch processing
+      onClose();
+      
+      if (onStartBatchProcessing) {
+        toast.info(
+          language === 'vi' 
+            ? `🚀 Bắt đầu xử lý ${fileArray.length} files...` 
+            : `🚀 Starting batch processing for ${fileArray.length} files...`
+        );
+        onStartBatchProcessing(fileArray);
+      }
       return;
     }
 
+    // Single file: Continue with normal flow
     const file = fileArray[0];
 
     // Validate PDF
