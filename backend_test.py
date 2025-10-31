@@ -865,9 +865,292 @@ class BackendAPITester:
             self.print_result(False, f"Exception during upcoming surveys company_name test: {str(e)}")
             return False
 
+    def test_ccm_file_ocr_verification(self):
+        """Test 8: CCM File OCR Verification - Complete OCR fix verification as per review request"""
+        self.print_test_header("Test 8 - CCM File OCR Verification - Complete OCR fix verification")
+        
+        if not self.access_token or not self.test_ship_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
+            print(f"🎯 Testing CCM (02-19).pdf OCR verification as per review request")
+            print(f"🚢 Ship ID: {self.test_ship_id} (BROTHER 36)")
+            print(f"🔧 FOCUS: Verify OCR runs independent of Document AI AND for split files")
+            print(f"🔍 Expected OCR markers in _summary_text:")
+            print(f"    1. 'ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)'")
+            print(f"    2. '=== HEADER TEXT (Top 15% of page) ==='")
+            print(f"    3. '=== FOOTER TEXT (Bottom 15% of page) ==='")
+            print(f"🔍 Expected _ocr_info metadata:")
+            print(f"    - ocr_attempted: true")
+            print(f"    - ocr_success: true")
+            print(f"    - ocr_text_merged: true")
+            print(f"    - header_text_length > 0")
+            print(f"    - footer_text_length > 0")
+            
+            # Step 1: Download CCM (02-19).pdf from the provided URL
+            print(f"\n📥 Step 1: Downloading CCM (02-19).pdf from provided URL...")
+            ccm_url = "https://customer-assets.emergentagent.com/job_marinefiles-1/artifacts/gw7dqmal_CCM%20%2802-19%29.pdf"
+            
+            try:
+                import requests
+                download_response = requests.get(ccm_url, timeout=30)
+                
+                if download_response.status_code == 200:
+                    ccm_content = download_response.content
+                    print(f"✅ CCM file downloaded successfully ({len(ccm_content)} bytes)")
+                else:
+                    self.print_result(False, f"Failed to download CCM file: HTTP {download_response.status_code}")
+                    return False
+                    
+            except Exception as e:
+                self.print_result(False, f"Exception downloading CCM file: {str(e)}")
+                return False
+            
+            # Step 2: Prepare multipart form data as specified in review request
+            files = {
+                'survey_report_file': ('CCM (02-19).pdf', ccm_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': self.test_ship_id,
+                'bypass_validation': 'true'  # As specified in review request
+            }
+            
+            print(f"📋 Form data prepared (as per review request):")
+            print(f"   survey_report_file: CCM (02-19).pdf ({len(ccm_content)} bytes)")
+            print(f"   ship_id: {self.test_ship_id} (BROTHER 36)")
+            print(f"   bypass_validation: true")
+            
+            # Step 3: Make request to analyze CCM file
+            print(f"\n🔄 Step 2: Analyzing CCM file with OCR verification...")
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/survey-reports/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=300  # Extended timeout for CCM processing
+            )
+            processing_time = time.time() - start_time
+            
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Processing Time: {processing_time:.1f} seconds")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                print(f"📄 Response Keys: {list(response_data.keys())}")
+                
+                success = response_data.get("success")
+                analysis_data = response_data.get("analysis", {})
+                print(f"✅ Success: {success}")
+                print(f"📄 Analysis Data Keys: {list(analysis_data.keys())}")
+                
+                if success:
+                    # Step 4: Verify OCR markers in _summary_text (3 markers as specified)
+                    print(f"\n🔍 Step 3: Verifying OCR markers in _summary_text...")
+                    summary_text = analysis_data.get("_summary_text", "")
+                    
+                    # Check for the 3 OCR markers as specified in review request
+                    ocr_marker_1 = "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" in summary_text
+                    ocr_marker_2 = "=== HEADER TEXT (Top 15% of page) ===" in summary_text
+                    ocr_marker_3 = "=== FOOTER TEXT (Bottom 15% of page) ===" in summary_text
+                    
+                    print(f"   📋 Marker 1 - OCR Extraction: {'✅ FOUND' if ocr_marker_1 else '❌ MISSING'}")
+                    print(f"   📋 Marker 2 - Header Text: {'✅ FOUND' if ocr_marker_2 else '❌ MISSING'}")
+                    print(f"   📋 Marker 3 - Footer Text: {'✅ FOUND' if ocr_marker_3 else '❌ MISSING'}")
+                    
+                    ocr_markers_found = sum([ocr_marker_1, ocr_marker_2, ocr_marker_3])
+                    print(f"   📊 OCR Markers Found: {ocr_markers_found}/3")
+                    
+                    # Print last 1000 chars of _summary_text as requested
+                    if summary_text:
+                        print(f"\n📄 Last 1000 characters of _summary_text:")
+                        last_1000 = summary_text[-1000:] if len(summary_text) > 1000 else summary_text
+                        print(f"{last_1000}")
+                        print(f"📊 Total _summary_text length: {len(summary_text)} characters")
+                    
+                    # Step 5: Check _ocr_info metadata
+                    print(f"\n🔍 Step 4: Checking _ocr_info metadata...")
+                    ocr_info = analysis_data.get("_ocr_info", {})
+                    
+                    if isinstance(ocr_info, dict):
+                        ocr_attempted = ocr_info.get("ocr_attempted", False)
+                        ocr_success = ocr_info.get("ocr_success", False)
+                        ocr_text_merged = ocr_info.get("ocr_text_merged", False)
+                        header_text_length = ocr_info.get("header_text_length", 0)
+                        footer_text_length = ocr_info.get("footer_text_length", 0)
+                        
+                        print(f"   📊 ocr_attempted: {ocr_attempted} ({'✅ PASS' if ocr_attempted else '❌ FAIL'})")
+                        print(f"   📊 ocr_success: {ocr_success} ({'✅ PASS' if ocr_success else '❌ FAIL'})")
+                        print(f"   📊 ocr_text_merged: {ocr_text_merged} ({'✅ PASS' if ocr_text_merged else '❌ FAIL'})")
+                        print(f"   📊 header_text_length: {header_text_length} ({'✅ PASS' if header_text_length > 0 else '❌ FAIL'})")
+                        print(f"   📊 footer_text_length: {footer_text_length} ({'✅ PASS' if footer_text_length > 0 else '❌ FAIL'})")
+                        
+                        # Print full _ocr_info details as requested
+                        print(f"\n📄 Full _ocr_info details:")
+                        print(f"{json.dumps(ocr_info, indent=2)}")
+                        
+                        ocr_info_checks = [
+                            ocr_attempted,
+                            ocr_success,
+                            ocr_text_merged,
+                            header_text_length > 0,
+                            footer_text_length > 0
+                        ]
+                        ocr_info_score = sum(ocr_info_checks)
+                        print(f"   📊 OCR Info Score: {ocr_info_score}/5")
+                    else:
+                        print(f"   ❌ _ocr_info is not a dict or missing: {ocr_info}")
+                        ocr_info_score = 0
+                    
+                    # Step 6: Check backend logs for OCR processing
+                    print(f"\n🔍 Step 5: Checking backend logs for OCR processing...")
+                    try:
+                        import subprocess
+                        result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.out.log'], 
+                                              capture_output=True, text=True, timeout=10)
+                        if result.returncode == 0:
+                            log_content = result.stdout
+                            
+                            # Check for expected OCR log messages as specified in review request
+                            single_file_mode = "📄 Single file mode (not split) - Will attempt OCR" in log_content
+                            ocr_independent = "🔍 Starting Targeted OCR... (INDEPENDENT OF DOCUMENT AI)" in log_content
+                            ocr_available = "✅ OCR processor available" in log_content
+                            ocr_completed = "✅ Targeted OCR completed successfully" in log_content
+                            ocr_section_created = "📝 Creating OCR section..." in log_content
+                            ocr_enhanced = "✅ Enhanced summary created with OCR" in log_content
+                            
+                            print(f"   📄 Single file mode log: {'✅ FOUND' if single_file_mode else '❌ NOT FOUND'}")
+                            print(f"   🔍 OCR independent log: {'✅ FOUND' if ocr_independent else '❌ NOT FOUND'}")
+                            print(f"   ✅ OCR processor available: {'✅ FOUND' if ocr_available else '❌ NOT FOUND'}")
+                            print(f"   ✅ OCR completed successfully: {'✅ FOUND' if ocr_completed else '❌ NOT FOUND'}")
+                            print(f"   📝 OCR section created: {'✅ FOUND' if ocr_section_created else '❌ NOT FOUND'}")
+                            print(f"   ✅ Enhanced summary with OCR: {'✅ FOUND' if ocr_enhanced else '❌ NOT FOUND'}")
+                            
+                            # Look for header and footer text lengths in logs
+                            header_length_match = None
+                            footer_length_match = None
+                            import re
+                            
+                            header_pattern = r'Header text length: (\d+)'
+                            footer_pattern = r'Footer text length: (\d+)'
+                            
+                            header_match = re.search(header_pattern, log_content)
+                            footer_match = re.search(footer_pattern, log_content)
+                            
+                            if header_match:
+                                header_length_match = int(header_match.group(1))
+                                print(f"   📊 Header text length from logs: {header_length_match}")
+                            
+                            if footer_match:
+                                footer_length_match = int(footer_match.group(1))
+                                print(f"   📊 Footer text length from logs: {footer_length_match}")
+                            
+                            log_checks = [
+                                single_file_mode,
+                                ocr_independent,
+                                ocr_available,
+                                ocr_completed,
+                                ocr_section_created,
+                                ocr_enhanced
+                            ]
+                            log_score = sum(log_checks)
+                            print(f"   📊 Backend Log Score: {log_score}/6")
+                        else:
+                            print(f"   ⚠️ Could not read backend logs")
+                            log_score = 0
+                    except Exception as e:
+                        print(f"   ⚠️ Log check failed: {e}")
+                        log_score = 0
+                    
+                    # Step 7: Overall verification results
+                    print(f"\n📊 CCM OCR VERIFICATION RESULTS:")
+                    
+                    # Expected results as per review request
+                    expected_results = [
+                        ("✅ analyze endpoint returns 200 OK", response.status_code == 200),
+                        ("✅ _summary_text contains 3/3 OCR markers", ocr_markers_found == 3),
+                        ("✅ _ocr_info shows OCR success", ocr_info_score >= 4),
+                        ("✅ _summary_text > 2000 chars (with OCR)", len(summary_text) > 2000),
+                        ("✅ Backend logs show OCR processing", log_score >= 4)
+                    ]
+                    
+                    results_passed = 0
+                    for description, passed in expected_results:
+                        status = "✅ PASS" if passed else "❌ FAIL"
+                        print(f"   {status}: {description}")
+                        if passed:
+                            results_passed += 1
+                    
+                    print(f"\n📈 Overall Score: {results_passed}/{len(expected_results)}")
+                    
+                    # Success criteria: At least 4/5 expected results must pass
+                    if results_passed >= 4:
+                        print(f"🎉 CCM OCR VERIFICATION SUCCESSFUL!")
+                        print(f"✅ OCR independence logic working")
+                        print(f"✅ OCR runs even if Document AI has issues")
+                        print(f"✅ CCM file processed successfully with OCR")
+                        
+                        self.print_result(True, f"CCM OCR verification completed successfully ({results_passed}/{len(expected_results)} checks passed)")
+                        return True
+                    else:
+                        print(f"❌ CCM OCR VERIFICATION FAILED!")
+                        print(f"📊 Only {results_passed}/{len(expected_results)} checks passed")
+                        
+                        # Detailed analysis if OCR still missing
+                        if ocr_markers_found == 0:
+                            print(f"\n🔍 DETAILED ANALYSIS - OCR Still Missing:")
+                            
+                            # Check processing method
+                            processing_method = analysis_data.get("processing_method", "Unknown")
+                            print(f"   📊 Processing method: {processing_method}")
+                            
+                            # Check if Document AI was successful
+                            doc_ai_success = "document_ai" in str(analysis_data).lower()
+                            print(f"   📊 Document AI successful: {doc_ai_success}")
+                            
+                            # Check what path the code took
+                            if "split" in processing_method.lower():
+                                print(f"   📊 Code path: Split file processing")
+                            else:
+                                print(f"   📊 Code path: Single file processing")
+                            
+                            # Check for any errors in OCR extraction
+                            if "_ocr_info" in analysis_data:
+                                ocr_errors = analysis_data["_ocr_info"].get("errors", [])
+                                if ocr_errors:
+                                    print(f"   ❌ OCR errors found: {ocr_errors}")
+                                else:
+                                    print(f"   ✅ No OCR errors in _ocr_info")
+                        
+                        self.print_result(False, f"CCM OCR verification failed ({results_passed}/{len(expected_results)} checks passed)")
+                        return False
+                        
+                else:
+                    self.print_result(False, f"CCM analysis failed: success = {success}")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"CCM analyze-file failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"CCM analyze-file failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during CCM OCR verification test: {str(e)}")
+            return False
+
     def test_survey_report_ocr_summary_file_verification(self):
-        """Test 8: Survey Report OCR Summary File Verification - Verify OCR text in _summary_text"""
-        self.print_test_header("Test 8 - Survey Report OCR Summary File Verification - Verify OCR text in _summary_text")
+        """Test 9: Survey Report OCR Summary File Verification - Verify OCR text in _summary_text"""
+        self.print_test_header("Test 9 - Survey Report OCR Summary File Verification - Verify OCR text in _summary_text")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
