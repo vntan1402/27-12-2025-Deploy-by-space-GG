@@ -121,41 +121,98 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
           : '🤖 Analyzing file with AI...'
       );
 
-      // Call AI analysis API
-      const response = await testReportService.analyzeFile(
-        selectedShip.id,
-        file,
-        'gemini', // Default provider
-        'gemini-1.5-flash', // Default model
-        'true' // Use emergent key
-      );
+      // Create FormData for backend
+      const formData = new FormData();
+      formData.append('ship_id', selectedShip.id);
+      formData.append('test_report_file', file);
+      formData.append('bypass_validation', 'false');
 
-      setAnalyzedData(response);
+      // Call backend API directly (matches V1)
+      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const response = await fetch(`${BACKEND_URL}/api/test-reports/analyze-file`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
 
-      // Auto-fill form with analyzed data
-      setFormData(prev => ({
-        ...prev,
-        test_report_name: response.test_report_name || prev.test_report_name,
-        report_form: response.report_form || prev.report_form,
-        test_report_no: response.test_report_no || prev.test_report_no,
-        issued_by: response.issued_by || prev.issued_by,
-        issued_date: response.issued_date ? formatDateForInput(response.issued_date) : prev.issued_date,
-        valid_date: response.valid_date ? formatDateForInput(response.valid_date) : prev.valid_date
-      }));
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.detail || 'Analysis failed');
+      }
+
+      const analysis = await response.json();
+      
+      // Check if requires ship name confirmation
+      if (analysis.requires_confirmation) {
+        const confirmMsg = language === 'vi'
+          ? 'Thông tin tàu trong file không khớp với tàu đã chọn. Bạn có muốn tiếp tục?'
+          : "Ship information in document doesn't match selected ship. Continue anyway?";
+        
+        if (!window.confirm(confirmMsg)) {
+          setIsAnalyzing(false);
+          setUploadedFile(null);
+          return;
+        }
+
+        // Re-analyze with bypass
+        formData.set('bypass_validation', 'true');
+        const retryResponse = await fetch(`${BACKEND_URL}/api/test-reports/analyze-file`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+
+        if (!retryResponse.ok) {
+          throw new Error('Re-analysis failed');
+        }
+
+        const retryAnalysis = await retryResponse.json();
+        setAnalyzedData(retryAnalysis);
+        
+        // Auto-fill form
+        setFormData(prev => ({
+          ...prev,
+          test_report_name: retryAnalysis.test_report_name || prev.test_report_name,
+          report_form: retryAnalysis.report_form || prev.report_form,
+          test_report_no: retryAnalysis.test_report_no || prev.test_report_no,
+          issued_by: retryAnalysis.issued_by || prev.issued_by,
+          issued_date: retryAnalysis.issued_date || prev.issued_date,
+          valid_date: retryAnalysis.valid_date || prev.valid_date
+        }));
+      } else {
+        // No confirmation needed - auto-fill directly
+        setAnalyzedData(analysis);
+        
+        // Auto-fill form with analyzed data
+        setFormData(prev => ({
+          ...prev,
+          test_report_name: analysis.test_report_name || prev.test_report_name,
+          report_form: analysis.report_form || prev.report_form,
+          test_report_no: analysis.test_report_no || prev.test_report_no,
+          issued_by: analysis.issued_by || prev.issued_by,
+          issued_date: analysis.issued_date || prev.issued_date,
+          valid_date: analysis.valid_date || prev.valid_date
+        }));
+      }
 
       toast.success(
         language === 'vi' 
-          ? '✅ Phân tích thành công! Vui lòng kiểm tra thông tin.' 
-          : '✅ Analysis successful! Please review the information.'
+          ? '✅ File đã được phân tích!' 
+          : '✅ File analyzed successfully!'
       );
 
     } catch (error) {
       console.error('AI analysis failed:', error);
       toast.error(
         language === 'vi' 
-          ? '❌ Không thể phân tích file. Vui lòng nhập thủ công.' 
-          : '❌ Failed to analyze file. Please enter manually.'
+          ? `❌ Lỗi phân tích file: ${error.message}` 
+          : `❌ Error analyzing file: ${error.message}`
       );
+      setUploadedFile(null);
     } finally {
       setIsAnalyzing(false);
     }
