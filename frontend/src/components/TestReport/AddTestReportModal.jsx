@@ -333,9 +333,15 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
           : '✅ Test report created'
       );
 
-      // Background file upload if file was selected
-      if (uploadedFile && createdReport.id) {
-        uploadFileInBackground(createdReport.id, uploadedFile);
+      // Upload file in background if file was uploaded and analyzed
+      if (uploadedFile && analyzedData && createdReport.id) {
+        uploadFileInBackground(
+          createdReport.id,
+          analyzedData._file_content,
+          analyzedData._filename,
+          analyzedData._content_type,
+          analyzedData._summary_text
+        );
       }
 
       // Close modal and refresh list
