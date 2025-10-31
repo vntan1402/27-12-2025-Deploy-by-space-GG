@@ -91,6 +91,8 @@ const OtherDocumentsTable = ({ selectedShip }) => {
     try {
       setLoading(true);
       const data = await otherDocumentService.getAll(selectedShip.id);
+      console.log('📋 Fetched documents:', data);
+      console.log('📋 Documents with file_ids:', data.filter(d => d.file_ids && d.file_ids.length > 0));
       setDocuments(data);
     } catch (error) {
       console.error('Failed to fetch other documents:', error);
