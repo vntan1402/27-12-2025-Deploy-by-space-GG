@@ -36,6 +36,14 @@ const TestReport = () => {
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Test Report Modal States
+  const [showAddReportModal, setShowAddReportModal] = useState(false);
+  const [showEditReportModal, setShowEditReportModal] = useState(false);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [editingReport, setEditingReport] = useState(null);
+  const [notesReport, setNotesReport] = useState(null);
+  const [listRefreshKey, setListRefreshKey] = useState(0);
+
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
     fetchShips();
