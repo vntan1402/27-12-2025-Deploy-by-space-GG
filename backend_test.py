@@ -975,7 +975,7 @@ class BackendAPITester:
                 
                 # Check required response fields
                 required_fields = ["success", "analysis"]
-                critical_fields = ["_file_content", "_summary_text"]  # These were missing before the fix
+                critical_fields = ["_file_content", "_summary_text", "_ocr_info"]  # OCR info is critical for this test
                 expected_fields = ["survey_report_name", "ship_name", "ship_imo"]
                 
                 missing_fields = []
