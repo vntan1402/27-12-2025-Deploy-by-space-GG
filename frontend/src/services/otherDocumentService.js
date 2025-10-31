@@ -100,6 +100,8 @@ const otherDocumentService = {
     formData.append('file', file);
     formData.append('ship_id', shipId);
     
+    console.log('📤 Uploading file for document:', documentId, 'file:', file.name);
+    
     try {
       const response = await api.post('/api/other-documents/upload-file-only', formData, {
         headers: {
@@ -108,12 +110,17 @@ const otherDocumentService = {
         timeout: 300000, // 5 minutes timeout
       });
       
+      console.log('📦 Upload response:', response.data);
+      
       if (response.data.success && response.data.file_id) {
+        console.log('🔄 Updating document with file_id:', response.data.file_id);
+        
         // Update document with file_id
         const updateResponse = await api.put(`/api/other-documents/${documentId}`, {
           file_ids: [response.data.file_id]
         });
         
+        console.log('✅ Update response:', updateResponse.data);
         console.log('✅ Document updated with file_id:', response.data.file_id);
         
         return {
@@ -123,9 +130,15 @@ const otherDocumentService = {
         };
       }
       
+      console.error('❌ Upload failed - no file_id in response:', response.data);
       throw new Error('File upload failed - no file_id returned');
     } catch (error) {
       console.error('❌ uploadFileForDocument error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       return {
         success: false,
         error: error.response?.data?.detail || error.message || 'Unknown error'
