@@ -182,11 +182,33 @@ className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4"
 
 ### Clear Filters Button
 ```javascript
-className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+<div className="mt-3 flex justify-end">
+  <button
+    onClick={() => setTestReportFilters({ status: 'all', search: '', validDateFrom: '', validDateTo: '' })}
+    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
+  >
+    {language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
+  </button>
+</div>
 ```
-- **Text**: "Xóa bộ lọc" / "Clear filters"
+- **Text Vietnamese**: "Xóa bộ lọc"
+- **Text English**: "Clear filters"
 - **Position**: Right-aligned (`justify-end`)
+- **Margin**: `mt-3` (12px top margin)
+- **Padding**: `px-4 py-2` (16px horizontal, 8px vertical)
+- **Font**: `text-sm` (14px)
+- **Text color**: `text-gray-600` (gray)
+- **Hover color**: `hover:text-gray-800` (darker gray)
+- **Hover background**: `hover:bg-gray-100` (light gray)
+- **Border radius**: `rounded-lg` (8px)
+- **Transition**: `transition-all` (smooth animation)
 - **Visibility**: Only shown when filters are active
+  ```javascript
+  {(testReportFilters.status !== 'all' || testReportFilters.search || testReportFilters.validDateFrom || testReportFilters.validDateTo) && (
+    ...button
+  )}
+  ```
+- **Action**: Resets all filters to default values
 
 ---
 
