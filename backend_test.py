@@ -863,14 +863,232 @@ class BackendAPITester:
             self.print_result(False, f"Exception during upcoming surveys company_name test: {str(e)}")
             return False
 
+    def test_survey_report_ai_analysis(self):
+        """Test 8: Survey Report AI Analysis Endpoint"""
+        self.print_test_header("Test 8 - Survey Report AI Analysis Endpoint")
+        
+        if not self.access_token or not self.test_ship_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
+            print(f"🎯 Testing Survey Report AI Analysis with BROTHER 36 ship")
+            print(f"🚢 Ship ID: {self.test_ship_id}")
+            print(f"🚢 Ship Name: {self.test_ship_name}")
+            
+            # Create a simple test PDF file
+            print(f"\n📄 Creating test PDF file...")
+            import io
+            from reportlab.pdfgen import canvas
+            from reportlab.lib.pagesizes import letter
+            
+            # Create PDF content in memory
+            pdf_buffer = io.BytesIO()
+            c = canvas.Canvas(pdf_buffer, pagesize=letter)
+            
+            # Add some maritime survey content
+            c.drawString(100, 750, "SURVEY REPORT")
+            c.drawString(100, 720, "Ship Name: BROTHER 36")
+            c.drawString(100, 690, "IMO Number: 8743531")
+            c.drawString(100, 660, "Survey Type: Annual Survey")
+            c.drawString(100, 630, "Report Number: SR-2024-001")
+            c.drawString(100, 600, "Issued Date: 15/10/2024")
+            c.drawString(100, 570, "Issued By: Classification Society")
+            c.drawString(100, 540, "Surveyor: John Smith")
+            c.drawString(100, 510, "This is a test survey report for AI analysis.")
+            c.drawString(100, 480, "The vessel was found to be in good condition.")
+            c.drawString(100, 450, "All safety equipment is properly maintained.")
+            c.drawString(100, 420, "Certificate valid until: 15/10/2025")
+            
+            c.save()
+            pdf_content = pdf_buffer.getvalue()
+            pdf_buffer.close()
+            
+            print(f"✅ Test PDF created successfully ({len(pdf_content)} bytes)")
+            
+            # Prepare multipart form data
+            files = {
+                'survey_report_file': ('test_survey_report.pdf', pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': self.test_ship_id,
+                'bypass_validation': 'false'
+            }
+            
+            print(f"📋 Form data:")
+            print(f"   ship_id: {self.test_ship_id}")
+            print(f"   bypass_validation: false")
+            print(f"   survey_report_file: test_survey_report.pdf ({len(pdf_content)} bytes)")
+            
+            # Make request to analyze survey report
+            print(f"\n🔄 Sending request to analyze survey report...")
+            response = self.session.post(
+                f"{BACKEND_URL}/survey-reports/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=120  # Longer timeout for AI processing
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                print(f"📄 Response Keys: {list(response_data.keys())}")
+                
+                # Check required response fields
+                required_fields = ["success"]
+                expected_fields = ["survey_report_name", "ship_name", "ship_imo", "_file_content", "_summary_text"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in response_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Response missing required fields: {missing_fields}")
+                    return False
+                
+                success = response_data.get("success")
+                print(f"✅ Success: {success}")
+                
+                if success:
+                    # Verify expected fields are present
+                    field_status = {}
+                    for field in expected_fields:
+                        if field in response_data:
+                            field_status[field] = True
+                            field_value = response_data[field]
+                            if field == "_file_content":
+                                print(f"✅ Field present: {field} ({len(str(field_value))} characters)")
+                            elif field == "_summary_text":
+                                print(f"✅ Field present: {field} ({len(str(field_value))} characters)")
+                            else:
+                                print(f"✅ Field present: {field} = '{field_value}'")
+                        else:
+                            field_status[field] = False
+                            print(f"❌ Field missing: {field}")
+                    
+                    # Check extracted fields
+                    extracted_fields = ["survey_report_name", "ship_name", "ship_imo"]
+                    extracted_count = 0
+                    
+                    for field in extracted_fields:
+                        if field in response_data and response_data[field]:
+                            extracted_count += 1
+                            print(f"✅ Extracted: {field} = '{response_data[field]}'")
+                        else:
+                            print(f"⚠️ Not extracted: {field}")
+                    
+                    # Check file content and summary
+                    file_content = response_data.get("_file_content", "")
+                    summary_text = response_data.get("_summary_text", "")
+                    
+                    file_content_ok = len(file_content) > 100  # Should have substantial content
+                    summary_text_ok = len(summary_text) > 50   # Should have meaningful summary
+                    
+                    print(f"\n📊 AI Analysis Results:")
+                    print(f"   📄 File Content Length: {len(file_content)} characters ({'✅ OK' if file_content_ok else '❌ Too short'})")
+                    print(f"   📝 Summary Text Length: {len(summary_text)} characters ({'✅ OK' if summary_text_ok else '❌ Too short'})")
+                    print(f"   🔍 Extracted Fields: {extracted_count}/{len(extracted_fields)} fields")
+                    
+                    # Success criteria
+                    success_criteria = [
+                        success,  # API returns success: true
+                        file_content_ok,  # File content is present
+                        summary_text_ok,  # Summary text is present
+                        extracted_count >= 1  # At least one field extracted
+                    ]
+                    
+                    success_score = sum(success_criteria)
+                    total_criteria = len(success_criteria)
+                    
+                    print(f"\n📊 SUCCESS CRITERIA:")
+                    print(f"   ✅ API Success: {success}")
+                    print(f"   ✅ File Content Present: {file_content_ok}")
+                    print(f"   ✅ Summary Text Present: {summary_text_ok}")
+                    print(f"   ✅ Fields Extracted: {extracted_count >= 1}")
+                    print(f"   📈 Score: {success_score}/{total_criteria}")
+                    
+                    if success_score >= 3:  # At least 3/4 criteria must pass
+                        self.print_result(True, f"✅ Survey Report AI Analysis working correctly (Score: {success_score}/{total_criteria})")
+                        return True
+                    else:
+                        self.print_result(False, f"❌ Survey Report AI Analysis partially working (Score: {success_score}/{total_criteria})")
+                        return False
+                        
+                else:
+                    # API returned success: false
+                    message = response_data.get("message", "No message provided")
+                    error = response_data.get("error", "No error details")
+                    print(f"❌ API returned success: false")
+                    print(f"📝 Message: {message}")
+                    print(f"🚨 Error: {error}")
+                    self.print_result(False, f"❌ Survey Report AI Analysis failed: {message}")
+                    return False
+                
+            elif response.status_code == 404:
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    print(f"📄 Error Response: {error_data}")
+                    if "Ship not found" in detail:
+                        self.print_result(False, f"❌ Ship not found: {detail}")
+                    else:
+                        self.print_result(False, f"❌ 404 Error: {detail}")
+                except:
+                    self.print_result(False, f"❌ 404 Error: {response.text}")
+                return False
+                
+            elif response.status_code == 422:
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    print(f"📄 Validation Error: {error_data}")
+                    self.print_result(False, f"❌ Validation Error: {detail}")
+                except:
+                    self.print_result(False, f"❌ Validation Error (422): {response.text}")
+                return False
+                
+            elif response.status_code == 500:
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    print(f"📄 Server Error: {error_data}")
+                    self.print_result(False, f"❌ Server Error: {detail}")
+                except:
+                    self.print_result(False, f"❌ Server Error (500): {response.text}")
+                return False
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during Survey Report AI Analysis test: {str(e)}")
+            import traceback
+            print(f"🔍 Exception details: {traceback.format_exc()}")
+            return False
+
     def test_backend_logs_verification(self):
-        """Test 8: Backend Logs Verification"""
-        self.print_test_header("Test 8 - Backend Logs Verification")
+        """Test 9: Backend Logs Verification"""
+        self.print_test_header("Test 9 - Backend Logs Verification")
         
         try:
             print(f"🔍 Checking backend logs for calculation logic execution...")
             print(f"📋 Looking for key log patterns:")
             print(f"   - Ship calculation API calls")
+            print(f"   - Survey Report AI Analysis processing")
             print(f"   - Database update operations")
             print(f"   - Calculation logic execution")
             print(f"   - Upcoming surveys processing")
@@ -879,11 +1097,11 @@ class BackendAPITester:
             # Check if we can access backend logs
             try:
                 import subprocess
-                result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
+                result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
                                       capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
                     print(f"\n📝 Recent backend log entries:")
-                    log_lines = result.stdout.split('\n')[-10:]  # Last 10 lines
+                    log_lines = result.stdout.split('\n')[-15:]  # Last 15 lines
                     for line in log_lines:
                         if line.strip():
                             print(f"   {line}")
@@ -896,6 +1114,7 @@ class BackendAPITester:
             print(f"   ✅ Calculate next docking API calls")
             print(f"   ✅ Calculate anniversary date API calls")
             print(f"   ✅ Calculate special survey cycle API calls")
+            print(f"   ✅ Survey Report AI Analysis processing")
             print(f"   ✅ Upcoming surveys endpoint processing")
             print(f"   ✅ Database updates after successful calculations")
             print(f"   ✅ No calculation errors")
