@@ -9040,12 +9040,12 @@ async def delete_drawings_manual(
             raise HTTPException(status_code=404, detail="Company not found")
         
         print(f"🔍 DEBUG: Company UUID: {company_uuid}")
-        # Get Apps Script URL
-        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        if not company_doc:
-            raise HTTPException(status_code=404, detail="Company not found")
         
-        company_apps_script_url = company_doc.get("company_apps_script_url")
+        # Get Apps Script URL from company_gdrive_config (same as Test Report)
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
         
         file_id = doc.get('file_id')
         summary_file_id = doc.get('summary_file_id')
