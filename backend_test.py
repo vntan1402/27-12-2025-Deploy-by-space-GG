@@ -936,10 +936,12 @@ class BackendAPITester:
             pdf_buffer.close()
             
             print(f"✅ Test PDF created successfully ({len(pdf_content)} bytes)")
+            print(f"✅ PDF includes header content (top 15%) for OCR extraction")
+            print(f"✅ PDF includes footer content (bottom 15%) for OCR extraction")
             
             # Prepare multipart form data exactly as specified in review request
             files = {
-                'survey_report_file': ('test_survey_report.pdf', pdf_content, 'application/pdf')
+                'survey_report_file': ('test_ocr_survey_report.pdf', pdf_content, 'application/pdf')
             }
             
             data = {
@@ -948,7 +950,7 @@ class BackendAPITester:
             }
             
             print(f"📋 Form data (as per review request):")
-            print(f"   survey_report_file: test_survey_report.pdf ({len(pdf_content)} bytes)")
+            print(f"   survey_report_file: test_ocr_survey_report.pdf ({len(pdf_content)} bytes)")
             print(f"   ship_id: {self.test_ship_id}")
             print(f"   bypass_validation: false")
             
