@@ -17,23 +17,132 @@
 
 ## 2. ACTION BUTTONS (Right Side)
 
-### Add Button (Green)
+### Container
+```javascript
+<div className="flex gap-3">
+```
+- **Layout**: Horizontal flex with gap-3 (12px spacing)
+- **Position**: Right side of header row
+- **Contains**: 2 buttons (Add + Refresh)
+
+### 2.1 Add Button (Green) - "Thêm Báo cáo Test"
+
+#### Active State (When ship is selected)
 ```javascript
 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-green-600 hover:bg-green-700 text-white cursor-pointer"
 ```
-- **Text**: "Thêm Báo cáo Test" / "Add Test Report"
-- **Icon**: Plus icon (SVG)
-- **Background**: Green (bg-green-600)
-- **Disabled state**: Gray (bg-gray-400) when no ship selected
+- **Text Vietnamese**: "Thêm Báo cáo Test"
+- **Text English**: "Add Test Report"
+- **Padding**: `px-4 py-2` (16px horizontal, 8px vertical)
+- **Border radius**: `rounded-lg` (8px)
+- **Font**: `text-sm font-medium` (14px, medium weight)
+- **Background**: `bg-green-600` (green)
+- **Hover**: `hover:bg-green-700` (darker green)
+- **Text color**: `text-white`
+- **Transition**: `transition-all` (smooth animation)
+- **Cursor**: `cursor-pointer`
+- **Icon**: Plus sign (➕) - `w-4 h-4` (16px × 16px)
+  ```javascript
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+  </svg>
+  ```
+- **Icon position**: Left side, gap-2 (8px) from text
 
-### Refresh Button (Blue)
+#### Disabled State (No ship selected)
+```javascript
+className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-400 cursor-not-allowed text-white"
+disabled={!selectedShip}
+```
+- **Background**: `bg-gray-400` (gray)
+- **Cursor**: `cursor-not-allowed`
+- **Tooltip**: 
+  - VN: "Vui lòng chọn tàu trước"
+  - EN: "Please select a ship first"
+
+#### Button Action
+```javascript
+onClick={() => selectedShip && setShowAddTestReportModal(true)}
+```
+- Opens "Add Test Report Modal"
+- Only triggers if ship is selected
+
+---
+
+### 2.2 Refresh Button (Blue) - "Làm mới"
+
+#### Active State (When ship is selected and not refreshing)
 ```javascript
 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
 ```
-- **Text**: "Làm mới" / "Refresh"
-- **Icon**: Refresh icon (SVG) with animation when loading
-- **Background**: Blue (bg-blue-600)
-- **Loading state**: Spinning icon when refreshing
+- **Text Vietnamese**: "Làm mới"
+- **Text English**: "Refresh"
+- **Padding**: `px-4 py-2` (16px horizontal, 8px vertical)
+- **Border radius**: `rounded-lg` (8px)
+- **Font**: `text-sm font-medium` (14px, medium weight)
+- **Background**: `bg-blue-600` (blue)
+- **Hover**: `hover:bg-blue-700` (darker blue)
+- **Text color**: `text-white`
+- **Transition**: `transition-all` (smooth animation)
+- **Cursor**: `cursor-pointer`
+
+#### Normal Icon (Not loading)
+```javascript
+<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+</svg>
+```
+- **Icon**: Refresh/Rotate arrows (🔄)
+- **Size**: `w-4 h-4` (16px × 16px)
+- **Position**: Left side, gap-2 (8px) from text
+
+#### Loading State (When refreshing)
+```javascript
+{isRefreshingTestReports ? (
+  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+) : (...)}
+```
+- **Icon**: Spinning loader
+- **Animation**: `animate-spin` (continuous rotation)
+- **Size**: `h-4 w-4` (16px × 16px)
+
+#### Disabled State (No ship selected OR refreshing)
+```javascript
+className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-gray-400 cursor-not-allowed text-white"
+disabled={!selectedShip || isRefreshingTestReports}
+```
+- **Background**: `bg-gray-400` (gray)
+- **Cursor**: `cursor-not-allowed`
+- **Tooltip**: 
+  - VN: "Làm mới danh sách" (when enabled)
+  - EN: "Refresh list" (when enabled)
+  - VN: "Vui lòng chọn tàu trước" (when no ship)
+  - EN: "Please select a ship first" (when no ship)
+
+#### Button Action
+```javascript
+onClick={async () => {
+  if (selectedShip && !isRefreshingTestReports) {
+    try {
+      setIsRefreshingTestReports(true);
+      await fetchTestReports(selectedShip.id);
+      toast.success(language === 'vi' ? '✅ Đã cập nhật danh sách Test Reports!' : '✅ Test Reports list updated!');
+    } catch (error) {
+      console.error('Failed to refresh test reports:', error);
+      toast.error(language === 'vi' ? '❌ Không thể làm mới danh sách' : '❌ Failed to refresh list');
+    } finally {
+      setIsRefreshingTestReports(false);
+    }
+  }
+}}
+```
+- **Action**: Fetches test reports from backend
+- **Success toast**: "✅ Đã cập nhật danh sách Test Reports!" / "✅ Test Reports list updated!"
+- **Error toast**: "❌ Không thể làm mới danh sách" / "❌ Failed to refresh list"
+- **State management**: Sets loading state during fetch
 
 ---
 
