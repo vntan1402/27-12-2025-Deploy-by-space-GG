@@ -14,7 +14,8 @@ export const TestReportList = ({
   onAddReport, 
   onEditReport, 
   onViewNotes,
-  refreshKey 
+  refreshKey,
+  onStartBatchProcessing
 }) => {
   const { language } = useAuth();
 
