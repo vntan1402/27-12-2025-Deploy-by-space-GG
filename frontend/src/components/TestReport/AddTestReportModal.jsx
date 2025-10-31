@@ -13,7 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { testReportService } from '../../services';
 import { toast } from 'sonner';
 
-export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdded }) => {
+export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdded, onStartBatchProcessing }) => {
   const { language } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
