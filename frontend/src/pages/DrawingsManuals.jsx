@@ -460,8 +460,8 @@ const DrawingsManuals = () => {
             )}
           </div>
         ) : (
-          /* Drawings & Manuals List Section - Placeholder */
-          <DrawingsManualsListComponent />
+          /* Drawings & Manuals List Section */
+          <DrawingsManualsListComponent selectedShip={selectedShip} />
         )}
       </div>
 
