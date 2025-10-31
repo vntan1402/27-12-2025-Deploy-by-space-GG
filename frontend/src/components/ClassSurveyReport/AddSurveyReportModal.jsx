@@ -62,14 +62,6 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
 
     setUploadedFile(file);
     
-    // Read file as base64 for later upload
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target.result.split(',')[1];
-      setFileContent(base64);
-    };
-    reader.readAsDataURL(file);
-
     // Start AI analysis
     await analyzeFile(file);
   };
@@ -103,13 +95,23 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
 
   const handleRemoveFile = () => {
     setUploadedFile(null);
-    setFileContent(null);
+    setAnalyzedData(null);
+    setFormData({
+      survey_report_name: '',
+      report_form: '',
+      survey_report_no: '',
+      issued_date: '',
+      issued_by: '',
+      status: 'Valid',
+      note: '',
+      surveyor_name: ''
+    });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  // AI Analysis
+  // AI Analysis with Ship Validation
   const analyzeFile = async (file) => {
     if (!selectedShip) {
       toast.error(language === 'vi' ? 'Không có tàu được chọn' : 'No ship selected');
@@ -120,41 +122,122 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       setIsAnalyzing(true);
       toast.info(language === 'vi' ? '🤖 Đang phân tích file với AI...' : '🤖 Analyzing file with AI...');
 
-      // Call analyze API (backend will use system AI config)
+      // Call backend analyze endpoint (bypass_validation = false initially)
       const response = await surveyReportService.analyzeFile(
         selectedShip.id,
         file,
-        'google', // Will be ignored, backend uses system config
-        'gemini-2.0-flash', // Will be ignored
-        true // Will be ignored
+        false // Don't bypass validation initially
       );
       
-      if (response.data?.success && response.data?.analysis) {
-        const analysis = response.data.analysis;
+      const data = response.data || response;
+      
+      // Check for validation error (ship mismatch)
+      if (data.validation_error) {
+        const { extracted_ship_name, extracted_ship_imo, expected_ship_name, expected_ship_imo } = data;
         
-        // Auto-populate form fields
-        setFormData(prev => ({
-          ...prev,
-          survey_report_name: analysis.survey_report_name || prev.survey_report_name,
-          report_form: analysis.report_form || prev.report_form,
-          survey_report_no: analysis.survey_report_no || prev.survey_report_no,
-          issued_date: analysis.issued_date || prev.issued_date,
-          issued_by: analysis.issued_by || prev.issued_by,
-          status: analysis.status || prev.status,
-          note: analysis.note || prev.note,
-          surveyor_name: analysis.surveyor_name || prev.surveyor_name
-        }));
-
-        toast.success(language === 'vi' ? '✅ Phân tích hoàn tất! Vui lòng kiểm tra và chỉnh sửa nếu cần.' : '✅ Analysis complete! Please review and edit if needed.');
+        const warningMsg = language === 'vi' 
+          ? `⚠️ CẢNH BÁO: Thông tin tàu không khớp!\n\n` +
+            `Thông tin trong file PDF:\n` +
+            `  - Tên tàu: ${extracted_ship_name || 'N/A'}\n` +
+            `  - IMO: ${extracted_ship_imo || 'N/A'}\n\n` +
+            `Tàu bạn đã chọn:\n` +
+            `  - Tên tàu: ${expected_ship_name}\n` +
+            `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
+            `Bạn có muốn tiếp tục với tàu "${expected_ship_name}" không?`
+          : `⚠️ WARNING: Ship information mismatch!\n\n` +
+            `Information in PDF file:\n` +
+            `  - Ship name: ${extracted_ship_name || 'N/A'}\n` +
+            `  - IMO: ${extracted_ship_imo || 'N/A'}\n\n` +
+            `Your selected ship:\n` +
+            `  - Ship name: ${expected_ship_name}\n` +
+            `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
+            `Do you want to continue with ship "${expected_ship_name}"?`;
+        
+        if (!window.confirm(warningMsg)) {
+          setIsAnalyzing(false);
+          handleRemoveFile();
+          return;
+        }
+        
+        // User confirmed, retry with bypass_validation = true
+        toast.info(language === 'vi' ? '🔄 Phân tích lại với xác nhận...' : '🔄 Re-analyzing with confirmation...');
+        const retryResponse = await surveyReportService.analyzeFile(
+          selectedShip.id,
+          file,
+          true // Bypass validation
+        );
+        
+        const retryData = retryResponse.data || retryResponse;
+        if (retryData.success && retryData.analysis) {
+          processAnalysisSuccess(retryData.analysis, file);
+        } else {
+          processAnalysisFail();
+        }
+      } else if (data.success && data.analysis) {
+        processAnalysisSuccess(data.analysis, file);
       } else {
-        toast.warning(language === 'vi' ? '⚠️ Không thể phân tích file. Vui lòng nhập thủ công.' : '⚠️ Could not analyze file. Please enter manually.');
+        processAnalysisFail();
       }
+      
     } catch (error) {
       console.error('AI analysis error:', error);
       toast.error(language === 'vi' ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.' : '❌ Analysis failed. Please enter manually.');
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Process successful analysis
+  const processAnalysisSuccess = (analysis, file) => {
+    // Store complete analysis data (including _file_content, _summary_text)
+    setAnalyzedData(analysis);
+    
+    // Auto-populate form fields
+    setFormData(prev => ({
+      ...prev,
+      survey_report_name: analysis.survey_report_name || prev.survey_report_name,
+      report_form: analysis.report_form || prev.report_form,
+      survey_report_no: analysis.survey_report_no || prev.survey_report_no,
+      issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : prev.issued_date,
+      issued_by: analysis.issued_by || prev.issued_by,
+      status: analysis.status || prev.status,
+      note: analysis.note || prev.note,
+      surveyor_name: analysis.surveyor_name || prev.surveyor_name
+    }));
+
+    // Show split info if file was split
+    if (analysis._split_info?.was_split) {
+      toast.info(
+        language === 'vi' 
+          ? `📄 File có ${analysis._split_info.total_pages} trang, đã chia thành ${analysis._split_info.chunks_count} phần để xử lý.`
+          : `📄 File has ${analysis._split_info.total_pages} pages, split into ${analysis._split_info.chunks_count} chunks.`
+      );
+    }
+
+    // Show OCR info if OCR was used
+    if (analysis._ocr_info?.ocr_success) {
+      toast.success(
+        language === 'vi'
+          ? '✅ OCR enhancement applied - Report Form và Report No được trích xuất chính xác hơn'
+          : '✅ OCR enhancement applied - Report Form and Report No extracted with higher accuracy'
+      );
+    }
+
+    // Warn about manual review if needed
+    if (analysis._ocr_info?.needs_manual_review) {
+      toast.warning(
+        language === 'vi'
+          ? '⚠️ Vui lòng kiểm tra Report Form và Report No'
+          : '⚠️ Please verify Report Form and Report No'
+      );
+    }
+
+    toast.success(language === 'vi' ? '✅ Phân tích hoàn tất! Vui lòng kiểm tra và chỉnh sửa nếu cần.' : '✅ Analysis complete! Please review and edit if needed.');
+  };
+
+  // Process failed analysis
+  const processAnalysisFail = () => {
+    toast.warning(language === 'vi' ? '⚠️ Không thể phân tích file. Vui lòng nhập thủ công.' : '⚠️ Could not analyze file. Please enter manually.');
   };
 
   const handleSubmit = async (e) => {
