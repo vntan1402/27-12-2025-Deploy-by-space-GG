@@ -9,7 +9,7 @@
  * - Split PDF support (>15 pages)
  * - Batch processing for multiple files
  */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatDateForInput } from '../../utils/dateHelpers';
@@ -39,6 +39,31 @@ export const AddDrawingManualModal = ({
     status: 'Unknown',
     note: ''
   });
+
+  // Reset form when modal closes or opens
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset all states when modal closes
+      setFormData({
+        document_name: '',
+        document_no: '',
+        approved_by: '',
+        approved_date: '',
+        status: 'Unknown',
+        note: ''
+      });
+      setUploadedFile(null);
+      setAnalyzedData(null);
+      setIsAnalyzing(false);
+      setIsSaving(false);
+      setAnalysisProgress('');
+      setFileError('');
+      setIsDragOver(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
