@@ -363,38 +363,43 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
 
   // ========== BACKGROUND FILE UPLOAD ==========
   const uploadFileInBackground = async (reportId, fileContent, filename, contentType, summaryText) => {
-    try {
-      toast.info(
-        language === 'vi' 
-          ? '📤 Đang tải file lên Google Drive...' 
-          : '📤 Uploading file to Google Drive...'
-      );
+    // Small delay to ensure modal closes first
+    setTimeout(async () => {
+      try {
+        toast.info(
+          language === 'vi' 
+            ? '📤 Đang tải file lên Google Drive...' 
+            : '📤 Uploading file to Google Drive...'
+        );
 
-      // Convert base64 to File object for upload
-      const byteCharacters = atob(fileContent);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+        await testReportService.uploadFiles(
+          reportId,
+          fileContent, // Base64 string
+          filename,
+          contentType,
+          summaryText
+        );
+
+        toast.success(
+          language === 'vi' 
+            ? '✅ Đã tải file lên thành công!' 
+            : '✅ File uploaded successfully!'
+        );
+
+        // Refresh list again to show file icons
+        if (onReportAdded) {
+          onReportAdded();
+        }
+
+      } catch (error) {
+        console.error('Background upload failed:', error);
+        toast.error(
+          language === 'vi' 
+            ? '⚠️ Không thể tải file lên. Báo cáo đã được lưu.' 
+            : '⚠️ Failed to upload file. Report was saved.'
+        );
       }
-      const byteArray = new Uint8Array(byteNumbers);
-      const file = new File([byteArray], filename, { type: contentType });
-
-      await testReportService.uploadFiles(reportId, file);
-
-      toast.success(
-        language === 'vi' 
-          ? '✅ Đã tải file lên thành công!' 
-          : '✅ File uploaded successfully!'
-      );
-
-    } catch (error) {
-      console.error('Background upload failed:', error);
-      toast.error(
-        language === 'vi' 
-          ? '⚠️ Không thể tải file lên. Báo cáo đã được lưu.' 
-          : '⚠️ Failed to upload file. Report was saved.'
-      );
-    }
+    }, 100);
   };
 
   // ========== RESET FORM ==========
