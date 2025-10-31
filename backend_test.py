@@ -1006,8 +1006,8 @@ class BackendAPITester:
                             extracted_fields[field] = False
                     
                     # Check file content and summary quality
-                    file_content = response_data.get("_file_content", "")
-                    summary_text = response_data.get("_summary_text", "")
+                    file_content = analysis_data.get("_file_content", "")
+                    summary_text = analysis_data.get("_summary_text", "")
                     
                     file_content_ok = len(file_content) > 500  # Should have substantial content
                     summary_text_ok = len(summary_text) > 100   # Should have meaningful summary
