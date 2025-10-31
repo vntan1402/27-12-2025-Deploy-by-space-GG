@@ -700,7 +700,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                     </td>
                     <td className="border border-gray-300 px-4 py-2 font-mono">{document.document_no || '-'}</td>
                     <td className="border border-gray-300 px-4 py-2">{document.approved_by || '-'}</td>
-                    <td className="border border-gray-300 px-4 py-2">{document.approved_date ? formatDate(document.approved_date) : '-'}</td>
+                    <td className="border border-gray-300 px-4 py-2">{document.approved_date ? formatDateDisplay(document.approved_date) : '-'}</td>
                     <td className="border border-gray-300 px-4 py-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         document.status === 'Valid' ? 'bg-green-100 text-green-800' :
