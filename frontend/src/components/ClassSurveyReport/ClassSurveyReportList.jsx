@@ -840,6 +840,21 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
           }}
         />
       )}
+
+      {/* Survey Report Notes Modal */}
+      <SurveyReportNotesModal
+        isOpen={showNotesModal}
+        onClose={() => {
+          setShowNotesModal(false);
+          setNotesReport(null);
+          setNotesValue('');
+        }}
+        surveyReport={notesReport}
+        notes={notesValue}
+        onNotesChange={setNotesValue}
+        onSave={handleSaveNotes}
+        language={language}
+      />
     </div>
   );
 };
