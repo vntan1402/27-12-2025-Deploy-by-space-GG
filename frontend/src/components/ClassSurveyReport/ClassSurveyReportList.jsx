@@ -695,9 +695,12 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     <div className="space-y-4">
       {/* Action Buttons Row */}
       <div className="flex items-center justify-between gap-4">
-        {/* Report Count - Left Side */}
-        <div className="text-sm text-gray-600">
-          {language === 'vi' ? 'Tổng số:' : 'Total:'} <span className="font-bold text-gray-800">{filteredReports.length}</span>
+        {/* Report List Title with Ship Name - Left Side */}
+        <div className="text-sm text-gray-700 font-medium">
+          {language === 'vi' ? 'Danh sách Báo cáo Survey cho' : 'Class Survey Report List for'}{' '}
+          <span className="font-bold text-gray-900">
+            {selectedShip ? `"${selectedShip.name}"` : (language === 'vi' ? '"Chọn tàu"' : '"Select a ship"')}
+          </span>
         </div>
 
         {/* Add & Refresh Buttons - Right Side */}
