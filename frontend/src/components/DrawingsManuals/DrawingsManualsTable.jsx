@@ -394,24 +394,12 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         const response = await drawingManualService.bulkDelete(documentIds, true);
 
         toast.success(language === 'vi' 
-          ? `✅ Đã xóa ${response.data.deleted_count} tài liệu khỏi hệ thống` 
-          : `✅ Deleted ${response.data.deleted_count} documents from system`
+          ? `✅ Đã xóa ${response.data.deleted_count} tài liệu` 
+          : `✅ Deleted ${response.data.deleted_count} documents`
         );
 
         setSelectedDocuments(new Set());
         await fetchDocuments();
-
-        if (response.data?.background_deletion) {
-          const deletingToast = toast.info(
-            language === 'vi' ? '🗑️ Đang xóa file trên Google Drive...' : '🗑️ Deleting files from Google Drive...',
-            { duration: Infinity }
-          );
-
-          setTimeout(() => {
-            toast.dismiss(deletingToast);
-            toast.success(language === 'vi' ? '✅ File đã xóa khỏi Google Drive!' : '✅ Files deleted from Google Drive!');
-          }, 8000);
-        }
       } catch (error) {
         console.error('Failed to bulk delete:', error);
         const errorMsg = error.response?.data?.detail || 'Failed to delete documents';
