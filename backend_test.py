@@ -996,16 +996,13 @@ class BackendAPITester:
                     print(f"\n🔍 FIELD EXTRACTION VERIFICATION:")
                     extracted_fields = {}
                     for field in expected_fields:
-                        if field in response_data:
-                            field_value = response_data[field]
-                            if field_value and str(field_value).strip():
-                                print(f"✅ {field}: '{field_value}'")
-                                extracted_fields[field] = True
-                            else:
-                                print(f"⚠️ {field}: EMPTY or NULL")
-                                extracted_fields[field] = False
+                        # Check both root level and analysis level
+                        field_value = response_data.get(field) or analysis_data.get(field)
+                        if field_value and str(field_value).strip():
+                            print(f"✅ {field}: '{field_value}'")
+                            extracted_fields[field] = True
                         else:
-                            print(f"❌ {field}: MISSING")
+                            print(f"⚠️ {field}: EMPTY or NULL")
                             extracted_fields[field] = False
                     
                     # Check file content and summary quality
