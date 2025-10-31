@@ -972,8 +972,8 @@ class BackendAPITester:
                 print(f"✅ Success: {success}")
                 
                 if success:
-                    # CRITICAL: Verify the previously missing fields are now present
-                    print(f"\n🔍 CRITICAL FIELDS VERIFICATION (Document AI Fix):")
+                    # CRITICAL: Verify the previously missing fields are now present after provider fix
+                    print(f"\n🔍 CRITICAL FIELDS VERIFICATION (Provider Mismatch Fix):")
                     critical_fields_present = []
                     
                     for field in critical_fields:
@@ -981,13 +981,13 @@ class BackendAPITester:
                             field_value = response_data[field]
                             field_length = len(str(field_value)) if field_value else 0
                             if field_length > 0:
-                                print(f"✅ {field}: PRESENT ({field_length} characters)")
+                                print(f"✅ {field}: PRESENT ({field_length} characters) - FIX WORKING!")
                                 critical_fields_present.append(True)
                             else:
-                                print(f"❌ {field}: EMPTY (0 characters)")
+                                print(f"❌ {field}: EMPTY (0 characters) - Fix may not be working")
                                 critical_fields_present.append(False)
                         else:
-                            print(f"❌ {field}: MISSING from response")
+                            print(f"❌ {field}: MISSING from response - Fix not working")
                             critical_fields_present.append(False)
                     
                     # Verify field extraction quality
