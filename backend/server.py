@@ -9062,6 +9062,9 @@ async def delete_drawings_manual(
             # Schedule background file deletion (non-blocking)
             if has_files and company_apps_script_url:
                 logger.info("📤 Starting background file deletion from Google Drive...")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Summary File ID: {summary_file_id}")
+                logger.info(f"   Apps Script URL: {company_apps_script_url[:50]}...")
                 
                 # Use asyncio.create_task to run in background without blocking
                 import asyncio
@@ -9073,6 +9076,11 @@ async def delete_drawings_manual(
                         document_id
                     )
                 )
+            else:
+                if not has_files:
+                    logger.warning(f"⚠️ No files to delete (document has no file_id or summary_file_id)")
+                if not company_apps_script_url:
+                    logger.warning(f"⚠️ Apps Script URL not configured, skipping file deletion")
             
             # Return immediately
             message = "Document deleted from database"
