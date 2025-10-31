@@ -320,7 +320,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       : `Are you sure you want to delete "${document.document_name}"?`
     )) {
       try {
-        const response = await drawingManualService.delete(document.id, true);
+        await drawingManualService.delete(document.id, true);
 
         setSelectedDocuments(prev => {
           const newSet = new Set(prev);
@@ -328,20 +328,8 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
           return newSet;
         });
 
-        toast.success(language === 'vi' ? '✅ Đã xóa tài liệu khỏi hệ thống' : '✅ Document deleted from system');
+        toast.success(language === 'vi' ? '✅ Đã xóa tài liệu' : '✅ Document deleted');
         await fetchDocuments();
-
-        if (response.data?.background_deletion) {
-          const deletingToast = toast.info(
-            language === 'vi' ? '🗑️ Đang xóa file trên Google Drive...' : '🗑️ Deleting files from Google Drive...',
-            { duration: Infinity }
-          );
-
-          setTimeout(() => {
-            toast.dismiss(deletingToast);
-            toast.success(language === 'vi' ? '✅ File đã xóa khỏi Google Drive!' : '✅ Files deleted from Google Drive!');
-          }, 5000);
-        }
       } catch (error) {
         console.error('Failed to delete document:', error);
         const errorMsg = error.response?.data?.detail || 'Failed to delete document';
