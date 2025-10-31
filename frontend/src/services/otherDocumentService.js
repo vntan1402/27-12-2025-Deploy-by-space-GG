@@ -92,6 +92,45 @@ const otherDocumentService = {
   },
 
   /**
+   * Upload a single file and update existing document record
+   * Used for background upload after record creation
+   */
+  uploadFileForDocument: async (documentId, shipId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('ship_id', shipId);
+    
+    try {
+      const response = await api.post('/api/other-documents/upload-file-only', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 300000, // 5 minutes timeout
+      });
+      
+      if (response.data.success && response.data.file_id) {
+        // Update document with file_id
+        await api.put(`/api/other-documents/${documentId}`, {
+          file_ids: [response.data.file_id]
+        });
+        
+        return {
+          success: true,
+          file_id: response.data.file_id,
+          filename: response.data.filename
+        };
+      }
+      
+      throw new Error('File upload failed');
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.detail || error.message
+      };
+    }
+  },
+
+  /**
    * Upload a folder with multiple files
    */
   uploadFolder: async (shipId, files, folderName, metadata) => {
