@@ -954,15 +954,15 @@ class BackendAPITester:
             print(f"   ship_id: {self.test_ship_id}")
             print(f"   bypass_validation: false")
             
-            # Make request to analyze survey report
-            print(f"\n🔄 Sending request to analyze survey report...")
+            # Make request to analyze survey report with OCR
+            print(f"\n🔄 Sending request to analyze survey report with OCR...")
             start_time = time.time()
             response = self.session.post(
                 f"{BACKEND_URL}/survey-reports/analyze-file",
                 headers=headers,
                 files=files,
                 data=data,
-                timeout=180  # Longer timeout for AI processing
+                timeout=180  # Longer timeout for AI + OCR processing
             )
             processing_time = time.time() - start_time
             
