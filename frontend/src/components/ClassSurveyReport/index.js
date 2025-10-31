@@ -6,3 +6,5 @@
 export { ClassSurveyReportList } from './ClassSurveyReportList';
 export { AddSurveyReportModal } from './AddSurveyReportModal';
 export { EditSurveyReportModal } from './EditSurveyReportModal';
+export { BatchProcessingModal } from './BatchProcessingModal';
+export { BatchResultsModal } from './BatchResultsModal';
