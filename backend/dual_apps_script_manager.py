@@ -1087,12 +1087,13 @@ class DualAppsScriptManager:
             
             # Upload summary file to same folder as original file:
             # {ship_name}/Class & Flag Cert/Drawings & Manuals/
-            # Using upload_drawings_manuals action to ensure consistent folder structure
+            # Using upload_file_with_folder_creation action with correct path structure
             
             summary_upload = await self._call_company_apps_script({
-                'action': 'upload_drawings_manuals',
+                'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,
-                'ship_name': ship_name,
+                'ship_name': ship_name,  # Use actual ship name
+                'category': 'Class & Flag Cert/Drawings & Manuals',  # Full path to target folder
                 'filename': filename,
                 'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                 'content_type': 'text/plain'
