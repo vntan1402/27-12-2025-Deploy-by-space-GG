@@ -689,6 +689,7 @@ const TestReport = () => {
             onEditReport={handleEditReport}
             onViewNotes={handleViewNotes}
             refreshKey={listRefreshKey}
+            onStartBatchProcessing={startBatchProcessing}
           />
         )}
       </div>
@@ -699,6 +700,7 @@ const TestReport = () => {
         onClose={() => setShowAddReportModal(false)}
         selectedShip={selectedShip}
         onReportAdded={handleReportAdded}
+        onStartBatchProcessing={startBatchProcessing}
       />
 
       {showEditReportModal && editingReport && (
@@ -725,6 +727,24 @@ const TestReport = () => {
           onNoteUpdated={handleNoteUpdated}
         />
       )}
+
+      {/* Batch Processing Modals */}
+      <BatchProcessingModal
+        isOpen={isBatchProcessing}
+        progress={batchProgress}
+        fileProgressMap={fileProgressMap}
+        fileStatusMap={fileStatusMap}
+        fileSubStatusMap={fileSubStatusMap}
+        isMinimized={isBatchModalMinimized}
+        onToggleMinimize={() => setIsBatchModalMinimized(!isBatchModalMinimized)}
+        onClose={() => {/* Can't close while processing */}}
+      />
+
+      <BatchResultsModal
+        isOpen={showBatchResults}
+        results={batchResults}
+        onClose={() => setShowBatchResults(false)}
+      />
 
       {/* Add Ship Modal */}
       <AddShipModal 
