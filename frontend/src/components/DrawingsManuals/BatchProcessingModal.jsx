@@ -1,5 +1,5 @@
 /**
- * Batch Processing Modal for Test Reports
+ * Batch Processing Modal for Drawings & Manuals
  * Shows progress for multiple files being processed
  */
 import React from 'react';
