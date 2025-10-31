@@ -735,7 +735,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       </div>
 
       {/* Filters Row */}
-      <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-lg">
+      <div className="flex items-end gap-4 mb-4">
         {/* Status Filter */}
         <div className="w-48">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -753,18 +753,46 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
           </select>
         </div>
 
-        {/* Search Input */}
-        <div className="flex-1">
+        {/* Search Input - Compact (1/4 size) */}
+        <div className="w-64">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {language === 'vi' ? 'Tìm kiếm' : 'Search'}
           </label>
-          <input
-            type="text"
-            value={filters.search}
-            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-            placeholder={language === 'vi' ? 'Tìm theo tên, số, đơn vị cấp...' : 'Search by name, number, issued by...'}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              value={filters.search}
+              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+              placeholder={language === 'vi' ? 'Tìm theo tên, số...' : 'Search by name, number...'}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 pl-9 pr-9 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <svg 
+              className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {filters.search && (
+              <button
+                onClick={() => setFilters(prev => ({ ...prev, search: '' }))}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Count - Right Aligned */}
+        <div className="ml-auto text-sm text-gray-600 pb-2">
+          {language === 'vi' 
+            ? `Hiển thị ${filteredReports.length} / ${surveyReports.length} báo cáo`
+            : `Showing ${filteredReports.length} / ${surveyReports.length} report${surveyReports.length !== 1 ? 's' : ''}`
+          }
         </div>
       </div>
 
