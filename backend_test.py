@@ -955,7 +955,7 @@ class BackendAPITester:
                 print(f"📄 Response Keys: {list(response_data.keys())}")
                 
                 # Check required response fields
-                required_fields = ["success"]
+                required_fields = ["success", "analysis"]
                 critical_fields = ["_file_content", "_summary_text"]  # These were missing before the fix
                 expected_fields = ["survey_report_name", "ship_name", "ship_imo"]
                 
