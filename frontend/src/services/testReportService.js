@@ -68,12 +68,13 @@ export const testReportService = {
   /**
    * Bulk delete test reports
    * @param {string[]} reportIds - Array of test report IDs
-   * @returns {Promise} Delete result
+   * @returns {Promise} Delete result with {deleted_count, errors}
    */
   bulkDelete: async (reportIds) => {
-    return api.post(API_ENDPOINTS.TEST_REPORT_BULK_DELETE, {
-      report_ids: reportIds,
+    const response = await api.delete(API_ENDPOINTS.TEST_REPORT_BULK_DELETE, {
+      data: { report_ids: reportIds }
     });
+    return response.data;
   },
 
   /**
