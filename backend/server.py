@@ -5463,7 +5463,7 @@ async def extract_survey_report_fields_from_summary(
             return {}
         
         # Use System AI for extraction
-        if use_emergent_key and ai_provider == "google":
+        if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
                 from emergentintegrations.llm.chat import LlmChat, UserMessage
                 
