@@ -1,10 +1,15 @@
 /**
- * Add Survey Report Modal
- * Phase 2: With AI Analysis + File Upload
- * - Drag & drop PDF file
- * - AI auto-fill form fields
- * - Manual edit before saving
- * - Upload files in background
+ * Add Survey Report Modal - V2 with All V1 Features
+ * Features:
+ * - Drag & drop PDF file upload
+ * - AI Analysis with Targeted OCR
+ * - Ship name validation
+ * - Auto-populate form fields
+ * - Manual edit capability
+ * - Duplicate check
+ * - Dual file upload (original + enhanced summary)
+ * - Background upload with progress
+ * - Split PDF support (>15 pages)
  */
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,7 +21,7 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [fileContent, setFileContent] = useState(null); // Base64 content for upload
+  const [analyzedData, setAnalyzedData] = useState(null); // Store complete analysis result
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
