@@ -467,7 +467,12 @@ export const TestReportList = ({
       <div className="flex justify-between items-center mb-4">
         {/* Left: Title */}
         <h3 className="text-lg font-semibold text-gray-800">
-          {language === 'vi' ? 'Danh sách Báo cáo Test' : 'Test Report List'}
+          {selectedShip 
+            ? (language === 'vi' 
+                ? `Danh sách Báo cáo Test cho ${selectedShip.name}` 
+                : `Test Report List for ${selectedShip.name}`)
+            : (language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship')
+          }
         </h3>
 
         {/* Right: Action Buttons */}
