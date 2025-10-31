@@ -205,9 +205,12 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         // Close modal immediately
         onSuccess();
 
-        // Upload each file in background (don't await)
-        createdDocs.forEach(({ doc, file }) => {
-          uploadInBackground(doc.id, selectedShip.id, file);
+        // Upload each file in background with 1-second staggered delay to avoid rate limit
+        createdDocs.forEach(({ doc, file }, index) => {
+          setTimeout(() => {
+            console.log(`⏰ Starting delayed upload ${index + 1}/${createdDocs.length} after ${index}s`);
+            uploadInBackground(doc.id, selectedShip.id, file);
+          }, index * 1000); // 1 second delay between each upload
         });
       }
     } catch (error) {
