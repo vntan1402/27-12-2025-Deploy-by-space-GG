@@ -878,12 +878,14 @@ class BackendAPITester:
             }
             
             print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
-            print(f"🎯 Testing Survey Report AI Analysis after provider mismatch fix")
+            print(f"🎯 Testing Survey Report AI Analysis with Targeted OCR after Tesseract installation")
             print(f"🚢 Ship ID: {self.test_ship_id}")
             print(f"🚢 Ship Name: {self.test_ship_name}")
-            print(f"🔧 FOCUS: Verifying provider check fix: ai_provider in ['google', 'emergent']")
-            print(f"🔍 Expected: _file_content and _summary_text fields NOW PRESENT (were missing before)")
-            print(f"🔍 Expected: No 'AI extraction not supported for non-Emergent configurations' warning")
+            print(f"🔧 FOCUS: Verifying Tesseract OCR is working (version 5.3.0)")
+            print(f"🔍 Expected: OCR section in _summary_text with header/footer extraction")
+            print(f"🔍 Expected: _ocr_info metadata with ocr_attempted: true, ocr_success: true")
+            print(f"🔍 Expected: Backend logs showing OCR success messages")
+            print(f"🔍 Expected: NO 'OCR processor not available' errors")
             
             # Create a simple test PDF file with survey content
             print(f"\n📄 Creating test PDF file with survey content...")
