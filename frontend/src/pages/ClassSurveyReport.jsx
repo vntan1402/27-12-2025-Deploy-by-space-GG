@@ -679,6 +679,28 @@ const ClassSurveyReport = () => {
           isDeleting={isDeletingShip}
         />
       )}
+
+      {/* Batch Processing Modal */}
+      <BatchProcessingModal
+        isOpen={isBatchProcessing}
+        isMinimized={isBatchModalMinimized}
+        onMinimize={() => setIsBatchModalMinimized(true)}
+        onRestore={() => setIsBatchModalMinimized(false)}
+        progress={batchProgress}
+        fileProgressMap={fileProgressMap}
+        fileStatusMap={fileStatusMap}
+        fileSubStatusMap={fileSubStatusMap}
+      />
+
+      {/* Batch Results Modal */}
+      <BatchResultsModal
+        isOpen={showBatchResults}
+        onClose={() => {
+          setShowBatchResults(false);
+          setBatchResults([]);
+        }}
+        results={batchResults}
+      />
     </MainLayout>
   );
 };
