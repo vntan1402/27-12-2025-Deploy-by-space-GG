@@ -293,28 +293,35 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     if (!note) return;
     
     const rect = e.target.getBoundingClientRect();
-    const tooltipWidth = 300; // max-w-xs is approximately 300px
-    const windowWidth = window.innerWidth;
+    const tooltipWidth = 320; // max-w-xs is approximately 320px (20rem)
+    const tooltipHeight = 150; // approximate height for padding
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const padding = 10; // minimum distance from edge
     
-    // Calculate initial position
-    let x = rect.left + window.scrollX;
-    let y = rect.bottom + window.scrollY + 5;
+    // Calculate initial position (using viewport coordinates for position: fixed)
+    let x = rect.left;
+    let y = rect.bottom + 5;
     
     // Check if tooltip would overflow on the right
-    if (x + tooltipWidth > windowWidth) {
-      // Flip to left side
-      x = rect.right + window.scrollX - tooltipWidth;
-      // Ensure it doesn't go off left edge
-      if (x < 10) {
-        x = 10;
-      }
+    if (x + tooltipWidth > viewportWidth - padding) {
+      // Align to right edge of viewport with padding
+      x = viewportWidth - tooltipWidth - padding;
+    }
+    
+    // Ensure it doesn't go off left edge
+    if (x < padding) {
+      x = padding;
     }
     
     // Check if tooltip would overflow on the bottom
-    const tooltipHeight = 100; // approximate height
-    if (y + tooltipHeight > window.innerHeight + window.scrollY) {
+    if (y + tooltipHeight > viewportHeight - padding) {
       // Position above the element instead
-      y = rect.top + window.scrollY - tooltipHeight - 5;
+      y = rect.top - tooltipHeight - 5;
+      // If still overflows top, position within viewport
+      if (y < padding) {
+        y = padding;
+      }
     }
     
     setNoteTooltip({
