@@ -21212,31 +21212,159 @@ async def update_other_document(
 @api_router.delete("/other-documents/{document_id}")
 async def delete_other_document(
     document_id: str,
+    background: bool = Query(False, description="If true, delete DB first and return immediately, then delete files in background"),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Delete an other document"""
+    """Delete an other document with files
+    
+    If background=True:
+      1. Delete from database immediately
+      2. Return success response
+      3. Delete files from Google Drive in background
+    
+    If background=False:
+      1. Delete files from Google Drive first
+      2. Then delete from database
+    """
     try:
-        logger.info(f"🗑️ Deleting other document: {document_id}")
+        logger.info(f"🗑️ Deleting other document: {document_id} (background={background})")
         
         # Check if document exists
         existing_doc = await mongo_db.find_one("other_documents", {"id": document_id})
         if not existing_doc:
             raise HTTPException(status_code=404, detail="Document not found")
         
-        # Delete from MongoDB
-        await mongo_db.delete("other_documents", {"id": document_id})
+        # Get company info for Apps Script URL
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
         
-        # TODO: Optionally delete files from Google Drive if needed
-        # This can be implemented later based on requirements
+        # Get Apps Script URL
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
         
-        logger.info(f"✅ Other document deleted: {document_id}")
-        return {"success": True, "message": "Document deleted successfully"}
+        file_ids = existing_doc.get("file_ids", [])
+        has_files = bool(file_ids and len(file_ids) > 0)
+        
+        if background:
+            # BACKGROUND MODE: Delete DB first, then files in background
+            logger.info("🚀 Background deletion mode: Deleting from database first...")
+            
+            # Delete from database immediately
+            await mongo_db.delete("other_documents", {"id": document_id})
+            logger.info(f"✅ Other document deleted from database: {document_id}")
+            
+            # Schedule background file deletion (non-blocking)
+            if has_files and company_apps_script_url:
+                logger.info("📤 Starting background file deletion from Google Drive...")
+                
+                import asyncio
+                asyncio.create_task(
+                    delete_other_document_files_background(
+                        file_ids, 
+                        company_apps_script_url,
+                        document_id
+                    )
+                )
+            
+            # Return immediately
+            message = "Document deleted from database"
+            if has_files:
+                message += " (files are being deleted from Google Drive in background)"
+            
+            return {
+                "success": True,
+                "message": message,
+                "background_deletion": has_files
+            }
+        
+        else:
+            # BLOCKING MODE: Delete files first, then DB
+            files_deleted = 0
+            
+            # Delete files from Google Drive if exists
+            if company_apps_script_url and has_files:
+                import aiohttp
+                
+                for file_id in file_ids:
+                    logger.info(f"🗑️ Deleting file from Drive: {file_id}")
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ File deleted: {file_id}")
+                                        files_deleted += 1
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting file {file_id}: {e}")
+            
+            # Delete from database
+            await mongo_db.delete("other_documents", {"id": document_id})
+            
+            message = "Document deleted successfully"
+            if files_deleted > 0:
+                message += f" ({files_deleted} file(s) deleted from Google Drive)"
+            
+            logger.info(f"✅ {message}")
+            return {"success": True, "message": message}
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting other document: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Background file deletion for other documents
+async def delete_other_document_files_background(
+    file_ids: list,
+    company_apps_script_url: str,
+    document_id: str
+):
+    """Delete other document files from Google Drive in background (non-blocking)"""
+    try:
+        import aiohttp
+        files_deleted = 0
+        
+        for file_id in file_ids:
+            logger.info(f"🗑️ [Background] Deleting file from Drive: {file_id}")
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ [Background] File deleted: {file_id}")
+                                files_deleted += 1
+            except Exception as e:
+                logger.error(f"❌ [Background] Error deleting file {file_id}: {e}")
+        
+        logger.info(f"✅ [Background] Other document files deletion completed: {files_deleted}/{len(file_ids)} files deleted (document_id: {document_id})")
+        
+    except Exception as e:
+        logger.error(f"❌ [Background] Fatal error in background file deletion for {document_id}: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
 
 @api_router.post("/other-documents/upload")
 async def upload_other_document(
