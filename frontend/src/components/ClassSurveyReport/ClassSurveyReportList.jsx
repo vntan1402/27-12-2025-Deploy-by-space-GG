@@ -696,10 +696,10 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       {/* Action Buttons Row */}
       <div className="flex items-center justify-between gap-4">
         {/* Report List Title with Ship Name - Left Side */}
-        <div className="text-sm text-gray-900 font-bold">
+        <h3 className="text-lg font-semibold text-gray-800">
           {language === 'vi' ? 'Danh sách Báo cáo Survey cho' : 'Class Survey Report List for'}{' '}
           {selectedShip ? `"${selectedShip.name}"` : (language === 'vi' ? '"Chọn tàu"' : '"Select a ship"')}
-        </div>
+        </h3>
 
         {/* Add & Refresh Buttons - Right Side */}
         <div className="flex items-center gap-3">
