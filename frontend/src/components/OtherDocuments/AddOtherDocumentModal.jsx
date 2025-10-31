@@ -321,11 +321,19 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
                   <p className="font-semibold text-sm text-gray-700">
                     {language === 'vi' ? 'Đã chọn:' : 'Selected:'}
                   </p>
-                  {files.length > 1 && (
+                  {!isFolder && files.length > 1 && (
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
                       {language === 'vi'
                         ? `${files.length} files → ${files.length} records`
                         : `${files.length} files → ${files.length} records`
+                      }
+                    </span>
+                  )}
+                  {isFolder && (
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                      {language === 'vi'
+                        ? `${files.length} files → 1 folder record`
+                        : `${files.length} files → 1 folder record`
                       }
                     </span>
                   )}
@@ -335,11 +343,19 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
                     <li key={index} className="truncate">{file.name || file.webkitRelativePath}</li>
                   ))}
                 </ul>
-                {files.length > 1 && (
+                {!isFolder && files.length > 1 && (
                   <p className="text-xs text-blue-600 italic">
                     {language === 'vi'
                       ? '💡 Mỗi file sẽ tạo 1 record riêng với tên từ file name'
                       : '💡 Each file will create a separate record with name from file name'
+                    }
+                  </p>
+                )}
+                {isFolder && (
+                  <p className="text-xs text-green-600 italic">
+                    {language === 'vi'
+                      ? '📁 Folder sẽ tạo 1 record duy nhất với link đến folder trên Drive'
+                      : '📁 Folder will create a single record with link to folder on Drive'
                     }
                   </p>
                 )}
