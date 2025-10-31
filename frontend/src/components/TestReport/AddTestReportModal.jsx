@@ -12,7 +12,6 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { testReportService } from '../../services';
 import { toast } from 'sonner';
-import { formatDateForInput } from '../../utils/dateHelpers';
 
 export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdded }) => {
   const { language } = useAuth();
