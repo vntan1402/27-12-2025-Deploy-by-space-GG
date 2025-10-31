@@ -1157,6 +1157,16 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         onDocumentUpdated={fetchDocuments}
       />
 
+      <DrawingManualNotesModal 
+        isOpen={showNotesModal}
+        onClose={() => {
+          setShowNotesModal(false);
+          setNotesDocument(null);
+        }}
+        document={notesDocument}
+        onNoteUpdated={fetchDocuments}
+      />
+
       <BatchProcessingModal 
         isOpen={isBatchProcessing}
         progress={batchProgress}
