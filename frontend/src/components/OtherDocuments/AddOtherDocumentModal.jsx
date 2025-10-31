@@ -89,6 +89,8 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
 
   // Background upload function
   const uploadInBackground = async (documentId, shipId, file) => {
+    console.log('🔄 Starting background upload for:', file.name, 'documentId:', documentId);
+    
     try {
       const result = await otherDocumentService.uploadFileForDocument(
         documentId,
@@ -96,19 +98,22 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         file
       );
 
+      console.log('📦 Upload result:', result);
+
       if (result.success) {
         toast.success(language === 'vi'
           ? `✅ Đã upload file "${result.filename}" thành công!`
           : `✅ Successfully uploaded file "${result.filename}"!`
         );
       } else {
+        console.error('❌ Upload failed:', result.error);
         toast.error(language === 'vi'
           ? `❌ Lỗi upload file "${file.name}": ${result.error}`
           : `❌ Failed to upload file "${file.name}": ${result.error}`
         );
       }
     } catch (error) {
-      console.error('Background upload error:', error);
+      console.error('💥 Background upload exception:', error);
       toast.error(language === 'vi'
         ? `❌ Lỗi upload file "${file.name}"`
         : `❌ Failed to upload file "${file.name}"`
