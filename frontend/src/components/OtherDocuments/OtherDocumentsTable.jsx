@@ -63,6 +63,8 @@ const OtherDocumentsTable = ({ selectedShip }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [notesDocument, setNotesDocument] = useState(null);
   
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
