@@ -212,19 +212,36 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
 
   // Process successful analysis
   const processAnalysisSuccess = (analysis, file) => {
+    // DEBUG: Log what we received
+    console.log('=== PROCESS ANALYSIS SUCCESS ===');
+    console.log('Analysis data:', analysis);
+    console.log('test_report_name:', analysis.test_report_name);
+    console.log('report_form:', analysis.report_form);
+    console.log('test_report_no:', analysis.test_report_no);
+    console.log('issued_by:', analysis.issued_by);
+    console.log('issued_date:', analysis.issued_date);
+    console.log('valid_date:', analysis.valid_date);
+    console.log('================================');
+    
     // Store complete analysis data (including _file_content, _summary_text)
     setAnalyzedData(analysis);
     
     // Auto-populate form fields
-    setFormData(prev => ({
-      ...prev,
-      test_report_name: analysis.test_report_name || prev.test_report_name,
-      report_form: analysis.report_form || prev.report_form,
-      test_report_no: analysis.test_report_no || prev.test_report_no,
-      issued_by: analysis.issued_by || prev.issued_by,
-      issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : prev.issued_date,
-      valid_date: analysis.valid_date ? analysis.valid_date.split('T')[0] : prev.valid_date
-    }));
+    const newFormData = {
+      test_report_name: analysis.test_report_name || '',
+      report_form: analysis.report_form || '',
+      test_report_no: analysis.test_report_no || '',
+      issued_by: analysis.issued_by || '',
+      issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : '',
+      valid_date: analysis.valid_date ? analysis.valid_date.split('T')[0] : '',
+      note: formData.note // Keep existing note
+    };
+    
+    console.log('=== NEW FORM DATA ===');
+    console.log('Setting formData to:', newFormData);
+    console.log('=====================');
+    
+    setFormData(newFormData);
 
     // Show split info if file was split
     if (analysis._split_info?.was_split) {
