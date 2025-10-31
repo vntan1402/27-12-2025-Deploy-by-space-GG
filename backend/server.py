@@ -21195,7 +21195,7 @@ async def update_other_document(
             update_dict['updated_at'] = update_dict['updated_at'].isoformat()
         
         # Update document
-        await mongo_db.update("other_documents", {"id": document_id}, {"$set": update_dict})
+        await mongo_db.update("other_documents", {"id": document_id}, update_dict)
         
         # Fetch updated document
         updated_doc = await mongo_db.find_one("other_documents", {"id": document_id})
