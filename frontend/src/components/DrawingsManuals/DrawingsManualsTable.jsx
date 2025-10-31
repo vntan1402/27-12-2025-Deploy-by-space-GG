@@ -493,11 +493,21 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       error: null
     };
 
-    try {
-      // Set status to 'processing'
-      setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Analyzing...' }));
+    // Update status to 'processing'
+    setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+    setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+    
+    // Start smooth progress animation
+    const estimatedTime = estimateFileProcessingTime(file);
+    const progressController = startSmoothProgressForFile(
+      file.name,
+      setFileProgressMap,
+      setFileSubStatusMap,
+      estimatedTime,
+      90 // Max 90%, then jump to 100% on complete
+    );
 
+    try {
       // Step 1: Analyze file
       const formData = new FormData();
       formData.append('document_file', file);
@@ -520,10 +530,6 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       const analysis = await analyzeResponse.json();
       result.documentName = analysis.document_name || file.name;
       result.documentNo = analysis.document_no || '';
-
-      // Update progress
-      setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
-      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Creating record...' }));
 
       // Step 2: Create document record
       const documentData = {
@@ -553,10 +559,6 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       const documentId = createdDocument.id;
       result.documentCreated = true;
       result.documentId = documentId;
-
-      // Update progress
-      setFileProgressMap(prev => ({ ...prev, [file.name]: 60 }));
-      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Uploading files...' }));
 
       // Step 3: Upload files to Google Drive
       if (analysis._file_content && analysis._filename) {
@@ -592,17 +594,21 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         result.success = true; // Document created without file content
       }
 
-      // Set status to 'completed'
+      // Success!
+      result.success = true;
+      progressController.complete(); // Jump to 100%
       setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
-      setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
-      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Completed' }));
 
     } catch (error) {
       console.error(`Failed to process ${file.name}:`, error);
-      setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
-      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Error' }));
       result.error = error.message || 'Processing failed';
+      result.success = false;
+      progressController.stop();
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
     }
+    
+    // Brief pause before returning
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     return result;
   };
