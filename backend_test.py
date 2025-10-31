@@ -1055,16 +1055,29 @@ class BackendAPITester:
                             print(f"⚠️ {field}: EMPTY or NULL")
                             extracted_fields[field] = False
                     
-                    # Check file content and summary quality
+                    # Check file content and summary quality with OCR verification
                     file_content = analysis_data.get("_file_content", "")
                     summary_text = analysis_data.get("_summary_text", "")
                     
                     file_content_ok = len(file_content) > 500  # Should have substantial content
                     summary_text_ok = len(summary_text) > 100   # Should have meaningful summary
                     
-                    print(f"\n📊 DOCUMENT AI PROCESSING RESULTS:")
+                    # Check for OCR section in summary text
+                    ocr_section_present = False
+                    header_section_present = False
+                    footer_section_present = False
+                    
+                    if summary_text:
+                        ocr_section_present = "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" in summary_text
+                        header_section_present = "=== HEADER TEXT (Top 15% of page) ===" in summary_text
+                        footer_section_present = "=== FOOTER TEXT (Bottom 15% of page) ===" in summary_text
+                    
+                    print(f"\n📊 DOCUMENT AI + OCR PROCESSING RESULTS:")
                     print(f"   📄 File Content Length: {len(file_content)} characters ({'✅ OK' if file_content_ok else '❌ Too short'})")
                     print(f"   📝 Summary Text Length: {len(summary_text)} characters ({'✅ OK' if summary_text_ok else '❌ Too short'})")
+                    print(f"   🔍 OCR Section Present: {'✅ YES' if ocr_section_present else '❌ NO'}")
+                    print(f"   📋 Header Section Present: {'✅ YES' if header_section_present else '❌ NO'}")
+                    print(f"   📋 Footer Section Present: {'✅ YES' if footer_section_present else '❌ NO'}")
                     
                     # Show sample content to verify quality
                     if file_content:
@@ -1072,8 +1085,15 @@ class BackendAPITester:
                         print(f"   📄 File Content Sample: {sample_content}")
                     
                     if summary_text:
-                        sample_summary = summary_text[:200] + "..." if len(summary_text) > 200 else summary_text
-                        print(f"   📝 Summary Text Sample: {sample_summary}")
+                        # Show OCR-specific content if present
+                        if ocr_section_present:
+                            ocr_start = summary_text.find("ADDITIONAL INFORMATION FROM HEADER/FOOTER")
+                            if ocr_start != -1:
+                                ocr_sample = summary_text[ocr_start:ocr_start+300] + "..." if len(summary_text[ocr_start:]) > 300 else summary_text[ocr_start:]
+                                print(f"   🔍 OCR Section Sample: {ocr_sample}")
+                        else:
+                            sample_summary = summary_text[:200] + "..." if len(summary_text) > 200 else summary_text
+                            print(f"   📝 Summary Text Sample: {sample_summary}")
                     
                     # Success criteria for Document AI fix verification
                     success_criteria = [
