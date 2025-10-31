@@ -887,34 +887,49 @@ class BackendAPITester:
             print(f"🔍 Expected: Backend logs showing OCR success messages")
             print(f"🔍 Expected: NO 'OCR processor not available' errors")
             
-            # Create a simple test PDF file with survey content
-            print(f"\n📄 Creating test PDF file with survey content...")
+            # Create a test PDF file with header/footer content for OCR testing
+            print(f"\n📄 Creating test PDF file with header/footer content for OCR testing...")
             import io
             from reportlab.pdfgen import canvas
             from reportlab.lib.pagesizes import letter
             
-            # Create PDF content in memory
+            # Create PDF content in memory with header and footer for OCR extraction
             pdf_buffer = io.BytesIO()
             c = canvas.Canvas(pdf_buffer, pagesize=letter)
+            width, height = letter
             
-            # Add comprehensive maritime survey content for better AI extraction
-            c.drawString(100, 750, "SURVEY REPORT")
-            c.drawString(100, 720, "Ship Name: BROTHER 36")
-            c.drawString(100, 690, "IMO Number: 8743531")
-            c.drawString(100, 660, "Survey Type: Annual Survey")
-            c.drawString(100, 630, "Report Number: SR-2024-001")
-            c.drawString(100, 600, "Issued Date: 15/10/2024")
-            c.drawString(100, 570, "Issued By: Classification Society")
-            c.drawString(100, 540, "Surveyor: John Smith")
-            c.drawString(100, 510, "Report Form: Form SDS")
-            c.drawString(100, 480, "This is a comprehensive survey report for AI analysis testing.")
-            c.drawString(100, 450, "The vessel BROTHER 36 was found to be in good condition.")
-            c.drawString(100, 420, "All safety equipment is properly maintained and certified.")
-            c.drawString(100, 390, "Hull inspection completed with no deficiencies noted.")
-            c.drawString(100, 360, "Engine room inspection satisfactory.")
-            c.drawString(100, 330, "Certificate valid until: 15/10/2025")
-            c.drawString(100, 300, "Survey completed at Port of Singapore.")
-            c.drawString(100, 270, "Next survey due: Annual Survey within 12 months.")
+            # HEADER CONTENT (Top 15% of page) - for OCR extraction
+            header_y_start = height * 0.85  # Top 15%
+            c.drawString(100, header_y_start, "MARITIME SURVEY REPORT HEADER")
+            c.drawString(100, header_y_start - 20, "Classification Society: DNV GL")
+            c.drawString(100, header_y_start - 40, "Document ID: MSR-2024-OCR-TEST")
+            c.drawString(100, header_y_start - 60, "Confidential Maritime Document")
+            
+            # MAIN CONTENT (Middle section)
+            main_y_start = height * 0.7
+            c.drawString(100, main_y_start, "SURVEY REPORT")
+            c.drawString(100, main_y_start - 30, "Ship Name: BROTHER 36")
+            c.drawString(100, main_y_start - 50, "IMO Number: 8743531")
+            c.drawString(100, main_y_start - 70, "Survey Type: Annual Survey")
+            c.drawString(100, main_y_start - 90, "Report Number: SR-2024-OCR-001")
+            c.drawString(100, main_y_start - 110, "Issued Date: 15/10/2024")
+            c.drawString(100, main_y_start - 130, "Issued By: Classification Society")
+            c.drawString(100, main_y_start - 150, "Surveyor: John Smith")
+            c.drawString(100, main_y_start - 170, "Report Form: Form SDS")
+            c.drawString(100, main_y_start - 190, "This is a comprehensive survey report for OCR testing.")
+            c.drawString(100, main_y_start - 210, "The vessel BROTHER 36 was found to be in good condition.")
+            c.drawString(100, main_y_start - 230, "All safety equipment is properly maintained and certified.")
+            c.drawString(100, main_y_start - 250, "Hull inspection completed with no deficiencies noted.")
+            c.drawString(100, main_y_start - 270, "Engine room inspection satisfactory.")
+            c.drawString(100, main_y_start - 290, "Certificate valid until: 15/10/2025")
+            
+            # FOOTER CONTENT (Bottom 15% of page) - for OCR extraction
+            footer_y_start = height * 0.15  # Bottom 15%
+            c.drawString(100, footer_y_start, "SURVEY REPORT FOOTER SECTION")
+            c.drawString(100, footer_y_start - 20, "Survey completed at Port of Singapore")
+            c.drawString(100, footer_y_start - 40, "Next survey due: Annual Survey within 12 months")
+            c.drawString(100, footer_y_start - 60, "Page 1 of 1 - End of Document")
+            c.drawString(100, footer_y_start - 80, "© 2024 Maritime Classification Society")
             
             c.save()
             pdf_content = pdf_buffer.getvalue()
