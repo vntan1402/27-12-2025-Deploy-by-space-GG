@@ -15,12 +15,14 @@ import { API_ENDPOINTS, API_TIMEOUT } from '../constants/api';
 export const testReportService = {
   /**
    * Get all test reports
-   * @param {string} shipId - Optional ship ID to filter by
+   * @param {string} shipId - Ship ID to filter by
    * @returns {Promise} List of test reports
    */
-  getAll: async (shipId = null) => {
-    const params = shipId ? { ship_id: shipId } : {};
-    return api.get(API_ENDPOINTS.TEST_REPORTS, { params });
+  getAll: async (shipId) => {
+    const response = await api.get(API_ENDPOINTS.TEST_REPORTS, { 
+      params: { ship_id: shipId } 
+    });
+    return response.data;
   },
 
   /**
