@@ -22,7 +22,9 @@ export const AuthProvider = ({ children }) => {
   const verifyToken = async () => {
     try {
       const response = await authService.verifyToken();
-      setUser(response.data);
+      // Handle both formats: direct user object or wrapped in response
+      const userData = response.data?.user || response.data;
+      setUser(userData);
     } catch (error) {
       console.error('Token verification failed:', error);
       // Don't logout immediately - just log the error
