@@ -51,14 +51,6 @@ const OtherDocumentsTable = ({ selectedShip }) => {
   });
   const [showStatusSubmenu, setShowStatusSubmenu] = useState(false);
   
-  // Note Tooltip
-  const [noteTooltip, setNoteTooltip] = useState({
-    show: false,
-    x: 0,
-    y: 0,
-    content: ''
-  });
-  
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
