@@ -917,9 +917,14 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                     <td className="border border-gray-300 px-4 py-2 text-center">
                       {document.note ? (
                         <span 
-                          className="text-red-600 cursor-help text-lg font-bold"
+                          className="text-red-600 cursor-pointer text-lg font-bold hover:text-red-700 transition-colors"
+                          onClick={() => {
+                            setNotesDocument(document);
+                            setShowNotesModal(true);
+                          }}
                           onMouseEnter={(e) => handleNoteMouseEnter(e, document.note)}
                           onMouseLeave={handleNoteMouseLeave}
+                          title={language === 'vi' ? 'Click để xem/sửa ghi chú' : 'Click to view/edit note'}
                         >
                           *
                         </span>
