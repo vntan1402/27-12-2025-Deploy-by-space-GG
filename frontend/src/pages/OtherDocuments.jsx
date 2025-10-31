@@ -460,8 +460,8 @@ const OtherDocuments = () => {
             )}
           </div>
         ) : (
-          /* Other Documents List Section - Placeholder */
-          <OtherDocumentsListComponent />
+          /* Other Documents List Section */
+          <OtherDocumentsListComponent selectedShip={selectedShip} />
         )}
       </div>
 
