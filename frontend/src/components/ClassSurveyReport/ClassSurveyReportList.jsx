@@ -687,14 +687,19 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                   </td>
 
                   {/* Note (Asterisk with Tooltip) */}
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  {/* Note */}
+                  <td 
+                    className="border border-gray-300 px-4 py-2 text-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => handleNoteClick(report)}
+                    title={language === 'vi' ? 'Click để xem/sửa ghi chú' : 'Click to view/edit notes'}
+                  >
                     {report.note ? (
                       <span 
-                        className="text-red-600 text-lg font-bold cursor-help relative"
+                        className="text-red-600 text-lg font-bold relative"
                         onMouseEnter={(e) => handleNoteMouseEnter(e, report.note)}
                         onMouseLeave={handleNoteMouseLeave}
                       >
-                        *
+                        🔴
                       </span>
                     ) : (
                       <span className="text-gray-400">-</span>
