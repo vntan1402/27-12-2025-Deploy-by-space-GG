@@ -1,13 +1,17 @@
 /**
  * Test Report Page
- * Similar structure to ClassAndFlagCert but without certificate list
- * Shows Test Report List (placeholder) instead
+ * Full-featured test report management with modals
  */
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar } from '../components';
-import { TestReportList } from '../components/TestReport';
+import { 
+  TestReportList,
+  AddTestReportModal,
+  EditTestReportModal,
+  TestReportNotesModal
+} from '../components/TestReport';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
 import { shipService } from '../services';
