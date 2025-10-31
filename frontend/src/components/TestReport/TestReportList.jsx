@@ -648,7 +648,7 @@ export const TestReportList = ({
                         {report.test_report_summary_file_id && (
                           <span
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600"
-                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 SUMMARY/Class & Flag Document`}
+                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Test Report`}
                             onClick={(e) => handleOpenFile(e, report.test_report_summary_file_id)}
                           >
                             📋
