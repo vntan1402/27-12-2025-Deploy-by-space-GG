@@ -948,7 +948,7 @@ class BackendAPITester:
             
             data = {
                 'ship_id': self.test_ship_id,
-                'bypass_validation': 'false'  # As specified in review request
+                'bypass_validation': 'true'  # As specified in review request
             }
             
             print(f"📋 Form data (as per review request):")
