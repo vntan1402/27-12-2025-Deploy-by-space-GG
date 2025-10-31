@@ -45,31 +45,51 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
   };
 
   // File upload handlers
-  const handleFileSelect = async (file) => {
-    if (!file) return;
+  const handleFileSelect = async (files) => {
+    // Convert FileList to Array
+    const fileArray = Array.from(files);
+    
+    if (fileArray.length === 0) return;
 
-    // Validate file type
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
+    // Validate all files are PDFs
+    const nonPdfFiles = fileArray.filter(f => !f.name.toLowerCase().endsWith('.pdf'));
+    if (nonPdfFiles.length > 0) {
       toast.error(language === 'vi' ? 'Chỉ hỗ trợ file PDF' : 'Only PDF files are supported');
       return;
     }
 
-    // Validate file size (max 50MB)
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error(language === 'vi' ? 'File quá lớn (tối đa 50MB)' : 'File too large (max 50MB)');
+    // Validate file sizes (max 50MB each)
+    const oversizedFiles = fileArray.filter(f => f.size > 50 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast.error(language === 'vi' ? 'Có file quá lớn (tối đa 50MB/file)' : 'Some files are too large (max 50MB/file)');
       return;
     }
 
-    setUploadedFile(file);
-    
-    // Start AI analysis
-    await analyzeFile(file);
+    // Detect mode: Single vs Batch
+    if (fileArray.length === 1) {
+      // Single file mode - existing flow
+      const file = fileArray[0];
+      setUploadedFile(file);
+      await analyzeFile(file);
+    } else {
+      // Batch mode - pass to parent
+      if (onStartBatchProcessing) {
+        toast.info(
+          language === 'vi' 
+            ? `🔄 Bắt đầu xử lý ${fileArray.length} files...` 
+            : `🔄 Starting batch processing of ${fileArray.length} files...`
+        );
+        onStartBatchProcessing(fileArray);
+      } else {
+        toast.error(language === 'vi' ? 'Batch processing không khả dụng' : 'Batch processing not available');
+      }
+    }
   };
 
   const handleFileInputChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleFileSelect(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileSelect(files);
     }
   };
 
@@ -87,9 +107,9 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
     e.preventDefault();
     setIsDragOver(false);
     
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileSelect(file);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFileSelect(files);
     }
   };
 
