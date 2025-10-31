@@ -271,6 +271,169 @@ const ClassSurveyReport = () => {
     // Stay on this page if class_survey is selected (already here)
   };
 
+  // ==================== BATCH PROCESSING FUNCTIONS ====================
+  
+  /**
+   * Start batch processing for multiple files
+   */
+  const startBatchProcessing = async (files) => {
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+      return;
+    }
+
+    setIsBatchProcessing(true);
+    setBatchProgress({ current: 0, total: files.length });
+    setIsBatchModalMinimized(false);
+    
+    // Initialize progress maps
+    const initialProgressMap = {};
+    const initialStatusMap = {};
+    const initialSubStatusMap = {};
+    
+    files.forEach(file => {
+      initialProgressMap[file.name] = 0;
+      initialStatusMap[file.name] = 'waiting';
+      initialSubStatusMap[file.name] = null;
+    });
+    
+    setFileProgressMap(initialProgressMap);
+    setFileStatusMap(initialStatusMap);
+    setFileSubStatusMap(initialSubStatusMap);
+    setBatchResults([]);
+    
+    const STAGGER_DELAY = 5000; // 5 seconds between file starts
+    const results = [];
+    
+    // Process files with staggered start
+    const promises = files.map((file, index) => {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          const result = await processSingleFile(file);
+          results.push(result);
+          setBatchProgress({ current: results.length, total: files.length });
+          resolve(result);
+        }, index * STAGGER_DELAY);
+      });
+    });
+    
+    // Wait for all files to complete
+    await Promise.all(promises);
+    
+    // Show results
+    setIsBatchProcessing(false);
+    setBatchResults(results);
+    setShowBatchResults(true);
+    
+    // Refresh ClassSurveyReportList component (will trigger via key change)
+    // The component will re-fetch when selectedShip changes
+    
+    // Summary toast
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.length - successCount;
+    toast.success(
+      language === 'vi'
+        ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${failCount} thất bại`
+        : `✅ Processed ${results.length} files: ${successCount} success, ${failCount} failed`
+    );
+  };
+
+  /**
+   * Process a single file in batch mode
+   */
+  const processSingleFile = async (file) => {
+    const result = {
+      filename: file.name,
+      success: false,
+      surveyReportCreated: false,
+      fileUploaded: false,
+      surveyReportName: '',
+      surveyReportNo: '',
+      error: null
+    };
+    
+    // Update status to 'processing'
+    setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+    setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+    
+    // Start smooth progress animation
+    const estimatedTime = estimateFileProcessingTime(file);
+    const progressController = startSmoothProgressForFile(
+      file.name,
+      setFileProgressMap,
+      setFileSubStatusMap,
+      estimatedTime,
+      90 // Max 90%, then jump to 100% on complete
+    );
+    
+    try {
+      // Step 1: AI Analysis (with bypass_validation = true in batch mode)
+      const analyzeResponse = await surveyReportService.analyzeFile(
+        selectedShip.id,
+        file,
+        true // Auto-bypass ship validation in batch mode
+      );
+      
+      const data = analyzeResponse.data || analyzeResponse;
+      
+      if (!data.success || !data.analysis) {
+        throw new Error('AI analysis failed');
+      }
+      
+      const analysis = data.analysis;
+      result.surveyReportName = analysis.survey_report_name || file.name;
+      result.surveyReportNo = analysis.survey_report_no || '';
+      
+      // Step 2: Create Record
+      const reportData = {
+        ship_id: selectedShip.id,
+        survey_report_name: analysis.survey_report_name || file.name,
+        report_form: analysis.report_form || null,
+        survey_report_no: analysis.survey_report_no || null,
+        issued_date: analysis.issued_date || null,
+        issued_by: analysis.issued_by || null,
+        status: analysis.status || 'Valid',
+        note: analysis.note || null,
+        surveyor_name: analysis.surveyor_name || null
+      };
+      
+      const createResponse = await surveyReportService.create(reportData);
+      const createdReport = createResponse.data || createResponse;
+      result.surveyReportCreated = true;
+      
+      // Step 3: Upload Files (SYNCHRONOUS in batch mode)
+      if (analysis._file_content && analysis._filename) {
+        await surveyReportService.uploadFiles(
+          createdReport.id,
+          analysis._file_content,
+          analysis._filename,
+          analysis._content_type || 'application/pdf',
+          analysis._summary_text || ''
+        );
+        result.fileUploaded = true;
+      }
+      
+      // Success!
+      result.success = true;
+      progressController.complete(); // Jump to 100%
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+      
+    } catch (error) {
+      console.error(`Failed to process ${file.name}:`, error);
+      result.error = error.response?.data?.detail || error.message || 'Processing failed';
+      result.success = false;
+      progressController.stop();
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+    }
+    
+    // Brief pause before returning
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return result;
+  };
+
+  // ==================== END BATCH PROCESSING ====================
+
   return (
     <MainLayout
       sidebar={
