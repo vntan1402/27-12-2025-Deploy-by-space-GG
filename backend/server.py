@@ -6709,6 +6709,83 @@ async def analyze_survey_report_file(
                     
                     logger.info(f"📄 Created merged summary ({len(merged_summary_text)} chars)")
                     
+                    # ✨ STEP: Perform Targeted OCR on FIRST CHUNK (same as single file)
+                    logger.info("🔍 Starting Targeted OCR for header/footer extraction on FIRST CHUNK...")
+                    
+                    ocr_metadata = {
+                        'ocr_attempted': False,
+                        'ocr_success': False,
+                        'ocr_text_merged': False,
+                        'header_text_length': 0,
+                        'footer_text_length': 0,
+                        'note': 'OCR performed on first chunk only'
+                    }
+                    
+                    ocr_section = ""
+                    
+                    try:
+                        from targeted_ocr import get_ocr_processor
+                        
+                        ocr_processor = get_ocr_processor()
+                        ocr_metadata['ocr_attempted'] = True
+                        
+                        if ocr_processor.is_available() and chunks:
+                            logger.info(f"✅ OCR processor available - extracting from first chunk (pages {chunks[0]['page_range']})...")
+                            # Perform OCR on first chunk's first page (page 0 of chunk, which is page 1 of document)
+                            first_chunk_content = chunks[0]['content']
+                            ocr_result = ocr_processor.extract_from_pdf(first_chunk_content, page_num=0)
+                            
+                            if ocr_result.get('ocr_success'):
+                                logger.info("✅ Targeted OCR on first chunk completed successfully")
+                                
+                                header_text = ocr_result.get('header_text', '').strip()
+                                footer_text = ocr_result.get('footer_text', '').strip()
+                                
+                                ocr_metadata['ocr_success'] = True
+                                ocr_metadata['header_text_length'] = len(header_text)
+                                ocr_metadata['footer_text_length'] = len(footer_text)
+                                
+                                # CREATE OCR SECTION
+                                if header_text or footer_text:
+                                    logger.info("📝 Creating OCR section from first chunk...")
+                                    
+                                    ocr_section = "\n\n" + "="*60 + "\n"
+                                    ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                                    ocr_section += "(Extracted from first page of document)\n"
+                                    ocr_section += "="*60 + "\n\n"
+                                    
+                                    if header_text:
+                                        ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
+                                        ocr_section += header_text + "\n\n"
+                                        logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
+                                    
+                                    if footer_text:
+                                        ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
+                                        ocr_section += footer_text + "\n\n"
+                                        logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
+                                    
+                                    ocr_section += "="*60 + "\n"
+                                    ocr_section += "Note: The above header/footer text was extracted using OCR from the first page\n"
+                                    ocr_section += "and may contain critical information like Report Form and Report No.\n"
+                                    ocr_section += "="*60
+                                    
+                                    ocr_metadata['ocr_text_merged'] = True
+                                    logger.info(f"✅ OCR section created: {len(ocr_section)} chars")
+                                    
+                                    # Merge OCR into merged summary
+                                    merged_summary_text = merged_summary_text + ocr_section
+                                    logger.info(f"✅ Enhanced merged summary with OCR: {len(merged_summary_text)} chars")
+                            else:
+                                logger.warning("⚠️ OCR extraction on first chunk returned no results")
+                        else:
+                            if not ocr_processor.is_available():
+                                logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
+                            if not chunks:
+                                logger.warning("⚠️ No chunks available for OCR")
+                    except Exception as ocr_error:
+                        logger.error(f"❌ Error during OCR extraction on first chunk: {ocr_error}")
+                        ocr_metadata['ocr_error'] = str(ocr_error)
+                    
                     # ✅ NEW: Extract fields from merged summary (1 time only)
                     logger.info("🧠 Extracting fields from MERGED SUMMARY (System AI)...")
                     
