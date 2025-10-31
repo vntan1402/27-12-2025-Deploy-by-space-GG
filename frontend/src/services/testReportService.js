@@ -61,7 +61,8 @@ export const testReportService = {
    * @returns {Promise} Delete result
    */
   delete: async (reportId) => {
-    return api.delete(API_ENDPOINTS.TEST_REPORT_BY_ID(reportId));
+    const response = await api.delete(API_ENDPOINTS.TEST_REPORT_BY_ID(reportId));
+    return response.data;
   },
 
   /**
