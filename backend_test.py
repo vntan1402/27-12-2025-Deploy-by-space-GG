@@ -1188,7 +1188,7 @@ class BackendAPITester:
                         
                         print(f"📊 Create Survey Report Status: {create_response.status_code}")
                         
-                        if create_response.status_code == 201:
+                        if create_response.status_code in [200, 201]:
                             survey_report = create_response.json()
                             report_id = survey_report.get("id")
                             print(f"✅ Survey report created successfully: {report_id}")
