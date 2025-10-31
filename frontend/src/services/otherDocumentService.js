@@ -113,6 +113,7 @@ const otherDocumentService = {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 300000, // 5 minutes timeout for folder upload
     });
     
     return response.data;
