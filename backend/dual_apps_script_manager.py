@@ -1054,12 +1054,13 @@ class DualAppsScriptManager:
     ) -> Dict[str, Any]:
         """
         Upload drawings & manuals summary text file to Google Drive
-        Path: SUMMARY/Class & Flag Document/
+        Path: {ship_name}/Class & Flag Cert/Drawings & Manuals/
+        (Same folder as the original file)
         
         Args:
             summary_text: Summary text content
             filename: Summary filename (e.g., "GA_Plan_Summary.txt")
-            ship_name: Ship name (for logging only)
+            ship_name: Ship name for folder path
             
         Returns:
             dict: Upload results with file ID
@@ -1076,17 +1077,16 @@ class DualAppsScriptManager:
             
             logger.info(f"📋 Uploading drawings & manuals summary to Drive: {filename}")
             logger.info(f"   Ship: {ship_name}")
-            logger.info(f"   Target Path: SUMMARY/Class & Flag Document/")
+            logger.info(f"   Target Path: {ship_name}/Class & Flag Cert/Drawings & Manuals/")
             
-            # Upload summary file to: SUMMARY/Class & Flag Document/
-            # Using upload_file_with_folder_creation action (same as Test Report)
-            # This will create: ROOT/SUMMARY/Class & Flag Document/
+            # Upload summary file to same folder as original file:
+            # {ship_name}/Class & Flag Cert/Drawings & Manuals/
+            # Using upload_drawings_manuals action to ensure consistent folder structure
             
             summary_upload = await self._call_company_apps_script({
-                'action': 'upload_file_with_folder_creation',
-                'parent_folder_id': self.parent_folder_id,  # ROOT folder
-                'ship_name': 'SUMMARY',  # Creates/finds SUMMARY folder
-                'category': 'Class & Flag Document',  # Creates/finds Class & Flag Document subfolder
+                'action': 'upload_drawings_manuals',
+                'parent_folder_id': self.parent_folder_id,
+                'ship_name': ship_name,
                 'filename': filename,
                 'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                 'content_type': 'text/plain'
