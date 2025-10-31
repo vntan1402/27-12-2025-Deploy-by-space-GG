@@ -1009,9 +1009,13 @@ class DualAppsScriptManager:
             # Upload summary if provided (non-critical)
             summary_file_id = None
             summary_error = None
+            
+            logger.info(f"🔍 Summary text check: {len(summary_text) if summary_text else 0} chars, value={'present' if summary_text else 'empty/None'}")
+            
             if summary_text:
                 try:
                     summary_filename = filename.replace('.pdf', '_Summary.txt')
+                    logger.info(f"📋 Uploading drawings & manuals summary: {summary_filename}")
                     summary_result = await self.upload_drawings_manuals_summary(
                         summary_text=summary_text,
                         filename=summary_filename,
@@ -1026,6 +1030,8 @@ class DualAppsScriptManager:
                 except Exception as e:
                     summary_error = str(e)
                     logger.warning(f"⚠️ Drawings & manuals summary upload failed (non-critical): {e}")
+            else:
+                logger.warning(f"⚠️ No summary text provided - skipping summary file upload")
             
             # Return structured response
             return {
