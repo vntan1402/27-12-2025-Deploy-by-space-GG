@@ -7007,17 +7007,17 @@ async def analyze_survey_report_file(
                         
                         # Add OCR metadata to analysis result
                         analysis_result['_ocr_info'] = ocr_metadata
-                            
-                            # STEP 2: Extract fields from enhanced summary (with OCR) using system AI
-                            logger.info("🧠 Extracting survey report fields from enhanced summary...")
-                            
-                            # Get AI configuration for field extraction
-                            ai_provider = ai_config_doc.get("provider", "google")
-                            ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
-                            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
-                            
-                            extracted_fields = await extract_survey_report_fields_from_summary(
-                                summary_text,  # This now includes OCR text
+                        
+                        # STEP 2: Extract fields from enhanced summary (with OCR) using system AI
+                        logger.info("🧠 Extracting survey report fields from enhanced summary...")
+                        
+                        # Get AI configuration for field extraction
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        extracted_fields = await extract_survey_report_fields_from_summary(
+                            summary_text,  # This now includes OCR text
                                 ai_provider,
                                 ai_model,
                                 use_emergent_key,
