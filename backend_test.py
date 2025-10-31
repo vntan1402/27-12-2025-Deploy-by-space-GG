@@ -1094,10 +1094,13 @@ class BackendAPITester:
                     print(f"📝 Message: {message}")
                     print(f"🚨 Error: {error}")
                     
-                    # Check if this is a Document AI configuration issue
-                    if "document ai" in message.lower() or "project_id" in message.lower():
+                    # Check if this is a provider configuration issue
+                    if "AI extraction not supported for non-Emergent configurations" in message:
+                        print(f"🚨 PROVIDER MISMATCH ISSUE STILL PRESENT!")
+                        print(f"🔧 The provider check fix (ai_provider in ['google', 'emergent']) may not be working")
+                    elif "document ai" in message.lower() or "project_id" in message.lower():
                         print(f"🚨 DOCUMENT AI CONFIGURATION ISSUE DETECTED!")
-                        print(f"🔧 The Document AI project_id whitespace fix may not be working")
+                        print(f"🔧 There may be additional Document AI configuration issues")
                     
                     self.print_result(False, f"❌ Survey Report AI Analysis failed: {message}")
                     return False
