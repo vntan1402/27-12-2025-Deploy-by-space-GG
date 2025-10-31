@@ -407,31 +407,149 @@ className="border border-gray-300 px-4 py-2"
 className="fixed bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
 style={{ left: `${x}px`, top: `${y}px`, minWidth: '180px' }}
 ```
+- **Position**: Fixed at cursor position
+- **Background**: White with shadow-xl
+- **Border**: Gray rounded border
+- **Padding**: `py-2` (8px vertical)
+- **Z-index**: 50 (above table)
+- **Min width**: 180px
+
+### Background Overlay
+```javascript
+<div 
+  className="fixed inset-0 z-40"
+  onClick={() => setTestReportContextMenu({ show: false, x: 0, y: 0, report: null })}
+/>
+```
+- **Purpose**: Closes menu when clicking outside
+- **Z-index**: 40 (below menu, above table)
+
+---
 
 ### Menu Options
 
-#### Single Selection (2 options):
-1. **Edit** (Blue hover)
-```javascript
-className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
-```
-- Icon: Edit pencil
-- Text: "Chỉnh sửa" / "Edit"
+#### Single Selection Mode (2 buttons):
 
-2. **Delete** (Red hover)
+#### 7.1 Edit Button
 ```javascript
-className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+<button
+  onClick={() => handleEditTestReportClick(testReportContextMenu.report)}
+  className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+  </svg>
+  {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+</button>
 ```
-- Icon: Trash can
-- Text: "Xóa" / "Delete"
+- **Text Vietnamese**: "Chỉnh sửa"
+- **Text English**: "Edit"
+- **Width**: Full width (`w-full`)
+- **Padding**: `px-4 py-2` (16px horizontal, 8px vertical)
+- **Alignment**: Left (`text-left`)
+- **Text color**: `text-gray-700` (default)
+- **Hover background**: `hover:bg-blue-50` (light blue)
+- **Hover text**: `hover:text-blue-600` (blue)
+- **Transition**: `transition-all` (smooth animation)
+- **Layout**: Flex with gap-2 (8px between icon and text)
+- **Icon**: Edit pencil (✏️)
+  - Size: `w-4 h-4` (16px × 16px)
+  - Position: Left side
+- **Action**: Opens Edit Test Report Modal
 
-#### Multiple Selection (1 option):
-**Delete Selected** (Red hover)
+#### 7.2 Delete Button
 ```javascript
-className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2 font-medium"
+<button
+  onClick={() => handleDeleteTestReportClick(testReportContextMenu.report)}
+  className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+  {language === 'vi' ? 'Xóa' : 'Delete'}
+</button>
 ```
-- Icon: Trash can
-- Text: "Xóa X mục đã chọn" / "Delete X Selected"
+- **Text Vietnamese**: "Xóa"
+- **Text English**: "Delete"
+- **Width**: Full width (`w-full`)
+- **Padding**: `px-4 py-2` (16px horizontal, 8px vertical)
+- **Alignment**: Left (`text-left`)
+- **Text color**: `text-gray-700` (default)
+- **Hover background**: `hover:bg-red-50` (light red)
+- **Hover text**: `hover:text-red-600` (red)
+- **Transition**: `transition-all` (smooth animation)
+- **Layout**: Flex with gap-2 (8px between icon and text)
+- **Icon**: Trash can (🗑️)
+  - Size: `w-4 h-4` (16px × 16px)
+  - Position: Left side
+- **Action**: Shows confirmation dialog, then deletes report
+  - Confirmation: "Bạn có chắc muốn xóa báo cáo test này?" / "Are you sure you want to delete this test report?"
+  - Success toast: "Đã xóa báo cáo test" / "Test report deleted successfully"
+  - Error toast: "Không thể xóa báo cáo test" / "Failed to delete test report"
+
+---
+
+#### Multiple Selection Mode (1 button):
+
+#### 7.3 Bulk Delete Button
+```javascript
+<button
+  onClick={handleBulkDeleteTestReports}
+  className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2 font-medium"
+>
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+  {language === 'vi' ? `Xóa ${selectedTestReports.size} mục đã chọn` : `Delete ${selectedTestReports.size} Selected`}
+</button>
+```
+- **Text Vietnamese**: "Xóa X mục đã chọn" (X = number of selected reports)
+- **Text English**: "Delete X Selected" (X = number of selected reports)
+- **Width**: Full width (`w-full`)
+- **Padding**: `px-4 py-2` (16px horizontal, 8px vertical)
+- **Alignment**: Left (`text-left`)
+- **Text color**: `text-gray-700` (default)
+- **Font weight**: `font-medium` (medium - bolder than Edit/Delete buttons)
+- **Hover background**: `hover:bg-red-50` (light red)
+- **Hover text**: `hover:text-red-600` (red)
+- **Transition**: `transition-all` (smooth animation)
+- **Layout**: Flex with gap-2 (8px between icon and text)
+- **Icon**: Trash can (🗑️)
+  - Size: `w-4 h-4` (16px × 16px)
+  - Position: Left side
+- **Visibility**: Only shown when `selectedTestReports.size > 1`
+- **Action**: Shows confirmation dialog, then bulk deletes all selected reports
+  - Confirmation: 
+    - VN: "Bạn có chắc muốn xóa X báo cáo test đã chọn? Thao tác này cũng sẽ xóa các file liên quan trên Google Drive."
+    - EN: "Are you sure you want to delete X test report(s)? This will also delete associated files from Google Drive."
+  - Loading toast: "🗑️ Đang xóa X báo cáo test và file..." / "🗑️ Deleting X test report(s) and files..."
+  - Success toast: 
+    - VN: "✅ Đã xóa X báo cáo test thành công"
+    - EN: "✅ Successfully deleted X test report(s)"
+  - Partial success toast:
+    - VN: "⚠️ Đã xóa X báo cáo test, Y lỗi"
+    - EN: "⚠️ Deleted X test report(s), Y error(s)"
+  - Error toast: "❌ Lỗi khi xóa báo cáo test" / "❌ Failed to delete test reports"
+
+---
+
+### Context Menu Behavior
+
+#### Trigger
+```javascript
+onContextMenu={(e) => handleTestReportContextMenu(e, report)}
+```
+- **Event**: Right-click on table row
+- **Prevents**: Default browser context menu
+
+#### Positioning
+- **Dynamic**: Opens at cursor position (e.clientX, e.clientY)
+- **Fixed position**: Stays in place when scrolling
+
+#### Closing
+- Click outside (on overlay)
+- Select menu option
+- Right-click elsewhere
 
 ---
 
