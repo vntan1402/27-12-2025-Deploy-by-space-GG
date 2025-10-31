@@ -920,8 +920,8 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                         <span 
                           className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                           title={language === 'vi' 
-                            ? `📋 File tóm tắt (Summary)\n📁 Đường dẫn: SUMMARY/Class & Flag Document/` 
-                            : `📋 Summary file\n📁 Path: SUMMARY/Class & Flag Document/`
+                            ? `📋 File tóm tắt (Summary)\n📁 Đường dẫn: ${selectedShip?.name}/Class & Flag Cert/Class Survey Report/` 
+                            : `📋 Summary file\n📁 Path: ${selectedShip?.name}/Class & Flag Cert/Class Survey Report/`
                           }
                           onClick={(e) => {
                             e.stopPropagation();
