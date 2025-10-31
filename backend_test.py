@@ -1046,22 +1046,24 @@ class BackendAPITester:
                     print(f"   ✅ Field Extraction Working: {sum(extracted_fields.values()) >= 1}")
                     print(f"   📈 Score: {success_score}/{total_criteria}")
                     
-                    # Check for Document AI URL formatting errors in logs
-                    print(f"\n🔍 Checking for Document AI URL formatting errors...")
+                    # Check for provider mismatch errors in logs
+                    print(f"\n🔍 Checking for provider mismatch errors in backend logs...")
                     try:
                         import subprocess
                         result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
                                               capture_output=True, text=True, timeout=5)
                         if result.returncode == 0:
                             log_content = result.stdout
-                            if "whitespace" in log_content.lower() or "project_id" in log_content.lower():
-                                print(f"⚠️ Found project_id related logs - checking for errors...")
+                            if "AI extraction not supported for non-Emergent configurations" in log_content:
+                                print(f"❌ Provider mismatch error still present in logs - fix not working")
+                            elif "ai_provider" in log_content.lower():
+                                print(f"✅ AI provider processing found in logs - checking for success...")
                                 if "error" in log_content.lower():
-                                    print(f"❌ Document AI errors still present in logs")
+                                    print(f"⚠️ Some AI processing errors found in logs")
                                 else:
-                                    print(f"✅ No Document AI errors found in recent logs")
+                                    print(f"✅ No AI provider errors found in recent logs")
                             else:
-                                print(f"✅ No whitespace/project_id issues in recent logs")
+                                print(f"✅ No provider mismatch issues in recent logs")
                         else:
                             print(f"⚠️ Could not check backend logs")
                     except Exception as e:
