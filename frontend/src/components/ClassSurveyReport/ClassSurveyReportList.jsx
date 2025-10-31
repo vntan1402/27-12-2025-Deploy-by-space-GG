@@ -774,12 +774,13 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       {/* Context Menu */}
       {contextMenu.show && (
         <div 
-          className="fixed bg-white border-2 border-red-500 rounded-lg shadow-2xl z-[9999]"
+          className="fixed bg-white border-2 border-gray-300 rounded-lg shadow-2xl z-[9999]"
           style={{
             position: 'fixed',
             top: `${contextMenu.y}px`,
             left: `${contextMenu.x}px`,
-            minWidth: '180px'
+            minWidth: '180px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
           }}
           onClick={(e) => e.stopPropagation()}
         >
