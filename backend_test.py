@@ -1064,7 +1064,7 @@ class BackendAPITester:
                     file_content_ok = len(file_content) > 500  # Should have substantial content
                     summary_text_ok = len(summary_text) > 100   # Should have meaningful summary
                     
-                    # Check for OCR section in summary text
+                    # Check for OCR section in summary text (as specified in review request)
                     ocr_section_present = False
                     header_section_present = False
                     footer_section_present = False
@@ -1074,28 +1074,33 @@ class BackendAPITester:
                         header_section_present = "=== HEADER TEXT (Top 15% of page) ===" in summary_text
                         footer_section_present = "=== FOOTER TEXT (Bottom 15% of page) ===" in summary_text
                     
-                    print(f"\n📊 DOCUMENT AI + OCR PROCESSING RESULTS:")
-                    print(f"   📄 File Content Length: {len(file_content)} characters ({'✅ OK' if file_content_ok else '❌ Too short'})")
-                    print(f"   📝 Summary Text Length: {len(summary_text)} characters ({'✅ OK' if summary_text_ok else '❌ Too short'})")
-                    print(f"   🔍 OCR Section Present: {'✅ YES' if ocr_section_present else '❌ NO'}")
-                    print(f"   📋 Header Section Present: {'✅ YES' if header_section_present else '❌ NO'}")
-                    print(f"   📋 Footer Section Present: {'✅ YES' if footer_section_present else '❌ NO'}")
+                    print(f"\n📊 OCR VERIFICATION RESULTS (Review Request Requirements):")
+                    print(f"   📄 _summary_text field exists: {'✅ YES' if summary_text else '❌ NO'}")
+                    print(f"   📝 _summary_text length: {len(summary_text)} characters ({'✅ OK' if summary_text_ok else '❌ Too short'})")
+                    print(f"   🔍 OCR Section Marker: {'✅ FOUND' if ocr_section_present else '❌ MISSING'}")
+                    print(f"   📋 Header Section Marker: {'✅ FOUND' if header_section_present else '❌ MISSING'}")
+                    print(f"   📋 Footer Section Marker: {'✅ FOUND' if footer_section_present else '❌ MISSING'}")
                     
-                    # Show sample content to verify quality
-                    if file_content:
-                        sample_content = file_content[:200] + "..." if len(file_content) > 200 else file_content
-                        print(f"   📄 File Content Sample: {sample_content}")
-                    
+                    # Print first 500 and last 500 chars of _summary_text as requested
                     if summary_text:
+                        print(f"\n📄 FIRST 500 CHARACTERS of _summary_text:")
+                        first_500 = summary_text[:500]
+                        print(f"{first_500}")
+                        
+                        print(f"\n📄 LAST 500 CHARACTERS of _summary_text:")
+                        last_500 = summary_text[-500:] if len(summary_text) > 500 else summary_text
+                        print(f"{last_500}")
+                        
                         # Show OCR-specific content if present
                         if ocr_section_present:
                             ocr_start = summary_text.find("ADDITIONAL INFORMATION FROM HEADER/FOOTER")
                             if ocr_start != -1:
-                                ocr_sample = summary_text[ocr_start:ocr_start+300] + "..." if len(summary_text[ocr_start:]) > 300 else summary_text[ocr_start:]
-                                print(f"   🔍 OCR Section Sample: {ocr_sample}")
-                        else:
-                            sample_summary = summary_text[:200] + "..." if len(summary_text) > 200 else summary_text
-                            print(f"   📝 Summary Text Sample: {sample_summary}")
+                                ocr_sample = summary_text[ocr_start:ocr_start+500] + "..." if len(summary_text[ocr_start:]) > 500 else summary_text[ocr_start:]
+                                print(f"\n🔍 OCR SECTION CONTENT:")
+                                print(f"{ocr_sample}")
+                    
+                    # Store analysis data for upload test
+                    self.survey_analysis_data = analysis_data
                     
                     # Success criteria for OCR functionality verification
                     success_criteria = [
