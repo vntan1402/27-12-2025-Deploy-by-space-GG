@@ -878,14 +878,16 @@ class BackendAPITester:
             }
             
             print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
-            print(f"🎯 Testing Survey Report AI Analysis with Targeted OCR after Tesseract installation")
+            print(f"🎯 Testing Survey Report OCR Summary File Verification")
             print(f"🚢 Ship ID: {self.test_ship_id}")
             print(f"🚢 Ship Name: {self.test_ship_name}")
-            print(f"🔧 FOCUS: Verifying Tesseract OCR is working (version 5.3.0)")
-            print(f"🔍 Expected: OCR section in _summary_text with header/footer extraction")
-            print(f"🔍 Expected: _ocr_info metadata with ocr_attempted: true, ocr_success: true")
-            print(f"🔍 Expected: Backend logs showing OCR success messages")
-            print(f"🔍 Expected: NO 'OCR processor not available' errors")
+            print(f"🔧 FOCUS: Verify OCR text is merged into _summary_text")
+            print(f"🔍 Expected: _summary_text contains OCR section markers:")
+            print(f"    - 'ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)'")
+            print(f"    - '=== HEADER TEXT (Top 15% of page) ==='")
+            print(f"    - '=== FOOTER TEXT (Bottom 15% of page) ==='")
+            print(f"🔍 Expected: Summary file uploaded to Drive contains OCR text")
+            print(f"🔍 Expected: Backend logs show successful upload")
             
             # Create a test PDF file with header/footer content for OCR testing
             print(f"\n📄 Creating test PDF file with header/footer content for OCR testing...")
