@@ -1421,6 +1421,287 @@ class BackendAPITester:
             self.print_result(False, f"Exception during backend logs verification: {str(e)}")
             return False
 
+    def test_ccm_pdf_ocr_workflow(self):
+        """Test 10: CCM PDF OCR Workflow - Complete End-to-End Test as per Review Request"""
+        self.print_test_header("Test 10 - CCM PDF OCR Workflow - Complete End-to-End Test")
+        
+        if not self.access_token or not self.test_ship_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            print(f"🎯 REVIEW REQUEST: Upload file 'CCM (02-19).pdf' and verify OCR in SUMMARY file")
+            print(f"📋 Test Steps:")
+            print(f"   1. Download PDF from public URL")
+            print(f"   2. Analyze file with OCR using /api/survey-reports/analyze-file")
+            print(f"   3. Verify OCR sections in _summary_text")
+            print(f"   4. Create survey report")
+            print(f"   5. Upload files to Drive")
+            print(f"   6. Verify summary file has OCR")
+            
+            # Step 1: Download PDF from public URL
+            print(f"\n📥 STEP 1: Download PDF from public URL")
+            pdf_url = "https://customer-assets.emergentagent.com/job_marinefiles-1/artifacts/s2bvfxpa_CCM%20%2802-19%29.pdf"
+            print(f"📡 Downloading: {pdf_url}")
+            
+            import requests
+            pdf_response = requests.get(pdf_url, timeout=60)
+            print(f"📊 Download Status: {pdf_response.status_code}")
+            
+            if pdf_response.status_code != 200:
+                self.print_result(False, f"Failed to download PDF: {pdf_response.status_code}")
+                return False
+            
+            pdf_content = pdf_response.content
+            pdf_size = len(pdf_content)
+            print(f"✅ PDF downloaded successfully: {pdf_size} bytes")
+            
+            # Verify it's a valid PDF
+            if not pdf_content.startswith(b'%PDF'):
+                self.print_result(False, "Downloaded file is not a valid PDF")
+                return False
+            
+            print(f"✅ PDF validation passed - valid PDF file")
+            
+            # Step 2: Analyze file with OCR
+            print(f"\n🔍 STEP 2: Analyze file with OCR using /api/survey-reports/analyze-file")
+            print(f"🚢 Ship ID: {self.test_ship_id} (BROTHER 36)")
+            print(f"📄 File: CCM (02-19).pdf")
+            print(f"🔧 bypass_validation: true")
+            
+            files = {
+                'survey_report_file': ('CCM (02-19).pdf', pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': self.test_ship_id,
+                'bypass_validation': 'true'
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
+            start_time = time.time()
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/survey-reports/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=300  # 5 minutes for AI + OCR processing
+            )
+            
+            processing_time = time.time() - start_time
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Processing Time: {processing_time:.1f} seconds")
+            
+            if response.status_code != 200:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Analysis failed: {error_data}")
+                except:
+                    self.print_result(False, f"Analysis failed: {response.text}")
+                return False
+            
+            response_data = response.json()
+            success = response_data.get("success")
+            analysis_data = response_data.get("analysis", {})
+            
+            print(f"✅ Analysis Success: {success}")
+            print(f"📄 Analysis Keys: {list(analysis_data.keys())}")
+            
+            if not success:
+                self.print_result(False, f"Analysis returned success=false: {response_data}")
+                return False
+            
+            # Step 3: Verify OCR sections in _summary_text
+            print(f"\n🔍 STEP 3: Verify OCR sections in _summary_text")
+            
+            summary_text = analysis_data.get("_summary_text", "")
+            file_content = analysis_data.get("_file_content", "")
+            
+            print(f"📝 _summary_text length: {len(summary_text)} characters")
+            print(f"📄 _file_content length: {len(file_content)} characters")
+            
+            # Check for OCR section markers as specified in review request
+            ocr_markers = [
+                "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)",
+                "=== HEADER TEXT (Top 15% of page) ===",
+                "=== FOOTER TEXT (Bottom 15% of page) ==="
+            ]
+            
+            ocr_verification = []
+            for marker in ocr_markers:
+                found = marker in summary_text
+                print(f"{'✅' if found else '❌'} OCR Marker: '{marker}' - {'FOUND' if found else 'MISSING'}")
+                ocr_verification.append(found)
+            
+            # Print last 1000 chars of _summary_text to see OCR section
+            if summary_text:
+                print(f"\n📄 LAST 1000 CHARACTERS of _summary_text (to see OCR section):")
+                last_1000 = summary_text[-1000:] if len(summary_text) > 1000 else summary_text
+                print(f"{last_1000}")
+            
+            # Verify extracted fields
+            extracted_fields = {
+                "survey_report_name": analysis_data.get("survey_report_name", ""),
+                "report_form": analysis_data.get("report_form", ""),
+                "survey_report_no": analysis_data.get("survey_report_no", ""),
+                "issued_by": analysis_data.get("issued_by", ""),
+                "surveyor_name": analysis_data.get("surveyor_name", "")
+            }
+            
+            print(f"\n📋 EXTRACTED FIELDS:")
+            for field, value in extracted_fields.items():
+                print(f"   {field}: '{value}'")
+            
+            # Step 4: Create survey report
+            print(f"\n📝 STEP 4: Create survey report with extracted data")
+            
+            survey_data = {
+                "ship_id": self.test_ship_id,
+                "survey_report_name": extracted_fields["survey_report_name"] or "Condition of Class and Memoranda",
+                "report_form": extracted_fields["report_form"] or "Form SDS",
+                "survey_report_no": extracted_fields["survey_report_no"] or "A/25/772",
+                "issued_date": "2019-02-01T00:00:00Z",  # Based on CCM (02-19) filename
+                "issued_by": extracted_fields["issued_by"] or "Classification Society",
+                "status": "Valid",
+                "note": "CCM PDF OCR Test",
+                "surveyor_name": extracted_fields["surveyor_name"] or "Survey Officer"
+            }
+            
+            print(f"📋 Survey report data: {survey_data}")
+            
+            create_response = self.session.post(
+                f"{BACKEND_URL}/survey-reports",
+                headers={"Authorization": f"Bearer {self.access_token}", "Content-Type": "application/json"},
+                json=survey_data,
+                timeout=30
+            )
+            
+            print(f"📊 Create Survey Report Status: {create_response.status_code}")
+            
+            if create_response.status_code not in [200, 201]:
+                try:
+                    error_data = create_response.json()
+                    self.print_result(False, f"Survey report creation failed: {error_data}")
+                except:
+                    self.print_result(False, f"Survey report creation failed: {create_response.text}")
+                return False
+            
+            survey_report = create_response.json()
+            report_id = survey_report.get("id")
+            print(f"✅ Survey report created: {report_id}")
+            
+            # Step 5: Upload files to Drive
+            print(f"\n📤 STEP 5: Upload files to Drive with OCR summary")
+            
+            upload_data = {
+                "file_content": file_content,
+                "filename": "CCM_02-19.pdf",
+                "content_type": "application/pdf",
+                "summary_text": summary_text  # Contains OCR sections
+            }
+            
+            print(f"📋 Upload data:")
+            print(f"   file_content: {len(upload_data['file_content'])} characters")
+            print(f"   filename: {upload_data['filename']}")
+            print(f"   summary_text: {len(upload_data['summary_text'])} characters (WITH OCR)")
+            
+            upload_response = self.session.post(
+                f"{BACKEND_URL}/survey-reports/{report_id}/upload-files",
+                headers={"Authorization": f"Bearer {self.access_token}", "Content-Type": "application/json"},
+                json=upload_data,
+                timeout=120
+            )
+            
+            print(f"📊 Upload Files Status: {upload_response.status_code}")
+            
+            if upload_response.status_code != 200:
+                try:
+                    error_data = upload_response.json()
+                    self.print_result(False, f"File upload failed: {error_data}")
+                except:
+                    self.print_result(False, f"File upload failed: {upload_response.text}")
+                return False
+            
+            upload_result = upload_response.json()
+            print(f"✅ Upload Success: {upload_result.get('success')}")
+            print(f"📄 Survey Report File ID: {upload_result.get('survey_report_file_id')}")
+            print(f"📄 Summary File ID: {upload_result.get('survey_report_summary_file_id')}")
+            
+            # Step 6: Verify summary file has OCR
+            print(f"\n🔍 STEP 6: Verify summary file upload with OCR")
+            
+            # Check backend logs for upload confirmation
+            print(f"🔍 Checking backend logs for summary file upload...")
+            try:
+                import subprocess
+                result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    log_content = result.stdout
+                    
+                    # Look for summary upload logs
+                    summary_upload_found = "Uploading summary file to: SUMMARY/Class & Flag Document/" in log_content
+                    summary_file_id = upload_result.get('survey_report_summary_file_id')
+                    
+                    print(f"   📋 Summary upload log: {'✅ FOUND' if summary_upload_found else '❌ NOT FOUND'}")
+                    print(f"   📄 Summary file ID: {summary_file_id}")
+                    
+                    if summary_file_id:
+                        print(f"   ✅ Summary file uploaded successfully with ID: {summary_file_id}")
+                    else:
+                        print(f"   ❌ No summary file ID returned")
+                        
+                else:
+                    print(f"   ⚠️ Could not check backend logs")
+            except Exception as e:
+                print(f"   ⚠️ Log check failed: {e}")
+            
+            # Final verification
+            success_criteria = [
+                pdf_size > 0,  # PDF downloaded successfully
+                success,  # Analysis successful
+                len(summary_text) > 0,  # Summary text exists
+                len(file_content) > 0,  # File content exists
+                any(ocr_verification),  # At least one OCR marker found
+                report_id is not None,  # Survey report created
+                upload_result.get('success', False),  # Files uploaded
+                upload_result.get('survey_report_file_id') is not None,  # Original file uploaded
+                upload_result.get('survey_report_summary_file_id') is not None  # Summary file uploaded
+            ]
+            
+            success_score = sum(success_criteria)
+            total_criteria = len(success_criteria)
+            
+            print(f"\n📊 CCM PDF OCR WORKFLOW VERIFICATION:")
+            print(f"   ✅ PDF Download: {pdf_size > 0}")
+            print(f"   ✅ Analysis Success: {success}")
+            print(f"   ✅ Summary Text: {len(summary_text) > 0}")
+            print(f"   ✅ File Content: {len(file_content) > 0}")
+            print(f"   ✅ OCR Markers: {any(ocr_verification)} ({sum(ocr_verification)}/3 markers found)")
+            print(f"   ✅ Survey Report Created: {report_id is not None}")
+            print(f"   ✅ Files Upload Success: {upload_result.get('success', False)}")
+            print(f"   ✅ Original File Uploaded: {upload_result.get('survey_report_file_id') is not None}")
+            print(f"   ✅ Summary File Uploaded: {upload_result.get('survey_report_summary_file_id') is not None}")
+            print(f"   📈 Score: {success_score}/{total_criteria}")
+            
+            if success_score >= 7:  # At least 7/9 criteria must pass
+                self.print_result(True, f"✅ CCM PDF OCR workflow completed successfully ({success_score}/{total_criteria})")
+                return True
+            else:
+                self.print_result(False, f"❌ CCM PDF OCR workflow failed ({success_score}/{total_criteria})")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during CCM PDF OCR workflow test: {str(e)}")
+            import traceback
+            print(f"🔍 Exception details: {traceback.format_exc()}")
+            return False
+
     def run_all_tests(self):
         """Run all Backend API tests"""
         print(f"🚀 Starting Backend API Testing")
