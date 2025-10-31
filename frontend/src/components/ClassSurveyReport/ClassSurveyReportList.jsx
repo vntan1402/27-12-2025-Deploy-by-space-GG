@@ -293,10 +293,34 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     if (!note) return;
     
     const rect = e.target.getBoundingClientRect();
+    const tooltipWidth = 300; // max-w-xs is approximately 300px
+    const windowWidth = window.innerWidth;
+    
+    // Calculate initial position
+    let x = rect.left + window.scrollX;
+    let y = rect.bottom + window.scrollY + 5;
+    
+    // Check if tooltip would overflow on the right
+    if (x + tooltipWidth > windowWidth) {
+      // Flip to left side
+      x = rect.right + window.scrollX - tooltipWidth;
+      // Ensure it doesn't go off left edge
+      if (x < 10) {
+        x = 10;
+      }
+    }
+    
+    // Check if tooltip would overflow on the bottom
+    const tooltipHeight = 100; // approximate height
+    if (y + tooltipHeight > window.innerHeight + window.scrollY) {
+      // Position above the element instead
+      y = rect.top + window.scrollY - tooltipHeight - 5;
+    }
+    
     setNoteTooltip({
       show: true,
-      x: rect.left + window.scrollX,
-      y: rect.bottom + window.scrollY + 5,
+      x: x,
+      y: y,
       content: note
     });
   };
