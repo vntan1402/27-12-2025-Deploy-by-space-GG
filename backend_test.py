@@ -1071,19 +1071,19 @@ class BackendAPITester:
                     
                     # Overall success determination
                     if success_score >= 4:  # At least 4/5 criteria must pass
-                        print(f"\n🎉 DOCUMENT AI CONFIGURATION FIX VERIFIED SUCCESSFUL!")
+                        print(f"\n🎉 PROVIDER MISMATCH FIX VERIFIED SUCCESSFUL!")
                         print(f"✅ _file_content field now present: {len(file_content)} characters")
                         print(f"✅ _summary_text field now present: {len(summary_text)} characters")
-                        print(f"✅ Field extraction working with improved quality")
-                        print(f"✅ No Document AI URL formatting errors detected")
-                        self.print_result(True, f"✅ Survey Report AI Analysis working correctly after Document AI fix (Score: {success_score}/{total_criteria})")
+                        print(f"✅ AI extraction now working (provider check fixed)")
+                        print(f"✅ No 'AI extraction not supported for non-Emergent configurations' error")
+                        self.print_result(True, f"✅ Survey Report AI Analysis working correctly after provider mismatch fix (Score: {success_score}/{total_criteria})")
                         return True
                     else:
-                        print(f"\n❌ DOCUMENT AI CONFIGURATION FIX VERIFICATION FAILED!")
+                        print(f"\n❌ PROVIDER MISMATCH FIX VERIFICATION FAILED!")
                         print(f"❌ Score: {success_score}/{total_criteria} (need ≥4)")
                         if not all(critical_fields_present):
-                            print(f"🚨 CRITICAL: _file_content and/or _summary_text still missing")
-                        self.print_result(False, f"❌ Survey Report AI Analysis still has issues after Document AI fix (Score: {success_score}/{total_criteria})")
+                            print(f"🚨 CRITICAL: _file_content and/or _summary_text still missing - provider fix not working")
+                        self.print_result(False, f"❌ Survey Report AI Analysis still has issues after provider mismatch fix (Score: {success_score}/{total_criteria})")
                         return False
                         
                 else:
