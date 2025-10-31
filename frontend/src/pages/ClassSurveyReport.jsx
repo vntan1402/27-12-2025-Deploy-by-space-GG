@@ -1,19 +1,26 @@
 /**
  * Class Survey Report Page
- * Similar structure to ClassAndFlagCert but without certificate list
- * Shows Class Survey Report List (placeholder) instead
+ * Full-featured with batch upload support
  */
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar } from '../components';
-import { ClassSurveyReportList } from '../components/ClassSurveyReport';
+import { 
+  ClassSurveyReportList, 
+  BatchProcessingModal, 
+  BatchResultsModal 
+} from '../components/ClassSurveyReport';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
-import { shipService } from '../services';
+import { shipService, surveyReportService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
+import { 
+  estimateFileProcessingTime, 
+  startSmoothProgressForFile 
+} from '../utils/progressHelpers';
 
 const ClassSurveyReport = () => {
   const { language, user } = useAuth();
@@ -31,6 +38,16 @@ const ClassSurveyReport = () => {
   const [deleteShipData, setDeleteShipData] = useState(null);
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Batch processing states
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [fileProgressMap, setFileProgressMap] = useState({});
+  const [fileStatusMap, setFileStatusMap] = useState({});
+  const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [batchResults, setBatchResults] = useState([]);
+  const [showBatchResults, setShowBatchResults] = useState(false);
+  const [isBatchModalMinimized, setIsBatchModalMinimized] = useState(false);
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
