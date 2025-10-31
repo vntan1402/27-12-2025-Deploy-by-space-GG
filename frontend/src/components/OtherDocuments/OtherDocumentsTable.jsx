@@ -20,6 +20,7 @@ import otherDocumentService from '../../services/otherDocumentService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import AddOtherDocumentModal from './AddOtherDocumentModal';
 import EditOtherDocumentModal from './EditOtherDocumentModal';
+import OtherDocumentNotesModal from './OtherDocumentNotesModal';
 
 const OtherDocumentsTable = ({ selectedShip }) => {
   const { language } = useAuth();
