@@ -643,6 +643,18 @@ const OtherDocumentsTable = ({ selectedShip }) => {
                     <td className="border border-gray-300 px-4 py-2">
                       <div className="flex items-center gap-2">
                         {document.document_name}
+                        {/* Debug log */}
+                        {(() => {
+                          if (index === 0) {
+                            console.log('🔍 First document render:', {
+                              name: document.document_name,
+                              folder_link: document.folder_link,
+                              file_ids: document.file_ids,
+                              has_file_ids: !!(document.file_ids && document.file_ids.length > 0)
+                            });
+                          }
+                          return null;
+                        })()}
                         {/* Folder Icon */}
                         {document.folder_link && document.folder_id && (
                           <span
