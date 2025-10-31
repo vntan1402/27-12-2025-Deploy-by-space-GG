@@ -1,6 +1,6 @@
 /**
  * Test Report Page
- * Full-featured test report management with modals
+ * Full-featured test report management with batch upload support
  */
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -10,14 +10,20 @@ import {
   TestReportList,
   AddTestReportModal,
   EditTestReportModal,
-  TestReportNotesModal
+  TestReportNotesModal,
+  BatchProcessingModal,
+  BatchResultsModal
 } from '../components/TestReport';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
-import { shipService } from '../services';
+import { shipService, testReportService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
+import { 
+  estimateFileProcessingTime, 
+  startSmoothProgressForFile 
+} from '../utils/progressHelpers';
 
 const TestReport = () => {
   const { language, user } = useAuth();
@@ -43,6 +49,16 @@ const TestReport = () => {
   const [editingReport, setEditingReport] = useState(null);
   const [notesReport, setNotesReport] = useState(null);
   const [listRefreshKey, setListRefreshKey] = useState(0);
+
+  // Batch processing states
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [fileProgressMap, setFileProgressMap] = useState({});
+  const [fileStatusMap, setFileStatusMap] = useState({});
+  const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [batchResults, setBatchResults] = useState([]);
+  const [showBatchResults, setShowBatchResults] = useState(false);
+  const [isBatchModalMinimized, setIsBatchModalMinimized] = useState(false);
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
