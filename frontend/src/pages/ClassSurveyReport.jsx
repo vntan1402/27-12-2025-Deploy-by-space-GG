@@ -120,10 +120,8 @@ const ClassSurveyReport = () => {
   };
 
 
-  const handleAddRecord = () => {
-    console.log('Add Ship button clicked from ClassSurveyReport');
-    setShowAddShipModal(true);
-  };
+  // Note: handleAddRecord removed - Survey Report page manages its own Add modal
+  // const handleAddRecord = () => {...};
 
   const handleShipCreated = async (shipId, shipName) => {
     console.log('Ship created callback triggered:', shipId, shipName);
