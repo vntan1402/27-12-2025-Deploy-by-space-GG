@@ -1,5 +1,5 @@
 /**
- * Batch Results Modal for Test Reports
+ * Batch Results Modal for Drawings & Manuals
  * Shows summary of batch processing results
  */
 import React from 'react';
