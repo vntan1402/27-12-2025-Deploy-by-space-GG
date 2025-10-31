@@ -37,6 +37,9 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingReport, setEditingReport] = useState(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [notesReport, setNotesReport] = useState(null);
+  const [notesValue, setNotesValue] = useState('');
 
   // Context Menu
   const [contextMenu, setContextMenu] = useState({
