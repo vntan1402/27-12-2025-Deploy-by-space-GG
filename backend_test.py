@@ -30,6 +30,7 @@ class BackendAPITester:
         self.test_ship_id = None
         self.test_ship_name = None
         self.test_ship_data = None
+        self.survey_analysis_data = None
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
