@@ -734,6 +734,12 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
             setShowAddModal(false);
             fetchSurveyReports();
           }}
+          onStartBatchProcessing={(files) => {
+            setShowAddModal(false);
+            if (onStartBatchProcessing) {
+              onStartBatchProcessing(files);
+            }
+          }}
         />
       )}
 
