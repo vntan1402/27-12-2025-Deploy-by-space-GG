@@ -131,19 +131,12 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       );
     }
 
-    // Filter by document name
-    if (filters.searchDocumentName) {
-      const searchLower = filters.searchDocumentName.toLowerCase();
+    // Filter by search (across multiple columns)
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(doc => 
         doc.document_name?.toLowerCase().includes(searchLower) ||
-        doc.document_no?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Filter by approved by
-    if (filters.searchApprovedBy) {
-      const searchLower = filters.searchApprovedBy.toLowerCase();
-      filtered = filtered.filter(doc => 
+        doc.document_no?.toLowerCase().includes(searchLower) ||
         doc.approved_by?.toLowerCase().includes(searchLower)
       );
     }
