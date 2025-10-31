@@ -441,6 +441,207 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
     setContextMenu({ show: false, x: 0, y: 0, document: null });
   };
 
+  // Batch processing handlers
+  const handleStartBatchProcessing = async (files) => {
+    if (!selectedShip) return;
+
+    setIsBatchProcessing(true);
+    setBatchProgress({ current: 0, total: files.length });
+    setBatchResults([]);
+
+    // Initialize progress maps
+    const initialProgressMap = {};
+    const initialStatusMap = {};
+    const initialSubStatusMap = {};
+    files.forEach(file => {
+      initialProgressMap[file.name] = 0;
+      initialStatusMap[file.name] = 'waiting';
+      initialSubStatusMap[file.name] = null;
+    });
+    setFileProgressMap(initialProgressMap);
+    setFileStatusMap(initialStatusMap);
+    setFileSubStatusMap(initialSubStatusMap);
+
+    const results = [];
+    const STAGGER_DELAY = 5000; // 5 seconds between file starts
+
+    // Process files with staggered start
+    const promises = files.map((file, index) => {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          try {
+            const result = await processSingleFileInBatch(file);
+            results.push(result);
+            setBatchProgress({ current: results.length, total: files.length });
+            resolve(result);
+          } catch (error) {
+            const errorResult = {
+              filename: file.name,
+              success: false,
+              error: error.message || 'Processing failed',
+              documentCreated: false
+            };
+            results.push(errorResult);
+            setBatchProgress({ current: results.length, total: files.length });
+            resolve(errorResult);
+          }
+        }, index * STAGGER_DELAY);
+      });
+    });
+
+    // Wait for all files to complete
+    await Promise.all(promises);
+
+    // Close batch processing modal
+    setIsBatchProcessing(false);
+
+    // Show results modal
+    setBatchResults(results);
+    setShowBatchResults(true);
+
+    // Refresh list
+    await fetchDocuments();
+
+    // Show summary toast
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.length - successCount;
+    toast.success(
+      `${language === 'vi' ? 'Đã xử lý' : 'Processed'} ${results.length} ${language === 'vi' ? 'file' : 'files'}: ` +
+      `${successCount} ${language === 'vi' ? 'thành công' : 'success'}, ${failCount} ${language === 'vi' ? 'thất bại' : 'failed'}`
+    );
+  };
+
+  const processSingleFileInBatch = async (file) => {
+    const result = {
+      filename: file.name,
+      success: false,
+      documentCreated: false,
+      documentName: '',
+      documentNo: '',
+      error: null
+    };
+
+    try {
+      // Set status to 'processing'
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Analyzing...' }));
+
+      // Step 1: Analyze file
+      const formData = new FormData();
+      formData.append('document_file', file);
+      formData.append('ship_id', selectedShip.id);
+      formData.append('bypass_validation', 'true');
+
+      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const analyzeResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals/analyze-file`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      if (!analyzeResponse.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const analysis = await analyzeResponse.json();
+      result.documentName = analysis.document_name || file.name;
+      result.documentNo = analysis.document_no || '';
+
+      // Update progress
+      setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
+      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Creating record...' }));
+
+      // Step 2: Create document record
+      const documentData = {
+        ship_id: selectedShip.id,
+        document_name: analysis.document_name || file.name,
+        document_no: analysis.document_no || null,
+        approved_by: analysis.approved_by || null,
+        approved_date: analysis.approved_date || null,
+        status: 'Unknown',
+        note: analysis.note || null
+      };
+
+      const createResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(documentData)
+      });
+
+      if (!createResponse.ok) {
+        throw new Error('Failed to create document record');
+      }
+
+      const createdDocument = await createResponse.json();
+      const documentId = createdDocument.id;
+      result.documentCreated = true;
+      result.documentId = documentId;
+
+      // Update progress
+      setFileProgressMap(prev => ({ ...prev, [file.name]: 60 }));
+      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Uploading files...' }));
+
+      // Step 3: Upload files to Google Drive
+      if (analysis._file_content && analysis._filename) {
+        try {
+          const uploadData = {
+            file_content: analysis._file_content,
+            filename: analysis._filename,
+            content_type: analysis._content_type || 'application/pdf',
+            summary_text: analysis._summary_text || ''
+          };
+
+          const uploadResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals/${documentId}/upload-files`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(uploadData)
+          });
+
+          if (uploadResponse.ok) {
+            result.fileUploaded = true;
+            result.success = true;
+          } else {
+            result.success = true; // Document created but file upload failed (non-critical)
+          }
+        } catch (uploadError) {
+          console.error(`File upload error for document ${documentId}:`, uploadError);
+          result.success = true; // Document created successfully, file upload is non-critical
+          result.fileUploadError = uploadError.message;
+        }
+      } else {
+        result.success = true; // Document created without file content
+      }
+
+      // Set status to 'completed'
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+      setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Completed' }));
+
+    } catch (error) {
+      console.error(`Failed to process ${file.name}:`, error);
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+      setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Error' }));
+      result.error = error.message || 'Processing failed';
+    }
+
+    return result;
+  };
+
+  // Edit handlers
+  const handleEditDocument = (document) => {
+    setEditingDocument(document);
+    setShowEditModal(true);
+    setContextMenu({ show: false, x: 0, y: 0, document: null });
+  };
+
   const filteredDocuments = getFilteredDocuments();
 
   if (!selectedShip) {
