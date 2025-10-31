@@ -314,12 +314,38 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
 
     try {
-      await surveyReportService.bulkDelete([report.id]);
-      toast.success(language === 'vi' ? 'Đã xóa báo cáo' : 'Report deleted');
+      const response = await surveyReportService.bulkDelete([report.id]);
+      const result = response.data;
+      
+      // First notification: Record deleted
+      if (result.deleted_count > 0) {
+        toast.success(
+          language === 'vi' 
+            ? '✅ Đã xóa báo cáo khỏi hệ thống' 
+            : '✅ Report deleted from database'
+        );
+      }
+      
+      // Second notification: Files deleted from Google Drive
+      if (result.files_deleted > 0) {
+        setTimeout(() => {
+          toast.success(
+            language === 'vi' 
+              ? `🗑️ Đã xóa ${result.files_deleted} file từ Google Drive` 
+              : `🗑️ Deleted ${result.files_deleted} file(s) from Google Drive`
+          );
+        }, 1000);
+      }
+      
       await fetchSurveyReports();
     } catch (error) {
       console.error('Failed to delete report:', error);
-      toast.error(language === 'vi' ? 'Không thể xóa báo cáo' : 'Failed to delete report');
+      const errorMsg = error.response?.data?.detail || 'Failed to delete report';
+      toast.error(
+        language === 'vi' 
+          ? `❌ Không thể xóa báo cáo: ${errorMsg}` 
+          : `❌ ${errorMsg}`
+      );
     }
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
@@ -336,17 +362,51 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
 
     try {
-      await surveyReportService.bulkDelete(Array.from(selectedReports));
-      toast.success(
-        language === 'vi' 
-          ? `Đã xóa ${selectedReports.size} báo cáo` 
-          : `Deleted ${selectedReports.size} report(s)`
-      );
+      const reportIds = Array.from(selectedReports);
+      const response = await surveyReportService.bulkDelete(reportIds);
+      const result = response.data;
+      
+      // First notification: Records deleted
+      if (result.deleted_count > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `✅ Đã xóa ${result.deleted_count} báo cáo khỏi hệ thống` 
+            : `✅ Deleted ${result.deleted_count} report(s) from database`
+        );
+      }
+      
+      // Second notification: Files deleted from Google Drive
+      if (result.files_deleted > 0) {
+        setTimeout(() => {
+          toast.success(
+            language === 'vi' 
+              ? `🗑️ Đã xóa ${result.files_deleted} file từ Google Drive` 
+              : `🗑️ Deleted ${result.files_deleted} file(s) from Google Drive`
+          );
+        }, 1000);
+      }
+      
+      // Show errors if any
+      if (result.errors && result.errors.length > 0) {
+        setTimeout(() => {
+          toast.warning(
+            language === 'vi' 
+              ? `⚠️ Có ${result.errors.length} lỗi khi xóa` 
+              : `⚠️ ${result.errors.length} error(s) occurred`
+          );
+        }, 2000);
+      }
+      
       setSelectedReports(new Set());
       await fetchSurveyReports();
     } catch (error) {
       console.error('Failed to bulk delete:', error);
-      toast.error(language === 'vi' ? 'Không thể xóa báo cáo' : 'Failed to delete reports');
+      const errorMsg = error.response?.data?.detail || 'Failed to delete reports';
+      toast.error(
+        language === 'vi' 
+          ? `❌ Không thể xóa báo cáo: ${errorMsg}` 
+          : `❌ ${errorMsg}`
+      );
     }
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
