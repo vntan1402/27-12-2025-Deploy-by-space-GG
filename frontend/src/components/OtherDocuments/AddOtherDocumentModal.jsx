@@ -120,6 +120,11 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         // Folder upload
         const folderName = formData.document_name || files[0].webkitRelativePath.split('/')[0];
         
+        toast.info(language === 'vi'
+          ? `📤 Đang upload ${files.length} files lên Google Drive...`
+          : `📤 Uploading ${files.length} files to Google Drive...`
+        );
+        
         const result = await otherDocumentService.uploadFolder(
           selectedShip.id,
           files,
@@ -142,6 +147,11 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         }
       } else {
         // Multiple files upload (batch processing)
+        toast.info(language === 'vi'
+          ? `📤 Đang upload ${files.length} file(s) lên Google Drive...`
+          : `📤 Uploading ${files.length} file(s) to Google Drive...`
+        );
+        
         const results = await otherDocumentService.uploadFiles(
           selectedShip.id,
           files,
@@ -175,9 +185,10 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
       }
     } catch (error) {
       console.error('Failed to add document:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error';
       toast.error(language === 'vi' 
-        ? `❌ Lỗi: ${error.message}` 
-        : `❌ Error: ${error.message}`);
+        ? `❌ Lỗi: ${errorMessage}` 
+        : `❌ Error: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }
