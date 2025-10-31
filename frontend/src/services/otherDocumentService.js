@@ -43,7 +43,7 @@ const otherDocumentService = {
    * Delete an other document
    */
   delete: async (documentId) => {
-    const response = await api.delete(`/api/other-documents/${documentId}`);
+    const response = await api.delete(`/api/other-documents/${documentId}?background=true`);
     return response.data;
   },
 
