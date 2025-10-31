@@ -47,8 +47,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
   // Filter state
   const [filters, setFilters] = useState({
     status: 'all',
-    searchDocumentName: '',
-    searchApprovedBy: ''
+    search: ''
   });
 
   // Context menu state
