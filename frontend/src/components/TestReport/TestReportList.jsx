@@ -251,6 +251,133 @@ export const TestReportList = ({
     }
   };
 
+  // View File handler
+  const handleViewFile = (report) => {
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    if (report.test_report_file_id) {
+      handleOpenFile(null, report.test_report_file_id);
+    } else {
+      toast.error(
+        language === 'vi' 
+          ? 'Không có file để xem' 
+          : 'No file to view'
+      );
+    }
+  };
+
+  // Copy Link handler
+  const handleCopyLink = (report) => {
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    if (report.test_report_file_id) {
+      const link = `https://drive.google.com/file/d/${report.test_report_file_id}/view`;
+      navigator.clipboard.writeText(link);
+      toast.success(
+        language === 'vi' 
+          ? 'Đã copy link vào clipboard' 
+          : 'Link copied to clipboard'
+      );
+    } else {
+      toast.error(
+        language === 'vi' 
+          ? 'Không có file link để copy' 
+          : 'No file link to copy'
+      );
+    }
+  };
+
+  // Bulk view files - open multiple files in new tabs
+  const handleBulkView = () => {
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    const selectedReportsList = testReports.filter(r => selectedReports.has(r.id));
+    const filesWithId = selectedReportsList.filter(r => r.test_report_file_id);
+    
+    if (filesWithId.length === 0) {
+      toast.error(
+        language === 'vi' 
+          ? 'Không có file nào để xem' 
+          : 'No files to view'
+      );
+      return;
+    }
+
+    filesWithId.forEach(report => {
+      const url = `https://drive.google.com/file/d/${report.test_report_file_id}/view`;
+      window.open(url, '_blank');
+    });
+
+    toast.success(
+      language === 'vi' 
+        ? `Đã mở ${filesWithId.length} file(s)` 
+        : `Opened ${filesWithId.length} file(s)`
+    );
+  };
+
+  // Bulk download files
+  const handleBulkDownload = () => {
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    const selectedReportsList = testReports.filter(r => selectedReports.has(r.id));
+    const filesWithId = selectedReportsList.filter(r => r.test_report_file_id);
+    
+    if (filesWithId.length === 0) {
+      toast.error(
+        language === 'vi' 
+          ? 'Không có file nào để tải' 
+          : 'No files to download'
+      );
+      return;
+    }
+
+    filesWithId.forEach(report => {
+      const url = `https://drive.google.com/uc?export=download&id=${report.test_report_file_id}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = report.test_report_name || 'test_report.pdf';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    toast.success(
+      language === 'vi' 
+        ? `Đang tải ${filesWithId.length} file(s)` 
+        : `Downloading ${filesWithId.length} file(s)`
+    );
+  };
+
+  // Bulk copy links
+  const handleBulkCopyLinks = () => {
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    
+    const selectedReportsList = testReports.filter(r => selectedReports.has(r.id));
+    const filesWithId = selectedReportsList.filter(r => r.test_report_file_id);
+    
+    if (filesWithId.length === 0) {
+      toast.error(
+        language === 'vi' 
+          ? 'Không có file link nào để copy' 
+          : 'No file links to copy'
+      );
+      return;
+    }
+
+    const links = filesWithId.map(report => {
+      const link = `https://drive.google.com/file/d/${report.test_report_file_id}/view`;
+      return `${report.test_report_name}: ${link}`;
+    }).join('\n');
+
+    navigator.clipboard.writeText(links);
+    toast.success(
+      language === 'vi' 
+        ? `Đã copy ${filesWithId.length} link(s) vào clipboard` 
+        : `Copied ${filesWithId.length} link(s) to clipboard`
+    );
+  };
+
   const handleBulkDelete = async () => {
     setContextMenu({ show: false, x: 0, y: 0, report: null });
 
