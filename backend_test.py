@@ -864,9 +864,9 @@ class BackendAPITester:
             self.print_result(False, f"Exception during upcoming surveys company_name test: {str(e)}")
             return False
 
-    def test_survey_report_ai_analysis(self):
-        """Test 8: Survey Report AI Analysis Endpoint - Provider Mismatch Fix Verification"""
-        self.print_test_header("Test 8 - Survey Report AI Analysis Endpoint - Provider Mismatch Fix Verification")
+    def test_survey_report_ai_analysis_with_ocr(self):
+        """Test 8: Survey Report AI Analysis with Targeted OCR - Tesseract Installation Verification"""
+        self.print_test_header("Test 8 - Survey Report AI Analysis with Targeted OCR - Tesseract Installation Verification")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
