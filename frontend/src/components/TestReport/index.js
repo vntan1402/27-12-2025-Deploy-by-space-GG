@@ -1,6 +1,8 @@
 /**
  * Test Report Components
- * Export all components related to Test Report
+ * Export all test report related components
  */
-
 export { TestReportList } from './TestReportList';
+export { AddTestReportModal } from './AddTestReportModal';
+export { EditTestReportModal } from './EditTestReportModal';
+export { TestReportNotesModal } from './TestReportNotesModal';
