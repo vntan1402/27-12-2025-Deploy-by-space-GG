@@ -1134,10 +1134,13 @@ class BackendAPITester:
                     detail = error_data.get("detail", "")
                     print(f"📄 Server Error: {error_data}")
                     
-                    # Check if this is related to Document AI configuration
-                    if "document ai" in str(detail).lower() or "project_id" in str(detail).lower():
+                    # Check if this is related to provider or Document AI configuration
+                    if "AI extraction not supported for non-Emergent configurations" in str(detail):
+                        print(f"🚨 PROVIDER MISMATCH ERROR STILL PRESENT!")
+                        print(f"🔧 The provider check fix may not be complete")
+                    elif "document ai" in str(detail).lower() or "project_id" in str(detail).lower():
                         print(f"🚨 DOCUMENT AI CONFIGURATION ERROR DETECTED!")
-                        print(f"🔧 The Document AI project_id whitespace fix may not be complete")
+                        print(f"🔧 There may be additional Document AI configuration issues")
                     
                     self.print_result(False, f"❌ Server Error: {detail}")
                 except:
