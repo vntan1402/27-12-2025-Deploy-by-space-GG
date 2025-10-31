@@ -8754,12 +8754,11 @@ async def bulk_delete_drawings_manuals(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
-        # Get Apps Script URL
-        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        if not company_doc:
-            raise HTTPException(status_code=404, detail="Company not found")
-        
-        company_apps_script_url = company_doc.get("company_apps_script_url")
+        # Get Apps Script URL from company_gdrive_config (same as Test Report)
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
         
         if background:
             # BACKGROUND MODE: Delete all from DB first, then files in background
