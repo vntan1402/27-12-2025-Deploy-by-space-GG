@@ -1384,13 +1384,13 @@ class BackendAPITester:
             test_results.append(("Test 7 - Upcoming Surveys Company Name", False))
             result_upcoming_surveys = False
         
-        # Test 8: Survey Report AI Analysis Endpoint
+        # Test 8: Survey Report AI Analysis with OCR
         if result_auth and result_ships_list:
-            result_survey_ai = self.test_survey_report_ai_analysis()
-            test_results.append(("Test 8 - Survey Report AI Analysis", result_survey_ai))
+            result_survey_ai = self.test_survey_report_ai_analysis_with_ocr()
+            test_results.append(("Test 8 - Survey Report AI Analysis with OCR", result_survey_ai))
         else:
-            print(f"\n⚠️ Skipping Survey Report AI Analysis - setup tests failed")
-            test_results.append(("Test 8 - Survey Report AI Analysis", False))
+            print(f"\n⚠️ Skipping Survey Report AI Analysis with OCR - setup tests failed")
+            test_results.append(("Test 8 - Survey Report AI Analysis with OCR", False))
             result_survey_ai = False
         
         # Test 9: Backend Logs Verification
