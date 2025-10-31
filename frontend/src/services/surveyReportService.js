@@ -75,18 +75,14 @@ export const surveyReportService = {
    * Analyze survey report file with AI
    * @param {string} shipId - Ship ID
    * @param {File} reportFile - Survey report file (PDF)
-   * @param {string} aiProvider - AI provider ('gemini' or 'openai')
-   * @param {string} aiModel - AI model name
-   * @param {boolean} useEmergentKey - Whether to use Emergent LLM key
+   * @param {boolean} bypassValidation - Skip ship name validation (default: false)
    * @returns {Promise} Analysis result with extracted data
    */
-  analyzeFile: async (shipId, reportFile, aiProvider, aiModel, useEmergentKey) => {
+  analyzeFile: async (shipId, reportFile, bypassValidation = false) => {
     const formData = new FormData();
     formData.append('ship_id', shipId);
     formData.append('survey_report_file', reportFile);
-    formData.append('ai_provider', aiProvider);
-    formData.append('ai_model', aiModel);
-    formData.append('use_emergent_key', useEmergentKey);
+    formData.append('bypass_validation', bypassValidation ? 'true' : 'false');
     
     return api.post(API_ENDPOINTS.SURVEY_REPORT_ANALYZE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
