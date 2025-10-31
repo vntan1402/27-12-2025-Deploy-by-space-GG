@@ -92,20 +92,20 @@ export const surveyReportService = {
 
   /**
    * Upload survey report files to Google Drive
-   * @param {string} reportId - Survey report ID
-   * @param {File} reportFile - Survey report file
-   * @param {File} summaryFile - Optional summary file
+   * @param {string} reportId - Report ID
+   * @param {string} fileContent - Base64 encoded file content
+   * @param {string} filename - Filename
+   * @param {string} contentType - MIME type
+   * @param {string} summaryText - Enhanced summary text
    * @returns {Promise} Upload result
    */
-  uploadFiles: async (reportId, reportFile, summaryFile = null) => {
-    const formData = new FormData();
-    formData.append('survey_report_file', reportFile);
-    if (summaryFile) {
-      formData.append('summary_file', summaryFile);
-    }
-    
-    return api.post(API_ENDPOINTS.SURVEY_REPORT_UPLOAD_FILES(reportId), formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  uploadFiles: async (reportId, fileContent, filename, contentType, summaryText) => {
+    return api.post(API_ENDPOINTS.SURVEY_REPORT_UPLOAD_FILES(reportId), {
+      file_content: fileContent,
+      filename: filename,
+      content_type: contentType,
+      summary_text: summaryText
+    }, {
       timeout: API_TIMEOUT.FILE_UPLOAD,
     });
   },
