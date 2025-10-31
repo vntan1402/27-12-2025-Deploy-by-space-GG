@@ -1095,12 +1095,14 @@ class BackendAPITester:
                             sample_summary = summary_text[:200] + "..." if len(summary_text) > 200 else summary_text
                             print(f"   📝 Summary Text Sample: {sample_summary}")
                     
-                    # Success criteria for Document AI fix verification
+                    # Success criteria for OCR functionality verification
                     success_criteria = [
                         success,  # API returns success: true
-                        all(critical_fields_present),  # Both _file_content and _summary_text present
+                        all(critical_fields_present),  # _file_content, _summary_text, and _ocr_info present
                         file_content_ok,  # File content has substantial data
                         summary_text_ok,  # Summary text has meaningful content
+                        ocr_section_present,  # OCR section in summary text
+                        (header_section_present or footer_section_present),  # At least one OCR section
                         sum(extracted_fields.values()) >= 1  # At least one field extracted
                     ]
                     
