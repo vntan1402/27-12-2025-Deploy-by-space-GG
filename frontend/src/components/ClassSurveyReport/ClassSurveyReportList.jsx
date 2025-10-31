@@ -699,7 +699,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                         onMouseEnter={(e) => handleNoteMouseEnter(e, report.note)}
                         onMouseLeave={handleNoteMouseLeave}
                       >
-                        🔴
+                        *
                       </span>
                     ) : (
                       <span className="text-gray-400">-</span>
