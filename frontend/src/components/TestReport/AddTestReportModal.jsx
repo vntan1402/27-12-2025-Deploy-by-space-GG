@@ -258,7 +258,7 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       issued_by: analysis.issued_by || '',
       issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : '',
       valid_date: analysis.valid_date ? analysis.valid_date.split('T')[0] : '',
-      note: formData.note // Keep existing note
+      note: analysis.note || ''
     };
     
     console.log('=== NEW FORM DATA ===');
