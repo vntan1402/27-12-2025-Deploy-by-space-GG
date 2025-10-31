@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script
-Tests backend APIs including ship calculation and upcoming surveys endpoints
+Tests backend APIs including ship calculation, upcoming surveys, and Survey Report AI Analysis endpoints
 
 FOCUS: Test the backend endpoints:
 1. POST /api/ships/{ship_id}/calculate-next-docking
 2. POST /api/ships/{ship_id}/calculate-anniversary-date  
 3. POST /api/ships/{ship_id}/calculate-special-survey-cycle
-4. GET /api/certificates/upcoming-surveys (NEW: Testing company_name field inclusion)
+4. GET /api/certificates/upcoming-surveys (Testing company_name field inclusion)
+5. POST /api/survey-reports/analyze-file (NEW: Survey Report AI Analysis endpoint)
 """
 
 import requests
