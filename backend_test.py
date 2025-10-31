@@ -1226,13 +1226,16 @@ class BackendAPITester:
                     detail = error_data.get("detail", "")
                     print(f"📄 Server Error: {error_data}")
                     
-                    # Check if this is related to provider or Document AI configuration
-                    if "AI extraction not supported for non-Emergent configurations" in str(detail):
-                        print(f"🚨 PROVIDER MISMATCH ERROR STILL PRESENT!")
-                        print(f"🔧 The provider check fix may not be complete")
+                    # Check if this is related to OCR or Document AI configuration
+                    if "OCR processor not available" in str(detail):
+                        print(f"🚨 OCR PROCESSOR ERROR DETECTED!")
+                        print(f"🔧 Tesseract installation may not be working properly")
                     elif "document ai" in str(detail).lower() or "project_id" in str(detail).lower():
                         print(f"🚨 DOCUMENT AI CONFIGURATION ERROR DETECTED!")
-                        print(f"🔧 There may be additional Document AI configuration issues")
+                        print(f"🔧 There may be Document AI configuration issues")
+                    elif "AI extraction not supported" in str(detail):
+                        print(f"🚨 AI EXTRACTION ERROR DETECTED!")
+                        print(f"🔧 There may be AI provider configuration issues")
                     
                     self.print_result(False, f"❌ Server Error: {detail}")
                 except:
