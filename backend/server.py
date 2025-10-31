@@ -9016,6 +9016,7 @@ async def delete_drawings_manual(
       2. Then delete from database
     """
     try:
+        print(f"🔍 DEBUG: DELETE ENDPOINT CALLED - document_id={document_id}, background={background}")
         logger.info(f"🗑️ Deleting drawings/manual: {document_id} (background={background})")
         
         # Check if document exists
@@ -9023,11 +9024,15 @@ async def delete_drawings_manual(
         if not doc:
             raise HTTPException(status_code=404, detail="Document not found")
         
+        print(f"🔍 DEBUG: Document found: {doc.get('document_name')}")
+        print(f"🔍 DEBUG: file_id={doc.get('file_id')}, summary_file_id={doc.get('summary_file_id')}")
+        
         # Get company info for Apps Script URL
         company_uuid = await resolve_company_id(current_user)
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
+        print(f"🔍 DEBUG: Company UUID: {company_uuid}")
         # Get Apps Script URL
         company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
         if not company_doc:
