@@ -7652,27 +7652,210 @@ async def bulk_delete_test_reports(
 @api_router.delete("/test-reports/{report_id}")
 async def delete_test_report(
     report_id: str,
+    background: bool = Query(False, description="If true, delete DB first and return immediately, then delete files in background"),
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Delete a test report"""
+    """Delete a test report with files
+    
+    If background=True:
+      1. Delete from database immediately
+      2. Return success response
+      3. Delete files from Google Drive in background
+    
+    If background=False:
+      1. Delete files from Google Drive first
+      2. Then delete from database
+    """
     try:
-        logger.info(f"🗑️ Deleting test report: {report_id}")
+        logger.info(f"🗑️ Deleting test report: {report_id} (background={background})")
         
         # Check if report exists
         existing_report = await mongo_db.find_one("test_reports", {"id": report_id})
         if not existing_report:
             raise HTTPException(status_code=404, detail="Test report not found")
         
-        await mongo_db.delete("test_reports", {"id": report_id})
+        # Get company info for Apps Script URL
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
         
-        logger.info(f"✅ Test report deleted successfully")
-        return {"message": "Test report deleted successfully"}
+        # Get Apps Script URL
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+        
+        original_file_id = existing_report.get("test_report_file_id")
+        summary_file_id = existing_report.get("test_report_summary_file_id")
+        has_files = bool(original_file_id or summary_file_id)
+        
+        if background:
+            # BACKGROUND MODE: Delete DB first, then files in background
+            logger.info("🚀 Background deletion mode: Deleting from database first...")
+            
+            # Delete from database immediately
+            await mongo_db.delete("test_reports", {"id": report_id})
+            logger.info(f"✅ Test report deleted from database: {report_id}")
+            
+            # Schedule background file deletion (non-blocking)
+            if has_files and company_apps_script_url:
+                logger.info("📤 Starting background file deletion from Google Drive...")
+                
+                import asyncio
+                asyncio.create_task(
+                    delete_test_report_files_background(
+                        original_file_id, 
+                        summary_file_id, 
+                        company_apps_script_url,
+                        report_id
+                    )
+                )
+            
+            # Return immediately
+            message = "Test report deleted from database"
+            if has_files:
+                message += " (files are being deleted from Google Drive in background)"
+            
+            return {
+                "success": True,
+                "message": message,
+                "background_deletion": has_files
+            }
+        
+        else:
+            # BLOCKING MODE: Delete files first, then DB
+            files_deleted = 0
+            
+            # Delete files from Google Drive if exists
+            if company_apps_script_url and has_files:
+                import aiohttp
+                
+                # Delete original file
+                if original_file_id:
+                    logger.info(f"🗑️ Deleting original file from Drive: {original_file_id}")
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": original_file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Original file deleted: {original_file_id}")
+                                        files_deleted += 1
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting original file {original_file_id}: {e}")
+                
+                # Delete summary file
+                if summary_file_id:
+                    logger.info(f"🗑️ Deleting summary file from Drive: {summary_file_id}")
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": summary_file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                        files_deleted += 1
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting summary file {summary_file_id}: {e}")
+            
+            # Delete from database
+            await mongo_db.delete("test_reports", {"id": report_id})
+            
+            message = "Test report deleted successfully"
+            if files_deleted > 0:
+                message += f" ({files_deleted} file(s) deleted from Google Drive)"
+            
+            logger.info(f"✅ {message}")
+            return {"message": message}
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting test report: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# Background file deletion for test reports
+async def delete_test_report_files_background(
+    original_file_id: Optional[str],
+    summary_file_id: Optional[str],
+    company_apps_script_url: str,
+    report_id: str
+):
+    """Delete test report files from Google Drive in background (non-blocking)"""
+    try:
+        import aiohttp
+        files_deleted = 0
+        
+        # Delete original file
+        if original_file_id:
+            logger.info(f"🗑️ [Background] Deleting original file from Drive: {original_file_id}")
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": original_file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ [Background] Original file deleted: {original_file_id}")
+                                files_deleted += 1
+            except Exception as e:
+                logger.error(f"❌ [Background] Error deleting original file {original_file_id}: {e}")
+        
+        # Delete summary file
+        if summary_file_id:
+            logger.info(f"🗑️ [Background] Deleting summary file from Drive: {summary_file_id}")
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": summary_file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
+                                files_deleted += 1
+            except Exception as e:
+                logger.error(f"❌ [Background] Error deleting summary file {summary_file_id}: {e}")
+        
+        logger.info(f"✅ [Background] File deletion completed for test report {report_id}: {files_deleted} file(s) deleted")
+        
+    except Exception as e:
+        logger.error(f"❌ [Background] Error in background file deletion for {report_id}: {e}")
+
 
 # Test Report AI Analysis & Upload endpoints
 @api_router.post("/test-reports/analyze-file")
