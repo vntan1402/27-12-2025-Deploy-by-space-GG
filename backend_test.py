@@ -1109,11 +1109,13 @@ class BackendAPITester:
                     success_score = sum(success_criteria)
                     total_criteria = len(success_criteria)
                     
-                    print(f"\n📊 DOCUMENT AI FIX VERIFICATION CRITERIA:")
+                    print(f"\n📊 OCR FUNCTIONALITY VERIFICATION CRITERIA:")
                     print(f"   ✅ API Success: {success}")
-                    print(f"   ✅ Critical Fields Present: {all(critical_fields_present)} (_file_content & _summary_text)")
+                    print(f"   ✅ Critical Fields Present: {all(critical_fields_present)} (_file_content, _summary_text, _ocr_info)")
                     print(f"   ✅ File Content Quality: {file_content_ok}")
                     print(f"   ✅ Summary Text Quality: {summary_text_ok}")
+                    print(f"   ✅ OCR Section Present: {ocr_section_present}")
+                    print(f"   ✅ Header/Footer Sections: {header_section_present or footer_section_present}")
                     print(f"   ✅ Field Extraction Working: {sum(extracted_fields.values()) >= 1}")
                     print(f"   📈 Score: {success_score}/{total_criteria}")
                     
