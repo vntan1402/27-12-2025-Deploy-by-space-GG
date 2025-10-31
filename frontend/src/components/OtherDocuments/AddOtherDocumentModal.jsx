@@ -87,6 +87,76 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
     }
   };
 
+  // Background upload function
+  const uploadInBackground = async (documentId, shipId, files, metadata, isFolder, folderName) => {
+    try {
+      toast.info(language === 'vi'
+        ? `📤 Đang upload ${files.length} file(s) lên Google Drive trong nền...`
+        : `📤 Uploading ${files.length} file(s) to Google Drive in background...`
+      );
+
+      let uploadResult;
+      
+      if (isFolder) {
+        // Folder upload
+        uploadResult = await otherDocumentService.uploadFolder(
+          shipId,
+          files,
+          folderName,
+          metadata
+        );
+
+        if (uploadResult.success) {
+          // Update record with folder info
+          await otherDocumentService.update(documentId, {
+            file_ids: uploadResult.file_ids,
+            folder_id: uploadResult.folder_id,
+            folder_link: uploadResult.folder_link
+          });
+
+          toast.success(language === 'vi'
+            ? `✅ Đã upload folder thành công! (${uploadResult.successful_files}/${uploadResult.total_files} files)`
+            : `✅ Folder uploaded successfully! (${uploadResult.successful_files}/${uploadResult.total_files} files)`
+          );
+        } else {
+          throw new Error(uploadResult.message || 'Upload failed');
+        }
+      } else {
+        // Multiple files upload
+        const results = await otherDocumentService.uploadFiles(
+          shipId,
+          files,
+          metadata
+        );
+
+        const successCount = results.filter(r => r.success).length;
+        const failCount = results.filter(r => !r.success).length;
+
+        if (successCount > 0) {
+          toast.success(language === 'vi'
+            ? `✅ Đã upload thành công ${successCount}/${files.length} file(s)`
+            : `✅ Successfully uploaded ${successCount}/${files.length} file(s)`
+          );
+        }
+
+        if (failCount > 0) {
+          const failedFiles = results.filter(r => !r.success).map(r => r.filename).join(', ');
+          toast.warning(language === 'vi'
+            ? `⚠️ Upload thất bại cho ${failCount} file(s): ${failedFiles}`
+            : `⚠️ Failed to upload ${failCount} file(s): ${failedFiles}`
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Background upload failed:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error';
+      toast.error(language === 'vi'
+        ? `❌ Lỗi upload file: ${errorMessage}`
+        : `❌ File upload error: ${errorMessage}`
+      );
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     // Validate: must have document name OR files
@@ -117,71 +187,79 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         
         onSuccess();
       } else if (isFolder) {
-        // Folder upload
+        // Create record first (quick)
         const folderName = formData.document_name || files[0].webkitRelativePath.split('/')[0];
         
-        toast.info(language === 'vi'
-          ? `📤 Đang upload ${files.length} files lên Google Drive...`
-          : `📤 Uploading ${files.length} files to Google Drive...`
-        );
+        const newDoc = await otherDocumentService.create({
+          ship_id: selectedShip.id,
+          document_name: folderName,
+          date: formData.date || null,
+          status: formData.status,
+          note: formData.note || null,
+          file_ids: []
+        });
+
+        toast.success(language === 'vi' 
+          ? '✅ Đã tạo record! Đang upload files trong nền...' 
+          : '✅ Record created! Uploading files in background...');
         
-        const result = await otherDocumentService.uploadFolder(
-          selectedShip.id,
-          files,
-          folderName,
-          {
-            date: formData.date || null,
-            status: formData.status,
-            note: formData.note || null
-          }
-        );
-
-        if (result.success) {
-          toast.success(language === 'vi'
-            ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
-            : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
-          );
-          onSuccess();
-        } else {
-          throw new Error(result.message || 'Upload failed');
-        }
-      } else {
-        // Multiple files upload (batch processing)
-        toast.info(language === 'vi'
-          ? `📤 Đang upload ${files.length} file(s) lên Google Drive...`
-          : `📤 Uploading ${files.length} file(s) to Google Drive...`
-        );
-        
-        const results = await otherDocumentService.uploadFiles(
-          selectedShip.id,
-          files,
-          {
-            document_name: files.length === 1 ? formData.document_name : null,
-            date: formData.date || null,
-            status: formData.status,
-            note: formData.note || null
-          }
-        );
-
-        const successCount = results.filter(r => r.success).length;
-        const failCount = results.filter(r => !r.success).length;
-
-        if (successCount > 0) {
-          toast.success(language === 'vi'
-            ? `✅ Đã upload thành công ${successCount}/${files.length} file(s)`
-            : `✅ Successfully uploaded ${successCount}/${files.length} file(s)`
-          );
-        }
-
-        if (failCount > 0) {
-          const failedFiles = results.filter(r => !r.success).map(r => r.filename).join(', ');
-          toast.error(language === 'vi'
-            ? `❌ Upload thất bại cho ${failCount} file(s): ${failedFiles}`
-            : `❌ Failed to upload ${failCount} file(s): ${failedFiles}`
-          );
-        }
-
+        // Close modal immediately
         onSuccess();
+
+        // Upload in background (don't await)
+        uploadInBackground(
+          newDoc.id,
+          selectedShip.id,
+          files,
+          {
+            date: formData.date || null,
+            status: formData.status,
+            note: formData.note || null
+          },
+          true,
+          folderName
+        );
+      } else {
+        // Multiple files - create records first, then upload in background
+        const createdDocs = [];
+        
+        for (const file of files) {
+          const fileName = file.name.replace(/\.[^/.]+$/, '');
+          const doc = await otherDocumentService.create({
+            ship_id: selectedShip.id,
+            document_name: files.length === 1 ? formData.document_name : fileName,
+            date: formData.date || null,
+            status: formData.status,
+            note: formData.note || null,
+            file_ids: []
+          });
+          createdDocs.push({ doc, file });
+        }
+
+        toast.success(language === 'vi'
+          ? `✅ Đã tạo ${files.length} record(s)! Đang upload files trong nền...`
+          : `✅ Created ${files.length} record(s)! Uploading files in background...`
+        );
+
+        // Close modal immediately
+        onSuccess();
+
+        // Upload each file in background
+        for (const { doc, file } of createdDocs) {
+          uploadInBackground(
+            doc.id,
+            selectedShip.id,
+            [file],
+            {
+              document_name: doc.document_name,
+              date: formData.date || null,
+              status: formData.status,
+              note: formData.note || null
+            },
+            false,
+            null
+          );
+        }
       }
     } catch (error) {
       console.error('Failed to add document:', error);
