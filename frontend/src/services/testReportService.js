@@ -58,10 +58,11 @@ export const testReportService = {
   /**
    * Delete test report
    * @param {string} reportId - Test report ID
+   * @param {boolean} background - If true, delete DB first and files in background
    * @returns {Promise} Delete result
    */
-  delete: async (reportId) => {
-    const response = await api.delete(API_ENDPOINTS.TEST_REPORT_BY_ID(reportId));
+  delete: async (reportId, background = true) => {
+    const response = await api.delete(`${API_ENDPOINTS.TEST_REPORT_BY_ID(reportId)}?background=${background}`);
     return response.data;
   },
 
