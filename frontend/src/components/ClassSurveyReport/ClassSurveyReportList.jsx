@@ -10,7 +10,7 @@ import { AddSurveyReportModal } from './AddSurveyReportModal';
 import { EditSurveyReportModal } from './EditSurveyReportModal';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 
-export const ClassSurveyReportList = ({ selectedShip }) => {
+export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) => {
   const { language } = useAuth();
 
   // State
