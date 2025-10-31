@@ -441,7 +441,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         <div className="flex gap-3">
           <button
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-green-600 hover:bg-green-700 text-white cursor-pointer transition-all"
-            onClick={() => {/* TODO: Add modal */}}
+            onClick={() => setShowAddModal(true)}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
