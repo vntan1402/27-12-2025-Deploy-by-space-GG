@@ -2067,13 +2067,13 @@ class BackendAPITester:
             test_results.append(("Test 7 - Upcoming Surveys Company Name", False))
             result_upcoming_surveys = False
         
-        # Test 8: CCM PDF OCR Workflow (PRIORITY TEST as per Review Request)
+        # Test 8: CCM File OCR Verification (PRIORITY TEST as per Review Request)
         if result_auth and result_ships_list:
-            result_ccm_ocr = self.test_ccm_pdf_ocr_workflow()
-            test_results.append(("Test 8 - CCM PDF OCR Workflow (PRIORITY)", result_ccm_ocr))
+            result_ccm_ocr = self.test_ccm_file_ocr_verification()
+            test_results.append(("Test 8 - CCM File OCR Verification (PRIORITY)", result_ccm_ocr))
         else:
-            print(f"\n⚠️ Skipping CCM PDF OCR Workflow - setup tests failed")
-            test_results.append(("Test 8 - CCM PDF OCR Workflow (PRIORITY)", False))
+            print(f"\n⚠️ Skipping CCM File OCR Verification - setup tests failed")
+            test_results.append(("Test 8 - CCM File OCR Verification (PRIORITY)", False))
             result_ccm_ocr = False
         
         # Test 9: Backend Logs Verification
