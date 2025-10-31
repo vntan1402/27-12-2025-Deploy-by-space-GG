@@ -13,6 +13,7 @@ import {
 } from '../../utils/progressHelpers';
 import { AddDrawingManualModal } from './AddDrawingManualModal';
 import { EditDrawingManualModal } from './EditDrawingManualModal';
+import { DrawingManualNotesModal } from './DrawingManualNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
 
@@ -28,6 +29,8 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [notesDocument, setNotesDocument] = useState(null);
 
   // Batch processing states
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
