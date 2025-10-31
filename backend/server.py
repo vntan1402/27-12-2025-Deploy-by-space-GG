@@ -6384,7 +6384,7 @@ async def bulk_delete_survey_reports(
                                     "file_id": original_file_id
                                 }
                                 async with session.post(
-                                    company_apps_script_url,
+                                    apps_script_url,
                                     json=payload,
                                     headers={"Content-Type": "application/json"},
                                     timeout=aiohttp.ClientTimeout(total=30)
@@ -6407,7 +6407,7 @@ async def bulk_delete_survey_reports(
                                     "file_id": summary_file_id
                                 }
                                 async with session.post(
-                                    company_apps_script_url,
+                                    apps_script_url,
                                     json=payload,
                                     headers={"Content-Type": "application/json"},
                                     timeout=aiohttp.ClientTimeout(total=30)
