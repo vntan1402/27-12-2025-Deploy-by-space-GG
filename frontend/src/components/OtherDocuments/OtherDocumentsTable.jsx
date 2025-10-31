@@ -723,25 +723,7 @@ const OtherDocumentsTable = ({ selectedShip }) => {
         </div>
       </div>
 
-      {/* Note Tooltip */}
-      {noteTooltip.show && (
-        <div
-          className="fixed bg-gray-800 text-white p-3 rounded-lg shadow-2xl z-50 border border-gray-600"
-          style={{
-            left: `${noteTooltip.x}px`,
-            top: `${noteTooltip.y}px`,
-            width: '300px',
-            maxHeight: '200px',
-            overflowY: 'auto',
-            fontSize: '14px',
-            lineHeight: '1.5'
-          }}
-        >
-          {noteTooltip.content}
-        </div>
-      )}
-
-      {/* Context Menu */}
+      {/* Context Menu - Test Report Style with Bulk Actions */}
       {contextMenu.show && (
         <>
           <div
@@ -751,6 +733,7 @@ const OtherDocumentsTable = ({ selectedShip }) => {
               setShowStatusSubmenu(false);
             }}
           />
+
           <div
             className="fixed bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
             style={{
@@ -759,72 +742,179 @@ const OtherDocumentsTable = ({ selectedShip }) => {
               minWidth: '200px'
             }}
           >
-            {/* Edit Button */}
-            <button
-              onClick={() => handleEdit(contextMenu.document)}
-              className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
-            </button>
-
-            {/* Change Status with Submenu */}
-            <div className="relative">
-              <button
-                onMouseEnter={() => setShowStatusSubmenu(true)}
-                onMouseLeave={() => setShowStatusSubmenu(false)}
-                className="w-full px-4 py-2 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-all flex items-center justify-between gap-2"
-              >
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  {language === 'vi' ? 'Đổi Trạng thái' : 'Change Status'}
-                </div>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Status Submenu */}
-              {showStatusSubmenu && (
-                <div
-                  className="absolute top-0 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
-                  style={{
-                    minWidth: '150px',
-                    ...(contextMenu.x > window.innerWidth - 400
-                      ? { right: '100%', marginRight: '4px' }
-                      : { left: '100%', marginLeft: '4px' })
-                  }}
-                  onMouseEnter={() => setShowStatusSubmenu(true)}
-                  onMouseLeave={() => setShowStatusSubmenu(false)}
+            {/* Single item actions */}
+            {selectedDocuments.size <= 1 ? (
+              <>
+                {/* View File */}
+                <button
+                  onClick={() => handleViewFile(contextMenu.document)}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
                 >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  {language === 'vi' ? 'Mở File' : 'View File'}
+                </button>
+
+                {/* Copy Link */}
+                <button
+                  onClick={() => handleCopyLink(contextMenu.document)}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  {language === 'vi' ? 'Copy Link' : 'Copy Link'}
+                </button>
+
+                <div className="border-t border-gray-200 my-1"></div>
+
+                {/* Edit */}
+                <button
+                  onClick={() => handleEdit(contextMenu.document)}
+                  className="w-full px-4 py-2 text-left hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                </button>
+
+                {/* Delete */}
+                <button
+                  onClick={() => {
+                    setContextMenu({ show: false, x: 0, y: 0, document: null });
+                    handleDelete();
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  {language === 'vi' ? 'Xóa' : 'Delete'}
+                </button>
+
+                <div className="border-t border-gray-200 my-1"></div>
+
+                {/* Change Status with Submenu */}
+                <div className="relative">
                   <button
-                    onClick={() => handleChangeStatus(contextMenu.document, 'Valid')}
-                    className="w-full px-4 py-2 text-left hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all flex items-center gap-2"
+                    onMouseEnter={() => setShowStatusSubmenu(true)}
+                    onMouseLeave={() => setShowStatusSubmenu(false)}
+                    className="w-full px-4 py-2 text-left hover:bg-orange-50 text-gray-700 hover:text-orange-600 transition-all flex items-center justify-between gap-2"
                   >
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    {language === 'vi' ? 'Hợp lệ' : 'Valid'}
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      {language === 'vi' ? 'Đổi Trạng thái' : 'Change Status'}
+                    </div>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
-                  <button
-                    onClick={() => handleChangeStatus(contextMenu.document, 'Expired')}
-                    className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    {language === 'vi' ? 'Hết hạn' : 'Expired'}
-                  </button>
-                  <button
-                    onClick={() => handleChangeStatus(contextMenu.document, 'Unknown')}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 text-gray-700 hover:text-gray-600 transition-all flex items-center gap-2"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
-                    {language === 'vi' ? 'Chưa rõ' : 'Unknown'}
-                  </button>
+
+                  {/* Status Submenu */}
+                  {showStatusSubmenu && (
+                    <div
+                      className="absolute top-0 bg-white shadow-xl rounded-lg border border-gray-200 py-2 z-50"
+                      style={{
+                        minWidth: '150px',
+                        ...(contextMenu.x > window.innerWidth - 400
+                          ? { right: '100%', marginRight: '4px' }
+                          : { left: '100%', marginLeft: '4px' })
+                      }}
+                      onMouseEnter={() => setShowStatusSubmenu(true)}
+                      onMouseLeave={() => setShowStatusSubmenu(false)}
+                    >
+                      <button
+                        onClick={() => handleChangeStatus(contextMenu.document, 'Valid')}
+                        className="w-full px-4 py-2 text-left hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all flex items-center gap-2"
+                      >
+                        <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        {language === 'vi' ? 'Hợp lệ' : 'Valid'}
+                      </button>
+                      <button
+                        onClick={() => handleChangeStatus(contextMenu.document, 'Expired')}
+                        className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
+                      >
+                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                        {language === 'vi' ? 'Hết hạn' : 'Expired'}
+                      </button>
+                      <button
+                        onClick={() => handleChangeStatus(contextMenu.document, 'Unknown')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 text-gray-700 hover:text-gray-600 transition-all flex items-center gap-2"
+                      >
+                        <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                        {language === 'vi' ? 'Chưa rõ' : 'Unknown'}
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              // Bulk actions when multiple selected
+              <>
+                {/* Bulk View Files */}
+                <button
+                  onClick={handleBulkView}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  {language === 'vi' 
+                    ? `Xem file (${selectedDocuments.size} tài liệu)` 
+                    : `View Files (${selectedDocuments.size} documents)`}
+                </button>
+
+                {/* Bulk Download */}
+                <button
+                  onClick={handleBulkDownload}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  {language === 'vi' 
+                    ? `Tải xuống (${selectedDocuments.size} file)` 
+                    : `Download (${selectedDocuments.size} files)`}
+                </button>
+
+                {/* Bulk Copy Links */}
+                <button
+                  onClick={handleBulkCopyLinks}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  {language === 'vi' 
+                    ? `Sao chép link (${selectedDocuments.size} file)` 
+                    : `Copy Links (${selectedDocuments.size} files)`}
+                </button>
+
+                <div className="border-t border-gray-200 my-1"></div>
+
+                {/* Bulk Delete */}
+                <button
+                  onClick={() => {
+                    setContextMenu({ show: false, x: 0, y: 0, document: null });
+                    handleDelete();
+                  }}
+                  className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2 font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  {language === 'vi' 
+                    ? `Xóa ${selectedDocuments.size} tài liệu đã chọn` 
+                    : `Delete ${selectedDocuments.size} selected document(s)`
+                  }
+                </button>
+              </>
+            )}
           </div>
         </>
       )}
