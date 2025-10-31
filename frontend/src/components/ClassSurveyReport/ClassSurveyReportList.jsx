@@ -774,7 +774,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       {/* Context Menu */}
       {contextMenu.show && (
         <div 
-          className="fixed bg-white border border-gray-200 rounded-lg shadow-lg z-[100]"
+          className="fixed bg-white border-2 border-red-500 rounded-lg shadow-2xl z-[9999]"
           style={{
             position: 'fixed',
             top: `${contextMenu.y}px`,
