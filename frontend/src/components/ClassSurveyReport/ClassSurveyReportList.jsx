@@ -8,6 +8,7 @@ import { surveyReportService } from '../../services';
 import { toast } from 'sonner';
 import { AddSurveyReportModal } from './AddSurveyReportModal';
 import { EditSurveyReportModal } from './EditSurveyReportModal';
+import { SurveyReportNotesModal } from './SurveyReportNotesModal';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 
 export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) => {
