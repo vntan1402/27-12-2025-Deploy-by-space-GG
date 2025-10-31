@@ -219,23 +219,82 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     });
   };
 
-  const handleViewFile = (report) => {
-    if (report.survey_report_file_id) {
-      window.open(`https://drive.google.com/file/d/${report.survey_report_file_id}/view`, '_blank');
-    } else {
+  const handleViewFile = async (report) => {
+    if (!report.survey_report_file_id) {
       toast.warning(language === 'vi' ? 'Không có file' : 'No file available');
+      setContextMenu({ show: false, x: 0, y: 0, report: null });
+      return;
     }
+
+    try {
+      // Use backend endpoint to get proper view URL (handles company/system gdrive config)
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.view_url) {
+          window.open(data.view_url, '_blank');
+        } else {
+          // Fallback to direct Google Drive link
+          window.open(`https://drive.google.com/file/d/${report.survey_report_file_id}/view`, '_blank');
+        }
+      } else {
+        // Fallback to direct Google Drive link
+        window.open(`https://drive.google.com/file/d/${report.survey_report_file_id}/view`, '_blank');
+      }
+    } catch (error) {
+      console.error('Error getting view URL:', error);
+      // Fallback to direct Google Drive link
+      window.open(`https://drive.google.com/file/d/${report.survey_report_file_id}/view`, '_blank');
+    }
+
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
   const handleCopyLink = async (report) => {
-    if (report.survey_report_file_id) {
-      const link = `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
-      await navigator.clipboard.writeText(link);
-      toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
-    } else {
+    if (!report.survey_report_file_id) {
       toast.warning(language === 'vi' ? 'Không có file' : 'No file available');
+      setContextMenu({ show: false, x: 0, y: 0, report: null });
+      return;
     }
+
+    try {
+      // Use backend endpoint to get proper view URL
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      let linkToCopy;
+      if (response.ok) {
+        const data = await response.json();
+        linkToCopy = data.view_url || `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+      } else {
+        // Fallback to direct Google Drive link
+        linkToCopy = `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+      }
+
+      await navigator.clipboard.writeText(linkToCopy);
+      toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
+    } catch (error) {
+      console.error('Error copying link:', error);
+      // Fallback: copy direct Google Drive link
+      const fallbackLink = `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+      await navigator.clipboard.writeText(fallbackLink);
+      toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
+    }
+
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
