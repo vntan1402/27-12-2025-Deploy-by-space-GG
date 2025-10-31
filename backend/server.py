@@ -1199,6 +1199,9 @@ class OtherDocumentUpdate(BaseModel):
     date: Optional[datetime] = None
     status: Optional[str] = None
     note: Optional[str] = None
+    file_ids: Optional[List[str]] = None  # Allow updating file_ids
+    folder_id: Optional[str] = None  # Allow updating folder_id
+    folder_link: Optional[str] = None  # Allow updating folder_link
 
 class OtherDocumentResponse(BaseModel):
     id: str
