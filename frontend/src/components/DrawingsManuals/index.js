@@ -5,3 +5,7 @@
 
 export { DrawingsManualsListComponent } from './DrawingsManualsListComponent';
 export { DrawingsManualsTable } from './DrawingsManualsTable';
+export { AddDrawingManualModal } from './AddDrawingManualModal';
+export { EditDrawingManualModal } from './EditDrawingManualModal';
+export { BatchProcessingModal } from './BatchProcessingModal';
+export { BatchResultsModal } from './BatchResultsModal';
