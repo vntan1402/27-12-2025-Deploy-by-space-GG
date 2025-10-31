@@ -40,7 +40,8 @@ export const testReportService = {
    * @returns {Promise} Created test report
    */
   create: async (reportData) => {
-    return api.post(API_ENDPOINTS.TEST_REPORTS, reportData);
+    const response = await api.post(API_ENDPOINTS.TEST_REPORTS, reportData);
+    return response.data;
   },
 
   /**
