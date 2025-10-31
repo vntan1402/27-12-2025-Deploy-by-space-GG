@@ -702,9 +702,12 @@ const OtherDocumentsTable = ({ selectedShip }) => {
                     <td className="border border-gray-300 px-4 py-2 text-center">
                       {document.note ? (
                         <span
-                          className="text-red-600 cursor-help text-lg font-bold"
-                          onMouseEnter={(e) => handleNoteMouseEnter(e, document.note)}
-                          onMouseLeave={handleNoteMouseLeave}
+                          className="text-red-600 cursor-pointer text-lg font-bold hover:text-red-700"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNoteClick(document);
+                          }}
+                          title={language === 'vi' ? 'Click để xem/sửa ghi chú' : 'Click to view/edit note'}
                         >
                           *
                         </span>
