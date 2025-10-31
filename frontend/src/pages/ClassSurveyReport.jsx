@@ -641,6 +641,7 @@ const ClassSurveyReport = () => {
         ) : (
           /* Class Survey Report List Section */
           <ClassSurveyReportList 
+            key={listRefreshKey} // Force re-mount and refresh when key changes
             selectedShip={selectedShip} 
             onStartBatchProcessing={startBatchProcessing}
           />
