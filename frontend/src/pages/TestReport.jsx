@@ -314,6 +314,168 @@ const TestReport = () => {
     setListRefreshKey(prev => prev + 1);
   };
 
+  // ==================== BATCH PROCESSING ====================
+  
+  /**
+   * Start batch processing for multiple test report files
+   */
+  const startBatchProcessing = async (files) => {
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+      return;
+    }
+
+    setIsBatchProcessing(true);
+    setBatchProgress({ current: 0, total: files.length });
+    setIsBatchModalMinimized(false);
+    
+    // Initialize progress maps
+    const initialProgressMap = {};
+    const initialStatusMap = {};
+    const initialSubStatusMap = {};
+    
+    files.forEach(file => {
+      initialProgressMap[file.name] = 0;
+      initialStatusMap[file.name] = 'waiting';
+      initialSubStatusMap[file.name] = null;
+    });
+    
+    setFileProgressMap(initialProgressMap);
+    setFileStatusMap(initialStatusMap);
+    setFileSubStatusMap(initialSubStatusMap);
+    setBatchResults([]);
+    
+    const STAGGER_DELAY = 5000; // 5 seconds between file starts
+    const results = [];
+    
+    // Process files with staggered start
+    const promises = files.map((file, index) => {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          const result = await processSingleFile(file);
+          results.push(result);
+          setBatchProgress({ current: results.length, total: files.length });
+          resolve(result);
+        }, index * STAGGER_DELAY);
+      });
+    });
+    
+    // Wait for all files to complete
+    await Promise.all(promises);
+    
+    // Show results
+    setIsBatchProcessing(false);
+    setBatchResults(results);
+    setShowBatchResults(true);
+    
+    // Refresh TestReportList component
+    setListRefreshKey(prev => prev + 1);
+    
+    // Summary toast
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.length - successCount;
+    toast.success(
+      language === 'vi'
+        ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${failCount} thất bại`
+        : `✅ Processed ${results.length} files: ${successCount} success, ${failCount} failed`
+    );
+  };
+
+  /**
+   * Process a single file in batch mode
+   */
+  const processSingleFile = async (file) => {
+    const result = {
+      filename: file.name,
+      success: false,
+      testReportCreated: false,
+      fileUploaded: false,
+      testReportName: '',
+      testReportNo: '',
+      error: null
+    };
+    
+    // Update status to 'processing'
+    setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+    setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+    
+    // Start smooth progress animation
+    const estimatedTime = estimateFileProcessingTime(file);
+    const progressController = startSmoothProgressForFile(
+      file.name,
+      setFileProgressMap,
+      setFileSubStatusMap,
+      estimatedTime,
+      90 // Max 90%, then jump to 100% on complete
+    );
+    
+    try {
+      // Step 1: AI Analysis (with bypass_validation = true in batch mode)
+      const analyzeResponse = await testReportService.analyzeFile(
+        selectedShip.id,
+        file,
+        true // Auto-bypass ship validation in batch mode
+      );
+      
+      const data = analyzeResponse.data || analyzeResponse;
+      
+      if (!data || !data.test_report_name) {
+        throw new Error('AI analysis failed');
+      }
+      
+      const analysis = data;
+      result.testReportName = analysis.test_report_name || file.name;
+      result.testReportNo = analysis.test_report_no || '';
+      
+      // Step 2: Create Record
+      const reportData = {
+        ship_id: selectedShip.id,
+        test_report_name: analysis.test_report_name || file.name,
+        report_form: analysis.report_form || null,
+        test_report_no: analysis.test_report_no || null,
+        issued_date: analysis.issued_date || null,
+        issued_by: analysis.issued_by || null,
+        valid_date: analysis.valid_date || null,
+        note: analysis.note || null
+      };
+      
+      const createResponse = await testReportService.create(reportData);
+      const createdReport = createResponse.data || createResponse;
+      result.testReportCreated = true;
+      
+      // Step 3: Upload Files (SYNCHRONOUS in batch mode)
+      if (analysis._file_content && analysis._filename) {
+        await testReportService.uploadFiles(
+          createdReport.id,
+          analysis._file_content,
+          analysis._filename,
+          analysis._content_type || 'application/pdf',
+          analysis._summary_text || ''
+        );
+        result.fileUploaded = true;
+      }
+      
+      // Success!
+      result.success = true;
+      progressController.complete(); // Jump to 100%
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+      
+    } catch (error) {
+      console.error(`Failed to process ${file.name}:`, error);
+      result.error = error.response?.data?.detail || error.message || 'Processing failed';
+      result.success = false;
+      progressController.stop();
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+    }
+    
+    // Brief pause before returning
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return result;
+  };
+
+  // ==================== END BATCH PROCESSING ====================
+
   return (
     <MainLayout
       sidebar={
