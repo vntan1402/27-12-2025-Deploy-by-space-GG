@@ -206,44 +206,10 @@ const OtherDocumentsTable = ({ selectedShip }) => {
     return selectedCount > 0 && selectedCount < filtered.length;
   };
 
-  // Handle note tooltip
-  const handleNoteMouseEnter = (e, note) => {
-    if (!note) return;
-
-    const rect = e.target.getBoundingClientRect();
-    const TOOLTIP_WIDTH = 300;
-    const TOOLTIP_OFFSET = 10;
-
-    let x = rect.right + TOOLTIP_OFFSET;
-    let y = rect.top;
-
-    const spaceOnRight = window.innerWidth - rect.right;
-    const spaceOnLeft = rect.left;
-
-    if (spaceOnRight < TOOLTIP_WIDTH + 20 && spaceOnLeft > TOOLTIP_WIDTH + 20) {
-      x = rect.left - TOOLTIP_WIDTH - TOOLTIP_OFFSET;
-    }
-
-    if (x < 10) x = 10;
-    if (x + TOOLTIP_WIDTH > window.innerWidth - 10) {
-      x = window.innerWidth - TOOLTIP_WIDTH - 10;
-    }
-
-    setNoteTooltip({
-      show: true,
-      x,
-      y,
-      content: note
-    });
-  };
-
-  const handleNoteMouseLeave = () => {
-    setNoteTooltip({
-      show: false,
-      x: 0,
-      y: 0,
-      content: ''
-    });
+  // Handle note click - open modal instead of tooltip
+  const handleNoteClick = (document) => {
+    setNotesDocument(document);
+    setShowNotesModal(true);
   };
 
   // Handle context menu
