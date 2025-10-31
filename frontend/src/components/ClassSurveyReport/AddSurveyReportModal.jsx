@@ -427,16 +427,17 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
                     <p className="text-sm text-gray-600">
                       {language === 'vi' 
                         ? 'Kéo thả file PDF vào đây hoặc click để chọn' 
-                        : 'Drag & drop PDF file here or click to select'}
+                        : 'Drag & drop PDF files here or click to select'}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {language === 'vi' ? 'Chỉ hỗ trợ file PDF, tối đa 50MB' : 'PDF only, max 50MB'}
+                      {language === 'vi' ? 'PDF only, max 50MB/file. Chọn nhiều files để xử lý hàng loạt.' : 'PDF only, max 50MB/file. Select multiple files for batch processing.'}
                     </p>
                   </div>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept=".pdf"
+                    multiple
                     onChange={handleFileInputChange}
                     className="hidden"
                   />
