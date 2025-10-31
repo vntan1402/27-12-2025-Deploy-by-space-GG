@@ -515,7 +515,7 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
                     <span className="font-semibold">{language === 'vi' ? 'Nhấn để chọn' : 'Click to select'}</span> {language === 'vi' ? 'hoặc kéo thả file' : 'or drag and drop'}
                   </p>
                   <p className="text-xs text-gray-500">
-                    PDF {language === 'vi' ? '(tối đa 50MB)' : '(max 50MB)'}
+                    {language === 'vi' ? 'PDF only, max 50MB/file. Chọn nhiều files để xử lý hàng loạt.' : 'PDF only, max 50MB/file. Select multiple files for batch processing.'}
                   </p>
                 </div>
               </label>
