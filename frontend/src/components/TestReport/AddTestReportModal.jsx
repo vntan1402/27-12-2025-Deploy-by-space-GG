@@ -107,18 +107,13 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
   // ========== AI ANALYSIS ==========
   const analyzeFile = async (file) => {
     if (!selectedShip) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+      toast.error(language === 'vi' ? 'Không có tàu được chọn' : 'No ship selected');
       return;
     }
 
     try {
       setIsAnalyzing(true);
-      
-      toast.info(
-        language === 'vi' 
-          ? '🤖 Đang phân tích file với AI...' 
-          : '🤖 Analyzing file with AI...'
-      );
+      toast.info(language === 'vi' ? '🤖 Đang phân tích file với AI...' : '🤖 Analyzing file with AI...');
 
       // Create FormData for backend
       const formData = new FormData();
@@ -126,7 +121,7 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       formData.append('test_report_file', file);
       formData.append('bypass_validation', 'false');
 
-      // Call backend API directly (matches V1)
+      // Call backend API
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
       const response = await fetch(`${BACKEND_URL}/api/test-reports/analyze-file`, {
         method: 'POST',
@@ -141,22 +136,40 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
         throw new Error(errorData?.detail || 'Analysis failed');
       }
 
-      const analysis = await response.json();
+      const data = await response.json();
       
-      // Check if requires ship name confirmation
-      if (analysis.requires_confirmation) {
-        const confirmMsg = language === 'vi'
-          ? 'Thông tin tàu trong file không khớp với tàu đã chọn. Bạn có muốn tiếp tục?'
-          : "Ship information in document doesn't match selected ship. Continue anyway?";
+      // Check for validation error (ship name mismatch)
+      if (data.validation_error) {
+        const { extracted_ship_name, extracted_ship_imo, expected_ship_name, expected_ship_imo } = data;
         
-        if (!window.confirm(confirmMsg)) {
+        const warningMsg = language === 'vi'
+          ? `⚠️ CẢNH BÁO: Thông tin tàu không khớp!\n\n` +
+            `Thông tin trong file PDF:\n` +
+            `  - Tên tàu: ${extracted_ship_name || 'N/A'}\n` +
+            `  - IMO: ${extracted_ship_imo || 'N/A'}\n\n` +
+            `Tàu bạn đã chọn:\n` +
+            `  - Tên tàu: ${expected_ship_name}\n` +
+            `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
+            `Bạn có muốn tiếp tục với tàu "${expected_ship_name}" không?`
+          : `⚠️ WARNING: Ship information mismatch!\n\n` +
+            `Information in PDF file:\n` +
+            `  - Ship name: ${extracted_ship_name || 'N/A'}\n` +
+            `  - IMO: ${extracted_ship_imo || 'N/A'}\n\n` +
+            `Your selected ship:\n` +
+            `  - Ship name: ${expected_ship_name}\n` +
+            `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
+            `Do you want to continue with ship "${expected_ship_name}"?`;
+        
+        if (!window.confirm(warningMsg)) {
           setIsAnalyzing(false);
           setUploadedFile(null);
           return;
         }
-
-        // Re-analyze with bypass
+        
+        // User confirmed - retry with bypass
+        toast.info(language === 'vi' ? '🔄 Phân tích lại với xác nhận...' : '🔄 Re-analyzing with confirmation...');
         formData.set('bypass_validation', 'true');
+        
         const retryResponse = await fetch(`${BACKEND_URL}/api/test-reports/analyze-file`, {
           method: 'POST',
           headers: {
@@ -169,52 +182,88 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
           throw new Error('Re-analysis failed');
         }
 
-        const retryAnalysis = await retryResponse.json();
-        setAnalyzedData(retryAnalysis);
-        
-        // Auto-fill form
-        setFormData(prev => ({
-          ...prev,
-          test_report_name: retryAnalysis.test_report_name || prev.test_report_name,
-          report_form: retryAnalysis.report_form || prev.report_form,
-          test_report_no: retryAnalysis.test_report_no || prev.test_report_no,
-          issued_by: retryAnalysis.issued_by || prev.issued_by,
-          issued_date: retryAnalysis.issued_date || prev.issued_date,
-          valid_date: retryAnalysis.valid_date || prev.valid_date
-        }));
+        const retryData = await retryResponse.json();
+        if (retryData.success && retryData.analysis) {
+          processAnalysisSuccess(retryData.analysis, file);
+        } else {
+          processAnalysisFail();
+        }
+      } else if (data.success && data.analysis) {
+        processAnalysisSuccess(data.analysis, file);
       } else {
-        // No confirmation needed - auto-fill directly
-        setAnalyzedData(analysis);
-        
-        // Auto-fill form with analyzed data
-        setFormData(prev => ({
-          ...prev,
-          test_report_name: analysis.test_report_name || prev.test_report_name,
-          report_form: analysis.report_form || prev.report_form,
-          test_report_no: analysis.test_report_no || prev.test_report_no,
-          issued_by: analysis.issued_by || prev.issued_by,
-          issued_date: analysis.issued_date || prev.issued_date,
-          valid_date: analysis.valid_date || prev.valid_date
-        }));
+        processAnalysisFail();
       }
 
-      toast.success(
-        language === 'vi' 
-          ? '✅ File đã được phân tích!' 
-          : '✅ File analyzed successfully!'
-      );
-
     } catch (error) {
-      console.error('AI analysis failed:', error);
+      console.error('AI analysis error:', error);
       toast.error(
         language === 'vi' 
           ? `❌ Lỗi phân tích file: ${error.message}` 
-          : `❌ Error analyzing file: ${error.message}`
+          : `❌ Analysis failed: ${error.message}`
       );
       setUploadedFile(null);
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  // Process successful analysis
+  const processAnalysisSuccess = (analysis, file) => {
+    // Store complete analysis data (including _file_content, _summary_text)
+    setAnalyzedData(analysis);
+    
+    // Auto-populate form fields
+    setFormData(prev => ({
+      ...prev,
+      test_report_name: analysis.test_report_name || prev.test_report_name,
+      report_form: analysis.report_form || prev.report_form,
+      test_report_no: analysis.test_report_no || prev.test_report_no,
+      issued_by: analysis.issued_by || prev.issued_by,
+      issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : prev.issued_date,
+      valid_date: analysis.valid_date ? analysis.valid_date.split('T')[0] : prev.valid_date
+    }));
+
+    // Show split info if file was split
+    if (analysis._split_info?.was_split) {
+      toast.info(
+        language === 'vi' 
+          ? `📄 File có ${analysis._split_info.total_pages} trang, đã chia thành ${analysis._split_info.chunks_count} phần để xử lý.`
+          : `📄 File has ${analysis._split_info.total_pages} pages, split into ${analysis._split_info.chunks_count} chunks.`
+      );
+    }
+
+    // Show OCR info if OCR was used
+    if (analysis._ocr_info?.ocr_success) {
+      toast.success(
+        language === 'vi'
+          ? '✅ OCR enhancement applied - Report Form và Report No được trích xuất chính xác hơn'
+          : '✅ OCR enhancement applied - Report Form and Report No extracted with higher accuracy'
+      );
+    }
+
+    // Warn about manual review if needed
+    if (analysis._ocr_info?.needs_manual_review) {
+      toast.warning(
+        language === 'vi'
+          ? '⚠️ Vui lòng kiểm tra Report Form và Report No'
+          : '⚠️ Please verify Report Form and Report No'
+      );
+    }
+
+    toast.success(
+      language === 'vi' 
+        ? '✅ File đã được phân tích!' 
+        : '✅ File analyzed successfully!'
+    );
+  };
+
+  // Process failed analysis
+  const processAnalysisFail = () => {
+    toast.error(
+      language === 'vi' 
+        ? '❌ Không thể phân tích file. Vui lòng nhập thủ công.' 
+        : '❌ Failed to analyze file. Please enter manually.'
+    );
   };
 
   // ========== SAVE TEST REPORT ==========
