@@ -48,6 +48,7 @@ const ClassSurveyReport = () => {
   const [batchResults, setBatchResults] = useState([]);
   const [showBatchResults, setShowBatchResults] = useState(false);
   const [isBatchModalMinimized, setIsBatchModalMinimized] = useState(false);
+  const [listRefreshKey, setListRefreshKey] = useState(0); // Used to trigger list refresh
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
