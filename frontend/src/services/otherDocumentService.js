@@ -71,6 +71,7 @@ const otherDocumentService = {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
+          timeout: 300000, // 5 minutes timeout for file upload
         });
         
         results.push({
