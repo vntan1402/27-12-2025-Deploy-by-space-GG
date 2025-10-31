@@ -1131,12 +1131,12 @@ class DualAppsScriptManager:
     ) -> Dict[str, Any]:
         """
         Upload test report summary text file to Google Drive
-        Path: SUMMARY/Class & Flag Document/
+        Path: ShipName/Class & Flag Cert/Test Report/ (same as original file)
         
         Args:
             summary_text: Summary text content
             filename: Summary filename (e.g., "Chemical_Suit_Summary.txt")
-            ship_name: Ship name (for logging only)
+            ship_name: Ship name for folder structure
             
         Returns:
             dict: Upload results with file ID
@@ -1153,17 +1153,18 @@ class DualAppsScriptManager:
             
             logger.info(f"📋 Uploading test report summary to Drive: {filename}")
             logger.info(f"   Ship: {ship_name}")
-            logger.info(f"   Target Path: SUMMARY/Class & Flag Document/")
+            logger.info(f"   Target Path: {ship_name}/Class & Flag Cert/Test Report/")
             
-            # Upload summary file to: SUMMARY/Class & Flag Document/
+            # Upload summary file to: ShipName/Class & Flag Cert/Test Report/
+            # Same location as the original test report file
             # Using upload_file_with_folder_creation action
-            # This will create: ROOT/SUMMARY/Class & Flag Document/
             
             summary_upload = await self._call_company_apps_script({
                 'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,  # ROOT folder
-                'ship_name': 'SUMMARY',  # Creates/finds SUMMARY folder
-                'category': 'Class & Flag Document',  # Creates/finds Class & Flag Document subfolder
+                'ship_name': ship_name,  # Use actual ship name
+                'parent_category': 'Class & Flag Cert',  # Parent category
+                'category': 'Test Report',  # Subfolder within Class & Flag Cert
                 'filename': filename,
                 'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                 'content_type': 'text/plain'
