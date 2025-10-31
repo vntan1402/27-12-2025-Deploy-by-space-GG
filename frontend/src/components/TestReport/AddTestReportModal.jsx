@@ -498,6 +498,7 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
                 ref={fileInputRef}
                 type="file"
                 accept=".pdf"
+                multiple
                 onChange={handleFileInputChange}
                 className="hidden"
                 id="test-report-file-input"
