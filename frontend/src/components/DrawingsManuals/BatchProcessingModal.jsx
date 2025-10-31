@@ -56,7 +56,7 @@ export const BatchProcessingModal = ({
         <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 flex justify-between items-center">
           <div className="text-white">
             <h3 className="text-lg font-bold">
-              {language === 'vi' ? '📤 Xử lý hàng loạt Test Reports' : '📤 Batch Processing Test Reports'}
+              {language === 'vi' ? '📤 Xử lý hàng loạt Drawings & Manuals' : '📤 Batch Processing Drawings & Manuals'}
             </h3>
             <p className="text-sm text-blue-100">
               {language === 'vi' 
