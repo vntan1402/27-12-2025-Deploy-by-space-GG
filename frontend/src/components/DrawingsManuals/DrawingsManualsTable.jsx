@@ -1149,6 +1149,41 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
           </div>
         </>
       )}
+
+      {/* Modals */}
+      <AddDrawingManualModal 
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        selectedShip={selectedShip}
+        onDocumentAdded={fetchDocuments}
+        onStartBatchProcessing={handleStartBatchProcessing}
+      />
+
+      <EditDrawingManualModal 
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingDocument(null);
+        }}
+        document={editingDocument}
+        onDocumentUpdated={fetchDocuments}
+      />
+
+      <BatchProcessingModal 
+        isOpen={isBatchProcessing}
+        progress={batchProgress}
+        fileProgressMap={fileProgressMap}
+        fileStatusMap={fileStatusMap}
+        fileSubStatusMap={fileSubStatusMap}
+        isMinimized={isBatchMinimized}
+        onToggleMinimize={() => setIsBatchMinimized(!isBatchMinimized)}
+      />
+
+      <BatchResultsModal 
+        isOpen={showBatchResults}
+        onClose={() => setShowBatchResults(false)}
+        results={batchResults}
+      />
     </div>
   );
 };
