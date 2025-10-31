@@ -266,6 +266,38 @@ const TestReport = () => {
     // Stay on this page if test_report is selected (already here)
   };
 
+  // ========== TEST REPORT MODAL HANDLERS ==========
+  const handleAddReport = () => {
+    setShowAddReportModal(true);
+  };
+
+  const handleEditReport = (report) => {
+    setEditingReport(report);
+    setShowEditReportModal(true);
+  };
+
+  const handleViewNotes = (report) => {
+    setNotesReport(report);
+    setShowNotesModal(true);
+  };
+
+  const handleReportAdded = () => {
+    setShowAddReportModal(false);
+    setListRefreshKey(prev => prev + 1);
+  };
+
+  const handleReportUpdated = () => {
+    setShowEditReportModal(false);
+    setEditingReport(null);
+    setListRefreshKey(prev => prev + 1);
+  };
+
+  const handleNoteUpdated = () => {
+    setShowNotesModal(false);
+    setNotesReport(null);
+    setListRefreshKey(prev => prev + 1);
+  };
+
   return (
     <MainLayout
       sidebar={
