@@ -51,7 +51,8 @@ export const testReportService = {
    * @returns {Promise} Updated test report
    */
   update: async (reportId, reportData) => {
-    return api.put(API_ENDPOINTS.TEST_REPORT_BY_ID(reportId), reportData);
+    const response = await api.put(API_ENDPOINTS.TEST_REPORT_BY_ID(reportId), reportData);
+    return response.data;
   },
 
   /**
