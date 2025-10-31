@@ -6808,91 +6808,127 @@ async def analyze_survey_report_file(
             else:
                 # For single file, extract fields if not done yet
                 if not needs_split:
+                    logger.info(f"📄 Single file mode (not split) - Will attempt OCR")
+                    
                     # Extract AI analysis results
                     ai_analysis = analysis_only_result.get('ai_analysis', {})
-                    if not ai_analysis.get('success'):
-                        logger.error("❌ Survey report Document AI analysis failed")
-                        logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
-                        analysis_result['_summary_text'] = ''
-                        analysis_result["processing_method"] = "document_ai_failed"
-                    else:
-                        # Get summary for field extraction
-                        summary_text = ai_analysis.get('data', {}).get('summary', '')
-                        if not summary_text:
-                            logger.error("❌ No summary received from Survey Report Document AI")
-                            logger.warning("⚠️ Returning empty analysis but file content preserved for upload")
-                            analysis_result['_summary_text'] = ''
-                            analysis_result["processing_method"] = "empty_summary"
-                        else:
-                            # ✨ STEP 1: Perform Targeted OCR to enhance summary BEFORE field extraction
-                            logger.info("🔍 Starting Targeted OCR for header/footer extraction...")
+                    ai_success = ai_analysis.get('success', False)
+                    summary_text = ai_analysis.get('data', {}).get('summary', '') if ai_success else ''
+                    
+                    logger.info(f"🔍 Document AI success: {ai_success}")
+                    logger.info(f"📝 Document AI summary length: {len(summary_text)} chars")
+                    
+                    # ✨ STEP 1: ALWAYS Perform Targeted OCR (independent of Document AI)
+                    logger.info("🔍 Starting Targeted OCR for header/footer extraction (INDEPENDENT OF DOCUMENT AI)...")
+                    
+                    ocr_metadata = {
+                        'ocr_attempted': False,
+                        'ocr_success': False,
+                        'ocr_text_merged': False,
+                        'header_text_length': 0,
+                        'footer_text_length': 0
+                    }
+                    
+                    ocr_section = ""
+                    
+                    try:
+                        from targeted_ocr import get_ocr_processor
+                        
+                        ocr_processor = get_ocr_processor()
+                        ocr_metadata['ocr_attempted'] = True
+                        
+                        if ocr_processor.is_available():
+                            logger.info("✅ OCR processor available - performing extraction...")
+                            # Perform OCR on first page header/footer
+                            ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
                             
-                            ocr_metadata = {
-                                'ocr_attempted': False,
-                                'ocr_success': False,
-                                'ocr_text_merged': False,
-                                'header_text_length': 0,
-                                'footer_text_length': 0
-                            }
-                            
-                            try:
-                                from targeted_ocr import get_ocr_processor
+                            if ocr_result.get('ocr_success'):
+                                logger.info("✅ Targeted OCR completed successfully")
                                 
-                                ocr_processor = get_ocr_processor()
-                                ocr_metadata['ocr_attempted'] = True
+                                header_text = ocr_result.get('header_text', '').strip()
+                                footer_text = ocr_result.get('footer_text', '').strip()
                                 
-                                if ocr_processor.is_available():
-                                    # Perform OCR on first page header/footer
-                                    ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
+                                ocr_metadata['ocr_success'] = True
+                                ocr_metadata['header_text_length'] = len(header_text)
+                                ocr_metadata['footer_text_length'] = len(footer_text)
+                                
+                                # CREATE OCR SECTION
+                                if header_text or footer_text:
+                                    logger.info("📝 Creating OCR section...")
                                     
-                                    if ocr_result.get('ocr_success'):
-                                        logger.info("✅ Targeted OCR completed successfully")
-                                        
-                                        header_text = ocr_result.get('header_text', '').strip()
-                                        footer_text = ocr_result.get('footer_text', '').strip()
-                                        
-                                        ocr_metadata['ocr_success'] = True
-                                        ocr_metadata['header_text_length'] = len(header_text)
-                                        ocr_metadata['footer_text_length'] = len(footer_text)
-                                        
-                                        # MERGE OCR TEXT INTO SUMMARY
-                                        if header_text or footer_text:
-                                            logger.info("📝 Merging OCR text into Document AI summary...")
-                                            
-                                            ocr_section = "\n\n" + "="*60 + "\n"
-                                            ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
-                                            ocr_section += "="*60 + "\n\n"
-                                            
-                                            if header_text:
-                                                ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
-                                                ocr_section += header_text + "\n\n"
-                                                logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
-                                            
-                                            if footer_text:
-                                                ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
-                                                ocr_section += footer_text + "\n\n"
-                                                logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
-                                            
-                                            ocr_section += "="*60 + "\n"
-                                            ocr_section += "Note: The above header/footer text was extracted using OCR\n"
-                                            ocr_section += "and may contain critical information like Report Form and Report No.\n"
-                                            ocr_section += "="*60
-                                            
-                                            # Enhance summary with OCR
-                                            summary_text = summary_text + ocr_section
-                                            ocr_metadata['ocr_text_merged'] = True
-                                            
-                                            logger.info(f"✅ Enhanced summary created with OCR: {len(summary_text)} chars")
-                                    else:
-                                        logger.warning("⚠️ OCR extraction returned no results")
-                                else:
-                                    logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
-                            except Exception as ocr_error:
-                                logger.error(f"❌ Error during OCR extraction: {ocr_error}")
-                                ocr_metadata['ocr_error'] = str(ocr_error)
-                            
-                            # Add OCR metadata to analysis result
-                            analysis_result['_ocr_info'] = ocr_metadata
+                                    ocr_section = "\n\n" + "="*60 + "\n"
+                                    ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                                    ocr_section += "="*60 + "\n\n"
+                                    
+                                    if header_text:
+                                        ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
+                                        ocr_section += header_text + "\n\n"
+                                        logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
+                                    
+                                    if footer_text:
+                                        ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
+                                        ocr_section += footer_text + "\n\n"
+                                        logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
+                                    
+                                    ocr_section += "="*60 + "\n"
+                                    ocr_section += "Note: The above header/footer text was extracted using OCR\n"
+                                    ocr_section += "and may contain critical information like Report Form and Report No.\n"
+                                    ocr_section += "="*60
+                                    
+                                    ocr_metadata['ocr_text_merged'] = True
+                                    logger.info(f"✅ OCR section created: {len(ocr_section)} chars")
+                            else:
+                                logger.warning("⚠️ OCR extraction returned no results")
+                        else:
+                            logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
+                    except Exception as ocr_error:
+                        logger.error(f"❌ Error during OCR extraction: {ocr_error}")
+                        ocr_metadata['ocr_error'] = str(ocr_error)
+                    
+                    # ✨ STEP 2: Process based on Document AI status
+                    if not ai_success:
+                        logger.error("❌ Survey report Document AI analysis failed")
+                        logger.warning("⚠️ Will use OCR-only summary")
+                        
+                        # Use OCR as summary if Document AI failed
+                        if ocr_section:
+                            analysis_result['_summary_text'] = ocr_section
+                            logger.info("✅ Using OCR section as summary (Document AI failed)")
+                        else:
+                            analysis_result['_summary_text'] = ''
+                            logger.warning("⚠️ No summary available (both Document AI and OCR failed)")
+                        
+                        analysis_result["processing_method"] = "document_ai_failed_ocr_only"
+                        analysis_result['_ocr_info'] = ocr_metadata
+                        
+                    elif not summary_text:
+                        logger.error("❌ No summary received from Survey Report Document AI")
+                        logger.warning("⚠️ Will use OCR-only summary")
+                        
+                        # Use OCR as summary if Document AI returned empty
+                        if ocr_section:
+                            analysis_result['_summary_text'] = ocr_section
+                            logger.info("✅ Using OCR section as summary (empty Document AI summary)")
+                        else:
+                            analysis_result['_summary_text'] = ''
+                            logger.warning("⚠️ No summary available (empty Document AI and no OCR)")
+                        
+                        analysis_result["processing_method"] = "empty_summary_ocr_only"
+                        analysis_result['_ocr_info'] = ocr_metadata
+                        
+                    else:
+                        # Document AI succeeded - merge with OCR
+                        logger.info("✅ Document AI succeeded - merging with OCR")
+                        
+                        # Enhance summary with OCR
+                        if ocr_section:
+                            summary_text = summary_text + ocr_section
+                            logger.info(f"✅ Enhanced summary created with OCR: {len(summary_text)} chars")
+                        else:
+                            logger.info(f"📝 Using Document AI summary only (no OCR): {len(summary_text)} chars")
+                        
+                        # Add OCR metadata to analysis result
+                        analysis_result['_ocr_info'] = ocr_metadata
                             
                             # STEP 2: Extract fields from enhanced summary (with OCR) using system AI
                             logger.info("🧠 Extracting survey report fields from enhanced summary...")
