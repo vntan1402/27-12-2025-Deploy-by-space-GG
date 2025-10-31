@@ -4,3 +4,4 @@
  */
 
 export { DrawingsManualsListComponent } from './DrawingsManualsListComponent';
+export { DrawingsManualsTable } from './DrawingsManualsTable';
