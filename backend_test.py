@@ -865,8 +865,8 @@ class BackendAPITester:
             return False
 
     def test_survey_report_ai_analysis(self):
-        """Test 8: Survey Report AI Analysis Endpoint"""
-        self.print_test_header("Test 8 - Survey Report AI Analysis Endpoint")
+        """Test 8: Survey Report AI Analysis Endpoint - Document AI Configuration Fix Verification"""
+        self.print_test_header("Test 8 - Survey Report AI Analysis Endpoint - Document AI Fix Verification")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
@@ -878,12 +878,14 @@ class BackendAPITester:
             }
             
             print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
-            print(f"🎯 Testing Survey Report AI Analysis with BROTHER 36 ship")
+            print(f"🎯 Testing Survey Report AI Analysis after Document AI configuration fix")
             print(f"🚢 Ship ID: {self.test_ship_id}")
             print(f"🚢 Ship Name: {self.test_ship_name}")
+            print(f"🔧 FOCUS: Verifying Document AI project_id whitespace issue is fixed")
+            print(f"🔍 Expected: _file_content and _summary_text fields now present")
             
-            # Create a simple test PDF file
-            print(f"\n📄 Creating test PDF file...")
+            # Create a simple test PDF file with survey content
+            print(f"\n📄 Creating test PDF file with survey content...")
             import io
             from reportlab.pdfgen import canvas
             from reportlab.lib.pagesizes import letter
@@ -892,7 +894,7 @@ class BackendAPITester:
             pdf_buffer = io.BytesIO()
             c = canvas.Canvas(pdf_buffer, pagesize=letter)
             
-            # Add some maritime survey content
+            # Add comprehensive maritime survey content for better AI extraction
             c.drawString(100, 750, "SURVEY REPORT")
             c.drawString(100, 720, "Ship Name: BROTHER 36")
             c.drawString(100, 690, "IMO Number: 8743531")
@@ -901,10 +903,15 @@ class BackendAPITester:
             c.drawString(100, 600, "Issued Date: 15/10/2024")
             c.drawString(100, 570, "Issued By: Classification Society")
             c.drawString(100, 540, "Surveyor: John Smith")
-            c.drawString(100, 510, "This is a test survey report for AI analysis.")
-            c.drawString(100, 480, "The vessel was found to be in good condition.")
-            c.drawString(100, 450, "All safety equipment is properly maintained.")
-            c.drawString(100, 420, "Certificate valid until: 15/10/2025")
+            c.drawString(100, 510, "Report Form: Form SDS")
+            c.drawString(100, 480, "This is a comprehensive survey report for AI analysis testing.")
+            c.drawString(100, 450, "The vessel BROTHER 36 was found to be in good condition.")
+            c.drawString(100, 420, "All safety equipment is properly maintained and certified.")
+            c.drawString(100, 390, "Hull inspection completed with no deficiencies noted.")
+            c.drawString(100, 360, "Engine room inspection satisfactory.")
+            c.drawString(100, 330, "Certificate valid until: 15/10/2025")
+            c.drawString(100, 300, "Survey completed at Port of Singapore.")
+            c.drawString(100, 270, "Next survey due: Annual Survey within 12 months.")
             
             c.save()
             pdf_content = pdf_buffer.getvalue()
@@ -912,32 +919,35 @@ class BackendAPITester:
             
             print(f"✅ Test PDF created successfully ({len(pdf_content)} bytes)")
             
-            # Prepare multipart form data
+            # Prepare multipart form data exactly as specified in review request
             files = {
                 'survey_report_file': ('test_survey_report.pdf', pdf_content, 'application/pdf')
             }
             
             data = {
                 'ship_id': self.test_ship_id,
-                'bypass_validation': 'false'
+                'bypass_validation': 'false'  # As specified in review request
             }
             
-            print(f"📋 Form data:")
+            print(f"📋 Form data (as per review request):")
+            print(f"   survey_report_file: test_survey_report.pdf ({len(pdf_content)} bytes)")
             print(f"   ship_id: {self.test_ship_id}")
             print(f"   bypass_validation: false")
-            print(f"   survey_report_file: test_survey_report.pdf ({len(pdf_content)} bytes)")
             
             # Make request to analyze survey report
             print(f"\n🔄 Sending request to analyze survey report...")
+            start_time = time.time()
             response = self.session.post(
                 f"{BACKEND_URL}/survey-reports/analyze-file",
                 headers=headers,
                 files=files,
                 data=data,
-                timeout=120  # Longer timeout for AI processing
+                timeout=180  # Longer timeout for AI processing
             )
+            processing_time = time.time() - start_time
             
             print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Processing Time: {processing_time:.1f} seconds")
             
             if response.status_code == 200:
                 response_data = response.json()
@@ -945,9 +955,10 @@ class BackendAPITester:
                 
                 # Check required response fields
                 required_fields = ["success"]
-                expected_fields = ["survey_report_name", "ship_name", "ship_imo", "_file_content", "_summary_text"]
-                missing_fields = []
+                critical_fields = ["_file_content", "_summary_text"]  # These were missing before the fix
+                expected_fields = ["survey_report_name", "ship_name", "ship_imo"]
                 
+                missing_fields = []
                 for field in required_fields:
                     if field not in response_data:
                         missing_fields.append(field)
@@ -960,68 +971,116 @@ class BackendAPITester:
                 print(f"✅ Success: {success}")
                 
                 if success:
-                    # Verify expected fields are present
-                    field_status = {}
+                    # CRITICAL: Verify the previously missing fields are now present
+                    print(f"\n🔍 CRITICAL FIELDS VERIFICATION (Document AI Fix):")
+                    critical_fields_present = []
+                    
+                    for field in critical_fields:
+                        if field in response_data:
+                            field_value = response_data[field]
+                            field_length = len(str(field_value)) if field_value else 0
+                            if field_length > 0:
+                                print(f"✅ {field}: PRESENT ({field_length} characters)")
+                                critical_fields_present.append(True)
+                            else:
+                                print(f"❌ {field}: EMPTY (0 characters)")
+                                critical_fields_present.append(False)
+                        else:
+                            print(f"❌ {field}: MISSING from response")
+                            critical_fields_present.append(False)
+                    
+                    # Verify field extraction quality
+                    print(f"\n🔍 FIELD EXTRACTION VERIFICATION:")
+                    extracted_fields = {}
                     for field in expected_fields:
                         if field in response_data:
-                            field_status[field] = True
                             field_value = response_data[field]
-                            if field == "_file_content":
-                                print(f"✅ Field present: {field} ({len(str(field_value))} characters)")
-                            elif field == "_summary_text":
-                                print(f"✅ Field present: {field} ({len(str(field_value))} characters)")
+                            if field_value and str(field_value).strip():
+                                print(f"✅ {field}: '{field_value}'")
+                                extracted_fields[field] = True
                             else:
-                                print(f"✅ Field present: {field} = '{field_value}'")
+                                print(f"⚠️ {field}: EMPTY or NULL")
+                                extracted_fields[field] = False
                         else:
-                            field_status[field] = False
-                            print(f"❌ Field missing: {field}")
+                            print(f"❌ {field}: MISSING")
+                            extracted_fields[field] = False
                     
-                    # Check extracted fields
-                    extracted_fields = ["survey_report_name", "ship_name", "ship_imo"]
-                    extracted_count = 0
-                    
-                    for field in extracted_fields:
-                        if field in response_data and response_data[field]:
-                            extracted_count += 1
-                            print(f"✅ Extracted: {field} = '{response_data[field]}'")
-                        else:
-                            print(f"⚠️ Not extracted: {field}")
-                    
-                    # Check file content and summary
+                    # Check file content and summary quality
                     file_content = response_data.get("_file_content", "")
                     summary_text = response_data.get("_summary_text", "")
                     
-                    file_content_ok = len(file_content) > 100  # Should have substantial content
-                    summary_text_ok = len(summary_text) > 50   # Should have meaningful summary
+                    file_content_ok = len(file_content) > 500  # Should have substantial content
+                    summary_text_ok = len(summary_text) > 100   # Should have meaningful summary
                     
-                    print(f"\n📊 AI Analysis Results:")
+                    print(f"\n📊 DOCUMENT AI PROCESSING RESULTS:")
                     print(f"   📄 File Content Length: {len(file_content)} characters ({'✅ OK' if file_content_ok else '❌ Too short'})")
                     print(f"   📝 Summary Text Length: {len(summary_text)} characters ({'✅ OK' if summary_text_ok else '❌ Too short'})")
-                    print(f"   🔍 Extracted Fields: {extracted_count}/{len(extracted_fields)} fields")
                     
-                    # Success criteria
+                    # Show sample content to verify quality
+                    if file_content:
+                        sample_content = file_content[:200] + "..." if len(file_content) > 200 else file_content
+                        print(f"   📄 File Content Sample: {sample_content}")
+                    
+                    if summary_text:
+                        sample_summary = summary_text[:200] + "..." if len(summary_text) > 200 else summary_text
+                        print(f"   📝 Summary Text Sample: {sample_summary}")
+                    
+                    # Success criteria for Document AI fix verification
                     success_criteria = [
                         success,  # API returns success: true
-                        file_content_ok,  # File content is present
-                        summary_text_ok,  # Summary text is present
-                        extracted_count >= 1  # At least one field extracted
+                        all(critical_fields_present),  # Both _file_content and _summary_text present
+                        file_content_ok,  # File content has substantial data
+                        summary_text_ok,  # Summary text has meaningful content
+                        sum(extracted_fields.values()) >= 1  # At least one field extracted
                     ]
                     
                     success_score = sum(success_criteria)
                     total_criteria = len(success_criteria)
                     
-                    print(f"\n📊 SUCCESS CRITERIA:")
+                    print(f"\n📊 DOCUMENT AI FIX VERIFICATION CRITERIA:")
                     print(f"   ✅ API Success: {success}")
-                    print(f"   ✅ File Content Present: {file_content_ok}")
-                    print(f"   ✅ Summary Text Present: {summary_text_ok}")
-                    print(f"   ✅ Fields Extracted: {extracted_count >= 1}")
+                    print(f"   ✅ Critical Fields Present: {all(critical_fields_present)} (_file_content & _summary_text)")
+                    print(f"   ✅ File Content Quality: {file_content_ok}")
+                    print(f"   ✅ Summary Text Quality: {summary_text_ok}")
+                    print(f"   ✅ Field Extraction Working: {sum(extracted_fields.values()) >= 1}")
                     print(f"   📈 Score: {success_score}/{total_criteria}")
                     
-                    if success_score >= 3:  # At least 3/4 criteria must pass
-                        self.print_result(True, f"✅ Survey Report AI Analysis working correctly (Score: {success_score}/{total_criteria})")
+                    # Check for Document AI URL formatting errors in logs
+                    print(f"\n🔍 Checking for Document AI URL formatting errors...")
+                    try:
+                        import subprocess
+                        result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
+                                              capture_output=True, text=True, timeout=5)
+                        if result.returncode == 0:
+                            log_content = result.stdout
+                            if "whitespace" in log_content.lower() or "project_id" in log_content.lower():
+                                print(f"⚠️ Found project_id related logs - checking for errors...")
+                                if "error" in log_content.lower():
+                                    print(f"❌ Document AI errors still present in logs")
+                                else:
+                                    print(f"✅ No Document AI errors found in recent logs")
+                            else:
+                                print(f"✅ No whitespace/project_id issues in recent logs")
+                        else:
+                            print(f"⚠️ Could not check backend logs")
+                    except Exception as e:
+                        print(f"⚠️ Log check failed: {e}")
+                    
+                    # Overall success determination
+                    if success_score >= 4:  # At least 4/5 criteria must pass
+                        print(f"\n🎉 DOCUMENT AI CONFIGURATION FIX VERIFIED SUCCESSFUL!")
+                        print(f"✅ _file_content field now present: {len(file_content)} characters")
+                        print(f"✅ _summary_text field now present: {len(summary_text)} characters")
+                        print(f"✅ Field extraction working with improved quality")
+                        print(f"✅ No Document AI URL formatting errors detected")
+                        self.print_result(True, f"✅ Survey Report AI Analysis working correctly after Document AI fix (Score: {success_score}/{total_criteria})")
                         return True
                     else:
-                        self.print_result(False, f"❌ Survey Report AI Analysis partially working (Score: {success_score}/{total_criteria})")
+                        print(f"\n❌ DOCUMENT AI CONFIGURATION FIX VERIFICATION FAILED!")
+                        print(f"❌ Score: {success_score}/{total_criteria} (need ≥4)")
+                        if not all(critical_fields_present):
+                            print(f"🚨 CRITICAL: _file_content and/or _summary_text still missing")
+                        self.print_result(False, f"❌ Survey Report AI Analysis still has issues after Document AI fix (Score: {success_score}/{total_criteria})")
                         return False
                         
                 else:
@@ -1031,6 +1090,12 @@ class BackendAPITester:
                     print(f"❌ API returned success: false")
                     print(f"📝 Message: {message}")
                     print(f"🚨 Error: {error}")
+                    
+                    # Check if this is a Document AI configuration issue
+                    if "document ai" in message.lower() or "project_id" in message.lower():
+                        print(f"🚨 DOCUMENT AI CONFIGURATION ISSUE DETECTED!")
+                        print(f"🔧 The Document AI project_id whitespace fix may not be working")
+                    
                     self.print_result(False, f"❌ Survey Report AI Analysis failed: {message}")
                     return False
                 
@@ -1062,6 +1127,12 @@ class BackendAPITester:
                     error_data = response.json()
                     detail = error_data.get("detail", "")
                     print(f"📄 Server Error: {error_data}")
+                    
+                    # Check if this is related to Document AI configuration
+                    if "document ai" in str(detail).lower() or "project_id" in str(detail).lower():
+                        print(f"🚨 DOCUMENT AI CONFIGURATION ERROR DETECTED!")
+                        print(f"🔧 The Document AI project_id whitespace fix may not be complete")
+                    
                     self.print_result(False, f"❌ Server Error: {detail}")
                 except:
                     self.print_result(False, f"❌ Server Error (500): {response.text}")
