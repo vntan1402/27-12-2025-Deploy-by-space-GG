@@ -993,22 +993,53 @@ class BackendAPITester:
                 print(f"📄 Analysis Data Keys: {list(analysis_data.keys())}")
                 
                 if success:
-                    # CRITICAL: Verify the previously missing fields are now present after provider fix
-                    print(f"\n🔍 CRITICAL FIELDS VERIFICATION (Provider Mismatch Fix):")
+                    # CRITICAL: Verify OCR functionality after Tesseract installation
+                    print(f"\n🔍 CRITICAL OCR FIELDS VERIFICATION (Tesseract Installation):")
                     critical_fields_present = []
                     
                     for field in critical_fields:
                         if field in analysis_data:
                             field_value = analysis_data[field]
-                            field_length = len(str(field_value)) if field_value else 0
-                            if field_length > 0:
-                                print(f"✅ {field}: PRESENT ({field_length} characters) - FIX WORKING!")
-                                critical_fields_present.append(True)
+                            if field == "_ocr_info":
+                                # Special handling for OCR info
+                                if isinstance(field_value, dict):
+                                    ocr_attempted = field_value.get("ocr_attempted", False)
+                                    ocr_success = field_value.get("ocr_success", False)
+                                    ocr_text_merged = field_value.get("ocr_text_merged", False)
+                                    header_text_length = field_value.get("header_text_length", 0)
+                                    footer_text_length = field_value.get("footer_text_length", 0)
+                                    
+                                    print(f"✅ {field}: PRESENT - OCR Info Details:")
+                                    print(f"   📊 ocr_attempted: {ocr_attempted}")
+                                    print(f"   📊 ocr_success: {ocr_success}")
+                                    print(f"   📊 ocr_text_merged: {ocr_text_merged}")
+                                    print(f"   📊 header_text_length: {header_text_length}")
+                                    print(f"   📊 footer_text_length: {footer_text_length}")
+                                    
+                                    # OCR success criteria
+                                    ocr_working = (ocr_attempted and ocr_success and 
+                                                 (header_text_length > 0 or footer_text_length > 0))
+                                    
+                                    if ocr_working:
+                                        print(f"   ✅ OCR IS WORKING! Header/footer text extracted successfully")
+                                        critical_fields_present.append(True)
+                                    else:
+                                        print(f"   ❌ OCR NOT WORKING - Check Tesseract installation")
+                                        critical_fields_present.append(False)
+                                else:
+                                    print(f"❌ {field}: INVALID FORMAT (not dict) - {field_value}")
+                                    critical_fields_present.append(False)
                             else:
-                                print(f"❌ {field}: EMPTY (0 characters) - Fix may not be working")
-                                critical_fields_present.append(False)
+                                # Regular field handling
+                                field_length = len(str(field_value)) if field_value else 0
+                                if field_length > 0:
+                                    print(f"✅ {field}: PRESENT ({field_length} characters)")
+                                    critical_fields_present.append(True)
+                                else:
+                                    print(f"❌ {field}: EMPTY (0 characters)")
+                                    critical_fields_present.append(False)
                         else:
-                            print(f"❌ {field}: MISSING from analysis - Fix not working")
+                            print(f"❌ {field}: MISSING from analysis")
                             critical_fields_present.append(False)
                     
                     # Verify field extraction quality
