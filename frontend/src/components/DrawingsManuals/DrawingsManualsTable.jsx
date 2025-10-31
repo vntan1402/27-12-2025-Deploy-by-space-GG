@@ -7,6 +7,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import drawingManualService from '../../services/drawingManualService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { 
+  estimateFileProcessingTime, 
+  startSmoothProgressForFile 
+} from '../../utils/progressHelpers';
 import { AddDrawingManualModal } from './AddDrawingManualModal';
 import { EditDrawingManualModal } from './EditDrawingManualModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
