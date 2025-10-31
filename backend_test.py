@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://docsync-marine.preview.emergentagent.com/api"
+BACKEND_URL = "https://ship-docs-manager.preview.emergentagent.com/api"
 
 class BackendAPITester:
     def __init__(self):

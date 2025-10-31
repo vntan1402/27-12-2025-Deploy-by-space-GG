@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://docsync-marine.preview.emergentagent.com/api"
+API_URL="https://ship-docs-manager.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
