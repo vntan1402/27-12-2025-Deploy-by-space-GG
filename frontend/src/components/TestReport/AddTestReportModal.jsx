@@ -362,13 +362,22 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
   };
 
   // ========== BACKGROUND FILE UPLOAD ==========
-  const uploadFileInBackground = async (reportId, file) => {
+  const uploadFileInBackground = async (reportId, fileContent, filename, contentType, summaryText) => {
     try {
       toast.info(
         language === 'vi' 
           ? '📤 Đang tải file lên Google Drive...' 
           : '📤 Uploading file to Google Drive...'
       );
+
+      // Convert base64 to File object for upload
+      const byteCharacters = atob(fileContent);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const file = new File([byteArray], filename, { type: contentType });
 
       await testReportService.uploadFiles(reportId, file);
 
