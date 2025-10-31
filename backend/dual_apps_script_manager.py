@@ -881,8 +881,7 @@ class DualAppsScriptManager:
     ) -> Dict[str, Any]:
         """
         Upload test report files to Google Drive
-        Path: Shipname > Class & Flag Cert > Test Report (original)
-        Path: SUMMARY > Class & Flag Document (summary)
+        Path: ShipName/Class & Flag Cert/Test Report/ (both original and summary)
         
         Args:
             file_content: Test report file content
