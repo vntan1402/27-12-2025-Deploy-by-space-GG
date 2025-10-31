@@ -189,15 +189,12 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
         }
 
         const retryData = await retryResponse.json();
-        if (retryData.success && retryData.analysis) {
-          processAnalysisSuccess(retryData.analysis, file);
-        } else {
-          processAnalysisFail();
-        }
-      } else if (data.success && data.analysis) {
-        processAnalysisSuccess(data.analysis, file);
+        // Backend returns direct analysis result
+        processAnalysisSuccess(retryData, file);
       } else {
-        processAnalysisFail();
+        // No validation error - success
+        // Backend returns direct analysis result
+        processAnalysisSuccess(data, file);
       }
 
     } catch (error) {
