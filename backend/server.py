@@ -6332,25 +6332,18 @@ async def bulk_delete_survey_reports(
         logger.info(f"🗑️ Bulk delete survey reports request received: {len(report_ids)} report(s)")
         logger.info(f"📋 Report IDs: {report_ids}")
         
-        # Get Google Drive config (company or system)
-        apps_script_url = None
-        
-        # Try to get company gdrive config first
+        # Get company Google Drive config (REQUIRED - no fallback)
         company_gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
-        if company_gdrive_config and company_gdrive_config.get("web_app_url"):
-            apps_script_url = company_gdrive_config.get("web_app_url")
-            logger.info(f"🔧 Using company Google Drive config")
-        else:
-            # Fallback to system gdrive config
-            system_gdrive_config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
-            if system_gdrive_config and system_gdrive_config.get("web_app_url"):
-                apps_script_url = system_gdrive_config.get("web_app_url")
-                logger.info(f"🔧 Using system Google Drive config")
+        if not company_gdrive_config or not company_gdrive_config.get("web_app_url"):
+            logger.error(f"❌ Company Google Drive config not found for company: {company_uuid}")
+            raise HTTPException(
+                status_code=400, 
+                detail="Company Google Drive is not configured. Please configure Google Drive in System Settings before deleting survey reports."
+            )
         
-        if apps_script_url:
-            logger.info(f"🔧 Apps Script URL: {apps_script_url[:50] + '...' if len(apps_script_url) > 50 else apps_script_url}")
-        else:
-            logger.warning(f"⚠️ No Google Drive config found - files will not be deleted from Drive")
+        apps_script_url = company_gdrive_config.get("web_app_url")
+        logger.info(f"🔧 Using company Google Drive config")
+        logger.info(f"🔧 Apps Script URL: {apps_script_url[:50] + '...' if len(apps_script_url) > 50 else apps_script_url}")
         
         deleted_count = 0
         files_deleted = 0
