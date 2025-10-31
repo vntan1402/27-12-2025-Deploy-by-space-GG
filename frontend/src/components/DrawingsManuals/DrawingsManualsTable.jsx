@@ -7,6 +7,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import drawingManualService from '../../services/drawingManualService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { AddDrawingManualModal } from './AddDrawingManualModal';
+import { EditDrawingManualModal } from './EditDrawingManualModal';
+import { BatchProcessingModal } from './BatchProcessingModal';
+import { BatchResultsModal } from './BatchResultsModal';
 
 export const DrawingsManualsTable = ({ selectedShip }) => {
   const { language } = useAuth();
@@ -15,6 +19,21 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
+
+  // Batch processing states
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [batchResults, setBatchResults] = useState([]);
+  const [showBatchResults, setShowBatchResults] = useState(false);
+  const [fileProgressMap, setFileProgressMap] = useState({});
+  const [fileStatusMap, setFileStatusMap] = useState({});
+  const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [isBatchMinimized, setIsBatchMinimized] = useState(false);
 
   // Selection state
   const [selectedDocuments, setSelectedDocuments] = useState(new Set());
