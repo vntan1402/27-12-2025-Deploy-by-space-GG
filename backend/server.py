@@ -9455,7 +9455,7 @@ async def upload_drawings_manuals_files(
     Upload drawings & manuals files to Google Drive after record creation
     1. Decode base64 file content
     2. Upload original file to: ShipName/Class & Flag Cert/Drawings & Manuals/
-    3. Upload summary to: SUMMARY/Class & Flag Document/
+    3. Upload summary to: ShipName/Class & Flag Cert/Drawings & Manuals/ (same folder)
     4. Update document record with file IDs
     """
     try:
