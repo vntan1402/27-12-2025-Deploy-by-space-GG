@@ -1993,7 +1993,7 @@ class BackendAPITester:
         print(f"   2. POST /api/ships/{{ship_id}}/calculate-anniversary-date")
         print(f"   3. POST /api/ships/{{ship_id}}/calculate-special-survey-cycle")
         print(f"   4. GET /api/certificates/upcoming-surveys (company_name field verification)")
-        print(f"   5. POST /api/survey-reports/analyze-file (PRIORITY: Survey Report AI Analysis with OCR)")
+        print(f"   5. POST /api/survey-reports/analyze-file (PRIORITY: CCM OCR Verification)")
         print(f"🔐 Authentication: Using admin1/123456 credentials")
         print(f"🌐 Backend URL: {BACKEND_URL}")
         print(f"⏰ Test Time: {datetime.now().isoformat()}")
