@@ -7,7 +7,7 @@ import requests
 import json
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://report-ai-fill.preview.emergentagent.com/api"
+BACKEND_URL = "https://drive-docs-manager.preview.emergentagent.com/api"
 
 def test_nonexistent_ship():
     """Test deletion with non-existent ship name"""
