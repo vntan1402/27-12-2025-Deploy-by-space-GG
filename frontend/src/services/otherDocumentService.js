@@ -110,9 +110,11 @@ const otherDocumentService = {
       
       if (response.data.success && response.data.file_id) {
         // Update document with file_id
-        await api.put(`/api/other-documents/${documentId}`, {
+        const updateResponse = await api.put(`/api/other-documents/${documentId}`, {
           file_ids: [response.data.file_id]
         });
+        
+        console.log('✅ Document updated with file_id:', response.data.file_id);
         
         return {
           success: true,
@@ -121,11 +123,12 @@ const otherDocumentService = {
         };
       }
       
-      throw new Error('File upload failed');
+      throw new Error('File upload failed - no file_id returned');
     } catch (error) {
+      console.error('❌ uploadFileForDocument error:', error);
       return {
         success: false,
-        error: error.response?.data?.detail || error.message
+        error: error.response?.data?.detail || error.message || 'Unknown error'
       };
     }
   },
