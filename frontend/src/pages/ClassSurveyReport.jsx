@@ -700,6 +700,8 @@ const ClassSurveyReport = () => {
         onClose={() => {
           setShowBatchResults(false);
           setBatchResults([]);
+          // Auto-refresh list after closing batch results modal
+          setListRefreshKey(prev => prev + 1);
         }}
         results={batchResults}
       />
