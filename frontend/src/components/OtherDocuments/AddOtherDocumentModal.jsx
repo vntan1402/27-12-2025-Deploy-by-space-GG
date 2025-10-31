@@ -88,71 +88,30 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
   };
 
   // Background upload function
-  const uploadInBackground = async (documentId, shipId, files, metadata, isFolder, folderName) => {
+  const uploadInBackground = async (documentId, shipId, file) => {
     try {
-      toast.info(language === 'vi'
-        ? `📤 Đang upload ${files.length} file(s) lên Google Drive trong nền...`
-        : `📤 Uploading ${files.length} file(s) to Google Drive in background...`
+      const result = await otherDocumentService.uploadFileForDocument(
+        documentId,
+        shipId,
+        file
       );
 
-      let uploadResult;
-      
-      if (isFolder) {
-        // Folder upload
-        uploadResult = await otherDocumentService.uploadFolder(
-          shipId,
-          files,
-          folderName,
-          metadata
+      if (result.success) {
+        toast.success(language === 'vi'
+          ? `✅ Đã upload file "${result.filename}" thành công!`
+          : `✅ Successfully uploaded file "${result.filename}"!`
         );
-
-        if (uploadResult.success) {
-          // Update record with folder info
-          await otherDocumentService.update(documentId, {
-            file_ids: uploadResult.file_ids,
-            folder_id: uploadResult.folder_id,
-            folder_link: uploadResult.folder_link
-          });
-
-          toast.success(language === 'vi'
-            ? `✅ Đã upload folder thành công! (${uploadResult.successful_files}/${uploadResult.total_files} files)`
-            : `✅ Folder uploaded successfully! (${uploadResult.successful_files}/${uploadResult.total_files} files)`
-          );
-        } else {
-          throw new Error(uploadResult.message || 'Upload failed');
-        }
       } else {
-        // Multiple files upload
-        const results = await otherDocumentService.uploadFiles(
-          shipId,
-          files,
-          metadata
+        toast.error(language === 'vi'
+          ? `❌ Lỗi upload file "${file.name}": ${result.error}`
+          : `❌ Failed to upload file "${file.name}": ${result.error}`
         );
-
-        const successCount = results.filter(r => r.success).length;
-        const failCount = results.filter(r => !r.success).length;
-
-        if (successCount > 0) {
-          toast.success(language === 'vi'
-            ? `✅ Đã upload thành công ${successCount}/${files.length} file(s)`
-            : `✅ Successfully uploaded ${successCount}/${files.length} file(s)`
-          );
-        }
-
-        if (failCount > 0) {
-          const failedFiles = results.filter(r => !r.success).map(r => r.filename).join(', ');
-          toast.warning(language === 'vi'
-            ? `⚠️ Upload thất bại cho ${failCount} file(s): ${failedFiles}`
-            : `⚠️ Failed to upload ${failCount} file(s): ${failedFiles}`
-          );
-        }
       }
     } catch (error) {
-      console.error('Background upload failed:', error);
-      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error';
+      console.error('Background upload error:', error);
       toast.error(language === 'vi'
-        ? `❌ Lỗi upload file: ${errorMessage}`
-        : `❌ File upload error: ${errorMessage}`
+        ? `❌ Lỗi upload file "${file.name}"`
+        : `❌ Failed to upload file "${file.name}"`
       );
     }
   };
@@ -187,47 +146,44 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         
         onSuccess();
       } else if (isFolder) {
-        // Create record first (quick)
+        // Folder upload - keep old flow (create + upload together)
         const folderName = formData.document_name || files[0].webkitRelativePath.split('/')[0];
         
-        const newDoc = await otherDocumentService.create({
-          ship_id: selectedShip.id,
-          document_name: folderName,
-          date: formData.date || null,
-          status: formData.status,
-          note: formData.note || null,
-          file_ids: []
-        });
-
-        toast.success(language === 'vi' 
-          ? '✅ Đã tạo record! Đang upload files trong nền...' 
-          : '✅ Record created! Uploading files in background...');
+        toast.info(language === 'vi'
+          ? `📤 Đang upload ${files.length} files lên Google Drive...`
+          : `📤 Uploading ${files.length} files to Google Drive...`
+        );
         
-        // Close modal immediately
-        onSuccess();
-
-        // Upload in background (don't await)
-        uploadInBackground(
-          newDoc.id,
+        const result = await otherDocumentService.uploadFolder(
           selectedShip.id,
           files,
+          folderName,
           {
             date: formData.date || null,
             status: formData.status,
             note: formData.note || null
-          },
-          true,
-          folderName
+          }
         );
+
+        if (result.success) {
+          toast.success(language === 'vi'
+            ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
+            : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
+          );
+          onSuccess();
+        } else {
+          throw new Error(result.message || 'Upload failed');
+        }
       } else {
-        // Multiple files - create records first, then upload in background
+        // Multiple files - NEW FLOW: create records first, upload in background
         const createdDocs = [];
         
+        // Create all records first (fast)
         for (const file of files) {
           const fileName = file.name.replace(/\.[^/.]+$/, '');
           const doc = await otherDocumentService.create({
             ship_id: selectedShip.id,
-            document_name: files.length === 1 ? formData.document_name : fileName,
+            document_name: files.length === 1 ? (formData.document_name || fileName) : fileName,
             date: formData.date || null,
             status: formData.status,
             note: formData.note || null,
@@ -237,29 +193,17 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
         }
 
         toast.success(language === 'vi'
-          ? `✅ Đã tạo ${files.length} record(s)! Đang upload files trong nền...`
-          : `✅ Created ${files.length} record(s)! Uploading files in background...`
+          ? `✅ Đã tạo ${files.length} record(s)! Click "Làm mới" để xem. Files đang upload trong nền...`
+          : `✅ Created ${files.length} record(s)! Click "Refresh" to view. Files uploading in background...`
         );
 
         // Close modal immediately
         onSuccess();
 
-        // Upload each file in background
-        for (const { doc, file } of createdDocs) {
-          uploadInBackground(
-            doc.id,
-            selectedShip.id,
-            [file],
-            {
-              document_name: doc.document_name,
-              date: formData.date || null,
-              status: formData.status,
-              note: formData.note || null
-            },
-            false,
-            null
-          );
-        }
+        // Upload each file in background (don't await)
+        createdDocs.forEach(({ doc, file }) => {
+          uploadInBackground(doc.id, selectedShip.id, file);
+        });
       }
     } catch (error) {
       console.error('Failed to add document:', error);
