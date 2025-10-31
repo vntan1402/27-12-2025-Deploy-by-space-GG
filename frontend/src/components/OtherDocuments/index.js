@@ -4,3 +4,6 @@
  */
 
 export { OtherDocumentsListComponent } from './OtherDocumentsListComponent';
+export { default as OtherDocumentsTable } from './OtherDocumentsTable';
+export { default as AddOtherDocumentModal } from './AddOtherDocumentModal';
+export { default as EditOtherDocumentModal } from './EditOtherDocumentModal';
