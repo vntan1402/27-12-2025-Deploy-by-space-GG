@@ -6377,7 +6377,7 @@ async def bulk_delete_survey_reports(
                 summary_file_id = report.get("survey_report_summary_file_id")
                 
                 # Delete files if Apps Script URL is configured
-                if company_apps_script_url:
+                if apps_script_url:
                     
                     import aiohttp
                     
