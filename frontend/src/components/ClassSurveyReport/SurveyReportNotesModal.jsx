@@ -59,8 +59,8 @@ export const SurveyReportNotesModal = ({
           />
           <p className="text-xs text-gray-500 mt-1">
             {language === 'vi' 
-              ? 'Ghi chú sẽ được lưu vào database và hiển thị dấu "🔴" trong bảng'
-              : 'Notes will be saved to database and shown with "🔴" icon in table'}
+              ? 'Ghi chú sẽ được lưu vào database và hiển thị dấu "*" trong bảng'
+              : 'Notes will be saved to database and shown with "*" icon in table'}
           </p>
         </div>
 
