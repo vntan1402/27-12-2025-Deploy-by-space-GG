@@ -1183,13 +1183,16 @@ class BackendAPITester:
                     print(f"📝 Message: {message}")
                     print(f"🚨 Error: {error}")
                     
-                    # Check if this is a provider configuration issue
-                    if "AI extraction not supported for non-Emergent configurations" in message:
-                        print(f"🚨 PROVIDER MISMATCH ISSUE STILL PRESENT!")
-                        print(f"🔧 The provider check fix (ai_provider in ['google', 'emergent']) may not be working")
+                    # Check if this is an OCR or configuration issue
+                    if "OCR processor not available" in message:
+                        print(f"🚨 OCR PROCESSOR NOT AVAILABLE!")
+                        print(f"🔧 Tesseract installation may have failed or not be properly configured")
                     elif "document ai" in message.lower() or "project_id" in message.lower():
                         print(f"🚨 DOCUMENT AI CONFIGURATION ISSUE DETECTED!")
-                        print(f"🔧 There may be additional Document AI configuration issues")
+                        print(f"🔧 There may be Document AI configuration issues")
+                    elif "AI extraction not supported" in message:
+                        print(f"🚨 AI EXTRACTION ISSUE DETECTED!")
+                        print(f"🔧 There may be AI provider configuration issues")
                     
                     self.print_result(False, f"❌ Survey Report AI Analysis failed: {message}")
                     return False
