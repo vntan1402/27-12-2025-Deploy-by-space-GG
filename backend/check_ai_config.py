@@ -64,6 +64,17 @@ async def check_and_fix_ai_config():
         system_ai = ai_config.get('system_ai', {})
         logger.info(f"\nSystem AI Configuration:")
         logger.info(f"  apps_script_url: '{system_ai.get('apps_script_url')}'")
+        logger.info(f"  apps_script_url (type): {type(system_ai.get('apps_script_url'))}")
+        logger.info(f"  apps_script_url (repr): {repr(system_ai.get('apps_script_url'))}")
+        
+        # Verify the fix
+        logger.info("\n" + "="*50)
+        logger.info("Verifying Document AI configuration after fix...")
+        ai_config_after = await mongo_db.database.ai_config.find_one({"id": "system_ai"})
+        document_ai_after = ai_config_after.get('document_ai', {})
+        logger.info(f"  project_id after fix: '{document_ai_after.get('project_id')}'")
+        logger.info(f"  project_id after fix (repr): {repr(document_ai_after.get('project_id'))}")
+        logger.info("="*50)
         
     except Exception as e:
         logger.error(f"❌ Error checking AI config: {e}")
