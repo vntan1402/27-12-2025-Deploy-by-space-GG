@@ -141,11 +141,9 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       // DEBUG: Log response
       console.log('=== TEST REPORT ANALYSIS RESPONSE ===');
       console.log('Full response:', data);
-      console.log('Has success?', data.success);
-      console.log('Has analysis?', data.analysis);
-      console.log('Has validation_error?', data.validation_error);
       console.log('====================================');
       
+      // Backend returns DIRECT analysis result (not wrapped)
       // Check for validation error (ship name mismatch)
       if (data.validation_error) {
         const { extracted_ship_name, extracted_ship_imo, expected_ship_name, expected_ship_imo } = data;
