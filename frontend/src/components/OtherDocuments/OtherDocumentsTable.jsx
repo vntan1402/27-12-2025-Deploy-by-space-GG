@@ -948,6 +948,21 @@ const OtherDocumentsTable = ({ selectedShip }) => {
           }}
         />
       )}
+
+      {/* Notes Modal */}
+      {showNotesModal && notesDocument && (
+        <OtherDocumentNotesModal
+          show={showNotesModal}
+          onClose={() => {
+            setShowNotesModal(false);
+            setNotesDocument(null);
+          }}
+          document={notesDocument}
+          onUpdate={() => {
+            fetchDocuments();
+          }}
+        />
+      )}
     </div>
   );
 };
