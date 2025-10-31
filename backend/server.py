@@ -6332,13 +6332,25 @@ async def bulk_delete_survey_reports(
         logger.info(f"🗑️ Bulk delete survey reports request received: {len(report_ids)} report(s)")
         logger.info(f"📋 Report IDs: {report_ids}")
         
-        # Get company Apps Script URL from companies collection (same as Drawings & Manuals)
-        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        if not company_doc:
-            raise HTTPException(status_code=404, detail="Company not found")
+        # Get Google Drive config (company or system)
+        apps_script_url = None
         
-        company_apps_script_url = company_doc.get("company_apps_script_url")
-        logger.info(f"🔧 Company Apps Script URL: {company_apps_script_url[:50] + '...' if company_apps_script_url else 'Not configured'}")
+        # Try to get company gdrive config first
+        company_gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        if company_gdrive_config and company_gdrive_config.get("web_app_url"):
+            apps_script_url = company_gdrive_config.get("web_app_url")
+            logger.info(f"🔧 Using company Google Drive config")
+        else:
+            # Fallback to system gdrive config
+            system_gdrive_config = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
+            if system_gdrive_config and system_gdrive_config.get("web_app_url"):
+                apps_script_url = system_gdrive_config.get("web_app_url")
+                logger.info(f"🔧 Using system Google Drive config")
+        
+        if apps_script_url:
+            logger.info(f"🔧 Apps Script URL: {apps_script_url[:50] + '...' if len(apps_script_url) > 50 else apps_script_url}")
+        else:
+            logger.warning(f"⚠️ No Google Drive config found - files will not be deleted from Drive")
         
         deleted_count = 0
         files_deleted = 0
