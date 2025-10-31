@@ -523,18 +523,18 @@ export const TestReportList = ({
         </div>
       </div>
 
-      {/* ========== FILTERS SECTION (MODIFIED) ========== */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ========== FILTERS SECTION ========== */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
+        <div className="flex gap-4 items-center flex-wrap">
           {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Trạng thái' : 'Status'}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              {language === 'vi' ? 'Tình trạng:' : 'Status:'}
             </label>
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
               <option value="valid">{language === 'vi' ? 'Còn hạn' : 'Valid'}</option>
@@ -545,31 +545,47 @@ export const TestReportList = ({
           </div>
 
           {/* Search Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Tìm kiếm' : 'Search'}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
             </label>
-            <input
-              type="text"
-              placeholder={language === 'vi' ? 'Tìm kiếm...' : 'Search...'}
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                placeholder={language === 'vi' ? 'Tìm theo tên, số...' : 'Search by name, number...'}
+                className="border border-gray-300 rounded px-3 py-1 pl-8 text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg 
+                className="w-4 h-4 text-gray-400 absolute left-2 top-1/2 transform -translate-y-1/2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {filters.search && (
+                <button
+                  onClick={() => setFilters(prev => ({ ...prev, search: '' }))}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Results Count - Right Aligned */}
+          <div className="ml-auto text-sm text-gray-600">
+            {language === 'vi' 
+              ? `Hiển thị ${filteredReports.length} / ${testReports.length} báo cáo`
+              : `Showing ${filteredReports.length} / ${testReports.length} report${testReports.length !== 1 ? 's' : ''}`
+            }
           </div>
         </div>
-
-        {/* Clear Filters Button */}
-        {(filters.status !== 'all' || filters.search) && (
-          <div className="mt-3 flex justify-end">
-            <button
-              onClick={() => setFilters({ status: 'all', search: '' })}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all"
-            >
-              {language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ========== TABLE ========== */}
