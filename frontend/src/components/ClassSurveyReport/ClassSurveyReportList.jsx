@@ -340,6 +340,47 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     setNoteTooltip({ show: false, x: 0, y: 0, content: '' });
   };
 
+  // Notes modal handlers
+  const handleNoteClick = (report) => {
+    setNotesReport(report);
+    setNotesValue(report.note || '');
+    setShowNotesModal(true);
+    // Hide tooltip when modal opens
+    setNoteTooltip({ show: false, x: 0, y: 0, content: '' });
+  };
+
+  const handleSaveNotes = async () => {
+    if (!notesReport) return;
+
+    try {
+      await surveyReportService.update(notesReport.id, {
+        ...notesReport,
+        note: notesValue
+      });
+
+      toast.success(
+        language === 'vi' 
+          ? 'Đã lưu ghi chú' 
+          : 'Notes saved successfully'
+      );
+
+      // Refresh list to show updated notes
+      await fetchSurveyReports();
+      
+      // Close modal
+      setShowNotesModal(false);
+      setNotesReport(null);
+      setNotesValue('');
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+      toast.error(
+        language === 'vi' 
+          ? 'Không thể lưu ghi chú' 
+          : 'Failed to save notes'
+      );
+    }
+  };
+
   // Get abbreviation from issued_by (first letters of each word, max 4 letters)
   const getAbbreviation = (issuedBy) => {
     if (!issuedBy || issuedBy === '-') return '-';
