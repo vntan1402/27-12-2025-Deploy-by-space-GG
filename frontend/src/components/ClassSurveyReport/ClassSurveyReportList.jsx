@@ -346,7 +346,12 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     <div className="space-y-4">
       {/* Action Buttons Row */}
       <div className="flex items-center justify-between gap-4">
-        {/* Add & Refresh Buttons */}
+        {/* Report Count - Left Side */}
+        <div className="text-sm text-gray-600">
+          {language === 'vi' ? 'Tổng số:' : 'Total:'} <span className="font-bold text-gray-800">{filteredReports.length}</span>
+        </div>
+
+        {/* Add & Refresh Buttons - Right Side */}
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAddModal(true)}
@@ -355,7 +360,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            {language === 'vi' ? 'Thêm' : 'Add'}
+            {language === 'vi' ? 'Thêm Survey Report' : 'Add Survey Report'}
           </button>
 
           <button
@@ -377,11 +382,6 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
             </svg>
             {language === 'vi' ? 'Làm mới' : 'Refresh'}
           </button>
-        </div>
-
-        {/* Report Count */}
-        <div className="text-sm text-gray-600">
-          {language === 'vi' ? 'Tổng số:' : 'Total:'} <span className="font-bold text-gray-800">{filteredReports.length}</span>
         </div>
       </div>
 
