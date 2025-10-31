@@ -453,7 +453,7 @@ const ClassSurveyReport = () => {
               window.location.href = routes[cat];
             }
           }}
-          onAddRecord={handleAddRecord}
+          // No onAddRecord - this page doesn't add ships
         />
       }
     >
