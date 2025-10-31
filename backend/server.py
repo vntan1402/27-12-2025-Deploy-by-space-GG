@@ -6830,6 +6830,7 @@ async def analyze_survey_report_file(
                 if merged_result.get('success'):
                     analysis_result.update(merged_result)
                     analysis_result["processing_method"] = "split_pdf_batch_processing"
+                    analysis_result['_ocr_info'] = ocr_metadata  # Add OCR metadata
                     analysis_result['_split_info'] = {
                         'was_split': True,
                         'total_pages': total_pages,
