@@ -351,6 +351,160 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
+  // Bulk view files - open multiple files in new tabs
+  const handleBulkView = async () => {
+    const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
+    const reportsWithFiles = selectedReportsList.filter(r => r.survey_report_file_id);
+
+    if (reportsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? 'Không có báo cáo nào có file đính kèm' : 'No reports have attached files');
+      return;
+    }
+
+    try {
+      // Open files (limit to 10 to avoid browser blocking)
+      const limit = Math.min(reportsWithFiles.length, 10);
+      for (let i = 0; i < limit; i++) {
+        const report = reportsWithFiles[i];
+        
+        try {
+          const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+            { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }}
+          );
+
+          let viewUrl;
+          if (response.ok) {
+            const data = await response.json();
+            viewUrl = data.view_url || `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+          } else {
+            viewUrl = `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+          }
+
+          window.open(viewUrl, '_blank', 'noopener,noreferrer');
+        } catch (error) {
+          console.error(`Error opening file for report ${report.survey_report_no}:`, error);
+        }
+        
+        // Small delay between opens
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      if (reportsWithFiles.length > 10) {
+        toast.info(language === 'vi' ? `📄 Đã mở ${limit} file đầu tiên (giới hạn trình duyệt)` : `📄 Opened first ${limit} files (browser limit)`);
+      } else {
+        toast.success(language === 'vi' ? `📄 Đã mở ${limit} file` : `📄 Opened ${limit} files`);
+      }
+    } catch (error) {
+      console.error('Bulk view error:', error);
+      toast.error(language === 'vi' ? '❌ Lỗi khi mở file' : '❌ Error opening files');
+    }
+
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
+  // Bulk download files
+  const handleBulkDownload = async () => {
+    const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
+    const reportsWithFiles = selectedReportsList.filter(r => r.survey_report_file_id);
+
+    if (reportsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? 'Không có báo cáo nào có file đính kèm' : 'No reports have attached files');
+      return;
+    }
+
+    try {
+      toast.info(language === 'vi' ? `📥 Đang tải xuống ${reportsWithFiles.length} file...` : `📥 Downloading ${reportsWithFiles.length} files...`);
+
+      let downloadedCount = 0;
+
+      for (const report of reportsWithFiles) {
+        try {
+          const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/download`,
+            {
+              headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }
+          );
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `${report.survey_report_name || report.survey_report_no || 'survey_report'}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            
+            downloadedCount++;
+          }
+          
+          // Small delay between downloads
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          console.error(`Download error for ${report.survey_report_no}:`, error);
+        }
+      }
+
+      toast.success(language === 'vi' ? `✅ Đã tải xuống ${downloadedCount}/${reportsWithFiles.length} file` : `✅ Downloaded ${downloadedCount}/${reportsWithFiles.length} files`);
+    } catch (error) {
+      console.error('Bulk download error:', error);
+      toast.error(language === 'vi' ? '❌ Lỗi khi tải xuống file' : '❌ Error downloading files');
+    }
+
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
+  // Bulk copy links
+  const handleBulkCopyLinks = async () => {
+    const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
+    const reportsWithFiles = selectedReportsList.filter(r => r.survey_report_file_id);
+
+    if (reportsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? 'Không có báo cáo nào có file đính kèm' : 'No reports have attached files');
+      return;
+    }
+
+    try {
+      const links = [];
+
+      for (const report of reportsWithFiles) {
+        try {
+          const response = await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+            { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }}
+          );
+
+          let viewUrl;
+          if (response.ok) {
+            const data = await response.json();
+            viewUrl = data.view_url || `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+          } else {
+            viewUrl = `https://drive.google.com/file/d/${report.survey_report_file_id}/view`;
+          }
+
+          links.push(`${report.survey_report_name || report.survey_report_no}: ${viewUrl}`);
+        } catch (error) {
+          console.error(`Error getting link for ${report.survey_report_no}:`, error);
+        }
+      }
+
+      if (links.length > 0) {
+        await navigator.clipboard.writeText(links.join('\n'));
+        toast.success(language === 'vi' ? `🔗 Đã sao chép ${links.length} link` : `🔗 Copied ${links.length} links`);
+      } else {
+        toast.error(language === 'vi' ? '❌ Không thể lấy link nào' : '❌ Could not get any links');
+      }
+    } catch (error) {
+      console.error('Bulk copy links error:', error);
+      toast.error(language === 'vi' ? '❌ Lỗi khi sao chép link' : '❌ Error copying links');
+    }
+
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
   // Note tooltip handlers
   const handleNoteMouseEnter = (e, note) => {
     if (!note) return;
