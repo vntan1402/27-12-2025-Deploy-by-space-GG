@@ -249,6 +249,111 @@ const OtherDocumentsTable = ({ selectedShip }) => {
     }
   };
 
+  // Bulk view files
+  const handleBulkView = () => {
+    setContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    const selectedDocsList = documents.filter(d => selectedDocuments.has(d.id));
+    const filesWithId = selectedDocsList.filter(d => d.file_ids && d.file_ids.length > 0);
+    
+    if (filesWithId.length === 0) {
+      toast.error(language === 'vi' 
+        ? 'Không có file nào để xem' 
+        : 'No files to view');
+      return;
+    }
+
+    filesWithId.forEach(doc => {
+      const url = `https://drive.google.com/file/d/${doc.file_ids[0]}/view`;
+      window.open(url, '_blank');
+    });
+
+    toast.success(language === 'vi' 
+      ? `Đã mở ${filesWithId.length} file(s)` 
+      : `Opened ${filesWithId.length} file(s)`);
+  };
+
+  // Bulk download files
+  const handleBulkDownload = () => {
+    setContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    const selectedDocsList = documents.filter(d => selectedDocuments.has(d.id));
+    const filesWithId = selectedDocsList.filter(d => d.file_ids && d.file_ids.length > 0);
+    
+    if (filesWithId.length === 0) {
+      toast.error(language === 'vi' 
+        ? 'Không có file nào để tải' 
+        : 'No files to download');
+      return;
+    }
+
+    filesWithId.forEach(doc => {
+      const url = `https://drive.google.com/uc?export=download&id=${doc.file_ids[0]}`;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.document_name || 'document.pdf';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    toast.success(language === 'vi' 
+      ? `Đang tải ${filesWithId.length} file(s)` 
+      : `Downloading ${filesWithId.length} file(s)`);
+  };
+
+  // Bulk copy links
+  const handleBulkCopyLinks = () => {
+    setContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    const selectedDocsList = documents.filter(d => selectedDocuments.has(d.id));
+    const filesWithId = selectedDocsList.filter(d => d.file_ids && d.file_ids.length > 0);
+    
+    if (filesWithId.length === 0) {
+      toast.error(language === 'vi' 
+        ? 'Không có file link nào để copy' 
+        : 'No file links to copy');
+      return;
+    }
+
+    const links = filesWithId.map(doc => {
+      const link = `https://drive.google.com/file/d/${doc.file_ids[0]}/view`;
+      return `${doc.document_name}: ${link}`;
+    }).join('\n');
+
+    navigator.clipboard.writeText(links);
+    toast.success(language === 'vi' 
+      ? `Đã copy ${filesWithId.length} link(s) vào clipboard` 
+      : `Copied ${filesWithId.length} link(s) to clipboard`);
+  };
+
+  // Single view file
+  const handleViewFile = (document) => {
+    setContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    if (!document.file_ids || document.file_ids.length === 0) {
+      toast.error(language === 'vi' ? 'Không có file để xem' : 'No file to view');
+      return;
+    }
+
+    window.open(`https://drive.google.com/file/d/${document.file_ids[0]}/view`, '_blank');
+  };
+
+  // Single copy link
+  const handleCopyLink = (document) => {
+    setContextMenu({ show: false, x: 0, y: 0, document: null });
+    
+    if (!document.file_ids || document.file_ids.length === 0) {
+      toast.error(language === 'vi' ? 'Không có file link để copy' : 'No file link to copy');
+      return;
+    }
+
+    const link = `https://drive.google.com/file/d/${document.file_ids[0]}/view`;
+    navigator.clipboard.writeText(link);
+    toast.success(language === 'vi' ? 'Đã copy link vào clipboard' : 'Link copied to clipboard');
+  };
+
   // Handle delete
   const handleDelete = async () => {
     if (selectedDocuments.size === 0) return;
