@@ -504,10 +504,49 @@ const TestReport = () => {
             )}
           </div>
         ) : (
-          /* Test Report List Section - Placeholder */
-          <TestReportList />
+          /* Test Report List Section */
+          <TestReportList 
+            selectedShip={selectedShip}
+            onAddReport={handleAddReport}
+            onEditReport={handleEditReport}
+            onViewNotes={handleViewNotes}
+            refreshKey={listRefreshKey}
+          />
         )}
       </div>
+
+      {/* Test Report Modals */}
+      <AddTestReportModal
+        isOpen={showAddReportModal}
+        onClose={() => setShowAddReportModal(false)}
+        selectedShip={selectedShip}
+        onReportAdded={handleReportAdded}
+      />
+
+      {showEditReportModal && editingReport && (
+        <EditTestReportModal
+          isOpen={showEditReportModal}
+          onClose={() => {
+            setShowEditReportModal(false);
+            setEditingReport(null);
+          }}
+          report={editingReport}
+          selectedShip={selectedShip}
+          onReportUpdated={handleReportUpdated}
+        />
+      )}
+
+      {showNotesModal && notesReport && (
+        <TestReportNotesModal
+          isOpen={showNotesModal}
+          onClose={() => {
+            setShowNotesModal(false);
+            setNotesReport(null);
+          }}
+          report={notesReport}
+          onNoteUpdated={handleNoteUpdated}
+        />
+      )}
 
       {/* Add Ship Modal */}
       <AddShipModal 
