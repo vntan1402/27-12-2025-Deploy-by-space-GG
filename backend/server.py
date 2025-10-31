@@ -7018,25 +7018,25 @@ async def analyze_survey_report_file(
                         
                         extracted_fields = await extract_survey_report_fields_from_summary(
                             summary_text,  # This now includes OCR text
-                                ai_provider,
-                                ai_model,
-                                use_emergent_key,
-                                filename
-                            )
+                            ai_provider,
+                            ai_model,
+                            use_emergent_key,
+                            filename
+                        )
+                        
+                        if extracted_fields:
+                            logger.info("✅ System AI survey report extraction completed successfully")
+                            analysis_result.update(extracted_fields)
+                            analysis_result["processing_method"] = "analysis_only_no_upload"
+                            logger.info(f"   📋 Extracted Survey Name: '{analysis_result.get('survey_report_name')}'")
+                            logger.info(f"   🔢 Extracted Survey No: '{analysis_result.get('survey_report_no')}'")
                             
-                            if extracted_fields:
-                                logger.info("✅ System AI survey report extraction completed successfully")
-                                analysis_result.update(extracted_fields)
-                                analysis_result["processing_method"] = "analysis_only_no_upload"
-                                logger.info(f"   📋 Extracted Survey Name: '{analysis_result.get('survey_report_name')}'")
-                                logger.info(f"   🔢 Extracted Survey No: '{analysis_result.get('survey_report_no')}'")
-                                
-                                # Store enhanced summary (with OCR) for later upload
-                                analysis_result['_summary_text'] = summary_text
-                            else:
-                                logger.warning("⚠️ No fields extracted, using empty analysis")
-                                analysis_result['_summary_text'] = summary_text
-                                analysis_result["processing_method"] = "extraction_failed"
+                            # Store enhanced summary (with OCR) for later upload
+                            analysis_result['_summary_text'] = summary_text
+                        else:
+                            logger.warning("⚠️ No fields extracted, using empty analysis")
+                            analysis_result['_summary_text'] = summary_text
+                            analysis_result["processing_method"] = "extraction_failed"
                 
                 # ⚠️ VALIDATION: Check if ship name/IMO matches (for both single and split)
                 extracted_ship_name = analysis_result.get('ship_name', '').strip()
