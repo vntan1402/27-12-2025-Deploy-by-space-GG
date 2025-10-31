@@ -641,7 +641,10 @@ const ClassSurveyReport = () => {
           </div>
         ) : (
           /* Class Survey Report List Section */
-          <ClassSurveyReportList selectedShip={selectedShip} />
+          <ClassSurveyReportList 
+            selectedShip={selectedShip} 
+            onStartBatchProcessing={startBatchProcessing}
+          />
         )}
       </div>
 
