@@ -865,8 +865,8 @@ class BackendAPITester:
             return False
 
     def test_survey_report_ai_analysis(self):
-        """Test 8: Survey Report AI Analysis Endpoint - Document AI Configuration Fix Verification"""
-        self.print_test_header("Test 8 - Survey Report AI Analysis Endpoint - Document AI Fix Verification")
+        """Test 8: Survey Report AI Analysis Endpoint - Provider Mismatch Fix Verification"""
+        self.print_test_header("Test 8 - Survey Report AI Analysis Endpoint - Provider Mismatch Fix Verification")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
@@ -878,11 +878,12 @@ class BackendAPITester:
             }
             
             print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
-            print(f"🎯 Testing Survey Report AI Analysis after Document AI configuration fix")
+            print(f"🎯 Testing Survey Report AI Analysis after provider mismatch fix")
             print(f"🚢 Ship ID: {self.test_ship_id}")
             print(f"🚢 Ship Name: {self.test_ship_name}")
-            print(f"🔧 FOCUS: Verifying Document AI project_id whitespace issue is fixed")
-            print(f"🔍 Expected: _file_content and _summary_text fields now present")
+            print(f"🔧 FOCUS: Verifying provider check fix: ai_provider in ['google', 'emergent']")
+            print(f"🔍 Expected: _file_content and _summary_text fields NOW PRESENT (were missing before)")
+            print(f"🔍 Expected: No 'AI extraction not supported for non-Emergent configurations' warning")
             
             # Create a simple test PDF file with survey content
             print(f"\n📄 Creating test PDF file with survey content...")
