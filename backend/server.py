@@ -8804,6 +8804,8 @@ async def bulk_delete_drawings_manuals(
             # Schedule background file deletion (non-blocking)
             if files_to_delete and company_apps_script_url:
                 logger.info(f"📤 Starting background deletion for {len(files_to_delete)} file pairs...")
+                logger.info(f"   Apps Script URL: {company_apps_script_url[:50]}...")
+                logger.info(f"   Files to delete: {[f['document_id'][:8] for f in files_to_delete]}")
                 
                 # Use asyncio.create_task to run in background without blocking
                 import asyncio
@@ -8813,6 +8815,11 @@ async def bulk_delete_drawings_manuals(
                         company_apps_script_url
                     )
                 )
+            else:
+                if not files_to_delete:
+                    logger.warning(f"⚠️ No files to delete (documents had no file_id or summary_file_id)")
+                if not company_apps_script_url:
+                    logger.warning(f"⚠️ Apps Script URL not configured, skipping file deletion")
             
             # Return immediately
             message = f"Deleted {deleted_count} document(s) from database"
