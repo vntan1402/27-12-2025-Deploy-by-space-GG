@@ -1119,24 +1119,34 @@ class BackendAPITester:
                     print(f"   ✅ Field Extraction Working: {sum(extracted_fields.values()) >= 1}")
                     print(f"   📈 Score: {success_score}/{total_criteria}")
                     
-                    # Check for provider mismatch errors in logs
-                    print(f"\n🔍 Checking for provider mismatch errors in backend logs...")
+                    # Check for OCR success messages in backend logs
+                    print(f"\n🔍 Checking for OCR success messages in backend logs...")
                     try:
                         import subprocess
-                        result = subprocess.run(['tail', '-n', '50', '/var/log/supervisor/backend.out.log'], 
+                        result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
                                               capture_output=True, text=True, timeout=5)
                         if result.returncode == 0:
                             log_content = result.stdout
-                            if "AI extraction not supported for non-Emergent configurations" in log_content:
-                                print(f"❌ Provider mismatch error still present in logs - fix not working")
-                            elif "ai_provider" in log_content.lower():
-                                print(f"✅ AI provider processing found in logs - checking for success...")
-                                if "error" in log_content.lower():
-                                    print(f"⚠️ Some AI processing errors found in logs")
-                                else:
-                                    print(f"✅ No AI provider errors found in recent logs")
+                            
+                            # Check for expected OCR log messages
+                            ocr_start_found = "🔍 Starting Targeted OCR for header/footer extraction..." in log_content
+                            ocr_success_found = "✅ Targeted OCR completed successfully" in log_content
+                            ocr_merge_found = "📝 Merging OCR text into Document AI summary..." in log_content
+                            ocr_enhanced_found = "✅ Enhanced summary created with OCR" in log_content
+                            ocr_not_available = "OCR processor not available" in log_content
+                            
+                            print(f"   🔍 OCR Start Message: {'✅ FOUND' if ocr_start_found else '❌ NOT FOUND'}")
+                            print(f"   ✅ OCR Success Message: {'✅ FOUND' if ocr_success_found else '❌ NOT FOUND'}")
+                            print(f"   📝 OCR Merge Message: {'✅ FOUND' if ocr_merge_found else '❌ NOT FOUND'}")
+                            print(f"   ✅ OCR Enhanced Message: {'✅ FOUND' if ocr_enhanced_found else '❌ NOT FOUND'}")
+                            print(f"   ❌ OCR Not Available Error: {'❌ FOUND (BAD)' if ocr_not_available else '✅ NOT FOUND (GOOD)'}")
+                            
+                            if ocr_not_available:
+                                print(f"🚨 CRITICAL: 'OCR processor not available' error found - Tesseract may not be working")
+                            elif ocr_start_found and ocr_success_found:
+                                print(f"✅ OCR processing logs look good - Tesseract appears to be working")
                             else:
-                                print(f"✅ No provider mismatch issues in recent logs")
+                                print(f"⚠️ OCR logs incomplete - may need more time or there could be issues")
                         else:
                             print(f"⚠️ Could not check backend logs")
                     except Exception as e:
