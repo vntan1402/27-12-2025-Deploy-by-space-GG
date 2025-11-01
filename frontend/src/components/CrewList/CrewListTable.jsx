@@ -884,7 +884,10 @@ export const CrewListTable = ({
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 uppercase">
                       {language === 'vi' ? crew.place_of_birth : (crew.place_of_birth_en || crew.place_of_birth)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                    <td 
+                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200"
+                      onContextMenu={(e) => handlePassportRightClick(e, crew)}
+                    >
                       <div className="flex items-center space-x-2">
                         <span>{crew.passport || '-'}</span>
                         {/* File status indicators */}
