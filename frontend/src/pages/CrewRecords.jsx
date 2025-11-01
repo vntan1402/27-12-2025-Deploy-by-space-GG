@@ -26,6 +26,24 @@ const CrewRecords = () => {
   const [deleteShipData, setDeleteShipData] = useState(null);
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [companyData, setCompanyData] = useState(null);
+
+  // Fetch company data
+  useEffect(() => {
+    const fetchCompanyData = async () => {
+      try {
+        const response = await api.get('/api/company');
+        console.log('Company data fetched:', response.data);
+        setCompanyData(response.data);
+      } catch (error) {
+        console.error('Failed to fetch company data:', error);
+      }
+    };
+    
+    if (user) {
+      fetchCompanyData();
+    }
+  }, [user]);
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
