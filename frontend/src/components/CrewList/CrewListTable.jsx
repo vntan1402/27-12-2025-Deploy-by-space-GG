@@ -875,7 +875,10 @@ export const CrewListTable = ({
                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                       {crew.sex}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                    <td 
+                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200"
+                      onContextMenu={(e) => handleRankRightClick(e, crew)}
+                    >
                       {crew.rank || '-'}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
