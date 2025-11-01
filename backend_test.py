@@ -910,23 +910,23 @@ class BackendAPITester:
             return True
     
     def run_all_tests(self):
-        """Run all Add Crew flow tests in sequence"""
-        print(f"\n🚀 STARTING ADD CREW COMPLETE FLOW TESTING")
-        print(f"🎯 Testing V2 Pattern: analyze → create → upload (background)")
+        """Run all DELETE Crew endpoint tests in sequence"""
+        print(f"\n🚀 STARTING DELETE CREW ENDPOINT BACKGROUND FILE DELETION TESTING")
+        print(f"🎯 Testing refactored DELETE /api/crew/{{crew_id}} endpoint with background file deletion")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for Add Crew flow
+        # Test sequence for DELETE Crew endpoint
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
-            ("Setup - Ships List", self.test_get_ships_list),
-            ("Step 1 - Download Passport File", self.test_download_passport_file),
-            ("Step 2 - Analyze Passport with AI", self.test_analyze_passport),
-            ("Step 3 - Create Crew Member", self.test_create_crew_member),
-            ("Step 4 - Upload Passport Files", self.test_upload_passport_files),
-            ("Step 5 - Verify Crew Record Updated", self.test_verify_crew_record_updated),
-            ("Step 6 - Verify Crew List", self.test_verify_crew_list),
+            ("Setup - Find Target Crew", self.test_find_target_crew),
+            ("Setup - Find Crew with Certificates", self.test_find_crew_with_certificates),
+            ("Test 1 - Background Deletion Mode (Default)", self.test_delete_crew_background_mode),
+            ("Test 2 - Certificate Validation", self.test_certificate_validation),
+            ("Test 3 - Synchronous Deletion Mode", self.test_delete_crew_synchronous_mode),
+            ("Test 4 - Edge Cases", self.test_edge_cases),
+            ("Test 5 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
         results = []
