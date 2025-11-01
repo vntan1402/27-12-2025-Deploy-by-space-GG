@@ -298,7 +298,7 @@ const CrewRecords = () => {
         />
       ) : (
         <CompanyInfoPanel
-          companyName={user?.company_name}
+          companyData={companyData}
           onClose={null}
         />
       )}
