@@ -107,18 +107,6 @@ export const CrewListTable = ({
     }
   };
 
-  // Get filtered and sorted crew data
-  const getFilteredCrewData = () => {
-    let filtered = [...crewList];
-    
-    // Apply search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(crew => 
-        (crew.full_name && crew.full_name.toLowerCase().includes(searchLower)) ||
-        (crew.full_name_en && crew.full_name_en.toLowerCase().includes(searchLower)) ||
-        (crew.passport && crew.passport.toLowerCase().includes(searchLower))
-  
   // Sync filter with selectedShip
   useEffect(() => {
     if (selectedShip) {
@@ -133,6 +121,18 @@ export const CrewListTable = ({
       }
     }
   }, [selectedShip]);
+
+  // Get filtered and sorted crew data
+  const getFilteredCrewData = () => {
+    let filtered = [...crewList];
+    
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(crew => 
+        (crew.full_name && crew.full_name.toLowerCase().includes(searchLower)) ||
+        (crew.full_name_en && crew.full_name_en.toLowerCase().includes(searchLower)) ||
+        (crew.passport && crew.passport.toLowerCase().includes(searchLower))
       );
     }
     
