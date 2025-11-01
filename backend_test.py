@@ -52,15 +52,10 @@ class BackendAPITester:
         self.access_token = None
         self.user_data = None
         self.company_id = None
-        self.test_ship_id = None
-        self.test_ship_name = None
-        self.test_ship_data = None
-        self.passport_content = None
-        self.passport_analysis = None
-        self.crew_id = None
-        self.crew_data = None
-        self.passport_file_id = None
-        self.summary_file_id = None
+        self.test_crew_id = None  # Target crew for deletion testing
+        self.test_crew_data = None
+        self.crew_with_certificates_id = None  # Crew with certificates for validation testing
+        self.crew_without_files_id = None  # Crew without files for edge case testing
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
