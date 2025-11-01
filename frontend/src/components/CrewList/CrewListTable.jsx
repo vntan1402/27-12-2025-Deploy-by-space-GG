@@ -21,7 +21,8 @@ import {
 export const CrewListTable = ({ 
   selectedShip,
   ships = [],
-  onRefresh 
+  onRefresh,
+  onShipFilterChange
 }) => {
   const { language, user } = useAuth();
   
