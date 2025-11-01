@@ -68,6 +68,16 @@ export const CrewListTable = ({
   const [crewContextMenu, setCrewContextMenu] = useState({ show: false, x: 0, y: 0, crew: null });
   const [passportContextMenu, setPassportContextMenu] = useState({ show: false, x: 0, y: 0, crew: null });
   const [rankContextMenu, setRankContextMenu] = useState({ show: false, x: 0, y: 0, crew: null });
+  
+  // Bulk edit modal states
+  const [showBulkEditPlaceSignOn, setShowBulkEditPlaceSignOn] = useState(false);
+  const [showBulkEditShipSignOn, setShowBulkEditShipSignOn] = useState(false);
+  const [showBulkEditDateSignOn, setShowBulkEditDateSignOn] = useState(false);
+  const [showBulkEditDateSignOff, setShowBulkEditDateSignOff] = useState(false);
+  const [bulkPlaceSignOn, setBulkPlaceSignOn] = useState('');
+  const [bulkShipSignOn, setBulkShipSignOn] = useState('');
+  const [bulkDateSignOn, setBulkDateSignOn] = useState('');
+  const [bulkDateSignOff, setBulkDateSignOff] = useState('');
 
   // Mock data for now - will be replaced with API calls
   useEffect(() => {
