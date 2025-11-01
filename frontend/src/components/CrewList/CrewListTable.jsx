@@ -6,7 +6,17 @@ import { crewService } from '../../services/crewService';
 import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
 import { estimateFileProcessingTime, startSmoothProgressForFile } from '../../utils/progressHelpers';
 import { RANK_OPTIONS } from '../../utils/constants';
-import { AddCrewModal, EditCrewModal, DeleteCrewConfirmModal, BatchProcessingModal, BatchResultsModal } from './index';
+import { 
+  AddCrewModal, 
+  EditCrewModal, 
+  DeleteCrewConfirmModal, 
+  BatchProcessingModal, 
+  BatchResultsModal,
+  BulkEditPlaceSignOnModal,
+  BulkEditShipSignOnModal,
+  BulkEditDateSignOnModal,
+  BulkEditDateSignOffModal
+} from './index';
 
 export const CrewListTable = ({ 
   selectedShip,
