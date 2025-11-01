@@ -176,6 +176,199 @@ export const CrewListTable = ({
       return () => document.removeEventListener('click', handleClick);
     }
   }, [crewContextMenu.show, passportContextMenu.show, rankContextMenu.show]);
+  
+  // Batch processing handler
+  const handleBatchProcessing = async (files) => {
+    // Validate all files first
+    const validFiles = [];
+    for (const file of files) {
+      const isValidType = file.type === 'application/pdf' || file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      
+      if (!isValidType) {
+        toast.error(language === 'vi' 
+          ? `File ${file.name} không đúng định dạng`
+          : `File ${file.name} has invalid format`);
+        continue;
+      }
+      
+      if (!isValidSize) {
+        toast.error(language === 'vi' 
+          ? `File ${file.name} quá lớn (>10MB)`
+          : `File ${file.name} is too large (>10MB)`);
+        continue;
+      }
+      
+      validFiles.push(file);
+    }
+    
+    if (validFiles.length === 0) {
+      toast.error(language === 'vi' 
+        ? 'Không có file hợp lệ nào để xử lý'
+        : 'No valid files to process');
+      return;
+    }
+    
+    // Initialize batch processing
+    setBatchProgress({ current: 0, total: validFiles.length, success: 0, failed: 0 });
+    setBatchResults([]);
+    setIsBatchProcessing(true);
+    setShowBatchProcessingModal(true);
+    
+    // Close Add Crew modal
+    setShowAddCrewModal(false);
+    
+    // Process files with 1-second stagger
+    const results = [];
+    
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
+      setCurrentProcessingFile(file.name);
+      
+      try {
+        const result = await processSingleFileInBatch(file);
+        results.push(result);
+        
+        setBatchProgress(prev => ({
+          ...prev,
+          current: i + 1,
+          success: prev.success + (result.success ? 1 : 0),
+          failed: prev.failed + (result.success ? 0 : 1)
+        }));
+        
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error);
+        results.push({
+          success: false,
+          filename: file.name,
+          error: error.message || 'Unknown error'
+        });
+        
+        setBatchProgress(prev => ({
+          ...prev,
+          current: i + 1,
+          failed: prev.failed + 1
+        }));
+      }
+      
+      // Delay before next file (except last one)
+      if (i < validFiles.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // Show results
+    setBatchResults(results);
+    setShowBatchProcessingModal(false);
+    setShowBatchResultsModal(true);
+    setIsBatchProcessing(false);
+    
+    // Refresh crew list
+    fetchCrewList();
+  };
+  
+  // Process single file in batch mode
+  const processSingleFileInBatch = async (file) => {
+    try {
+      const shipName = selectedShip?.name || '-';
+      
+      // Step 1: Analyze passport
+      const analysisResponse = await crewService.analyzePassport(file, shipName);
+      const analysisData = analysisResponse.data || analysisResponse;
+      
+      // Check for duplicate
+      if (analysisData.duplicate) {
+        return {
+          success: false,
+          filename: file.name,
+          error: language === 'vi' 
+            ? `Hộ chiếu đã tồn tại: ${analysisData.existing_crew?.full_name}`
+            : `Passport already exists: ${analysisData.existing_crew?.full_name}`,
+          duplicate: true
+        };
+      }
+      
+      // Check if analysis succeeded
+      if (!analysisData.success || !analysisData.analysis) {
+        return {
+          success: false,
+          filename: file.name,
+          error: language === 'vi' ? 'Không thể phân tích file' : 'Cannot analyze file'
+        };
+      }
+      
+      const analysis = analysisData.analysis;
+      
+      // Validate required fields
+      if (!analysis.full_name || !analysis.passport_number || !analysis.date_of_birth) {
+        return {
+          success: false,
+          filename: file.name,
+          error: language === 'vi' 
+            ? 'Thiếu thông tin bắt buộc (tên, hộ chiếu, ngày sinh)'
+            : 'Missing required information (name, passport, date of birth)'
+        };
+      }
+      
+      // Step 2: Create crew member
+      const vietnameseFullName = analysis.full_name || '';
+      const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
+      
+      const crewData = {
+        full_name: vietnameseFullName,
+        full_name_en: analysis.full_name_en || autoFillEnglishField(vietnameseFullName),
+        sex: analysis.sex || 'M',
+        date_of_birth: analysis.date_of_birth?.includes('/') 
+          ? analysis.date_of_birth.split('/').reverse().join('-')
+          : analysis.date_of_birth?.split('T')[0],
+        place_of_birth: vietnamesePlaceOfBirth,
+        place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
+        passport: analysis.passport_number || analysis.passport,
+        nationality: analysis.nationality || '',
+        passport_expiry_date: analysis.passport_expiry_date?.includes('/')
+          ? analysis.passport_expiry_date.split('/').reverse().join('-')
+          : analysis.passport_expiry_date?.split('T')[0] || '',
+        rank: '',
+        seamen_book: '',
+        status: 'Sign on',
+        ship_sign_on: selectedShip?.name || '-',
+        place_sign_on: '',
+        date_sign_on: '',
+        date_sign_off: ''
+      };
+      
+      const createResponse = await crewService.createCrew(crewData);
+      const crewId = createResponse.data.id;
+      
+      // Step 3: Upload files in background (don't wait)
+      if (analysis._file_content) {
+        crewService.uploadPassportFiles(crewId, {
+          file_content: analysis._file_content,
+          filename: analysis._filename,
+          content_type: analysis._content_type,
+          summary_text: analysis._summary_text || '',
+          ship_name: crewData.ship_sign_on
+        }).catch(error => {
+          console.error(`File upload failed for ${file.name}:`, error);
+        });
+      }
+      
+      return {
+        success: true,
+        filename: file.name,
+        crew_name: crewData.full_name,
+        passport_number: crewData.passport
+      };
+      
+    } catch (error) {
+      console.error(`Error in batch processing for ${file.name}:`, error);
+      return {
+        success: false,
+        filename: file.name,
+        error: error.response?.data?.detail || error.message || 'Unknown error'
+      };
+    }
+  };
 
   const filteredCrewData = getFilteredCrewData();
   const sortedCrewData = getSortedCrewData();
