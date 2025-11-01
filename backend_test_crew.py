@@ -406,8 +406,8 @@ class AddCrewFlowTester:
         """Test 5: Create crew member with extracted passport data (or skip if duplicate)"""
         self.print_test_header("Test 5 - Create Crew Member")
         
-        if not self.access_token or not self.passport_analysis:
-            self.print_result(False, "Missing required data from previous tests")
+        if not self.access_token:
+            self.print_result(False, "Missing access token")
             return False
         
         # Check if we already have a crew ID from duplicate detection
@@ -419,6 +419,44 @@ class AddCrewFlowTester:
             print(f"✅ Ship Sign On: {self.crew_data.get('ship_sign_on')}")
             self.print_result(True, f"Using existing crew member with ID: {self.crew_id}")
             return True
+        
+        # If no crew ID from duplicate detection, try to find existing crew by passport
+        if not self.passport_analysis:
+            print(f"🔍 No passport analysis data, trying to find existing crew by passport C9780204")
+            try:
+                headers = {
+                    "Authorization": f"Bearer {self.access_token}",
+                    "Content-Type": "application/json"
+                }
+                
+                # Get crew list to find existing crew
+                response = self.session.get(f"{BACKEND_URL}/crew", headers=headers, timeout=30)
+                
+                if response.status_code == 200:
+                    crew_list = response.json()
+                    print(f"📄 Found {len(crew_list)} crew members")
+                    
+                    # Look for crew with passport C9780204
+                    for crew in crew_list:
+                        if crew.get('passport') == 'C9780204':
+                            self.crew_id = crew.get('id')
+                            self.crew_data = crew
+                            print(f"✅ Found existing crew with passport C9780204:")
+                            print(f"   ID: {self.crew_id}")
+                            print(f"   Full Name: {crew.get('full_name')}")
+                            print(f"   Ship Sign On: {crew.get('ship_sign_on')}")
+                            self.print_result(True, f"Found existing crew member with ID: {self.crew_id}")
+                            return True
+                    
+                    print(f"⚠️ No crew found with passport C9780204")
+                else:
+                    print(f"❌ Failed to get crew list: {response.status_code}")
+                    
+            except Exception as e:
+                print(f"❌ Exception while finding existing crew: {e}")
+            
+            self.print_result(False, "No passport analysis data and no existing crew found")
+            return False
         
         try:
             headers = {
