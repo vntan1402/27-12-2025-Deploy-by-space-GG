@@ -527,7 +527,7 @@ class BackendAPITester:
         """Helper method to check backend logs for background deletion messages"""
         try:
             import subprocess
-            result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
+            result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.err.log'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 log_content = result.stdout
