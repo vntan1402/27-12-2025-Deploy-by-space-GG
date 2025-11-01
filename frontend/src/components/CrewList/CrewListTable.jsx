@@ -1195,8 +1195,13 @@ export const CrewListTable = ({
       {/* Batch Processing Modal */}
       {showBatchProcessingModal && (
         <BatchProcessingModal
+          isOpen={showBatchProcessingModal}
           progress={batchProgress}
-          currentFile={currentProcessingFile}
+          fileProgressMap={fileProgressMap}
+          fileStatusMap={fileStatusMap}
+          fileSubStatusMap={fileSubStatusMap}
+          isMinimized={isBatchModalMinimized}
+          onToggleMinimize={() => setIsBatchModalMinimized(!isBatchModalMinimized)}
           onClose={() => {
             // Don't allow closing during processing
           }}
@@ -1206,6 +1211,7 @@ export const CrewListTable = ({
       {/* Batch Results Modal */}
       {showBatchResultsModal && (
         <BatchResultsModal
+          isOpen={showBatchResultsModal}
           results={batchResults}
           onClose={() => {
             setShowBatchResultsModal(false);
