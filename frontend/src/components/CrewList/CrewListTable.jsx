@@ -232,10 +232,22 @@ export const CrewListTable = ({
   // Handle delete crew
   const handleDeleteCrew = () => {
     if (selectedCrewMembers.size > 0) {
-      // For now, handle single delete
       const crewIds = Array.from(selectedCrewMembers);
-      const crew = sortedCrewData.find(c => c.id === crewIds[0]);
-      setCrewToDelete(crew);
+      
+      // If multiple crew selected, prepare bulk delete
+      if (crewIds.length > 1) {
+        setCrewToDelete({
+          id: 'bulk',
+          full_name: `${crewIds.length} ${language === 'vi' ? 'thuyền viên' : 'crew members'}`,
+          isBulk: true,
+          crewIds: crewIds
+        });
+      } else {
+        // Single crew delete
+        const crew = sortedCrewData.find(c => c.id === crewIds[0]);
+        setCrewToDelete(crew);
+      }
+      
       setShowDeleteCrewModal(true);
       setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
     }
@@ -248,18 +260,38 @@ export const CrewListTable = ({
     try {
       setIsDeleting(true);
       
-      // Delete crew with background flag for Drive deletion
-      await crewService.delete(crewToDelete.id);
-      
-      toast.success(language === 'vi' 
-        ? `Đã xóa thuyền viên ${crewToDelete.full_name}`
-        : `Deleted crew member ${crewToDelete.full_name}`);
-      
-      // Show info about background Drive deletion
-      if (crewToDelete.passport_file_id || crewToDelete.summary_file_id) {
-        toast.info(language === 'vi' 
-          ? '🗂️ Đang xóa files trên Drive...'
-          : '🗂️ Deleting files on Drive...');
+      // Check if bulk delete
+      if (crewToDelete.isBulk) {
+        // Bulk delete multiple crew
+        const result = await crewService.bulkDelete(crewToDelete.crewIds);
+        
+        if (result.data.success) {
+          const { deleted_count, files_deleted, errors } = result.data;
+          
+          toast.success(language === 'vi' 
+            ? `Đã xóa ${deleted_count} thuyền viên${files_deleted > 0 ? ` và ${files_deleted} files` : ''}`
+            : `Deleted ${deleted_count} crew member(s)${files_deleted > 0 ? ` and ${files_deleted} file(s)` : ''}`);
+          
+          if (errors && errors.length > 0) {
+            toast.warning(language === 'vi' 
+              ? `${errors.length} lỗi xảy ra: ${errors[0]}`
+              : `${errors.length} error(s): ${errors[0]}`);
+          }
+        }
+      } else {
+        // Single crew delete with background flag for Drive deletion
+        await crewService.delete(crewToDelete.id);
+        
+        toast.success(language === 'vi' 
+          ? `Đã xóa thuyền viên ${crewToDelete.full_name}`
+          : `Deleted crew member ${crewToDelete.full_name}`);
+        
+        // Show info about background Drive deletion
+        if (crewToDelete.passport_file_id || crewToDelete.summary_file_id) {
+          toast.info(language === 'vi' 
+            ? '🗂️ Đang xóa files trên Drive...'
+            : '🗂️ Deleting files on Drive...');
+        }
       }
       
       // Refresh list
