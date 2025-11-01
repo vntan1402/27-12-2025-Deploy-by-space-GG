@@ -18149,58 +18149,6 @@ async def delete_crew_files_background(
         
     except Exception as e:
         logger.error(f"❌ Background file deletion task failed for crew {crew_name}: {e}")
-                                company_apps_script_url,
-                                json=payload,
-                                headers={"Content-Type": "application/json"},
-                                timeout=aiohttp.ClientTimeout(total=30)
-                            ) as response:
-                                if response.status == 200:
-                                    result = await response.json()
-                                    if result.get("success"):
-                                        logger.info(f"✅ Summary file {summary_file_id} deleted successfully")
-                                        deleted_files.append("summary")
-                                    else:
-                                        logger.warning(f"⚠️ Failed to delete summary file: {result.get('message')}")
-                                else:
-                                    logger.warning(f"⚠️ Failed to delete summary file: HTTP {response.status}")
-                    except Exception as e:
-                        logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
-        
-        # Delete from database
-        await mongo_db.delete("crew_members", {"id": crew_id})
-        
-        # Log audit trail
-        await log_audit_trail(
-            user_id=current_user.id,
-            action="DELETE_CREW",
-            resource_type="crew_member", 
-            resource_id=crew_id,
-            details={
-                "crew_name": crew.get("full_name"),
-                "passport": crew.get("passport"),
-                "deleted_files": deleted_files,
-                "deleted_at": datetime.now(timezone.utc).isoformat()
-            },
-            company_id=company_uuid
-        )
-        
-        # Construct success message
-        message = "Crew member deleted successfully"
-        if deleted_files:
-            file_list = ", ".join(deleted_files)
-            message += f" (files deleted: {file_list})"
-        
-        return {
-            "success": True, 
-            "message": message,
-            "deleted_files": deleted_files
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error deleting crew member {crew_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete crew member: {str(e)}")
 
 @api_router.post("/crew/{crew_id}/rename-files")
 async def rename_crew_files(
