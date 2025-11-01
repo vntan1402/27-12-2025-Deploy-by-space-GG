@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script
-Tests backend APIs including ship calculation, upcoming surveys, and Survey Report AI Analysis endpoints
+Backend API Testing Script - Add Crew Flow for BROTHER 36 using Passport File
 
-FOCUS: Test the backend endpoints:
-1. POST /api/ships/{ship_id}/calculate-next-docking
-2. POST /api/ships/{ship_id}/calculate-anniversary-date  
-3. POST /api/ships/{ship_id}/calculate-special-survey-cycle
-4. GET /api/certificates/upcoming-surveys (Testing company_name field inclusion)
-5. POST /api/survey-reports/analyze-file (NEW: Survey Report AI Analysis endpoint)
+FOCUS: Test Add Crew flow for ship BROTHER 36 using passport file as per review request:
+1. Download passport file from: https://customer-assets.emergentagent.com/job_drive-doc-manager/artifacts/dzg8a1ia_1.%20Capt.%20CHUONG%20-%20PP.pdf
+2. Call `/api/crew/analyze-passport` with the passport file and ship_name="BROTHER 36"
+3. Verify AI analysis returns success with extracted fields
+4. Create crew member using `/api/crew` with extracted data
+5. Upload passport files using `/api/crew/{crew_id}/upload-passport-files`
+6. Verify files uploaded to Drive in correct folder: BROTHER 36/Crew Records/
+7. Verify crew record updated with file_id and summary_file_id
+8. Fetch crew list to verify new crew appears
+
+Test Credentials: admin1/123456
+Expected Results: V2 pattern (analyze → create → upload background), no duplicate passport error
 """
 
 import requests
