@@ -398,7 +398,7 @@ export const CrewListTable = ({
       
       for (const crewId of crewIds) {
         try {
-          await crewService.updateCrew(crewId, { [fieldName]: value });
+          await crewService.update(crewId, { [fieldName]: value });
           successCount++;
         } catch (error) {
           console.error(`Failed to update crew ${crewId}:`, error);
