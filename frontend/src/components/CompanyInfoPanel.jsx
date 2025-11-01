@@ -36,24 +36,28 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
   const daysRemaining = companyData?.software_expiry ? getDaysRemaining(companyData.software_expiry) : null;
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-6 mb-6">
+    <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-lg p-6 mb-6 min-h-[280px]">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           {/* Header with Company Logo */}
           <div className="flex items-center space-x-4 mb-4">
-            <div className="bg-white/20 p-4 rounded-lg">
+            <div className="bg-white/20 p-4 rounded-lg backdrop-blur-sm">
               {companyData?.logo_url ? (
                 <img 
                   src={companyData.logo_url} 
                   alt="Company Logo" 
                   className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<span class="text-4xl">🏢</span>';
+                  }}
                 />
               ) : (
                 <span className="text-4xl">🏢</span>
               )}
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold text-white mb-1">
                 {companyData?.name || (language === 'vi' ? 'Công ty' : 'Company')}
               </h2>
               <p className="text-blue-100 text-sm">
