@@ -836,7 +836,7 @@ class BackendAPITester:
             print(f"📋 Checking supervisor logs for DELETE crew operations...")
             
             import subprocess
-            result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.out.log'], 
+            result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.err.log'], 
                                   capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
