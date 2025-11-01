@@ -6,3 +6,6 @@ export * from './CertificateList';
 
 // Re-export Ship Certificates components
 export * from './ShipCertificates';
+
+// Re-export Crew List components
+export * from './CrewList';
