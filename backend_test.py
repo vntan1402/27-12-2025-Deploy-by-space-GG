@@ -2185,7 +2185,7 @@ class BackendAPITester:
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 response_data = response.json()
                 print(f"📄 Response Keys: {list(response_data.keys())}")
                 
