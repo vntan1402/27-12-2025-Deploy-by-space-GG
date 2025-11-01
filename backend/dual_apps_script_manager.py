@@ -1522,20 +1522,18 @@ class DualAppsScriptManager:
             
             # Determine target folder based on ship_name
             # If ship_name is "-", upload to COMPANY DOCUMENT > Standby Crew
-            # Otherwise, upload to Ship Name > Crew Records > Crew List
+            # Otherwise, upload to Ship Name > Crew Records/Crew List
             if ship_name == "-":
                 target_ship = "COMPANY DOCUMENT"
                 target_category = "Standby Crew"
-                target_subfolder = None
                 logger.info(f"📤 Uploading passport file (Standby): {target_ship}/{target_category}/{passport_filename}")
             else:
                 target_ship = ship_name
-                target_category = "Crew Records"
-                target_subfolder = "Crew List"
-                logger.info(f"📤 Uploading passport file (Normal): {target_ship}/{target_category}/{target_subfolder}/{passport_filename}")
+                target_category = "Crew Records/Crew List"  # Nested path
+                logger.info(f"📤 Uploading passport file (Normal): {target_ship}/{target_category}/{passport_filename}")
             
             # Upload 1: Passport file
-            upload_payload = {
+            passport_upload = await self._call_company_apps_script({
                 'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,
                 'ship_name': target_ship,
@@ -1543,13 +1541,7 @@ class DualAppsScriptManager:
                 'filename': passport_filename,
                 'file_content': base64.b64encode(passport_file_content).decode('utf-8'),
                 'content_type': passport_content_type
-            }
-            
-            # Add subfolder if exists (for normal crew)
-            if target_subfolder:
-                upload_payload['subfolder'] = target_subfolder
-            
-            passport_upload = await self._call_company_apps_script(upload_payload)
+            })
             upload_results['passport'] = passport_upload
             
             # Upload 2: Summary file to SAME folder as passport (if provided)
@@ -1557,26 +1549,16 @@ class DualAppsScriptManager:
                 base_name = passport_filename.rsplit('.', 1)[0]
                 summary_filename = f"{base_name}_Summary.txt"
                 
-                if target_subfolder:
-                    logger.info(f"📋 Uploading passport summary file: {target_ship}/{target_category}/{target_subfolder}/{summary_filename}")
-                else:
-                    logger.info(f"📋 Uploading passport summary file: {target_ship}/{target_category}/{summary_filename}")
-                
-                summary_payload = {
+                logger.info(f"📋 Uploading passport summary file: {target_ship}/{target_category}/{summary_filename}")
+                summary_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
                     'ship_name': target_ship,
-                    'category': target_category,
+                    'category': target_category,  # Same nested path
                     'filename': summary_filename,
                     'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                     'content_type': 'text/plain'
-                }
-                
-                # Add subfolder if exists (for normal crew)
-                if target_subfolder:
-                    summary_payload['subfolder'] = target_subfolder
-                
-                summary_upload = await self._call_company_apps_script(summary_payload)
+                })
                 upload_results['summary'] = summary_upload
             
             # Check upload results
