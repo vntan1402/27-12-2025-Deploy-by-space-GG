@@ -3644,6 +3644,45 @@ async def get_users(current_user: UserResponse = Depends(check_permission([UserR
         logger.error(f"Error fetching users: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch users")
 
+# Company endpoint
+@api_router.get("/company")
+async def get_current_company(current_user: UserResponse = Depends(get_current_user)):
+    """Get current user's company information"""
+    try:
+        if not current_user.company:
+            raise HTTPException(status_code=404, detail="Company not found for user")
+        
+        # Find company by name (V1 stores company name in user.company)
+        company = await mongo_db.find_one("companies", {"name": current_user.company})
+        
+        if not company:
+            # Return basic info if company not in collection
+            return {
+                "name": current_user.company,
+                "address": None,
+                "email": None,
+                "phone": None,
+                "software_expiry": None,
+                "logo_url": None,
+                "total_ships": 0
+            }
+        
+        return {
+            "name": company.get("name"),
+            "address": company.get("address"),
+            "email": company.get("email"),
+            "phone": company.get("phone"),
+            "software_expiry": company.get("software_expiry"),
+            "logo_url": company.get("logo_url"),
+            "total_ships": company.get("total_ships", 0)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching company: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch company information")
+
 @api_router.post("/users", response_model=UserResponse)
 async def create_user(user_data: UserCreate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
