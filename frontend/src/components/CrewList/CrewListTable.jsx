@@ -444,8 +444,24 @@ export const CrewListTable = ({
   
   const handleBulkUpdateDateSignOff = async () => {
     const crewIds = Array.from(selectedCrewMembers);
-    const value = bulkDateSignOff === '' ? null : bulkDateSignOff;
-    await bulkUpdateField('date_sign_off', value, crewIds);
+    const isClearingDate = !bulkDateSignOff || bulkDateSignOff.trim() === '';
+    
+    let updates;
+    if (isClearingDate) {
+      // Clear Date Sign Off only (don't change status or ship)
+      updates = {
+        date_sign_off: null
+      };
+    } else {
+      // Auto-update Status and Ship Sign On when Date Sign Off is filled
+      updates = {
+        date_sign_off: bulkDateSignOff,
+        status: 'Standby', // Auto-set to Standby when crew signs off
+        ship_sign_on: '-' // Clear ship assignment when crew signs off
+      };
+    }
+    
+    await bulkUpdateMultipleFields(updates, crewIds, isClearingDate ? 'clear_date_sign_off' : 'date_sign_off');
     setShowBulkEditDateSignOff(false);
   };
   
