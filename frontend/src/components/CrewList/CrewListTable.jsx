@@ -1461,7 +1461,7 @@ export const CrewListTable = ({
         onChange={setBulkShipSignOn}
         onSubmit={handleBulkUpdateShipSignOn}
         selectedCount={selectedCrewMembers.size}
-        ships={[]} // TODO: Pass ships list from parent
+        ships={ships}
       />
       
       <BulkEditDateSignOnModal
