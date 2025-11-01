@@ -329,6 +329,99 @@ export const CrewListTable = ({
     }
   };
   
+  // Bulk edit handlers
+  const handleBulkEditPlaceSignOn = () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    const placeName = prompt(
+      language === 'vi' 
+        ? `Nhập nơi xuống tàu mới cho ${crewIds.length} thuyền viên:` 
+        : `Enter new place sign on for ${crewIds.length} crew members:`
+    );
+    
+    if (placeName !== null) {
+      bulkUpdateField('place_sign_on', placeName, crewIds);
+    }
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  const handleBulkEditShipSignOn = () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    const shipName = prompt(
+      language === 'vi' 
+        ? `Nhập tên tàu mới cho ${crewIds.length} thuyền viên:` 
+        : `Enter new ship name for ${crewIds.length} crew members:`
+    );
+    
+    if (shipName !== null) {
+      bulkUpdateField('ship_sign_on', shipName, crewIds);
+    }
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  const handleBulkEditDateSignOn = () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    const date = prompt(
+      language === 'vi' 
+        ? `Nhập ngày lên tàu mới (YYYY-MM-DD) cho ${crewIds.length} thuyền viên:` 
+        : `Enter new date sign on (YYYY-MM-DD) for ${crewIds.length} crew members:`
+    );
+    
+    if (date !== null && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      bulkUpdateField('date_sign_on', date, crewIds);
+    } else if (date !== null) {
+      toast.error(language === 'vi' ? 'Định dạng ngày không hợp lệ (YYYY-MM-DD)' : 'Invalid date format (YYYY-MM-DD)');
+    }
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  const handleBulkEditDateSignOff = () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    const date = prompt(
+      language === 'vi' 
+        ? `Nhập ngày rời tàu mới (YYYY-MM-DD) cho ${crewIds.length} thuyền viên:` 
+        : `Enter new date sign off (YYYY-MM-DD) for ${crewIds.length} crew members:`
+    );
+    
+    if (date !== null && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      bulkUpdateField('date_sign_off', date, crewIds);
+    } else if (date !== null) {
+      toast.error(language === 'vi' ? 'Định dạng ngày không hợp lệ (YYYY-MM-DD)' : 'Invalid date format (YYYY-MM-DD)');
+    }
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  // Bulk update field helper
+  const bulkUpdateField = async (fieldName, value, crewIds) => {
+    try {
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const crewId of crewIds) {
+        try {
+          await crewService.updateCrew(crewId, { [fieldName]: value });
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to update crew ${crewId}:`, error);
+          failCount++;
+        }
+      }
+      
+      if (successCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+            : `Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
+        );
+        fetchCrewList(); // Refresh list
+      } else {
+        toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+      }
+    } catch (error) {
+      console.error('Bulk update error:', error);
+      toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
+    }
+  };
+  
   // Passport context menu handler
   const handlePassportRightClick = (e, crew) => {
     e.preventDefault();
