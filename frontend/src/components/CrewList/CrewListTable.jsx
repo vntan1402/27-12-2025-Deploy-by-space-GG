@@ -641,7 +641,38 @@ export const CrewListTable = ({
                       {language === 'vi' ? crew.place_of_birth : (crew.place_of_birth_en || crew.place_of_birth)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                      {crew.passport || '-'}
+                      <div className="flex items-center space-x-2">
+                        <span>{crew.passport || '-'}</span>
+                        {/* File status indicators */}
+                        {crew.passport_file_id && (
+                          <span 
+                            className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
+                            title={language === 'vi' ? `File gốc\n📁 ${crew.ship_sign_on}/Crew Records/Crew List` : `Original file\n📁 ${crew.ship_sign_on}/Crew Records/Crew List`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (crew.passport_file_id) {
+                                window.open(`https://drive.google.com/file/d/${crew.passport_file_id}/view`, '_blank');
+                              }
+                            }}
+                          >
+                            📄
+                          </span>
+                        )}
+                        {crew.summary_file_id && (
+                          <span 
+                            className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
+                            title={language === 'vi' ? `File tóm tắt\n📁 ${crew.ship_sign_on}/Crew Records/Crew List` : `Summary file\n📁 ${crew.ship_sign_on}/Crew Records/Crew List`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (crew.summary_file_id) {
+                                window.open(`https://drive.google.com/file/d/${crew.summary_file_id}/view`, '_blank');
+                              }
+                            }}
+                          >
+                            📋
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
