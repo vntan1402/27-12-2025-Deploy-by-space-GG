@@ -97,6 +97,20 @@ const CrewRecords = () => {
       console.log('Removed ship from localStorage');
     }
   };
+  
+  // Handle ship filter change from CrewListTable
+  const handleShipFilterChange = (shipName) => {
+    if (shipName === 'All' || shipName === '-') {
+      // Clear ship selection
+      updateSelectedShip(null);
+    } else {
+      // Find and select ship
+      const ship = ships.find(s => s.name === shipName);
+      if (ship) {
+        updateSelectedShip(ship);
+      }
+    }
+  };
 
   const handleAddRecord = () => {
     console.log('Add Ship button clicked from CrewRecords');
