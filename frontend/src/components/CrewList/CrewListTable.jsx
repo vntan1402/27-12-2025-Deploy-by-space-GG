@@ -393,8 +393,46 @@ export const CrewListTable = ({
       status: 'Sign on',
       date_sign_off: null
     };
+    
+    // Check which crews are missing Place Sign On or Date Sign On
+    const crewsNeedingInfo = [];
+    for (const crewId of crewIds) {
+      const crew = crewList.find(c => c.id === crewId);
+      if (crew) {
+        const missingFields = [];
+        if (!crew.place_sign_on || crew.place_sign_on.trim() === '') {
+          missingFields.push(language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On');
+        }
+        if (!crew.date_sign_on) {
+          missingFields.push(language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On');
+        }
+        
+        if (missingFields.length > 0) {
+          crewsNeedingInfo.push({
+            name: crew.full_name,
+            fields: missingFields
+          });
+        }
+      }
+    }
+    
     await bulkUpdateMultipleFields(updates, crewIds);
     setShowBulkEditShipSignOn(false);
+    
+    // Show reminder if some crews are missing info
+    if (crewsNeedingInfo.length > 0) {
+      setTimeout(() => {
+        const crewNames = crewsNeedingInfo.slice(0, 3).map(c => c.name).join(', ');
+        const moreCount = crewsNeedingInfo.length > 3 ? ` ${language === 'vi' ? 'và' : 'and'} ${crewsNeedingInfo.length - 3} ${language === 'vi' ? 'khác' : 'more'}` : '';
+        
+        toast.warning(
+          language === 'vi'
+            ? `⚠️ Lưu ý: ${crewsNeedingInfo.length} thuyền viên chưa có đầy đủ thông tin xuống tàu (${crewNames}${moreCount}). Vui lòng cập nhật Nơi xuống tàu và Ngày xuống tàu.`
+            : `⚠️ Note: ${crewsNeedingInfo.length} crew member(s) missing sign on information (${crewNames}${moreCount}). Please update Place Sign On and Date Sign On.`,
+          { duration: 8000 }
+        );
+      }, 1500);
+    }
   };
   
   const handleBulkUpdateDateSignOn = async () => {
