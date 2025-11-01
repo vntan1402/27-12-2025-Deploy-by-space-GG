@@ -106,8 +106,10 @@ export const AddCrewModal = ({
     
     // Check if multiple files
     if (files.length > 1) {
-      // Batch processing mode
-      await handleBatchProcessing(files);
+      // Batch processing mode - call parent callback
+      if (onBatchUpload) {
+        onBatchUpload(files);
+      }
     } else {
       // Single file mode
       const file = files[0];
