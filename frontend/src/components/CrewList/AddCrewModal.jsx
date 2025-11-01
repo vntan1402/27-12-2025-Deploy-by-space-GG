@@ -723,20 +723,22 @@ export const AddCrewModal = ({
                 </div>
               </div>
               
-              {/* Row 7: Ship Sign On, Place Sign On */}
+              {/* Row 7: Ship Sign On, Place Sign On - Hide ship when Standby */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.ship_sign_on}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
-                  />
-                </div>
-                <div>
+                {formData.status !== 'Standby' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.ship_sign_on}
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
+                )}
+                <div className={formData.status === 'Standby' ? 'col-span-2' : ''}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
                   </label>
