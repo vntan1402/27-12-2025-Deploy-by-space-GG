@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Add Crew Flow for BROTHER 36 using Passport File
+Backend API Testing Script - Add Crew Auto-fill English Fields Functionality
 
-FOCUS: Test Add Crew flow for ship BROTHER 36 using passport file as per review request:
+FOCUS: Test Add Crew auto-fill English fields functionality as per review request:
 1. Download passport file from: https://customer-assets.emergentagent.com/job_drive-doc-manager/artifacts/dzg8a1ia_1.%20Capt.%20CHUONG%20-%20PP.pdf
-2. Call `/api/crew/analyze-passport` with the passport file and ship_name="BROTHER 36"
-3. Verify AI analysis returns success with extracted fields
-4. Create crew member using `/api/crew` with extracted data
-5. Upload passport files using `/api/crew/{crew_id}/upload-passport-files`
-6. Verify files uploaded to Drive in correct folder: BROTHER 36/Crew Records/
-7. Verify crew record updated with file_id and summary_file_id
-8. Fetch crew list to verify new crew appears
+2. Call `/api/crew/analyze-passport` with ship_name="BROTHER 36"
+3. Verify AI analysis returns Vietnamese fields: full_name and place_of_birth
+4. Verify auto-fill logic for English fields (removing diacritics)
+5. Test backend correctly processes passport and returns data structure ready for frontend auto-fill
 
 Test Credentials: admin1/123456
-Expected Results: V2 pattern (analyze → create → upload background), no duplicate passport error
+Expected Results: 
+- Analysis returns Vietnamese fields: full_name ("HỒ Sỹ Chương") and place_of_birth ("Nghệ An")
+- Analysis may or may not return English fields (full_name_en, place_of_birth_en)
+- Backend correctly processes passport
+- Data structure ready for frontend auto-fill logic (remove diacritics)
 """
 
 import requests
