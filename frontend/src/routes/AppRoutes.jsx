@@ -10,6 +10,7 @@ import ClassSurveyReport from '../pages/ClassSurveyReport';
 import TestReport from '../pages/TestReport';
 import DrawingsManuals from '../pages/DrawingsManuals';
 import OtherDocuments from '../pages/OtherDocuments';
+import CrewRecords from '../pages/CrewRecords';
 import SystemSettingsPage from '../pages/SystemSettingsPage';
 
 // Loading component
