@@ -66,8 +66,10 @@ export const crewService = {
    * @returns {Promise} Delete result
    */
   bulkDelete: async (crewIds) => {
-    return api.post(API_ENDPOINTS.CREW_BULK_DELETE, {
-      crew_ids: crewIds,
+    return api.delete(API_ENDPOINTS.CREW_BULK_DELETE, {
+      data: {
+        crew_ids: crewIds,
+      }
     });
   },
 
