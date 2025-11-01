@@ -17911,10 +17911,22 @@ async def update_crew_member(
 @api_router.delete("/crew/{crew_id}")
 async def delete_crew_member(
     crew_id: str,
+    background: bool = Query(True, description="If true, delete DB first and return immediately, then delete files in background"),
     current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Delete a crew member"""
+    """Delete a crew member with files
+    
+    If background=True (default):
+      1. Delete from database immediately
+      2. Return success response
+      3. Delete files from Google Drive in background
+    
+    If background=False:
+      1. Delete files from Google Drive first
+      2. Then delete from database
+    """
     try:
+        logger.info(f"🗑️ Deleting crew member: {crew_id} (background={background})")
         company_uuid = await resolve_company_id(current_user)
         
         # Check if crew member exists
@@ -17940,28 +17952,64 @@ async def delete_crew_member(
             
             raise HTTPException(
                 status_code=400, 
-                detail={
-                    "error": "CREW_HAS_CERTIFICATES",
-                    "message": f"Thuyền viên \"{crew_name}\" hiện vẫn còn chứng chỉ đang lưu trên hệ thống. Hãy xóa toàn bộ các chứng chỉ trước khi xóa dữ liệu thuyền viên",
-                    "crew_name": crew_name,
-                    "certificate_count": certificate_count
-                }
+                detail=f"Cannot delete crew \"{crew_name}\": {certificate_count} certificates exist. Please delete all certificates first."
             )
         
         logger.info(f"✅ Crew {crew.get('full_name')} has no certificates, proceeding with deletion")
         
-        # Delete associated files from Google Drive before deleting crew record
+        # Get file IDs
         passport_file_id = crew.get("passport_file_id")
         summary_file_id = crew.get("summary_file_id")
-        deleted_files = []
+        has_files = bool(passport_file_id or summary_file_id)
         
-        if passport_file_id or summary_file_id:
-            logger.info(f"🗑️ Deleting associated files for crew {crew.get('full_name')}")
+        # Get Apps Script URL
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+        
+        if background:
+            # BACKGROUND MODE: Delete DB first, then files in background
+            logger.info("🚀 Background deletion mode: Deleting from database first...")
             
-            # Get company Apps Script URL for file deletion
-            company = await mongo_db.find_one("companies", {"id": company_uuid})
-            if company and (company.get("company_apps_script_url") or company.get("web_app_url")):
-                company_apps_script_url = company.get("company_apps_script_url") or company.get("web_app_url")
+            # Delete from database immediately
+            await mongo_db.delete("crew_members", {"id": crew_id})
+            logger.info(f"✅ Crew member deleted from database: {crew_id}")
+            
+            # Schedule background file deletion (non-blocking)
+            if has_files and company_apps_script_url:
+                logger.info("📤 Starting background file deletion from Google Drive...")
+                
+                import asyncio
+                asyncio.create_task(
+                    delete_crew_files_background(
+                        passport_file_id,
+                        summary_file_id,
+                        company_apps_script_url,
+                        crew_id,
+                        crew.get("full_name", "Unknown")
+                    )
+                )
+            
+            # Return immediately
+            message = "Crew member deleted from database"
+            if has_files:
+                message += " (passport files are being deleted from Google Drive in background)"
+            
+            return {
+                "success": True,
+                "message": message,
+                "files_deleted_in_background": has_files
+            }
+        
+        else:
+            # SYNCHRONOUS MODE: Delete files first, then DB
+            logger.info("🔄 Synchronous deletion mode: Deleting files first...")
+            
+            deleted_files = []
+            
+            if has_files and company_apps_script_url:
+                logger.info(f"🗑️ Deleting files for crew {crew.get('full_name')}")
                 
                 # Delete passport file
                 if passport_file_id:
@@ -17980,14 +18028,14 @@ async def delete_crew_member(
                                 if response.status == 200:
                                     result = await response.json()
                                     if result.get("success"):
-                                        logger.info(f"✅ Passport file {passport_file_id} deleted successfully")
+                                        logger.info(f"✅ Passport file deleted: {passport_file_id}")
                                         deleted_files.append("passport")
                                     else:
                                         logger.warning(f"⚠️ Failed to delete passport file: {result.get('message')}")
                                 else:
                                     logger.warning(f"⚠️ Failed to delete passport file: HTTP {response.status}")
                     except Exception as e:
-                        logger.error(f"❌ Error deleting passport file {passport_file_id}: {e}")
+                        logger.error(f"❌ Error deleting passport file: {e}")
                 
                 # Delete summary file
                 if summary_file_id:
@@ -17998,6 +18046,109 @@ async def delete_crew_member(
                                 "file_id": summary_file_id
                             }
                             async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                        deleted_files.append("summary")
+                                    else:
+                                        logger.warning(f"⚠️ Failed to delete summary file: {result.get('message')}")
+                                else:
+                                    logger.warning(f"⚠️ Failed to delete summary file: HTTP {response.status}")
+                    except Exception as e:
+                        logger.error(f"❌ Error deleting summary file: {e}")
+            
+            # Delete from database
+            await mongo_db.delete("crew_members", {"id": crew_id})
+            logger.info(f"✅ Crew member deleted from database: {crew_id}")
+            
+            return {
+                "success": True,
+                "message": "Crew member and files deleted successfully",
+                "deleted_files": deleted_files
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting crew member: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete crew member: {str(e)}")
+
+
+async def delete_crew_files_background(
+    passport_file_id: str,
+    summary_file_id: str,
+    company_apps_script_url: str,
+    crew_id: str,
+    crew_name: str
+):
+    """Background task to delete crew passport files from Google Drive"""
+    try:
+        logger.info(f"🔄 Background task started: Deleting files for crew {crew_name} ({crew_id})")
+        
+        deleted_count = 0
+        
+        # Delete passport file
+        if passport_file_id:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": passport_file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ Background: Passport file deleted: {passport_file_id}")
+                                deleted_count += 1
+                            else:
+                                logger.warning(f"⚠️ Background: Failed to delete passport file: {result.get('message')}")
+                        else:
+                            logger.warning(f"⚠️ Background: Failed to delete passport file: HTTP {response.status}")
+            except Exception as e:
+                logger.error(f"❌ Background: Error deleting passport file: {e}")
+        
+        # Delete summary file
+        if summary_file_id:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": summary_file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ Background: Summary file deleted: {summary_file_id}")
+                                deleted_count += 1
+                            else:
+                                logger.warning(f"⚠️ Background: Failed to delete summary file: {result.get('message')}")
+                        else:
+                            logger.warning(f"⚠️ Background: Failed to delete summary file: HTTP {response.status}")
+            except Exception as e:
+                logger.error(f"❌ Background: Error deleting summary file: {e}")
+        
+        logger.info(f"✅ Background task completed: Deleted {deleted_count} files for crew {crew_name}")
+        
+    except Exception as e:
+        logger.error(f"❌ Background file deletion task failed for crew {crew_name}: {e}")
                                 company_apps_script_url,
                                 json=payload,
                                 headers={"Content-Type": "application/json"},
