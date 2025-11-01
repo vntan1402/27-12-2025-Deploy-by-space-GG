@@ -7,7 +7,7 @@ import requests
 import json
 
 # Backend URL
-BACKEND_URL = "https://drive-docs-manager.preview.emergentagent.com/api"
+BACKEND_URL = "https://drive-doc-manager.preview.emergentagent.com/api"
 
 def debug_company_mismatch():
     """Debug the company ID mismatch"""
