@@ -523,7 +523,7 @@ export const CrewListTable = ({
     // Close Add Crew modal
     setShowAddCrewModal(false);
     
-    const STAGGER_DELAY = 5000; // 5 seconds between file starts (matching Test Report)
+    const STAGGER_DELAY = 2000; // 2 seconds between file starts
     const results = [];
     
     // Process files with staggered start (PARALLEL PROCESSING)
