@@ -20,6 +20,11 @@ export const CrewListTable = ({
   
   // Modal states
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
+  const [showEditCrewModal, setShowEditCrewModal] = useState(false);
+  const [showDeleteCrewModal, setShowDeleteCrewModal] = useState(false);
+  const [selectedCrewForEdit, setSelectedCrewForEdit] = useState(null);
+  const [crewToDelete, setCrewToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Batch processing states
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
