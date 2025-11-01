@@ -423,22 +423,13 @@ const CrewRecords = () => {
             )}
           </div>
         ) : (
-          /* Crew Content Section - Placeholder for now */
+          /* Crew Content Section */
           <div>
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-6xl mb-4">👥</div>
-              <p className="text-lg font-semibold mb-2">
-                {language === 'vi' ? 'Danh sách thuyền viên' : 'Crew List'}
-              </p>
-              <p className="text-sm">
-                {language === 'vi' 
-                  ? `Tàu: ${selectedShip.name}` 
-                  : `Ship: ${selectedShip.name}`}
-              </p>
-              <p className="text-xs mt-4 text-gray-400">
-                {language === 'vi' ? 'Đang phát triển...' : 'Coming soon...'}
-              </p>
-            </div>
+            <CrewListTable 
+              selectedShip={selectedShip}
+              onAddCrew={() => toast.info('Add Crew modal - Coming soon')}
+              onRefresh={() => toast.success(language === 'vi' ? 'Đã làm mới' : 'Refreshed')}
+            />
           </div>
         )}
       </div>
