@@ -3652,13 +3652,20 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
         if not current_user.company:
             raise HTTPException(status_code=404, detail="Company not found for user")
         
-        # Find company by name (V1 stores company name in user.company)
-        company = await mongo_db.find_one("companies", {"name": current_user.company})
+        # current_user.company is company_id (UUID) in V1
+        company_id = current_user.company
+        
+        # Find company by id
+        company = await mongo_db.find_one("companies", {"id": company_id})
+        
+        if not company:
+            # Try finding by company_id field (alternative)
+            company = await mongo_db.find_one("companies", {"company_id": company_id})
         
         if not company:
             # Return basic info if company not in collection
             return {
-                "name": current_user.company,
+                "name": "Company",
                 "address": None,
                 "email": None,
                 "phone": None,
@@ -3668,7 +3675,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
             }
         
         return {
-            "name": company.get("name"),
+            "name": company.get("name", "Company"),
             "address": company.get("address"),
             "email": company.get("email"),
             "phone": company.get("phone"),
