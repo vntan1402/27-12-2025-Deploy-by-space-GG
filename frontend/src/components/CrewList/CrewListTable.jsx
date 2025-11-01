@@ -499,11 +499,25 @@ export const CrewListTable = ({
       return;
     }
     
-    // Initialize batch processing
+    // Initialize batch processing with enhanced tracking
     setBatchProgress({ current: 0, total: validFiles.length, success: 0, failed: 0 });
     setBatchResults([]);
     setIsBatchProcessing(true);
     setShowBatchProcessingModal(true);
+    setIsBatchModalMinimized(false);
+    
+    // Initialize file tracking maps
+    const initialStatusMap = {};
+    const initialProgressMap = {};
+    const initialSubStatusMap = {};
+    validFiles.forEach(file => {
+      initialStatusMap[file.name] = 'waiting';
+      initialProgressMap[file.name] = 0;
+      initialSubStatusMap[file.name] = '';
+    });
+    setFileStatusMap(initialStatusMap);
+    setFileProgressMap(initialProgressMap);
+    setFileSubStatusMap(initialSubStatusMap);
     
     // Close Add Crew modal
     setShowAddCrewModal(false);
@@ -515,9 +529,22 @@ export const CrewListTable = ({
       const file = validFiles[i];
       setCurrentProcessingFile(file.name);
       
+      // Update status to processing
+      setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+      setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Đang phân tích AI...' : 'AI analysis...' }));
+      setFileProgressMap(prev => ({ ...prev, [file.name]: 25 }));
+      
       try {
-        const result = await processSingleFileInBatch(file);
+        const result = await processSingleFileInBatch(file, (progress, subStatus) => {
+          setFileProgressMap(prev => ({ ...prev, [file.name]: progress }));
+          setFileSubStatusMap(prev => ({ ...prev, [file.name]: subStatus }));
+        });
+        
         results.push(result);
+        
+        // Update status to completed or error
+        setFileStatusMap(prev => ({ ...prev, [file.name]: result.success ? 'completed' : 'error' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
         
         setBatchProgress(prev => ({
           ...prev,
@@ -533,6 +560,9 @@ export const CrewListTable = ({
           filename: file.name,
           error: error.message || 'Unknown error'
         });
+        
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
         
         setBatchProgress(prev => ({
           ...prev,
